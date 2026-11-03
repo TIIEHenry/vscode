@@ -85,7 +85,10 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 			const nowIdle = state === 'idle' || state === 'listening';
 			lastState = state;
 			if (wasMidTurn && nowIdle && this.isBodyVisible()) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -114,7 +117,22 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 			"No transcripts yet. Start a voice conversation to populate this view."
 		);
 
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this.refreshGeneration++;
+		if (this.contentContainer) {
+			DOM.clearNode(this.contentContainer);
+			this.contentContainer.remove();
+			this.contentContainer = undefined;
+		}
+		if (this.emptyState) {
+			DOM.clearNode(this.emptyState);
+			this.emptyState.remove();
+			this.emptyState = undefined;
+		}
+		super.dispose();
 	}
 
 	protected override layoutBody(height: number, width: number): void {
@@ -127,7 +145,7 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 	 * and bounded by the user's actual usage.
 	 */
 	async refresh(): Promise<void> {
-		if (!this.contentContainer || !this.emptyState) {
+		if (!this.contentContainer || !this.emptyState || this._store.isDisposed) {
 			return;
 		}
 
@@ -175,32 +193,50 @@ export class VoiceTranscriptsViewPane extends ViewPane {
 	}
 
 	async archiveAll(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.userLogin) {
 			this.userLogin = await this.resolveUserLogin();
 		}
-		if (!this.userLogin) {
+		if (!this.userLogin || this._store.isDisposed) {
 			return;
 		}
 		const cutoff = new Date().toISOString();
 		try {
 			await this.voiceTranscriptStore.archiveUpTo(this.userLogin, cutoff);
 		} catch (err) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.warn('[voiceTranscripts] archiveUpTo failed', err);
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 		await this.refresh();
 	}
 
 	async deleteAll(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.userLogin) {
 			this.userLogin = await this.resolveUserLogin();
 		}
-		if (!this.userLogin) {
+		if (!this.userLogin || this._store.isDisposed) {
 			return;
 		}
 		try {
 			await this.voiceTranscriptStore.deleteAll(this.userLogin);
 		} catch (err) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.warn('[voiceTranscripts] deleteAll failed', err);
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 		await this.refresh();
 	}

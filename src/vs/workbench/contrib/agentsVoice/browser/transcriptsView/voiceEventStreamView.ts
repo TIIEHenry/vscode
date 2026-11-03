@@ -81,7 +81,10 @@ export class VoiceEventStreamViewPane extends ViewPane {
 			const nowIdle = state === 'idle' || state === 'listening';
 			lastState = state;
 			if (wasMidTurn && nowIdle && this.isBodyVisible()) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -110,7 +113,23 @@ export class VoiceEventStreamViewPane extends ViewPane {
 			"No events yet. Start a voice conversation to populate this view."
 		);
 
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.currentTurns = [];
+		if (this.contentContainer) {
+			DOM.clearNode(this.contentContainer);
+			this.contentContainer.remove();
+			this.contentContainer = undefined;
+		}
+		if (this.emptyState) {
+			DOM.clearNode(this.emptyState);
+			this.emptyState.remove();
+			this.emptyState = undefined;
+		}
+		super.dispose();
 	}
 
 	protected override layoutBody(height: number, width: number): void {
@@ -119,7 +138,7 @@ export class VoiceEventStreamViewPane extends ViewPane {
 
 	async refresh(): Promise<void> {
 		const generation = ++this.refreshGeneration;
-		if (!this.contentContainer || !this.emptyState) {
+		if (!this.contentContainer || !this.emptyState || this._store.isDisposed) {
 			return;
 		}
 
@@ -158,11 +177,14 @@ export class VoiceEventStreamViewPane extends ViewPane {
 	}
 
 	async copyEventStream(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.currentTurns.length === 0) {
 			await this.refresh();
 		}
 
-		if (this.currentTurns.length === 0) {
+		if (this._store.isDisposed || this.currentTurns.length === 0) {
 			return;
 		}
 

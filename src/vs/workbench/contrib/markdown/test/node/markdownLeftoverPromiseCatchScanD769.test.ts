@@ -33,6 +33,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -41,13 +42,17 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(new RegExp(doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
 const setSettingCall = 'this.setSetting(settingId, currentSettingValue, newSettingValue)';
@@ -78,12 +83,13 @@ suite('markdown leftover remaining overflowed to externalUriOpener leftover Prom
 			countWrapped(renderer, writeTextCall);
 		assert.ok(markdownLegal < 4, `expected markdown legal leftover <4, got ${markdownLegal}`);
 		assert.strictEqual(markdownLegal, 2);
+		assert.strictEqual(countDoubleChains(renderer), 0);
 		assert.ok(doc.includes('return Promise.resolve(options.highlight(token.text, token.lang)).then(updateToken(token));'));
 		assert.ok(!doc.includes(`return Promise.resolve(options.highlight(token.text, token.lang)).then(updateToken(token))${doubleCatch}`));
 		assert.ok(!doc.includes(doubleCatch));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after markdown leftover remaining overflow', () => {
+	test('this knife covers five leftover Promise single-catch sites after markdown leftover remaining overflow and zero double-catches', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d769Calls) {
@@ -96,9 +102,12 @@ suite('markdown leftover remaining overflowed to externalUriOpener leftover Prom
 		}
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
-	test('markdown leftover setSetting / writeText voids are Promise double-chain; returned restore / openApplicationSettings / highlight then stay skipped', () => {
+	test('markdown leftover setSetting / writeText voids are Promise single-catch; returned restore / openApplicationSettings / highlight then stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(MARKDOWN_RENDERER_REL), 'utf8');
 		const clipboard = fs.readFileSync(resolveSource(CLIPBOARD_REL), 'utf8');
 		const config = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
@@ -114,6 +123,9 @@ suite('markdown leftover remaining overflowed to externalUriOpener leftover Prom
 		assertWrapped(source, writeTextCall);
 		assert.ok(!source.includes(`${setSettingCall};`));
 		assert.ok(!source.includes(`${writeTextCall};`));
+		assert.ok(!source.includes(`${setSettingCall}${doubleCatch}`));
+		assert.ok(!source.includes(`${writeTextCall}${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(source.includes('return this.restoreSetting(settingId);'));
 		assert.ok(!source.includes(`return this.restoreSetting(settingId)${doubleCatch}`));
 		assert.ok(source.includes('return this._preferencesService.openApplicationSettings({ query: `@id:${settingId}` });'));
@@ -122,7 +134,7 @@ suite('markdown leftover remaining overflowed to externalUriOpener leftover Prom
 		assert.ok(!doc.includes(`return Promise.resolve(options.highlight(token.text, token.lang)).then(updateToken(token))${doubleCatch}`));
 	});
 
-	test('externalUriOpener leftover invalidateOpenersOnExtensionsChanged voids are Promise double-chain; opener call sites stay skipped', () => {
+	test('externalUriOpener leftover invalidateOpenersOnExtensionsChanged voids are Promise single-catch; opener call sites stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(OPENERS_STORE_REL), 'utf8');
 		const openerSvc = fs.readFileSync(resolveSource(OPENER_SVC_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
@@ -136,6 +148,7 @@ suite('markdown leftover remaining overflowed to externalUriOpener leftover Prom
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, invalidateCall);
 		assert.strictEqual(countWrapped(source, invalidateCall), 3);
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(!source.includes('\t\tthis.invalidateOpenersOnExtensionsChanged();'));
 		assert.ok(!source.includes('() => this.invalidateOpenersOnExtensionsChanged())'));
 		assert.ok(openerSvc.includes('return allOpeners[0].openExternalUri(targetUri, ctx, token);'));
@@ -168,6 +181,7 @@ suite('markdown leftover remaining overflowed to externalUriOpener leftover Prom
 		assert.ok(!renderer.includes(' = ') || !renderer.includes(` = ${setSettingCall}${doubleCatch}`));
 		assert.ok(!doc.includes('.then(') || !doc.includes('.then(undefined,'));
 		for (const source of [renderer, doc, contrib, openerSvc, openerContrib]) {
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

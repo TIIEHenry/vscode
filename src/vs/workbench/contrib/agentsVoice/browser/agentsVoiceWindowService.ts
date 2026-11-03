@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { TimeoutTimer } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { mainWindow } from '../../../../base/browser/window.js';
@@ -55,7 +56,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 	private _openGeneration = 0;
 	private readonly _windowDisposables = this._register(new DisposableStore());
 	private readonly _ownershipChannel: BroadcastChannel;
-	private _resizeTimeout: ReturnType<typeof setTimeout> | undefined;
+	private readonly _resizeTimer = this._register(new MutableDisposable<TimeoutTimer>());
 	private _pttPressSeq = 0;
 
 	get isOpen(): boolean {
@@ -183,6 +184,9 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 				const targetAtPress = this.voiceSessionController.targetSession.get()?.toString();
 				if (!this.voiceSessionController.isConnected.get() && !this.voiceSessionController.isConnecting.get()) {
 					this.voiceSessionController.connect(mainWindow).then(() => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (pressSeq !== this._pttPressSeq) {
 							return;
 						}
@@ -205,8 +209,8 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 			closeWindow: () => this.closeWindow(),
 			stopPlayback: () => this.ttsPlaybackService.stopPlayback(),
 			openSession: (resource) => {
-				this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(onUnexpectedError).catch(onUnexpectedError);
-				this.hostService.focus(mainWindow).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(onUnexpectedError);
+				this.hostService.focus(mainWindow).catch(onUnexpectedError);
 			},
 			stopSession: (resource) => {
 				const model = this.chatService.getSession(resource);
@@ -226,7 +230,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 				this.voiceSessionController.setTargetSession(resource);
 				// Reveal the selected session in the chat panel
 				if (resource) {
-					this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.commandService.executeCommand('_chat.voice.switchToSession', resource.toString()).catch(onUnexpectedError);
 				}
 			},
 			newSessionAsTarget: () => {
@@ -257,7 +261,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 					AgentsVoiceSessionsPicker,
 					(resource) => this.voiceSessionController.setTargetSession(resource),
 				);
-				picker.show().catch(onUnexpectedError).catch(onUnexpectedError);
+				picker.show().catch(onUnexpectedError);
 			},
 		}, {
 			defaultExpanded: false,
@@ -330,10 +334,15 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 
 	override dispose(): void {
 		this._openGeneration++;
+		this._window = undefined;
+		this._windowDisposables.clear();
 		super.dispose();
 	}
 
 	async toggleWindow(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.isOpen) {
 			this.closeWindow();
 		} else {
@@ -346,11 +355,10 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 
 	private _resizeWindow(auxiliaryWindow: IAuxiliaryWindow): void {
 		// Debounce resize to avoid fighting user drag operations
-		if (this._resizeTimeout) {
-			clearTimeout(this._resizeTimeout);
-		}
-		this._resizeTimeout = setTimeout(() => {
-			this._resizeTimeout = undefined;
+		this._resizeTimer.value = new TimeoutTimer(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._doResizeWindow(auxiliaryWindow);
 		}, 100);
 	}
