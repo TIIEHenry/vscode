@@ -374,6 +374,15 @@ export class NavigatorProjectsView extends ViewPane {
 		this._register(this.uaConnection.onDidChangeConnection(() => this.refresh()));
 	}
 
+	override dispose(): void {
+		this.tree?.dispose();
+		this.tree = undefined;
+		this.treeContainer?.remove();
+		this.filterEmpty?.remove();
+		this.recentsStatus?.remove();
+		super.dispose();
+	}
+
 	override shouldShowWelcome(): boolean {
 		if (this.hasRecentsFailure()) {
 			return false;
@@ -454,7 +463,7 @@ export class NavigatorProjectsView extends ViewPane {
 			() => this.isProjectsSessionSwitchLive(),
 			sessionId => this.openSession(sessionId),
 			sessionId => {
-				void this.deleteSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.deleteSession(sessionId).catch(onUnexpectedError);
 			},
 			node => this.isWorkDirCreateTarget(node),
 			node => this.canCreateInWorkDir(node),
@@ -516,11 +525,11 @@ export class NavigatorProjectsView extends ViewPane {
 			// Without a modifier the window grows: a folder joins the workspace, it does not replace it.
 			if (!forceNewWindow && !forceReuseWindow && resource) {
 				if (this.contextService.getWorkspace().folders.some(folder => isEqual(folder.uri, resource))) {
-					void this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, resource).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, resource).catch(onUnexpectedError);
 					return;
 				}
 				if ((node.remoteAuthority || undefined) === (this.environmentService.remoteAuthority || undefined)) {
-					void this.workspaceEditingService.addFolders([{ uri: resource }]).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.workspaceEditingService.addFolders([{ uri: resource }]).catch(onUnexpectedError);
 					return;
 				}
 			}
@@ -528,7 +537,7 @@ export class NavigatorProjectsView extends ViewPane {
 				forceNewWindow: forceNewWindow || (!forceReuseWindow && !!resource),
 				forceReuseWindow,
 				remoteAuthority: node.remoteAuthority ?? null,
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -629,7 +638,7 @@ export class NavigatorProjectsView extends ViewPane {
 	private refresh(): void {
 		// The rebuild is async. Repaint the action state first so a pairing hold or disconnect disables the row actions at once.
 		this.nodeRenderer?.syncRowActionChrome();
-		void this.rebuildTree().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.rebuildTree().catch(onUnexpectedError);
 	}
 
 	private async rebuildTree(): Promise<void> {
@@ -828,6 +837,9 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private applyFilterToTree(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const tree = this.tree;
 		if (!tree) {
 			return;
