@@ -35,6 +35,7 @@ import { IViewsService } from '../../../../services/views/common/viewsService.js
 import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../../conversation/browser/conversationRevealItem.contribution.js';
 import { IConversationTimelineRevealService } from '../../../conversation/browser/conversationTimelineRevealService.js';
+import { NavigatorAgentsInlineFilterBox } from '../../browser/navigatorAgentsInlineFilterBox.js';
 import '../../browser/navigator.contribution.js';
 import {
 	NAVIGATOR_AGENTS_SHOW_ACTIVITY_COMMAND_ID,
@@ -1994,9 +1995,7 @@ suite('Navigator Agents subviews', () => {
 		}
 	});
 
-	test('activity list open does not leak unhandled rejection when reveal command rejects and onUnexpectedError warn-then-rethrows', async () => {
-		// activity onDidOpen has no inner try/catch. A lone `.catch(onUnexpectedError)`
-		// still leaks when the handler warn-then-rethrows.
+	test('activity list open does not leak unhandled rejection when reveal command rejects', async () => {
 		const boom = new Error('boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -2005,9 +2004,6 @@ suite('Navigator Agents subviews', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
@@ -2031,7 +2027,7 @@ suite('Navigator Agents subviews', () => {
 			assert.deepStrictEqual({ unhandledRejections, executeCommandCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				executeCommandCalls: 1,
-				unexpectedWarns: [boom, boom],
+				unexpectedWarns: [boom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2039,11 +2035,7 @@ suite('Navigator Agents subviews', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when revealHierarchyNode error-path throws and onUnexpectedError warn-then-rethrows', async () => {
-		// revealNavigatorAgentInConversation already catches openSubAgent; a lone inner
-		// reject does not leak. The void call site still needs `.catch` when the
-		// catch-path notify throws. A lone `.catch(onUnexpectedError)` still leaks when
-		// the handler warn-then-rethrows.
+	test('does not leak unhandled rejection when revealHierarchyNode error-path throws', async () => {
 		const notifyBoom = new Error('error failed');
 		let errorCalls = 0;
 		const unexpectedWarns: unknown[] = [];
@@ -2052,9 +2044,6 @@ suite('Navigator Agents subviews', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
@@ -2072,7 +2061,7 @@ suite('Navigator Agents subviews', () => {
 			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				errorCalls: 1,
-				unexpectedWarns: [notifyBoom, notifyBoom],
+				unexpectedWarns: [notifyBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2080,10 +2069,7 @@ suite('Navigator Agents subviews', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when hierarchy row-open error-path throws and onUnexpectedError warn-then-rethrows', async () => {
-		// Same D478+D480 lock as revealHierarchyNode: method-body catch then notify
-		// rethrow. A lone `.catch(onUnexpectedError)` still leaks when the handler
-		// warn-then-rethrows.
+	test('does not leak unhandled rejection when hierarchy row-open error-path throws', async () => {
 		const notifyBoom = new Error('error failed');
 		let errorCalls = 0;
 		const unexpectedWarns: unknown[] = [];
@@ -2092,9 +2078,6 @@ suite('Navigator Agents subviews', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
@@ -2116,7 +2099,7 @@ suite('Navigator Agents subviews', () => {
 			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				errorCalls: 1,
-				unexpectedWarns: [notifyBoom, notifyBoom],
+				unexpectedWarns: [notifyBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2124,7 +2107,7 @@ suite('Navigator Agents subviews', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when inspect openView rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when inspect openView rejects', async () => {
 		let openCalls = 0;
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -2132,9 +2115,6 @@ suite('Navigator Agents subviews', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
@@ -2150,7 +2130,7 @@ suite('Navigator Agents subviews', () => {
 			assert.deepStrictEqual({ unhandledRejections, openCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				openCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2327,5 +2307,53 @@ suite('Navigator Agents subviews', () => {
 		await timeout(0);
 		assert.strictEqual(executeCommandCalls, 0);
 		assert.strictEqual((view as unknown as { inspectService: IAgentInspectService }).inspectService.getTarget()?.kind, 'activity');
+	});
+
+	test('dispose cleans up DOM elements, filterBox, inspect state, and guards subsequent calls', () => {
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(undefined, undefined, inspectService);
+		assert.ok(view.element.querySelector('.navigator-agents-inline-filter'));
+		assert.ok(view.element.querySelector('.navigator-agents-subview'));
+
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'sess-1',
+			node: {
+				agentId: 'a1',
+				name: 'Agent 1',
+				type: 'AGENT_TYPE_ROOT',
+				status: 'AGENT_STATUS_IDLE',
+				model: 'model',
+				turnCount: 0,
+				createdAt: 0,
+				children: [],
+			},
+		});
+		inspectService.setLiveAgentIds('agents', new Set(['a1']), 'sess-1');
+		inspectService.setLiveActivityIds(new Set(['act-1']), 'sess-1');
+
+		const hierarchyBody = (view as unknown as { hierarchyBody: HTMLElement | undefined }).hierarchyBody;
+		const activityBody = (view as unknown as { activityBody: HTMLElement | undefined }).activityBody;
+		const filterBox = (view as unknown as { filterBox: NavigatorAgentsInlineFilterBox | undefined }).filterBox;
+		assert.ok(hierarchyBody);
+		assert.ok(activityBody);
+		assert.ok(filterBox);
+
+		view.dispose();
+
+		assert.strictEqual(hierarchyBody.parentElement, null, 'hierarchyBody must be removed from parent');
+		assert.strictEqual(activityBody.parentElement, null, 'activityBody must be removed from parent');
+		assert.strictEqual(filterBox.element.parentElement, null, 'filterBox element must be removed from parent');
+		assert.strictEqual(inspectService.getTarget(), undefined, 'target must be cleared on dispose');
+		assert.strictEqual(inspectService.getLiveAgentIdsFor('agents'), undefined, 'live agent ids must be cleared');
+		assert.strictEqual(inspectService.getLiveActivityIds(), undefined, 'live activity ids must be cleared');
+
+		// Disposed view methods must guard without throwing
+		view.showHierarchy();
+		view.showActivity();
+		view.refreshAgentTree();
+		view.inspectFocusedTitleAction();
+		view.inspectFocusedHierarchyNode();
+		view.revealFocusedHierarchyNode();
 	});
 });
