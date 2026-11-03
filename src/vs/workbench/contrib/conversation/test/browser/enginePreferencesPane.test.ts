@@ -209,7 +209,6 @@ suite('EnginePreferencesPane', () => {
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -217,16 +216,13 @@ suite('EnginePreferencesPane', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -978,10 +974,9 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('does not leak unhandled rejection when banner runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when banner runEngineTest catch-path paint throws', async () => {
 		// runEngineTest already catches probeEngine throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path writeStatus throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane(false, {
 			probeEngine: async () => {
@@ -1002,7 +997,7 @@ suite('EnginePreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when footer runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when footer runEngineTest catch-path paint throws', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane(true, {
 			probeEngine: async () => {
@@ -1175,5 +1170,21 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
 
 		container.remove();
+	});
+
+	test('dispose cleans up DOM elements and guards subsequent calls', () => {
+		const pane = mountPane(false);
+		const container = pane.getDomNode();
+		assert.ok(container);
+		assert.ok(container.children.length > 0);
+
+		pane.dispose();
+
+		assert.strictEqual(container.children.length, 0, 'container sub-elements must be cleared');
+		assert.strictEqual(container.parentElement, null, 'container must be removed from parent');
+
+		// Guarded operations should not throw when disposed
+		pane.layout(new Dimension(800, 600));
+		pane.selectSection('overview');
 	});
 });

@@ -194,10 +194,18 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
 		this.bannerTestButton = this._register(new Button(this.disconnectedActions, { ...defaultButtonStyles, secondary: true }));
 		this.bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(this.bannerTestButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError)));
+		this._register(this.bannerTestButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.runEngineTest().catch(onUnexpectedError);
+		}));
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
 		}));
 
@@ -229,7 +237,12 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.backButton.textContent = localize('ua.enginePreferencesBack', "Back");
 		this.backButton.setAttribute('aria-label', localize('ua.enginePreferencesBackAria', "Back to Engine sections"));
 		this.backButton.hidden = true;
-		this._register(DOM.addDisposableListener(this.backButton, 'click', () => this.showNarrowNav()));
+		this._register(DOM.addDisposableListener(this.backButton, 'click', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.showNarrowNav();
+		}));
 		this.detailTitle = DOM.append(this.detailHeader, $('h3.engine-preferences-detail-title'));
 		this.detailBody = DOM.append(this.detail, $('.engine-preferences-detail-body'));
 
@@ -259,7 +272,12 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testRow = DOM.append(this.container, $('.engine-test-row'));
 		const testButton = this._register(new Button(this.testRow, { ...defaultButtonStyles, secondary: true }));
 		testButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(testButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError)));
+		this._register(testButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.runEngineTest().catch(onUnexpectedError);
+		}));
 		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
@@ -267,24 +285,36 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		// Arrowing through the nav previews the section; `selectSection` mirrors the choice back
 		// onto the list, so all three routes converge on one selected row.
 		this._register(this.navList.onDidChangeFocus(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const entry = e.elements[0];
 			if (entry && !this.syncingNav) {
 				this.selectSection(entry.id);
 			}
 		}));
 		this._register(this.navList.onDidChangeSelection(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const entry = e.elements[0];
 			if (entry && !this.syncingNav) {
 				this.selectSection(entry.id);
 			}
 		}));
 		this._register(this.navList.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.element && !this.syncingNav) {
 				this.selectSection(e.element.id);
 			}
 		}));
 
 		this._register(this.connectionService.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.updateDisconnectedBanner();
 			this.refreshNav();
 		}));
@@ -329,7 +359,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			writeStatus(this.testStatus, testingCopy);
 			try {
 				const result = await this.connectionService.probeEngine();
-				if (discarded()) {
+				if (this._store.isDisposed || discarded()) {
 					return;
 				}
 				writeStatus(
@@ -349,12 +379,15 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 						: 'error',
 				);
 			} catch (error) {
-				if (discarded()) {
+				if (this._store.isDisposed || discarded()) {
 					return;
 				}
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				writeStatus(this.testStatus, reason, 'error');
 			}
+			return;
+		}
+		if (this._store.isDisposed) {
 			return;
 		}
 		writeStatus(
@@ -371,6 +404,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	}
 
 	selectSection(id: EnginePreferencesSectionId): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.activeSectionId = id;
 		this.detailTitle.textContent = getEnginePreferencesSectionLabel(id);
 		// Keep "you are here" honest when a section is selected from outside the nav list.
@@ -397,6 +433,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 				// The nav is hidden by CSS as soon as the detail opens. Move focus after
 				// the list selection settles so keyboard users do not remain on a hidden row.
 				queueMicrotask(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (this.narrowShowingDetail && !this.backButton.hidden) {
 						this.backButton.focus();
 					}
@@ -408,6 +447,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	}
 
 	private showNarrowNav(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.narrowShowingDetail = false;
 		this.applyNarrowChrome();
 		this.layoutParts();
@@ -502,6 +544,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	}
 
 	private updateNavBadges(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const rows = this.navHost.querySelectorAll<HTMLElement>('.monaco-list-row');
 		for (const row of rows) {
 			const index = Number(row.getAttribute('data-index'));
@@ -522,6 +567,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	}
 
 	private refreshNav(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const focusedIndex = this.navList.getFocus()[0];
 		const selectedIndex = this.navList.getSelection()[0];
 		this.navList.splice(0, this.navList.length, [...ENGINE_PREFERENCES_NAV_ENTRIES]);
@@ -534,6 +582,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	}
 
 	private updateDisconnectedBanner(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const context = this.desktopConnectionControlContext();
 		const unsupportedEnvironment = isUnsupportedLocalEngineEnvironment(context);
 		const drawDesktop = shouldDrawDesktopConnectionControls(context);
@@ -569,6 +620,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 	/** `dimension` is the leaf pane box the preferences editor hands us, not the window. */
 	layout(dimension: DOM.Dimension): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.height = `${dimension.height}px`;
 		const wasWide = !this.isNarrow();
 		const focusNarrowDetailBackButton = wasWide && this.navHost.contains(this.navHost.ownerDocument.activeElement);
@@ -582,6 +636,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 				// The nav is hidden by CSS when a wide pane collapses. Move focus after
 				// the layout settles so keyboard users do not remain on a hidden row.
 				queueMicrotask(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (this.narrowShowingDetail && !this.backButton.hidden) {
 						this.backButton.focus();
 					}
@@ -597,7 +654,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	}
 
 	override dispose(): void {
-		this.container.remove();
+		this.engineTestGeneration++;
+		DOM.clearNode(this.container);
+		this.container?.remove();
 		super.dispose();
 	}
 }
