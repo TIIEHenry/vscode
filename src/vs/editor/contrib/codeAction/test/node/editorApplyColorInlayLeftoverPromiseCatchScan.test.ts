@@ -46,18 +46,18 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers seven leftover Promise double-chain sites', () => {
+	test('this knife covers seven leftover Promise fire-and-forget catch sites', () => {
 		const controller = fs.readFileSync(resolveSource(CONTROLLER_REL), 'utf8');
 		const marker = fs.readFileSync(resolveSource(MARKER_REL), 'utf8');
 		const hoverColor = fs.readFileSync(resolveSource(HOVER_COLOR_REL), 'utf8');
 		const standalone = fs.readFileSync(resolveSource(STANDALONE_COLOR_REL), 'utf8');
 		const inlay = fs.readFileSync(resolveSource(INLAY_CTRL_REL), 'utf8');
-		const lightbulb = (controller.match(/this\.showCodeActionsFromLightbulb\(e\.actions, e\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const applyOnSelect = (controller.match(/this\.applyCodeAction\(action, \/\* retrigger \*\/ true, !!preview, options\.fromLightbulb \? ApplyCodeActionReason\.FromAILightbulb : ApplyCodeActionReason\.FromCodeActions\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const applyHover = (marker.match(/controller\?\.applyCodeAction\(aiCodeAction, false, false, ApplyCodeActionReason\.FromProblemsHover\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const hoverPresentations = (hoverColor.match(/updateColorPresentations\(editorModel, model, color, range, colorHover\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const standalonePresentations = (standalone.match(/updateColorPresentations\([\s\S]*?\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const goto = (inlay.match(/goToDefinitionWithLocation, e, this\._editor as IActiveCodeEditor, part\.location\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const lightbulb = (controller.match(/this\.showCodeActionsFromLightbulb\(e\.actions, e\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const applyOnSelect = (controller.match(/this\.applyCodeAction\(action, \/\* retrigger \*\/ true, !!preview, options\.fromLightbulb \? ApplyCodeActionReason\.FromAILightbulb : ApplyCodeActionReason\.FromCodeActions\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const applyHover = (marker.match(/controller\?\.applyCodeAction\(aiCodeAction, false, false, ApplyCodeActionReason\.FromProblemsHover\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const hoverPresentations = (hoverColor.match(/updateColorPresentations\(editorModel, model, color, range, colorHover\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const standalonePresentations = (standalone.match(/updateColorPresentations\([\s\S]*?\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const goto = (inlay.match(/goToDefinitionWithLocation, e, this\._editor as IActiveCodeEditor, part\.location\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		assert.strictEqual(lightbulb + applyOnSelect + applyHover + hoverPresentations + standalonePresentations + goto, 7);
 	});
 
@@ -74,12 +74,13 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		assert.ok(source.includes('await this.applyCodeAction(validActionToApply, false, false, ApplyCodeActionReason.FromCodeActions);'));
 	});
 
-	test('markerHover leftover applyCodeAction is Promise double-chain; opener / two-arg then stay skipped', () => {
+	test('markerHover leftover applyCodeAction is Promise single-catch; opener / two-arg then stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(MARKER_REL), 'utf8');
 		const controller = fs.readFileSync(resolveSource(CONTROLLER_REL), 'utf8');
 		assertPromiseSignature(controller, 'async applyCodeAction(action: CodeActionItem, retrigger: boolean, preview: boolean, actionReason: ApplyCodeActionReason): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(source.includes(`controller?.applyCodeAction(aiCodeAction, false, false, ApplyCodeActionReason.FromProblemsHover)${doubleCatch};`));
+		assert.ok(source.includes('controller?.applyCodeAction(aiCodeAction, false, false, ApplyCodeActionReason.FromProblemsHover).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`controller?.applyCodeAction(aiCodeAction, false, false, ApplyCodeActionReason.FromProblemsHover)${doubleCatch};`));
 		assert.ok(!source.includes('controller?.applyCodeAction(aiCodeAction, false, false, ApplyCodeActionReason.FromProblemsHover);'));
 		assert.ok(source.includes('this._openerService.open(resource, {'));
 		assert.ok(source.includes(`}).catch(onUnexpectedError);
@@ -89,18 +90,21 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		assert.ok(!source.includes('}, onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('colorPicker leftover updateColorPresentations FOFs are Promise double-chain; awaited sites stay awaited', () => {
+	test('colorPicker leftover updateColorPresentations FOFs are Promise single-catch; awaited sites stay awaited', () => {
 		const utils = fs.readFileSync(resolveSource(COLOR_UTILS_REL), 'utf8');
 		const hover = fs.readFileSync(resolveSource(HOVER_COLOR_REL), 'utf8');
 		const standalone = fs.readFileSync(resolveSource(STANDALONE_COLOR_REL), 'utf8');
 		assertPromiseSignature(utils, 'export async function updateColorPresentations(editorModel: ITextModel, colorPickerModel: ColorPickerModel, color: Color, range: Range, colorHover: BaseColor): Promise<void> {');
 		assert.ok(hover.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(standalone.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.ok(hover.includes(`updateColorPresentations(editorModel, model, color, range, colorHover)${doubleCatch};`));
+		assert.ok(hover.includes('updateColorPresentations(editorModel, model, color, range, colorHover).catch(onUnexpectedError);'));
+		assert.ok(!hover.includes(`updateColorPresentations(editorModel, model, color, range, colorHover)${doubleCatch};`));
 		assert.ok(hover.includes('await updateColorPresentations(editorModel, model, color, range, colorHover);'));
 		assert.ok(!hover.includes('\t\t\tupdateColorPresentations(editorModel, model, color, range, colorHover);\n'));
-		assert.ok(standalone.includes(`updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover)${doubleCatch};`));
-		assert.ok(standalone.includes(`updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover)${doubleCatch};`));
+		assert.ok(standalone.includes('updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover).catch(onUnexpectedError);'));
+		assert.ok(standalone.includes('updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover).catch(onUnexpectedError);'));
+		assert.ok(!standalone.includes(`updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover)${doubleCatch};`));
+		assert.ok(!standalone.includes(`updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover)${doubleCatch};`));
 		assert.ok(standalone.includes('await updateColorPresentations(this._editor.getModel(), colorPickerModel, this._color, range, colorHoverData);'));
 		assert.ok(!standalone.includes('updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover);'));
 		assert.ok(!standalone.includes('updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover);'));
@@ -134,11 +138,20 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		assert.ok(fold.includes('}).then(undefined, onUnexpectedError);'));
 		assert.ok(!fold.includes('}).then(undefined, onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(hover.includes(`promise.then(() => {
+			if (!editor.hasModel() || !editor.getPosition()?.equals(position)) {
+				return;
+			}
+			controller.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Keyboard, true);
+		}).catch(onUnexpectedError);`));
+		assert.ok(!hover.includes(`promise.then(() => {
 			controller.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Keyboard, true);
 		})${doubleCatch};`));
-		assert.ok(format.includes('}).finally(() => {\n\t\t\tunbind.dispose();\n\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(goto.includes(`this.startFindDefinition(position)${doubleCatch};`));
-		assert.ok(sticky.includes(`this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor })${doubleCatch};`));
+		assert.ok(format.includes('}).finally(() => {\n\t\t\tunbind.dispose();\n\t\t}).catch(onUnexpectedError);'));
+		assert.ok(!format.includes('}).finally(() => {\n\t\t\tunbind.dispose();\n\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(goto.includes('this.startFindDefinition(position).catch(onUnexpectedError);'));
+		assert.ok(!goto.includes(`this.startFindDefinition(position)${doubleCatch};`));
+		assert.ok(sticky.includes('this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor }).catch(onUnexpectedError);'));
+		assert.ok(!sticky.includes(`this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor })${doubleCatch};`));
 		assert.ok(controller.includes(`this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false })${doubleCatch};`));
 		assert.ok(inlay.includes('labelPart.item.resolve(cts.token);'));
 		assert.ok(!inlay.includes('labelPart.item.resolve(cts.token).catch(onUnexpectedError)'));

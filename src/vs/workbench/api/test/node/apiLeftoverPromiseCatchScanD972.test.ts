@@ -315,8 +315,10 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
 		assert.ok(panePart.includes(`${leftoverDoOpenCall}.catch(onUnexpectedError);`));
 		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}.catch(onUnexpectedError);`));
+		assert.ok(!workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}.catch(onUnexpectedError);`));
+		assert.ok(!workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
 		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}.catch(onUnexpectedError);`));
 		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
