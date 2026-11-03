@@ -71,6 +71,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -86,9 +87,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `chained double-catch found: ${call}`);
 }
 
 const applicationCloseCall = 'void Promise.resolve(this.applicationStorage?.close())';
@@ -141,10 +142,11 @@ suite('leftover remaining unused storage leftover remaining unused this.foo() le
 		assert.ok(sites <= 8);
 		assert.strictEqual(sites, 4);
 		const browser = fs.readFileSync(resolveSource(BROWSER_REL), 'utf8');
-		assert.strictEqual(countIncludes(browser, `${applicationCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(browser, `${sharedCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(browser, `${profileCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(browser, `${workspaceCloseCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${applicationCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${sharedCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${profileCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${workspaceCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countDoubleChains(browser), 0);
 		assert.ok(!browser.includes('D964'));
 		assert.ok(!fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8').includes('D964'));
 	});
@@ -155,7 +157,7 @@ suite('leftover remaining unused storage leftover remaining unused this.foo() le
 		for (const [rel, call, count] of d964Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -163,7 +165,7 @@ suite('leftover remaining unused storage leftover remaining unused this.foo() le
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(BROWSER_REL) ?? ''), 4);
+		assert.strictEqual(countDoubleChains(seen.get(BROWSER_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8')), 0);
 	});
 
@@ -181,10 +183,11 @@ suite('leftover remaining unused storage leftover remaining unused this.foo() le
 		assertWrapped(browser, sharedCloseCall);
 		assertWrapped(browser, profileCloseCall);
 		assertWrapped(browser, workspaceCloseCall);
-		assert.strictEqual(countIncludes(browser, `${applicationCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(browser, `${sharedCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(browser, `${profileCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(browser, `${workspaceCloseCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${applicationCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${sharedCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${profileCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(browser, `${workspaceCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countDoubleChains(browser), 0);
 		assert.ok(!browser.includes('\t\t\tthis.applicationStorage?.close();\n'));
 		assert.ok(!browser.includes('\t\t\tthis.applicationSharedStorageDatabase?.close();\n'));
 		assert.ok(!browser.includes('\t\t\tthis.profileStorageDatabase?.close();\n'));
@@ -281,15 +284,15 @@ suite('leftover remaining unused storage leftover remaining unused this.foo() le
 		assert.ok(!themes.includes(`this.trigger(value)${doubleCatch}`));
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
-		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
-		assert.ok(chatTip.includes(doubleCatch));
-		assert.ok(extensionsRecs.includes(doubleCatch));
-		assert.ok(configService.includes(`${validateFoldersCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`) || compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`) || panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${singleCatch}`) || workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${singleCatch}`) || workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`) || titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(logLevels.includes(`${leftoverArgvCall}${singleCatch}`) || logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
+		assert.ok(chatTip.includes(singleCatch) || chatTip.includes(doubleCatch));
+		assert.ok(extensionsRecs.includes(singleCatch) || extensionsRecs.includes(doubleCatch));
+		assert.ok(configService.includes(`${validateFoldersCall}${singleCatch}`) || configService.includes(`${validateFoldersCall}${doubleCatch}`));
 
 		for (const [rel, file] of [
 			[SEARCH_WIDGET_REL, searchWidget],

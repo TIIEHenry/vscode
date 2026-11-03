@@ -116,6 +116,7 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 
 	readonly _serviceBrand: undefined;
 
+	private _isDisposed = false;
 	private extensionHandlers = new Map<string, IExtensionContributedURLHandler>();
 	private uriBuffer = new Map<string, { timestamp: number; uri: URI }[]>();
 	private userTrustedExtensionsStorage: UserTrustedExtensionIdStorage;
@@ -138,11 +139,16 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 		const urlToHandleValue = this.storageService.get(URL_TO_HANDLE, StorageScope.WORKSPACE);
 		if (urlToHandleValue) {
 			this.storageService.remove(URL_TO_HANDLE, StorageScope.WORKSPACE);
-			this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true }).catch(onUnexpectedError);
 		}
 
 		const cache = ExtensionUrlBootstrapHandler.cache;
-		const drainTimeout = setTimeout(() => cache.forEach(([uri, option]) => this.handleURL(uri, option).catch(onUnexpectedError).catch(onUnexpectedError)));
+		const drainTimeout = setTimeout(() => {
+			if (this._isDisposed) {
+				return;
+			}
+			cache.forEach(([uri, option]) => this.handleURL(uri, option).catch(onUnexpectedError));
+		});
 
 		this.disposable = combinedDisposable(
 			urlService.registerHandler(this),
@@ -152,6 +158,10 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 	}
 
 	async handleURL(uri: URI, options?: IOpenURLOptions): Promise<boolean> {
+		if (this._isDisposed) {
+			return false;
+		}
+
 		if (!isExtensionId(uri.authority)) {
 			return false;
 		}
@@ -166,6 +176,9 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 		if (!initialHandler) {
 			// The extension is not yet activated, so let's check if it is installed and enabled
 			const extension = await this.extensionService.getExtension(extensionId);
+			if (this._isDisposed) {
+				return false;
+			}
 			extensionInstalled = !!extension;
 			if (!extension && !overrideHandler) {
 				await this.handleUnhandledURL(uri, extensionId, options);
@@ -252,12 +265,15 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 	}
 
 	registerExtensionHandler(extensionId: ExtensionIdentifier, handler: IExtensionContributedURLHandler): void {
+		if (this._isDisposed) {
+			return;
+		}
 		this.extensionHandlers.set(ExtensionIdentifier.toKey(extensionId), handler);
 
 		const uris = this.uriBuffer.get(ExtensionIdentifier.toKey(extensionId)) || [];
 
 		for (const { uri } of uris) {
-			this.handleURLByExtension(extensionId, handler, uri).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.handleURLByExtension(extensionId, handler, uri).catch(onUnexpectedError);
 		}
 
 		this.uriBuffer.delete(ExtensionIdentifier.toKey(extensionId));
@@ -268,6 +284,9 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 	}
 
 	private async handleURLByExtension(extensionId: ExtensionIdentifier | string, handler: IURLHandler, uri: URI, options?: IOpenURLOptions): Promise<boolean> {
+		if (this._isDisposed) {
+			return false;
+		}
 		return await handler.handleURL(uri, options);
 	}
 
@@ -288,7 +307,14 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 			return;
 		}
 
+		if (this._isDisposed) {
+			return;
+		}
+
 		const extension = await this.extensionService.getExtension(extensionId);
+		if (this._isDisposed) {
+			return;
+		}
 
 		if (extension) {
 			await this.handleURL(uri, { ...options, trusted: true });
@@ -345,6 +371,7 @@ class ExtensionUrlHandler implements IExtensionUrlHandler, IURLHandler {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		this.disposable.dispose();
 		this.extensionHandlers.clear();
 		this.uriBuffer.clear();

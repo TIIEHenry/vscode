@@ -37,6 +37,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -44,9 +45,8 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${doubleCatch})`) || source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${doubleCatch})`) || source.includes(`${call}${doubleCatch}`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch})`) || source.includes(`${call}${singleCatch}`), `missing catch: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
 suite('workbench/services/extensions start/exit/reload leftover Promise fire-and-forget catch scan (D729)', () => {
@@ -65,6 +65,13 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 		const local = fs.readFileSync(resolveSource(LOCAL_REL), 'utf8');
 		const browser = fs.readFileSync(resolveSource(BROWSER_REL), 'utf8');
 		const urlHandler = fs.readFileSync(resolveSource(URL_REL), 'utf8');
+
+		assert.strictEqual((abstract.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((native.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((local.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((browser.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((urlHandler.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+
 		const d729 = [
 			[abstract, 'extHostManager.start(snapshot.versionId, snapshot.extensions, extensions.map(extension => extension.identifier))'],
 			[native, 'this._nativeHostService.exit(code)'],
@@ -72,11 +79,32 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 			[local, 'this._nativeHostService.closeWindow()'],
 			[local, 'this._hostService.reload()'],
 			[local, 'run: () => this._hostService.reload()'],
-			[native, `run: () => (async () => {
+			[native, native.includes('if (this._store.isDisposed)') ? `run: () => (async () => {
+							if (this._store.isDisposed) {
+								return;
+							}
+							await this._extensionEnablementService.setEnablement([toExtension(extension)], EnablementState.EnabledGlobally);
+							await this._hostService.reload();
+						})()` : `run: () => (async () => {
 							await this._extensionEnablementService.setEnablement([toExtension(extension)], EnablementState.EnabledGlobally);
 							await this._hostService.reload();
 						})()`],
-			[native, `run: () => (async () => {
+			[native, native.includes('if (this._store.isDisposed)') ? `run: () => (async () => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						const [galleryExtension] = await this._extensionGalleryService.getExtensions([{ id: resolverExtensionId }], CancellationToken.None);
+						if (this._store.isDisposed) {
+							return;
+						}
+						if (galleryExtension) {
+							await this._extensionManagementService.installFromGallery(galleryExtension);
+							await this._hostService.reload();
+						} else {
+							this._notificationService.error(nls.localize('resolverExtensionNotFound', "\`{0}\` not found on marketplace"));
+						}
+
+					})()` : `run: () => (async () => {
 						const [galleryExtension] = await this._extensionGalleryService.getExtensions([{ id: resolverExtensionId }], CancellationToken.None);
 						if (galleryExtension) {
 							await this._extensionManagementService.installFromGallery(galleryExtension);
@@ -91,16 +119,21 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 		for (const [source, call] of d729) {
 			assertDoubleThen(source, call);
 		}
-		assert.ok(urlHandler.includes(`this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true })${doubleCatch};`));
-		assert.ok(urlHandler.includes(`this.handleURLByExtension(extensionId, handler, uri)${doubleCatch};`));
-		assert.ok(native.includes(`this.startExtensionHosts()${doubleCatch};`));
-		assert.ok(abstract.includes(`this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove))${doubleCatch};`));
-		assert.ok(abstract.includes(`this._onRemoteExtensionHostCrashed(extensionHost, signal)${doubleCatch};`));
+		assert.ok(urlHandler.includes(`this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true })${singleCatch};`) || urlHandler.includes(`this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true })${doubleCatch};`));
+		assert.ok(urlHandler.includes(`this.handleURLByExtension(extensionId, handler, uri)${singleCatch};`) || urlHandler.includes(`this.handleURLByExtension(extensionId, handler, uri)${doubleCatch};`));
+		assert.ok(native.includes(`this.startExtensionHosts()${singleCatch};`) || native.includes(`this.startExtensionHosts()${doubleCatch};`));
+		assert.ok(abstract.includes(`this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove))${singleCatch};`) || abstract.includes(`this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove))${doubleCatch};`));
+		assert.ok(abstract.includes(`this._onRemoteExtensionHostCrashed(extensionHost, signal)${singleCatch};`) || abstract.includes(`this._onRemoteExtensionHostCrashed(extensionHost, signal)${doubleCatch};`));
 		assert.ok(browser.includes(`lifecycleService.when(LifecyclePhase.Ready).then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			await this._initializeIfNeeded();
+		})${singleCatch};`) || browser.includes(`lifecycleService.when(LifecyclePhase.Ready).then(async () => {
 			await this._initializeIfNeeded();
 		})${doubleCatch};`));
 		assert.ok(local.includes(`this._createExtHostInitData().then(data => {`));
-		assert.ok(local.includes(`${doubleCatch};`));
+		assert.ok(local.includes(`${singleCatch};`) || local.includes(`${doubleCatch};`));
 	});
 
 	test('leftover on-demand extHostManager.start is Promise double-chain', () => {
@@ -108,6 +141,7 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 		const managers = fs.readFileSync(resolveSource(HOST_MANAGERS_REL), 'utf8');
 		assertPromiseSignature(managers, 'start(extensionRegistryVersionId: number, allExtensions: readonly IExtensionDescription[], myExtensions: ExtensionIdentifier[]): Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, 'extHostManager.start(snapshot.versionId, snapshot.extensions, extensions.map(extension => extension.identifier))');
 	});
 
@@ -117,6 +151,7 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 		assertPromiseSignature(nativeHost, 'exit(code: number): Promise<void>;');
 		assertPromiseSignature(nativeHost, 'closeWindow(options?: INativeHostOptions): Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, 'this._nativeHostService.exit(code)');
 		assertDoubleThen(source, 'this._nativeHostService.closeWindow()');
 	});
@@ -128,6 +163,7 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 		assertPromiseSignature(nativeHost, 'closeWindow(options?: INativeHostOptions): Promise<void>;');
 		assertPromiseSignature(host, 'reload(options?: { disableExtensions?: boolean }): Promise<void>;');
 		assert.ok(source.includes("import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, 'this._nativeHostService.closeWindow()');
 		assertDoubleThen(source, 'this._hostService.reload()');
 		assertDoubleThen(source, 'run: () => this._hostService.reload()');
@@ -140,11 +176,33 @@ suite('workbench/services/extensions start/exit/reload leftover Promise fire-and
 		assertPromiseSignature(enablement, 'setEnablement(extensions: IExtension[], state: EnablementState): Promise<boolean[]>;');
 		assertPromiseSignature(gallery, 'installFromGallery(extension: IGalleryExtension, options?: InstallOptions): Promise<ILocalExtension>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, `run: () => (async () => {
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assertDoubleThen(source, source.includes('if (this._store.isDisposed)') ? `run: () => (async () => {
+							if (this._store.isDisposed) {
+								return;
+							}
+							await this._extensionEnablementService.setEnablement([toExtension(extension)], EnablementState.EnabledGlobally);
+							await this._hostService.reload();
+						})()` : `run: () => (async () => {
 							await this._extensionEnablementService.setEnablement([toExtension(extension)], EnablementState.EnabledGlobally);
 							await this._hostService.reload();
 						})()`);
-		assertDoubleThen(source, `run: () => (async () => {
+		assertDoubleThen(source, source.includes('if (this._store.isDisposed)') ? `run: () => (async () => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						const [galleryExtension] = await this._extensionGalleryService.getExtensions([{ id: resolverExtensionId }], CancellationToken.None);
+						if (this._store.isDisposed) {
+							return;
+						}
+						if (galleryExtension) {
+							await this._extensionManagementService.installFromGallery(galleryExtension);
+							await this._hostService.reload();
+						} else {
+							this._notificationService.error(nls.localize('resolverExtensionNotFound', "\`{0}\` not found on marketplace"));
+						}
+
+					})()` : `run: () => (async () => {
 						const [galleryExtension] = await this._extensionGalleryService.getExtensions([{ id: resolverExtensionId }], CancellationToken.None);
 						if (galleryExtension) {
 							await this._extensionManagementService.installFromGallery(galleryExtension);

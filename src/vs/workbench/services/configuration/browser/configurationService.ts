@@ -149,9 +149,12 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 		this.workspaceConfiguration = this._register(new WorkspaceConfiguration(configurationCache, fileService, uriIdentityService, logService));
 		this._register(this.workspaceConfiguration.onDidUpdateConfiguration(fromCache => {
 			this.onWorkspaceConfigurationChanged(fromCache).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.workspace.initialized = this.workspaceConfiguration.initialized;
 				this.checkAndMarkWorkspaceComplete(fromCache);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 
 		this._register(this.defaultConfiguration.onDidChangeConfiguration(({ properties, defaults }) => this.onDefaultConfigurationChanged(defaults, properties)));
@@ -546,7 +549,7 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 	private checkAndMarkWorkspaceComplete(fromCache: boolean): void {
 		if (!this.completeWorkspaceBarrier.isOpen() && this.workspace.initialized) {
 			this.completeWorkspaceBarrier.open();
-			this.validateWorkspaceFoldersAndReload(fromCache).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.validateWorkspaceFoldersAndReload(fromCache).catch(onUnexpectedError);
 		}
 	}
 
@@ -588,7 +591,12 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 
 		if (!this.localUserConfiguration.hasTasksLoaded) {
 			// Reload local user configuration again to load user tasks
-			this._register(runWhenWindowIdle(mainWindow, () => this.reloadLocalUserConfiguration(false, this._configuration.localUserConfiguration).catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._register(runWhenWindowIdle(mainWindow, () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.reloadLocalUserConfiguration(false, this._configuration.localUserConfiguration).catch(onUnexpectedError);
+			}));
 		}
 	}
 
@@ -931,6 +939,9 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 
 	private async onWorkspaceFolderConfigurationChanged(folder: IWorkspaceFolder): Promise<void> {
 		const [folderConfiguration] = await this.loadFolderConfigurations([folder]);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const previous = { data: this._configuration.toData(), workspace: this.workspace };
 		const folderConfigurationChange = this._configuration.compareAndUpdateFolderConfiguration(folder.uri, folderConfiguration);
 		if (this.getWorkbenchState() === WorkbenchState.FOLDER) {
@@ -968,7 +979,12 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 			let folderConfiguration = this.cachedFolderConfigs.get(folder.uri);
 			if (!folderConfiguration) {
 				folderConfiguration = new FolderConfiguration(!this.initialized, folder, FOLDER_CONFIG_FOLDER_NAME, this.getWorkbenchState(), this.isWorkspaceTrusted, this.fileService, this.uriIdentityService, this.logService, this.configurationCache);
-				folderConfiguration.addRelated(folderConfiguration.onDidChange(() => this.onWorkspaceFolderConfigurationChanged(folder).catch(onUnexpectedError).catch(onUnexpectedError)));
+				folderConfiguration.addRelated(folderConfiguration.onDidChange(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.onWorkspaceFolderConfigurationChanged(folder).catch(onUnexpectedError);
+				}));
 				this.cachedFolderConfigs.set(folder.uri, folderConfiguration);
 			}
 			return folderConfiguration.loadConfiguration();
@@ -977,6 +993,9 @@ export class WorkspaceService extends Disposable implements IWorkbenchConfigurat
 
 	private async validateWorkspaceFoldersAndReload(fromCache: boolean): Promise<void> {
 		const validWorkspaceFolders = await this.toValidWorkspaceFolders(this.workspace.folders);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const { removed } = this.compareFolders(this.workspace.folders, validWorkspaceFolders);
 		if (removed.length) {
 			await this.updateWorkspaceConfiguration(validWorkspaceFolders, this.workspaceConfiguration.getConfiguration(), fromCache);
@@ -1169,13 +1188,21 @@ class RegisterConfigurationSchemasContribution extends Disposable implements IWo
 		super();
 
 		extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.registerConfigurationSchemas();
 
 			const configurationRegistry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
 			const delayer = this._register(new Delayer<void>(50));
 			this._register(Event.any(configurationRegistry.onDidUpdateConfiguration, configurationRegistry.onDidSchemaChange, workspaceTrustManagementService.onDidChangeTrust)(() =>
-				delayer.trigger(() => this.registerConfigurationSchemas(), lifecycleService.phase === LifecyclePhase.Eventually ? undefined : 2500 /* delay longer in early phases */)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+				delayer.trigger(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.registerConfigurationSchemas();
+				}, lifecycleService.phase === LifecyclePhase.Eventually ? undefined : 2500 /* delay longer in early phases */)));
+		}).catch(onUnexpectedError);
 	}
 
 	private registerConfigurationSchemas(): void {
@@ -1369,7 +1396,7 @@ class ConfigurationDefaultOverridesContribution extends Disposable implements IW
 		this._register(workbenchAssignmentService.onDidRefetchAssignments(() => this.throttler.queue(() => this.processExperimentalSettings(this.autoExperimentalSettings, true))));
 
 		// When configuration is updated make sure to apply experimental configuration overrides
-		this._register(this.configurationRegistry.onDidUpdateConfiguration(({ properties }) => this.processExperimentalSettings(properties, false).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.configurationRegistry.onDidUpdateConfiguration(({ properties }) => this.processExperimentalSettings(properties, false).catch(onUnexpectedError)));
 	}
 
 	private async updateDefaults(): Promise<void> {
@@ -1382,6 +1409,9 @@ class ConfigurationDefaultOverridesContribution extends Disposable implements IW
 			// and after the experiments have been resolved to prevent
 			// resetting the overrides too early.
 			await this.extensionService.whenInstalledExtensionsRegistered();
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.trace('ConfigurationService#updateDefaults: resetting the defaults');
 			this.configurationService.reloadConfiguration(ConfigurationTarget.DEFAULT);
 		}
@@ -1409,10 +1439,16 @@ class ConfigurationDefaultOverridesContribution extends Disposable implements IW
 			}
 			try {
 				const value = await this.workbenchAssignmentService.getTreatment(schema.experiment.name ?? `config.${property}`);
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (this.shouldOverride(value, schema)) {
 					overrides[property] = value;
 				}
 			} catch (error) {/*ignore */ }
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 		if (Object.keys(overrides).length) {
 			this.configurationRegistry.registerDefaultConfigurations([{ overrides, source: 'experiments' }]);

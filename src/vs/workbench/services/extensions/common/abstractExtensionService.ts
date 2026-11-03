@@ -148,6 +148,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		);
 
 		this._register(this._extensionEnablementService.onEnablementChanged((extensions) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const toAdd: IExtension[] = [];
 			const toRemove: IExtension[] = [];
 			for (const extension of extensions) {
@@ -162,28 +165,37 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			if (isCI) {
 				this._logService.info(`AbstractExtensionService.onEnablementChanged fired for ${extensions.map(e => e.identifier.id).join(', ')}`);
 			}
-			this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove)).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove)).catch(onUnexpectedError);
 		}));
 
 		this._register(this._extensionManagementService.onDidChangeProfile(({ added, removed }) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (added.length || removed.length) {
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidChangeProfile fired`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(added, removed)).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(added, removed)).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this._extensionManagementService.onDidEnableExtensions(extensions => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (extensions.length) {
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidEnableExtensions fired`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, [])).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, [])).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this._extensionManagementService.onDidInstallExtensions((result) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const extensions: IExtension[] = [];
 			const toRemove: string[] = [];
 			for (const { local, operation } of result) {
@@ -198,17 +210,20 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidInstallExtensions fired for ${extensions.map(e => e.identifier.id).join(', ')}`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, toRemove)).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, toRemove)).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this._extensionManagementService.onDidUninstallExtension((event) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!event.error) {
 				// an extension has been uninstalled
 				if (isCI) {
 					this._logService.info(`AbstractExtensionService.onDidUninstallExtension fired for ${event.identifier.id}`);
 				}
-				this._handleDeltaExtensions(new DeltaExtensionsQueueItem([], [event.identifier.id])).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._handleDeltaExtensions(new DeltaExtensionsQueueItem([], [event.identifier.id])).catch(onUnexpectedError);
 			}
 		}));
 
@@ -246,6 +261,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 	//#region deltaExtensions
 
 	private async _handleDeltaExtensions(item: DeltaExtensionsQueueItem): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._deltaExtensionsQueue.push(item);
 		if (this._inHandleDeltaExtensions) {
 			// Let the current item finish, the new one will be picked up
@@ -258,8 +276,14 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 
 			// wait for _initialize to finish before hanlding any delta extension events
 			await this._installedExtensionsReady.wait();
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			lock = await this._registry.acquireLock('handleDeltaExtensions');
+			if (this._store.isDisposed) {
+				return;
+			}
 			while (this._deltaExtensionsQueue.length > 0) {
 				const item = this._deltaExtensionsQueue.shift()!;
 				await this._deltaExtensions(lock, item.toAdd, item.toRemove);
@@ -341,7 +365,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		await this._updateExtensionsOnExtHosts(result.versionId, toAdd, toRemove.map(e => e.identifier));
 
 		for (let i = 0; i < toAdd.length; i++) {
-			this._activateAddedExtensionIfNeeded(toAdd[i]).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._activateAddedExtensionIfNeeded(toAdd[i]).catch(onUnexpectedError);
 		}
 	}
 
@@ -434,6 +458,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 
 		if (!shouldActivateReason && hasWorkspaceContains) {
 			const workspace = await this._contextService.getCompleteWorkspace();
+			if (this._store.isDisposed) {
+				return;
+			}
 			const forceUsingSearch = !!this._environmentService.remoteAuthority;
 			const host: IWorkspaceContainsActivationHost = {
 				logService: this._logService,
@@ -444,6 +471,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			};
 
 			const result = await checkActivateWorkspaceContainsExtension(host, extensionDescription);
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (result) {
 				shouldActivateReason = result.activationEvent;
 			}
@@ -484,13 +514,13 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 
 		// Activate deferred remote events now that remote hosts are starting
 		// This is done after the barrier is released to avoid blocking initialization
-		this._activateDeferredRemoteEvents().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._activateDeferredRemoteEvents().catch(onUnexpectedError);
 
 		await this._handleExtensionTests();
 	}
 
 	private async _activateDeferredRemoteEvents(): Promise<void> {
-		if (this._pendingRemoteActivationEvents.size === 0) {
+		if (this._store.isDisposed || this._pendingRemoteActivationEvents.size === 0) {
 			return;
 		}
 
@@ -502,6 +532,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 
 		// Wait for remote extension hosts to be ready
 		await Promise.all(remoteExtensionHosts.map(extHost => extHost.ready()));
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Replay deferred activation events on remote hosts
 		for (const activationEvent of this._pendingRemoteActivationEvents) {
@@ -611,7 +644,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			exitCode = 1 /* ERROR */;
 		}
 
-		this._onExtensionHostExit(exitCode).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._onExtensionHostExit(exitCode).catch(onUnexpectedError);
 	}
 
 	private findTestExtensionHost(testLocation: URI): IExtensionHostManager | null {
@@ -891,18 +924,18 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			return;
 		}
 
-		this._onExtensionHostExit(code).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._onExtensionHostExit(code).catch(onUnexpectedError);
 	}
 
 	protected _onExtensionHostCrashed(extensionHost: IExtensionHostManager, code: number, signal: string | null): void {
 		console.error(`Extension host (${extensionHost.friendyName}) terminated unexpectedly. Code: ${code}, Signal: ${signal}`);
 		if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
-			this._doStopExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._doStopExtensionHosts().catch(onUnexpectedError);
 		} else if (extensionHost.kind === ExtensionHostKind.Remote) {
 			if (signal) {
-				this._onRemoteExtensionHostCrashed(extensionHost, signal).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._onRemoteExtensionHostCrashed(extensionHost, signal).catch(onUnexpectedError);
 			}
-			this._extensionHostManagers.stopOne(extensionHost).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._extensionHostManagers.stopOne(extensionHost).catch(onUnexpectedError);
 		}
 	}
 
@@ -967,7 +1000,13 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 	}
 
 	public async startExtensionHosts(updates?: { toAdd: IExtension[]; toRemove: string[] }): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this._doStopExtensionHosts();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		if (updates) {
 			await this._handleDeltaExtensions(new DeltaExtensionsQueueItem(updates.toAdd, updates.toRemove));
@@ -975,6 +1014,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 
 		const lock = await this._registry.acquireLock('startExtensionHosts');
 		try {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._startExtensionHostsIfNecessary(false, Array.from(this._allRequestedActivateEvents.keys()));
 			this._startOnDemandExtensionHosts();
 
@@ -990,7 +1032,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		for (const extHostManager of this._extensionHostManagers) {
 			if (extHostManager.startup !== ExtensionHostStartup.EagerAutoStart) {
 				const extensions = this._runningLocations.filterByExtensionHostManager(snapshot.extensions, extHostManager);
-				extHostManager.start(snapshot.versionId, snapshot.extensions, extensions.map(extension => extension.identifier)).catch(onUnexpectedError).catch(onUnexpectedError);
+				extHostManager.start(snapshot.versionId, snapshot.extensions, extensions.map(extension => extension.identifier)).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -1024,7 +1066,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				// Note: some callers come in so early that the extension hosts have not even been created yet.
 				// Therefore we kick off the extension host creation, but without awaiting it.
 				// See https://github.com/microsoft/vscode/issues/260061
-				void this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._initializeIfNeeded()?.catch(onUnexpectedError);
 
 				return this._activateByEvent(activationEvent, activationKind);
 			}
@@ -1336,6 +1378,11 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 	}
 
 	//#endregion
+
+	override dispose(): void {
+		this._deltaExtensionsQueue = [];
+		super.dispose();
+	}
 
 	protected abstract _resolveExtensions(): AsyncIterable<ResolvedExtensions>;
 	protected abstract _onExtensionHostExit(code: number): Promise<void>;

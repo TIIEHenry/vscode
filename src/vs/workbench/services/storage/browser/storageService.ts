@@ -222,8 +222,16 @@ export class BrowserStorageService extends AbstractStorageService {
 			await oldProfileStorage.close();
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		// Create new profile storage & init
 		await this.createProfileStorage(toProfile);
+
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Handle data switch and eventing
 		this.switchData(oldItems, assertReturnsDefined(this.profileStorage), StorageScope.PROFILE);
@@ -256,10 +264,10 @@ export class BrowserStorageService extends AbstractStorageService {
 		// On all other browsers, we keep the databases opened because
 		// we expect data to be written when the unload happens.
 		if (isSafari) {
-			void Promise.resolve(this.applicationStorage?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
-			void Promise.resolve(this.applicationSharedStorageDatabase?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
-			void Promise.resolve(this.profileStorageDatabase?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
-			void Promise.resolve(this.workspaceStorageDatabase?.close()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(this.applicationStorage?.close()).catch(onUnexpectedError);
+			void Promise.resolve(this.applicationSharedStorageDatabase?.close()).catch(onUnexpectedError);
+			void Promise.resolve(this.profileStorageDatabase?.close()).catch(onUnexpectedError);
+			void Promise.resolve(this.workspaceStorageDatabase?.close()).catch(onUnexpectedError);
 		}
 
 		// Always dispose to ensure that no timeouts or callbacks
