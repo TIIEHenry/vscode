@@ -72,7 +72,7 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 	private registerListeners() {
 
 		// File Events
-		this._register(this.fileService.onDidRunOperation(e => this.onDidRunFileOperation(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.fileService.onDidRunOperation(e => this.onDidRunFileOperation(e).catch(onUnexpectedError)));
 
 		// Working Copy Events
 		this._register(this.workingCopyService.onDidChangeContent(workingCopy => this.onDidChangeContent(workingCopy)));
@@ -89,6 +89,9 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 
 		// Move working copy history entries for this file move event
 		const resources = await this.workingCopyHistoryService.moveEntries(source, target);
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Make sure to track the content version of each entry that
 		// was moved in our map. This ensures that a subsequent save
@@ -130,7 +133,7 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 
 		// Queue new operation to add to history
 		this.limiter.queue(async () => {
-			if (cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
 				return;
 			}
 
@@ -145,7 +148,7 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 			// Add entry
 			await this.workingCopyHistoryService.addEntry({ resource: e.workingCopy.resource, source, timestamp: e.stat.mtime }, cts.token);
 
-			if (cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
 				return;
 			}
 
@@ -211,5 +214,14 @@ export class WorkingCopyHistoryTracker extends Disposable implements IWorkbenchC
 
 		// Finally check for exclude setting
 		return !this.resourceExcludeMatcher.value.matches(resource);
+	}
+
+	override dispose(): void {
+		super.dispose();
+
+		for (const [, cts] of this.pendingAddHistoryEntryOperations) {
+			cts.dispose(true);
+		}
+		this.pendingAddHistoryEntryOperations.clear();
 	}
 }

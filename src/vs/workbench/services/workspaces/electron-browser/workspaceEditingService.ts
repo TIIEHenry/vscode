@@ -178,16 +178,22 @@ export class NativeWorkspaceEditingService extends AbstractWorkspaceEditingServi
 
 	async enterWorkspace(workspaceUri: URI): Promise<void> {
 		const stopped = await this.extensionService.stopExtensionHosts(localize('restartExtensionHost.reason', "Opening a multi-root workspace"));
-		if (!stopped) {
+		if (!stopped || this._store.isDisposed) {
 			return;
 		}
 
 		const oldWorkspace = toWorkspaceIdentifier(this.contextService.getWorkspace());
 		const result = await this.doEnterWorkspace(workspaceUri);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (result) {
 
 			// Migrate storage to new workspace
 			await this.storageService.switch(result.workspace, true /* preserve data */);
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			// Reinitialize backup service
 			if (this.workingCopyBackupService instanceof WorkingCopyBackupService) {
@@ -197,17 +203,20 @@ export class NativeWorkspaceEditingService extends AbstractWorkspaceEditingServi
 
 			// Fire event to allow participants to join
 			await this.fireDidEnterWorkspace(oldWorkspace, result.workspace);
+			if (this._store.isDisposed) {
+				return;
+			}
 		}
 
 		// TODO@aeschli: workaround until restarting works
 		if (this.environmentService.remoteAuthority) {
-			this.hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.hostService.reload().catch(onUnexpectedError);
 		}
 
 		// Restart the extension host: entering a workspace means a new location for
 		// storage and potentially a change in the workspace.rootPath property.
 		else {
-			this.extensionService.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.extensionService.startExtensionHosts().catch(onUnexpectedError);
 		}
 	}
 }

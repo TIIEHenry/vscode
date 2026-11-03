@@ -43,6 +43,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -59,9 +60,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const onDidFilesChangeCall = 'this.onDidFilesChange(e)';
@@ -98,7 +99,7 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		for (const [rel, call, count] of d811Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -106,8 +107,8 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(MODEL_REL) ?? ''), 4);
-		assert.strictEqual(countDoubleChains(seen.get(MGR_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(MODEL_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(MGR_REL) ?? ''), 0);
 		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_SVC_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(FILES_CFG_REL), 'utf8').includes(doubleCatch));
 	});
@@ -134,7 +135,7 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		assertWrapped(model, onDidFilesChangeCall);
 		assertWrapped(model, autoDetectLanguageCall);
 		assertWrapped(model, onMaybeShouldChangeEncodingCall);
-		assert.strictEqual(countIncludes(model, `${autoDetectLanguageCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(model, `${autoDetectLanguageCall}${singleCatch}`), 2);
 		assert.ok(!model.includes('e => this.onDidFilesChange(e)));'));
 		assert.ok(!model.includes('\t\tthis.autoDetectLanguage();\n'));
 		assert.ok(!model.includes('() => this.onMaybeShouldChangeEncoding());'));
@@ -148,7 +149,7 @@ suite('textfile leftover Promise fire-and-forget catch scan (D811)', () => {
 		assertPromiseSignature(textfiles, 'resolve(options?: ITextFileResolveOptions): Promise<void>;');
 		assert.ok(mgr.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(mgr, asyncReloadIifeCall);
-		assert.ok(mgr.includes(`${asyncReloadIifeCall}${doubleCatch};`));
+		assert.ok(mgr.includes(`${asyncReloadIifeCall}${singleCatch};`));
 		assert.ok(!mgr.includes(`${asyncReloadIifeCall};\n`));
 	});
 

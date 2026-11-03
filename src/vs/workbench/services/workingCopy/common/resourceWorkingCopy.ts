@@ -48,7 +48,7 @@ export abstract class ResourceWorkingCopy extends Disposable implements IResourc
 	) {
 		super();
 
-		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e).catch(onUnexpectedError)));
 	}
 
 	//#region Orphaned Tracking
@@ -100,6 +100,9 @@ export abstract class ResourceWorkingCopy extends Disposable implements IResourc
 					newInOrphanModeValidated = true;
 				} else {
 					const exists = await this.fileService.exists(this.resource);
+					if (this.isDisposed()) {
+						return;
+					}
 					newInOrphanModeValidated = !exists;
 				}
 

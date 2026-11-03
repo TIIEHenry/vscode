@@ -143,7 +143,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 	}
 
 	private registerListeners(): void {
-		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e).catch(onUnexpectedError)));
 		this._register(this.filesConfigurationService.onDidChangeFilesAssociation(() => this.onDidChangeFilesAssociation()));
 		this._register(this.filesConfigurationService.onDidChangeReadonly(() => this._onDidChangeReadonly.fire()));
 	}
@@ -184,6 +184,9 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 					newInOrphanModeValidated = true;
 				} else {
 					const exists = await this.fileService.exists(this.resource);
+					if (this.isDisposed()) {
+						return;
+					}
 					newInOrphanModeValidated = !exists;
 				}
 
@@ -578,7 +581,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 		this.installModelListeners(textModel);
 
 		// Detect language from content
-		this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.autoDetectLanguage().catch(onUnexpectedError);
 	}
 
 	private doUpdateTextModel(value: ITextBufferFactory, reason: TextModelEditSource): void {
@@ -600,7 +603,7 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 		// where `value` was captured in the content change listener closure scope.
 
 		this._register(model.onDidChangeContent(e => this.onModelContentChanged(model, e.isUndoing || e.isRedoing)));
-		this._register(model.onDidChangeLanguage(() => this.onMaybeShouldChangeEncoding().catch(onUnexpectedError).catch(onUnexpectedError))); // detect possible encoding change via language specific settings
+		this._register(model.onDidChangeLanguage(() => this.onMaybeShouldChangeEncoding().catch(onUnexpectedError))); // detect possible encoding change via language specific settings
 
 		super.installModelListeners(model);
 	}
@@ -652,13 +655,16 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 		this._onDidChangeContent.fire();
 
 		// Detect language from content
-		this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.autoDetectLanguage().catch(onUnexpectedError);
 	}
 
 	protected override async autoDetectLanguage(): Promise<void> {
 
 		// Wait to be ready to detect language
 		await this.extensionService?.whenInstalledExtensionsRegistered();
+		if (this.isDisposed()) {
+			return;
+		}
 
 		// Only perform language detection conditionally
 		const languageId = this.getLanguageId();
@@ -1113,6 +1119,9 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 		}
 
 		const { encoding } = await this.textFileService.encoding.getPreferredReadEncoding(this.resource);
+		if (this.isDisposed()) {
+			return;
+		}
 		if (typeof encoding !== 'string' || !this.isNewEncoding(encoding)) {
 			this.trace(`onMaybeShouldChangeEncoding() - ignoring because preferred encoding ${encoding} is not new`);
 
