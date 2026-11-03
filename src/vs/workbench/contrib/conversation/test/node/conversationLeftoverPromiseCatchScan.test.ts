@@ -31,17 +31,29 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 const leftoverCall = 'void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)';
+const leftoverDouble = new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+const leftoverSingle = new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.catch\\(onUnexpectedError\\)(?!\\.catch)`, 'g');
 const onUnexpectedErrorImport = /import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/;
 
 function assertLeftoverExecuteCommandDoubleChain(source: string, count: number): void {
 	assert.ok(onUnexpectedErrorImport.test(source));
 	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
-	assert.ok(source.includes(`${leftoverCall}${doubleCatch}`));
+	assert.strictEqual((source.match(leftoverDouble) ?? []).length, count);
 	assert.ok(!source.includes(`${leftoverCall};`));
 	assert.ok(!source.includes(`${leftoverCall},`));
 	assert.ok(!source.includes(`${leftoverCall})`));
 	assert.ok(!source.includes(`${leftoverCall}.catch(onUnexpectedError);`));
 	assert.ok(!source.includes(`${leftoverCall}.catch(onUnexpectedError),`));
+}
+
+function assertLeftoverExecuteCommandSingleChain(source: string, count: number): void {
+	assert.ok(onUnexpectedErrorImport.test(source));
+	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
+	assert.strictEqual((source.match(leftoverDouble) ?? []).length, 0);
+	assert.strictEqual((source.match(leftoverSingle) ?? []).length, count);
+	assert.ok(!source.includes(`${leftoverCall};`));
+	assert.ok(!source.includes(`${leftoverCall},`));
+	assert.ok(!source.includes(`${leftoverCall})`));
 }
 
 suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)', () => {
@@ -54,14 +66,15 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites; D701 engineAgents executeCommand stays skipped', () => {
-		const files = [TOOLS_REL, SKILLS_REL, TRIGGERS_REL, MCP_REL, PREFERENCES_REL, OVERVIEW_REL];
+	test('this knife covers seven leftover Promise double-chain sites and one deduplicated single-chain site; D701 engineAgents executeCommand stays skipped', () => {
+		const doubleFiles = [TOOLS_REL, SKILLS_REL, TRIGGERS_REL, MCP_REL, OVERVIEW_REL];
 		let sites = 0;
-		for (const rel of files) {
+		for (const rel of doubleFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+			sites += (source.match(leftoverDouble) ?? []).length;
 		}
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 7);
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8'), 1);
 		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
 		// 7bc09b48358 dropped the Agents section onOpenConnection affordances
 		// entirely; no executeCommand leftovers remain to double-chain.
@@ -81,8 +94,8 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)
 		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(MCP_REL), 'utf8'), 1);
 	});
 
-	test('enginePreferences leftover executeCommand single is double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8'), 1);
+	test('enginePreferences leftover executeCommand single is deduplicated single-chain', () => {
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8'), 1);
 	});
 
 	test('engineOverview leftover executeCommand singles are double-chain', () => {
