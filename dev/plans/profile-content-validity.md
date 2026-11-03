@@ -85,4 +85,4 @@ rawbody与赋值后读回的display baseline必须作为绑定原profile/owner/�
 
 同一私有context25元数据中新Node2/0、browser10/0后，叠ca3旧18产物为Node0/2、browser0/10：Node仅首undefined未获Instructions错误，未到后续循环/tuple；UI5项实际Saved DTO丢body、2项outer显示先停、3项Tools观察save1及错误清dirty，不能概称12项真实PIN损坏。原loader/报告读取器错误保留，不计业务红。真实A out11975/merge out11973、私有3tests与15源码均保持；全证据见[阶段记录](../progress/tools-wiki-wave-2026-11-02-evidence.md)。
 
-必要知识/行动层已随 A1 与源码形成同一 merge 主题并完成本地编译/分层校验；D1398 真实安全门仍需父另行授权后执行，现无窗口/engine 写，旧own2/无效目录/既有6项只读保留。D1395 独立 open、PRD 不升，不把本地合入与自动门当整体产品交付或全球可 push。
+必要知识/行动层已随 A1 与源码形成同一 merge 主题并完成本地编译/分层校验。2026-11-03 真实安全门预检已按 PIN `027ab7ed03ac5b64023ed6090f8610b22cc2b8ac` 启动引擎（PID `1120663`，50061）及默认编辑器（PID `1123181`，`--new-window`、无 `--agents`），但 `cua.getState()` 无法发现窗口，记录为 `BLOCKED_CUA_NO_APP_OR_WINDOW_INVENTORY`；未创建 marker、未写 Profile、未清理现场。详见[预检证据](../progress/profile-content-real-gate-20261103-evidence/README.md)及仓外原始证据 `/tmp/profile-content-real-gate-20261103/`。D1398 继续 open/push hold，D1395 独立 open，PRD 不升。
