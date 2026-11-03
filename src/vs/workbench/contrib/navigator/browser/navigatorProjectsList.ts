@@ -11,6 +11,7 @@ import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
@@ -85,7 +86,7 @@ interface IProjectFolderTemplateData {
 	readonly label: IResourceLabel;
 }
 
-interface IProjectNodeTemplateData {
+export interface IProjectNodeTemplateData {
 	readonly row: HTMLElement;
 	readonly label: HTMLElement;
 	readonly icon: HTMLElement;
@@ -98,6 +99,7 @@ interface IProjectNodeTemplateData {
 	deleteAction: Action;
 	newSessionAction: Action;
 	element: INavigatorProjectsTreeNode | undefined;
+	readonly disposables: DisposableStore;
 }
 
 function navigatorProjectsNodeIcon(kind: INavigatorProjectsTreeNode['kind']): ThemeIcon | undefined {
@@ -137,7 +139,7 @@ class ProjectFolderRenderer implements ITreeRenderer<INavigatorProjectsTreeNode,
 	}
 }
 
-class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, void, IProjectNodeTemplateData> {
+export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, void, IProjectNodeTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorProjectNode';
 	readonly templateId = ProjectNodeRenderer.TEMPLATE_ID;
 
@@ -160,6 +162,7 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 	}
 
 	renderTemplate(container: HTMLElement): IProjectNodeTemplateData {
+		const disposables = new DisposableStore();
 		const row = dom.append(container, $('.navigator-projects-node-row'));
 		const label = dom.append(row, $('.navigator-projects-node-label'));
 		const icon = dom.append(label, $('span.navigator-projects-node-icon'));
@@ -167,9 +170,9 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		const description = dom.append(label, $('span.navigator-projects-node-description'));
 		const detail = dom.append(label, $('span.navigator-projects-node-detail'));
 		const actions = dom.append(row, $('.navigator-projects-row-actions'));
-		actions.addEventListener('mousedown', event => event.stopPropagation());
-		actions.addEventListener('click', event => event.stopPropagation());
-		actions.addEventListener('dblclick', event => event.stopPropagation());
+		disposables.add(dom.addDisposableListener(actions, 'mousedown', event => event.stopPropagation()));
+		disposables.add(dom.addDisposableListener(actions, 'click', event => event.stopPropagation()));
+		disposables.add(dom.addDisposableListener(actions, 'dblclick', event => event.stopPropagation()));
 
 		const templateData: IProjectNodeTemplateData = {
 			row,
@@ -184,6 +187,7 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 			openAction: undefined!,
 			deleteAction: undefined!,
 			newSessionAction: undefined!,
+			disposables,
 		};
 		templateData.openAction = new Action(
 			'navigator.projects.openSession',
@@ -267,6 +271,7 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		templateData.openAction.dispose();
 		templateData.deleteAction.dispose();
 		templateData.newSessionAction.dispose();
+		templateData.disposables.dispose();
 	}
 
 	private sessionIdOf(templateData: IProjectNodeTemplateData): string | undefined {

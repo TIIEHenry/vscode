@@ -12,6 +12,7 @@ import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -95,7 +96,7 @@ class AgentsHierarchyDelegate implements IListVirtualDelegate<INavigatorAgentsHi
 	}
 }
 
-interface IAgentsHierarchyTemplateData {
+export interface IAgentsHierarchyTemplateData {
 	readonly label: HTMLElement;
 	readonly typeIcon: HTMLElement;
 	readonly statusGlyph: HTMLElement;
@@ -103,6 +104,7 @@ interface IAgentsHierarchyTemplateData {
 	inspectAction: Action;
 	revealAction: Action;
 	element: INavigatorAgentsHierarchyNode | undefined;
+	readonly disposables: DisposableStore;
 }
 
 function iconForAgentType(type: string): ThemeIcon {
@@ -133,7 +135,7 @@ function iconForAgentStatus(tone: AgentStatusTone): ThemeIcon {
 	}
 }
 
-class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchyNode, void, IAgentsHierarchyTemplateData> {
+export class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchyNode, void, IAgentsHierarchyTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorAgentsHierarchy';
 	readonly templateId = AgentsHierarchyRenderer.TEMPLATE_ID;
 
@@ -146,15 +148,16 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 	private readonly templates = new Set<IAgentsHierarchyTemplateData>();
 
 	renderTemplate(container: HTMLElement): IAgentsHierarchyTemplateData {
+		const disposables = new DisposableStore();
 		const row = dom.append(container, $('.navigator-agents-hierarchy-row'));
 		const typeIcon = dom.append(row, $('.navigator-agents-type-icon'));
 		typeIcon.setAttribute('aria-hidden', 'true');
 		const statusGlyph = dom.append(row, $('.navigator-agents-status-glyph'));
 		const label = dom.append(row, $('.navigator-agents-hierarchy-label'));
 		const actionsContainer = dom.append(row, $('.navigator-agents-row-actions'));
-		actionsContainer.addEventListener('mousedown', e => e.stopPropagation());
-		actionsContainer.addEventListener('click', e => e.stopPropagation());
-		actionsContainer.addEventListener('dblclick', e => e.stopPropagation());
+		disposables.add(dom.addDisposableListener(actionsContainer, 'mousedown', e => e.stopPropagation()));
+		disposables.add(dom.addDisposableListener(actionsContainer, 'click', e => e.stopPropagation()));
+		disposables.add(dom.addDisposableListener(actionsContainer, 'dblclick', e => e.stopPropagation()));
 
 		const templateData: IAgentsHierarchyTemplateData = {
 			label,
@@ -164,6 +167,7 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 			element: undefined,
 			inspectAction: undefined!,
 			revealAction: undefined!,
+			disposables,
 		};
 		templateData.inspectAction = new Action(
 			NAVIGATOR_AGENTS_INSPECT_ITEM_COMMAND_ID,
@@ -235,6 +239,7 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 		templateData.actionBar.dispose();
 		templateData.inspectAction.dispose();
 		templateData.revealAction.dispose();
+		templateData.disposables.dispose();
 	}
 }
 

@@ -77,8 +77,38 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 		return current.linkId === owner.linkId && current.engineIdentityId === owner.engineIdentityId;
 	}
 
+	private isConnectingPhase(): boolean {
+		if (!this.uaConnection) {
+			return false;
+		}
+		const snapshot = this.uaConnection.getConnectionSnapshot?.();
+		if (snapshot?.phase?.kind === 'connecting') {
+			return true;
+		}
+		const phase = this.uaConnection.getConnectionPhase?.();
+		return phase?.kind === 'connecting';
+	}
+
 	private handleConnectionChange(): void {
 		const newOwner = this.captureCurrentOwner();
+		if (this.activeOwner === undefined) {
+			if (newOwner !== undefined) {
+				this.activeOwner = newOwner;
+				if (this.target && this.target.expectedOwner === undefined) {
+					this.target = { ...this.target, expectedOwner: newOwner };
+					this._onDidChangeTarget.fire(this.target);
+				} else if (this.target && this.target.expectedOwner !== undefined && !this.areOwnersEqual(this.target.expectedOwner, newOwner)) {
+					this.target = undefined;
+					this._onDidChangeTarget.fire(undefined);
+				}
+			}
+			return;
+		}
+
+		if (newOwner === undefined && this.isConnectingPhase()) {
+			return;
+		}
+
 		if (!this.areOwnersEqual(this.activeOwner, newOwner)) {
 			this.activeOwner = newOwner;
 			this.invalidateAll();
@@ -165,6 +195,9 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 		if (owner !== undefined && !this.matchesCurrentOwner(owner)) {
 			return;
 		}
+		if (this.isConnectingPhase()) {
+			return;
+		}
 		if (source === 'agents') {
 			if (this.agentsLiveAgentIds === ids && this.agentsLiveAgentSessionId === sessionId) {
 				return;
@@ -211,6 +244,9 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 		if (owner !== undefined && !this.matchesCurrentOwner(owner)) {
 			return;
 		}
+		if (this.isConnectingPhase()) {
+			return;
+		}
 		if (this.liveActivityIds === ids && this.liveActivitySessionId === sessionId) {
 			return;
 		}
@@ -229,6 +265,9 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 
 	setLiveTaskIds(ids: ReadonlySet<string> | undefined, sessionId?: string, owner?: IUniverseAgentConnectionOwner): void {
 		if (owner !== undefined && !this.matchesCurrentOwner(owner)) {
+			return;
+		}
+		if (this.isConnectingPhase()) {
 			return;
 		}
 		if (this.liveTaskIds === ids && this.liveTaskSessionId === sessionId) {
