@@ -379,6 +379,8 @@ export class NavigatorAgentsView extends ViewPane {
 	override dispose(): void {
 		this.agentTreeLoadRunner?.done();
 		this.agentTreeLoadRunner = undefined;
+		this.inspectService.setLiveAgentIds('agents', undefined);
+		this.inspectService.setLiveActivityIds(undefined);
 		super.dispose();
 	}
 
@@ -433,6 +435,9 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private syncKeepLeftoverWriteChrome(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.updateEngineConnectedContextKey();
 		this.hierarchyRenderer?.syncRowActionChrome();
 	}
@@ -523,7 +528,7 @@ export class NavigatorAgentsView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'agent', node: e.element.source, sessionId: e.element.sessionId });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label, e.element!.sessionId)).catch(onUnexpectedError);
 		}));
 
 		return this.hierarchyTree;
@@ -559,13 +564,16 @@ export class NavigatorAgentsView extends ViewPane {
 			if (e.element.itemId.startsWith('overlay:')) {
 				return;
 			}
-			void this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID, { itemId: e.element.itemId }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID, { itemId: e.element.itemId }).catch(onUnexpectedError);
 		}));
 
 		return this.activityList;
 	}
 
 	private refreshFromLease(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const engineConnected = this.rosterService.isEngineConnected();
 		const engineReady = engineConnected && this.uaConnection.getConnectionPhase().kind === 'connected';
 		const lease = this.leaseHolder.getLease();
@@ -937,6 +945,9 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private applyFilter(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.applyFilterToHierarchy();
 		this.applyFilterToActivity();
 		this.updateHierarchyDisplay();
