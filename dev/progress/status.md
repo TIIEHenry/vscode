@@ -152,3 +152,10 @@ summary: "多槽并行编排完成 Slot A（Sources 标签宿主与差异面板 
 - **D1397 candidate1复审**：Astra C0/I4/M1、父全部采纳，尚不可READY。Clipboard外层await、Agents三派生取消/选择资格、Triggers Fire/Delete晚回及MCP workDir直接回归待新freeze；唯一作者已恢复运行并报告部分落码，均未验，不借作者回报或旧Node24绿闭门。integration停检查、不改TS/不提交混合WIP，发布hard hold保持。
 
 - **D1397候选2**：24TS/9delta已核，Astra C0/I0/M0 source/test-design READY；实际Node24 compile-client0、postcompile24hash同。聚焦lint0errors/12逐c7上下文字节核实既有warnings，脚本exit1如实保留、0新增，父/Astra已采纳基线例外继续，官方Node/common747/0、browser九文件445/0。私有旧红18项wrongB、Add一项DTO前置；c3仅该夹具一行获批修正，c3复编0、Node747/0，browser388JS同复用445；私有同目标新19/0、旧19均actual B1/expected B0（13P1族+6结构mock），real out11973同；Copilot0/shared208同。c3 changed node test聚焦lint再跑exit1/0errors/1既有warning，其余23沿用11条，总12基线；working docs门0（health716/0err46warn、wiki0err337warn、generated0、工具8/8），staged/原hooks与最终OV待。current7intentional/14不变保护分层，不沿用旧5/19全保持；发布hard hold不改。
+
+- **Wave 9 多槽并行与生命周期收敛（2026-11-03）**：
+  - **槽 A（Sources 变更列表与组件生命周期）**：抽取并强化 `SourcesChangesIdeaPanel` 与 `SourcesCommitRow` 的 `Disposable` 生命周期治理，在 `dispose()` 中彻底卸载并清理子 DOM 容器与工具栏，切断与外部宿主的关联，给全部异步/动作入口增加 `this._store.isDisposed` 状态防线；将双重 `.catch(onUnexpectedError)` 去重为单重处理，并在 `sourcesChangesList.test.ts` 中修正 `assertWarnThenRethrowDoesNotLeak` 桩以适配去重后的警告断言（156 passing / 0 failing）。
+  - **槽 B（Engine 偏好设置面板与 Scanner 静态对齐）**：`enginePreferencesPane.ts` 补充 `dispose()` 时 DOM 容器彻底移除与 `dom.clearNode` 清空、递增 `engineTestGeneration` 废弃在途异步探针、为按钮与输入事件补齐 `this._store.isDisposed` 检查；去重旧 `.catch(onUnexpectedError)` 链，并将静态扫描测试 `conversationLeftoverPromiseCatchScan*.test.ts` 适配为单 catch 断言标准；定向测试 6 passing / 0 failing。
+  - **槽 C（Navigator 团队子视图与 Inspect 注册清理）**：`navigatorTeamInlineFilterBox.ts` 与 `navigatorTeamList.ts` 补齐 `dispose()` 中子 DOM（members/tasks body、list container、empty、note、filterBox 等）移除与清空；清空注销 live inspect 目标（`setLiveAgentIds('team', undefined)` 及 `setLiveTaskIds(undefined)`）；为团队与任务刷新回调增加 `this._store.isDisposed` 保护；新增 `navigatorTeamSubviews.test.ts` 定向测试视图生命周期与注销。
+  - **单路集成门禁验证（merge 槽）**：所有槽位分支整洁合入 `codex/merge`；快速转译 `npm run transpile-client` 0 errors；定向单元测试全部通过；在 merge 槽执行单一编译管道：`npm run compile-client` 耗时 18s 0 errors；架构分层校验 `npm run valid-layers-check` 0 errors。
+
