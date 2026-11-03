@@ -124,13 +124,16 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 	) { }
 
 	renderTemplate(container: HTMLElement): ISkillRowTemplateData {
-		const row = DOM.append(container, $('.engine-skill-row'));
+		const row = DOM.append(container, $('.engine-skill-row.skill-item'));
 		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
 		const checkboxDisposable = checkbox.onChange(() => {
 			const skill = (row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill;
 			if (skill && this.canToggle()) {
 				checkbox.setTitle(getSkillToggleLabel(skill.name, checkbox.checked));
 				this.onToggle(skill, checkbox.checked);
+			} else if (skill) {
+				checkbox.checked = skill.enabled;
+				checkbox.setTitle(getSkillToggleLabel(skill.name, skill.enabled));
 			}
 		});
 		row.appendChild(checkbox.domNode);
@@ -158,7 +161,25 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 	}
 
 	updateToggleChrome(): void {
-		for (const template of this.templates) { this.updateTemplateChrome(template); }
+		for (const template of this.templates) {
+			if (template.skill) {
+				template.checkbox.checked = template.skill.enabled;
+				template.checkbox.setTitle(getSkillToggleLabel(template.skill.name, template.skill.enabled));
+			}
+			this.updateTemplateChrome(template);
+		}
+	}
+
+	updateSkill(skillName: string, enabled: boolean): void {
+		for (const template of this.templates) {
+			if (template.skill?.name === skillName) {
+				template.skill = { ...template.skill, enabled };
+				(template.row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill = template.skill;
+				template.checkbox.checked = enabled;
+				template.checkbox.setTitle(getSkillToggleLabel(skillName, enabled));
+				this.updateTemplateChrome(template);
+			}
+		}
 	}
 
 	private updateTemplateChrome(templateData: ISkillRowTemplateData): void {
@@ -700,6 +721,7 @@ export class EngineSkillsSection extends Disposable {
 		// `list.rerender()` is a no-op unless supportDynamicHeights; splice
 		// the leftover entries so renderElement can disable toggles via canWrite().
 		this.relayoutLeftoverList();
+		this.rowRenderer?.updateToggleChrome();
 		if (this.list && this.listEntries.length > 0) {
 			this.list.splice(0, this.list.length, this.listEntries);
 			this.restoreSkillSelection();
@@ -1130,6 +1152,22 @@ export class EngineSkillsSection extends Disposable {
 		if (selection.length !== 1 || selection[0] !== index) { this.list.setSelection([index]); }
 	}
 
+	private updateSkillEnablement(skillName: string, enabled: boolean): void {
+		const index = this.listEntries.findIndex(entry => entry.kind === 'skill' && entry.skill.name === skillName);
+		if (index >= 0) {
+			const entry = this.listEntries[index];
+			if (entry.kind === 'skill') {
+				const updatedSkill: UniverseAgentSkillSummary = { ...entry.skill, enabled };
+				const updatedEntry: EngineSkillListEntry = { kind: 'skill', skill: updatedSkill };
+				this.listEntries[index] = updatedEntry;
+				if (this.selectedSkill?.name === skillName) {
+					this.selectedSkill = updatedSkill;
+				}
+			}
+		}
+		this.rowRenderer?.updateSkill(skillName, enabled);
+	}
+
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
 		const link = this.captureWriteLink();
 		if (!link) { return; }
@@ -1137,10 +1175,13 @@ export class EngineSkillsSection extends Disposable {
 		this.catalogWriteOperation = operation;
 		const stillCurrent = () => this.catalogWriteOperation === operation && this.sameWriteLink(link);
 		this.linkNotice = undefined;
+		const previousEnabled = skill.enabled;
+		this.updateSkillEnablement(skill.name, enabled);
 		try {
 			const result = await this.connection.setSkillEnabled({ skillName: skill.name, enabled }, link);
 			if (!stillCurrent()) { return; }
 			if (!result.ok) {
+				this.updateSkillEnablement(skill.name, previousEnabled);
 				this.paintSkillToggleFailed();
 				await this.refresh(false, link);
 				if (stillCurrent()) { this.paintSkillToggleFailed(); }
@@ -1149,6 +1190,7 @@ export class EngineSkillsSection extends Disposable {
 			await this.restoreWriteSuccessAfterRefresh(link, () => { if (stillCurrent()) { this.paintSkillToggleSucceeded(); } });
 		} catch (error) {
 			if (!stillCurrent()) { return; }
+			this.updateSkillEnablement(skill.name, previousEnabled);
 			if (isCancellationError(error)) { this.closeInvalidOwnerChrome(link); return; }
 			this.paintSkillToggleFailed();
 			await this.refresh(false, link);

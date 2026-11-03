@@ -1554,4 +1554,39 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.strictEqual(saves[0].profile.systemPrompt, raw);
 	});
 
+	test('toggling tool enablement updates the row DOM element immediately without scrolling', async () => {
+		const tool = leftoverBashTool();
+		const connection = createConnectionStub({
+			connected: true,
+			listTools: async () => ({ tools: [tool] }),
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'default', name: 'Default', source: 'user', summary: 'test' }],
+			}),
+			saveAgentProfile: async request => ({ profile: request.profile }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 200);
+
+		const row = section.getDomNode().querySelector<HTMLElement>('.tool-item');
+		assert.ok(row, 'tool row with .tool-item class must exist in the DOM');
+		const toggle = row.querySelector<HTMLElement>('.monaco-custom-toggle');
+		assert.ok(toggle, 'toggle switch must exist in the tool row');
+
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'true');
+		assert.strictEqual(toggle.classList.contains('checked'), true);
+
+		await section.toggleTool(tool, false);
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'false');
+		assert.strictEqual(toggle.classList.contains('checked'), false);
+
+		await section.toggleTool(tool, true);
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'true');
+		assert.strictEqual(toggle.classList.contains('checked'), true);
+
+		section.setPendingEnablement(tool, false);
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'false');
+		assert.strictEqual(toggle.classList.contains('checked'), false);
+	});
+
 });

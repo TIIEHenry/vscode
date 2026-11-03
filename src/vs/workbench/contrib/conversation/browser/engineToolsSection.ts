@@ -175,6 +175,7 @@ interface IToolRowTemplateData {
 class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolRowTemplateData> {
 	static readonly TEMPLATE_ID = 'toolRow';
 	readonly templateId = EngineToolRowRenderer.TEMPLATE_ID;
+	private readonly templates = new Set<IToolRowTemplateData>();
 
 	constructor(
 		private readonly canToggle: () => boolean,
@@ -183,17 +184,19 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 	) { }
 
 	renderTemplate(container: HTMLElement): IToolRowTemplateData {
-		const row = DOM.append(container, $('.engine-catalog-row'));
+		const row = DOM.append(container, $('.engine-catalog-row.tool-item'));
 		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
 		const checkboxDisposable = checkbox.onChange(() => {
 			const tool = (row as unknown as { __tool?: UniverseAgentToolSummary }).__tool;
 			if (tool && this.canToggle()) {
 				this.onToggle(tool, checkbox.checked);
+			} else if (tool) {
+				checkbox.checked = this.isEnabled(tool.name);
 			}
 		});
 		row.appendChild(checkbox.domNode);
 		const text = DOM.append(row, $('.engine-catalog-text'));
-		return {
+		const templateData: IToolRowTemplateData = {
 			row,
 			checkbox,
 			name: DOM.append(text, $('.engine-catalog-name')),
@@ -201,6 +204,8 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 			tool: undefined,
 			checkboxDisposable: { dispose: () => checkboxDisposable.dispose() },
 		};
+		this.templates.add(templateData);
+		return templateData;
 	}
 
 	renderElement(entry: EngineToolListEntry, _index: number, templateData: IToolRowTemplateData): void {
@@ -215,6 +220,28 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 		templateData.description.style.display = subtitle ? '' : 'none';
 		templateData.checkbox.setTitle(localize('ua.engineToolsRowToggle', "Enable {0}", entry.tool.name));
 		templateData.checkbox.checked = this.isEnabled(entry.tool.name);
+		this.updateTemplateChrome(templateData);
+	}
+
+	updateToggleChrome(): void {
+		for (const template of this.templates) {
+			if (template.tool) {
+				template.checkbox.checked = this.isEnabled(template.tool.name);
+			}
+			this.updateTemplateChrome(template);
+		}
+	}
+
+	updateTool(toolName: string): void {
+		for (const template of this.templates) {
+			if (template.tool?.name === toolName) {
+				template.checkbox.checked = this.isEnabled(toolName);
+				this.updateTemplateChrome(template);
+			}
+		}
+	}
+
+	private updateTemplateChrome(templateData: IToolRowTemplateData): void {
 		templateData.checkbox.enable();
 		if (!this.canToggle()) {
 			templateData.checkbox.disable();
@@ -222,6 +249,7 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 	}
 
 	disposeTemplate(templateData: IToolRowTemplateData): void {
+		this.templates.delete(templateData);
 		templateData.checkboxDisposable.dispose();
 		templateData.checkbox.dispose();
 	}
@@ -266,6 +294,7 @@ export class EngineToolsSection extends Disposable {
 	private infoStatus: HTMLElement | undefined;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineToolListEntry> | undefined;
+	private rowRenderer: EngineToolRowRenderer | undefined;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
@@ -476,6 +505,7 @@ export class EngineToolsSection extends Disposable {
 			return false;
 		}
 		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
+		this.repaintToolRow(tool.name);
 		return this.saveToolEnablement([{ toolName: tool.name, enabled }]);
 	}
 
@@ -659,7 +689,16 @@ export class EngineToolsSection extends Disposable {
 		}
 		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
 		this.updateSaveChrome();
-		this.repaintRows();
+		this.repaintToolRow(tool.name);
+	}
+
+	/** Test hook: programmatically toggle a tool by name. */
+	async toggleToolForTest(name: string, enabled: boolean): Promise<boolean> {
+		const entry = this.listEntries.find(item => item.kind === 'tool' && item.tool.name === name);
+		if (entry?.kind === 'tool') {
+			return this.toggleTool(entry.tool, enabled);
+		}
+		return false;
 	}
 
 	private hideCatalogWriteStatus(): void {
@@ -681,6 +720,11 @@ export class EngineToolsSection extends Disposable {
 
 	private ensureList(): WorkbenchList<EngineToolListEntry> {
 		if (!this.list) {
+			this.rowRenderer = new EngineToolRowRenderer(
+				() => this.canWrite(),
+				toolName => this.isToolEnabled(toolName),
+				(tool, enabled) => this.setPendingEnablement(tool, enabled),
+			);
 			this.list = this._register(this.instantiationService.createInstance(
 				WorkbenchList,
 				'EngineTools',
@@ -688,11 +732,7 @@ export class EngineToolsSection extends Disposable {
 				new EngineToolListDelegate(),
 				[
 					new EngineToolGroupRenderer(),
-					new EngineToolRowRenderer(
-						() => this.canWrite(),
-						toolName => this.isToolEnabled(toolName),
-						(tool, enabled) => this.setPendingEnablement(tool, enabled),
-					),
+					this.rowRenderer,
 				],
 				{
 					identityProvider: {
@@ -740,8 +780,13 @@ export class EngineToolsSection extends Disposable {
 		}
 	}
 
+	private repaintToolRow(toolName: string): void {
+		this.rowRenderer?.updateTool(toolName);
+	}
+
 	/** Fixed-height Lists do not implement rerender; preserve their existing traits. */
 	private repaintRows(): void {
+		this.rowRenderer?.updateToggleChrome();
 		if (!this.list) {
 			return;
 		}
