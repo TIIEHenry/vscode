@@ -286,9 +286,11 @@ export class SourcesFilesList extends Disposable {
 
 	override dispose(): void {
 		for (const source of this.folderCancellations) {
+			source.cancel();
 			source.dispose();
 		}
 		this.folderCancellations = [];
+		this.engineCancellation?.cancel();
 		this.engineCancellation?.dispose();
 		this.engineCancellation = undefined;
 		super.dispose();
