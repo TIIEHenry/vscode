@@ -92,7 +92,7 @@ export class DynamicEditorConfigurations extends Disposable implements IWorkbenc
 
 			this.updateDynamicEditorConfigurations();
 			this.registerListeners();
-		})().catch(onUnexpectedError).catch(onUnexpectedError);
+		})().catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {

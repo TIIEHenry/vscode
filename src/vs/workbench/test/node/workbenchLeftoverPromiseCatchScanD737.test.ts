@@ -56,6 +56,12 @@ function assertDoubleThen(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
+function assertSingleCatch(source: string, call: string): void {
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError);`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+	assert.ok(!source.includes(`${call};`));
+}
+
 const configIife = `(async () => {
 			await extensionService.whenInstalledExtensionsRegistered();
 
@@ -106,7 +112,7 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites', () => {
+	test('this knife covers leftover Promise catch sites', () => {
 		const editorConfig = fs.readFileSync(resolveSource(EDITOR_CONFIG_REL), 'utf8');
 		const modal = fs.readFileSync(resolveSource(MODAL_REL), 'utf8');
 		const editorPanes = fs.readFileSync(resolveSource(EDITOR_PANES_REL), 'utf8');
@@ -114,27 +120,36 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		const nativeMenubar = fs.readFileSync(resolveSource(NATIVE_MENUBAR_REL), 'utf8');
 		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
-		const calls = [
-			[editorConfig, configIife],
+		const doubleCalls = [
 			[modal, modalClose],
-			[editorPanes, trustOpen],
-			[editorDrop, dropOpenEditors],
 			[nativeMenubar, nativeMenubarIife],
 			[treeView, treeProgressThen],
 			[listCommands, expandThen],
 		] as const;
-		assert.strictEqual(calls.length, 7);
-		for (const [source, call] of calls) {
+		assert.strictEqual(doubleCalls.length, 4);
+		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
+		}
+
+		const singleCalls = [
+			[editorConfig, configIife],
+			[editorPanes, trustOpen],
+			[editorDrop, dropOpenEditors],
+		] as const;
+		assert.strictEqual(singleCalls.length, 3);
+		for (const [source, call] of singleCalls) {
+			assertSingleCatch(source, call);
+			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		}
 	});
 
-	test('editorConfiguration leftover ctor IIFE is Promise double-chain', () => {
+	test('editorConfiguration leftover ctor IIFE has single catch', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_CONFIG_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
 		assertPromiseSignature(extensions, 'whenInstalledExtensionsRegistered(): Promise<boolean>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, configIife);
+		assertSingleCatch(source, configIife);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('modalEditorPart leftover void close is Promise double-chain', () => {
@@ -144,20 +159,22 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assertDoubleThen(source, modalClose);
 	});
 
-	test('editorPanes leftover trust openEditor is Promise double-chain', () => {
+	test('editorPanes leftover trust openEditor has single catch', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_PANES_REL), 'utf8');
 		const editorView = fs.readFileSync(resolveSource(EDITOR_VIEW_REL), 'utf8');
 		assertPromiseSignature(editorView, 'openEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined>;');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, trustOpen);
+		assertSingleCatch(source, trustOpen);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('editorDropTarget leftover openEditors is Promise double-chain', () => {
+	test('editorDropTarget leftover openEditors has single catch', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_DROP_REL), 'utf8');
 		const editorService = fs.readFileSync(resolveSource(EDITOR_SERVICE_REL), 'utf8');
 		assertPromiseSignature(editorService, 'openEditors(editors: IUntypedEditorInput[], group?: PreferredGroup, options?: IOpenEditorsOptions): Promise<readonly IEditorPane[]>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, dropOpenEditors);
+		assertSingleCatch(source, dropOpenEditors);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('electron-browser menubar leftover recentlyOpened IIFE is Promise double-chain', () => {
@@ -222,7 +239,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
 		assert.ok(tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(groupView.includes('}, this.id).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(groupView.includes('}, this.id).catch(onUnexpectedError);'));
+		assert.ok(!groupView.includes(`${doubleCatch}`));
 
 		const assignedThen = `const result = this.doShowEditor(activeEditor, { active: true, isNew: false /* restored */ }, options, internalOptions).then(() => {`;
 		assert.ok(groupView.includes(assignedThen));

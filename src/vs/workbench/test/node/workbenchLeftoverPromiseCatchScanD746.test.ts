@@ -52,6 +52,12 @@ function assertDoubleThen(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
+function assertSingleCatch(source: string, call: string): void {
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing single-catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) && !source.includes(`${call}\n`), `missing catch handler: ${call}`);
+}
+
 const partsOpen = 'void editorPart.activeGroup.openEditor(defaultInput)';
 const placeholderRetryOpen = 'this.group.openEditor(input, { ...options, source: EditorOpenSource.USER /* explicit user gesture */ })';
 const placeholderReloadOpen = 'this.group.openEditor(input, options)';
@@ -68,21 +74,27 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites', () => {
+	test('this knife covers leftover Promise catch sites', () => {
 		const editorParts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
 		const placeholder = fs.readFileSync(resolveSource(PLACEHOLDER_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(EDITOR_COMMANDS_REL), 'utf8');
 		const aux = fs.readFileSync(resolveSource(AUX_PART_REL), 'utf8');
-		const calls = [
+		const doubleCalls = [
 			[editorParts, partsOpen],
-			[placeholder, placeholderRetryOpen],
-			[placeholder, placeholderReloadOpen],
 			[commands, commandsOpen],
 			[aux, auxOpen],
 		] as const;
-		assert.strictEqual(calls.length, 5);
-		for (const [source, call] of calls) {
+		assert.strictEqual(doubleCalls.length, 3);
+		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
+		}
+		const singleCalls = [
+			[placeholder, placeholderRetryOpen],
+			[placeholder, placeholderReloadOpen],
+		] as const;
+		assert.strictEqual(singleCalls.length, 2);
+		for (const [source, call] of singleCalls) {
+			assertSingleCatch(source, call);
 		}
 	});
 
@@ -94,13 +106,14 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assertDoubleThen(source, partsOpen);
 	});
 
-	test('editorPlaceholder leftover group.openEditor fire-and-forget are Promise double-chain', () => {
+	test('editorPlaceholder leftover group.openEditor fire-and-forget have single catch', () => {
 		const source = fs.readFileSync(resolveSource(PLACEHOLDER_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'openEditor(editor: EditorInput, options?: IEditorOptions): Promise<IEditorPane | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, placeholderRetryOpen);
-		assertDoubleThen(source, placeholderReloadOpen);
+		assertSingleCatch(source, placeholderRetryOpen);
+		assertSingleCatch(source, placeholderReloadOpen);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('editorCommands leftover editorService.openEditor is Promise double-chain; await and returned stay skipped', () => {
@@ -173,7 +186,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
 		assert.ok(tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(groupView.includes('}, this.id).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(groupView.includes('}, this.id).catch(onUnexpectedError);'));
+		assert.ok(!groupView.includes(`${doubleCatch}`));
 
 		const assignedThen = `const result = this.doShowEditor(activeEditor, { active: true, isNew: false /* restored */ }, options, internalOptions).then(() => {`;
 		assert.ok(groupView.includes(assignedThen));

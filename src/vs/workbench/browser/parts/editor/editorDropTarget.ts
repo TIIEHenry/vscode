@@ -5,7 +5,7 @@
 
 import './media/editordroptarget.css';
 import { DataTransfers } from '../../../../base/browser/dnd.js';
-import { $, addDisposableListener, DragAndDropObserver, EventHelper, EventType, getWindow, isAncestor } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, DragAndDropObserver, EventHelper, EventType, getWindow, isAncestor, clearNode } from '../../../../base/browser/dom.js';
 import { renderFormattedText } from '../../../../base/browser/formattedTextRenderer.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -206,7 +206,7 @@ class DropOverlay extends Themable {
 
 				// Handle drop if we have a valid operation
 				if (this.currentDropOperation) {
-					this.handleDrop(e, this.currentDropOperation.splitDirection).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.handleDrop(e, this.currentDropOperation.splitDirection).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -251,6 +251,9 @@ class DropOverlay extends Themable {
 	}
 
 	private async handleDrop(event: DragEvent, splitDirection?: GroupDirection): Promise<void> {
+		if (this.groupView.disposed) {
+			return;
+		}
 
 		// Determine target group
 		const ensureTargetGroup = () => {
@@ -351,14 +354,26 @@ class DropOverlay extends Themable {
 			if (Array.isArray(data) && data.length > 0) {
 				const editors: IUntypedEditorInput[] = [];
 				for (const id of data) {
+					if (this.groupView.disposed || this._disposed) {
+						return;
+					}
 					const dataTransferItem = await this.treeViewsDragAndDropService.removeDragOperationTransfer(id.identifier);
+					if (this.groupView.disposed || this._disposed) {
+						return;
+					}
 					if (dataTransferItem) {
 						const treeDropData = await extractTreeDropData(dataTransferItem);
+						if (this.groupView.disposed || this._disposed) {
+							return;
+						}
 						editors.push(...treeDropData.map(editor => ({ ...editor, options: { ...editor.options, pinned: true } })));
 					}
 				}
+				if (this.groupView.disposed || this._disposed) {
+					return;
+				}
 				if (editors.length) {
-					this.editorService.openEditors(editors, ensureTargetGroup(), { validateTrust: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.editorService.openEditors(editors, ensureTargetGroup(), { validateTrust: true }).catch(onUnexpectedError);
 				}
 			}
 
@@ -367,6 +382,9 @@ class DropOverlay extends Themable {
 
 		// Check for URI transfer
 		else {
+			if (this.groupView.disposed || this._disposed) {
+				return;
+			}
 			const dropHandler = this.instantiationService.createInstance(ResourcesDropHandler, { allowWorkspaceOpen: !isWeb || isTemporaryWorkspace(this.contextService.getWorkspace()) });
 			dropHandler.handleDrop(event, getWindow(this.groupView.element), () => ensureTargetGroup(), targetGroup => targetGroup?.focus());
 		}
@@ -567,6 +585,21 @@ class DropOverlay extends Themable {
 	}
 
 	override dispose(): void {
+		if (this._disposed) {
+			return;
+		}
+
+		this.cleanupOverlayScheduler.dispose();
+		if (this.overlay) {
+			clearNode(this.overlay);
+			this.overlay.remove();
+		}
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+		}
+		this.groupView.element.classList.remove('dragged-over');
+
 		super.dispose();
 
 		this._disposed = true;
@@ -578,6 +611,7 @@ export class EditorDropTarget extends Themable {
 	private _overlay?: DropOverlay;
 
 	private counter = 0;
+	private _isDisposed = false;
 
 	private readonly editorTransfer = LocalSelectionTransfer.getInstance<DraggedEditorIdentifier>();
 	private readonly groupTransfer = LocalSelectionTransfer.getInstance<DraggedEditorGroupIdentifier>();
@@ -597,6 +631,10 @@ export class EditorDropTarget extends Themable {
 	}
 
 	private get overlay(): DropOverlay | undefined {
+		if (this._isDisposed) {
+			return undefined;
+		}
+
 		if (this._overlay && !this._overlay.disposed) {
 			return this._overlay;
 		}
@@ -613,6 +651,9 @@ export class EditorDropTarget extends Themable {
 	}
 
 	private onDragEnter(event: DragEvent): void {
+		if (this._isDisposed) {
+			return;
+		}
 		if (isDropIntoEditorEnabledGlobally(this.configurationService) && isDragIntoEditorEvent(event)) {
 			return;
 		}
@@ -688,9 +729,13 @@ export class EditorDropTarget extends Themable {
 	}
 
 	override dispose(): void {
-		super.dispose();
+		this._isDisposed = true;
 
+		this.counter = 0;
+		this.updateContainer(false);
 		this.disposeOverlay();
+
+		super.dispose();
 	}
 
 	private disposeOverlay(): void {

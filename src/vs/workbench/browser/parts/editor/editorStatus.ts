@@ -1286,7 +1286,7 @@ export class ChangeLanguageAction extends Action2 {
 									modelPreference,
 								});
 							}
-						}).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).catch(onUnexpectedError);
 					}
 				}
 

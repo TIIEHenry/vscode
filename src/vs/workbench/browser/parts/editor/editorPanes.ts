@@ -10,7 +10,7 @@ import Severity from '../../../../base/common/severity.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { EditorExtensions, EditorInputCapabilities, IEditorOpenContext, IVisibleEditorPane, isEditorOpenError } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { Dimension, show, hide, IDomNodePagePosition, isAncestor, getActiveElement, getWindowById, isEditableElement, $ } from '../../../../base/browser/dom.js';
+import { Dimension, show, hide, IDomNodePagePosition, isAncestor, getActiveElement, getWindowById, isEditableElement, $, clearNode } from '../../../../base/browser/dom.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IEditorPaneRegistry, IEditorPaneDescriptor } from '../../editor.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
@@ -83,6 +83,8 @@ export class EditorPanes extends Disposable {
 	private _activeEditorPane: EditorPane | null = null;
 	get activeEditorPane(): IVisibleEditorPane | null { return this._activeEditorPane as IVisibleEditorPane | null; }
 
+	private _isDisposed = false;
+
 	private readonly editorPanes: EditorPane[] = [];
 	private readonly mapEditorPaneToPendingSetInput = new Map<EditorPane, Promise<void>>();
 
@@ -127,11 +129,15 @@ export class EditorPanes extends Disposable {
 		const editor = this._activeEditorPane?.input;
 		const options = this._activeEditorPane?.options;
 		if (editor?.hasCapability(EditorInputCapabilities.RequiresTrust)) {
-			this.groupView.openEditor(editor, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.groupView.openEditor(editor, options).catch(onUnexpectedError);
 		}
 	}
 
 	async openEditor(editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, context: IEditorOpenContext = Object.create(null)): Promise<IOpenEditorResult> {
+		if (this._isDisposed) {
+			return { cancelled: true };
+		}
+
 		try {
 			return await this.doOpenEditor(this.getEditorPaneDescriptor(editor), editor, options, internalOptions, context);
 		} catch (error) {
@@ -153,6 +159,9 @@ export class EditorPanes extends Disposable {
 	}
 
 	private async doShowError(error: Error, editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, context?: IEditorOpenContext): Promise<IOpenEditorResult> {
+		if (this._isDisposed) {
+			return { error, cancelled: true };
+		}
 
 		// Always log the error to figure out what is going on
 		this.logService.error(error);
@@ -248,6 +257,9 @@ export class EditorPanes extends Disposable {
 	}
 
 	private async doOpenEditor(descriptor: IEditorPaneDescriptor, editor: EditorInput, options: IEditorOptions | undefined, internalOptions: IInternalEditorOpenOptions | undefined, context: IEditorOpenContext = Object.create(null)): Promise<IOpenEditorResult> {
+		if (this._isDisposed) {
+			return { cancelled: true };
+		}
 
 		// Editor pane
 		const pane = this.doShowEditorPane(descriptor);
@@ -257,6 +269,9 @@ export class EditorPanes extends Disposable {
 
 		// Apply input to pane
 		const { changed, cancelled } = await this.doSetInput(pane, editor, options, context);
+		if (this._isDisposed) {
+			return { pane, changed, cancelled: true };
+		}
 
 		// Make sure to pass focus to the pane or otherwise
 		// make sure that the pane window is visible unless
@@ -546,5 +561,23 @@ export class EditorPanes extends Disposable {
 		} catch (error) {
 			this.logService.error(error);
 		}
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+
+		this.editorOperation.stop();
+
+		this.doHideActiveEditorPane();
+
+		for (const editorPane of this.editorPanes) {
+			const container = editorPane.getContainer();
+			if (container) {
+				clearNode(container);
+				container.remove();
+			}
+		}
+
+		super.dispose();
 	}
 }
