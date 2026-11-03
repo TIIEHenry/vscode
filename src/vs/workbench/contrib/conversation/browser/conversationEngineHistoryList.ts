@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -124,7 +124,12 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.button.element.classList.add('conversation-lens-history-button');
 		this.button.element.setAttribute('aria-expanded', 'false');
 		this.button.element.setAttribute('aria-haspopup', 'dialog');
-		this._register(this.button.onDidClick(() => this.toggle()));
+		this._register(this.button.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.toggle();
+		}));
 
 		this.overlayElement = append(overlayParent, $(`.${conversationLensHistoryOverlayClass}`));
 		this.overlayElement.hidden = true;
@@ -147,11 +152,19 @@ export class ConversationEngineHistoryList extends Disposable {
 			ariaLabel: conversationLensSessionBarHistoryClose,
 		}));
 		closeButton.icon = Codicon.close;
-		this._register(closeButton.onDidClick(() => this.close()));
+		this._register(closeButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.close();
+		}));
 
 		this.body = append(panel, $('.conversation-lens-history-body'));
 
 		this._register(addDisposableListener(this.overlayElement, 'keydown', e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (handleConversationOverlayTab(this.overlayElement, e)) {
 				return;
 			}
@@ -164,7 +177,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		// Capture on the document: overlay keydown misses Escape when focus is elsewhere.
 		// addStandardDisposableListener maps DOM keyCode 27 to KeyCode.Escape.
 		this._register(addStandardDisposableListener(this.overlayElement.ownerDocument, 'keydown', e => {
-			if (!this.open || e.keyCode !== KeyCode.Escape) {
+			if (this._store.isDisposed || !this.open || e.keyCode !== KeyCode.Escape) {
 				return;
 			}
 			e.preventDefault();
@@ -172,23 +185,29 @@ export class ConversationEngineHistoryList extends Disposable {
 			this.close();
 		}, true));
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeActiveSession(sessionId => {
-			if (!this.open) {
+			if (this._store.isDisposed || !this.open) {
 				return;
 			}
 			if (this.boundSessionLeft(sessionId)) {
 				this.close({ restoreFocus: false });
 				return;
 			}
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -198,6 +217,9 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	toggle(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.open) {
 			this.close();
 			return;
@@ -206,10 +228,16 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	setOnWillShow(handler: () => void): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.onWillShow = handler;
 	}
 
 	show(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.onWillShow?.();
 		this.overlayTrigger = captureConversationOverlayTrigger(this.overlayElement);
 		this.paintedLiveHistory = false;
@@ -217,7 +245,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
 		this.overlayElement.focus();
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	close(options?: { readonly restoreFocus?: boolean }): void {
@@ -225,7 +253,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.overlayTrigger = undefined;
 		this.open = false;
 		this.renderGeneration++;
-		if (options?.restoreFocus !== false) {
+		if (options?.restoreFocus !== false && !this._store.isDisposed) {
 			restoreConversationOverlayFocus(this.overlayElement, trigger);
 		}
 		this.overlayElement.hidden = true;
@@ -234,7 +262,9 @@ export class ConversationEngineHistoryList extends Disposable {
 
 	override dispose(): void {
 		this.close({ restoreFocus: false });
+		clearNode(this.overlayElement);
 		this.overlayElement.remove();
+		this.element.remove();
 		super.dispose();
 	}
 
@@ -260,6 +290,9 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.renderGeneration;
 		const sessionId = this.resolveSessionId() ?? '';
 		if (this.paintedHistorySessionId !== sessionId) {
@@ -285,7 +318,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		}
 		try {
 			const result = await this.connection.getHistory({ sessionId });
-			if (generation !== this.renderGeneration || this._store.isDisposed) {
+			if (this._store.isDisposed || generation !== this.renderGeneration) {
 				return;
 			}
 			// D366 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
@@ -303,7 +336,7 @@ export class ConversationEngineHistoryList extends Disposable {
 			}
 			this.paintEnvelopes(result.envelopes);
 		} catch (error) {
-			if (generation !== this.renderGeneration || this._store.isDisposed) {
+			if (this._store.isDisposed || generation !== this.renderGeneration) {
 				return;
 			}
 			if (sessionId !== (this.resolveSessionId() ?? '')) {
@@ -315,6 +348,9 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	private paintStatus(text: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.paintedLiveHistory = false;
 		reset(this.body);
 		const status = append(this.body, $('.conversation-lens-history-status'));
@@ -323,6 +359,9 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	private paintListFailed(text: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.paintedLiveHistory) {
 			this.paintStatus(text);
 			return;
@@ -340,6 +379,9 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	private paintEnvelopes(envelopes: readonly UniverseAgentHistoryEnvelope[]): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		reset(this.body);
 		if (envelopes.length === 0) {
 			this.paintStatus(conversationLensSessionBarHistoryEmpty);

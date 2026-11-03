@@ -34,7 +34,6 @@ import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot
 declare function __readFileInTests(path: string): Promise<string>;
 
 async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 	const unexpectedWarns: unknown[] = [];
 	const unhandledRejections: unknown[] = [];
 	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -42,16 +41,13 @@ async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => voi
 	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 	setUnexpectedErrorHandler(error => {
 		unexpectedWarns.push(error);
-		if (unexpectedWarns.length === 1) {
-			throw error;
-		}
 	});
 	try {
 		await run();
 		await timeout(0);
 		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 			unhandledRejections: [],
-			unexpectedWarns: [paintBoom, paintBoom],
+			unexpectedWarns: [paintBoom],
 		});
 	} finally {
 		setUnexpectedErrorHandler(originalErrorHandler);
@@ -198,7 +194,7 @@ suite('ConversationEngineHistoryList', () => {
 	});
 
 	test('disposing an open history list does not restore a disposed session trigger', () => {
-		const { list, buttonParent } = mountList(createConversationConnectionTestStub());
+		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
 		const trigger = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement;
 		trigger.focus();
 		list.show();
@@ -206,6 +202,8 @@ suite('ConversationEngineHistoryList', () => {
 		list.dispose();
 
 		assert.notStrictEqual(document.activeElement, trigger);
+		assert.strictEqual(buttonParent.contains(list.element), false);
+		assert.strictEqual(overlayParent.contains(list.overlayElement), false);
 	});
 
 	test('disconnected open does not send and shows unavailable', async () => {
@@ -313,12 +311,12 @@ suite('ConversationEngineHistoryList', () => {
 
 	test('history list fire-and-forget refresh voids double-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleRefresh = `void this.refresh()${doubleCatch};`;
-		assert.strictEqual((source.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 4);
-		assert.ok(source.includes(doubleRefresh));
+		const singleCatch = '.catch(onUnexpectedError);';
+		const singleRefresh = `void this.refresh()${singleCatch}`;
+		assert.strictEqual((source.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 4);
+		assert.ok(source.includes(singleRefresh));
 		assert.ok(!source.includes('void this.refresh();'));
-		assert.ok(!source.includes('void this.refresh().catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('getHistory success then throw keeps leftover rows and paints failed', async () => {

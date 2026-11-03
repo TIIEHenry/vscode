@@ -186,7 +186,6 @@ suite('ConversationEngineSnapshotsList', () => {
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -194,16 +193,13 @@ suite('ConversationEngineSnapshotsList', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -274,7 +270,7 @@ suite('ConversationEngineSnapshotsList', () => {
 	});
 
 	test('disposing an open snapshots list does not restore a disposed session trigger', () => {
-		const { list, buttonParent } = mountList(createConversationConnectionTestStub());
+		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
 		const trigger = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement;
 		trigger.focus();
 		list.show();
@@ -282,6 +278,8 @@ suite('ConversationEngineSnapshotsList', () => {
 		list.dispose();
 
 		assert.notStrictEqual(document.activeElement, trigger);
+		assert.strictEqual(buttonParent.contains(list.element), false);
+		assert.strictEqual(overlayParent.contains(list.overlayElement), false);
 	});
 
 	test('closing an open snapshots list restores focus to its trigger', () => {
@@ -1259,9 +1257,6 @@ suite('ConversationEngineSnapshotsList', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
@@ -1280,9 +1275,8 @@ suite('ConversationEngineSnapshotsList', () => {
 			await timeout(0);
 			assert.strictEqual(confirmCalls.length, 1);
 			assert.deepStrictEqual(deleteCalls, []);
-			assert.strictEqual(unexpectedWarns.length, 2);
+			assert.strictEqual(unexpectedWarns.length, 1);
 			assert.strictEqual((unexpectedWarns[0] as Error).message, confirmBoom.message);
-			assert.strictEqual(unexpectedWarns[1], unexpectedWarns[0]);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -194,7 +194,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.button.element.classList.add('conversation-lens-snapshots-button');
 		this.button.element.setAttribute('aria-expanded', 'false');
 		this.button.element.setAttribute('aria-haspopup', 'dialog');
-		this._register(this.button.onDidClick(() => this.toggle()));
+		this._register(this.button.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.toggle();
+		}));
 
 		this.overlayElement = append(overlayParent, $(`.${conversationLensSnapshotsOverlayClass}`));
 		this.overlayElement.hidden = true;
@@ -217,7 +222,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			ariaLabel: conversationLensSessionBarSnapshotsClose,
 		}));
 		closeButton.icon = Codicon.close;
-		this._register(closeButton.onDidClick(() => this.close()));
+		this._register(closeButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.close();
+		}));
 
 		this.body = append(panel, $('.conversation-lens-snapshots-body'));
 		this.writeStatus = append(panel, $(`.${conversationLensSnapshotsWriteStatusClass}`));
@@ -225,6 +235,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.writeStatus.hidden = true;
 
 		this._register(addDisposableListener(this.overlayElement, 'keydown', e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (handleConversationOverlayTab(this.overlayElement, e)) {
 				return;
 			}
@@ -237,7 +250,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		// Capture on the document: overlay keydown misses Escape when focus is elsewhere.
 		// addStandardDisposableListener maps DOM keyCode 27 to KeyCode.Escape.
 		this._register(addStandardDisposableListener(this.overlayElement.ownerDocument, 'keydown', e => {
-			if (!this.open || e.keyCode !== KeyCode.Escape) {
+			if (this._store.isDisposed || !this.open || e.keyCode !== KeyCode.Escape) {
 				return;
 			}
 			e.preventDefault();
@@ -245,26 +258,35 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			this.close();
 		}, true));
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeActiveSession(sessionId => {
-			if (!this.open) {
+			if (this._store.isDisposed || !this.open) {
 				return;
 			}
 			if (this.boundSessionLeft(sessionId)) {
 				this.close({ restoreFocus: false });
 				return;
 			}
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.open) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.roster.onDidChangeSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.open && this.paintedLiveSnapshots && this.isKeepLeftoverListFailWrite()) {
 				this.disableLeftoverWriteButtons();
 			}
@@ -276,6 +298,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	toggle(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.open) {
 			this.close();
 			return;
@@ -284,10 +309,16 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	setOnWillShow(handler: () => void): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.onWillShow = handler;
 	}
 
 	show(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.onWillShow?.();
 		this.overlayTrigger = captureConversationOverlayTrigger(this.overlayElement);
 		this.paintedLiveSnapshots = false;
@@ -295,7 +326,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
 		this.overlayElement.focus();
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	close(options?: { readonly restoreFocus?: boolean }): void {
@@ -303,7 +334,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.overlayTrigger = undefined;
 		this.open = false;
 		this.renderGeneration++;
-		if (options?.restoreFocus !== false) {
+		if (options?.restoreFocus !== false && !this._store.isDisposed) {
 			restoreConversationOverlayFocus(this.overlayElement, trigger);
 		}
 		this.overlayElement.hidden = true;
@@ -312,7 +343,10 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	override dispose(): void {
 		this.close({ restoreFocus: false });
+		this.rowDisposables.clear();
+		clearNode(this.overlayElement);
 		this.overlayElement.remove();
+		this.element.remove();
 		super.dispose();
 	}
 
@@ -334,6 +368,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private disableLeftoverWriteButtons(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const writeButtons = this.body.querySelectorAll(
 			`.${conversationLensSnapshotsRestoreClass} .monaco-button, .${conversationLensSnapshotsDeleteClass} .monaco-button`,
 		);
@@ -375,6 +412,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const generation = ++this.renderGeneration;
 		const sessionId = this.resolveSessionId();
 		if (this.paintedSnapshotSessionId !== sessionId) {
@@ -408,7 +448,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}
 		try {
 			const result = await listSnapshots.call(this.connection, { sessionId });
-			if (generation !== this.renderGeneration || this._store.isDisposed) {
+			if (this._store.isDisposed || generation !== this.renderGeneration) {
 				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -421,7 +461,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			this.paintSnapshots(result.snapshots);
 			return true;
 		} catch (error) {
-			if (generation !== this.renderGeneration || this._store.isDisposed) {
+			if (this._store.isDisposed || generation !== this.renderGeneration) {
 				return false;
 			}
 			if (sessionId !== this.resolveSessionId()) {
@@ -481,6 +521,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private restoreSnapshot(snapshotId: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const origin = this.snapshotWriteOrigin();
 		const sessionId = origin.sessionId;
 		const restore = this.connection.restoreSnapshot;
@@ -488,7 +531,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
-		void this.restoreThenRefreshList(restore, sessionId, snapshotId, origin).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.restoreThenRefreshList(restore, sessionId, snapshotId, origin).catch(onUnexpectedError);
 	}
 
 	private async restoreThenRefreshList(
@@ -497,16 +540,25 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		snapshotId: string,
 		origin: SnapshotWriteOrigin,
 	): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		let failure: string | undefined;
 		try {
 			const result = await restore.call(this.connection, { sessionId, snapshotId });
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!result.ok) {
 				failure = formatEngineSnapshotRestoreFailedCopy(result.message ?? '');
 			}
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			failure = formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error));
 		}
-		if (!this.snapshotWriteResultCurrent(origin)) {
+		if (this._store.isDisposed || !this.snapshotWriteResultCurrent(origin)) {
 			return;
 		}
 		if (failure !== undefined) {
@@ -515,12 +567,18 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, 'success');
 		const listed = await this.refresh();
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (listed) {
 			this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, 'success');
 		}
 	}
 
 	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const origin = this.snapshotWriteOrigin();
 		const sessionId = origin.sessionId;
 		if (!this.canSendDelete(snapshot.id, sessionId)) {
@@ -533,6 +591,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			detail: localize('conversationLens.sessionBarSnapshotsDeleteConfirmDetail', "This engine checkpoint will be removed. This cannot be undone."),
 			primaryButton: conversationLensSessionBarSnapshotsDelete,
 		});
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!confirmed.confirmed) {
 			return;
 		}
@@ -543,7 +604,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.canSendDelete(snapshot.id, sessionId) || !remove || !sessionId) {
 			return;
 		}
-		void this.deleteThenRefreshList(remove, sessionId, snapshot.id, origin).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.deleteThenRefreshList(remove, sessionId, snapshot.id, origin).catch(onUnexpectedError);
 	}
 
 	private async deleteThenRefreshList(
@@ -552,16 +613,25 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		snapshotId: string,
 		origin: SnapshotWriteOrigin,
 	): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		let failure: string | undefined;
 		try {
 			const result = await remove.call(this.connection, { sessionId, snapshotId });
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!result.ok) {
 				failure = formatEngineSnapshotDeleteFailedCopy(result.message ?? '');
 			}
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			failure = formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error));
 		}
-		if (!this.snapshotWriteResultCurrent(origin)) {
+		if (this._store.isDisposed || !this.snapshotWriteResultCurrent(origin)) {
 			return;
 		}
 		if (failure !== undefined) {
@@ -570,6 +640,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, 'success');
 		const listed = await this.refresh();
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (listed) {
 			this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, 'success');
 		}
@@ -581,6 +654,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintWriteStatus(text: string | undefined, tone: 'neutral' | 'success' | 'error' = 'neutral'): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!text) {
 			writeStatus(this.writeStatus, '');
 			this.writeStatus.hidden = true;
@@ -591,6 +667,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintStatus(text: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.paintedLiveSnapshots = false;
 		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
@@ -601,6 +680,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintListFailed(text: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.paintWriteStatus(undefined);
 		if (!this.paintedLiveSnapshots) {
 			this.paintStatus(text);
@@ -619,6 +701,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private paintSnapshots(snapshots: readonly UniverseAgentSessionSnapshotInfo[]): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.leftoverListFailed = false;
 		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
@@ -688,7 +773,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			restoreButton.icon = Codicon.discard;
 			restoreButton.label = conversationLensSessionBarSnapshotsRestore;
 			restoreButton.enabled = canRestore;
-			this.rowDisposables.add(restoreButton.onDidClick(() => this.restoreSnapshot(snapshot.id)));
+			this.rowDisposables.add(restoreButton.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.restoreSnapshot(snapshot.id);
+			}));
 
 			const deleteContainer = append(row, $(`.${conversationLensSnapshotsDeleteClass}`));
 			const deleteButton = this.rowDisposables.add(new Button(deleteContainer, {
@@ -705,7 +795,12 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			deleteButton.icon = Codicon.trash;
 			deleteButton.label = conversationLensSessionBarSnapshotsDelete;
 			deleteButton.enabled = canDelete;
-			this.rowDisposables.add(deleteButton.onDidClick(() => void this.deleteSnapshot(snapshot).catch(onUnexpectedError).catch(onUnexpectedError)));
+			this.rowDisposables.add(deleteButton.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.deleteSnapshot(snapshot).catch(onUnexpectedError);
+			}));
 		}
 	}
 }
