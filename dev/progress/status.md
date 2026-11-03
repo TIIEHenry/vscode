@@ -4,10 +4,22 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Sources 标签宿主与差异面板 DOM 节点清理与生命周期防护）、Slot B（Conversation MCP 运行时面板与插件列表 DOM 清理与防护）、Slot C（Navigator 智能体视图与行内过滤框 DOM 生命周期、Inspect 状态清理与测试对齐）。merge 槽单流水线全量编译 compile-client 0 错误（22s），valid-layers-check 0 错误，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Conversation Engine Catalog 各 Section 生命周期代际失效、DOM 节点清理与双重 catch 错误处理去重）、Slot B（Chat MCP 定制管理编辑器与列表小部件 DOM 清理、生命周期守卫与去重）、Slot C（Conversation Identity Strip 与 Lens UI 界面生命周期清理、DOM 脱落与错误处理去重）。merge 槽单流水线全量编译 compile-client 0 错误（22s），valid-layers-check 0 错误，965 项单元测试 100% 通过，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次九）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Conversation Engine 目录 Sections 生命周期代际失效、DOM 节点清理与错误处理去重)**：在 `engineAgentsSection.ts`、`engineSkillsSection.ts`、`engineToolsSection.ts`、`engineTriggersSection.ts`、`engineProviderModelSection.ts`（包含 `EngineProvidersSection` 与 `EngineModelsSection`）全面规范 `dispose()`：递增刷新代际（`refreshGeneration`、`selectionGeneration`、`bodyLoadGeneration` 等）使在途异步回调彻底失效；通过 `DOM.clearNode(this.container); this.container.remove();` 彻底脱落和清空宿主 DOM 节点杜绝游离 DOM 内存泄漏；在全部异步入口增设 `if (this._store.isDisposed) { return; }` 防护；收敛消除了 60 余处级联冗余 `.catch(onUnexpectedError).catch(onUnexpectedError)`；对齐相关单测与 CatchScan 基准。槽提交 `4f97a4214f3`。
+  - **槽位 B (Chat MCP 定制管理小部件与编辑器 DOM 节点清理与防护)**：在 `mcpListWidget.ts`、`embeddedMcpServerDetail.ts`、`galleryItemRenderer.ts`、`aiCustomizationManagementEditor.ts` 的 `dispose()` 与 `disposeTemplate()` 显式调用 `DOM.clearNode` 清理子节点并脱落容器；在 `mcpListWidget.ts` 销毁时主动取消延迟过滤器与在途市场检索；在各异步回调增设 `this._store.isDisposed` 状态拦截；收敛冗余级联错误处理至单级 `.catch(onUnexpectedError)`；对齐全部 CatchScan 及组件单测。槽提交 `4e8b8e763b8`。
+  - **槽位 C (Conversation Identity Strip 与 Lens UI 界面生命周期清理与错误处理去重)**：在 `conversationIdentityStrip.ts` 的 `dispose()` 显式关闭活动菜单并以 `DOM.clearNode(this.element); this.element.remove();` 彻底脱落 DOM 节点；在 `conversationLensComposerChrome.ts`、`conversationLensDock.ts`、`conversationLeafSessionBar.ts`、`conversationLensSessionBar.ts`、`conversationLensComposer.ts` 规范销毁流程，支持弹窗关闭（`dismissComposerPopups`）、dockRoot 节点移除与 `host.isDisposed` 状态保护；收敛级联错误处理并在单测中确保无头测试视口滚动与交互稳定性。槽提交 `38649908172`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `9872da6f777`、`4e8b8e763b8`、`4753c893708`、`6ac89324662`）。965 项单元测试 100% 全绿通过（0 失败），全量客户端编译 `npm run compile-client` 0 错误（22s），分层校验 `npm run valid-layers-check` 0 错误，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 解决 `conversationIdentityStrip.test.ts` 中 `'engine chip stays the hit target when session bar / split-view chrome overlaps it'` 用例在长套件无头执行时，由于前置测试引起 DOM 累计或滚动导致待测元素视口溢出，进而使 `document.elementFromPoint` 返回 null 的时序缺陷；通过添加 `scrollIntoView` 确保坐标有效且测试稳定通过。
+    2) 发现并修正 `D710` 扫描器在 `conversationLeftoverPromiseCatchScan.test.ts` 中针对历史遗留重复 catch 数量的陈旧基准值，同步更新扫描器预期。
+    3) 修复 `engineProviderModelSection.test.ts` 中在 `section.dispose()` 之后仍尝试从 DOM 树查询内部已脱落节点的测试断言缺陷。
+    4) 修复 `aiCustomizationManagementEditor.test.ts` 中 `createTestEditor()` 缺少 `workspaceService` 桩服务导致访问 `isSessionsWindow` 抛出空指针的缺陷。
+    5) 修复 `conversationIdentityStrip.ts` 中 `dispose()` 在部分仅提供精简桩的测试环境中直接访问 `actionWidgetService.isVisible` 报 undefined 的缺陷，改为可选链安全访问。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次八）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Sources 标签宿主与差异面板 DOM 节点清理与生命周期防护)**：在 `sourcesTabsHost.ts` 的 `dispose()` 显式移除 host CSS 类名（`sources-tab-host`、`sources-tabs-content`）并以 `dom.clearNode()` 彻底清空标签与内容容器子 DOM 节点，在 `selectTab()` 与 `restoreTabForSession()` 增设 `this._store.isDisposed` 入口守卫；在 `sourcesDiffPanelView.ts` 的 `dispose()` 补充 `this.bodyContainer?.remove()` 防止脱落 DOM 节点泄漏。类型检查 0 错误，ESLint 0 错误，槽提交 `0cc49cc5712`。
