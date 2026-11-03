@@ -147,7 +147,7 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 			entry.promise.then(ready => {
 				entry.resolved = true;
 				entry.sawReady ||= ready;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			this._startupGrace.set(id, entry);
 		}
 		return this._startupGrace.get(id)!.promise;

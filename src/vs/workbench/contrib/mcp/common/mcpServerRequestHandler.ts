@@ -201,7 +201,7 @@ export class McpServerRequestHandler extends Disposable {
 			if (canLog(this.logger.getLevel(), this._requestLogLevel)) {
 				log(this.logger, this._requestLogLevel, `[server -> editor] ${JSON.stringify(message)}`);
 			}
-			void this._rpc.handleMessage(message).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._rpc.handleMessage(message).catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			const state = launch.state.read(reader).state;
@@ -214,7 +214,7 @@ export class McpServerRequestHandler extends Disposable {
 
 		// Listen for log level changes and forward them to the MCP server
 		this._register(logger.onDidChangeLogLevel((logLevel) => {
-			this._sendLogLevelToServer(logLevel).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._sendLogLevelToServer(logLevel).catch(onUnexpectedError);
 		}));
 	}
 

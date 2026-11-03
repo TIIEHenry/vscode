@@ -697,6 +697,9 @@ export class McpServer extends Disposable implements IMcpServer {
 	}
 
 	public showOutput(preserveFocus?: boolean) {
+		if (this._store.isDisposed) {
+			return Promise.resolve();
+		}
 		this._loggerService.setVisibility(this._loggerId, true);
 		return this._outputService.showChannel(this._loggerId, preserveFocus);
 	}
@@ -763,6 +766,9 @@ export class McpServer extends Disposable implements IMcpServer {
 		interaction?.participants.set(this.definition.id, { s: 'unknown' });
 
 		return this._connectionSequencer.queue<McpConnectionState>(async () => {
+			if (this._store.isDisposed) {
+				return { state: McpConnectionState.Kind.Stopped };
+			}
 			// Evaluated against the definition here (no connection yet). `_policyBlock` re-evaluates
 			// against the resolved launch once the connection exists (checked again below).
 			const preStartBlock = this._policyBlock.get();
@@ -820,7 +826,7 @@ export class McpServer extends Disposable implements IMcpServer {
 				this._connection.set(connection, undefined);
 
 				if (connection.definition.devMode) {
-					this.showOutput().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.showOutput().catch(onUnexpectedError);
 				}
 			}
 
@@ -857,6 +863,11 @@ export class McpServer extends Disposable implements IMcpServer {
 					return r.value;
 				}
 			});
+
+			if (this._store.isDisposed) {
+				connection.dispose();
+				return { state: McpConnectionState.Kind.Stopped };
+			}
 
 			this._telemetryService.publicLog2<ServerBootState, ServerBootStateClassification>('mcp/serverBootState', {
 				state: McpConnectionState.toKindString(state.state),
@@ -1028,7 +1039,7 @@ export class McpServer extends Disposable implements IMcpServer {
 			}
 		}).finally(() => {
 			this._isSandboxSuggestionDialogVisible = false;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	public recordPotentialSandboxBlock(block: IMcpPotentialSandboxBlock): void {
@@ -1053,6 +1064,9 @@ export class McpServer extends Disposable implements IMcpServer {
 	}
 
 	public stop(): Promise<void> {
+		if (this._store.isDisposed) {
+			return Promise.resolve();
+		}
 		return this._connection.get()?.stop() || Promise.resolve();
 	}
 
@@ -1077,6 +1091,9 @@ export class McpServer extends Disposable implements IMcpServer {
 	}
 
 	private async _normalizeTool(originalTool: MCP.Tool): Promise<ValidatedMcpTool | { error: string[] }> {
+		if (this._store.isDisposed) {
+			return { error: ['Server is disposed'] };
+		}
 		// Parse MCP Apps UI metadata from _meta.ui
 		const uiMeta = originalTool._meta?.ui as McpApps.McpUiToolMeta | undefined;
 
@@ -1145,9 +1162,15 @@ export class McpServer extends Disposable implements IMcpServer {
 	}
 
 	private async _getValidatedTools(tools: MCP.Tool[]): Promise<ValidatedMcpTool[]> {
+		if (this._store.isDisposed) {
+			return [];
+		}
 		let error = '';
 
 		const validations = await Promise.all(tools.map(t => this._normalizeTool(t)));
+		if (this._store.isDisposed) {
+			return [];
+		}
 		const validated: ValidatedMcpTool[] = [];
 		for (const [i, result] of validations.entries()) {
 			if ('error' in result) {
@@ -1274,7 +1297,7 @@ export class McpServer extends Disposable implements IMcpServer {
 					serverName: handler.serverInfo.name,
 					serverVersion: handler.serverInfo.version,
 				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		});
 	}
 }

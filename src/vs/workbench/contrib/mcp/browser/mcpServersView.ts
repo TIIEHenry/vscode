@@ -190,6 +190,9 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 	}
 
 	private async onContextMenu(e: IListContextMenuEvent<IWorkbenchMcpServer>): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (e.element) {
 			const disposables = new DisposableStore();
 			const mcpServer = e.element ? this.mcpWorkbenchService.local.find(local => local.id === e.element!.id) || e.element
@@ -240,7 +243,7 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 
 		const request = createCancelablePromise(async token => {
 			const result = await this.query(query.trim());
-			if (token.isCancellationRequested || generation !== this.queryGeneration) {
+			if (token.isCancellationRequested || generation !== this.queryGeneration || this._store.isDisposed) {
 				result.disposables.dispose();
 				throw new CancellationError();
 			}
@@ -250,7 +253,7 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 
 			if (this.input.onDidChangeModel) {
 				this.input.disposables.add(this.input.onDidChangeModel(model => {
-					if (this.input !== result || generation !== this.queryGeneration) {
+					if (this.input !== result || generation !== this.queryGeneration || this._store.isDisposed) {
 						return;
 					}
 					this.input.model = model;
@@ -271,11 +274,23 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 	}
 
 	override dispose(): void {
-		super.dispose();
 		if (this.queryRequest) {
 			this.queryRequest.request.cancel();
 			this.queryRequest = null;
 		}
+		if (this.listContainer) {
+			dom.clearNode(this.listContainer);
+			this.listContainer.remove();
+			this.listContainer = null;
+		}
+		if (this.welcomeContainer) {
+			dom.clearNode(this.welcomeContainer);
+			this.welcomeContainer.remove();
+			this.welcomeContainer = null;
+		}
+		this.list = null;
+		this.bodyTemplate = undefined;
+		super.dispose();
 	}
 
 	private renderInput() {
@@ -341,6 +356,10 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 				]
 			});
 
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			if (result) {
 				await this.configurationService.updateValue(mcpGalleryServiceEnablementConfig, true);
 			}
@@ -370,15 +389,26 @@ export class McpServersListView extends AbstractExtensionsListView<IWorkbenchMcp
 	}
 
 	private async query(query: string): Promise<IQueryResult> {
+		if (this._store.isDisposed) {
+			return { model: new PagedModel([]), disposables: new DisposableStore() };
+		}
 		const disposables = new DisposableStore();
 		if (query) {
 			const servers = await this.mcpWorkbenchService.queryGallery({ text: query.replace('@mcp', '') });
+			if (this._store.isDisposed) {
+				disposables.dispose();
+				return { model: new PagedModel([]), disposables: new DisposableStore() };
+			}
 			const model = disposables.add(new IterativePagedModel(servers));
 			return { model, disposables };
 		}
 
 		const onDidChangeModel = disposables.add(new Emitter<IPagedModel<IWorkbenchMcpServer>>());
 		let servers = await this.mcpWorkbenchService.queryLocal();
+		if (this._store.isDisposed) {
+			disposables.dispose();
+			return { model: new PagedModel([]), disposables: new DisposableStore() };
+		}
 		disposables.add(Event.debounce(this.mcpWorkbenchService.onChange, () => undefined)(() => {
 			const mergedMcpServers = this.mergeChangedMcpServers(servers, [...this.mcpWorkbenchService.local]);
 			if (mergedMcpServers) {
@@ -559,10 +589,13 @@ export class DefaultBrowseMcpServersView extends McpServersListView {
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
-		this._register(this.mcpGalleryManifestService.onDidChangeMcpGalleryManifest(() => this.show().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.mcpGalleryManifestService.onDidChangeMcpGalleryManifest(() => this.show().catch(onUnexpectedError)));
 	}
 
 	override async show(): Promise<IPagedModel<IWorkbenchMcpServer>> {
+		if (this._store.isDisposed) {
+			return new PagedModel([]);
+		}
 		return super.show('@mcp');
 	}
 }

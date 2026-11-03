@@ -54,6 +54,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -70,9 +71,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const syncCall = 'this.sync()';
@@ -147,13 +148,13 @@ suite('leftover remaining unused after D821 moved to leftover remaining unused m
 		assert.ok(!configuration.includes('D824'));
 	});
 
-	test('this knife covers six leftover Promise double-chain sites after leftover remaining unused after D821 moved', () => {
+	test('this knife covers six leftover Promise single-chain sites after leftover remaining unused after D821 moved', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d824Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -161,12 +162,12 @@ suite('leftover remaining unused after D821 moved to leftover remaining unused m
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(DISCOVERY_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(MIGRATION_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(DISCOVERY_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(MIGRATION_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_REL) ?? ''), 0);
 	});
 
-	test('mcp leftover remaining unused sync / migrateMcpConfig / open leftover void promises are Promise/async + double-chain', () => {
+	test('mcp leftover remaining unused sync / migrateMcpConfig / open leftover void promises are Promise/async + single-chain', () => {
 		const discovery = fs.readFileSync(resolveSource(DISCOVERY_REL), 'utf8');
 		const migration = fs.readFileSync(resolveSource(MIGRATION_REL), 'utf8');
 		const workbench = fs.readFileSync(resolveSource(WORKBENCH_REL), 'utf8');
@@ -180,10 +181,13 @@ suite('leftover remaining unused after D821 moved to leftover remaining unused m
 		assertWrapped(migration, migrateCall);
 		assertWrapped(workbench, openLocalCall);
 		assertWrapped(workbench, openInstallCall);
-		assert.strictEqual(countIncludes(discovery, `${syncCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(migration, `${migrateCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(workbench, `${openLocalCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(workbench, `${openInstallCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(discovery, `${syncCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(migration, `${migrateCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(workbench, `${openLocalCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(workbench, `${openInstallCall}${singleCatch}`), 1);
+		assert.strictEqual(countDoubleChains(discovery), 0);
+		assert.strictEqual(countDoubleChains(migration), 0);
+		assert.strictEqual(countDoubleChains(workbench), 0);
 		assert.ok(discovery.includes('throttler.queue(() => this.sync())'));
 		assert.ok(!discovery.includes(`throttler.queue(() => this.sync()${doubleCatch}`));
 		assert.ok(!discovery.includes('\t\tthis.sync();\n'));
@@ -214,7 +218,8 @@ suite('leftover remaining unused after D821 moved to leftover remaining unused m
 		assert.ok(!workbench.includes('.then(undefined,'));
 		assert.ok(workbench.includes('this.whenInitialLocalMcpServersLoaded = this.queryLocal().then(() => {'));
 		assert.ok(!workbench.includes(`this.whenInitialLocalMcpServersLoaded = this.queryLocal().then(() => {${doubleCatch}`));
-		assert.ok(editor.includes(`${editorOpenThenCall}${doubleCatch}`));
+		assert.ok(editor.includes(`${editorOpenThenCall}${singleCatch};`));
+		assert.ok(!editor.includes(`${editorOpenThenCall}${doubleCatch}`));
 		assert.ok(addConfig.includes('return this.pickForUrlHandler(newURI, showIsPrimary);'));
 		assert.ok(!addConfig.includes(`return this.pickForUrlHandler(newURI, showIsPrimary)${doubleCatch}`));
 		assert.ok(!discovery.includes(`${doubleCatch}.catch(onUnexpectedError)`));

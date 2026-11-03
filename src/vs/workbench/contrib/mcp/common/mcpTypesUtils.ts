@@ -30,7 +30,7 @@ export function startServerByFilter(mcpService: IMcpService, filter: (s: IMcpSer
 					if (state.state === McpConnectionState.Kind.Error) {
 						server.showOutput();
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 
 				resolve();
 				store.dispose();

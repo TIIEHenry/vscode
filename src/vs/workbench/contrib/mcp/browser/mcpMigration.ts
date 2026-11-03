@@ -44,7 +44,7 @@ export class McpConfigMigrationContribution extends Disposable implements IWorkb
 		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
-		this.migrateMcpConfig().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.migrateMcpConfig().catch(onUnexpectedError);
 	}
 
 	private async migrateMcpConfig(): Promise<void> {

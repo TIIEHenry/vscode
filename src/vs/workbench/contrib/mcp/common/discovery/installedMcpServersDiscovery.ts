@@ -45,7 +45,7 @@ export class InstalledMcpServersDiscovery extends Disposable implements IMcpDisc
 	public start(): void {
 		const throttler = this._register(new Throttler());
 		this._register(this.mcpWorkbenchService.onChange(() => throttler.queue(() => this.sync())));
-		this.sync().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.sync().catch(onUnexpectedError);
 	}
 
 	private async getServerIdMapping(resource: URI, pathToServers: string[]): Promise<Map<string, Location>> {

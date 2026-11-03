@@ -977,7 +977,7 @@ export class MCPServerActionRendering extends Disposable implements IWorkbenchCo
 					const { state, servers } = displayedStateCurrent.get();
 					if (state === DisplayedState.NewTools) {
 						const interaction = new McpStartServerInteraction();
-						servers.filter(isServer).forEach(server => server.stop().then(() => server.start({ interaction })).catch(onUnexpectedError).catch(onUnexpectedError));
+						servers.filter(isServer).forEach(server => server.stop().then(() => server.start({ interaction })).catch(onUnexpectedError));
 						mcpService.activateCollections();
 					} else if (state === DisplayedState.Refreshing) {
 						findLast(servers, isServer)?.showOutput();
