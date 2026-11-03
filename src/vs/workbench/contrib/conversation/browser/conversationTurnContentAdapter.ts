@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, reset } from '../../../../base/browser/dom.js';
+import * as dom from '../../../../base/browser/dom.js';
 import { MarkdownRenderOptions } from '../../../../base/browser/markdownRenderer.js';
+import { TimeoutTimer } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
@@ -36,6 +37,8 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { resolveConversationTimelineLink, IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { openUaClientExternalLink } from './uaClientExternalLink.js';
+
+const { $, append, reset } = dom;
 
 const WORKBENCH_LINK_SCHEMES = new Set<string>([
 	Schemas.file,
@@ -78,7 +81,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		if (shouldRenderTurnAsMarkdown(turn.kind)) {
 			store.add(this.markdownRendererService.render(
 				new MarkdownString(turn.text),
-				this.markdownOptions(),
+				this.markdownOptions(store),
 				container,
 			));
 			this.decorateConversationLinks(container, store);
@@ -125,7 +128,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 				block.clear();
 				block.add(this.markdownRendererService.render(
 					new MarkdownString(markdown),
-					{ ...this.markdownOptions(), fillInIncompleteTokens },
+					{ ...this.markdownOptions(block), fillInIncompleteTokens },
 					target,
 				));
 			},
@@ -146,7 +149,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		};
 	}
 
-	private markdownOptions(): MarkdownRenderOptions {
+	private markdownOptions(store?: DisposableStore): MarkdownRenderOptions {
 		return {
 			sanitizerConfig: {
 				allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
@@ -154,11 +157,11 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 			actionHandler: (href) => {
 				void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
-			codeBlockRendererSync: (languageId, value) => this.renderCodeBlock(languageId, value),
+			codeBlockRendererSync: (languageId, value) => this.renderCodeBlock(languageId, value, store),
 		};
 	}
 
-	private renderCodeBlock(languageId: string, value: string): HTMLElement {
+	private renderCodeBlock(languageId: string, value: string, store?: DisposableStore): HTMLElement {
 		const root = $('.conversation-code-block');
 		const bar = append(root, $('.conversation-code-block-bar'));
 		const lang = append(bar, $('span.conversation-code-block-lang'));
@@ -173,12 +176,14 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		copy.classList.add(...ThemeIcon.asClassNameArray(Codicon.copy));
 		copy.setAttribute('aria-label', copyLabel);
 		copy.title = copyLabel;
-		copy.addEventListener('click', () => {
+		const buttonStore = store ? store.add(new DisposableStore()) : new DisposableStore();
+		const copyResetTimer = buttonStore.add(new TimeoutTimer());
+		buttonStore.add(dom.addDisposableListener(copy, 'click', () => {
 			void this.clipboardService.writeText(value).then(() => {
 				copy.classList.add('is-copied');
 				copy.setAttribute('aria-label', copiedLabel);
 				copy.title = copiedLabel;
-				const timer = setTimeout(() => {
+				copyResetTimer.cancelAndSet(() => {
 					if (!copy.isConnected) {
 						return;
 					}
@@ -186,9 +191,8 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 					copy.setAttribute('aria-label', copyLabel);
 					copy.title = copyLabel;
 				}, 1600);
-				copy.addEventListener('DOMNodeRemoved', () => clearTimeout(timer), { once: true });
 			}, onUnexpectedError);
-		});
+		}));
 		const pre = append(root, $('pre'));
 		const code = append(pre, $('code'));
 		code.textContent = value;
@@ -227,20 +231,18 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 					this.rosterService.getSessions(),
 					sessionKey ? this.sessionChatService.getCatalog(sessionKey) : [],
 				);
-				const { hover } = appendConversationRefAnchor(row, resource, resolved, this.hoverService, hit => {
+				const { disposable } = appendConversationRefAnchor(row, resource, resolved, this.hoverService, hit => {
 					void this.activateConversationLink(hit).catch(onUnexpectedError).catch(onUnexpectedError);
 				});
-				if (hover) {
-					paintStore.add(hover);
-				}
+				paintStore.add(disposable);
 			}
 		};
-		row.addEventListener('click', event => event.stopPropagation());
-		row.addEventListener('keydown', event => {
+		store.add(dom.addDisposableListener(row, 'click', event => event.stopPropagation()));
+		store.add(dom.addDisposableListener(row, 'keydown', event => {
 			if (event.key === 'Enter' || event.key === ' ') {
 				event.stopPropagation();
 			}
-		});
+		}));
 		paint();
 		store.add(this.sessionChatService.onDidChangeCatalog(() => paint()));
 		store.add(this.rosterService.onDidChangeSession(() => paint()));

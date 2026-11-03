@@ -57,6 +57,8 @@ export interface IComposerAtHost extends IComposerSurfaceHost {
 interface IComposerAtBinding {
 	readonly hoverService: IHoverService;
 	readonly sessionChatService: IConversationSessionChatService;
+	readonly chipDisposables: DisposableStore;
+	readonly suggestDisposables: DisposableStore;
 	readonly hovers: DisposableStore;
 	activeIndex: number;
 	query: string;
@@ -189,15 +191,20 @@ export function wireComposerAt(host: IComposerAtHost): void {
 	}
 	const hoverService = host.instantiationService.invokeFunction(accessor => accessor.get(IHoverService));
 	const sessionChatService = host.instantiationService.invokeFunction(accessor => accessor.get(IConversationSessionChatService));
+	const chipDisposables = new DisposableStore();
+	const suggestDisposables = new DisposableStore();
 	const binding: IComposerAtBinding = {
 		hoverService,
 		sessionChatService,
-		hovers: new DisposableStore(),
+		chipDisposables,
+		suggestDisposables,
+		hovers: chipDisposables,
 		activeIndex: 0,
 		query: '',
 		candidates: [],
 	};
-	host.register(binding.hovers);
+	host.register(chipDisposables);
+	host.register(suggestDisposables);
 	bindings.set(host, binding);
 	host.syncComposerRefs = () => {
 		renderComposerRefChipRow(host, binding);
@@ -281,7 +288,7 @@ export function renderComposerRefChipRow(host: IComposerAtHost, binding = bindin
 		host.composerRefRow.hidden = host.composerRefResources.length === 0;
 		return;
 	}
-	binding.hovers.clear();
+	binding.chipDisposables.clear();
 	reset(host.composerRefRow);
 	const resources = host.composerRefResources;
 	host.composerRefRow.hidden = resources.length === 0;
@@ -297,19 +304,17 @@ export function renderComposerRefChipRow(host: IComposerAtHost, binding = bindin
 			sessions,
 			sessionKey ? binding.sessionChatService.getCatalog(sessionKey) : [],
 		);
-		const { hover } = appendConversationRefAnchor(chip, resource, resolved, binding.hoverService, hit => {
+		const { disposable } = appendConversationRefAnchor(chip, resource, resolved, binding.hoverService, hit => {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 			void host.activateConversationLink(hit).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
-		if (hover) {
-			binding.hovers.add(hover);
-		}
+		binding.chipDisposables.add(disposable);
 		const remove = append(chip, $('button.conversation-composer-ref-remove')) as HTMLButtonElement;
 		remove.type = 'button';
 		remove.title = conversationComposerRefRemove;
 		remove.setAttribute('aria-label', conversationComposerRefRemove);
 		remove.classList.add(...ThemeIcon.asClassNameArray(Codicon.close));
-		remove.addEventListener('click', event => {
+		binding.chipDisposables.add(addDisposableListener(remove, 'click', event => {
 			event.preventDefault();
 			event.stopPropagation();
 			const index = host.composerRefResources.indexOf(resource);
@@ -321,7 +326,7 @@ export function renderComposerRefChipRow(host: IComposerAtHost, binding = bindin
 				host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 			}
 			host.updateSendEnabled();
-		});
+		}));
 	}
 }
 
@@ -362,6 +367,7 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 		binding.activeIndex = 0;
 	}
 	binding.candidates = candidates;
+	binding.suggestDisposables.clear();
 	const list = host.composerAtSuggest;
 	const listId = ensureComposerAtListId(list);
 	reset(list);
@@ -390,12 +396,12 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 		if (active) {
 			activeId = option.id;
 		}
-		option.addEventListener('mousedown', event => event.preventDefault());
-		option.addEventListener('click', event => {
+		binding.suggestDisposables.add(addDisposableListener(option, 'mousedown', event => event.preventDefault()));
+		binding.suggestDisposables.add(addDisposableListener(option, 'click', event => {
 			event.preventDefault();
 			event.stopPropagation();
 			selectComposerAtCandidate(host, binding, candidate);
-		});
+		}));
 	}
 	// Focus stays in the textarea. aria-activedescendant is only read there.
 	syncComposerAtPopup(host, listId, activeId, undefined);
@@ -468,7 +474,8 @@ function selectComposerAtCandidate(host: IComposerAtHost, binding: IComposerAtBi
 	textarea.focus();
 }
 
-function keepComposerAtSuggestClosed(host: IComposerAtHost): void {
+function keepComposerAtSuggestClosed(host: IComposerAtHost, binding = bindings.get(host)): void {
+	binding?.suggestDisposables.clear();
 	host.composerAtSuggest.hidden = true;
 	reset(host.composerAtSuggest);
 	clearComposerAtPopup(host);

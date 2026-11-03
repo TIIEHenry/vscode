@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSessionPill.css';
-import { $, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { ConversationTimelineLinkResolution, IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
@@ -80,7 +80,8 @@ export function appendConversationRefAnchor(
 	resolved: ConversationTimelineLinkResolution,
 	hoverService: IHoverService,
 	onHit: ((hit: IConversationTimelineLinkHit) => void) | undefined,
-): { anchor: HTMLAnchorElement; hover: IDisposable | undefined } {
+): { anchor: HTMLAnchorElement; disposable: IDisposable; hover: IDisposable | undefined } {
+	const disposables = new DisposableStore();
 	const anchor = append(parent, $('a')) as HTMLAnchorElement;
 	anchor.href = resource;
 	anchor.draggable = false;
@@ -89,21 +90,25 @@ export function appendConversationRefAnchor(
 		event.preventDefault();
 		event.stopPropagation();
 	};
-	anchor.addEventListener('click', event => {
+	disposables.add(addDisposableListener(anchor, 'click', event => {
 		stop(event);
 		if (resolved.kind === 'hit') {
 			onHit?.(resolved);
 		}
-	});
-	anchor.addEventListener('keydown', event => {
+	}));
+	disposables.add(addDisposableListener(anchor, 'keydown', event => {
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.stopPropagation();
 		}
-	});
+	}));
 	if (resolved.kind !== 'hit') {
 		anchor.textContent = resource;
-		return { anchor, hover: undefined };
+		return { anchor, disposable: disposables, hover: undefined };
 	}
 	anchor.textContent = conversationSessionPillHoverLines(resolved)[0] ?? resource;
-	return { anchor, hover: decorateConversationSessionPill(anchor, resolved, hoverService) };
+	const hover = decorateConversationSessionPill(anchor, resolved, hoverService);
+	if (hover) {
+		disposables.add(hover);
+	}
+	return { anchor, disposable: disposables, hover };
 }

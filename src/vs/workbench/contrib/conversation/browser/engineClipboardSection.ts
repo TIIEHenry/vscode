@@ -12,7 +12,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
@@ -46,6 +46,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
+const dom = DOM;
 
 /**
  * Engine Preferences Clipboard — honest List + Read + Write + Clear.
@@ -82,6 +83,8 @@ export class EngineClipboardSection extends Disposable {
 	private readonly writeStatus: HTMLElement;
 	private readonly readStatus: HTMLElement;
 	private readonly clearStatus: HTMLElement;
+
+	readonly listDisposables = this._register(new DisposableStore());
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -314,6 +317,7 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private clearListPresentation(): void {
+		this.listDisposables.clear();
 		this.entries = [];
 		this.setEntryCount(0);
 		this.selectedEntry = undefined;
@@ -323,6 +327,7 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private paintList(): void {
+		this.listDisposables.clear();
 		this.setEntryCount(this.entries.length);
 		this.selectedEntry = undefined;
 		DOM.clearNode(this.listHost);
@@ -347,8 +352,8 @@ export class EngineClipboardSection extends Disposable {
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
 			row.textContent = formatEngineClipboardListLabel(entry);
-			row.addEventListener('click', () => this.selectEntry(entry));
-			row.addEventListener('keydown', event => this.onClipboardRowKeyDown(event, entry));
+			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => this.selectEntry(entry)));
+			this.listDisposables.add(dom.addDisposableListener(row, 'keydown', event => this.onClipboardRowKeyDown(event, entry)));
 		}
 	}
 
