@@ -90,7 +90,7 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D721)
 		for (const rel of D710_RELS) {
 			d710 += countDouble(rel);
 		}
-		assert.strictEqual(d710, 1);
+		assert.strictEqual(d710, 0);
 		let d716 = 0;
 		for (const rel of D716_RELS) {
 			d716 += countDouble(rel);
