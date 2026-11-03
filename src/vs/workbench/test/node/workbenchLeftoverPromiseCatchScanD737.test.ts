@@ -74,7 +74,7 @@ const dropOpenEditors = 'this.editorService.openEditors(editors, ensureTargetGro
 const nativeMenubarIife = `(async () => {
 			const generation = ++this._nativeRecentlyOpenedGeneration;
 			const recentlyOpened = await this.workspacesService.getRecentlyOpened();
-			if (generation !== this._nativeRecentlyOpenedGeneration || this._store.isDisposed) {
+			if (generation !== this._nativeRecentlyOpenedGeneration || this._store.isDisposed || this._isDisposed) {
 				return;
 			}
 			this.recentlyOpened = recentlyOpened;
@@ -122,11 +122,10 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
 		const doubleCalls = [
 			[modal, modalClose],
-			[nativeMenubar, nativeMenubarIife],
 			[treeView, treeProgressThen],
 			[listCommands, expandThen],
 		] as const;
-		assert.strictEqual(doubleCalls.length, 4);
+		assert.strictEqual(doubleCalls.length, 3);
 		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
 		}
@@ -135,8 +134,9 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 			[editorConfig, configIife],
 			[editorPanes, trustOpen],
 			[editorDrop, dropOpenEditors],
+			[nativeMenubar, nativeMenubarIife],
 		] as const;
-		assert.strictEqual(singleCalls.length, 3);
+		assert.strictEqual(singleCalls.length, 4);
 		for (const [source, call] of singleCalls) {
 			assertSingleCatch(source, call);
 			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
@@ -177,12 +177,13 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('electron-browser menubar leftover recentlyOpened IIFE is Promise double-chain', () => {
+	test('electron-browser menubar leftover recentlyOpened IIFE has single catch', () => {
 		const source = fs.readFileSync(resolveSource(NATIVE_MENUBAR_REL), 'utf8');
 		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
 		assertPromiseSignature(workspaces, 'getRecentlyOpened(): Promise<IRecentlyOpened>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, nativeMenubarIife);
+		assertSingleCatch(source, nativeMenubarIife);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('treeView leftover withProgress then is Promise double-chain', () => {
@@ -229,7 +230,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(nativeWindow.includes('this.openerService.open('));
 		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
-		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(browserWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(browserWindow.includes(')).then(async () => {'));

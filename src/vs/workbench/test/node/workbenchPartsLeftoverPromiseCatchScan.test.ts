@@ -95,34 +95,9 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 				}
 			}));
 		})`],
-			[menubar, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
-				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
-					return;
-				}
-				this.recentlyOpened = recentlyOpened;
-				this.updateMenubar();
-			})`],
-			[menubar, `this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
-			this.recentlyOpened = recentlyOpened;
-		})`],
 			[treeView, 'this.tree.setInput(this.root).then(() => this.updateContentAreas())'],
-			[editorStatus, `languageDetectionService.detectLanguage(resource).then(detectedLanguageId => {
-							const chosenLanguageId = languageService.getLanguageIdByLanguageName(pick.label) || 'unknown';
-							if (detectedLanguageId === currentLanguageId && currentLanguageId !== chosenLanguageId) {
-								// If they didn't choose the detected language (which should also be the active language if automatic detection is enabled)
-								// then the automatic language detection was likely wrong and the user is correcting it. In this case, we want telemetry.
-								// Keep track of what model was preferred and length of input to help track down potential differences between the result quality across models and content size.
-								const modelPreference = configurationService.getValue<boolean>('workbench.editor.preferHistoryBasedLanguageDetection') ? 'history' : 'classic';
-								telemetryService.publicLog2<IAutomaticLanguageDetectionLikelyWrongData, AutomaticLanguageDetectionLikelyWrongClassification>(AutomaticLanguageDetectionLikelyWrongId, {
-									currentLanguageId: currentLanguageName ?? 'unknown',
-									nextLanguageId: pick.label,
-									lineCount: textModel?.getLineCount() ?? -1,
-									modelPreference,
-								});
-							}
-						})`],
 		] as const;
-		assert.strictEqual(doubleCalls.length, 5);
+		assert.strictEqual(doubleCalls.length, 2);
 		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
 		}
@@ -145,13 +120,41 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, this.options.pinnedViewContainersKey, this._store)(() => this.updateCompositeBarItemsFromStorage(false)));
 		})`],
 			[layout, 'window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))'],
+			[menubar, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
+				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed || this._isDisposed) {
+					return;
+				}
+				this.recentlyOpened = recentlyOpened;
+				this.updateMenubar();
+			})`],
+			[menubar, `this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
+			if (this._isDisposed) {
+				return;
+			}
+			this.recentlyOpened = recentlyOpened;
+		})`],
+			[editorStatus, `languageDetectionService.detectLanguage(resource).then(detectedLanguageId => {
+							const chosenLanguageId = languageService.getLanguageIdByLanguageName(pick.label) || 'unknown';
+							if (detectedLanguageId === currentLanguageId && currentLanguageId !== chosenLanguageId) {
+								// If they didn't choose the detected language (which should also be the active language if automatic detection is enabled)
+								// then the automatic language detection was likely wrong and the user is correcting it. In this case, we want telemetry.
+								// Keep track of what model was preferred and length of input to help track down potential differences between the result quality across models and content size.
+								const modelPreference = configurationService.getValue<boolean>('workbench.editor.preferHistoryBasedLanguageDetection') ? 'history' : 'classic';
+								telemetryService.publicLog2<IAutomaticLanguageDetectionLikelyWrongData, AutomaticLanguageDetectionLikelyWrongClassification>(AutomaticLanguageDetectionLikelyWrongId, {
+									currentLanguageId: currentLanguageName ?? 'unknown',
+									nextLanguageId: pick.label,
+									lineCount: textModel?.getLineCount() ?? -1,
+									modelPreference,
+								});
+							}
+						})`],
 		] as const;
-		assert.strictEqual(singleCalls.length, 3);
+		assert.strictEqual(singleCalls.length, 6);
 		for (const [source, call] of singleCalls) {
 			assertSingleCatch(source, call);
 		}
 
-		for (const source of [globalBar, paneBar, layout]) {
+		for (const source of [globalBar, paneBar, layout, menubar, editorStatus]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 	});
@@ -207,25 +210,32 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('menubar leftover getRecentlyOpened thens are Promise double-chain; D714 alwaysUnderlineAccessKeys stays chained', () => {
+	test('menubar leftover getRecentlyOpened and alwaysUnderlineAccessKeys thens are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(MENUBAR_REL), 'utf8');
 		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
 		assertPromiseSignature(workspaces, 'getRecentlyOpened(): Promise<IRecentlyOpened>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
-				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
+		assertSingleCatch(source, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
+				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed || this._isDisposed) {
 					return;
 				}
 				this.recentlyOpened = recentlyOpened;
 				this.updateMenubar();
 			})`);
-		assertDoubleThen(source, `this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
+		assertSingleCatch(source, `this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.recentlyOpened = recentlyOpened;
 		})`);
-		assertDoubleThen(source, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+		assertSingleCatch(source, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+				if (this._isDisposed) {
+					return;
+				}
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
 			})`);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('treeView leftover setInput then is Promise double-chain', () => {
@@ -236,12 +246,12 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assertDoubleThen(source, 'this.tree.setInput(this.root).then(() => this.updateContentAreas())');
 	});
 
-	test('editorStatus leftover detectLanguage then is Promise double-chain; await detectLanguage stays skipped', () => {
+	test('editorStatus leftover detectLanguage then is Promise single-catch; await detectLanguage stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_STATUS_REL), 'utf8');
 		const lang = fs.readFileSync(resolveSource(LANG_DETECT_REL), 'utf8');
 		assertPromiseSignature(lang, 'detectLanguage(resource: URI, supportedLangs?: string[]): Promise<string | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, `languageDetectionService.detectLanguage(resource).then(detectedLanguageId => {
+		assertSingleCatch(source, `languageDetectionService.detectLanguage(resource).then(detectedLanguageId => {
 							const chosenLanguageId = languageService.getLanguageIdByLanguageName(pick.label) || 'unknown';
 							if (detectedLanguageId === currentLanguageId && currentLanguageId !== chosenLanguageId) {
 								// If they didn't choose the detected language (which should also be the active language if automatic detection is enabled)
@@ -256,6 +266,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 								});
 							}
 						})`);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('detectedLanguage = await languageDetectionService.detectLanguage(resource);'));
 		assert.ok(!source.includes('await languageDetectionService.detectLanguage(resource).catch'));
 	});
@@ -273,7 +284,8 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		const contextkeys = fs.readFileSync(resolveSource(CONTEXTKEYS_REL), 'utf8');
 		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
 
-		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(!nativeWindow.includes('this.handleWarnings();'));
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(nativeWindow.includes('this.openerService.open('));
@@ -304,13 +316,16 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(toasts.includes(`this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Show toast for initial notifications if any
 			this.model.notifications.forEach(notification => this.addToast(notification));
 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
-		})${doubleCatch};`));
+		})${singleCatch};`));
 		assert.ok(editorParts.includes(`this.whenReady.then(() => this.registerGroupsContextKeyListeners())${doubleCatch};`));
 		assert.ok(contextkeys.includes(`this.editorGroupService.whenReady.then(() => {
 			this.updateEditorAreaContextKeys();
@@ -318,7 +333,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			this.updateVisiblePanesContextKeys();
 		})${singleCatch};`));
 
-		for (const source of [layout, panePart, paneBar, compositeBar, contextkeys]) {
+		for (const source of [layout, panePart, paneBar, compositeBar, contextkeys, toasts]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 
