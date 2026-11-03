@@ -96,16 +96,28 @@ export class ConfigurationMigrationWorkbenchContribution extends Disposable impl
 		super();
 		this._register(this.workspaceService.onDidChangeWorkspaceFolders(async (e) => {
 			for (const folder of e.added) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.migrateConfigurationsForFolder(folder, configurationMigrationRegistry.migrations);
 			}
 		}));
-		this.migrateConfigurations(configurationMigrationRegistry.migrations).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.migrateConfigurations(configurationMigrationRegistry.migrations).catch(onUnexpectedError);
 		this._register(configurationMigrationRegistry.onDidRegisterConfigurationMigration(migration => this.migrateConfigurations(migration)));
 	}
 
 	private async migrateConfigurations(migrations: ConfigurationMigration[]): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.migrateConfigurationsForFolder(undefined, migrations);
+		if (this._store.isDisposed) {
+			return;
+		}
 		for (const folder of this.workspaceService.getWorkspace().folders) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this.migrateConfigurationsForFolder(folder, migrations);
 		}
 	}
@@ -193,7 +205,7 @@ export class DynamicWorkbenchSecurityConfiguration extends Disposable implements
 	) {
 		super();
 
-		this.create().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.create().catch(onUnexpectedError);
 	}
 
 	private async create(): Promise<void> {
@@ -207,6 +219,9 @@ export class DynamicWorkbenchSecurityConfiguration extends Disposable implements
 	private async doCreate(): Promise<void> {
 		if (!isWindows) {
 			const remoteEnvironment = await this.remoteAgentService.getEnvironment();
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (remoteEnvironment?.os !== OperatingSystem.Windows) {
 				return;
 			}

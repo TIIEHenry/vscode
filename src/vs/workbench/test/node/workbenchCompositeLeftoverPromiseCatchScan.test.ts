@@ -194,7 +194,8 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);'));
+		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
@@ -211,7 +212,7 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
 		})${singleCatch};`));
-		assert.ok(editorParts.includes(`this.whenReady.then(() => this.registerGroupsContextKeyListeners())${doubleCatch};`));
+		assert.ok(editorParts.includes(`this.whenReady.then(() => this.registerGroupsContextKeyListeners())${singleCatch};`));
 		assert.ok(contextkeys.includes(`this.editorGroupService.whenReady.then(() => {
 			this.updateEditorAreaContextKeys();
 			this.updateActiveEditorGroupContextKeys();
@@ -219,12 +220,13 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		})${singleCatch};`));
 		assert.ok(layout.includes(`window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))${singleCatch};`));
 		assert.ok(!globalBar.includes(doubleCatch));
-		assert.ok(viewPane.includes(`${doubleCatch}`));
+		assert.ok(!viewPane.includes(doubleCatch));
 		assert.ok(!paneBar.includes(doubleCatch));
-		assert.ok(treeView.includes(`this.tree.setInput(this.root).then(() => this.updateContentAreas())${doubleCatch};`));
+		assert.ok(treeView.includes(`this.tree.setInput(this.root).then(() => this.updateContentAreas())${singleCatch};`));
+		assert.ok(!treeView.includes(doubleCatch));
 		assert.ok(!editorStatus.includes(doubleCatch));
 
-		for (const source of [layout, panePart, paneBar, compositeBar, globalBar, contextkeys, menubar, editorStatus]) {
+		for (const source of [layout, panePart, paneBar, compositeBar, globalBar, contextkeys, menubar, editorStatus, editorParts, viewPane, treeView]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 

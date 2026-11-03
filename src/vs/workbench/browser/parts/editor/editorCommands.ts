@@ -637,7 +637,7 @@ function registerOpenEditorAtIndexCommands(): void {
 		if (activeEditorPane && typeof editorIndex === 'number') {
 			const editor = activeEditorPane.group.getEditorByIndex(editorIndex);
 			if (editor) {
-				editorService.openEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
+				editorService.openEditor(editor).catch(onUnexpectedError);
 			}
 		}
 	};

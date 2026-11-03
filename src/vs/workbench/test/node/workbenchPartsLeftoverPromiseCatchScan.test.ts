@@ -57,12 +57,6 @@ function assertSingleCatch(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}${doubleCatch};`), `unexpected double-catch on: ${call}`);
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -82,8 +76,11 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const editorStatus = fs.readFileSync(resolveSource(EDITOR_STATUS_REL), 'utf8');
 
-		const doubleCalls = [
+		const singleCalls = [
 			[viewPane, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.areExtensionsReady = true;
 			if (this.panes.length) {
 				this.updateTitleArea();
@@ -96,13 +93,6 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			}));
 		})`],
 			[treeView, 'this.tree.setInput(this.root).then(() => this.updateContentAreas())'],
-		] as const;
-		assert.strictEqual(doubleCalls.length, 2);
-		for (const [source, call] of doubleCalls) {
-			assertDoubleThen(source, call);
-		}
-
-		const singleCalls = [
 			[globalBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			if (!this._store.isDisposed) {
 				this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, this._store)(() => this.toggleAccountsActivity()));
@@ -149,12 +139,12 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 							}
 						})`],
 		] as const;
-		assert.strictEqual(singleCalls.length, 6);
+		assert.strictEqual(singleCalls.length, 8);
 		for (const [source, call] of singleCalls) {
 			assertSingleCatch(source, call);
 		}
 
-		for (const source of [globalBar, paneBar, layout, menubar, editorStatus]) {
+		for (const source of [globalBar, paneBar, layout, menubar, editorStatus, viewPane, treeView]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 	});
@@ -174,7 +164,10 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			}
 		})`);
 		assert.ok(!globalBar.includes(doubleCatch));
-		assertDoubleThen(viewPane, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+		assertSingleCatch(viewPane, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.areExtensionsReady = true;
 			if (this.panes.length) {
 				this.updateTitleArea();
@@ -186,6 +179,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 				}
 			}));
 		})`);
+		assert.ok(!viewPane.includes(doubleCatch));
 		assertSingleCatch(paneBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			if (this._store.isDisposed) {
 				return;
@@ -238,12 +232,13 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('treeView leftover setInput then is Promise double-chain', () => {
+	test('treeView leftover setInput then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const tree = fs.readFileSync(resolveSource(ASYNC_TREE_REL), 'utf8');
 		assertPromiseSignature(tree, 'async setInput(input: TInput, viewState?: IAsyncDataTreeViewState): Promise<void> {');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.tree.setInput(this.root).then(() => this.updateContentAreas())');
+		assertSingleCatch(source, 'this.tree.setInput(this.root).then(() => this.updateContentAreas())');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('editorStatus leftover detectLanguage then is Promise single-catch; await detectLanguage stays skipped', () => {
@@ -313,7 +308,8 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);'));
+		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(toasts.includes(`this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			if (this._isDisposed) {
@@ -326,14 +322,14 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
 		})${singleCatch};`));
-		assert.ok(editorParts.includes(`this.whenReady.then(() => this.registerGroupsContextKeyListeners())${doubleCatch};`));
+		assert.ok(editorParts.includes(`this.whenReady.then(() => this.registerGroupsContextKeyListeners())${singleCatch};`));
 		assert.ok(contextkeys.includes(`this.editorGroupService.whenReady.then(() => {
 			this.updateEditorAreaContextKeys();
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
 		})${singleCatch};`));
 
-		for (const source of [layout, panePart, paneBar, compositeBar, contextkeys, toasts]) {
+		for (const source of [layout, panePart, paneBar, compositeBar, contextkeys, toasts, editorParts]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 

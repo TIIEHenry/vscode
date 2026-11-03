@@ -43,12 +43,6 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 function assertSingleCatch(source: string, call: string): void {
 	assert.ok(source.includes(`${call}.catch(onUnexpectedError);`), `missing single catch: ${call}`);
 	assert.ok(!source.includes(`${call}${doubleCatch};`));
@@ -101,41 +95,45 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		] as const;
 		assert.strictEqual(calls.length, 7);
 		for (const [source, call] of calls) {
-			assertDoubleThen(source, call);
+			assertSingleCatch(source, call);
 		}
+		assert.ok(!tabs.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assertSingleCatch(groupView, groupUntitledOpen);
 		assert.ok(!groupView.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('multiEditorTabsControl leftover path IIFE is Promise double-chain', () => {
+	test('multiEditorTabsControl leftover path IIFE is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
 		const pathService = fs.readFileSync(resolveSource(PATH_SERVICE_REL), 'utf8');
 		assertPromiseSignature(pathService, 'readonly path: Promise<IPath>;');
 		assert.ok(source.includes("import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, pathIife);
+		assertSingleCatch(source, pathIife);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('multiEditorTabsControl leftover openEditor fire-and-forget are Promise double-chain; await stays skipped', () => {
+	test('multiEditorTabsControl leftover openEditor fire-and-forget are Promise single-catch; await stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
 		const editorService = fs.readFileSync(resolveSource(EDITOR_SERVICE_REL), 'utf8');
 		const editorView = fs.readFileSync(resolveSource(EDITOR_VIEW_REL), 'utf8');
 		assertPromiseSignature(editorService, 'openEditor(editor: IUntypedEditorInput, group?: PreferredGroup): Promise<IEditorPane | undefined>;');
 		assertPromiseSignature(editorView, 'openEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined>;');
 		assert.ok(source.includes("import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, tabsUntitledOpen);
-		assertDoubleThen(source, wheelOpen);
-		assertDoubleThen(source, enterOpen);
-		assertDoubleThen(source, arrowOpen);
-		assertDoubleThen(source, dragOpen);
+		assertSingleCatch(source, tabsUntitledOpen);
+		assertSingleCatch(source, wheelOpen);
+		assertSingleCatch(source, enterOpen);
+		assertSingleCatch(source, arrowOpen);
+		assertSingleCatch(source, dragOpen);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('await this.groupView.openEditor(editor, { preserveFocus, activation: EditorActivation.ACTIVATE }, { inactiveSelection, focusTabControl: true });'));
 		assert.ok(!source.includes('await this.groupView.openEditor(editor, { preserveFocus, activation: EditorActivation.ACTIVATE }, { inactiveSelection, focusTabControl: true }).catch'));
 	});
 
-	test('multiEditorTabsControl leftover openEditors fire-and-forget is Promise double-chain', () => {
+	test('multiEditorTabsControl leftover openEditors fire-and-forget is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
 		const editorService = fs.readFileSync(resolveSource(EDITOR_SERVICE_REL), 'utf8');
 		assertPromiseSignature(editorService, 'openEditors(editors: IUntypedEditorInput[], group?: PreferredGroup, options?: IOpenEditorsOptions): Promise<readonly IEditorPane[]>;');
-		assertDoubleThen(source, treeOpenEditors);
+		assertSingleCatch(source, treeOpenEditors);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('editorGroupView leftover empty-container openEditor has single catch; assigned then stays skipped', () => {
@@ -188,7 +186,8 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);'));
+		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
@@ -202,7 +201,8 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		assert.ok(compositeBar.includes('this.openComposite(currentContainer.id, true).catch(onUnexpectedError);'));
 		assert.ok(!compositeBar.includes('this.openComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
-		for (const source of [tabs, groupView, nativeWindow, browserWindow, layout]) {
+		for (const source of [tabs, groupView, nativeWindow, browserWindow, layout, editorParts]) {
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));

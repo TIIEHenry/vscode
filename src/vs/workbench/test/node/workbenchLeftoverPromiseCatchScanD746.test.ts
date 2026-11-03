@@ -46,12 +46,6 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 function assertSingleCatch(source: string, call: string): void {
 	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing single-catch: ${call}`);
 	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
@@ -79,31 +73,29 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		const placeholder = fs.readFileSync(resolveSource(PLACEHOLDER_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(EDITOR_COMMANDS_REL), 'utf8');
 		const aux = fs.readFileSync(resolveSource(AUX_PART_REL), 'utf8');
-		const doubleCalls = [
+		const singleCalls = [
 			[editorParts, partsOpen],
 			[commands, commandsOpen],
 			[aux, auxOpen],
-		] as const;
-		assert.strictEqual(doubleCalls.length, 3);
-		for (const [source, call] of doubleCalls) {
-			assertDoubleThen(source, call);
-		}
-		const singleCalls = [
 			[placeholder, placeholderRetryOpen],
 			[placeholder, placeholderReloadOpen],
 		] as const;
-		assert.strictEqual(singleCalls.length, 2);
+		assert.strictEqual(singleCalls.length, 5);
 		for (const [source, call] of singleCalls) {
 			assertSingleCatch(source, call);
 		}
+		for (const source of [editorParts, commands, aux, placeholder]) {
+			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		}
 	});
 
-	test('editorParts leftover void openEditor is Promise double-chain', () => {
+	test('editorParts leftover void openEditor is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
 		const editorView = fs.readFileSync(resolveSource(EDITOR_VIEW_REL), 'utf8');
 		assertPromiseSignature(editorView, 'openEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, partsOpen);
+		assertSingleCatch(source, partsOpen);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('editorPlaceholder leftover group.openEditor fire-and-forget have single catch', () => {
@@ -116,19 +108,20 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('editorCommands leftover editorService.openEditor is Promise double-chain; await and returned stay skipped', () => {
+	test('editorCommands leftover editorService.openEditor is Promise single-catch; await and returned stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_COMMANDS_REL), 'utf8');
 		const editorService = fs.readFileSync(resolveSource(EDITOR_SERVICE_REL), 'utf8');
 		assertPromiseSignature(editorService, 'openEditor(editor: EditorInput, options?: IEditorOptions, group?: PreferredGroup): Promise<IEditorPane | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, commandsOpen);
+		assertSingleCatch(source, commandsOpen);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('await editorService.openEditor(input, columnToEditorGroup(editorGroupsService, configurationService, column));'));
 		assert.ok(!source.includes('await editorService.openEditor(input, columnToEditorGroup(editorGroupsService, configurationService, column)).catch'));
 		assert.ok(source.includes('return activeGroup.openEditor(nextNonStickyEditorInGroup);'));
 		assert.ok(!source.includes('return activeGroup.openEditor(nextNonStickyEditorInGroup).catch'));
 	});
 
-	test('auxiliaryEditorPart leftover group.openEditor is Promise double-chain; sync close stays skipped', () => {
+	test('auxiliaryEditorPart leftover group.openEditor is Promise single-catch; sync close stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(AUX_PART_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'openEditor(editor: EditorInput, options?: IEditorOptions): Promise<IEditorPane | undefined>;');
@@ -136,7 +129,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assert.ok(source.includes('editorPart.close();'));
 		assert.ok(!source.includes('editorPart.close().catch'));
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, auxOpen);
+		assertSingleCatch(source, auxOpen);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / custom-catch breadcrumbs / web.factory / Action2.run / treeView tooltip / already-double D697-D737 stay skipped', () => {
@@ -186,7 +180,9 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError);'));
+		assert.ok(!tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!tabs.includes(doubleCatch));
 		assert.ok(groupView.includes('}, this.id).catch(onUnexpectedError);'));
 		assert.ok(!groupView.includes(`${doubleCatch}`));
 

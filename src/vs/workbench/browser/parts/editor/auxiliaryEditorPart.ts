@@ -272,7 +272,7 @@ export class AuxiliaryEditorPart {
 					// prevent the window from closing.
 					const canMoveVeto = editor.canMove(group.id, this.editorPartsView.mainPart.activeGroup.id);
 					if (typeof canMoveVeto === 'string') {
-						group.openEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
+						group.openEditor(editor).catch(onUnexpectedError);
 						event.veto(canMoveVeto);
 						return;
 					}
@@ -443,7 +443,16 @@ class AuxiliaryEditorPartImpl extends EditorPart implements IAuxiliaryEditorPart
 	}
 
 	close(): boolean {
+		if (this._isDisposed) {
+			return false;
+		}
+
 		return this.doClose(true /* merge all confirming editors to main part */);
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		super.dispose();
 	}
 
 	private doClose(mergeConfirmingEditorsToMainPart: boolean): boolean {

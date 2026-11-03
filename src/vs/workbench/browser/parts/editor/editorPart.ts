@@ -113,7 +113,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	private static readonly EDITOR_PART_UI_STATE_STORAGE_KEY = 'editorpart.state';
 	private static readonly EDITOR_PART_CENTERED_VIEW_STORAGE_KEY = 'editorpart.centeredview';
 
-	private _isDisposed = false;
+	protected _isDisposed = false;
 
 	//#region Events
 

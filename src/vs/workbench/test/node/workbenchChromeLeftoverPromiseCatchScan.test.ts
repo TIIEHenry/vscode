@@ -43,12 +43,6 @@ function assertSingleThen(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -64,6 +58,7 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(!toasts.includes(doubleCatch), 'expected zero double-catches in notifications toasts');
 		assert.ok(!layout.includes(doubleCatch), 'expected zero double-catches in layout');
 		assert.ok(!contextkeys.includes(doubleCatch), 'expected zero double-catches in contextkeys');
+		assert.ok(!editorParts.includes(doubleCatch), 'expected zero double-catches in editor parts');
 
 		const singleCalls = [
 			[windowSource, 'this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady())'],
@@ -109,18 +104,12 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
 		})`],
-		] as const;
-
-		const doubleCalls = [
 			[editorParts, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())'],
 		] as const;
 
-		assert.strictEqual(singleCalls.length + doubleCalls.length, 7);
+		assert.strictEqual(singleCalls.length, 7);
 		for (const [source, call] of singleCalls) {
 			assertSingleThen(source, call);
-		}
-		for (const [source, call] of doubleCalls) {
-			assertDoubleThen(source, call);
 		}
 	});
 
@@ -160,12 +149,13 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(!source.includes(`${restoredThen}${doubleCatch};`));
 	});
 
-	test('editorParts leftover whenReady then is Promise double-chain; sync registerGroupsContextKeyListeners stays skipped', () => {
+	test('editorParts leftover whenReady then is Promise single-catch; sync registerGroupsContextKeyListeners stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'readonly whenReady: Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())');
+		assertSingleThen(source, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())');
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('private registerGroupsContextKeyListeners(): void {'));
 		assert.ok(!source.includes('this.registerGroupsContextKeyListeners().catch'));
 	});
@@ -234,8 +224,10 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(windowSource.includes('await this.lifecycleService.when(LifecyclePhase.Restored);'));
 		assert.ok(!windowSource.includes(doubleCatch));
 		assert.ok(!toasts.includes(doubleCatch));
+		assert.ok(!editorParts.includes(doubleCatch));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);'));
+		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));

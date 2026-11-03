@@ -168,7 +168,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// Resolve the correct path library for the OS we are on
 		// If we are connected to remote, this accounts for the
 		// remote OS.
-		(async () => this.path = await this.pathService.path)().catch(onUnexpectedError).catch(onUnexpectedError);
+		(async () => this.path = await this.pathService.path)().catch(onUnexpectedError);
 
 		// React to decorations changing for our resource labels
 		this._register(this.tabResourceLabels.onDidChangeDecorations(() => this.doHandleDecorationsChange()));
@@ -435,7 +435,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 						index: this.groupView.count, // always at the end
 						override: DEFAULT_EDITOR_ASSOCIATION.id
 					}
-				}, this.groupView.id).catch(onUnexpectedError).catch(onUnexpectedError);
+				}, this.groupView.id).catch(onUnexpectedError);
 			}));
 		}
 
@@ -465,14 +465,23 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		let isNewWindowOperation = false;
 		this._register(new DragAndDropObserver(tabsContainer, {
 			onDragStart: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				isNewWindowOperation = this.onGroupDragStart(e, tabsContainer);
 			},
 
 			onDrag: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				lastDragEvent = e;
 			},
 
 			onDragEnter: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 
 				// Always enable support to scroll while dragging
 				tabsContainer.classList.add('scroll');
@@ -503,11 +512,17 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			},
 
 			onDragLeave: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.updateDropFeedback(tabsContainer, false, e);
 				tabsContainer.classList.remove('scroll');
 			},
 
 			onDragEnd: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.updateDropFeedback(tabsContainer, false, e);
 				tabsContainer.classList.remove('scroll');
 
@@ -515,12 +530,15 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			},
 
 			onDrop: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.updateDropFeedback(tabsContainer, false, e);
 				tabsContainer.classList.remove('scroll');
 
 				if (e.target === tabsContainer) {
 					const isGroupTransfer = this.groupTransfer.hasData(DraggedEditorGroupIdentifier.prototype);
-					this.onDrop(e, isGroupTransfer ? this.groupView.count : this.tabsModel.count, tabsContainer).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.onDrop(e, isGroupTransfer ? this.groupView.count : this.tabsModel.count, tabsContainer).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -569,7 +587,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			}
 
 			// Open it
-			this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.groupView.openEditor(nextEditor).catch(onUnexpectedError);
 
 			// Disable normal scrolling, opening the editor will already reveal it properly
 			EventHelper.stop(e, true);
@@ -1057,6 +1075,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		const disposables = new DisposableStore();
 
 		const handleClickOrTouch = async (e: MouseEvent | GestureEvent, preserveFocus: boolean): Promise<void> => {
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			tab.blur(); // prevent flicker of focus outline on tab until editor got focus
 
 			if (isMouseEvent(e) && (e.button !== 0 /* middle/right mouse button */ || (isMacintosh && e.ctrlKey /* macOS context menu */))) {
@@ -1135,6 +1157,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 		// Update selection & prevent flicker of focus outline on tab until editor got focus
 		disposables.add(addDisposableListener(tab, EventType.MOUSE_UP, async e => {
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			EventHelper.stop(e);
 
 			tab.blur();
@@ -1193,7 +1219,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				handled = true;
 				const editor = this.tabsModel.getEditorByIndex(tabIndex);
 				if (editor) {
-					this.groupView.openEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.groupView.openEditor(editor).catch(onUnexpectedError);
 				}
 			}
 
@@ -1213,7 +1239,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				const target = this.groupView.getEditorByIndex(editorIndex);
 				if (target) {
 					handled = true;
-					this.groupView.openEditor(target, { preserveFocus: true }, { focusTabControl: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.groupView.openEditor(target, { preserveFocus: true }, { focusTabControl: true }).catch(onUnexpectedError);
 				}
 			}
 
@@ -1270,6 +1296,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		let isNewWindowOperation = false;
 		disposables.add(new DragAndDropObserver(tab, {
 			onDragStart: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
+
 				const editor = this.tabsModel.getEditorByIndex(tabIndex);
 				if (!editor) {
 					return;
@@ -1306,10 +1336,17 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			},
 
 			onDrag: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
+
 				lastDragEvent = e;
 			},
 
 			onDragEnter: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 
 				// Return if transfer is unsupported
 				if (!this.isSupportedDropTransfer(e)) {
@@ -1332,10 +1369,14 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			},
 
 			onDragOver: (e, dragDuration) => {
+				if (this._store.isDisposed) {
+					return;
+				}
+
 				if (dragDuration >= MultiEditorTabsControl.DRAG_OVER_OPEN_TAB_THRESHOLD) {
 					const draggedOverTab = this.tabsModel.getEditorByIndex(tabIndex);
 					if (draggedOverTab && this.tabsModel.activeEditor !== draggedOverTab) {
-						this.groupView.openEditor(draggedOverTab, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.groupView.openEditor(draggedOverTab, { preserveFocus: true }).catch(onUnexpectedError);
 					}
 				}
 
@@ -1343,6 +1384,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			},
 
 			onDragEnd: async e => {
+				if (this._store.isDisposed) {
+					return;
+				}
+
 				this.updateDropFeedback(tab, false, e, tabIndex);
 				const draggedEditors = this.editorTransfer.getData(DraggedEditorIdentifier.prototype);
 				this.editorTransfer.clearData(DraggedEditorIdentifier.prototype);
@@ -1357,7 +1402,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 				}
 
 				const auxiliaryEditorPart = await this.maybeCreateAuxiliaryEditorPartAt(e, tab);
-				if (!auxiliaryEditorPart) {
+				if (!auxiliaryEditorPart || this._store.isDisposed) {
 					return;
 				}
 
@@ -1373,6 +1418,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			},
 
 			onDrop: e => {
+				if (this._store.isDisposed) {
+					return;
+				}
+
 				this.updateDropFeedback(tab, false, e, tabIndex);
 
 				// compute the target index
@@ -1381,7 +1430,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 					targetIndex++;
 				}
 
-				this.onDrop(e, targetIndex, tabsContainer).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.onDrop(e, targetIndex, tabsContainer).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1482,7 +1531,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	}
 
 	private async selectEditor(editor: EditorInput): Promise<void> {
-		if (this.groupView.isActive(editor)) {
+		if (this._store.isDisposed || this.groupView.isActive(editor)) {
 			return;
 		}
 
@@ -1490,6 +1539,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	}
 
 	private async selectEditorsBetween(target: EditorInput, anchor: EditorInput): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const editorIndex = this.groupView.getIndexOfEditor(target);
 		if (editorIndex === -1) {
 			throw new BugIndicatingError();
@@ -1531,10 +1584,17 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		}
 
 		const inactiveSelectedEditors = selection.filter(editor => !editor.matches(target));
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.groupView.setSelection(target, inactiveSelectedEditors);
 	}
 
 	private async unselectEditor(editor: EditorInput): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const isUnselectingActiveEditor = this.groupView.isActive(editor);
 
 		// If there is only one editor selected, do not unselect it
@@ -1558,10 +1618,17 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		}
 
 		const inactiveSelectedEditors = this.groupView.selectedEditors.filter(e => !e.matches(editor) && !e.matches(newActiveEditor));
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.groupView.setSelection(newActiveEditor, inactiveSelectedEditors);
 	}
 
 	private async unselectAllEditors(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (this.groupView.selectedEditors.length > 1) {
 			const activeEditor = assertReturnsDefined(this.groupView.activeEditor);
 			await this.groupView.setSelection(activeEditor, []);
@@ -2465,6 +2532,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	}
 
 	private async onDrop(e: DragEvent, targetTabIndex: number, tabsContainer: HTMLElement): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		EventHelper.stop(e, true);
 
 		this.updateDropFeedback(tabsContainer, false, e, targetTabIndex);
@@ -2547,7 +2618,11 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 					}
 				}
 
-				this.editorService.openEditors(editors, this.groupView, { validateTrust: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+
+				this.editorService.openEditors(editors, this.groupView, { validateTrust: true }).catch(onUnexpectedError);
 			}
 
 			this.treeItemsTransfer.clearData(DraggedTreeItemsIdentifier.prototype);
@@ -2562,6 +2637,14 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	override dispose(): void {
 		this.clearEmptyPlaceholderTab();
+
+		if (this.tabsContainer) {
+			clearNode(this.tabsContainer);
+			this.tabsContainer.remove();
+			this.tabsContainer = undefined;
+		}
+
+		this.updateDropTarget(undefined);
 
 		super.dispose();
 

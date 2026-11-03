@@ -121,22 +121,22 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
 		const doubleCalls = [
-			[modal, modalClose],
-			[treeView, treeProgressThen],
 			[listCommands, expandThen],
 		] as const;
-		assert.strictEqual(doubleCalls.length, 3);
+		assert.strictEqual(doubleCalls.length, 1);
 		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
 		}
 
 		const singleCalls = [
+			[modal, modalClose],
+			[treeView, treeProgressThen],
 			[editorConfig, configIife],
 			[editorPanes, trustOpen],
 			[editorDrop, dropOpenEditors],
 			[nativeMenubar, nativeMenubarIife],
 		] as const;
-		assert.strictEqual(singleCalls.length, 4);
+		assert.strictEqual(singleCalls.length, 6);
 		for (const [source, call] of singleCalls) {
 			assertSingleCatch(source, call);
 			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
@@ -152,11 +152,12 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('modalEditorPart leftover void close is Promise double-chain', () => {
+	test('modalEditorPart leftover void close is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(MODAL_REL), 'utf8');
 		assertPromiseSignature(source, 'async close(options?: { mergeAllEditorsToMainPart?: boolean }): Promise<boolean> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, modalClose);
+		assertSingleCatch(source, modalClose);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('editorPanes leftover trust openEditor has single catch', () => {
@@ -186,7 +187,7 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('treeView leftover withProgress then is Promise double-chain', () => {
+	test('treeView leftover withProgress then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const progress = fs.readFileSync(resolveSource(PROGRESS_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
@@ -197,7 +198,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 	): Promise<R>;`);
 		assertPromiseSignature(extensions, 'activateByEvent(activationEvent: string, activationKind?: ActivationKind): Promise<void>;');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, treeProgressThen);
+		assertSingleCatch(source, treeProgressThen);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('listCommands leftover AsyncDataTree expand then is Promise double-chain', () => {
@@ -222,7 +224,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
 		assert.ok(!breadcrumbs.includes(`${doubleCatch}`));
 
-		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);'));
+		assert.ok(!editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(webFactory.includes('new BrowserMain(domElement, options).open().then(workbench => {'));
 		assert.ok(!webFactory.includes('onUnexpectedError'));
@@ -240,7 +243,9 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase));'));
 		assert.ok(!contributions.includes('lifecycleService.when(phase).then(() => this.doInstantiateByPhase(instantiationService, logService, environmentService, phase)).catch'));
 
-		assert.ok(tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError);'));
+		assert.ok(!tabs.includes('this.groupView.openEditor(nextEditor).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!tabs.includes(`${doubleCatch}`));
 		assert.ok(groupView.includes('}, this.id).catch(onUnexpectedError);'));
 		assert.ok(!groupView.includes(`${doubleCatch}`));
 
@@ -248,7 +253,7 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(groupView.includes(assignedThen));
 		assert.ok(!groupView.includes(`${assignedThen}${doubleCatch}`));
 
-		for (const source of [nativeWindow, browserWindow, tabs, groupView]) {
+		for (const source of [nativeWindow, browserWindow, tabs, groupView, editorParts]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));

@@ -802,7 +802,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 				this._onDidExpandItem.fire(element);
 			}
 		}));
-		this.tree.setInput(this.root).then(() => this.updateContentAreas()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.tree.setInput(this.root).then(() => this.updateContentAreas()).catch(onUnexpectedError);
 
 		this.treeDisposables.add(this.tree.onDidOpen(async (e) => {
 			if (!e.browserEvent) {
@@ -896,6 +896,10 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	}
 
 	protected updateMessage(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (this._message) {
 			this.showMessage(this._message);
 		} else if (!this.dataProvider) {
@@ -1026,9 +1030,12 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	}
 
 	async refresh(elements?: readonly ITreeItem[], checkboxes?: readonly ITreeItem[]): Promise<void> {
-		if (this.dataProvider && this.tree) {
+		if (this.dataProvider && this.tree && !this._store.isDisposed) {
 			if (this.refreshing) {
 				await Event.toPromise(this._onDidCompleteRefresh.event);
+				if (this._store.isDisposed || !this.tree) {
+					return;
+				}
 			}
 			this.childrenResolveGeneration++;
 			if (!elements) {
@@ -1061,12 +1068,15 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 
 	async expand(itemOrItems: ITreeItem | ITreeItem[]): Promise<void> {
 		const tree = this.tree;
-		if (!tree) {
+		if (!tree || this._store.isDisposed) {
 			return;
 		}
 		try {
 			itemOrItems = Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems];
 			for (const element of itemOrItems) {
+				if (this._store.isDisposed || this.tree !== tree) {
+					return;
+				}
 				await tree.expand(element, false);
 			}
 		} catch (e) {
@@ -1099,7 +1109,7 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	}
 
 	async reveal(item: ITreeItem): Promise<void> {
-		if (this.tree) {
+		if (this.tree && !this._store.isDisposed) {
 			return this.tree.reveal(item);
 		}
 	}
@@ -1156,6 +1166,10 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	}
 
 	private updateContentAreas(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const isTreeEmpty = !this.root.children || this.root.children.length === 0;
 		// Hide tree container only when there is a message and tree is empty and not refreshing
 		if (this._messageValue && isTreeEmpty && !this.refreshing && this.treeContainer) {
@@ -1183,6 +1197,14 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 		}
 		this._messageValue = undefined;
 		this.childrenResolveGeneration++;
+		if (this.treeContainer) {
+			DOM.clearNode(this.treeContainer);
+			this.treeContainer.remove();
+		}
+		if (this.domNode) {
+			DOM.clearNode(this.domNode);
+			this.domNode.remove();
+		}
 		super.dispose();
 	}
 }
@@ -1924,7 +1946,7 @@ export class CustomTreeView extends AbstractTreeView {
 				.then(() => timeout(2000))
 				.then(() => {
 					this.updateMessage();
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			this.activated = true;
 		}
 	}

@@ -69,6 +69,8 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 	declare readonly _serviceBrand: undefined;
 
+	private _isDisposed = false;
+
 	readonly mainPart: MainEditorPart;
 	private readonly modalEditorVisibleContext: IContextKey<boolean>;
 
@@ -111,13 +113,13 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 		this.mostRecentActiveParts = [this.mainPart];
 
-		this.restoreParts().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.restoreParts().catch(onUnexpectedError);
 		this.registerListeners();
 	}
 
 	private registerListeners(): void {
 		this._register(this.onDidChangeMementoValue(StorageScope.WORKSPACE, this._store)(e => this.onDidChangeMementoState(e)));
-		this.whenReady.then(() => this.registerGroupsContextKeyListeners()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.whenReady.then(() => this.registerGroupsContextKeyListeners()).catch(onUnexpectedError);
 	}
 
 	protected createMainEditorPart(): MainEditorPart {
@@ -313,7 +315,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			getDefaultConversationChatResource(sessionKey),
 			{ isDefaultRoot: true },
 		));
-		void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);
+		void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);
 
 		this.conversationEditorParts.set(sessionKey, editorPart);
 		disposables.add(toDisposable(() => this.conversationEditorParts.delete(sessionKey)));
@@ -606,12 +608,18 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	readonly whenRestored = this.whenRestoredPromise.p;
 
 	private async restoreParts(): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Join on the main part being ready to pick
 		// the right moment to begin restoring.
 		// The main part is automatically being created
 		// as part of the overall startup process.
 		await this.mainPart.whenReady;
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Only attempt to restore auxiliary editor parts
 		// when the main part did restore. It is possible
@@ -621,6 +629,9 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 			const state = this.loadState();
 			if (state) {
 				await this.restoreState(state);
+				if (this._isDisposed) {
+					return;
+				}
 			}
 		}
 
@@ -632,6 +643,9 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 		// Await restored
 		await Promise.allSettled(this.parts.map(part => part.whenRestored));
+		if (this._isDisposed) {
+			return;
+		}
 		this.whenRestoredPromise.complete();
 	}
 
@@ -694,6 +708,10 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	private async restoreState(state: IEditorPartsUIState): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
+
 		if (state.auxiliary.length) {
 			const auxiliaryEditorPartPromises: Promise<IAuxiliaryEditorPart>[] = [];
 
@@ -704,6 +722,9 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 			// Await creation
 			await Promise.allSettled(auxiliaryEditorPartPromises);
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Update MRU list
 			if (state.mru.length === this.parts.length) {
@@ -727,12 +748,15 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 			const state = this.loadState();
 			if (state) {
-				this.applyState(state).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.applyState(state).catch(onUnexpectedError);
 			}
 		}
 	}
 
 	private async applyState(state: IEditorPartsUIState | 'empty'): Promise<boolean> {
+		if (this._isDisposed) {
+			return false;
+		}
 
 		// Before closing windows, try to close as many editors as
 		// possible, but skip over those that would trigger a dialog
@@ -746,6 +770,9 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 
 			for (const group of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
 				await group.closeAllEditors({ excludeConfirming: true, force: true });
+				if (this._isDisposed) {
+					return false;
+				}
 			}
 
 			const closed = (part as unknown as IAuxiliaryEditorPart).close(); // will move remaining editors to main part
@@ -757,6 +784,9 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		// Restore auxiliary state unless we are in an empty state
 		if (state !== 'empty') {
 			await this.restoreState(state);
+			if (this._isDisposed) {
+				return false;
+			}
 		}
 
 		return true;
@@ -802,6 +832,10 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	async applyWorkingSet(workingSet: IEditorWorkingSet | 'empty', options?: IEditorWorkingSetOptions): Promise<boolean> {
+		if (this._isDisposed) {
+			return false;
+		}
+
 		let workingSetState: IEditorWorkingSetState | 'empty' | undefined;
 		if (workingSet === 'empty') {
 			workingSetState = 'empty';
@@ -818,16 +852,22 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		// Also, in rare cases, the auxiliary part may not be able to apply the state
 		// for certain editors that cannot move to the main part.
 		const applied = await this.applyState(workingSetState === 'empty' ? workingSetState : workingSetState.auxiliary);
-		if (!applied) {
+		if (!applied || this._isDisposed) {
 			return false;
 		}
 		await this.mainPart.applyState(workingSetState === 'empty' ? workingSetState : workingSetState.main, options);
+		if (this._isDisposed) {
+			return false;
+		}
 
 		// Restore Focus unless instructed otherwise
 		if (!options?.preserveFocus) {
 			const mostRecentActivePart = this.mostRecentActiveParts.at(0);
 			if (mostRecentActivePart) {
 				await mostRecentActivePart.whenReady;
+				if (this._isDisposed) {
+					return false;
+				}
 				mostRecentActivePart.activeGroup.focus();
 			}
 		}
@@ -1213,6 +1253,11 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	//#endregion
+
+	override dispose(): void {
+		this._isDisposed = true;
+		super.dispose();
+	}
 }
 
 registerSingleton(IEditorGroupsService, EditorParts, InstantiationType.Eager);

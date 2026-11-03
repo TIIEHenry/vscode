@@ -173,7 +173,7 @@ export class ModalEditorPart {
 				EventHelper.stop(e, true);
 
 				// Close modal when clicking outside the dialog
-				void editorPart.close().catch(onUnexpectedError).catch(onUnexpectedError);
+				void editorPart.close().catch(onUnexpectedError);
 			}
 		}));
 
@@ -1107,6 +1107,9 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 	}
 
 	async close(options?: { mergeAllEditorsToMainPart?: boolean }): Promise<boolean> {
+		if (this._isDisposed) {
+			return false;
+		}
 
 		// Merge all editors to main part (editors stay open, no confirmation needed)
 		if (options?.mergeAllEditorsToMainPart) {
@@ -1121,10 +1124,14 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 		else {
 			for (const group of this.groups) {
 				const closed = await group.closeAllEditors();
-				if (!closed) {
-					return false; // user cancelled
+				if (this._isDisposed || !closed) {
+					return false; // user cancelled or disposed
 				}
 			}
+		}
+
+		if (this._isDisposed) {
+			return false;
 		}
 
 		this._onWillClose.fire();
@@ -1162,6 +1169,7 @@ class ModalEditorPartImpl extends EditorPart implements IModalEditorPart {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		this._navigation = undefined; // ensure to free the reference to the navigation closure
 
 		super.dispose();

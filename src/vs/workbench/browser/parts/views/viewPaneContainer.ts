@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, Dimension, DragAndDropObserver, EventType, getWindow, isAncestor } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, clearNode, Dimension, DragAndDropObserver, EventType, getWindow, isAncestor } from '../../../../base/browser/dom.js';
 import { StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
 import { EventType as TouchEventType, Gesture } from '../../../../base/browser/touch.js';
 import { IActionViewItem } from '../../../../base/browser/ui/actionbar/actionbar.js';
@@ -527,6 +527,9 @@ export class ViewPaneContainer<MementoType extends object = object> extends Comp
 
 		// Update headers after and title contributed views after available, since we read from cache in the beginning to know if the viewlet has single view or not. Ref #29609
 		this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.areExtensionsReady = true;
 			if (this.panes.length) {
 				this.updateTitleArea();
@@ -537,7 +540,7 @@ export class ViewPaneContainer<MementoType extends object = object> extends Comp
 					this.updateViewHeaders();
 				}
 			}));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this.viewContainerModel.onDidChangeActiveViewDescriptors(() => this._onTitleAreaUpdate.fire()));
 	}
@@ -1177,6 +1180,8 @@ export class ViewPaneContainer<MementoType extends object = object> extends Comp
 		super.dispose();
 		this.paneItems.forEach(i => i.disposable.dispose());
 		if (this.paneview) {
+			clearNode(this.paneview.element);
+			this.paneview.element.remove();
 			this.paneview.dispose();
 		}
 	}
