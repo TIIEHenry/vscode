@@ -100,6 +100,10 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	override dispose(): void {
 		this.sourcesPartService.setFocusDelegate(undefined);
 		this.reviewHostService.registerReviewListHost(undefined);
+		this.tabHost.classList.remove('sources-tab-host');
+		this.contentHost.classList.remove('sources-tabs-content');
+		dom.clearNode(this.tabHost);
+		dom.clearNode(this.contentHost);
 		super.dispose();
 	}
 
@@ -151,6 +155,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	}
 
 	selectTab(tabId: SourcesTabId, focusTab: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.selectedTab === tabId && !focusTab) {
 			this.updateTabPresentation();
 			return;
@@ -177,6 +184,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	}
 
 	private restoreTabForSession(nextSessionId: string): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const leavingId = this.selectedTabSessionId;
 		if (!leavingId || leavingId === nextSessionId) {
 			this.selectedTabSessionId = nextSessionId;
