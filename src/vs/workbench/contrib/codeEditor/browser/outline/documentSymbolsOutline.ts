@@ -110,6 +110,8 @@ class DocumentSymbolBreadcrumbsSource implements IBreadcrumbsDataSource<Document
 class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 
 	private readonly _disposables = new DisposableStore();
+	private readonly _store = this._disposables;
+	private _isDisposed = false;
 	private readonly _onDidChange = this._disposables.add(new Emitter<OutlineChangeEvent>());
 
 	readonly onDidChange: Event<OutlineChangeEvent> = this._onDidChange.event;
@@ -188,9 +190,9 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 
 
 		// update as language, model, providers changes
-		this._disposables.add(_languageFeaturesService.documentSymbolProvider.onDidChange(_ => this._createOutline().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._disposables.add(this._editor.onDidChangeModel(_ => this._createOutline().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._disposables.add(this._editor.onDidChangeModelLanguage(_ => this._createOutline().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._disposables.add(_languageFeaturesService.documentSymbolProvider.onDidChange(_ => this._createOutline().catch(onUnexpectedError)));
+		this._disposables.add(this._editor.onDidChangeModel(_ => this._createOutline().catch(onUnexpectedError)));
+		this._disposables.add(this._editor.onDidChangeModelLanguage(_ => this._createOutline().catch(onUnexpectedError)));
 
 		// update soon'ish as model content change
 		const updateSoon = new TimeoutTimer();
@@ -199,7 +201,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 			const model = this._editor.getModel();
 			if (model) {
 				const timeout = _outlineModelService.getDebounceValue(model);
-				updateSoon.cancelAndSet(() => this._createOutline(event).catch(onUnexpectedError).catch(onUnexpectedError), timeout);
+				updateSoon.cancelAndSet(() => this._createOutline(event).catch(onUnexpectedError), timeout);
 			}
 		}));
 
@@ -207,10 +209,11 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 		this._disposables.add(this._editor.onDidDispose(() => this._outlineDisposables.clear()));
 
 		// initial load
-		this._createOutline().finally(() => firstLoadBarrier.open()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._createOutline().finally(() => firstLoadBarrier.open()).catch(onUnexpectedError);
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		this._disposables.dispose();
 		this._outlineDisposables.dispose();
 	}
@@ -236,6 +239,9 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 				selectionRevealType: TextEditorSelectionRevealType.NearTopIfOutsideViewport,
 			}
 		}, this._editor, sideBySide);
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 	}
 
 	preview(entry: DocumentSymbolItem): IDisposable {
@@ -289,7 +295,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 
 		try {
 			const model = await this._outlineModelService.getOrCreate(buffer, cts.token);
-			if (cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || this._isDisposed || cts.token.isCancellationRequested) {
 				// cancelled -> do nothing
 				return;
 			}
@@ -313,7 +319,7 @@ class DocumentSymbolsOutline implements IOutline<DocumentSymbolItem> {
 					// wait for a better state and ignore current model when more
 					// typing has happened
 					const value = await raceCancellation(timeout(2000).then(() => true), cts.token, false);
-					if (!value) {
+					if (this._store.isDisposed || this._isDisposed || !value) {
 						return;
 					}
 				}

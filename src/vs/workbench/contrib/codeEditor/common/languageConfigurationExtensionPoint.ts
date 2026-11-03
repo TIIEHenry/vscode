@@ -106,7 +106,7 @@ export class LanguageConfigurationFileHandler extends Disposable {
 			// Modes can be instantiated before the extension points have finished registering
 			this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 				this._loadConfigurationsForMode(languageIdentifier);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 		this._register(this._languageService.onDidChange(() => {
 			// reload language configurations as necessary

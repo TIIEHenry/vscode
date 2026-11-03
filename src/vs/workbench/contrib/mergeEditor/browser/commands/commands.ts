@@ -450,7 +450,7 @@ export class CompareInput1WithBaseCommand extends MergeEditorAction {
 
 	override runWithViewModel(viewModel: MergeEditorViewModel, accessor: ServicesAccessor): void {
 		const editorService = accessor.get(IEditorService);
-		mergeEditorCompare(viewModel, editorService, 1).catch(onUnexpectedError).catch(onUnexpectedError);
+		mergeEditorCompare(viewModel, editorService, 1).catch(onUnexpectedError);
 	}
 }
 
@@ -470,7 +470,7 @@ export class CompareInput2WithBaseCommand extends MergeEditorAction {
 
 	override runWithViewModel(viewModel: MergeEditorViewModel, accessor: ServicesAccessor): void {
 		const editorService = accessor.get(IEditorService);
-		mergeEditorCompare(viewModel, editorService, 2).catch(onUnexpectedError).catch(onUnexpectedError);
+		mergeEditorCompare(viewModel, editorService, 2).catch(onUnexpectedError);
 	}
 }
 
@@ -565,7 +565,7 @@ export class ResetToBaseAndAutoMergeCommand extends MergeEditorAction {
 	}
 
 	override runWithViewModel(viewModel: MergeEditorViewModel, accessor: ServicesAccessor): void {
-		viewModel.model.reset().catch(onUnexpectedError).catch(onUnexpectedError);
+		viewModel.model.reset().catch(onUnexpectedError);
 	}
 }
 

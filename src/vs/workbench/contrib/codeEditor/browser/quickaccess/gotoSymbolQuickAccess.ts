@@ -271,7 +271,7 @@ export class GotoSymbolQuickAccessProvider extends AbstractGotoSymbolQuickAccess
 			description: element.description,
 			ariaLabel: element.ariaLabel,
 			iconClasses: element.iconClasses,
-			reveal: () => void Promise.resolve(outline.reveal(element.element, {}, false, false)).catch(onUnexpectedError).catch(onUnexpectedError),
+			reveal: () => void Promise.resolve(outline.reveal(element.element, {}, false, false)).catch(onUnexpectedError),
 			preview: () => outline.preview(element.element)
 		}));
 	}

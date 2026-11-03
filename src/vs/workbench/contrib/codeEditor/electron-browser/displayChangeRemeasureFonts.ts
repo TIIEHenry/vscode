@@ -25,7 +25,7 @@ class DisplayChangeRemeasureFonts extends Disposable implements IWorkbenchContri
 			this._delayer.trigger(() => {
 				FontMeasurements.clearAllFontInfos();
 				return Promise.resolve();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 	}
 }

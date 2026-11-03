@@ -288,8 +288,8 @@ class CodeActionOnSaveParticipant extends Disposable implements ITextFileSavePar
 	) {
 		super();
 
-		this._register(this.hostService.onDidChangeFocus(() => { this.triggerCodeActionsCommand().catch(onUnexpectedError).catch(onUnexpectedError); }));
-		this._register(this.editorService.onDidActiveEditorChange(() => { this.triggerCodeActionsCommand().catch(onUnexpectedError).catch(onUnexpectedError); }));
+		this._register(this.hostService.onDidChangeFocus(() => { this.triggerCodeActionsCommand().catch(onUnexpectedError); }));
+		this._register(this.editorService.onDidActiveEditorChange(() => { this.triggerCodeActionsCommand().catch(onUnexpectedError); }));
 	}
 
 	private async triggerCodeActionsCommand() {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, getActiveWindow } from '../../../../../base/browser/dom.js';
+import { $, addDisposableListener, clearNode, getActiveWindow } from '../../../../../base/browser/dom.js';
 import { IContentActionHandler, renderFormattedText } from '../../../../../base/browser/formattedTextRenderer.js';
 import { StandardMouseEvent } from '../../../../../base/browser/mouseEvent.js';
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
@@ -167,7 +167,7 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 
 	private disableHint(e?: MouseEvent) {
 		const disableHint = () => {
-			this.configurationService.updateValue(emptyTextEditorHintSetting, 'hidden').catch(onUnexpectedError).catch(onUnexpectedError);
+			this.configurationService.updateValue(emptyTextEditorHintSetting, 'hidden').catch(onUnexpectedError);
 			this.dispose();
 			this.editor.focus();
 		};
@@ -201,7 +201,7 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 			callback: (index, event) => {
 				switch (index) {
 					case '0':
-						languageOnClickOrTap(event.browserEvent).catch(onUnexpectedError).catch(onUnexpectedError);
+						languageOnClickOrTap(event.browserEvent).catch(onUnexpectedError);
 						break;
 					case '1':
 						this.disableHint();
@@ -276,9 +276,13 @@ class EmptyTextEditorHintContentWidget extends Disposable implements IContentWid
 	}
 
 	override dispose(): void {
-		super.dispose();
-
 		this.editor.removeContentWidget(this);
+		if (this.domNode) {
+			clearNode(this.domNode);
+			this.domNode.remove();
+			this.domNode = undefined;
+		}
+		super.dispose();
 	}
 }
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, h, isInShadowDOM, reset } from '../../../../../base/browser/dom.js';
+import { $, clearNode, h, isInShadowDOM, reset } from '../../../../../base/browser/dom.js';
 import { createStyleSheet } from '../../../../../base/browser/domStylesheets.js';
 import { renderLabelWithIcons } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
@@ -368,6 +368,12 @@ class ActionsContentWidget extends FixedZoneWidget {
 		}));
 	}
 
+	override dispose(): void {
+		clearNode(this._domNode);
+		this._domNode.remove();
+		super.dispose();
+	}
+
 	private setState(items: IContentWidgetAction[]) {
 		const children: HTMLElement[] = [];
 		let isFirst = true;
@@ -380,7 +386,7 @@ class ActionsContentWidget extends FixedZoneWidget {
 			const title = renderLabelWithIcons(item.text);
 
 			if (item.action) {
-				children.push($('a', { title: item.tooltip, role: 'button', onclick: () => item.action!().catch(onUnexpectedError).catch(onUnexpectedError) }, ...title));
+				children.push($('a', { title: item.tooltip, role: 'button', onclick: () => item.action!().catch(onUnexpectedError) }, ...title));
 			} else {
 				children.push($('span', { title: item.tooltip }, ...title));
 			}

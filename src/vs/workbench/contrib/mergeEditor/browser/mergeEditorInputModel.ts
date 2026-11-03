@@ -128,6 +128,7 @@ export class TempFileMergeEditorModeFactory implements IMergeEditorInputModelFac
 }
 
 class TempFileMergeEditorInputModel extends EditorModel implements IMergeEditorInputModel {
+	private _isDisposed = false;
 	private readonly savedAltVersionId;
 	private readonly altVersionId;
 
@@ -155,6 +156,7 @@ class TempFileMergeEditorInputModel extends EditorModel implements IMergeEditorI
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		this.disposable.dispose();
 		super.dispose();
 	}
@@ -263,12 +265,19 @@ class TempFileMergeEditorInputModel extends EditorModel implements IMergeEditorI
 				primaryButton: localize({ key: 'acceptMerge', comment: ['&& denotes a mnemonic'] }, '&&Accept Merge')
 			});
 
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
+
 			if (confirmed) {
 				await this.accept();
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				const editors = this.editorService.findEditors(this.resultUri).filter(e => e.editor.typeId === 'mergeEditor.Input');
 				await this.editorService.closeEditors(editors);
 			}
-		})().catch(onUnexpectedError).catch(onUnexpectedError);
+		})().catch(onUnexpectedError);
 	}
 
 	public async revert(options?: IRevertOptions): Promise<void> {
@@ -360,6 +369,7 @@ export class WorkspaceMergeEditorModeFactory implements IMergeEditorInputModelFa
 }
 
 class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditorInputModel {
+	private _isDisposed = false;
 	public readonly isDirty;
 
 	private reported;
@@ -383,6 +393,7 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 	}
 
 	public override dispose(): void {
+		this._isDisposed = true;
 		this.disposableStore.dispose();
 		super.dispose();
 
@@ -423,6 +434,9 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 
 	public async accept(): Promise<boolean> {
 		const saved = await this.resultTextFileModel.save();
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		if (!saved) {
 			return false;
 		}
@@ -435,6 +449,9 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 	}
 
 	async save(options?: ITextFileSaveOptions): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		await this.resultTextFileModel.save(options);
 	}
 
@@ -442,6 +459,9 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 	 * If save resets the dirty state, revert must do so too.
 	*/
 	async revert(options?: IRevertOptions): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		await this.resultTextFileModel.revert(options);
 	}
 

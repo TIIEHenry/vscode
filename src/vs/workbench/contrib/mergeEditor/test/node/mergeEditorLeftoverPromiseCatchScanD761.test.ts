@@ -33,6 +33,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -41,9 +42,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 function countDoubleChains(source: string): number {
@@ -74,49 +75,52 @@ suite('Merge editor leftover remaining Promise fire-and-forget catch scan (D761)
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites', () => {
+	test('this knife covers five leftover Promise single-catch sites and zero double-catches', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d761Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+			const wrapped = (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
-	test('leftover mergeEditorCompare / reset fire-and-forgets are Promise double-chain', () => {
+	test('leftover mergeEditorCompare / reset fire-and-forgets are Promise single-catch', () => {
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
 		assertPromiseSignature(commands, 'async function mergeEditorCompare(viewModel: MergeEditorViewModel, editorService: IEditorService, inputNumber: 1 | 2) {');
 		assertPromiseSignature(model, 'public async reset(): Promise<void> {');
 		assert.ok(commands.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.strictEqual(countDoubleChains(commands), 3);
-		assert.ok(commands.includes(`${compare1}${doubleCatch};`));
-		assert.ok(commands.includes(`${compare2}${doubleCatch};`));
-		assert.ok(commands.includes(`${resetCall}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(commands), 0);
+		assert.ok(commands.includes(`${compare1}${singleCatch};`));
+		assert.ok(commands.includes(`${compare2}${singleCatch};`));
+		assert.ok(commands.includes(`${resetCall}${singleCatch};`));
 		assert.ok(!commands.includes(`${compare1};`));
 		assert.ok(!commands.includes(`${compare2};`));
 		assert.ok(!commands.includes(`${resetCall};`));
 	});
 
-	test('leftover temp-file save IIFE / conflict action click are Promise double-chain', () => {
+	test('leftover temp-file save IIFE / conflict action click are Promise single-catch', () => {
 		const inputModel = fs.readFileSync(resolveSource(INPUT_MODEL_REL), 'utf8');
 		const conflict = fs.readFileSync(resolveSource(CONFLICT_REL), 'utf8');
 		assertPromiseSignature(inputModel, 'public async save(options?: ITextFileSaveOptions): Promise<void> {');
 		assertPromiseSignature(conflict, 'action?: () => Promise<void>;');
 		assert.ok(inputModel.includes("import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(conflict.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.ok(inputModel.includes(`})()${doubleCatch};`));
+		assert.ok(inputModel.includes(`})()${singleCatch};`));
 		assert.ok(!inputModel.includes('\t\t})();'));
-		assert.ok(conflict.includes(`onclick: () => item.action!()${doubleCatch}`));
+		assert.ok(conflict.includes(`onclick: () => item.action!()${singleCatch}`));
 		assert.ok(!conflict.includes('onclick: () => item.action!() }'));
-		assert.strictEqual(countDoubleChains(inputModel), 1);
-		assert.strictEqual(countDoubleChains(conflict), 1);
+		assert.strictEqual(countDoubleChains(inputModel), 0);
+		assert.strictEqual(countDoubleChains(conflict), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve stay skipped', () => {
@@ -153,11 +157,13 @@ suite('Merge editor leftover remaining Promise fire-and-forget catch scan (D761)
 		assert.ok(!inputModel.includes(`createModelReference(args.base).then<IReference<ITextModel>>(v => ({}${doubleCatch}`));
 
 		assert.ok(model.includes(`initializePromise.then(() => {`));
-		assert.ok(model.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(model.includes(`}).catch(onUnexpectedError);`));
+		assert.ok(!model.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(diffs.includes(`result.then((result) => {`));
-		assert.ok(diffs.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.strictEqual(countDoubleChains(model), 1);
-		assert.strictEqual(countDoubleChains(diffs), 1);
+		assert.ok(diffs.includes(`}).catch(onUnexpectedError);`));
+		assert.ok(!diffs.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.strictEqual(countDoubleChains(model), 0);
+		assert.strictEqual(countDoubleChains(diffs), 0);
 
 		assert.ok(input.includes('override async resolve(): Promise<IMergeEditorInputModel> {'));
 		assert.ok(mergeEditor.includes('const inputModel = await input.resolve();'));
@@ -171,6 +177,7 @@ suite('Merge editor leftover remaining Promise fire-and-forget catch scan (D761)
 		assert.ok(!commands.includes(`run(accessor: ServicesAccessor)${doubleCatch}`));
 
 		for (const source of [commands, model, diffs, mergeEditor, input, inputModel, dev, electronDev]) {
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

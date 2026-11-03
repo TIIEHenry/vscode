@@ -29,6 +29,7 @@ export interface InputData {
 }
 
 export class MergeEditorModel extends EditorModel {
+	private _isDisposed = false;
 	private readonly input1TextModelDiffs;
 	private readonly input2TextModelDiffs;
 	private readonly resultTextModelDiffs;
@@ -153,10 +154,16 @@ export class MergeEditorModel extends EditorModel {
 		const initializePromise = this.initialize();
 
 		this.onInitialized = waitForState(this.diffComputingState, state => state === MergeEditorModelState.upToDate).then(async () => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			await initializePromise;
 		});
 
 		initializePromise.then(() => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			let shouldRecomputeHandledFromAccepted = true;
 			this._register(
 				autorunHandleChanges(
@@ -199,7 +206,12 @@ export class MergeEditorModel extends EditorModel {
 					}
 				)
 			);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
+	}
+
+	public override dispose(): void {
+		this._isDisposed = true;
+		super.dispose();
 	}
 
 	private async initialize(): Promise<void> {
@@ -211,7 +223,7 @@ export class MergeEditorModel extends EditorModel {
 	public async reset(): Promise<void> {
 		const resetEpoch = ++this._resetEpoch;
 		await waitForState(this.inputDiffComputingState, state => state === MergeEditorModelState.upToDate);
-		if (this._store.isDisposed || resetEpoch !== this._resetEpoch) {
+		if (this._store.isDisposed || this._isDisposed || resetEpoch !== this._resetEpoch) {
 			return;
 		}
 		const states = this.modifiedBaseRangeResultStates.get();
@@ -605,6 +617,9 @@ export class MergeEditorModel extends EditorModel {
 
 	public async getResultValueWithConflictMarkers(): Promise<string> {
 		await waitForState(this.diffComputingState, state => state === MergeEditorModelState.upToDate);
+		if (this._store.isDisposed || this._isDisposed) {
+			return '';
+		}
 
 		if (this.unhandledConflictsCount.get() === 0) {
 			return this.resultTextModel.getValue();
