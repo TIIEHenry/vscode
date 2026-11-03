@@ -205,6 +205,9 @@ export class NavigatorTeamView extends ViewPane {
 	private tasksListContainer: HTMLElement | undefined;
 	private tasksList: WorkbenchList<INavigatorTeamTaskEntry> | undefined;
 	private taskEntries: INavigatorTeamTaskEntry[] = [];
+	private treeContainer: HTMLElement | undefined;
+	private filterEmpty: HTMLElement | undefined;
+	private statusContainer: HTMLElement | undefined;
 
 	private teamInfoCallCount = 0;
 	private hadTeamSnapshot = false;
@@ -241,7 +244,7 @@ export class NavigatorTeamView extends ViewPane {
 			() => this.scheduleRefresh(),
 			error => this.notificationService.error(getErrorMessage(error)),
 		));
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData().catch(onUnexpectedError).catch(onUnexpectedError), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData().catch(onUnexpectedError), 250));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => {
 			this.updateEngineConnectedContextKey();
@@ -276,6 +279,11 @@ export class NavigatorTeamView extends ViewPane {
 	override dispose(): void {
 		this.agentTreeLoadRunner?.done();
 		this.agentTreeLoadRunner = undefined;
+		this.inspectService.setLiveAgentIds('team', undefined);
+		this.inspectService.setLiveTaskIds(undefined);
+		this.treeContainer?.remove();
+		this.filterEmpty?.remove();
+		this.statusContainer?.remove();
 		super.dispose();
 	}
 
@@ -410,7 +418,7 @@ export class NavigatorTeamView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'member', info: e.element, sessionId: e.element.sessionId, expectedOwner: currentOwner });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName, e.element!.sessionId)).catch(onUnexpectedError);
 		}));
 
 		return this.membersList;
@@ -764,6 +772,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private applyFilter(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.applyFilterToMembers();
 		this.applyFilterToTasks();
 		this.updateMembersDisplay();
@@ -962,7 +973,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private openInspectPanel(): void {
-		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError);
 	}
 }
 

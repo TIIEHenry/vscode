@@ -255,6 +255,14 @@ export class AgentInspectView extends ViewPane {
 		this._register(this.inspectService.onDidChangeLiveAgentIds(() => this.renderTarget()));
 	}
 
+	override dispose(): void {
+		this.list?.dispose();
+		this.list = undefined;
+		this.listContainer?.remove();
+		this.staleNote?.remove();
+		super.dispose();
+	}
+
 	override shouldShowWelcome(): boolean {
 		return this.entries.length === 0;
 	}
@@ -314,6 +322,9 @@ export class AgentInspectView extends ViewPane {
 	}
 
 	private renderTarget(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const target = this.inspectService.getTarget();
 		this.updateTitle(inspectTitleFromTarget(target));
 		const currentOwner = this.inspectService.getActiveOwner?.();
@@ -335,6 +346,9 @@ export class AgentInspectView extends ViewPane {
 	}
 
 	private setEntries(entries: IAgentInspectEntry[]): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hadEntries = this.entries.length > 0;
 		this.entries = entries;
 		const hasEntries = entries.length > 0;
