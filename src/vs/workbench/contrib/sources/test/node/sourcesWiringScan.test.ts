@@ -7,7 +7,13 @@ import assert from 'assert';
 import * as fs from 'fs';
 import * as path from '../../../../../base/common/path.js';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+
+const ts = createRequire(import.meta.url)('typescript') as typeof import('typescript');
+type TSNode = import('typescript').Node;
+type TSExpression = import('typescript').Expression;
+type TSVariableDeclaration = import('typescript').VariableDeclaration;
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
 
@@ -49,6 +55,96 @@ function assertAcceptClickContract(source: string): void {
 	assert.ok(!bindCursor.includes('getValue'));
 	assert.ok(!bindCursor.includes('.getModel('));
 }
+
+/** Only the hunk builder's static dependencies, calls and exported argv are in this source gate. */
+function assertAcceptPatchBuilderContract(source: string): void {
+	const file = ts.createSourceFile('sourcesGitHunkPatch.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+	const forbiddenCalls = new Set(['parseSourcesGitUnifiedDiff', 'getValue', 'getLineContent']);
+	const violations: string[] = [];
+	const argv: TSVariableDeclaration[] = [];
+	let patchBuilders = 0;
+	const memberName = (expression: TSExpression): string | undefined => {
+		if (ts.isIdentifier(expression)) {
+			return expression.text;
+		}
+		if (ts.isPropertyAccessExpression(expression)) {
+			return expression.name.text;
+		}
+		if (ts.isElementAccessExpression(expression) && ts.isStringLiteral(expression.argumentExpression)) {
+			return expression.argumentExpression.text;
+		}
+		return undefined;
+	};
+	const inspect = (node: TSNode): void => {
+		if (ts.isImportDeclaration(node) && !node.importClause?.isTypeOnly) {
+			if (ts.isStringLiteral(node.moduleSpecifier) && /(?:sourcesChangesGitRead|parseSourcesGitUnifiedDiff)(?:\.[cm]?[jt]s)?$/.test(node.moduleSpecifier.text)) {
+				violations.push('parser module import');
+			}
+			const bindings = node.importClause?.namedBindings;
+			if (bindings && ts.isNamedImports(bindings)) {
+				for (const specifier of bindings.elements) {
+					if (!specifier.isTypeOnly && [specifier.propertyName?.text, specifier.name.text].includes('parseSourcesGitUnifiedDiff')) {
+						violations.push('parser import or alias');
+					}
+				}
+			}
+		}
+		if (ts.isExportDeclaration(node) && !node.isTypeOnly) {
+			if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier) && /(?:sourcesChangesGitRead|parseSourcesGitUnifiedDiff)(?:\.[cm]?[jt]s)?$/.test(node.moduleSpecifier.text)) {
+				violations.push('parser module export');
+			}
+			if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+				for (const specifier of node.exportClause.elements) {
+					if (!specifier.isTypeOnly && [specifier.propertyName?.text, specifier.name.text].includes('parseSourcesGitUnifiedDiff')) {
+						violations.push('parser export or alias');
+					}
+				}
+			}
+		}
+		if (ts.isPropertyAccessExpression(node) && node.name.text === 'parseSourcesGitUnifiedDiff') {
+			violations.push('parser member reference');
+		}
+		if (ts.isElementAccessExpression(node) && ts.isStringLiteral(node.argumentExpression) && node.argumentExpression.text === 'parseSourcesGitUnifiedDiff') {
+			violations.push('parser element reference');
+		}
+		if (ts.isCallExpression(node)) {
+			const name = memberName(node.expression);
+			if (name && forbiddenCalls.has(name)) {
+				violations.push(`forbidden call ${name}`);
+			}
+			if (node.arguments.some(argument => ts.isStringLiteral(argument) && argument.text === 'git.stage')) {
+				violations.push('git.stage call');
+			}
+		}
+		if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'SOURCES_GIT_APPLY_CACHED_ARGV') {
+			argv.push(node);
+		}
+		if (ts.isFunctionDeclaration(node) && node.name?.text === 'sourcesGitHunkPatchAtCursor') {
+			patchBuilders++;
+		}
+		ts.forEachChild(node, inspect);
+	};
+	inspect(file);
+	assert.strictEqual(patchBuilders, 1, 'check the actual hunk patch builder');
+	assert.deepStrictEqual(violations, [], 'Accept builder must not depend on parser, editor text or local staging');
+	assert.strictEqual(argv.length, 1, 'check the actual exported cached argv');
+	let initializer = argv[0].initializer;
+	assert.ok(initializer);
+	while (ts.isAsExpression(initializer) || ts.isParenthesizedExpression(initializer)) {
+		initializer = initializer.expression;
+	}
+	assert.ok(ts.isArrayLiteralExpression(initializer), 'cached argv must be a literal array');
+	const values = initializer.elements.map(element => {
+		assert.ok(ts.isStringLiteral(element), 'cached argv must contain literal strings');
+		return element.text;
+	});
+	assert.deepStrictEqual(values, ['git', 'apply', '--cached', '--whitespace=nowarn'], 'Accept argv must stay cached and must not reverse the patch');
+}
+
+const acceptBuilderFixture = `
+export const SOURCES_GIT_APPLY_CACHED_ARGV = ['git', 'apply', '--cached', '--whitespace=nowarn'] as const;
+export function sourcesGitHunkPatchAtCursor(diff: string) { return diff; }
+`;
 
 suite('Sources - Changes git read - 源码接线扫描', () => {
 
@@ -239,14 +335,35 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 
 	test('Accept patch builder does not read monaco text or a carried unified diff parse', () => {
 		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesGitHunkPatch.ts'), 'utf8');
-		assert.ok(source.includes('sourcesGitHunkPatchAtCursor'));
-		assert.ok(source.includes("'--cached'"));
-		assert.ok(source.includes("'--whitespace=nowarn'"));
-		assert.ok(!source.includes('parseSourcesGitUnifiedDiff'));
-		assert.ok(!source.includes('getLineContent'));
-		assert.ok(!source.includes('getValue'));
-		assert.ok(!source.includes('git.stage'));
-		assert.ok(!source.includes('-R'));
+		assertAcceptPatchBuilderContract(source);
+	});
+
+	test('Accept source gate permits comments and harmless text mentioning forbidden APIs', () => {
+		assertAcceptPatchBuilderContract(`${acceptBuilderFixture}
+// parseSourcesGitUnifiedDiff(diff); model.getValue(); editor.getLineContent(1); git.stage; -R
+/* import { parseSourcesGitUnifiedDiff as parse } from './sourcesChangesGitRead.js'; */
+const documentation = 'parseSourcesGitUnifiedDiff getValue getLineContent git.stage -R';
+`);
+	});
+
+	for (const [name, violation] of [
+		['direct parser import and call', 'import { parseSourcesGitUnifiedDiff } from \'./sourcesChangesGitRead.js\'; parseSourcesGitUnifiedDiff(diff);'],
+		['aliased parser import and call', 'import { parseSourcesGitUnifiedDiff as parse } from \'./sourcesChangesGitRead.js\'; parse(diff);'],
+		['parser module re-export', 'export * from \'./sourcesChangesGitRead.js\';'],
+		['parser member call', 'gitRead.parseSourcesGitUnifiedDiff(diff);'],
+		['parser element call', 'gitRead[\'parseSourcesGitUnifiedDiff\'](diff);'],
+		['direct editor value call', 'getValue();'],
+		['editor member value call', 'model.getValue();'],
+		['editor element line call', 'model[\'getLineContent\'](1);'],
+		['local staging call', 'commands.executeCommand(\'git.stage\', resource);'],
+	] as const) {
+		test(`Accept source gate rejects ${name}`, () => {
+			assert.throws(() => assertAcceptPatchBuilderContract(`${acceptBuilderFixture}\n${violation}`), /Accept builder must not depend/);
+		});
+	}
+
+	test('Accept source gate still rejects a real reverse argv string', () => {
+		assert.throws(() => assertAcceptPatchBuilderContract(acceptBuilderFixture.replace('\'--cached\'', '\'-R\'')), /Accept argv must stay cached/);
 	});
 });
 

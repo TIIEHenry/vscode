@@ -7,7 +7,7 @@ import assert from 'assert';
 import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -18,6 +18,9 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { UniverseAgentReadGitChangesResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { CodeEditorWidget } from '../../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { workbenchInstantiationService, TestEditorGroupView } from '../../../../test/browser/workbenchTestServices.js';
@@ -2469,7 +2472,7 @@ suite('Sources - review list model', () => {
 	});
 
 	test('in-flight readGitChanges leftover-looks-live keeps leftover and does not paint fresh live', async function () {
-		let connected = true;
+		const connected = true;
 		let pairingPending = false;
 		let readCalls = 0;
 		let resolveInFlight: ((value: {
@@ -2896,6 +2899,53 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
 		assert.ok(status.includes('boom'));
 	});
+
+	for (const kind of ['Changes', 'Review'] as const) {
+		test(`${kind} onDidOpen catches an open rejection when only open-status paint throws and the error handler rethrows once`, async () => {
+			const host = mountListHost();
+			let openingAttempts = 0;
+			let openPaintAttempts = 0;
+			let marked = 0;
+			const instantiationService = stubSourcesGitListServices({
+				connection: createGitConnection(),
+				getQuickDiffs: async () => {
+					openingAttempts++;
+					throw new Error('open-contract-boom');
+				},
+				markReviewed: () => { marked++; },
+			});
+			const widget = kind === 'Changes'
+				? store.add(instantiationService.createInstance(SourcesChangesList, host))
+				: store.add(instantiationService.createInstance(SourcesReviewList, host));
+			(host.querySelector(`.sources-${kind.toLowerCase()}-list`) as HTMLElement).style.height = '120px';
+			await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+			assert.strictEqual(openingAttempts, 0, 'the failing opener must be reached by the actual open event');
+			const paintBoom = new Error(`${kind} open paint boom`);
+			await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+				if (widget instanceof SourcesChangesList) {
+					(widget as unknown as { setOpenStatusMessage(message: string | undefined): void }).setOpenStatusMessage = message => {
+						if (message?.includes('open-contract-boom')) {
+							openPaintAttempts++;
+							throw paintBoom;
+						}
+					};
+				} else {
+					widget.setStatusMessage = (message, _isError, source) => {
+						if (source === 'open' && message?.includes('open-contract-boom')) {
+							openPaintAttempts++;
+							throw paintBoom;
+						}
+					};
+				}
+				await openFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+				const deadline = Date.now() + 2000;
+				while (openPaintAttempts === 0 && Date.now() < deadline) {
+					await timeout(10);
+				}
+				assert.deepStrictEqual({ openingAttempts, openPaintAttempts, marked }, { openingAttempts: 1, openPaintAttempts: 1, marked: 0 });
+			});
+		});
+	}
 
 	test('Changes context menu alternate open writes open-diff failure on the status line', async function () {
 		const host = mountListHost();
@@ -3364,6 +3414,72 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(changeCalls, 2, 'a later debounce must not start a third ReadGitChanges');
 		assert.strictEqual(summaryCalls, 2, 'a later debounce must not start a third ReadGitSummary');
 	});
+
+	for (const outcome of ['success', 'failure'] as const) {
+		test(`Changes and Review publish the new session together before an old read's late ${outcome}`, async () => {
+			const activeChanged = store.add(new Emitter<string>());
+			let active = 'session-old';
+			const oldRead = new DeferredPromise<UniverseAgentReadGitChangesResult>();
+			const requests: string[] = [];
+			let summaries = 0;
+			const roster = upcastPartial<IConversationRosterService>({
+				getActiveSessionId: () => active, isEngineSessionReady: () => true,
+				onDidChangeActiveSession: activeChanged.event, onDidChangeSession: Event.None,
+			});
+			const connection = upcastPartial<IUniverseAgentConnection>({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+				getConnectionSnapshot: () => ({
+					transport: 'ok', sharedFsRootSent: false, pairingPending: false, channelAlive: true,
+					capabilities: createEmptyCapabilitySnapshot(), linkId: 1, engineIdentityId: 'engine-shared-read',
+					phase: { kind: 'connected', path: 'direct' },
+				}),
+				onDidChangeConnection: Event.None,
+				readGitChanges: request => {
+					requests.push(request.sessionId);
+					return requests.length === 1 ? oldRead.p : Promise.resolve({
+						supported: true, reason: '', branch: 'main',
+						entries: [{ path: 'new.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+					});
+				},
+				readGitSummary: async () => {
+					summaries++;
+					return { supported: true, reason: '', branch: 'main', changeCount: 1 };
+				},
+			});
+			const instantiationService = stubSourcesGitListServices({ connection, roster });
+			const changesHost = mountListHost();
+			const reviewHost = mountListHost();
+			const changes = store.add(instantiationService.createInstance(SourcesChangesList, changesHost));
+			const review = store.add(instantiationService.createInstance(SourcesReviewList, reviewHost));
+			changesHost.querySelector<HTMLElement>('.sources-changes-list')?.style.setProperty('height', '120px');
+			reviewHost.querySelector<HTMLElement>('.sources-review-list')?.style.setProperty('height', '120px');
+			const model = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel));
+			model.flushScheduledRefresh();
+			assert.deepStrictEqual(requests, ['session-old']);
+			active = 'session-new';
+			activeChanged.fire(active);
+			model.flushScheduledRefresh();
+			assert.deepStrictEqual(requests, ['session-old', 'session-new'], 'the new session must not wait for the old read');
+			const changesList = await waitForList(changes as unknown as { list?: WorkbenchList<unknown> });
+			const reviewList = await waitForList(review as unknown as { list?: WorkbenchList<unknown> });
+			const accepted = model.getSnapshot();
+			assert.deepStrictEqual([changesList, reviewList].map(list => {
+				const entry = list.element(0) as ISourcesChangeEntry;
+				return [entry.gitPath, entry.sessionId];
+			}), [['new.ts', 'session-new'], ['new.ts', 'session-new']]);
+			if (outcome === 'success') {
+				await oldRead.complete({ supported: true, reason: '', branch: 'main', entries: [{ path: 'old.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }] });
+			} else {
+				await oldRead.error(new Error('obsolete read failed'));
+			}
+			await timeout(0);
+			assert.strictEqual(model.getSnapshot(), accepted);
+			assert.deepStrictEqual({ requests, summaries }, { requests: ['session-old', 'session-new'], summaries: 1 });
+			assert.ok(!changesHost.textContent?.includes('obsolete read failed'));
+			assert.ok(!reviewHost.textContent?.includes('obsolete read failed'));
+		});
+	}
 
 	test('leftover engine rows keep the ReadGitChanges sessionId when the active session changes', async function () {
 		let active = 'session-old';

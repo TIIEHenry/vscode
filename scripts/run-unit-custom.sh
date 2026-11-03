@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Run agent-ide unit-custom three-domain Electron tests, then compare JUnit to the baseline list.
-# conversation / sources keep the official single globs (mocha non-zero is ignored until the compare).
+# Run agent-ide unit-custom domains, then compare fresh JUnit to the baseline list.
+# Sources browser and Node tests use their official runners and distinct JUnit domains.
 # universeAgent is collected once: the Electron-unloadable test/node files (D17) are excluded;
 # other test/node files stay in the same --tfs universeAgent invocation so the XML is not overwritten.
 # Those files then run under the Node runner as domain universeAgentNode — they load and pass there,
@@ -112,11 +112,52 @@ for rel in "${UA_NODE_FILES[@]}"; do
 	UA_NODE_RUN_ARGS+=(--run "$rel")
 done
 
+SOURCES_NODE_FILES=(
+	'src/vs/workbench/contrib/sources/test/node/sourcesLeftoverCatchScan.test.ts'
+	'src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts'
+)
+SOURCES_NODE_RUN_ARGS=()
+for rel in "${SOURCES_NODE_FILES[@]}"; do
+	if [[ ! -f "$REPO_ROOT/$rel" ]]; then
+		echo "error: listed Sources Node test missing: $rel" >&2
+		exit 1
+	fi
+	SOURCES_NODE_RUN_ARGS+=(--run "$rel")
+done
+while IFS= read -r -d '' source_test; do
+	case "$source_test" in
+		"$REPO_ROOT"/src/vs/workbench/contrib/sources/test/browser/*) ;;
+		"$REPO_ROOT/${SOURCES_NODE_FILES[0]}"|"$REPO_ROOT/${SOURCES_NODE_FILES[1]}") ;;
+		*)
+			echo "error: Sources test has no runner route: $source_test" >&2
+			exit 1
+			;;
+	esac
+done < <(find "$REPO_ROOT/src/vs/workbench/contrib/sources/test" -type f -name '*.test.ts' -print0)
+
+# Match the official reporters' result-root precedence. Only remove our five files;
+# a runner that fails before writing XML must never inherit a previous green result.
+RESULT_ROOT="${BUILD_ARTIFACTSTAGINGDIRECTORY:-$GITHUB_WORKSPACE}"
+for report in conversation sources sourcesnode universeagent universeagentnode; do
+	if ! rm -f -- "$RESULT_ROOT/test-results/linux-x64-${report}-results.xml"; then
+		echo "error: cannot remove previous JUnit result for $report" >&2
+		exit 1
+	fi
+done
+
 set +e
 ./scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation
-./scripts/test.sh --glob '**/vs/workbench/contrib/sources/test/**/*.test.js' --tfs sources
+./scripts/test.sh --glob '**/vs/workbench/contrib/sources/test/browser/**/*.test.js' --tfs sources
+node test/unit/node/index.js --tfs sourcesNode "${SOURCES_NODE_RUN_ARGS[@]}"
+sources_node_exit=$?
 ./scripts/test.sh --tfs universeAgent "${UA_FILES[@]}"
 node test/unit/node/index.js --tfs universeAgentNode "${UA_NODE_RUN_ARGS[@]}"
+./scripts/check-test-baseline.sh
+baseline_exit=$?
 set -e
 
-exec ./scripts/check-test-baseline.sh
+if ((sources_node_exit != 0)); then
+	echo "error: Sources Node runner exited $sources_node_exit" >&2
+	exit "$sources_node_exit"
+fi
+exit "$baseline_exit"
