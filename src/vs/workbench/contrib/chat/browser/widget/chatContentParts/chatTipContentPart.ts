@@ -33,6 +33,7 @@ const $ = dom.$;
 export class ChatTipContentPart extends Disposable {
 
 	private readonly _notice: ChatInputNoticeWidget;
+	private _isDisposed = false;
 
 	public get domNode(): HTMLElement {
 		return this._notice.domNode;
@@ -121,13 +122,23 @@ export class ChatTipContentPart extends Disposable {
 		this._notice.focus();
 	}
 
+	override dispose(): void {
+		this._isDisposed = true;
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
+		super.dispose();
+	}
+
 	private _renderTip(tip: IChatTip): void {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		dom.clearNode(this.domNode);
 		this._toolbar.clear();
 		this._multipleChatTipsContextKey.set(this._chatTipService.hasMultipleTips());
 
 		const markdownContent = this._renderer.render(tip.content, {
-			actionHandler: (link, md) => { this._handleTipAction(link, md).catch(onUnexpectedError).catch(onUnexpectedError); }
+			actionHandler: (link, md) => { this._handleTipAction(link, md).catch(onUnexpectedError); }
 		});
 		this._renderedContent.value = markdownContent;
 		this.domNode.appendChild(markdownContent.element);
@@ -150,9 +161,12 @@ export class ChatTipContentPart extends Disposable {
 	}
 
 	private async _handleTipAction(link: string, mdStr: IMarkdownString): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (link.startsWith('command:') && this._shouldTriggerSetup()) {
 			const setupSucceeded = await this._commandService.executeCommand<boolean | undefined>(CHAT_SETUP_ACTION_ID);
-			if (!setupSucceeded) {
+			if (this._isDisposed || this._store.isDisposed || !setupSucceeded) {
 				return;
 			}
 		}

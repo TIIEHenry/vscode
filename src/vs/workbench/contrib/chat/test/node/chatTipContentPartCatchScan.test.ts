@@ -27,15 +27,15 @@ suite('ChatTipContentPart leftover fire-and-forget catch scan (D653)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('actionHandler _handleTipAction is double-chain; bare/single-chain gone in this file only', () => {
-		// _handleTipAction returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('actionHandler _handleTipAction is single-chain; bare/double-chain gone in this file only', () => {
 		const source = fs.readFileSync(chatTipContentPartSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'this._handleTipAction(link, md)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\._handleTipAction\(link, md\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 	});
 });

@@ -22,6 +22,7 @@ import { localize } from '../../../../../../nls.js';
 
 export class ChatExtensionsContentPart extends Disposable implements IChatContentPart {
 	public readonly domNode: HTMLElement;
+	private _isDisposed = false;
 
 	public get codeblocks(): IChatCodeBlockInfo[] {
 		return [];
@@ -46,12 +47,19 @@ export class ChatExtensionsContentPart extends Disposable implements IChatConten
 		const list = this._register(instantiationService.createInstance(ExtensionsList, extensionsList, ChatViewId, { alwaysConsumeMouseWheel: false }, { onFocus: Event.None, onBlur: Event.None, filters: {} }));
 		void Promise.resolve(getExtensions(extensionsContent.extensions, extensionsWorkbenchService)).then(extensions => {
 			loadingElement.remove();
-			if (this._store.isDisposed) {
+			if (this._store.isDisposed || this._isDisposed) {
 				return;
 			}
 			list.setModel(new PagedModel(extensions));
 			list.layout();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
+		super.dispose();
 	}
 
 	hasSameContent(other: IChatRendererContent, followingContent: IChatRendererContent[], element: ChatTreeItem): boolean {
