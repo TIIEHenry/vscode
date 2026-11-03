@@ -90,7 +90,7 @@ export class FindModel extends Disposable {
 			this._updateCellStates(e);
 
 			if (e.searchString || e.isRegex || e.matchCase || e.searchScope || e.wholeWord || (e.isRevealed && this._state.isRevealed) || e.filters || e.isReplaceRevealed) {
-				this.research().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.research().catch(onUnexpectedError);
 			}
 
 			if (e.isRevealed && !this._state.isRevealed) {
@@ -105,7 +105,7 @@ export class FindModel extends Disposable {
 		this._register(this._notebookEditor.onDidChangeCellState(e => {
 			if (e.cell.cellKind === CellKind.Markup && e.source.editStateChanged) {
 				// research when markdown cell is switching between markdown preview and editing mode.
-				this.research().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.research().catch(onUnexpectedError);
 			}
 		}));
 
@@ -223,6 +223,9 @@ export class FindModel extends Disposable {
 		this._currentMatch = matchesBefore + index;
 
 		this.highlightCurrentFindMatchDecoration(findMatchIndex, index).then(async offset => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this.revealCellRange(findMatchIndex, index, offset);
 
 			this._state.changeMatchInfo(
@@ -230,7 +233,7 @@ export class FindModel extends Disposable {
 				this._findMatches.reduce((p, c) => p + c.length, 0),
 				undefined
 			);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	find(option: { previous: boolean } | { index: number }) {
@@ -262,6 +265,9 @@ export class FindModel extends Disposable {
 		const nextIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
 		// const newFocusedCell = this._findMatches[nextIndex.index].cell;
 		this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).then(async offset => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this.revealCellRange(nextIndex.index, nextIndex.remainder, offset);
 
 			this._state.changeMatchInfo(
@@ -269,7 +275,7 @@ export class FindModel extends Disposable {
 				this._findMatches.reduce((p, c) => p + c.length, 0),
 				undefined
 			);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private async revealCellRange(cellIndex: number, matchIndex: number, outputOffset: number | null) {
@@ -322,11 +328,11 @@ export class FindModel extends Disposable {
 					return;
 				}
 
-				this.research().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.research().catch(onUnexpectedError);
 			}));
 		}
 
-		this.research().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.research().catch(onUnexpectedError);
 	}
 
 	async research() {
@@ -478,7 +484,7 @@ export class FindModel extends Disposable {
 
 		if (autoStart) {
 			this._currentMatch = 0;
-			void this.highlightCurrentFindMatchDecoration(0, 0).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.highlightCurrentFindMatchDecoration(0, 0).catch(onUnexpectedError);
 		}
 
 		this._state.changeMatchInfo(
@@ -521,7 +527,7 @@ export class FindModel extends Disposable {
 		this._currentMatch = currentMatchesPosition % findMatches.length;
 		this.set(findMatches, false);
 		const nextIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
-		void this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).catch(onUnexpectedError);
 
 		this._state.changeMatchInfo(
 			this._currentMatch,
@@ -571,6 +577,12 @@ export class FindModel extends Disposable {
 	}
 
 	override dispose() {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._computePromise?.cancel();
+		this._throttledDelayer.cancel();
+		this._modelDisposable.dispose();
 		this._findMatchDecorationModel.dispose();
 		super.dispose();
 	}

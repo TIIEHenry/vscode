@@ -42,7 +42,7 @@ export class WindowIgnoreMenuShortcutsManager {
 
 	protected setIgnoreMenuShortcuts(value: boolean) {
 		if (this._shouldToggleMenuShortcutsEnablement) {
-			this._webviewMainService.setIgnoreMenuShortcuts({ windowId: this._nativeHostService.windowId }, value).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._webviewMainService.setIgnoreMenuShortcuts({ windowId: this._nativeHostService.windowId }, value).catch(onUnexpectedError);
 		}
 	}
 }

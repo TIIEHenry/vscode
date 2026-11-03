@@ -121,11 +121,14 @@ export class NotebookCellTextModel extends Disposable implements ICell {
 		this._textBuffer = this._register(createTextBuffer(this._source, this._defaultEOL).textBuffer);
 
 		this._register(this._textBuffer.onDidChangeContent(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._hash = null;
 			if (!this._textModel) {
 				this._onDidChangeContent.fire('content');
 			}
-			this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.autoDetectLanguage().catch(onUnexpectedError);
 		}));
 
 		return this._textBuffer;
@@ -224,21 +227,30 @@ export class NotebookCellTextModel extends Disposable implements ICell {
 
 	enableAutoLanguageDetection() {
 		this._autoLanguageDetectionEnabled = true;
-		this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.autoDetectLanguage().catch(onUnexpectedError);
 	}
 
 	async autoDetectLanguage(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this._autoLanguageDetectionEnabled) {
 			this.autoDetectLanguageThrottler.trigger(() => this._doAutoDetectLanguage());
 		}
 	}
 
 	private async _doAutoDetectLanguage(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.hasLanguageSetExplicitly) {
 			return;
 		}
 
 		const newLanguage = await this._languageDetectionService?.detectLanguage(this.uri);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!newLanguage) {
 			return;
 		}
@@ -499,6 +511,10 @@ export class NotebookCellTextModel extends Disposable implements ICell {
 	}
 
 	override dispose() {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.autoDetectLanguageThrottler.cancel();
 		dispose(this._outputs);
 		// Manually release reference to previous text buffer to avoid large leaks
 		// in case someone leaks a CellTextModel reference

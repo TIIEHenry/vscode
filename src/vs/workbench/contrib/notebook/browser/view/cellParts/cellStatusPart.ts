@@ -249,6 +249,7 @@ export class CellEditorStatusBar extends CellContentPart {
 			if (renderedItems.length > newItems.length) {
 				const deleted = renderedItems.splice(newItems.length, renderedItems.length - newItems.length);
 				for (const deletedItem of deleted) {
+					DOM.clearNode(deletedItem.container);
 					deletedItem.container.remove();
 					deletedItem.dispose();
 				}
@@ -271,9 +272,16 @@ export class CellEditorStatusBar extends CellContentPart {
 	}
 
 	override dispose() {
-		super.dispose();
+		if (this._store.isDisposed) {
+			return;
+		}
 		dispose(this.leftItems);
+		this.leftItems = [];
 		dispose(this.rightItems);
+		this.rightItems = [];
+		DOM.clearNode(this.statusBarContainer);
+		this.statusBarContainer.remove();
+		super.dispose();
 	}
 }
 
@@ -303,6 +311,15 @@ class CellStatusBarItem extends Disposable {
 		super();
 
 		this.updateItem(itemModel, maxWidth);
+	}
+
+	override dispose() {
+		if (this._store.isDisposed) {
+			return;
+		}
+		DOM.clearNode(this.container);
+		this.container.remove();
+		super.dispose();
 	}
 
 	updateItem(item: INotebookCellStatusBarItem, maxWidth: number | undefined) {
@@ -350,12 +367,18 @@ class CellStatusBarItem extends Disposable {
 			this.container.tabIndex = 0;
 
 			this._itemDisposables.add(DOM.addDisposableListener(this.container, DOM.EventType.CLICK, _e => {
-				this.executeCommand().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.executeCommand().catch(onUnexpectedError);
 			}));
 			this._itemDisposables.add(DOM.addDisposableListener(this.container, DOM.EventType.KEY_DOWN, e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const event = new StandardKeyboardEvent(e);
 				if (event.equals(KeyCode.Space) || event.equals(KeyCode.Enter)) {
-					this.executeCommand().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.executeCommand().catch(onUnexpectedError);
 				}
 			}));
 		} else {
@@ -366,6 +389,9 @@ class CellStatusBarItem extends Disposable {
 	}
 
 	private async executeCommand(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const command = this._currentItem.command;
 		if (!command) {
 			return;
@@ -383,6 +409,9 @@ class CellStatusBarItem extends Disposable {
 			this._editor?.focus();
 			await this._commandService.executeCommand(id, ...args);
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._notificationService.error(toErrorMessage(error));
 		}
 	}

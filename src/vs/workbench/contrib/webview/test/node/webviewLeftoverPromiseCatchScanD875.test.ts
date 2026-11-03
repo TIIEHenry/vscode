@@ -61,6 +61,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -77,9 +78,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const contextMenuVisibleTrueCall = 'this._send(\'set-context-menu-visible\', { visible: true })';
@@ -98,16 +99,17 @@ const leftoverEndErrorCall = 'this._send(\'did-load-resource-end\', { id, error:
 const leftoverEndCall = 'this._send(\'did-load-resource-end\', { id });';
 const leftoverReturnedMessageCall = 'return this._send(\'message\', { message, transfer });';
 const leftoverReturnedLocalhostCall = 'return this._send(\'did-load-localhost\', {';
-const assignedOriginThenCall = 'this._encodedWebviewOriginPromise = parentOriginHash(targetWindow.origin, this.origin).then(id => this._encodedWebviewOrigin = id);';
+const assignedOriginThenCall = 'const originPromise = parentOriginHash(targetWindow.origin, this.origin).then(id => {';
 const originThenCall = `this._encodedWebviewOriginPromise.then(encodedWebviewOrigin => {
-			if (!this._disposed) {
-				this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
 			}
+			this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
 		})`;
 const loadResourceCall = 'this.loadResource(entry.id, uri, { ifNoneMatch: entry.ifNoneMatch, range: entry.range }, this._resourceLoadingCts.token)';
 const localLocalhostCall = 'this.localLocalhost(entry.id, entry.origin)';
 const focusDelayerCall = `this._focusDelayer.trigger(async () => {
-			if (!this.isFocused || !this.element) {
+			if (this.isDisposed || this._store.isDisposed || this._disposed || !this.isFocused || !this.element) {
 				return;
 			}
 
@@ -124,14 +126,20 @@ const focusDelayerCall = `this._focusDelayer.trigger(async () => {
 		})`;
 const findInFrameCall = 'this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options)';
 const iframeDelayerCall = `this._iframeDelayer.trigger(() => {
+			if (this.isDisposed || this._disposed) {
+				return;
+			}
 			this._findStarted = true;
-			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError);
 		})`;
 const stopFindCall = `this._webviewMainService.stopFindInFrame({ windowId: this._nativeHostService.windowId }, this.id, {
 			keepSelection
 		})`;
 const ignoreShortcutsCall = 'this._webviewMainService.setIgnoreMenuShortcuts({ windowId: this._nativeHostService.windowId }, value)';
 const overlayThenCall = `webview.postMessage(msg.message, msg.transfer).then(posted => {
+						if (this.isDisposed || this._store.isDisposed) {
+							return;
+						}
 						msg.resolve(posted);
 					})`;
 const leftoverOpenDevToolsCall = 'nativeHostService.openDevTools();';
@@ -206,24 +214,25 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		const electron = fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8');
 		const shortcuts = fs.readFileSync(resolveSource(SHORTCUTS_REL), 'utf8');
 		const overlay = fs.readFileSync(resolveSource(OVERLAY_REL), 'utf8');
-		assert.ok(webview.includes(`${loadResourceCall}${doubleCatch}`));
-		assert.ok(webview.includes(`${localLocalhostCall}${doubleCatch}`));
-		assert.ok(webview.includes(`${focusDelayerCall}${doubleCatch}`));
+		assert.ok(webview.includes(`${loadResourceCall}${singleCatch}`));
+		assert.ok(webview.includes(`${localLocalhostCall}${singleCatch}`));
+		assert.ok(webview.includes(`${focusDelayerCall}${singleCatch}`));
 		assert.ok(webview.includes(leftoverFocusCall));
 		assert.ok(!webview.includes(`${leftoverFocusCall.trimEnd()}${doubleCatch}`));
 		assert.ok(webview.includes(leftoverFindStopCall));
 		assert.ok(!webview.includes(`this._send('find-stop', { clearSelection: !keepSelection })${doubleCatch}`));
 		assert.ok(webview.includes(leftoverReturnedMessageCall));
 		assert.ok(!webview.includes(`return this._send('message', { message, transfer })${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(electron), 4);
-		assert.strictEqual(countDoubleChains(shortcuts), 1);
-		assert.strictEqual(countDoubleChains(overlay), 1);
+		assert.ok(!electron.includes(doubleCatch));
+		assert.ok(!shortcuts.includes(doubleCatch));
+		assert.ok(!overlay.includes(doubleCatch));
+		assert.ok(!webview.includes(doubleCatch));
 		let leftoverRemainingUnusedLegal = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d875Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			leftoverRemainingUnusedLegal += count;
 		}
@@ -241,7 +250,7 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		for (const [rel, call, count] of d875Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -249,7 +258,7 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WEBVIEW_REL) ?? ''), 16);
+		assert.ok(!seen.get(WEBVIEW_REL)?.includes(doubleCatch));
 	});
 
 	test('leftover remaining unused async this._send() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -264,14 +273,14 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		assertWrapped(webview, execCommandCall);
 		assertWrapped(webview, findPreviousCall);
 		assertWrapped(webview, findValueCall);
-		assert.strictEqual(countIncludes(webview, `${contextMenuVisibleTrueCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${contextMenuVisibleFalseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${confirmBeforeCloseCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${setTitleCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${initialScrollCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${execCommandCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${findPreviousCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${findValueCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${contextMenuVisibleTrueCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${contextMenuVisibleFalseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${confirmBeforeCloseCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${setTitleCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${initialScrollCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${execCommandCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${findPreviousCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${findValueCall}${singleCatch}`), 1);
 		assert.ok(!webview.includes('\t\t\tthis._send(\'set-context-menu-visible\', { visible: true });\n'));
 		assert.ok(!webview.includes('() => this._send(\'set-context-menu-visible\', { visible: false })));'));
 		assert.ok(!webview.includes('\t\t\t\tthis._send(\'set-confirm-before-close\', this._confirmBeforeClose);\n'));
@@ -323,14 +332,14 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		assert.ok(!contrib.includes(doubleCatch));
 		assert.ok(webview.includes(assignedOriginThenCall));
 		assert.ok(!webview.includes(`${assignedOriginThenCall}${doubleCatch}`));
-		assert.ok(webview.includes(`${originThenCall}${doubleCatch};`));
+		assert.ok(webview.includes(`${originThenCall}${singleCatch};`));
 		assert.ok(!webview.includes('.then(undefined,'));
 		assert.ok(webview.includes(leftoverReturnedMessageCall));
 		assert.ok(!webview.includes(`return this._send('message', { message, transfer })${doubleCatch}`));
 		assert.ok(webview.includes(leftoverReturnedLocalhostCall));
 		assert.ok(!webview.includes(`return this._send('did-load-localhost', {${doubleCatch}`));
 		assert.ok(webview.includes('return this._send(\'did-load-resource\', {'));
-		assert.ok(overlay.includes(`${overlayThenCall}${doubleCatch}`));
+		assert.ok(overlay.includes(`${overlayThenCall}${singleCatch}`));
 
 		for (const source of [webview, overlay, commands, contrib]) {
 			assert.ok(!source.includes('acknowledge('));
@@ -381,12 +390,12 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		for (const [rel, call, count] of d763AlreadyDouble) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `D763 already-double drifted: ${rel} ${call}`);
 			d763Sites += count;
 		}
 		assert.strictEqual(d763Sites, 9);
-		assert.ok(webview.includes(`${originThenCall}${doubleCatch};`));
+		assert.ok(webview.includes(`${originThenCall}${singleCatch};`));
 
 		let d862Sites = 0;
 		const d862Seen = new Map<string, string>();
@@ -450,9 +459,10 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		assert.ok(webview.includes(leftoverChunkCall));
 		assert.ok(webview.includes(leftoverEndErrorCall));
 		assert.ok(webview.includes(leftoverEndCall));
-		assert.strictEqual(countDoubleChains(electron), 4);
-		assert.strictEqual(countDoubleChains(shortcuts), 1);
-		assert.strictEqual(countDoubleChains(overlay), 1);
+		assert.ok(!electron.includes(doubleCatch));
+		assert.ok(!shortcuts.includes(doubleCatch));
+		assert.ok(!overlay.includes(doubleCatch));
+		assert.ok(!webview.includes(doubleCatch));
 
 		for (const [rel, file] of [
 			[SEARCH_WIDGET_REL, searchWidget],

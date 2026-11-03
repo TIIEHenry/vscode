@@ -609,12 +609,12 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 		this._disposables.add(this._editor.onDidChangeModel(() => {
 			this.setDataSources();
 			this.setModelListeners();
-			this.computeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.computeSymbols().catch(onUnexpectedError);
 		}));
 
 		// recompute symbols as document symbol providers are updated in the language features registry
 		this._disposables.add(this._languageFeaturesService.documentSymbolProvider.onDidChange(() => {
-			this.delayedComputeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.delayedComputeSymbols().catch(onUnexpectedError);
 		}));
 
 		// recompute active when the selection changes
@@ -648,7 +648,7 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 		this._disposables.add(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(NotebookSetting.outlineShowCodeCellSymbols)) {
 				this.outlineShowCodeCellSymbols = this._configurationService.getValue<boolean>(NotebookSetting.outlineShowCodeCellSymbols);
-				this.computeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.computeSymbols().catch(onUnexpectedError);
 			}
 		}));
 
@@ -696,7 +696,7 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 
 		// Perhaps this is the first time we're building the outline
 		if (!this.entries.length) {
-			this.computeSymbols().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.computeSymbols().catch(onUnexpectedError);
 		}
 
 		// recompute state when there are notebook content changes
@@ -712,18 +712,24 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 	}
 
 	private async computeSymbols(cancelToken: CancellationToken = CancellationToken.None) {
+		if (this._disposables.isDisposed) {
+			return;
+		}
 		if (this._target === OutlineTarget.OutlinePane && this.outlineShowCodeCellSymbols) {
 			// No need to wait for this, we want the outline to show up quickly.
-			void this.doComputeSymbols(cancelToken).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.doComputeSymbols(cancelToken).catch(onUnexpectedError);
 		}
 	}
 	public async doComputeSymbols(cancelToken: CancellationToken): Promise<void> {
 		await this._outlineDataSourceReference?.object?.computeFullSymbols(cancelToken);
 	}
 	private async delayedComputeSymbols() {
+		if (this._disposables.isDisposed) {
+			return;
+		}
 		this.delayerRecomputeState.cancel();
 		this.delayerRecomputeActive.cancel();
-		this.delayerRecomputeSymbols.trigger(() => this.computeSymbols()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.delayerRecomputeSymbols.trigger(() => this.computeSymbols()).catch(onUnexpectedError);
 	}
 
 	private recomputeState() { this._outlineDataSourceReference?.object?.recomputeState(); }
@@ -813,6 +819,9 @@ export class NotebookCellOutline implements IOutline<OutlineEntry> {
 	}
 
 	dispose(): void {
+		this.delayerRecomputeState.cancel();
+		this.delayerRecomputeActive.cancel();
+		this.delayerRecomputeSymbols.cancel();
 		this._onDidChange.dispose();
 		this._disposables.dispose();
 		this._modelDisposables.dispose();

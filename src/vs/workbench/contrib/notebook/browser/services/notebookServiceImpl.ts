@@ -712,8 +712,8 @@ export class NotebookService extends Disposable implements INotebookService {
 
 	private _postDocumentOpenActivation(viewType: string) {
 		// send out activations on notebook text model creation
-		this._extensionService.activateByEvent(`onNotebook:${viewType}`).catch(onUnexpectedError).catch(onUnexpectedError);
-		this._extensionService.activateByEvent(`onNotebook:*`).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._extensionService.activateByEvent(`onNotebook:${viewType}`).catch(onUnexpectedError);
+		this._extensionService.activateByEvent(`onNotebook:*`).catch(onUnexpectedError);
 	}
 
 	async canResolve(viewType: string): Promise<boolean> {

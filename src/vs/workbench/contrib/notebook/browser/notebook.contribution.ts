@@ -817,7 +817,7 @@ class SimpleNotebookWorkingCopyEditorHandler extends Disposable implements IWork
 	) {
 		super();
 
-		this._installHandler().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._installHandler().catch(onUnexpectedError);
 	}
 
 	async handles(workingCopy: IWorkingCopyIdentifier): Promise<boolean> {
@@ -852,6 +852,9 @@ class SimpleNotebookWorkingCopyEditorHandler extends Disposable implements IWork
 
 	private async _installHandler(): Promise<void> {
 		await this._extensionService.whenInstalledExtensionsRegistered();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		this._register(this._workingCopyEditorService.registerHandler(this));
 	}

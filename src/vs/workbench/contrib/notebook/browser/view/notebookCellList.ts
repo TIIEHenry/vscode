@@ -1353,7 +1353,12 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		if (element.editorAttached) {
 			element.setSelection(range);
 		} else {
-			getEditorAttachedPromise(element).then(() => { element.setSelection(range); }).catch(onUnexpectedError).catch(onUnexpectedError);
+			getEditorAttachedPromise(element).then(() => {
+				if (this._localDisposableStore.isDisposed || this._viewModelStore.isDisposed) {
+					return;
+				}
+				element.setSelection(range);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -1482,6 +1487,10 @@ export class NotebookCellList extends WorkbenchList<CellViewModel> implements ID
 		this._notebookCellAnchor.dispose();
 		this.viewZones.dispose();
 		this.cellOverlays.dispose();
+		if (this.styleElement) {
+			this.styleElement.remove();
+			this.styleElement = undefined;
+		}
 		super.dispose();
 
 		// un-ref

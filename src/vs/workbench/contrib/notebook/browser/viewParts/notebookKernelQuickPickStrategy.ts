@@ -572,11 +572,14 @@ export class KernelPickerMRUStrategy extends KernelPickerStrategyBase {
 			let chain: Promise<void> = Promise.resolve();
 			const initialRun = chain.then(() => {
 				return this._calculdateKernelSources(editor).then(quickPickItems => {
-				quickPick.items = quickPickItems;
-				if (quickPick.items.length > 0) {
-					quickPick.busy = false;
-				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (disposables.isDisposed) {
+						return;
+					}
+					quickPick.items = quickPickItems;
+					if (quickPick.items.length > 0) {
+						quickPick.busy = false;
+					}
+				}).catch(onUnexpectedError);
 			});
 			chain = initialRun.then(() => undefined, () => undefined);
 
@@ -590,11 +593,17 @@ export class KernelPickerMRUStrategy extends KernelPickerStrategyBase {
 				KERNEL_PICKER_UPDATE_DEBOUNCE
 			)(() => {
 				const run = chain.then(async () => {
+					if (disposables.isDisposed) {
+						return;
+					}
 					quickPick.busy = true;
 					const quickPickItems = await this._calculdateKernelSources(editor);
+					if (disposables.isDisposed) {
+						return;
+					}
 					quickPick.items = quickPickItems;
 					quickPick.busy = false;
-				});
+				}).catch(onUnexpectedError);
 				chain = run.then(() => undefined, () => undefined);
 			}));
 		});

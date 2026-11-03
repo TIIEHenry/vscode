@@ -86,20 +86,43 @@ export class NotebookInlineDiffDecorationContribution extends Disposable impleme
 		this.insertedCellDecorator = this.instantiationService.createInstance(NotebookInsertedCellDecorator, this.notebookEditor);
 		this.deletedCellDecorator = this.instantiationService.createInstance(NotebookDeletedCellDecorator, this.notebookEditor, undefined);
 
-		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._update().catch(onUnexpectedError);
 		const onVisibleChange = Event.debounce(this.notebookEditor.onDidChangeVisibleRanges, (e) => e, 100, undefined, undefined, undefined, this._store);
-		this.listeners.push(onVisibleChange(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.listeners.push(this.notebookEditor.onDidChangeModel(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.listeners.push(onVisibleChange(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._update().catch(onUnexpectedError);
+		}));
+		this.listeners.push(this.notebookEditor.onDidChangeModel(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._update().catch(onUnexpectedError);
+		}));
 		if (this.notebookEditor.textModel) {
 			const onContentChange = Event.debounce(this.notebookEditor.textModel!.onDidChangeContent, (_, event) => event, 100, undefined, undefined, undefined, this._store);
 			const onOriginalContentChange = Event.debounce(this.previous.onDidChangeContent, (_, event) => event, 100, undefined, undefined, undefined, this._store);
-			this.listeners.push(onContentChange(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
-			this.listeners.push(onOriginalContentChange(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this.listeners.push(onContentChange(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._update().catch(onUnexpectedError);
+			}));
+			this.listeners.push(onOriginalContentChange(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._update().catch(onUnexpectedError);
+			}));
 		}
 		this.logService.debug('inlineDiff', 'Initialized');
 	}
 
 	private async _update() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const current = this.notebookEditor.getViewModel()?.notebookDocument;
 		const previous = this.previous;
 		if (!previous || !current) {
@@ -126,10 +149,18 @@ export class NotebookInlineDiffDecorationContribution extends Disposable impleme
 				return;
 			}
 
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			this.cachedNotebookDiff = { cellDiffInfo: diffInfo.cellDiffInfo, originalVersion, version };
 
 			this.insertedCellDecorator?.apply(diffInfo.cellDiffInfo);
 			this.deletedCellDecorator?.apply(diffInfo.cellDiffInfo, previous);
+		}
+
+		if (this._store.isDisposed) {
+			return;
 		}
 
 		await this.updateCells(previous, current, this.cachedNotebookDiff.cellDiffInfo);

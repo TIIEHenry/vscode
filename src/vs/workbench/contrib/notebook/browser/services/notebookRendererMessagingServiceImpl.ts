@@ -28,6 +28,15 @@ export class NotebookRendererMessagingService extends Disposable implements INot
 		super();
 	}
 
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.activations.clear();
+		this.scopedMessaging.clear();
+		super.dispose();
+	}
+
 	/** @inheritdoc */
 	public receiveMessage(editorId: string | undefined, rendererId: string, message: unknown): Promise<boolean> {
 		if (editorId === undefined) {
@@ -48,6 +57,9 @@ export class NotebookRendererMessagingService extends Disposable implements INot
 		this.activations.set(rendererId, queue);
 
 		this.extensionService.activateByEvent(`onRenderer:${rendererId}`).then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			for (const message of queue) {
 				if (!this.scopedMessaging.has(message.editorId)) {
 					continue;
@@ -56,7 +68,7 @@ export class NotebookRendererMessagingService extends Disposable implements INot
 			}
 
 			this.activations.set(rendererId, undefined);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	/** @inheritdoc */

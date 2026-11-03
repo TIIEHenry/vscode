@@ -263,9 +263,12 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			let perfMarksCaptured = false;
 			const fileOpenMonitor = timeout(10000);
 			fileOpenMonitor.then(() => {
+				if (this._store.isDisposed || perfMarksCaptured) {
+					return;
+				}
 				perfMarksCaptured = true;
 				this._handlePerfMark(perf, input);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 			const perf = new NotebookPerfMarks();
 			perf.mark('startTime');
@@ -686,6 +689,18 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 		if (this.isVisible()) {
 			this._widget.value.layout(dimension, this._rootElement, position);
 		}
+	}
+
+	override dispose(): void {
+		this._groupListener.dispose();
+		this._widgetDisposableStore.dispose();
+		this._widget.value?.onWillHide();
+		this._widget = { value: undefined };
+		if (this._rootElement) {
+			DOM.clearNode(this._rootElement);
+			this._rootElement.remove();
+		}
+		super.dispose();
 	}
 
 	//#endregion

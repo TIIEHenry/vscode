@@ -23,14 +23,11 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -39,9 +36,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const leftoverResource404Call = `this._send('did-load-resource', {
@@ -118,7 +115,7 @@ suite('leftover remaining unused remaining remaining unused webview leftover rem
 		for (const [rel, call, count] of d1278Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -126,7 +123,7 @@ suite('leftover remaining unused remaining remaining unused webview leftover rem
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WEBVIEW_REL) ?? ''), 16);
+		assert.ok(!seen.get(WEBVIEW_REL)?.includes(doubleCatch));
 	});
 
 	test('webview leftover remaining unused remaining remaining unused async this._send() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -137,11 +134,11 @@ suite('leftover remaining unused remaining remaining unused webview leftover rem
 		assertWrapped(webview, leftoverContentCall);
 		assertWrapped(webview, leftoverResourceStreamCall);
 		assertWrapped(webview, leftoverResourceHeaderCall);
-		assert.strictEqual(countIncludes(webview, `${leftoverResource404Call}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${leftoverContentCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${leftoverResourceStreamCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(webview, `${leftoverResourceHeaderCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${leftoverResource404Call}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${leftoverContentCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${leftoverResourceStreamCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(webview, `${leftoverResourceHeaderCall}${singleCatch}`), 1);
 		assert.ok(!webview.includes('D1278'));
-		assert.ok(!webview.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+		assert.ok(!webview.includes(doubleCatch));
 	});
 });

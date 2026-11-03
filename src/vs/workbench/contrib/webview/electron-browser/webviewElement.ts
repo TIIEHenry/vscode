@@ -64,6 +64,9 @@ export class ElectronWebviewElement extends WebviewElement {
 
 		if (initInfo.options.enableFindWidget) {
 			this._register(this.onDidHtmlChange((newContent) => {
+				if (this.isDisposed || this._disposed) {
+					return;
+				}
 				if (this._findStarted && this._cachedHtmlContent !== newContent) {
 					this.stopFind(false);
 					this._cachedHtmlContent = newContent;
@@ -71,12 +74,20 @@ export class ElectronWebviewElement extends WebviewElement {
 			}));
 
 			this._register(this._webviewMainService.onFoundInFrame((result) => {
+				if (this.isDisposed || this._disposed) {
+					return;
+				}
 				this._hasFindResult.fire(result.matches > 0);
 			}));
 		}
 	}
 
 	override dispose(): void {
+		if (this.isDisposed || this._disposed) {
+			return;
+		}
+		this._iframeDelayer.cancel();
+
 		// Make sure keyboard handler knows it closed (#71800)
 		this._webviewKeyboardHandler.didBlur();
 
@@ -104,7 +115,7 @@ export class ElectronWebviewElement extends WebviewElement {
 		} else {
 			// continuing the find, so set findNext to false
 			const options: FindInFrameOptions = { forward: !previous, findNext: false, matchCase: false };
-			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError);
 		}
 	}
 
@@ -121,9 +132,12 @@ export class ElectronWebviewElement extends WebviewElement {
 		};
 
 		this._iframeDelayer.trigger(() => {
+			if (this.isDisposed || this._disposed) {
+				return;
+			}
 			this._findStarted = true;
-			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError).catch(onUnexpectedError);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	public override stopFind(keepSelection?: boolean): void {
@@ -134,7 +148,7 @@ export class ElectronWebviewElement extends WebviewElement {
 		this._findStarted = false;
 		this._webviewMainService.stopFindInFrame({ windowId: this._nativeHostService.windowId }, this.id, {
 			keepSelection
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._onDidStopFind.fire();
 	}
 

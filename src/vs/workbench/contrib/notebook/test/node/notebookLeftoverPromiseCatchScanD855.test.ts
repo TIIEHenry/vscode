@@ -52,14 +52,11 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -68,9 +65,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const updateCall = 'this._update()';
@@ -113,12 +110,13 @@ suite('leftover remaining unused after D844 leftover remaining unused notebook l
 		const findModel = fs.readFileSync(resolveSource(FIND_MODEL_REL), 'utf8');
 		const status = fs.readFileSync(resolveSource(STATUS_REL), 'utf8');
 		assertPromiseSignature(findModel, 'async research() {');
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(findModel, `${researchCall}${doubleCatch}`), 4);
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(!findModel.includes(doubleCatch));
+		assert.strictEqual(countIncludes(findModel, `${researchCall}${singleCatch}`), 4);
 		assertPromiseSignature(status, 'private async _update() {');
 		let sites = 0;
 		for (const [, call, count] of d855Calls) {
-			const wrapped = countIncludes(status, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(status, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -126,15 +124,16 @@ suite('leftover remaining unused after D844 leftover remaining unused notebook l
 		assert.ok(sites <= 8);
 		assert.ok(!findModel.includes('D855'));
 		assert.ok(!status.includes('D855'));
+		assert.ok(!status.includes(doubleCatch));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on notebook leftover remaining unused _update', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on notebook leftover remaining unused _update', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d855Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -142,15 +141,16 @@ suite('leftover remaining unused after D844 leftover remaining unused notebook l
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(STATUS_REL) ?? ''), 8);
+		assert.ok(!seen.get(STATUS_REL)?.includes(doubleCatch));
 	});
 
-	test('notebook leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('notebook leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const source = fs.readFileSync(resolveSource(STATUS_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _update() {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assertWrapped(source, updateCall);
-		assert.strictEqual(countIncludes(source, `${updateCall}${doubleCatch}`), 8);
+		assert.strictEqual(countIncludes(source, `${updateCall}${singleCatch}`), 8);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes('\t\tthis._update();\n'));
 		assert.ok(!source.includes('\t\t\t\tthis._update();\n'));
 		assert.ok(!source.includes('\t\t\t\t\t\tthis._update();\n'));
@@ -244,7 +244,8 @@ suite('leftover remaining unused after D844 leftover remaining unused notebook l
 		assert.ok(profileModel.includes(`${initializeCall};`));
 		assert.ok(!profileModel.includes(`${initializeCall}${doubleCatch}`));
 
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(!findModel.includes(doubleCatch));
 		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
 		assert.ok(debugService.includes(`${showErrorCall}${doubleCatch}`));
 		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
@@ -255,9 +256,11 @@ suite('leftover remaining unused after D844 leftover remaining unused notebook l
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes('this.showEmbeddedMcpDetail(server)') || aicustom.includes('this.showPluginDetail(item)'));
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(!discovery.includes(`this.sync()${doubleCatch}`));
+		assert.ok(configuration.includes(`this.updateCache()${singleCatch}`));
+		assert.ok(!configuration.includes(`this.updateCache()${doubleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
 		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
 		assert.ok(enablement.includes(`this._enableExtension(extension.identifier)${doubleCatch}`));
