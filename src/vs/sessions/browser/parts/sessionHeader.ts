@@ -6,7 +6,7 @@
 import './media/chatCompositeBar.css';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { $, addDisposableGenericMouseDownListener, addDisposableListener, addStandardDisposableListener, DisposableResizeObserver, EventType, getWindow, isMouseEvent } from '../../../base/browser/dom.js';
+import { $, addDisposableGenericMouseDownListener, addDisposableListener, addStandardDisposableListener, clearNode, DisposableResizeObserver, EventType, getWindow, isMouseEvent } from '../../../base/browser/dom.js';
 import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { IKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../base/common/keyCodes.js';
@@ -381,7 +381,7 @@ export class SessionHeader extends Disposable {
 
 		let finished = false;
 		const finish = (commit: boolean) => {
-			if (finished) {
+			if (this._store.isDisposed || finished) {
 				return;
 			}
 			finished = true;
@@ -390,7 +390,7 @@ export class SessionHeader extends Disposable {
 			if (commit && newTitle && newTitle !== initialTitle) {
 				this._sessionsManagementService
 					.renameSession(session, newTitle)
-					.catch(onUnexpectedError).catch(onUnexpectedError);
+					.catch(onUnexpectedError);
 			}
 		};
 
@@ -437,6 +437,13 @@ export class SessionHeader extends Disposable {
 		this._titleEl.classList.remove('editing');
 		this._updateTitleAccessibility();
 		this._editingDisposables.clear();
+	}
+
+	override dispose(): void {
+		this._cancelTitleEditing();
+		clearNode(this._container);
+		this._container.remove();
+		super.dispose();
 	}
 }
 
@@ -499,5 +506,11 @@ export class SessionViewFloatingToolbar extends Disposable {
 
 	private _setVisible(visible: boolean): void {
 		this._container.style.display = visible ? '' : 'none';
+	}
+
+	override dispose(): void {
+		clearNode(this._container);
+		this._container.remove();
+		super.dispose();
 	}
 }

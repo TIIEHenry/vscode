@@ -213,7 +213,10 @@ export class MobileDiffView extends Disposable {
 		// -- Root overlay -----------------------------------------
 		const overlay = DOM.append(workbenchContainer, $('div.mobile-overlay-view'));
 		this.viewStore.add(DOM.addDisposableListener(overlay, DOM.EventType.CONTEXT_MENU, e => e.preventDefault()));
-		this.viewStore.add(toDisposable(() => overlay.remove()));
+		this.viewStore.add(toDisposable(() => {
+			DOM.clearNode(overlay);
+			overlay.remove();
+		}));
 
 		// -- Header -----------------------------------------------
 		const header = DOM.append(overlay, $('div.mobile-overlay-header'));
@@ -386,7 +389,7 @@ export class MobileDiffView extends Disposable {
 		const generation = this.renderGeneration;
 		const languageId = this.resolveLanguageId(diff);
 
-		void this.loadAndRender(container, diff, languageId, generation).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.loadAndRender(container, diff, languageId, generation).catch(onUnexpectedError);
 	}
 
 	private async loadAndRender(
@@ -404,7 +407,7 @@ export class MobileDiffView extends Disposable {
 				: Promise.resolve(''),
 		]);
 
-		if (this.disposed || generation !== this.renderGeneration) {
+		if (this.disposed || this._store.isDisposed || generation !== this.renderGeneration) {
 			return;
 		}
 
@@ -433,7 +436,7 @@ export class MobileDiffView extends Disposable {
 		const origLines = hasRealTokens ? origLineHtml : regexTokenizeLines(originalText, languageId);
 		const modLines = hasRealTokens ? modLineHtml : regexTokenizeLines(modifiedText, languageId);
 
-		if (this.disposed || generation !== this.renderGeneration) {
+		if (this.disposed || this._store.isDisposed || generation !== this.renderGeneration) {
 			return;
 		}
 

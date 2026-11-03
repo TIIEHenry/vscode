@@ -265,7 +265,7 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 		ContextKeyExpr.has(ChatContextKeys.speechToTextConfigured.key),
 	),
 	primary: KeyMod.CtrlCmd | KeyCode.KeyI,
-	handler: () => { void activeDictationComposer?.toggleDictation()?.catch(onUnexpectedError).catch(onUnexpectedError); },
+	handler: () => { void activeDictationComposer?.toggleDictation()?.catch(onUnexpectedError); },
 });
 
 // Preserve the command id so push-to-talk hold mode can track this chord.
@@ -385,14 +385,14 @@ class NewChatInputStatusActionViewItem extends MenuEntryActionViewItem {
 		const learnMoreButton = store.add(new Button(actions, { ...defaultButtonStyles, secondary: true }));
 		learnMoreButton.label = localize('newChatInput.status.otel.learnMore', "Learn More");
 		store.add(learnMoreButton.onDidClick(() => {
-			void this.commandService.executeCommand('vscode.open', URI.parse(OTEL_DOCS_URL)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand('vscode.open', URI.parse(OTEL_DOCS_URL)).catch(onUnexpectedError);
 			this.hoverService.hideHover(true);
 		}));
 
 		const manageButton = store.add(new Button(actions, { ...defaultButtonStyles, secondary: true }));
 		manageButton.label = localize('newChatInput.status.otel.manage', "Manage");
 		store.add(manageButton.onDidClick(() => {
-			void this.commandService.executeCommand(OPEN_OTEL_SETTINGS_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(OPEN_OTEL_SETTINGS_COMMAND).catch(onUnexpectedError);
 			this.hoverService.hideHover(true);
 		}));
 
@@ -1192,7 +1192,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			appearance: { showPointer: true }
 		}));
 		dom.append(toolsButton, renderIcon(Codicon.settingsCompact));
-		const open = () => { void this._configureTools().catch(onUnexpectedError).catch(onUnexpectedError); };
+		const open = () => { void this._configureTools().catch(onUnexpectedError); };
 		this._register(dom.addDisposableListener(toolsButton, dom.EventType.CLICK, open));
 		this._register(dom.addDisposableListener(toolsButton, dom.EventType.KEY_DOWN, e => {
 			const event = new StandardKeyboardEvent(e);
@@ -1535,7 +1535,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		const pill = this._register(this._scopedInstantiationService.createInstance(VoiceInputModeActionViewItem, action, {
 			// Dictation must target this composer's editor, not the last focused
 			// chat widget (this composer isn't an `IChatWidget`).
-			toggleDictation: () => { void this.toggleDictation().catch(onUnexpectedError).catch(onUnexpectedError); },
+			toggleDictation: () => { void this.toggleDictation().catch(onUnexpectedError); },
 			isActive: isVoiceInputActive,
 			isDictationActive: isDictationInputActive,
 			isVoiceActive: isVoiceSessionActive,
@@ -1579,9 +1579,9 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		const dictateLabel = localize('sessionsStt.dictate', "Dictate (Speech to Text)");
 		const stopLabel = localize('sessionsStt.stop', "Stop Dictation");
 		// Kept as a named helper so the fire-and-forget catch scan still sees one
-		// double-caught toggle. The view item awaits this instead of the global
+		// caught toggle. The view item awaits this instead of the global
 		// Dictate command.
-		const toggle = () => this.toggleDictation().catch(onUnexpectedError).catch(onUnexpectedError);
+		const toggle = () => this.toggleDictation().catch(onUnexpectedError);
 		let renderedMode = '';
 
 		const renderDictationButton = () => {

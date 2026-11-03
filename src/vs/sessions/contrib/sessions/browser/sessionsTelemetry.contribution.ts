@@ -198,9 +198,12 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 			this._lifecycleTracker.recordNewChatRequestSent(session);
 			if (!wasTracked) {
 				void this._sessionsTasksService.getAllTasks(session).then(tasks => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					const hasWorktreeCreatedTask = tasks.some(t => t.task.runOptions?.runOn === 'worktreeCreated');
 					this._lifecycleTracker.recordFirstRequestTaskInfo(session, { hasWorktreeCreatedTask, configuredTasksCount: tasks.length });
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		} else {
 			this._lifecycleTracker.recordRequestSent(session);
@@ -225,143 +228,200 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 			...requestCounters,
 		};
 		void this._getOrFetchWorkspaceFileCount(session.sessionId, workspace).then(workspaceFileCount => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionRequestSentEvent, SessionRequestSentClassification>('agents/requestSent', {
 				...sync,
 				...this._getWorkspaceFields(workspace, workspaceFileCount),
 				...this._getWorkspaceTopologyFields(workspace),
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionArchived(session: ISession): void {
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, SessionArchivedClassification>('agents/sessionArchived', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._fireSessionSummary(session, 'archived');
 	}
 
 	private _logSessionUnarchived(session: ISession): void {
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, SessionUnarchivedClassification>('agents/sessionUnarchived', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionDeleted(session: ISession): void {
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, SessionDeletedClassification>('agents/sessionDeleted', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._fireSessionSummary(session, 'deleted');
 	}
 
 	private _logChatDeleted(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'chatDeleted');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, ChatDeletedClassification>('agents/chatDeleted', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logChatRenamed(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'chatRenamed');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, ChatRenamedClassification>('agents/chatRenamed', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionRenamed(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'sessionRenamed');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, SessionRenamedClassification>('agents/sessionRenamed', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionStickinessToggled(session: ISession, sticky: boolean): void {
 		this._lifecycleTracker.bumpCounter(session, 'stickinessToggled');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionStickinessToggledEvent, SessionStickinessToggledClassification>('agents/sessionStickinessToggled', {
 				...payload,
 				sticky,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionMaximizeToggled(session: ISession, maximized: boolean): void {
 		this._lifecycleTracker.bumpCounter(session, 'maximizeToggled');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionMaximizeToggledEvent, SessionMaximizeToggledClassification>('agents/sessionMaximizeToggled', {
 				...payload,
 				maximized,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCreatePullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'createPullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, CreatePullRequestClassification>('agents/createPullRequest', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCreateDraftPullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'createDraftPullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, CreateDraftPullRequestClassification>('agents/createDraftPullRequest', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logUpdatePullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'updatePullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, UpdatePullRequestClassification>('agents/updatePullRequest', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logMergePullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'mergePullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, MergePullRequestClassification>('agents/mergePullRequest', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCheckoutPullRequest(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'checkoutPullRequest');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, CheckoutPullRequestClassification>('agents/checkoutPullRequest', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logInitializeRepository(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'initializeRepository');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, InitializeRepositoryClassification>('agents/initializeRepository', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCommit(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'commit');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, CommitClassification>('agents/commit', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logCommitAndSync(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'commitAndSync');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, CommitAndSyncClassification>('agents/commitAndSync', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logSessionRestored(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'sessionRestored');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, SessionRestoredClassification>('agents/sessionRestored', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFixCIChecks(session: ISession): void {
 		this._lifecycleTracker.bumpCounter(session, 'fixCIChecks');
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<SessionActionEvent, FixCIChecksClassification>('agents/fixCIChecks', payload);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackAdded(e: IAgentFeedbackAddedEvent): void {
@@ -373,12 +433,15 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 		const hasSuggestion = !!e.feedback.suggestion;
 		const hasExistingFeedbackForFile = e.hasExistingFeedbackForFile;
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<FeedbackAddedEvent, FeedbackAddedClassification>('agents/feedbackAdded', {
 				...payload,
 				hasSuggestion,
 				hasExistingFeedbackForFile,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackConverted(e: IAgentFeedbackConvertedEvent): void {
@@ -391,13 +454,16 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 		const hasSuggestion = !!e.feedback.suggestion;
 		const hasExistingFeedbackForFile = e.hasExistingFeedbackForFile;
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<FeedbackConvertedEvent, FeedbackConvertedClassification>('agents/feedbackConverted', {
 				...payload,
 				feedbackKind,
 				hasSuggestion,
 				hasExistingFeedbackForFile,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackReplyAdded(e: IAgentFeedbackReplyAddedEvent): void {
@@ -409,12 +475,15 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 		const feedbackKind = e.feedback.kind;
 		const replyCount = e.replyCount;
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<FeedbackReplyAddedEvent, FeedbackReplyAddedClassification>('agents/feedbackReplyAdded', {
 				...payload,
 				feedbackKind,
 				replyCount,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _logFeedbackSubmitted(e: IAgentFeedbackSubmittedEvent): void {
@@ -425,6 +494,9 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 		this._lifecycleTracker.bumpCounter(session, 'feedbackSubmitted');
 		const { totalCount, userCount, codeReviewCount, prReviewCount, replyCount } = e;
 		void this._getSessionActionPayload(session).then(payload => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<FeedbackSubmittedEvent, FeedbackSubmittedClassification>('agents/feedbackSubmitted', {
 				...payload,
 				totalCount,
@@ -433,7 +505,7 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				prReviewCount,
 				replyCount,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	// -- cross-client session-done detection -----------------------------------
@@ -454,6 +526,9 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 				continue;
 			}
 			this._register(disposableTimeout(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._fireSessionSummary(session, 'deletedRemotely');
 			}, 100));
 		}
@@ -463,6 +538,9 @@ export class SessionsTelemetryContribution extends Disposable implements IWorkbe
 			}
 			if (session.isArchived.get()) {
 				this._register(disposableTimeout(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this._fireSessionSummary(session, 'archivedRemotely');
 				}, 100));
 			} else {

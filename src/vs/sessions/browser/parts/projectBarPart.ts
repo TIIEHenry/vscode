@@ -280,7 +280,7 @@ export class ProjectBarPart extends Part {
 		// Click handler to add folder
 		this.workspaceEntryDisposables.value?.add(
 			addDisposableListener(this.addFolderButton, EventType.CLICK, () => {
-				this.pickAndAddFolder().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.pickAndAddFolder().catch(onUnexpectedError);
 			})
 		);
 
@@ -292,7 +292,7 @@ export class ProjectBarPart extends Part {
 			addDisposableListener(this.addFolderButton, EventType.KEY_DOWN, (e: KeyboardEvent) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
-					this.pickAndAddFolder().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.pickAndAddFolder().catch(onUnexpectedError);
 				}
 			})
 		);
@@ -307,6 +307,10 @@ export class ProjectBarPart extends Part {
 			defaultUri: await this.fileDialogService.defaultFolderPath(),
 			availableFileSystems: [this.pathService.defaultUriScheme]
 		});
+
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		if (folders?.length) {
 			this.addFolderEntry(folders[0]);
@@ -482,7 +486,7 @@ export class ProjectBarPart extends Part {
 			title: localize('projectbar.customize.title', "Customize Workspace Appearance")
 		});
 
-		if (!picked) {
+		if (this._store.isDisposed || !picked) {
 			return;
 		}
 
@@ -493,6 +497,9 @@ export class ProjectBarPart extends Part {
 			this.renderContent();
 		} else if (picked.customType === 'icon') {
 			const icon = await this.pickIcon();
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (icon) {
 				entry.displayType = 'icon';
 				entry.iconId = icon.id;
@@ -575,6 +582,20 @@ export class ProjectBarPart extends Part {
 
 		// The global composite bar takes some height at the bottom
 		// The actions container will take the remaining space due to CSS flex layout
+	}
+
+	override dispose(): void {
+		if (this.actionsContainer) {
+			clearNode(this.actionsContainer);
+			this.actionsContainer.remove();
+			this.actionsContainer = undefined;
+		}
+		if (this.content) {
+			clearNode(this.content);
+			this.content.remove();
+			this.content = undefined;
+		}
+		super.dispose();
 	}
 
 	toJSON(): object {

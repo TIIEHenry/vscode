@@ -6,7 +6,7 @@
 import './mobileChatShell.css';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
-import { $, addDisposableListener, append, EventType } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, EventType } from '../../../../base/browser/dom.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -205,7 +205,7 @@ export class MobileTitlebarPart extends Disposable {
 				this.refreshAvatar();
 			}
 		}));
-		this.refreshAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.refreshAccount().catch(onUnexpectedError);
 
 		// Keep the title in sync with the active session
 		this._register(autorun(reader => {
@@ -410,13 +410,13 @@ export class MobileTitlebarPart extends Disposable {
 		image.referrerPolicy = 'no-referrer';
 		const clearHandlers = () => { image.onload = null; image.onerror = null; };
 		image.onload = () => {
-			if (requestId !== this.avatarRequestCounter) { return; }
+			if (this._store.isDisposed || requestId !== this.avatarRequestCounter) { return; }
 			this.loadedAvatarUrl = avatarUrl;
 			this.renderAccountState();
 			clearHandlers();
 		};
 		image.onerror = () => {
-			if (requestId !== this.avatarRequestCounter) { return; }
+			if (this._store.isDisposed || requestId !== this.avatarRequestCounter) { return; }
 			this.loadedAvatarUrl = undefined;
 			this.renderAccountState();
 			clearHandlers();
@@ -570,5 +570,11 @@ export class MobileTitlebarPart extends Disposable {
 			case 'workbench.action.agenticSignIn': return Codicon.signIn;
 			default: return undefined;
 		}
+	}
+
+	override dispose(): void {
+		clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 }

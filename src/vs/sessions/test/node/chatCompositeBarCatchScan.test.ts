@@ -27,17 +27,16 @@ suite('ChatCompositeBar leftover fire-and-forget catch scan (D608)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('AUXCLICK CLOSE_CHAT executeCommand void double-catch onUnexpectedError (D608)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('AUXCLICK CLOSE_CHAT executeCommand void single-catch onUnexpectedError (D608)', () => {
 		const source = fs.readFileSync(chatCompositeBarSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._commandService.executeCommand(CLOSE_CHAT_COMMAND_ID, { session, chat })';
-		const doubleCall = `${call}${doubleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._commandService\.executeCommand\(CLOSE_CHAT_COMMAND_ID, \{ session, chat \}\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('EventType.AUXCLICK'));
 	});
 });
@@ -46,16 +45,15 @@ suite('ChatCompositeBar leftover fire-and-forget catch scan (D616)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('inline renameChat void double-catch onUnexpectedError (D616)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('inline renameChat void single-catch onUnexpectedError (D616)', () => {
 		const source = fs.readFileSync(chatCompositeBarSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = '.renameChat(delegate.session, chat.resource, newTitle)';
-		const doubleCall = `${call}\n\t\t\t\t\t${doubleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/\.renameChat\(delegate\.session, chat\.resource, newTitle\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
-		assert.ok(!source.includes(`${call}\n\t\t\t\t\t.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${call}\n\t\t\t\t\t${singleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('CLOSE_CHAT_COMMAND_ID'));
 	});
 });

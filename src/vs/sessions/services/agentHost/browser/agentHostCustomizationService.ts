@@ -35,6 +35,9 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 	) {
 		super(instantiationService, logService);
 		this._register(this._sessionsManagementService.onDidChangeSessions(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			for (const session of e.removed) {
 				this._disposeMcpDiagnostics(session.resource);
 			}
@@ -126,7 +129,10 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 				return provider.getMcpServers(session.sessionId).find(server => this._serverIdMatchesRawId(server.id, rawId))?.stop() ?? Promise.resolve();
 			},
 			setRootConfigValue: (property, value) => {
-				void provider.setRootConfigValue(property, value).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void provider.setRootConfigValue(property, value).catch(onUnexpectedError);
 			},
 		};
 	}
@@ -167,9 +173,15 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 		// Keep both subscriptions alive under one map key so replacing the provider entry disposes both together.
 		this._providerListeners.set(provider, combinedDisposable(
 			provider.onDidChangeCustomAgents(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._fireCustomAgentsChanged();
 			}),
 			provider.onDidChangeCustomizations(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._fireCustomizationsChanged();
 			})
 		));

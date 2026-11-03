@@ -27,17 +27,16 @@ suite('AgentHostCustomizationService leftover fire-and-forget catch scan (D649)'
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('setRootConfigValue leftover site double-catch onUnexpectedError (D649)', () => {
-		// setRootConfigValue returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('setRootConfigValue leftover site catches onUnexpectedError (D649)', () => {
 		const source = fs.readFileSync(agentHostCustomizationServiceSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void provider.setRootConfigValue(property, value)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void provider\.setRootConfigValue\(property, value\)/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

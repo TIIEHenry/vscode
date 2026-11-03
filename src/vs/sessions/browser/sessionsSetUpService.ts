@@ -32,7 +32,7 @@ import { ConditionalAuthState, conditionalAuthState, observeAllowSignedOutWhenUs
 
 import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
 import { Codicon } from '../../base/common/codicons.js';
-import { $, append } from '../../base/browser/dom.js';
+import { $, append, clearNode } from '../../base/browser/dom.js';
 import { Dialog, DialogContentsAlignment } from '../../base/browser/ui/dialog/dialog.js';
 import { createWorkbenchDialogOptions } from '../../workbench/browser/parts/dialogs/dialog.js';
 import { MarkdownString } from '../../base/common/htmlContent.js';
@@ -170,12 +170,11 @@ class SessionsSetUpWidget extends Disposable {
 			if (!this._initialSetupFlow && this._allowSignedOutWhenUsable.get()) {
 				this._onAllowSignedOutWhenUsableChanged();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		if (isWeb) {
 			void this._checkWebAuth()
 				.finally(() => this._initialSetupFlow = false)
-				.catch(onUnexpectedError)
 				.catch(onUnexpectedError);
 			this._watchWebAuth();
 			return;
@@ -186,12 +185,10 @@ class SessionsSetUpWidget extends Disposable {
 		if (isFirstLaunch) {
 			void this._showWelcome(true)
 				.finally(() => this._initialSetupFlow = false)
-				.catch(onUnexpectedError)
 				.catch(onUnexpectedError);
 		} else {
 			void this._watchSignInState()
 				.finally(() => this._initialSetupFlow = false)
-				.catch(onUnexpectedError)
 				.catch(onUnexpectedError);
 		}
 	}
@@ -208,31 +205,37 @@ class SessionsSetUpWidget extends Disposable {
 		} catch {
 			// Provider not available yet — show dialog
 		}
-		this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._showWelcome(false).catch(onUnexpectedError);
 	}
 
 	private _watchWebAuth(): void {
 		this._register(this.authenticationService.onDidChangeSessions(async e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.providerId !== 'github' || !e.event.removed?.length) {
 				return;
 			}
 			try {
 				const remaining = await this.authenticationService.getSessions('github');
-				if (remaining.length > 0) {
+				if (this._store.isDisposed || remaining.length > 0) {
 					return;
 				}
 			} catch {
 				// Provider became unavailable — treat as signed out
 			}
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.info('[sessions welcome] GitHub session removed on web, re-showing welcome');
 			this.storageService.remove(WELCOME_COMPLETE_KEY, StorageScope.APPLICATION);
-			this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._showWelcome(false).catch(onUnexpectedError);
 		}));
 	}
 
 	private async _watchSignInState(): Promise<void> {
 		const initialAccount = await this.defaultAccountService.getDefaultAccount();
-		if (this.dialogRef.value) {
+		if (this._store.isDisposed || this.dialogRef.value) {
 			return;
 		}
 		if (!initialAccount) {
@@ -240,11 +243,14 @@ class SessionsSetUpWidget extends Disposable {
 			if (welcomeComplete && this._allowSignedOutWhenUsable.get()) {
 				await this._proceedWithoutGitHub();
 			} else {
-				this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._showWelcome(false).catch(onUnexpectedError);
 			}
 			return;
 		}
 		await this._ensureAIFeaturesEnabled();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.onCompleted();
 		this.watcherRef.value = this._watchActiveState(true);
 	}
@@ -253,6 +259,9 @@ class SessionsSetUpWidget extends Disposable {
 		const disposables = new DisposableStore();
 
 		disposables.add(this.defaultAccountService.onDidChangeDefaultAccount(account => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const nowSignedIn = account !== null;
 			if (signedIn && !nowSignedIn) {
 				// Signed out: drop the completion marker and re-consult the gate.
@@ -266,9 +275,12 @@ class SessionsSetUpWidget extends Disposable {
 		}));
 
 		disposables.add(this.configurationService.onDidChangeConfiguration(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.affectsConfiguration(AIDisabledConfig)) {
 				if (this.configurationService.getValue<boolean>(AIDisabledConfig)) {
-					this._showAIDisabledDialog().catch(onUnexpectedError).catch(onUnexpectedError);
+					this._showAIDisabledDialog().catch(onUnexpectedError);
 				} else {
 					// AI features re-enabled — dismiss any AI disabled dialog
 					this.dialogRef.clear();
@@ -316,11 +328,11 @@ class SessionsSetUpWidget extends Disposable {
 				return;
 			}
 			this._proceedingSignedOut = false;
-			void this._showWelcome(false).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._showWelcome(false).catch(onUnexpectedError);
 		} else {
 			this.signInSetupCancellation.value?.cancel();
 			this.dialogRef.clear();
-			void this._proceedWithoutGitHub().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._proceedWithoutGitHub().catch(onUnexpectedError);
 		}
 	}
 
@@ -426,7 +438,13 @@ class SessionsSetUpWidget extends Disposable {
 				return;
 			}
 			overlay.element.classList.add('sessions-loading-dismissed');
-			this.dialogRef.value.add(disposableTimeout(() => overlay.element.remove(), 200));
+			this.dialogRef.value.add(disposableTimeout(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				clearNode(overlay.element);
+				overlay.element.remove();
+			}, 200));
 
 			if (account) {
 				const setupDone = await this.serviceWhenSetupDone();
@@ -468,7 +486,13 @@ class SessionsSetUpWidget extends Disposable {
 		overlay.setAttribute('aria-busy', 'true');
 		overlay.setAttribute('aria-label', localize('loading', "Loading"));
 		append(overlay, $('div.sessions-loading-icon.codicon.codicon-agent'));
-		return { element: overlay, dispose: () => overlay.remove() };
+		return {
+			element: overlay,
+			dispose: () => {
+				clearNode(overlay);
+				overlay.remove();
+			}
+		};
 	}
 
 	private async _showSignInDialog(allowContinueWithoutSignIn = false): Promise<boolean> {

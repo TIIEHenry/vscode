@@ -7,7 +7,7 @@ import './media/chatCompositeBar.css';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { URI } from '../../../base/common/uri.js';
 import { Emitter, Event } from '../../../base/common/event.js';
-import { $, addDisposableGenericMouseDownListener, addDisposableGenericMouseUpListener, addDisposableListener, addStandardDisposableListener, DisposableResizeObserver, EventHelper, EventType, getWindow, isHTMLElement, reset } from '../../../base/browser/dom.js';
+import { $, addDisposableGenericMouseDownListener, addDisposableGenericMouseUpListener, addDisposableListener, addStandardDisposableListener, clearNode, DisposableResizeObserver, EventHelper, EventType, getWindow, isHTMLElement, reset } from '../../../base/browser/dom.js';
 import { applyDragImage } from '../../../base/browser/ui/dnd/dnd.js';
 import { ScrollableElement } from '../../../base/browser/ui/scrollbar/scrollableElement.js';
 import { ScrollbarVisibility } from '../../../base/common/scrollable.js';
@@ -417,7 +417,7 @@ export class ChatCompositeBar extends Disposable {
 			}
 
 			this._cancelTabEditing();
-			void this._commandService.executeCommand(CLOSE_CHAT_COMMAND_ID, { session, chat }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._commandService.executeCommand(CLOSE_CHAT_COMMAND_ID, { session, chat }).catch(onUnexpectedError);
 		}));
 
 		// A tab drag carries two payloads: a group-move payload (to move/split the
@@ -567,7 +567,7 @@ export class ChatCompositeBar extends Disposable {
 
 		let finished = false;
 		const finish = (commit: boolean) => {
-			if (finished) {
+			if (this._store.isDisposed || finished) {
 				return;
 			}
 			finished = true;
@@ -576,7 +576,7 @@ export class ChatCompositeBar extends Disposable {
 			if (commit && newTitle && newTitle !== initialTitle) {
 				this._sessionsManagementService
 					.renameChat(delegate.session, chat.resource, newTitle)
-					.catch(onUnexpectedError).catch(onUnexpectedError);
+					.catch(onUnexpectedError);
 			}
 		};
 
@@ -678,5 +678,12 @@ export class ChatCompositeBar extends Disposable {
 
 	private _updateStyles(): void {
 		applySessionBarThemeColors(this._container, this._themeService.getColorTheme());
+	}
+
+	override dispose(): void {
+		this._cancelTabEditing();
+		clearNode(this._container);
+		this._container.remove();
+		super.dispose();
 	}
 }
