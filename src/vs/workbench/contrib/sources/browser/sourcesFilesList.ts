@@ -122,6 +122,7 @@ class SourcesFilesAccessibilityProvider implements IListAccessibilityProvider<IS
 
 export class SourcesFilesList extends Disposable {
 
+	private readonly container: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
 	private readonly statusMessage: HTMLElement;
@@ -162,6 +163,7 @@ export class SourcesFilesList extends Disposable {
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 	) {
 		super();
+		this.container = host;
 
 		host.classList.add('show-file-icons');
 		this.viewMode = readSourcesFilesViewMode(this.configurationService.getValue(SOURCES_FILES_VIEW_MODE_SETTING));
@@ -172,7 +174,12 @@ export class SourcesFilesList extends Disposable {
 			localize('sourcesFilesList.filterPlaceholder', "Filter files"),
 			localize('sourcesFilesList.filterAriaLabel', "Filter files"),
 		));
-		this._register(this.filterBox.onDidChange(() => this.paintCollected()));
+		this._register(this.filterBox.onDidChange(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.paintCollected();
+		}));
 		const modes = dom.append(toolbar, $('.sources-files-modes'));
 		modes.setAttribute('role', 'group');
 		modes.setAttribute('aria-label', localize('sourcesFilesList.viewMode', "Files view"));
@@ -190,6 +197,9 @@ export class SourcesFilesList extends Disposable {
 		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
 		this._register(dom.addDisposableListener(host, 'click', event => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const retry = (event.target as HTMLElement | null)?.closest('.sources-files-error-retry');
 			if (!retry || !host.contains(retry)) {
 				return;
@@ -198,12 +208,30 @@ export class SourcesFilesList extends Disposable {
 			this.scheduleRefresh();
 		}));
 
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
+		}, 250));
 		this.scheduleRefresh();
 
-		this._register(this.fileService.onDidFilesChange(() => this.onSearchTrigger()));
-		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => this.onSearchTrigger()));
+		this._register(this.fileService.onDidFilesChange(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.onSearchTrigger();
+		}));
+		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.onSearchTrigger();
+		}));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.affectsConfiguration(SOURCES_FILES_VIEW_MODE_SETTING)) {
 				this.applyViewMode(readSourcesFilesViewMode(this.configurationService.getValue(SOURCES_FILES_VIEW_MODE_SETTING)), true);
 			}
@@ -216,12 +244,32 @@ export class SourcesFilesList extends Disposable {
 			}
 		}));
 		this.bindPreviewTab();
-		this._register(this.layoutService.onDidChangePartVisibility(() => this.onSearchVisibilityChanged()));
-		this._register(this.session.onDidChangeActiveSession(() => this.onSearchTrigger()));
-		this._register(this.session.onDidChangeSession(() => this.onSearchTrigger()));
+		this._register(this.layoutService.onDidChangePartVisibility(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.onSearchVisibilityChanged();
+		}));
+		this._register(this.session.onDidChangeActiveSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.onSearchTrigger();
+		}));
+		this._register(this.session.onDidChangeSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.onSearchTrigger();
+		}));
 		const connectionChanged = this.connection.onDidChangeConnection;
 		if (typeof connectionChanged === 'function') {
-			this._register(connectionChanged(() => this.onSearchTrigger()));
+			this._register(connectionChanged(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.onSearchTrigger();
+			}));
 		}
 		this._register(textModelService.registerTextModelContentProvider(SOURCES_ENGINE_FILE_SCHEME, {
 			provideTextContent: resource => Promise.resolve(provideSourcesEngineFileText(resource, this.modelService)),
@@ -230,6 +278,9 @@ export class SourcesFilesList extends Disposable {
 
 	/** Tabs host tells the list whether the Files panel is the selected tab. */
 	setFilesTabActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.filesTabActive === active) {
 			return;
 		}
@@ -251,6 +302,9 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private onSearchTrigger(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.isFilesSearchVisible()) {
 			this.filesSearchDirty = true;
 			return;
@@ -259,12 +313,18 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private onSearchVisibilityChanged(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.isFilesSearchVisible() && this.filesSearchDirty) {
 			this.scheduleRefresh();
 		}
 	}
 
 	private scheduleRefresh(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.isFilesSearchVisible()) {
 			this.filesSearchDirty = true;
 			return;
@@ -285,6 +345,9 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		for (const source of this.folderCancellations) {
 			source.cancel();
 			source.dispose();
@@ -293,6 +356,12 @@ export class SourcesFilesList extends Disposable {
 		this.engineCancellation?.cancel();
 		this.engineCancellation?.dispose();
 		this.engineCancellation = undefined;
+		if (this.container) {
+			dom.clearNode(this.container);
+		}
+		this.list = undefined;
+		this.listViewport = undefined;
+		this.labels = undefined;
 		super.dispose();
 	}
 
@@ -329,6 +398,9 @@ export class SourcesFilesList extends Disposable {
 		));
 
 		this._register(this.list.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const file = e.element?.file;
 			if (!file) {
 				return;
@@ -337,7 +409,7 @@ export class SourcesFilesList extends Disposable {
 			const slot = e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService);
 			const preserveFocus = e.editorOptions.preserveFocus;
 			if (file.engine) {
-				void runSuppressingExplorerAutoReveal(() => this.openEngineFile(file, preserveFocus, slot, !!e.sideBySide)).catch(onUnexpectedError).catch(onUnexpectedError);
+				void runSuppressingExplorerAutoReveal(() => this.openEngineFile(file, preserveFocus, slot, !!e.sideBySide)).catch(onUnexpectedError);
 				return;
 			}
 
@@ -350,10 +422,13 @@ export class SourcesFilesList extends Disposable {
 					preserveFocus,
 					source: EditorOpenSource.USER,
 				}, ACTIVE_GROUP));
-			void open.catch(onUnexpectedError).catch(onUnexpectedError);
+			void open.catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onContextMenu(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const file = e.element?.file;
 			if (!file) {
 				return;
@@ -362,7 +437,10 @@ export class SourcesFilesList extends Disposable {
 			this.contextMenuService.showContextMenu({
 				getAnchor: () => e.anchor,
 				getActions: () => [sourcesAlternateOpenAction(current, slot => {
-					void this.openFileEntry(file, true, slot, false).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.openFileEntry(file, true, slot, false).catch(onUnexpectedError);
 				})],
 			});
 		}));
@@ -372,6 +450,9 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.isFilesSearchVisible()) {
 			this.filesSearchDirty = true;
 			return;
@@ -414,7 +495,7 @@ export class SourcesFilesList extends Disposable {
 			error = caught;
 		}
 
-		if (seq !== this._refreshSeq || engineToken.isCancellationRequested || sources.some(source => source.token.isCancellationRequested)) {
+		if (this._store.isDisposed || seq !== this._refreshSeq || engineToken.isCancellationRequested || sources.some(source => source.token.isCancellationRequested)) {
 			return;
 		}
 
@@ -445,10 +526,16 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private openFileEntry(element: ISourcesFileEntry, preserveFocus: boolean | undefined, slot: EditorOpenSlot, sideBySide: boolean): Promise<unknown> {
+		if (this._store.isDisposed) {
+			return Promise.resolve();
+		}
 		return runSuppressingExplorerAutoReveal(() => this.openFileEntryNow(element, preserveFocus, slot, sideBySide));
 	}
 
 	private openFileEntryNow(element: ISourcesFileEntry, preserveFocus: boolean | undefined, slot: EditorOpenSlot, sideBySide: boolean): Promise<unknown> {
+		if (this._store.isDisposed) {
+			return Promise.resolve();
+		}
 		if (element.engine) {
 			return this.openEngineFile(element, preserveFocus, slot, sideBySide);
 		}
@@ -507,10 +594,13 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private paintCollected(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.syncModeButtons();
 		if (this.viewMode === 'list') {
 			const seq = ++this.levelSeq;
-			void this.paintCurrentLevel(seq).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.paintCurrentLevel(seq).catch(onUnexpectedError);
 			return;
 		}
 		this.levelSeq++;
@@ -567,6 +657,9 @@ export class SourcesFilesList extends Disposable {
 		button.setAttribute('aria-label', label);
 		button.appendChild(renderIcon(icon));
 		this._register(dom.addStandardDisposableListener(button, 'click', event => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			dom.EventHelper.stop(event, true);
 			this.applyViewMode(mode, false);
 		}));
@@ -580,6 +673,9 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private applyViewMode(mode: SourcesFilesViewMode, fromConfiguration: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.viewMode === mode) {
 			this.syncModeButtons();
 			return;
@@ -588,13 +684,16 @@ export class SourcesFilesList extends Disposable {
 		this.syncModeButtons();
 		this.paintCollected();
 		if (!fromConfiguration) {
-			void this.configurationService.updateValue(SOURCES_FILES_VIEW_MODE_SETTING, mode).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.configurationService.updateValue(SOURCES_FILES_VIEW_MODE_SETTING, mode).catch(onUnexpectedError);
 		}
 	}
 
 	private bindPreviewTab(): void {
 		const part = this.editorGroupsService.mainPart;
 		const paintIfList = () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.viewMode === 'list') {
 				this.paintCollected();
 			}
@@ -602,6 +701,9 @@ export class SourcesFilesList extends Disposable {
 		this._register(part.onDidChangeActiveGroup(() => paintIfList()));
 		const groupListeners = this._register(new DisposableMap<IEditorGroup, IDisposable>());
 		const track = (group: IEditorGroup | undefined) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!group || groupListeners.has(group)) {
 				return;
 			}
@@ -610,14 +712,27 @@ export class SourcesFilesList extends Disposable {
 		for (const group of part.groups) {
 			track(group);
 		}
-		this._register(part.onDidAddGroup(group => track(group)));
-		this._register(part.onDidRemoveGroup(group => groupListeners.deleteAndDispose(group)));
+		this._register(part.onDidAddGroup(group => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			track(group);
+		}));
+		this._register(part.onDidRemoveGroup(group => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			groupListeners.deleteAndDispose(group);
+		}));
 	}
 
 	private async paintCurrentLevel(seq: number): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			const target = this.currentLevelTarget();
-			if (seq !== this.levelSeq || this.viewMode !== 'list') {
+			if (this._store.isDisposed || seq !== this.levelSeq || this.viewMode !== 'list') {
 				return;
 			}
 			if (!target) {
@@ -693,6 +808,9 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private renderLevel(nodes: readonly ISourcesFilesTreeNode[], label: string | undefined, emptyText: string, isError: boolean, showFilter: boolean, error?: unknown): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (label) {
 			this.location.textContent = label;
 			this.location.title = label;

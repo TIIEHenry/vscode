@@ -110,10 +110,10 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 
 		this._register(this.fileService.onDidFilesChange(e => {
 			for (const resource of e.rawUpdated) {
-				void this.invalidateResource(resource).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.invalidateResource(resource).catch(onUnexpectedError);
 			}
 			for (const resource of e.rawAdded) {
-				void this.invalidateResource(resource).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.invalidateResource(resource).catch(onUnexpectedError);
 			}
 		}));
 
