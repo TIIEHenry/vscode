@@ -48,9 +48,10 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	private readGeneration = 0;
 	private refreshRunning = false;
 	private refreshAgain = false;
+	private activeSessionId: string | undefined;
 	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
 	private readonly refreshScheduler = this._register(new RunOnceScheduler(() => {
-		void this.runScheduledRefresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.runScheduledRefresh().catch(onUnexpectedError);
 	}, 250));
 
 	constructor(
@@ -61,6 +62,7 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	) {
 		super();
 
+		this.activeSessionId = this.session.getActiveSessionId();
 		this._register(this.connection.onDidChangeConnection(() => this.scheduleRefresh()));
 		this._register(this.session.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.session.onDidChangeSession(() => this.scheduleRefresh()));
@@ -82,6 +84,14 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		if (this._store.isDisposed) {
 			return;
 		}
+		const currentSessionId = this.session.getActiveSessionId();
+		if (currentSessionId !== this.activeSessionId) {
+			this.activeSessionId = currentSessionId;
+			this.refreshScheduler.cancel();
+			this.refreshAgain = false;
+			void this.runScheduledRefresh().catch(onUnexpectedError);
+			return;
+		}
 		if (this.refreshRunning) {
 			this.refreshAgain = true;
 			return;
@@ -92,7 +102,25 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	}
 
 	flushScheduledRefresh(): void {
-		this.refreshScheduler.flush();
+		if (this._store.isDisposed) {
+			return;
+		}
+		const currentSessionId = this.session.getActiveSessionId();
+		if (currentSessionId !== this.activeSessionId) {
+			this.activeSessionId = currentSessionId;
+			this.refreshScheduler.cancel();
+			this.refreshAgain = false;
+			void this.runScheduledRefresh().catch(onUnexpectedError);
+			return;
+		}
+		if (this.refreshScheduler.isScheduled()) {
+			this.refreshScheduler.flush();
+			return;
+		}
+		if (this.refreshAgain) {
+			this.refreshAgain = false;
+			void this.runScheduledRefresh().catch(onUnexpectedError);
+		}
 	}
 
 	private async runScheduledRefresh(): Promise<void> {
@@ -101,13 +129,16 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		}
 		this.refreshRunning = true;
 		this.refreshAgain = false;
+		const generation = ++this.readGeneration;
 		try {
-			await this.refresh();
+			await this.refreshWithGeneration(generation);
 		} finally {
-			this.refreshRunning = false;
-			if (this.refreshAgain && !this._store.isDisposed) {
-				this.refreshAgain = false;
-				this.scheduleRefresh();
+			if (generation === this.readGeneration) {
+				this.refreshRunning = false;
+				if (this.refreshAgain && !this._store.isDisposed) {
+					this.refreshAgain = false;
+					this.scheduleRefresh();
+				}
 			}
 		}
 	}
@@ -147,10 +178,14 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	}
 
 	async refresh(): Promise<void> {
+		return this.refreshWithGeneration(++this.readGeneration);
+	}
+
+	private async refreshWithGeneration(generation: number): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
 		}
-		const generation = ++this.readGeneration;
+		this.activeSessionId = this.session.getActiveSessionId();
 		const previous = this.snapshot;
 		const sessionId = this.session.getActiveSessionId();
 		const started = this.readFacts();
@@ -163,8 +198,8 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		try {
 			const loaded = await tryLoadSourcesGitChangeEntries(
 				started.engineConnected,
-				this.readChangesHook(),
-				this.readSummaryHook(),
+				this.readChangesHook(generation),
+				this.readSummaryHook(generation),
 				this.getRootUri(),
 				sessionId,
 				this.session.isPairingHold(),
@@ -246,18 +281,28 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		return isAdvertisedEngineRpc(this.gitReadCapabilitySnapshot(), 'readGitChanges', this.connection.readGitChanges);
 	}
 
-	private readChangesHook() {
+	private readChangesHook(generation: number) {
 		const hook = this.connection.readGitChanges;
 		if (!this.hasReadChangesHook() || typeof hook !== 'function') {
 			return undefined;
 		}
-		return (request: Parameters<NonNullable<IUniverseAgentConnection['readGitChanges']>>[0]) => hook.call(this.connection, request);
+		return (request: Parameters<NonNullable<IUniverseAgentConnection['readGitChanges']>>[0]) => {
+			if (generation !== this.readGeneration || this._store.isDisposed) {
+				return Promise.resolve({ supported: false, reason: 'superseded', branch: '', entries: [] });
+			}
+			return hook.call(this.connection, request);
+		};
 	}
 
-	private readSummaryHook() {
+	private readSummaryHook(generation: number) {
 		const hook = this.connection.readGitSummary;
 		return typeof hook === 'function'
-			? (request: Parameters<NonNullable<IUniverseAgentConnection['readGitSummary']>>[0]) => hook.call(this.connection, request)
+			? (request: Parameters<NonNullable<IUniverseAgentConnection['readGitSummary']>>[0]) => {
+				if (generation !== this.readGeneration || this._store.isDisposed) {
+					return Promise.resolve({ supported: false, reason: 'superseded', branch: '', changeCount: 0 });
+				}
+				return hook.call(this.connection, request);
+			}
 			: undefined;
 	}
 

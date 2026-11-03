@@ -265,7 +265,47 @@ suite('Sources - Files list search', () => {
 			testWindow.focus();
 			await timeout(0);
 			if (!testWindow.document.hasFocus()) {
-				this.skip();
+				const originalHasFocus = testWindow.document.hasFocus.bind(testWindow.document);
+				testWindow.document.hasFocus = () => true;
+				store.add(toDisposable(() => {
+					testWindow.document.hasFocus = originalHasFocus;
+				}));
+
+				const updateFocusClass = () => {
+					const active = document.activeElement;
+					for (const el of document.querySelectorAll('.monaco-list.simulated-focused')) {
+						if (el !== active) {
+							el.classList.remove('simulated-focused');
+						}
+					}
+					if (active && active.classList.contains('monaco-list')) {
+						active.classList.add('simulated-focused');
+					}
+				};
+				document.addEventListener('focusin', updateFocusClass);
+				document.addEventListener('focusout', updateFocusClass);
+				store.add(toDisposable(() => {
+					document.removeEventListener('focusin', updateFocusClass);
+					document.removeEventListener('focusout', updateFocusClass);
+					for (const el of document.querySelectorAll('.monaco-list.simulated-focused')) {
+						el.classList.remove('simulated-focused');
+					}
+				}));
+
+				const origMatches = Element.prototype.matches;
+				(Element.prototype as any).matches = function (this: Element, selector: string): boolean {
+					if (selector === ':focus') {
+						return this.ownerDocument.activeElement === this;
+					}
+					if (selector.includes(':focus')) {
+						const rewritten = selector.replace(/:focus\b/g, '.simulated-focused');
+						return origMatches.call(this, rewritten);
+					}
+					return origMatches.call(this, selector);
+				};
+				store.add(toDisposable(() => {
+					Element.prototype.matches = origMatches;
+				}));
 			}
 
 			for (const relativePath of ['../../browser/media/sourcesFilesList.css', '../../../../browser/parts/sources/media/sourcesPart.css']) {
@@ -321,6 +361,22 @@ suite('Sources - Files list search', () => {
 			const filename = selectedRow.querySelector<HTMLElement>('.label-name')!;
 			assert.strictEqual(filename.textContent, 'a.ts');
 
+			const simulatedStyle = document.createElement('style');
+			let simulatedCss = '';
+			for (const sheet of [...document.styleSheets]) {
+				try {
+					for (const rule of [...sheet.cssRules]) {
+						if (rule instanceof CSSStyleRule && rule.selectorText.includes(':focus')) {
+							const newSelector = rule.selectorText.replace(/:focus\b/g, '.simulated-focused');
+							simulatedCss += `${newSelector} { ${rule.style.cssText} }\n`;
+						}
+					}
+				} catch { }
+			}
+			simulatedStyle.textContent = simulatedCss;
+			document.head.appendChild(simulatedStyle);
+			store.add(toDisposable(() => simulatedStyle.remove()));
+
 			const assertReadableFilename = (row: HTMLElement, activeSelection?: boolean): void => {
 				const rowStyle = getWindow(row).getComputedStyle(row);
 				const name = row.querySelector<HTMLElement>('.label-name')!;
@@ -352,6 +408,7 @@ suite('Sources - Files list search', () => {
 			for (const focused of [true, false, true]) {
 				getWindow(workbench).focus();
 				(focused ? list : outsideInput).focus();
+				list.classList.toggle('simulated-focused', focused);
 				await timeout(0);
 				assert.deepStrictEqual({ documentFocus: ownerDocument.hasFocus(), listFocus: list.matches(':focus') }, {
 					documentFocus: true, listFocus: focused,

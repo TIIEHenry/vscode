@@ -5,6 +5,7 @@
 
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
+import { LRUCache } from '../../../../base/common/map.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -90,8 +91,10 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 
 	declare readonly _serviceBrand: undefined;
 
+	static readonly DEFAULT_MAX_MUTATIONS = 1000;
+
 	private readonly reviewed = new Map<string, IStoredReview>();
-	private readonly latestMutation = new Map<string, ILatestMutation>();
+	private readonly latestMutation = new LRUCache<string, ILatestMutation>(SourcesReviewProgressService.DEFAULT_MAX_MUTATIONS);
 	private mutationClock = 0;
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
@@ -219,6 +222,10 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 		if (changed) {
 			this._onDidChange.fire();
 		}
+	}
+
+	setMutationCapacityForTest(capacity: number): void {
+		this.latestMutation.limit = capacity;
 	}
 
 	private remember(key: ISourcesReviewProgressKey): boolean {

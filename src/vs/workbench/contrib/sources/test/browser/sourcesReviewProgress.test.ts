@@ -364,6 +364,40 @@ suite('Sources - review progress service', () => {
 		assert.strictEqual(storageCalls, 0);
 		assert.strictEqual(service.isReviewed(key), true);
 	});
+
+	test('bounded mutation retention evicts oldest entries when capacity is exceeded', async function () {
+		const resource1 = sourcesGitUnrootedChangeResource('src/a.ts');
+		const resource2 = sourcesGitUnrootedChangeResource('src/b.ts');
+		const resource3 = sourcesGitUnrootedChangeResource('src/c.ts');
+		const service = createService({
+			workDir: '/engine',
+		});
+		service.setMutationCapacityForTest(2);
+		const mutation = (path: string, id: string): IFileMutationRecord => ({
+			sessionId: 'sess',
+			path,
+			turnId: id,
+			toolCallId: `tc-${id}`,
+			agentId: 'agent',
+			operation: 'edit',
+		});
+
+		service.mutationEmitter.fire(mutation('/engine/src/a.ts', '1'));
+		service.mutationEmitter.fire(mutation('/engine/src/b.ts', '2'));
+
+		const targetA = { resource: resource1, origin: 'engine' as const, sessionId: 'sess', gitPath: 'src/a.ts' };
+		const targetB = { resource: resource2, origin: 'engine' as const, sessionId: 'sess', gitPath: 'src/b.ts' };
+		const targetC = { resource: resource3, origin: 'engine' as const, sessionId: 'sess', gitPath: 'src/c.ts' };
+
+		assert.strictEqual((await service.resolveKey(targetA)).contentHash, '1\0tc-1');
+		assert.strictEqual((await service.resolveKey(targetB)).contentHash, '2\0tc-2');
+
+		service.mutationEmitter.fire(mutation('/engine/src/c.ts', '3'));
+
+		assert.strictEqual((await service.resolveKey(targetA)).contentHash, '');
+		assert.strictEqual((await service.resolveKey(targetB)).contentHash, '2\0tc-2');
+		assert.strictEqual((await service.resolveKey(targetC)).contentHash, '3\0tc-3');
+	});
 });
 
 suite('Sources - review progress key', () => {
