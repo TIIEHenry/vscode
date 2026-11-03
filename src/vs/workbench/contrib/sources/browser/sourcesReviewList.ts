@@ -256,7 +256,7 @@ export class SourcesReviewList extends Disposable {
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
 			: chip.label,
-		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId).catch(onUnexpectedError).catch(onUnexpectedError),
+		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId).catch(onUnexpectedError),
 		onReviewToggle: (entry) => this.toggleEntryReview(entry),
 	};
 
@@ -343,6 +343,13 @@ export class SourcesReviewList extends Disposable {
 
 	override dispose(): void {
 		++this._revealGeneration;
+		this.filterRow.remove();
+		this.pathFilterBanner.remove();
+		this.headerHint.remove();
+		this.progressHeader.remove();
+		this.listContainer.remove();
+		this.emptyMessage.remove();
+		this.statusMessage.remove();
 		super.dispose();
 	}
 
@@ -425,7 +432,7 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private onModelChange(): void {
-		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.paintFromModel().catch(onUnexpectedError);
 	}
 
 	private scheduleRefresh(): void {
@@ -441,6 +448,9 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private async paintFromModel(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const snapshot = this.changesModel.getSnapshot();
 		const generation = snapshot.generation;
 		if (!snapshot.settled) {
@@ -529,14 +539,14 @@ export class SourcesReviewList extends Disposable {
 			false,
 			entry => this.isEntryReviewed(entry),
 		);
-		void this.markEntriesReviewed(countEntries, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.markEntriesReviewed(countEntries, true).catch(onUnexpectedError);
 	}
 
 	private markEntryReviewed(entry: ISourcesReviewEntry): void {
 		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
-		void this.markEntriesReviewed([entry], false).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.markEntriesReviewed([entry], false).catch(onUnexpectedError);
 	}
 
 	private async markEntriesReviewed(entries: readonly ISourcesReviewEntry[], all: boolean): Promise<void> {
@@ -749,7 +759,7 @@ export class SourcesReviewList extends Disposable {
 				preserveFocus: e.editorOptions.preserveFocus,
 				pinned: false,
 				slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onContextMenu(e => {
@@ -766,7 +776,7 @@ export class SourcesReviewList extends Disposable {
 					const openAction = this.isSourcesGitFileDiffOpenSkipped()
 						? []
 						: [sourcesAlternateOpenAction(sourcesEditorOpenSlot(this.configurationService), slot => {
-							void this.openReviewEntryMarkingReviewed(element, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+							void this.openReviewEntryMarkingReviewed(element, { preserveFocus: true, slot }).catch(onUnexpectedError);
 						})];
 					return [
 						...openAction,

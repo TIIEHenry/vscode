@@ -167,7 +167,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.revertButton.textContent = localize('conversationDiffReviewPane.revert', "Revert");
 		this.revertButton.style.display = 'none';
 		this._register(dom.addDisposableListener(this.revertButton, 'click', () => {
-			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND).catch(onUnexpectedError);
 		}));
 
 		this.unstageButton = dom.append(this.toolbar, $('button.conversation-diff-review-unstage')) as HTMLButtonElement;
@@ -175,7 +175,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.unstageButton.textContent = localize('conversationDiffReviewPane.unstage', "Unstage");
 		this.unstageButton.style.display = 'none';
 		this._register(dom.addDisposableListener(this.unstageButton, 'click', () => {
-			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND).catch(onUnexpectedError);
 		}));
 
 		this.unstageUnavailable = dom.append(this.toolbar, $('span.conversation-diff-review-unstage-unavailable'));
@@ -187,7 +187,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.stageButton.textContent = localize('conversationDiffReviewPane.stage', "Stage");
 		this.stageButton.style.display = 'none';
 		this._register(dom.addDisposableListener(this.stageButton, 'click', () => {
-			void this.runStage().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runStage().catch(onUnexpectedError);
 		}));
 
 		this.acceptButton = dom.append(this.toolbar, $('button.conversation-diff-review-accept')) as HTMLButtonElement;
@@ -195,7 +195,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.acceptButton.textContent = localize('conversationDiffReviewPane.accept', "Accept");
 		this.acceptButton.style.display = 'none';
 		this._register(dom.addDisposableListener(this.acceptButton, 'click', () => {
-			void this.runAccept().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runAccept().catch(onUnexpectedError);
 		}));
 
 		this.previewButton = dom.append(this.toolbar, $('button.conversation-diff-review-open-preview')) as HTMLButtonElement;
@@ -203,7 +203,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
 		this.previewButton.style.display = 'none';
 		this._register(dom.addDisposableListener(this.previewButton, 'click', () => {
-			void this.runMoveToPreview().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runMoveToPreview().catch(onUnexpectedError);
 		}));
 		this.toolbar.style.display = 'none';
 
@@ -280,6 +280,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.moveAttemptGeneration++;
 		this.hideMoveNotice();
 		this.clearEditors();
+		this.container?.remove();
 		super.dispose();
 	}
 

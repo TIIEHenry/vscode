@@ -506,6 +506,7 @@ class SourcesChangesAccessibilityProvider implements IListAccessibilityProvider<
 
 export class SourcesChangesList extends Disposable implements ISourcesChangesRendererDelegate {
 
+	private readonly host: HTMLElement;
 	private readonly contentContainer: HTMLElement;
 	private readonly toolbar: HTMLElement;
 	private readonly filterBox: SourcesListFilterBox;
@@ -568,6 +569,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 	) {
 		super();
+		this.host = host;
 
 		host.classList.add('show-file-icons', 'sources-changes-host');
 
@@ -636,12 +638,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.setAttribute('role', 'status');
 
-		this._register(this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage').catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage').catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this.refreshButton.onDidClick(() => void this.changesModel.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage').catch(onUnexpectedError)));
+		this._register(this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage').catch(onUnexpectedError)));
+		this._register(this.refreshButton.onDidClick(() => void this.changesModel.refresh().catch(onUnexpectedError)));
 		this._register(this.expandAllButton.onDidClick(() => this.setAllFoldersExpanded(true)));
 		this._register(this.collapseAllButton.onDidClick(() => this.setAllFoldersExpanded(false)));
-		this._register(this.commitButton.onDidClick(() => void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.commitButton.onDidClick(() => void this.runCommit().catch(onUnexpectedError)));
 		this._register(dom.addStandardDisposableListener(this.commitInput, 'input', () => {
 			const repo = this.activeRepository;
 			if (repo && this.commitInput.value !== repo.input.value) {
@@ -656,7 +658,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (event.keyCode === KeyCode.Enter && !event.shiftKey && this.commitButton.enabled && !this.isCommitInFlight) {
 				event.preventDefault();
 				event.stopPropagation();
-				void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.runCommit().catch(onUnexpectedError);
 			}
 		}));
 
@@ -678,12 +680,20 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this._register(this.changesModel.onDidChange(() => {
-			void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.paintFromModel().catch(onUnexpectedError);
 		}));
 		this._register(this.session.onDidChangeActiveSession(() => this.refreshStageChrome()));
-		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.paintFromModel().catch(onUnexpectedError);
 		// Leak tests flush this proxy. The model owns the timer.
 		void this.refreshScheduler;
+	}
+
+	override dispose(): void {
+		this.toolbar.remove();
+		this.contentContainer.remove();
+		this.commitRow.remove();
+		this.host.classList.remove('show-file-icons', 'sources-changes-host');
+		super.dispose();
 	}
 
 	isGitCommandAvailable(commandId: string): boolean {
@@ -806,7 +816,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
-		void this.runResourceAction(entry, action).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.runResourceAction(entry, action).catch(onUnexpectedError);
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
@@ -909,7 +919,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					pinned: e.editorOptions.pinned,
 					slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
 				});
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
@@ -923,7 +933,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.contextMenuService.showContextMenu({
 				getAnchor: () => e.anchor,
 				getActions: () => [sourcesAlternateOpenAction(current, slot => {
-					void this.openChangeEntry(element, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.openChangeEntry(element, { preserveFocus: true, slot }).catch(onUnexpectedError);
 				})],
 			});
 		}));
@@ -938,6 +948,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	/** Filter and other synchronous paints re-read the snapshot and do not start a git read. */
 	private renderFromSnapshot(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const snapshot = this.changesModel.getSnapshot();
 		this.activeRepository = snapshot.state.kind === 'scm'
 			? uniqueSourcesStagedRepository(this.scmService.repositories)
@@ -1125,7 +1138,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	onGroupAction(groupId: string, action: SourcesChangeRowAction): void {
-		void this.runOnEntries(this.entriesInGroup(groupId), action).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.runOnEntries(this.entriesInGroup(groupId), action).catch(onUnexpectedError);
 	}
 
 	private rememberGroups(entries: readonly ISourcesChangeEntry[]): void {
