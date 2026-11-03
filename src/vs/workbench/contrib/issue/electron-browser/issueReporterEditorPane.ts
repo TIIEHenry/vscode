@@ -6,6 +6,7 @@
 import '../browser/media/issueReporterOverlay.css';
 import { $, append, clearNode, Dimension } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
+import { TimeoutTimer } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -74,6 +75,7 @@ export class IssueReporterEditorPane extends EditorPane {
 	/** Survives the framework calling clearInput() when the user switches away. */
 	private wizardInput: IssueReporterEditorInput | undefined;
 	private readonly inputDisposables = this._register(new DisposableStore());
+	private _isDisposed = false;
 
 	constructor(
 		group: IEditorGroup,
@@ -145,7 +147,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		if (token.isCancellationRequested || !this.container) {
 			return;
 		}
-		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed || this._isDisposed) {
 			return;
 		}
 
@@ -219,7 +221,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		}));
 
 		// Populate system info in background (non-blocking)
-		void this.populateSystemInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.populateSystemInfo().catch(onUnexpectedError);
 
 		// Wire screenshot capture
 		this.inputDisposables.add(this.wizard.onDidRequestScreenshot(async () => {
@@ -230,17 +232,26 @@ export class IssueReporterEditorPane extends EditorPane {
 					this.wizard?.hideFloatingBar();
 
 					// Small delay to let the bar disappear before capture
-					await new Promise(r => setTimeout(r, 100));
+					await new Promise<void>(resolve => {
+						const timer = this.inputDisposables.add(new TimeoutTimer(() => {
+							timer.dispose();
+							resolve();
+						}, 100));
+					});
+				}
+
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
 				}
 
 				const dataUrl = await this.screenshotService.captureScreenshot();
 
 				// Show bar again after capture
 				if (shouldHide) {
-					setTimeout(() => this.wizard?.showFloatingBar(), 1000);
+					this.inputDisposables.add(new TimeoutTimer(() => this.wizard?.showFloatingBar(), 1000));
 				}
 
-				if (!dataUrl || !this.wizard) {
+				if (this._store.isDisposed || this._isDisposed || !dataUrl || !this.wizard) {
 					return;
 				}
 
@@ -251,13 +262,17 @@ export class IssueReporterEditorPane extends EditorPane {
 					image.src = dataUrl;
 				});
 
+				if (this._store.isDisposed || this._isDisposed || !this.wizard) {
+					return;
+				}
+
 				this.wizard.addScreenshot({ dataUrl, width: img.naturalWidth, height: img.naturalHeight });
 
 				// Bring the wizard back into focus after the capture in case
 				// the user switched editors/groups while setting up the shot.
 				await this.revealAndActivate();
 			} catch (err) {
-				setTimeout(() => this.wizard?.showFloatingBar(), 1000);
+				this.inputDisposables.add(new TimeoutTimer(() => this.wizard?.showFloatingBar(), 1000));
 				this.logService.error('[IssueReporterEditorPane] Screenshot failed:', err);
 			}
 		}));
@@ -267,6 +282,9 @@ export class IssueReporterEditorPane extends EditorPane {
 			// macOS-only: skip getDisplayMedia when permission is denied and
 			// surface the grant-permission notification instead.
 			const permissionState = await this.recordingService.getScreenCapturePermissionStatus();
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (permissionState === 'denied' || permissionState === 'restricted') {
 				this.showScreenRecordingPermissionNotification();
 				this.wizard?.setRecordingState(RecordingState.Idle);
@@ -274,6 +292,9 @@ export class IssueReporterEditorPane extends EditorPane {
 			}
 			try {
 				await this.recordingService.startRecording('video/mp4');
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				this.wizard?.setRecordingState(RecordingState.Recording);
 			} catch (err) {
 				this.logService.error('[IssueReporterEditorPane] Recording failed:', err);
@@ -282,7 +303,13 @@ export class IssueReporterEditorPane extends EditorPane {
 				// `not-determined` can also mean the user just cancelled the getDisplayMedia
 				// picker (no TCC decision recorded) — surfacing a permission prompt then would
 				// be misleading, so we treat that as a silent cancel.
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				const postState = await this.recordingService.getScreenCapturePermissionStatus();
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				if (postState === 'denied' || postState === 'restricted') {
 					this.showScreenRecordingPermissionNotification();
 				}
@@ -293,6 +320,9 @@ export class IssueReporterEditorPane extends EditorPane {
 		this.inputDisposables.add(this.wizard.onDidRequestStopRecording(async () => {
 			try {
 				const recordingData = await this.recordingService.stopRecording();
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				if (recordingData) {
 					await this.saveRecordingAndAdd(recordingData);
 				}
@@ -310,6 +340,9 @@ export class IssueReporterEditorPane extends EditorPane {
 			if (state === RecordingState.Stopped && this.wizard?.recordingState === RecordingState.Recording) {
 				try {
 					const recordingData = await this.recordingService.stopRecording();
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
 					if (recordingData) {
 						await this.saveRecordingAndAdd(recordingData);
 						if (recordingData.stoppedBySize) {
@@ -341,7 +374,13 @@ export class IssueReporterEditorPane extends EditorPane {
 				const folder = URI.joinPath(this.environmentService.tmpDir, 'issue-screenshots');
 				const target = URI.joinPath(folder, `screenshot-${Date.now()}.${extension}`);
 				await this.fileService.createFolder(folder);
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				await this.fileService.writeFile(target, decodeBase64(dataUrl.substring(commaIndex + 1)));
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				await this.editorService.openEditor({ resource: target });
 			} catch (err) {
 				this.logService.error('[IssueReporterEditorPane] Open screenshot failed:', err);
@@ -363,6 +402,9 @@ export class IssueReporterEditorPane extends EditorPane {
 				return;
 			}
 			const opened = await this.issueFormService.submitIssue(this.wizard, data, title, body);
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (opened) {
 				// User opened the link — keep the wizard editable, but offer an explicit close action.
 				this.wizard.markPreviewOpened();
@@ -380,12 +422,18 @@ export class IssueReporterEditorPane extends EditorPane {
 				// has already activated; we're the only place that can be invoked
 				// before it has.)
 				await this.extensionService.whenInstalledExtensionsRegistered();
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 
 				// `copilot-utility-small` matches what other utility callers in the
 				// workbench use (chat thinking summaries, tool-risk assessment,
 				// chat-edit explanations). The earlier `copilot-fast` id never
 				// existed and was the root cause of the empty-result regression.
 				const modelIds = await this.languageModelsService.selectLanguageModels({ vendor: 'copilot', id: 'copilot-utility-small' });
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				if (modelIds.length === 0) {
 					this.logService.warn('[IssueReporterEditorPane] No language models available for title generation');
 					this.wizard?.resetGenerateButton();
@@ -405,7 +453,13 @@ export class IssueReporterEditorPane extends EditorPane {
 					{},
 					CancellationToken.None,
 				);
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				const title = (await getTextResponseFromStream(response)).trim().replace(/^["']|["']$/g, '');
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				if (title && this.wizard) {
 					this.wizard.setGeneratedTitle(title);
 				} else {
@@ -419,18 +473,28 @@ export class IssueReporterEditorPane extends EditorPane {
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		this._input = undefined;
+		this.destroyWizard();
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+			this.container = undefined;
+		}
 		super.dispose();
 	}
 
 	private async fetchPerformanceInfo(options?: { skipCache?: boolean; unbounded?: boolean }): Promise<void> {
-		if (!this.wizard) {
+		if (!this.wizard || this._store.isDisposed || this._isDisposed) {
 			return;
 		}
 		const wizard = this.wizard;
 		try {
 			const performanceInfo = await this.processService.getPerformanceInfo(options);
-			if (this.wizard !== wizard) {
+			if (this._store.isDisposed || this._isDisposed || this.wizard !== wizard) {
 				return;
 			}
 			this.wizard.updateModel({
@@ -440,7 +504,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		} catch (err) {
 			this.logService.error('[IssueReporterEditorPane] Failed to fetch performance info:', err);
 		} finally {
-			if (this.wizard === wizard) {
+			if (!this._store.isDisposed && !this._isDisposed && this.wizard === wizard) {
 				this.wizard.markPerformanceInfoLoaded();
 			}
 		}
@@ -454,7 +518,7 @@ export class IssueReporterEditorPane extends EditorPane {
 	}
 
 	private async populateSystemInfo(): Promise<void> {
-		if (!this.wizard) {
+		if (!this.wizard || this._store.isDisposed || this._isDisposed) {
 			return;
 		}
 
@@ -467,7 +531,7 @@ export class IssueReporterEditorPane extends EditorPane {
 			// Version info
 			const vscodeVersion = `${product.nameShort} ${!!product.darwinUniversalAssetId ? `${product.version} (Universal)` : product.version} (${product.commit || 'Commit unknown'}, ${product.date || 'Date unknown'})`;
 			const systemInfo = await this.processService.getSystemInfo();
-			if (this.wizard !== wizard) {
+			if (this._store.isDisposed || this._isDisposed || this.wizard !== wizard) {
 				return;
 			}
 			this.wizard.updateModel({
@@ -482,6 +546,9 @@ export class IssueReporterEditorPane extends EditorPane {
 			// button shows a spinner while it runs.
 			const fullScan = this.configurationService.getValue<boolean>('issueReporter.wizard.fullWorkspaceScan') !== false;
 			await this.fetchPerformanceInfo({ unbounded: fullScan });
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 		} catch (err) {
 			this.logService.error('[IssueReporterEditorPane] Failed to collect system info:', err);
 			this.wizard?.markPerformanceInfoLoaded();
@@ -490,7 +557,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		// Experiments (independent from system info)
 		try {
 			const experiments = await this.experimentService.getCurrentExperiments();
-			if (this.wizard !== wizard) {
+			if (this._store.isDisposed || this._isDisposed || this.wizard !== wizard) {
 				return;
 			}
 			this.wizard?.updateModel({ experimentInfo: experiments?.join('\n') ?? localize('noExperiments', "No current experiments.") });
@@ -501,7 +568,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		// Wait for the issue service to finish enumerating installed extensions
 		// (it kicks off enumeration in parallel with this pane opening).
 		await data?.whenExtensionsLoaded;
-		if (this.wizard !== wizard) {
+		if (this._store.isDisposed || this._isDisposed || this.wizard !== wizard) {
 			return;
 		}
 		if (data && data.enabledExtensions.length > 0) {
@@ -519,7 +586,7 @@ export class IssueReporterEditorPane extends EditorPane {
 		// Note: githubAccessToken doesn't need forwarding — it's read from the
 		// shared data object at submit time, not from the overlay's internal model.
 		await data?.whenDataComplete;
-		if (this.wizard !== wizard) {
+		if (this._store.isDisposed || this._isDisposed || this.wizard !== wizard) {
 			return;
 		}
 		if (data) {
@@ -590,14 +657,26 @@ export class IssueReporterEditorPane extends EditorPane {
 			const target = URI.joinPath(folder, fileName);
 
 			const arrayBuffer = await data.blob.arrayBuffer();
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			await this.fileService.createFolder(folder);
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			await this.fileService.writeFile(target, VSBuffer.wrap(new Uint8Array(arrayBuffer)));
 			this.logService.info(`[IssueReporterEditorPane] Recording saved to ${target.toString()}`);
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 
 			// Generate thumbnail from the saved file — blob URLs are blocked by
 			// Electron's CSP for media elements, so we use the saved file via
 			// the vscode-file:// protocol which the renderer can load.
 			const thumbnailDataUrl = await this.generateVideoThumbnail(target);
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			this.wizard?.addRecording(target.fsPath, data.durationMs, thumbnailDataUrl);
 		} catch (err) {
 			this.logService.error('[IssueReporterEditorPane] Failed to save recording:', err);
@@ -612,12 +691,12 @@ export class IssueReporterEditorPane extends EditorPane {
 
 		return new Promise(resolve => {
 			const video = mainWindow.document.createElement('video');
-			const timeout = setTimeout(() => finish(undefined), 5000);
+			const timeoutTimer = this._store.add(new TimeoutTimer(() => finish(undefined), 5000));
 			let resolved = false;
 			const finish = (result: string | undefined) => {
 				if (resolved) { return; }
 				resolved = true;
-				clearTimeout(timeout);
+				timeoutTimer.dispose();
 				video.pause();
 				video.removeAttribute('src');
 				video.load();

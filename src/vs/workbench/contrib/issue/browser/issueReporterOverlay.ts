@@ -7,7 +7,7 @@ import { KeybindingLabel } from '../../../../base/browser/ui/keybindingLabel/key
 import { ResolvedKeybinding } from '../../../../base/common/keybindings.js';
 import { OS } from '../../../../base/common/platform.js';
 import './media/issueReporterOverlay.css';
-import { $, addDisposableListener, append, disposableWindowInterval, EventType, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, disposableWindowInterval, EventType, getWindow } from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IContextMenuProvider } from '../../../../base/browser/contextmenu.js';
@@ -16,6 +16,7 @@ import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { ISelectOptionItem, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Action, Separator } from '../../../../base/common/actions.js';
+import { TimeoutTimer } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -62,7 +63,10 @@ export interface IScreenshot {
 
 export class IssueReporterOverlay {
 
-	private readonly disposables = new DisposableStore();
+	private readonly _store = new DisposableStore();
+	private readonly disposables = this._store;
+	private _isDisposed = false;
+	protected get isDisposed(): boolean { return this._isDisposed || this._store.isDisposed; }
 	private readonly _onDidClose = new Emitter<void>();
 	readonly onDidClose: Event<void> = this._onDidClose.event;
 	private readonly _onDidSubmit = new Emitter<{ title: string; body: string }>();
@@ -104,7 +108,7 @@ export class IssueReporterOverlay {
 	private similarIssuesContainer!: HTMLElement;
 	private similarIssuesRequest = 0;
 	private extensionDataRequest = 0;
-	private similarIssuesHandle: ReturnType<typeof setTimeout> | undefined;
+	private similarIssuesTimer: TimeoutTimer | undefined;
 	private typeButtonGroup!: HTMLElement;
 	private typeError!: HTMLElement;
 	private descriptionTextarea!: HTMLTextAreaElement;
@@ -246,7 +250,7 @@ export class IssueReporterOverlay {
 
 		this.registerEventHandlers();
 		if (this.data.extensionId) {
-			void this.updateSelectedExtension(this.data.extensionId, false).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.updateSelectedExtension(this.data.extensionId, false).catch(onUnexpectedError);
 		}
 		this.updateStepUI();
 	}
@@ -568,7 +572,7 @@ export class IssueReporterOverlay {
 			this.disposables.add(btn.onDidClick(() => {
 				this.setIssueSource(option.value);
 				if (option.value === IssueSource.Extension && this.selectedExtension) {
-					void this.updateSelectedExtension(this.selectedExtension.id).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.updateSelectedExtension(this.selectedExtension.id).catch(onUnexpectedError);
 				}
 			}));
 		}
@@ -590,7 +594,7 @@ export class IssueReporterOverlay {
 		));
 		this.extensionSelect.render(extensionSelectContainer);
 		this.disposables.add(this.extensionSelect.onDidSelect(e => {
-			void this.updateSelectedExtension(this.extensionOptions[e.index]?.value).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.updateSelectedExtension(this.extensionOptions[e.index]?.value).catch(onUnexpectedError);
 		}));
 		this.extensionError = this.createFieldError(this.extensionField, localize('extensionRequired', "Select an extension to continue."));
 		this.extensionStatus = append(this.extensionField, $('div.wizard-extension-status'));
@@ -904,7 +908,7 @@ export class IssueReporterOverlay {
 		this.extensionOptions = this.getExtensionOptions();
 		this.extensionSelect.setOptions(this.getExtensionSelectItems(), this.getSelectedExtensionIndex());
 		if (!this.selectedExtension && this.data.extensionId) {
-			void this.updateSelectedExtension(this.data.extensionId, false).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.updateSelectedExtension(this.data.extensionId, false).catch(onUnexpectedError);
 		}
 	}
 
@@ -919,6 +923,9 @@ export class IssueReporterOverlay {
 	}
 
 	private async updateSelectedExtension(extensionId: string | undefined, loadExtensionData = true): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		const extension = extensionId
 			? this.model.getData().allExtensions.find(candidate => candidate.id.toLowerCase() === extensionId.toLowerCase())
 			: undefined;
@@ -970,6 +977,9 @@ export class IssueReporterOverlay {
 			const request = ++this.extensionDataRequest;
 			this.extensionStatus.textContent = localize('loadingExtensionData', "Loading extension issue data...");
 			const issueData = await this.resolveExtensionIssueData(extension.id);
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (request !== this.extensionDataRequest) {
 				return;
 			}
@@ -1109,14 +1119,15 @@ export class IssueReporterOverlay {
 		if (this.currentStep !== WizardStep.Review || !this.similarIssuesContainer) {
 			return;
 		}
-		if (this.similarIssuesHandle) {
-			clearTimeout(this.similarIssuesHandle);
-		}
+		this.similarIssuesTimer?.dispose();
 		this.renderSimilarIssuesMessage(localize('searchingSimilarIssues', "Searching similar issues..."));
-		this.similarIssuesHandle = setTimeout(() => this.doSearchSimilarIssues().catch(onUnexpectedError).catch(onUnexpectedError), 300);
+		this.similarIssuesTimer = this._store.add(new TimeoutTimer(() => this.doSearchSimilarIssues().catch(onUnexpectedError), 300));
 	}
 
 	private async doSearchSimilarIssues(): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		const title = this.titleInput.value.trim();
 		const request = ++this.similarIssuesRequest;
 		if (!title || !this.selectedIssueSource) {
@@ -1138,10 +1149,16 @@ export class IssueReporterOverlay {
 			} else {
 				results = await this.searchVSCodeSimilarIssues(title, this.descriptionTextarea.value.trim());
 			}
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (request === this.similarIssuesRequest) {
 				this.renderSimilarIssues(results);
 			}
 		} catch {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (request === this.similarIssuesRequest) {
 				this.renderSimilarIssuesMessage(localize('similarIssuesSearchFailed', "Unable to search for similar issues."));
 			}
@@ -1151,6 +1168,9 @@ export class IssueReporterOverlay {
 	private async searchGitHubIssues(repo: string, title: string): Promise<ISimilarIssue[]> {
 		const query = `is:issue repo:${repo} ${title}`;
 		const response = await fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(query)}`);
+		if (this._store.isDisposed || this._isDisposed) {
+			return [];
+		}
 		const result = await response.json();
 		return Array.isArray(result?.items) ? result.items : [];
 	}
@@ -1161,6 +1181,9 @@ export class IssueReporterOverlay {
 			body: JSON.stringify({ title, body }),
 			headers: new Headers({ 'Content-Type': 'application/json' }),
 		});
+		if (this._store.isDisposed || this._isDisposed) {
+			return [];
+		}
 		const result = await response.json();
 		return Array.isArray(result?.candidates) ? result.candidates : [];
 	}
@@ -2615,17 +2638,28 @@ ${rows.map(row => row.map(value => this.escapeMarkdownTableCell(value ?? '')).jo
 	}
 
 	dispose(): void {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		if (this.recordingElapsedTimer !== undefined) {
 			getWindow(this.container).clearInterval(this.recordingElapsedTimer);
 		}
-		if (this.similarIssuesHandle !== undefined) {
-			clearTimeout(this.similarIssuesHandle);
-		}
+		this.similarIssuesTimer?.dispose();
 		this.similarIssuesRequest++;
 		this.reviewRenderDisposables.dispose();
 		this.similarIssuesDisposables.dispose();
 		this.descriptionGuidanceDisposables.dispose();
-		this.disposables.dispose();
+		if (this.wizardPanel) {
+			clearNode(this.wizardPanel);
+			this.wizardPanel.remove();
+		}
+		if (this.floatingBar) {
+			clearNode(this.floatingBar);
+			this.floatingBar.remove();
+			this.floatingBar = undefined;
+		}
+		this._store.dispose();
 		this._onDidClose.dispose();
 		this._onDidSubmit.dispose();
 		this._onDidRequestScreenshot.dispose();

@@ -37,10 +37,15 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -49,12 +54,15 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const systemInfoThen = `this.processService.getSystemInfo().then(info => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			this.issueReporterModel.update({ systemInfo: info });
 			this.receivedSystemInfo = true;
 
@@ -62,9 +70,15 @@ const systemInfoThen = `this.processService.getSystemInfo().then(info => {
 			this.updateButtonStates();
 		})`;
 const performanceInfoThenCtor = `this.processService.getPerformanceInfo().then(info => {
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				this.updatePerformanceInfo(info as Partial<IssueReporterData>);
 			})`;
 const performanceInfoThenHandler = `this.processService.getPerformanceInfo().then(info => {
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
 					this.updatePerformanceInfo(info as Partial<IssueReporterData>);
 				})`;
 const checkUpdatesCall = 'this.checkForUpdates()';
@@ -98,22 +112,25 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eleven leftover Promise double-chain sites in issue only', () => {
+	test('this knife covers eleven leftover Promise single-chain sites in issue only', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d773Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 11);
 		assert.ok(sites >= 4);
+		for (const source of seen.values()) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
-	test('issue leftover getSystemInfo / getPerformanceInfo then and checkForUpdates are Promise double-chain', () => {
+	test('issue leftover getSystemInfo / getPerformanceInfo then and checkForUpdates are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(REPORTER_REL), 'utf8');
 		const process = fs.readFileSync(resolveSource(PROCESS_REL), 'utf8');
 		assertPromiseSignature(process, 'getSystemInfo(): Promise<SystemInfo>;');
@@ -124,11 +141,11 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 		assertWrapped(source, performanceInfoThenCtor);
 		assertWrapped(source, performanceInfoThenHandler);
 		assertWrapped(source, checkUpdatesCall);
-		assert.ok(!source.includes('this.processService.getSystemInfo().then(info => {\n\t\t\tthis.issueReporterModel.update({ systemInfo: info });\n\t\t\tthis.receivedSystemInfo = true;\n\n\t\t\tthis.updateSystemInfo(this.issueReporterModel.getData());\n\t\t\tthis.updateButtonStates();\n\t\t});'));
 		assert.ok(!source.includes('this.checkForUpdates();'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 
-	test('issue leftover executeCommand and populateSystemInfo voids are Promise double-chain', () => {
+	test('issue leftover executeCommand and populateSystemInfo voids are Promise single-chain', () => {
 		const keybindings = fs.readFileSync(resolveSource(KEYBINDINGS_REL), 'utf8');
 		const pane = fs.readFileSync(resolveSource(PANE_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
@@ -140,9 +157,11 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 		assertWrapped(pane, populateSystemInfoCall);
 		assert.ok(!keybindings.includes('void this.commandService.executeCommand(commandId);'));
 		assert.ok(!pane.includes('void this.populateSystemInfo();'));
+		assert.strictEqual(countDoubleChains(keybindings), 0);
+		assert.strictEqual(countDoubleChains(pane), 0);
 	});
 
-	test('issue leftover updateSelectedExtension voids and doSearchSimilarIssues timeout are Promise double-chain', () => {
+	test('issue leftover updateSelectedExtension voids and doSearchSimilarIssues timeout are Promise single-chain', () => {
 		const overlay = fs.readFileSync(resolveSource(OVERLAY_REL), 'utf8');
 		assertPromiseSignature(overlay, 'private async updateSelectedExtension(extensionId: string | undefined, loadExtensionData = true): Promise<void> {');
 		assertPromiseSignature(overlay, 'private async doSearchSimilarIssues(): Promise<void> {');
@@ -151,14 +170,15 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 		assertWrapped(overlay, updateExtensionSelectedCall);
 		assertWrapped(overlay, updateExtensionSelectCall);
 		assertWrapped(overlay, searchSimilarCall);
-		assert.strictEqual(countIncludes(overlay, `${updateExtensionPresetCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(overlay, `${updateExtensionPresetCall}${singleCatch}`), 2);
 		assert.ok(!overlay.includes('void this.updateSelectedExtension(this.data.extensionId, false);'));
 		assert.ok(!overlay.includes('void this.updateSelectedExtension(this.selectedExtension.id);'));
 		assert.ok(!overlay.includes('void this.updateSelectedExtension(this.extensionOptions[e.index]?.value);'));
 		assert.ok(!overlay.includes('() => this.doSearchSimilarIssues(), 300)'));
 		assert.ok(overlay.includes('private searchSimilarIssues(): void {'));
 		assert.ok(overlay.includes('this.searchSimilarIssues();'));
-		assert.ok(!overlay.includes(`this.searchSimilarIssues()${doubleCatch}`));
+		assert.ok(!overlay.includes(`this.searchSimilarIssues()${singleCatch}`));
+		assert.strictEqual(countDoubleChains(overlay), 0);
 	});
 
 	test('opener / Action2.run / two-arg then / returned Promise / Resolve / openExternal / D145 stay skipped', () => {
@@ -210,10 +230,10 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 
 		assert.ok(base.includes('fetch(`https://api.github.com/search/issues?q=${query}`).then((response) => {'));
 		assert.ok(base.includes('}).catch(_ => {'));
-		assert.ok(base.includes('this.updateExtensionStatus(targetExtension).catch(onUnexpectedError).catch(onUnexpectedError)'));
-		assert.ok(base.includes('this.updateExtensionStatus(matches[0]).catch(onUnexpectedError).catch(onUnexpectedError)'));
-		assert.ok(base.includes('this.close().catch(onUnexpectedError).catch(onUnexpectedError)'));
-		assert.strictEqual((base.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.ok(base.includes('this.updateExtensionStatus(targetExtension).catch(onUnexpectedError)'));
+		assert.ok(base.includes('this.updateExtensionStatus(matches[0]).catch(onUnexpectedError)'));
+		assert.ok(base.includes('this.close().catch(onUnexpectedError)'));
+		assert.strictEqual(countDoubleChains(base), 0);
 
 		assert.ok(pane.includes('this.inputDisposables.add(this.recordingService.onDidChangeState(async (state) => {'));
 		assert.ok(!pane.includes(`onDidChangeState(async (state) => {${doubleCatch}`));
@@ -225,6 +245,7 @@ suite('issue leftover Promise fire-and-forget catch scan (D773)', () => {
 			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.strictEqual(countDoubleChains(source), 0);
 		}
 	});
 });

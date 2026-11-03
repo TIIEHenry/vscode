@@ -6,7 +6,7 @@ import { $, isHTMLInputElement, isHTMLTextAreaElement, reset } from '../../../..
 import { createStyleSheet } from '../../../../base/browser/domStylesheets.js';
 import { Button, ButtonWithDropdown, unthemedButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
-import { Delayer, RunOnceScheduler } from '../../../../base/common/async.js';
+import { Delayer, RunOnceScheduler, TimeoutTimer } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { groupBy } from '../../../../base/common/collections.js';
@@ -56,6 +56,18 @@ enum IssueSource {
 
 
 export class BaseIssueReporterService extends Disposable {
+	protected _isDisposed = false;
+	protected get isDisposed(): boolean { return this._isDisposed || this._store.isDisposed; }
+
+	override dispose(): void {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		this.delayedSubmit.dispose();
+		super.dispose();
+	}
+
 	public issueReporterModel: IssueReporterModel;
 	public receivedSystemInfo = false;
 	public numberOfSearchResultsDisplayed = 0;
@@ -211,7 +223,7 @@ export class BaseIssueReporterService extends Disposable {
 
 		// Handle case where extension is pre-selected through the command
 		if ((data.data || data.uri) && targetExtension) {
-			this.updateExtensionStatus(targetExtension).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateExtensionStatus(targetExtension).catch(onUnexpectedError);
 		}
 
 		// initialize the reporting button(s)
@@ -223,7 +235,7 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	render(): void {
-		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.renderBlocks().catch(onUnexpectedError);
 	}
 
 	setInitialFocus() {
@@ -467,13 +479,16 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	private async updateIssueReporterUri(extension: IssueReporterExtensionData): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		try {
 			if (extension.uri) {
 				const uri = URI.revive(extension.uri);
 				extension.bugsUrl = uri.toString();
 			}
 		} catch (e) {
-			this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.renderBlocks().catch(onUnexpectedError);
 		}
 	}
 
@@ -576,7 +591,7 @@ export class BaseIssueReporterService extends Disposable {
 						}
 						if (this.selectedExtension === selectedExtensionId) {
 							// repopulates the fields with the new data given the selected extension.
-							this.updateExtensionStatus(matches[0]).catch(onUnexpectedError).catch(onUnexpectedError);
+							this.updateExtensionStatus(matches[0]).catch(onUnexpectedError);
 							this.openReporter = false;
 						}
 					} else {
@@ -584,7 +599,7 @@ export class BaseIssueReporterService extends Disposable {
 						this.clearSearchResults();
 						this.clearExtensionData();
 						this.validateSelectedExtension();
-						this.updateExtensionStatus(matches[0]).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.updateExtensionStatus(matches[0]).catch(onUnexpectedError);
 					}
 				}
 
@@ -600,14 +615,22 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	private async sendReporterMenu(extension: IssueReporterExtensionData): Promise<IssueReporterData | undefined> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return undefined;
+		}
 		try {
+			const timeoutTimer = this._store.add(new TimeoutTimer());
 			const timeoutPromise = new Promise<undefined>((_, reject) =>
-				setTimeout(() => reject(new Error('sendReporterMenu timed out')), 10000)
+				timeoutTimer.setIfNotSet(() => reject(new Error('sendReporterMenu timed out')), 10000)
 			);
 			const data = await Promise.race([
 				this.issueFormService.sendReporterMenu(extension.id),
 				timeoutPromise
 			]);
+			timeoutTimer.dispose();
+			if (this._store.isDisposed || this._isDisposed) {
+				return undefined;
+			}
 			return data;
 		} catch (e) {
 			console.error(e);
@@ -768,7 +791,7 @@ export class BaseIssueReporterService extends Disposable {
 					this.setSubmittingState(true);
 					try {
 						if (await this.createIssue()) {
-							this.close().catch(onUnexpectedError).catch(onUnexpectedError);
+							this.close().catch(onUnexpectedError);
 						}
 					} finally {
 						this.setSubmittingState(false);
@@ -788,7 +811,7 @@ export class BaseIssueReporterService extends Disposable {
 					// fire and forget
 					this.issueFormService.showConfirmCloseDialog();
 				} else {
-					this.close().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.close().catch(onUnexpectedError);
 				}
 			}
 
@@ -1093,6 +1116,9 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	public async renderBlocks(): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		// Depending on Issue Type, we render different blocks and text
 		const { issueType, fileOnExtension, fileOnMarketplace, selectedExtension } = this.issueReporterModel.getData();
 		// eslint-disable-next-line no-restricted-syntax
@@ -1193,12 +1219,16 @@ export class BaseIssueReporterService extends Disposable {
 		// only if we know comes from the open reporter command
 		if (fileOnExtension && this.openReporter) {
 			(extensionDataTextArea as HTMLTextAreaElement).readOnly = true;
-			setTimeout(() => {
+			const timer = this._store.add(new TimeoutTimer(() => {
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				// delay to make sure from command or not
 				if (this.openReporter) {
 					show(extensionDataBlock);
 				}
-			}, 100);
+				timer.dispose();
+			}, 100));
 			show(extensionDataBlock);
 		}
 
@@ -1280,6 +1310,9 @@ export class BaseIssueReporterService extends Disposable {
 	}
 
 	public async submitToGitHub(issueTitle: string, issueBody: string, gitHubDetails: { owner: string; repositoryName: string }): Promise<boolean> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		const url = `https://api.github.com/repos/${gitHubDetails.owner}/${gitHubDetails.repositoryName}/issues`;
 		const init = {
 			method: 'POST',
@@ -1295,13 +1328,22 @@ export class BaseIssueReporterService extends Disposable {
 		};
 
 		const response = await fetch(url, init);
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		if (!response.ok) {
 			console.error('Invalid GitHub URL provided.');
 			return false;
 		}
 		const result = await response.json();
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		await this.openLink(result.html_url);
-		this.close().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
+		this.close().catch(onUnexpectedError);
 		return true;
 	}
 
@@ -1376,6 +1418,9 @@ export class BaseIssueReporterService extends Disposable {
 		if (url.length > MAX_URL_LENGTH) {
 			try {
 				url = await this.writeToClipboard(baseUrl, issueBody);
+				if (this.isDisposed) {
+					return false;
+				}
 				url = this.addTemplateToUrl(url, gitHubDetails?.owner, gitHubDetails?.repositoryName);
 			} catch (_) {
 				console.error('Writing to clipboard failed');
@@ -1384,13 +1429,16 @@ export class BaseIssueReporterService extends Disposable {
 		}
 
 		await this.openLink(url);
+		if (this.isDisposed) {
+			return false;
+		}
 
 		return true;
 	}
 
 	public async writeToClipboard(baseUrl: string, issueBody: string): Promise<string> {
 		const shouldWrite = await this.issueFormService.showClipboardDialog();
-		if (!shouldWrite) {
+		if (this.isDisposed || !shouldWrite) {
 			throw new CancellationError();
 		}
 
@@ -1505,13 +1553,13 @@ export class BaseIssueReporterService extends Disposable {
 			// eslint-disable-next-line no-restricted-syntax
 			const extensionDataBlock = this.window.document.querySelector('.block-extension-data')!;
 			show(extensionDataBlock);
-			this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.renderBlocks().catch(onUnexpectedError);
 		}
 
 		const uri = this.data.uri;
 		if (uri) {
 			extension.uri = uri;
-			this.updateIssueReporterUri(extension).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateIssueReporterUri(extension).catch(onUnexpectedError);
 		}
 
 		this.validateSelectedExtension();
@@ -1520,7 +1568,7 @@ export class BaseIssueReporterService extends Disposable {
 		this.searchExtensionIssues(title);
 
 		this.updateButtonStates();
-		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.renderBlocks().catch(onUnexpectedError);
 	}
 
 	public validateSelectedExtension(): void {
@@ -1572,7 +1620,7 @@ export class BaseIssueReporterService extends Disposable {
 		}
 		showLoading.append(element);
 
-		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.renderBlocks().catch(onUnexpectedError);
 	}
 
 	public removeLoading(element: HTMLElement, fromReporter: boolean = false) {
@@ -1594,7 +1642,7 @@ export class BaseIssueReporterService extends Disposable {
 		if (hideLoading.firstChild) {
 			element.remove();
 		}
-		this.renderBlocks().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.renderBlocks().catch(onUnexpectedError);
 	}
 
 	private setExtensionValidationMessage(): void {

@@ -41,7 +41,7 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 	) {
 		super();
 
-		this.findWorkspaces().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.findWorkspaces().catch(onUnexpectedError);
 	}
 
 	private async findWorkspaces(): Promise<void> {
@@ -50,7 +50,11 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 			return; // require a single (non virtual) root folder
 		}
 
-		const rootFileNames = (await this.fileService.resolve(folder.uri)).children?.map(child => child.name);
+		const resolved = await this.fileService.resolve(folder.uri);
+		if (this._store.isDisposed) {
+			return;
+		}
+		const rootFileNames = resolved.children?.map(child => child.name);
 		if (Array.isArray(rootFileNames)) {
 			const workspaceFiles = rootFileNames.filter(hasWorkspaceFileExtension);
 			if (workspaceFiles.length > 0) {
@@ -76,7 +80,7 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 				'https://go.microsoft.com/fwlink/?linkid=2025315'
 			), [{
 				label: localize('openWorkspace', "Open Workspace"),
-				run: () => this.hostService.openWindow([{ workspaceUri: joinPath(folder, workspaceFile) }]).catch(onUnexpectedError).catch(onUnexpectedError)
+				run: () => this.hostService.openWindow([{ workspaceUri: joinPath(folder, workspaceFile) }]).catch(onUnexpectedError)
 			}], {
 				neverShowAgain,
 				priority: !this.storageService.isNew(StorageScope.WORKSPACE) ? NotificationPriority.SILENT : NotificationPriority.OPTIONAL // https://github.com/microsoft/vscode/issues/125315
@@ -95,9 +99,9 @@ export class WorkspacesFinderContribution extends Disposable implements IWorkben
 						workspaces.map(workspace => ({ label: workspace } satisfies IQuickPickItem)),
 						{ placeHolder: localize('selectToOpen', "Select a workspace to open") }).then(pick => {
 							if (pick) {
-								this.hostService.openWindow([{ workspaceUri: joinPath(folder, pick.label) }]).catch(onUnexpectedError).catch(onUnexpectedError);
+								this.hostService.openWindow([{ workspaceUri: joinPath(folder, pick.label) }]).catch(onUnexpectedError);
 							}
-						}).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).catch(onUnexpectedError);
 				}
 			}], {
 				neverShowAgain,

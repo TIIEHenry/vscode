@@ -62,19 +62,25 @@ export class IssueReporter extends BaseIssueReporterService {
 		super(disableExtensions, data, os, product, window, false, issueFormService, themeService, fileService, fileDialogService, contextMenuService, authenticationService, openerService);
 		this.processService = processService;
 		this.processService.getSystemInfo().then(info => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			this.issueReporterModel.update({ systemInfo: info });
 			this.receivedSystemInfo = true;
 
 			this.updateSystemInfo(this.issueReporterModel.getData());
 			this.updateButtonStates();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		if (this.data.issueType === IssueType.PerformanceIssue) {
 			this.processService.getPerformanceInfo().then(info => {
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				this.updatePerformanceInfo(info as Partial<IssueReporterData>);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
-		this.checkForUpdates().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.checkForUpdates().catch(onUnexpectedError);
 		this.setEventHandlers();
 		applyZoom(this.data.zoomLevel, this.window);
 		this.updateExperimentsInfo(this.data.experiments);
@@ -106,8 +112,11 @@ export class IssueReporter extends BaseIssueReporterService {
 			this.issueReporterModel.update({ issueType: issueType });
 			if (issueType === IssueType.PerformanceIssue && !this.receivedPerformanceInfo) {
 				this.processService.getPerformanceInfo().then(info => {
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
 					this.updatePerformanceInfo(info as Partial<IssueReporterData>);
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 
 			// Resets placeholder
@@ -165,13 +174,22 @@ export class IssueReporter extends BaseIssueReporterService {
 		};
 
 		const response = await fetch(url, init);
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		if (!response.ok) {
 			console.error('Invalid GitHub URL provided.');
 			return false;
 		}
 		const result = await response.json();
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		await this.openerService.open(result.html_url, { openExternal: true });
-		this.close().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
+		this.close().catch(onUnexpectedError);
 		return true;
 	}
 
@@ -250,6 +268,9 @@ export class IssueReporter extends BaseIssueReporterService {
 		try {
 			if (url.length > MAX_URL_LENGTH || issueBody.length > MAX_GITHUB_API_LENGTH) {
 				url = await this.writeToClipboard(baseUrl, issueBody);
+				if (this._store.isDisposed || this._isDisposed) {
+					return false;
+				}
 				url = this.addTemplateToUrl(url, gitHubDetails?.owner, gitHubDetails?.repositoryName);
 			}
 		} catch (_) {
@@ -258,16 +279,22 @@ export class IssueReporter extends BaseIssueReporterService {
 		}
 
 		await this.openerService.open(url, { openExternal: true });
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		return true;
 	}
 
 	public override async writeToClipboard(baseUrl: string, issueBody: string): Promise<string> {
 		const shouldWrite = await this.issueFormService.showClipboardDialog();
-		if (!shouldWrite) {
+		if (this._store.isDisposed || this._isDisposed || !shouldWrite) {
 			throw new CancellationError();
 		}
 
 		await this.nativeHostService.writeClipboardText(issueBody);
+		if (this._store.isDisposed || this._isDisposed) {
+			throw new CancellationError();
+		}
 
 		return baseUrl + `&body=${encodeURIComponent(localize('pasteData', "We have written the needed data into your clipboard because it was too large to send. Please paste."))}`;
 	}
