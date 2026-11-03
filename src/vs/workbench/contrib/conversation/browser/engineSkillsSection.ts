@@ -296,9 +296,19 @@ export class EngineSkillsSection extends Disposable {
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
 		const newButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineSkillsNew', "New skill"), Codicon.add));
-		this._register(newButton.onDidClick(() => void this.promptNewSkill().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(newButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptNewSkill().catch(onUnexpectedError);
+		}));
 		const refreshButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineSkillsRefresh', "Refresh skills"), Codicon.refresh));
-		this._register(refreshButton.onDidClick(() => void this.refresh(true).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(refreshButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh(true).catch(onUnexpectedError);
+		}));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-skill-write-status'));
 		this.writeStatus.setAttribute('role', 'status');
@@ -314,7 +324,12 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyToolbar.style.display = 'none';
 		this.saveButton = this._register(new Button(this.bodyToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.saveButton.label = localize('ua.engineSkillBodySave', "Save");
-		this._register(this.saveButton.onDidClick(() => void this.saveSelectedSkillBody().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.saveButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.saveSelectedSkillBody().catch(onUnexpectedError);
+		}));
 
 		this.bodyInput = this._register(new InputBox(this.bodyEditor, contextViewService, {
 			ariaLabel: localize('ua.engineSkillBodyEditor', "Skill body"),
@@ -324,6 +339,9 @@ export class EngineSkillsSection extends Disposable {
 		}));
 		this.bodyInput.element.classList.add('engine-skill-body-input');
 		this._register(DOM.addDisposableListener(this.bodyInput.inputElement, 'input', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.bodyEditRevision++;
 			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, this.loadedBodyText);
 		}));
@@ -334,10 +352,13 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyStatus.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	layout(width: number, listHeight: number): void {
@@ -347,7 +368,11 @@ export class EngineSkillsSection extends Disposable {
 
 	override dispose(): void {
 		this.refreshGeneration++;
+		this.bodyLoadGeneration++;
+		this.bodyEditRevision++;
 		this.clearCatalogPresentation(false);
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -356,6 +381,9 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.updateContainerVisibility();
 	}
@@ -445,6 +473,9 @@ export class EngineSkillsSection extends Disposable {
 
 	/** Test hook: programmatically toggle a skill by name. */
 	async toggleSkillForTest(name: string, enabled: boolean): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const entry = this.listEntries.find(item => item.kind === 'skill' && item.skill.name === name);
 		if (entry?.kind === 'skill') {
 			await this.toggleSkill(entry.skill, enabled);
@@ -534,7 +565,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async promptNewSkill(): Promise<void> {
-		if (!this.canWrite() || !this.connection.saveSkillContent) {
+		if (this._store.isDisposed || !this.canWrite() || !this.connection.saveSkillContent) {
 			return;
 		}
 		const link = this.captureWriteLink();
@@ -555,7 +586,7 @@ export class EngineSkillsSection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : required,
 		});
-		if (!result.confirmed || !result.values || !this.connection.saveSkillContent) {
+		if (this._store.isDisposed || !result.confirmed || !result.values || !this.connection.saveSkillContent) {
 			return;
 		}
 		if (this.rejectWrite(link, false)) {
@@ -571,20 +602,20 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	async createSkill(options?: { skillName?: string; content?: string }, expectedOwner?: UniverseAgentExpectedOwner): Promise<boolean> {
-		if (!this.canWrite() || !this.connection.saveSkillContent) {
+		if (this._store.isDisposed || !this.canWrite() || !this.connection.saveSkillContent) {
 			return false;
 		}
 		const link = expectedOwner ?? this.captureWriteLink();
 		if (!link || !this.sameWriteLink(link)) { return false; }
 		const operation = {};
 		this.catalogWriteOperation = operation;
-		const stillCurrent = () => this.catalogWriteOperation === operation && this.sameWriteLink(link);
+		const stillCurrent = () => !this._store.isDisposed && this.catalogWriteOperation === operation && this.sameWriteLink(link);
 		this.linkNotice = undefined;
 		const skillName = options?.skillName ?? getDefaultNewSkillName();
 		const content = options?.content ?? getDefaultNewSkillContent(skillName);
 		try {
 			const result = await this.connection.saveSkillContent({ skillName, content, create: true }, link);
-			if (this.rejectWrite(link, true) || !stillCurrent()) { return false; }
+			if (this._store.isDisposed || this.rejectWrite(link, true) || !stillCurrent()) { return false; }
 			if (!result.ok) {
 				this.paintSkillCreateFailed();
 				this.closeWriteChromeWhenApiDisappears();
@@ -605,6 +636,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	async saveSelectedSkillBody(content?: string): Promise<boolean> {
+		if (this._store.isDisposed) { return false; }
 		const link = this.captureWriteLink();
 		if (!link || this.bodySaveOperation || !this.selectedSkill || !this.connection.saveSkillContent) { return false; }
 		if (this.bodyDraftSuspended) {
@@ -625,13 +657,13 @@ export class EngineSkillsSection extends Disposable {
 		const revision = this.bodyEditRevision;
 		const payload = content ?? this.bodyInput.value;
 		const operation = {};
-		const stillCurrent = () => this.bodySaveOperation === operation && this.sameWriteLink(link) && generation === this.bodyLoadGeneration && this.selectedSkill?.name === skillName;
+		const stillCurrent = () => !this._store.isDisposed && this.bodySaveOperation === operation && this.sameWriteLink(link) && generation === this.bodyLoadGeneration && this.selectedSkill?.name === skillName;
 		this.catalogWriteOperation = undefined;
 		this.bodySaveOperation = operation;
 		this.bodyBaselineNeedsReload = true;
 		try {
 			const result = await this.connection.saveSkillContent({ skillName, content: payload, create: false, expectedSource: source, expectedContent }, link);
-			if (!stillCurrent()) { return false; }
+			if (this._store.isDisposed || !stillCurrent()) { return false; }
 			if (!result.ok) {
 				this.paintSkillSaveFailed();
 				this.closeWriteChromeWhenApiDisappears();
@@ -639,7 +671,7 @@ export class EngineSkillsSection extends Disposable {
 			}
 			// Read the canonical raw content for the next CAS; never replace newer typing.
 			const info = await this.connection.getSkillInfo({ skillName }, link);
-			if (!stillCurrent()) { return false; }
+			if (this._store.isDisposed || !stillCurrent()) { return false; }
 			if (info.name !== skillName || info.source !== source) { throw new Error('Skill source changed'); }
 			this.loadedBodyText = info.content;
 			this.bodyBaselineNeedsReload = false;
@@ -839,7 +871,7 @@ export class EngineSkillsSection extends Disposable {
 			const sameEngine = this.loadedBodyWriteLink?.engineIdentityId === readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
 			const recoverBaseline = recoverDirtyBody && sameEngine && !!this.loadedBodyWriteLink && (this.bodyBaselineNeedsReload || !this.sameWriteLink(this.loadedBodyWriteLink));
 			if (this.selectedSkill && !this.bodySaveOperation && ((!this.bodyDirty && !this.bodyDraftSuspended) || recoverBaseline)) {
-				void this.loadSkillBody(this.selectedSkill, recoverBaseline, owner).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadSkillBody(this.selectedSkill, recoverBaseline, owner).catch(onUnexpectedError);
 			}
 			return true;
 		} catch (error) {
@@ -861,7 +893,12 @@ export class EngineSkillsSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverBodyEditorChrome();
@@ -880,7 +917,12 @@ export class EngineSkillsSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				}
 				: undefined,
 		});
 	}
@@ -889,7 +931,12 @@ export class EngineSkillsSection extends Disposable {
 		if (!this.list) {
 			this.rowRenderer = new EngineSkillRowRenderer(
 				() => this.canWrite(),
-				(skill, enabled) => void this.toggleSkill(skill, enabled).catch(onUnexpectedError).catch(onUnexpectedError),
+				(skill, enabled) => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.toggleSkill(skill, enabled).catch(onUnexpectedError);
+				},
 			);
 			this.list = this._register(this.instantiationService.createInstance(
 				WorkbenchList,
@@ -911,6 +958,9 @@ export class EngineSkillsSection extends Disposable {
 				},
 			)) as WorkbenchList<EngineSkillListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const entry = e.elements[0];
 				const next = entry?.kind === 'skill' ? entry.skill : undefined;
 				if (this.bodyDraftSuspended && (!next || !this.isOriginalDraftSkill(next))) {
@@ -928,7 +978,7 @@ export class EngineSkillsSection extends Disposable {
 					return;
 				}
 				this.syncBodyFieldVisibility();
-				void this.loadSkillBody(next, false, this.selectionReadOwner ?? this.catalogReadOwner).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadSkillBody(next, false, this.selectionReadOwner ?? this.catalogReadOwner).catch(onUnexpectedError);
 			}));
 		}
 		return this.list;
@@ -1031,8 +1081,10 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async restoreWriteSuccessAfterRefresh(owner: UniverseAgentExpectedOwner, paintSucceeded: () => void): Promise<void> {
+		if (this._store.isDisposed) { return; }
 		paintSucceeded();
 		const listed = await this.refresh(false, owner);
+		if (this._store.isDisposed) { return; }
 		if (listed) {
 			paintSucceeded();
 		}
@@ -1169,6 +1221,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
+		if (this._store.isDisposed) { return; }
 		const link = this.captureWriteLink();
 		if (!link) { return; }
 		const operation = {};
@@ -1201,6 +1254,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary, preserveDraft = false, expectedOwner?: UniverseAgentExpectedOwner): Promise<void> {
+		if (this._store.isDisposed) { return; }
 		if (this.bodyDraftSuspended && (!preserveDraft || !this.isOriginalDraftSkill(skill))) {
 			this.updateBodyEditorChrome(this.loadedBodySource);
 			return;

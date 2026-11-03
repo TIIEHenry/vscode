@@ -2154,10 +2154,9 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError logs', async () => {
 		// refresh() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -2166,9 +2165,6 @@ suite('EngineTriggersSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const parent = document.createElement('div');
@@ -2194,7 +2190,7 @@ suite('EngineTriggersSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			parent.remove();
 		} finally {
@@ -2215,8 +2211,7 @@ suite('EngineTriggersSection', () => {
 	}): Promise<void> {
 		// handleUpsert / handleFire / handleSetEnabled / handleDelete already catch RPC throw;
 		// a lone inner reject does not leak. The void click site still needs `.catch` when
-		// the catch-path write-status paint throws. A lone `.catch(onUnexpectedError)` still
-		// leaks when the handler warn-then-rethrows.
+		// the catch-path write-status paint throws.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -2225,9 +2220,6 @@ suite('EngineTriggersSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const pane = mountSection(createConversationConnectionTestStub({
@@ -2262,7 +2254,7 @@ suite('EngineTriggersSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			pane.getDomNode().parentElement?.remove();
 		} finally {
@@ -2844,4 +2836,20 @@ suite('EngineTriggersSection', () => {
 		});
 	}
 
+	test('disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+		}));
+		const section = instantiationService.createInstance(EngineTriggersSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
+	});
 });

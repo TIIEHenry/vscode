@@ -276,7 +276,10 @@ export class EngineProvidersSection extends Disposable {
 
 	override dispose(): void {
 		this.providerRefreshGeneration++;
+		this.catalogGeneration++;
 		this.clearProviderPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -285,6 +288,9 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -318,7 +324,10 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private refresh(): void {
-		void this.refreshProviders().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this.refreshProviders().catch(onUnexpectedError);
 	}
 
 	private hasProviderListHook(): boolean {
@@ -356,6 +365,9 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private async refreshProviders(expectedOwner?: EngineCatalogWriteLink): Promise<EngineCatalogRefreshResult> {
+		if (this._store.isDisposed) {
+			return { kind: 'discarded', generation: this.providerRefreshGeneration };
+		}
 		const link = expectedOwner ?? readWriteLink(this.connection);
 		if (expectedOwner && !sameWriteLink(expectedOwner, readWriteLink(this.connection))) {
 			return { kind: 'discarded', generation: this.providerRefreshGeneration };
@@ -441,7 +453,12 @@ export class EngineProvidersSection extends Disposable {
 				this.resolveProviderMode(true, entry.support, this.providerListPhase),
 				reason,
 				undefined,
-				() => void this.refreshProviders().catch(onUnexpectedError).catch(onUnexpectedError),
+				() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refreshProviders().catch(onUnexpectedError);
+				},
 			);
 		}
 		return { kind: 'failed', generation };
@@ -470,7 +487,12 @@ export class EngineProvidersSection extends Disposable {
 			emptyCopy: localize('ua.engineProviderListEmpty', "No providers reported."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				}
 				: undefined,
 		});
 	}
@@ -541,8 +563,18 @@ export class EngineProvidersSection extends Disposable {
 			if (this.canWriteProviders()) {
 				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 				const name = provider.brand || provider.providerId;
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit', link).catch(onUnexpectedError).catch(onUnexpectedError));
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => void this.clearProvider(provider.providerId, anchor, link).catch(onUnexpectedError).catch(onUnexpectedError), true);
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.promptProvider(provider.providerId, provider.protocol, '', 'edit', link).catch(onUnexpectedError);
+				});
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.clearProvider(provider.providerId, anchor, link).catch(onUnexpectedError);
+				}, true);
 			}
 		}
 		if (!this.ownsProviderResult(link, generation)) { return false; }
@@ -555,8 +587,18 @@ export class EngineProvidersSection extends Disposable {
 			return;
 		}
 		this.providerWriteChromeReady = true;
-		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, anchor => void this.importLocalProviders(anchor).catch(onUnexpectedError).catch(onUnexpectedError));
-		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderAdd', "Add provider"), Codicon.add, () => void this.promptProvider('', '').catch(onUnexpectedError).catch(onUnexpectedError));
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, anchor => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.importLocalProviders(anchor).catch(onUnexpectedError);
+		});
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderAdd', "Add provider"), Codicon.add, () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptProvider('', '').catch(onUnexpectedError);
+		});
 	}
 
 	private clearProviderRowActions(): void {
@@ -662,7 +704,12 @@ export class EngineProvidersSection extends Disposable {
 					actions,
 					localize('ua.engineProviderAddPreset', "Add {0}", preset.displayName),
 					Codicon.add,
-					() => void this.promptProvider(preset.id, preset.defaultProtocol, preset.defaultApiBaseUrl).catch(onUnexpectedError).catch(onUnexpectedError),
+					() => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						void this.promptProvider(preset.id, preset.defaultProtocol, preset.defaultApiBaseUrl).catch(onUnexpectedError);
+					},
 				);
 			}
 		}
@@ -681,6 +728,9 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private async promptProvider(providerId: string, protocol: string, baseUrl = '', intent: 'add' | 'edit' = 'add', rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = rowOwner ?? this.providerCatalogOwner;
 		if (!link || !sameWriteLink(link, this.providerCatalogOwner) || !this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
 			return;
@@ -704,7 +754,7 @@ export class EngineProvidersSection extends Disposable {
 			if (!isCancellationError(error) && this.ownsProviderWrite(link)) { throw error; }
 			return undefined;
 		});
-		if (!this.ownsProviderWrite(link) || !result?.confirmed || !result.values) {
+		if (this._store.isDisposed || !this.ownsProviderWrite(link) || !result?.confirmed || !result.values) {
 			return;
 		}
 		const [providerIdRaw, protocolRaw, baseUrlRaw, apiKeyRaw] = result.values;
@@ -735,6 +785,9 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private async clearProvider(providerId: string, anchor: HTMLElement, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = rowOwner ?? this.providerCatalogOwner;
 		if (!link || !sameWriteLink(link, this.providerCatalogOwner) || !this.canWriteProviders() || !this.connection.clearProviderCredentials) {
 			return;
@@ -746,7 +799,7 @@ export class EngineProvidersSection extends Disposable {
 			detail: localize('ua.engineProviderClearDetail', "This clears the engine credential store. Host environment variables stay as they are."),
 			confirmLabel: localize('ua.engineProviderClear', "Clear"),
 		});
-		if (!confirmed || !this.ownsProviderWrite(link)) {
+		if (this._store.isDisposed || !confirmed || !this.ownsProviderWrite(link)) {
 			return;
 		}
 		try {
@@ -762,6 +815,9 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private async importLocalProviders(anchor: HTMLElement): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = this.providerCatalogOwner;
 		if (!link || !this.canWriteProviders()) { return; }
 		if (!this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
@@ -776,7 +832,9 @@ export class EngineProvidersSection extends Disposable {
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 			return;
 		}
-		if (!this.ownsProviderWrite(link)) { return; }
+		if (this._store.isDisposed || !this.ownsProviderWrite(link)) {
+			return;
+		}
 		if (preview.items.length === 0) {
 			this.setProviderAction(localize('ua.engineProviderImportEmpty', "No local providers found."), 'neutral');
 			return;
@@ -790,7 +848,7 @@ export class EngineProvidersSection extends Disposable {
 			confirmLabel: localize('ua.engineProviderImport', "Import from local harnesses"),
 			danger: false,
 		});
-		if (!confirmed || !this.ownsProviderWrite(link)) {
+		if (this._store.isDisposed || !confirmed || !this.ownsProviderWrite(link)) {
 			return;
 		}
 		try {
@@ -926,6 +984,8 @@ export class EngineModelsSection extends Disposable {
 	override dispose(): void {
 		this.refreshGeneration++;
 		this.clearModelPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -934,6 +994,9 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -967,7 +1030,10 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private refresh(): void {
-		void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this.refreshModels().catch(onUnexpectedError);
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
@@ -988,6 +1054,9 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private async refreshModels(expectedOwner?: EngineCatalogWriteLink): Promise<EngineCatalogRefreshResult> {
+		if (this._store.isDisposed) {
+			return { kind: 'discarded', generation: this.refreshGeneration };
+		}
 		const link = expectedOwner ?? readWriteLink(this.connection);
 		if (expectedOwner && !sameWriteLink(expectedOwner, readWriteLink(this.connection))) {
 			return { kind: 'discarded', generation: this.refreshGeneration };
@@ -1068,7 +1137,12 @@ export class EngineModelsSection extends Disposable {
 				resolveEngineCatalogPaneMode(true, entry.support, this.modelListPhase),
 				reason,
 				undefined,
-				() => void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError),
+				() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refreshModels().catch(onUnexpectedError);
+				},
 			);
 		}
 		return { kind: 'failed', generation };
@@ -1096,7 +1170,12 @@ export class EngineModelsSection extends Disposable {
 			emptyCopy: localize('ua.engineModelListEmpty', "No models in the registry."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				}
 				: undefined,
 		});
 	}
@@ -1131,7 +1210,12 @@ export class EngineModelsSection extends Disposable {
 			if (this.canWriteModels()) {
 				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 				const name = model.modelId || model.id;
-				appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => void this.promptModel(model, link).catch(onUnexpectedError).catch(onUnexpectedError));
+				appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.promptModel(model, link).catch(onUnexpectedError);
+				});
 				appendIconButton(
 					this.modelRowActions,
 					actions,
@@ -1139,11 +1223,26 @@ export class EngineModelsSection extends Disposable {
 						? localize('ua.engineModelDisable', "Disable {0}", name)
 						: localize('ua.engineModelEnable', "Enable {0}", name),
 					model.enabled ? Codicon.circleSlash : Codicon.check,
-					() => void this.setListedModelEnabled(model, !model.enabled, link).catch(onUnexpectedError).catch(onUnexpectedError),
+					() => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						void this.setListedModelEnabled(model, !model.enabled, link).catch(onUnexpectedError);
+					},
 				);
-				appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => void this.deleteListedModel(model, anchor, link).catch(onUnexpectedError).catch(onUnexpectedError), true);
+				appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.deleteListedModel(model, anchor, link).catch(onUnexpectedError);
+				}, true);
 				if (typeof this.connection.testModelProfile === 'function') {
-					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model, link).catch(onUnexpectedError).catch(onUnexpectedError));
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						void this.testListedModel(model, link).catch(onUnexpectedError);
+					});
 				}
 			}
 		}
@@ -1178,7 +1277,12 @@ export class EngineModelsSection extends Disposable {
 			return;
 		}
 		this.modelWriteChromeReady = true;
-		appendIconButton(this._store, this.modelToolbar, localize('ua.engineModelAdd', "Add model"), Codicon.add, () => void this.promptModel().catch(onUnexpectedError).catch(onUnexpectedError));
+		appendIconButton(this._store, this.modelToolbar, localize('ua.engineModelAdd', "Add model"), Codicon.add, () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptModel().catch(onUnexpectedError);
+		});
 	}
 
 	private setModelAction(message: string, tone: 'neutral' | 'error'): void {
@@ -1187,6 +1291,9 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private async promptModel(model?: UniverseAgentModelEntry, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = rowOwner ?? this.modelCatalogOwner;
 		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.upsertModel) {
 			return;
@@ -1214,7 +1321,7 @@ export class EngineModelsSection extends Disposable {
 			if (!isCancellationError(error) && this.ownsModelWrite(link)) { throw error; }
 			return undefined;
 		});
-		if (!this.ownsModelWrite(link) || !result?.confirmed || !result.values) {
+		if (this._store.isDisposed || !this.ownsModelWrite(link) || !result?.confirmed || !result.values) {
 			return;
 		}
 		const parsed = parseModelDialog(result.values);
@@ -1256,6 +1363,9 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private async setListedModelEnabled(model: UniverseAgentModelEntry, enabled: boolean, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = rowOwner ?? this.modelCatalogOwner;
 		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.setModelEnabled) {
 			return;
@@ -1275,6 +1385,9 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private async deleteListedModel(model: UniverseAgentModelEntry, anchor: HTMLElement, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = rowOwner ?? this.modelCatalogOwner;
 		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.deleteModel) {
 			return;
@@ -1287,7 +1400,7 @@ export class EngineModelsSection extends Disposable {
 			detail: localize('ua.engineModelDeleteDetail', "This removes the model from the engine registry."),
 			confirmLabel: localize('ua.engineModelDelete', "Delete"),
 		});
-		if (!confirmed || !this.ownsModelWrite(link)) {
+		if (this._store.isDisposed || !confirmed || !this.ownsModelWrite(link)) {
 			return;
 		}
 		try {
@@ -1303,6 +1416,9 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private async testListedModel(model: UniverseAgentModelEntry, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const link = rowOwner ?? this.modelCatalogOwner;
 		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.testModelProfile) {
 			return;

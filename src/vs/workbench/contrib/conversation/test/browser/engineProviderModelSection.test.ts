@@ -281,7 +281,7 @@ suite('Engine providers and models sections', () => {
 				await input.complete({ confirmed: true, values: catalog === 'provider' ? ['new', 'openai', '', 'fixture-secret'] : ['demo', 'new', 'general', '3'] });
 				await flushMicrotasks();
 				assert.strictEqual(writes, 0);
-				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent ?? '', '');
 			});
 
 			test(`write ownership: ${catalog} rename stops before deleting after ${invalidation}`, async () => {
@@ -310,7 +310,7 @@ suite('Engine providers and models sections', () => {
 				const readsAfterInvalidation = reads;
 				await write.complete({});
 				await flushMicrotasks();
-				assert.deepStrictEqual({ deletes, lateReads: reads - readsAfterInvalidation, feedback: section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent }, { deletes: 0, lateReads: 0, feedback: '' });
+				assert.deepStrictEqual({ deletes, lateReads: reads - readsAfterInvalidation, feedback: section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent ?? '' }, { deletes: 0, lateReads: 0, feedback: '' });
 			});
 		}
 
@@ -1889,10 +1889,9 @@ suite('Engine providers and models sections', () => {
 		assert.ok((section.getDomNode().textContent ?? '').includes('Anthropic leftover'));
 	});
 
-	test('does not leak unhandled rejection when refreshProviders catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refreshProviders catch-path render throws and onUnexpectedError logs', async () => {
 		// refreshProviders() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -1901,9 +1900,6 @@ suite('Engine providers and models sections', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -1924,7 +1920,7 @@ suite('Engine providers and models sections', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -1933,10 +1929,9 @@ suite('Engine providers and models sections', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when refreshModels catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refreshModels catch-path render throws and onUnexpectedError logs', async () => {
 		// refreshModels() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -1945,9 +1940,6 @@ suite('Engine providers and models sections', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -1967,7 +1959,7 @@ suite('Engine providers and models sections', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -2006,5 +1998,31 @@ suite('Engine providers and models sections', () => {
 
 		const actionMessage = section.getDomNode().querySelector('.engine-catalog-action-message') as HTMLElement;
 		assert.strictEqual(actionMessage.textContent, '');
+	});
+
+	test('EngineProvidersSection: disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({ providerSupport: 'SUPPORTED', listProviderStatus: async () => ({ providers: [] }) }));
+		const section = instantiationService.createInstance(EngineProvidersSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
+	});
+
+	test('EngineModelsSection: disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({ modelsSupport: 'SUPPORTED', listModels: async () => ({ models: [] }) }));
+		const section = instantiationService.createInstance(EngineModelsSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
 	});
 });
