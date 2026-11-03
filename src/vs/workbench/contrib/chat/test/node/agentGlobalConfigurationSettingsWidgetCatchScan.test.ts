@@ -27,23 +27,23 @@ suite('AHPAgentSettingsWidget leftover fire-and-forget catch scan', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('save and openEditor leftover sites double-catch onUnexpectedError', () => {
-		// save / openEditor return Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('save and openEditor leftover sites catch onUnexpectedError', () => {
 		const source = fs.readFileSync(agentGlobalConfigurationSettingsWidgetSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const saveTrim = 'void this.save(key, input.value.trim())';
 		const saveEnum = 'void this.save(key, schema.enum?.[event.index])';
 		const openEditor = 'void this.editorService.openEditor({ resource: this.target?.mapResource(URI.parse(file.resource)) ?? URI.parse(file.resource), options: { pinned: true } })';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\.save\(/g) ?? []).length, 2);
-		assert.ok(source.includes(`${saveTrim}${doubleCatch}`));
-		assert.ok(source.includes(`${saveEnum}${doubleCatch}`));
-		assert.ok(source.includes(`${openEditor}${doubleCatch}`));
+		assert.ok(source.includes(`${saveTrim}${singleCatch}`));
+		assert.ok(source.includes(`${saveEnum}${singleCatch}`));
+		assert.ok(source.includes(`${openEditor}${singleCatch}`));
 		assert.ok(!source.includes(`${saveTrim};`));
 		assert.ok(!source.includes(`${saveEnum};`));
-		assert.ok(!source.includes(`${saveTrim}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${saveEnum}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${saveTrim}${doubleCatch}`));
+		assert.ok(!source.includes(`${saveEnum}${doubleCatch}`));
 		assert.ok(!source.includes(`${openEditor};`));
-		assert.ok(!source.includes(`${openEditor}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${openEditor}${doubleCatch}`));
 	});
 });

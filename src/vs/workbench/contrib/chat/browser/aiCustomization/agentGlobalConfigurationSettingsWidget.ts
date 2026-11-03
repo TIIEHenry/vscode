@@ -51,6 +51,13 @@ export class AHPAgentSettingsWidget extends Disposable {
 	layout(): void { this.container.classList.toggle('narrow', this.container.clientWidth < 560); }
 	focus(): void { this.focusTarget?.(); }
 
+	override dispose(): void {
+		this.renderDisposables.dispose();
+		DOM.clearNode(this.container);
+		this.container.remove();
+		super.dispose();
+	}
+
 	private connect(target: IAgentGlobalConfigurationSettingsTarget | undefined): void {
 		if (this.target === target && target) { return; }
 		this.target = target;
@@ -97,7 +104,12 @@ export class AHPAgentSettingsWidget extends Disposable {
 			const actions = DOM.append(row, DOM.$('.agent-global-configuration-settings-actions'));
 			const button = this.renderDisposables.add(new Button(actions, { ...defaultButtonStyles, secondary: true }));
 			button.label = saveLabel ?? localize('agentSettings.save', "Save");
-			this.renderDisposables.add(button.onDidClick(() => void this.save(key, input.value.trim()).catch(onUnexpectedError).catch(onUnexpectedError)));
+			this.renderDisposables.add(button.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.save(key, input.value.trim()).catch(onUnexpectedError);
+			}));
 			return;
 		}
 		const options = schema.enum?.map((option, index) => ({ text: schema.enumLabels?.[index] ?? String(option) })) ?? [];
@@ -106,11 +118,26 @@ export class AHPAgentSettingsWidget extends Disposable {
 		const select = this.renderDisposables.add(new SelectBox(options, selected, this.contextViewService, { ...defaultSelectBoxStyles }, { ariaLabel: schema.title }));
 		select.render(selectContainer);
 		this.focusTarget ??= () => select.focus();
-		this.renderDisposables.add(select.onDidSelect(event => void this.save(key, schema.enum?.[event.index]).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.renderDisposables.add(select.onDidSelect(event => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.save(key, schema.enum?.[event.index]).catch(onUnexpectedError);
+		}));
 	}
 
 	private async save(key: string, value: unknown): Promise<void> {
-		try { await this.target?.setValue(key, value); } catch (error) { this.notificationService.error(error); }
+		if (this._store.isDisposed) {
+			return;
+		}
+		try {
+			await this.target?.setValue(key, value);
+		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.notificationService.error(error);
+		}
 	}
 
 	private renderConfigurationFile(parent: HTMLElement, descriptor: IAgentCustomizationSettingsDescriptor): void {
@@ -122,6 +149,11 @@ export class AHPAgentSettingsWidget extends Disposable {
 		if (file.documentationUrl && file.documentationLabel) { this.renderDisposables.add(new Link(section, { label: file.documentationLabel, href: file.documentationUrl }, {}, this.hoverService, this.openerService)); }
 		const button = this.renderDisposables.add(new Button(section, { ...defaultButtonStyles, secondary: true }));
 		button.label = file.openLabel;
-		this.renderDisposables.add(button.onDidClick(() => void this.editorService.openEditor({ resource: this.target?.mapResource(URI.parse(file.resource)) ?? URI.parse(file.resource), options: { pinned: true } }).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.renderDisposables.add(button.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.editorService.openEditor({ resource: this.target?.mapResource(URI.parse(file.resource)) ?? URI.parse(file.resource), options: { pinned: true } }).catch(onUnexpectedError);
+		}));
 	}
 }

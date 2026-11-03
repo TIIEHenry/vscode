@@ -232,6 +232,18 @@ export class ToolsListWidget extends Disposable {
 		}));
 	}
 
+	override dispose(): void {
+		this._galleryCts?.dispose(true);
+		this._galleryCts = undefined;
+		this._rowStore.clear();
+		this._rows = [];
+		this._rowByElement.clear();
+		DOM.clearNode(this._treeContainer);
+		DOM.clearNode(this._galleryEmpty);
+		this.element.remove();
+		super.dispose();
+	}
+
 	private _createHeader(): void {
 		this._header = DOM.append(this.element, $('.section-title-header'));
 		DOM.append(DOM.append(this._header, $('.section-title-row')), $('h2.section-title')).textContent = localize('toolsListTitle', "Tools");
@@ -261,7 +273,7 @@ export class ToolsListWidget extends Disposable {
 		this._register(this._searchInput.onDidChange(() => {
 			this._delayedSearch.trigger(() => {
 				if (this._browseMode) {
-					void this._queryGallery().catch(onUnexpectedError).catch(onUnexpectedError);
+					void this._queryGallery().catch(onUnexpectedError);
 				} else {
 					this._searchQuery.set(this._searchInput.value, undefined);
 				}
@@ -433,7 +445,7 @@ export class ToolsListWidget extends Disposable {
 		this._searchInput.value = '';
 
 		if (browse) {
-			void this._queryGallery().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._queryGallery().catch(onUnexpectedError);
 		} else {
 			this._galleryCts?.dispose(true);
 			this._galleryCts = undefined;
@@ -449,6 +461,9 @@ export class ToolsListWidget extends Disposable {
 
 	/** Queries the Extensions gallery for tool-contributing extensions. */
 	private async _queryGallery(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._galleryCts?.dispose(true);
 		const cts = this._galleryCts = new CancellationTokenSource();
 
@@ -458,12 +473,12 @@ export class ToolsListWidget extends Disposable {
 		this._setGalleryMessage(localize('toolsBrowseLoading', "Loading marketplace..."));
 		try {
 			const pager = await this._extensionsWorkbenchService.queryGallery({ text }, cts.token);
-			if (cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
 				return;
 			}
 			const items = pager.firstPage;
 			const filteredItems = await this._filterGalleryResults(items, cts.token);
-			if (cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
 				return;
 			}
 			if (filteredItems.length === 0) {
@@ -476,7 +491,7 @@ export class ToolsListWidget extends Disposable {
 			this._galleryListContainer.style.display = '';
 			this._galleryList.splice(0, this._galleryList.length, filteredItems);
 		} catch {
-			if (!cts.token.isCancellationRequested) {
+			if (!this._store.isDisposed && !cts.token.isCancellationRequested) {
 				this._setGalleryMessage(
 					localize('toolsBrowseError', "Unable to load marketplace"),
 					localize('toolsBrowseTryAgain', "Check your connection and try again"));
@@ -490,6 +505,9 @@ export class ToolsListWidget extends Disposable {
 	 * manifest fetches for extensions that can never run.
 	 */
 	private async _filterGalleryResults(extensions: readonly IExtension[], token: CancellationToken): Promise<IExtension[]> {
+		if (this._store.isDisposed) {
+			return [];
+		}
 		const requireAgentsWindowSupport = this._environmentService.isSessionsWindow;
 		const results = await Promise.all(extensions.map(async extension => {
 			// In the Agents window, code-executing extensions can never run: reject before fetching the manifest.

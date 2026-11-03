@@ -634,6 +634,18 @@ export class AICustomizationListWidget extends Disposable {
 		}));
 	}
 
+	override dispose(): void {
+		this.delayedFilter.cancel();
+		this.cardDisposables.clear();
+		this.dropdownActionDisposables.clear();
+		this.cardRowsByUri.clear();
+		this.cardRowsById.clear();
+		this.cardMenuButtonsById.clear();
+		DOM.clearNode(this.cardContainer);
+		this.element.remove();
+		super.dispose();
+	}
+
 	private create(): void {
 		// Section title header (title + description with inline learn more) at the top.
 		this.sectionTitleHeader = DOM.append(this.element, $('.section-title-header'));
@@ -696,7 +708,7 @@ export class AICustomizationListWidget extends Disposable {
 						resultCount: matchCount,
 					});
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 
 		// Add button container next to search
@@ -966,6 +978,9 @@ export class AICustomizationListWidget extends Disposable {
 	 * reflecting at least one fetch.
 	 */
 	async setSection(section: AICustomizationManagementSection): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const loadId = ++this._sectionLoadId;
 		this.currentSection = section;
 		this.element.classList.toggle('plugin-list-widget', this.usesCardLayout());
@@ -991,6 +1006,9 @@ export class AICustomizationListWidget extends Disposable {
 		});
 		this.updateAddButton();
 		await this.itemsModel.whenSectionLoaded(modelSection);
+		if (this._store.isDisposed) {
+			return;
+		}
 		// Only announce if this is still the most recent section change; a newer
 		// setSection() call may have already taken over and will make its own
 		// announcement once its own load resolves.

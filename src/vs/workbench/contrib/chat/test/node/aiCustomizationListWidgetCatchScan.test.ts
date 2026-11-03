@@ -27,16 +27,17 @@ suite('AICustomizationListWidget leftover fire-and-forget catch scan (D595)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('search delayedFilter.trigger Promise is double-caught (D595)', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('search delayedFilter.trigger Promise is caught (D595)', () => {
 		const source = fs.readFileSync(aiCustomizationListWidgetSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.delayedFilter\.trigger\(/g) ?? []).length, 1);
 		assert.ok(source.includes('void this.delayedFilter.trigger(() => {'));
 		const delayerMatch = source.match(/void this\.delayedFilter\.trigger\(\(\) => \{[\s\S]*?this\.filterItems\(\)[\s\S]*?announceItemCount[\s\S]*?publicLog2[\s\S]*?\}\)((?:\.catch\(onUnexpectedError\))+);/);
 		assert.ok(delayerMatch, 'delayedFilter.trigger call site not found');
-		assert.strictEqual(delayerMatch[1], doubleCatch);
+		assert.strictEqual(delayerMatch[1], singleCatch);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!/^\t\t\tthis\.delayedFilter\.trigger\(/m.test(source));
 		assert.ok(!source.includes('\t\t\tthis.delayedFilter.trigger(() => {'));
 	});

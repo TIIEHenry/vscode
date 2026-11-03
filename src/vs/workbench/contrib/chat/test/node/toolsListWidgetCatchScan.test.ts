@@ -27,16 +27,16 @@ suite('ToolsListWidget leftover fire-and-forget catch scan', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_queryGallery leftover voids are double-chain; opener leftover stays skipped', () => {
-		// _queryGallery returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('_queryGallery leftover voids are caught; opener leftover stays skipped', () => {
 		const source = fs.readFileSync(toolsListWidgetSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const queryCall = 'void this._queryGallery()';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._queryGallery\(\)/g) ?? []).length, 2);
-		assert.ok(source.includes(`${queryCall}${doubleCatch};`));
+		assert.ok(source.includes(`${queryCall}${singleCatch};`));
 		assert.ok(!source.includes(`${queryCall};`));
-		assert.ok(!source.includes(`${queryCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${queryCall}${doubleCatch};`));
 		assert.ok(!/^\t+this\._queryGallery\(\);/m.test(source));
 		assert.ok(source.includes('void this._openerService.open(URI.parse(learnMore.href));'));
 	});
