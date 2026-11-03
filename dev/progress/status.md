@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Sources DOM 生命周期清理、销毁防护与错误处理解偶）、Slot B（Conversation 覆盖层与偏好面板 DOM 生命周期管控）、Slot C（Navigator 视图 DOM 生命周期与 Inspect 状态清理）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Sources 标签宿主与差异面板 DOM 节点清理与生命周期防护）、Slot B（Conversation MCP 运行时面板与插件列表 DOM 清理与防护）、Slot C（Navigator 智能体视图与行内过滤框 DOM 生命周期、Inspect 状态清理与测试对齐）。merge 槽单流水线全量编译 compile-client 0 错误（22s），valid-layers-check 0 错误，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次八）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Sources 标签宿主与差异面板 DOM 节点清理与生命周期防护)**：在 `sourcesTabsHost.ts` 的 `dispose()` 显式移除 host CSS 类名（`sources-tab-host`、`sources-tabs-content`）并以 `dom.clearNode()` 彻底清空标签与内容容器子 DOM 节点，在 `selectTab()` 与 `restoreTabForSession()` 增设 `this._store.isDisposed` 入口守卫；在 `sourcesDiffPanelView.ts` 的 `dispose()` 补充 `this.bodyContainer?.remove()` 防止脱落 DOM 节点泄漏。类型检查 0 错误，ESLint 0 错误，槽提交 `0cc49cc5712`。
+  - **槽位 B (Conversation MCP 运行时面板与插件列表 DOM 清理与防护)**：在 `engineMcpRuntimePanel.ts` 的 `dispose()` 递增代际、清理运行时表示、销毁列表引用，并通过 `DOM.clearNode(this.container)` 与 `this.container.remove()` 彻底脱落宿主 DOM；在 `setVisible`、`layout`、`render`、`refresh`、`loadTools` 增设销毁拦截；在 `enginePluginsSection.ts` 的 `dispose()` 类似执行 DOM 容器脱落与清理，并在各异步操作（`setSectionActive`、`layout`、`refreshListed`、`loadInfo`、`enableSelected`、`reloadSelected`、`unloadSelected`、`scanNew`、`runWrite`）设置严格销毁检查；两处全部收敛冗余级联 `.catch(onUnexpectedError).catch(onUnexpectedError)` 至单级捕获。类型检查 0 错误，测试 271/271 全过，槽提交 `68d1c0a246d`。
+  - **槽位 C (Navigator 智能体视图与行内过滤框 DOM 生命周期、Inspect 状态清理与测试对齐)**：在 `navigatorAgentsInlineFilterBox.ts` 的 `dispose()` 显式调用 `this.element.remove()`；在 `navigatorAgentsView.ts` 的 `dispose()` 彻底脱落并清空 `hierarchyBody`、`hierarchyTreeContainer`、`hierarchyEmpty`、`hierarchyNote`、`activityBody`、`activityListContainer`、`activityEmpty`、`activityNote` 及对应的树与列表组件，调用 `clearAgentsInspectLiveIds()` 重置 inspect 服务 live target 与 ID；在各事件监听与异步方法增设全面的 `if (this._store.isDisposed) { return; }` 守卫；收敛级联错误处理并在 `navigatorAgentsSubviews.test.ts` 补充完备的 DOM 销毁与防护断言用例。类型检查 0 错误，客户端转译 10130 文件 0 错误，测试 97/97 全过，槽提交 `3414acd137e`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `c8d9cd967b5`、`ac05efd41b7`、`b42398bb191`）。全量客户端编译 `npm run compile-client` 0 错误（22s），分层校验 `npm run valid-layers-check` 0 错误，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `navigatorTeamList.ts` 中的 `NavigatorTeamView.dispose()` 尝试调用未赋值占位属性（`this.treeContainer?.remove()`, `this.filterEmpty?.remove()`），而实际渲染的 `membersBody`、`tasksBody` 等容器子树未在销毁时脱落。
+    2) 发现 `sourcesTabs.test.ts` 中的测试用例 `'injected session events restore each tab and stop saving after disposal'` 隐式依赖未清空 DOM 节点的泄漏行为，在 DOM 清理完善后 `selectedTab()` 自然返回 `undefined`。
+    3) 发现 `navigatorAgentsSubviews.test.ts` 中多项单测预设了合成异常处理器在单次抛出后重抛（触发 `unexpectedWarns: [boom, boom]`），系上游历史针对双重 catch 代码异味编写的特化测试断言；本轮将其与单级 catch 语义及完备生命周期校验对齐。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次七）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Sources DOM 生命周期清理、销毁防护与错误处理解耦)**：在 `sourcesReviewList.ts` 的 `dispose()` 显式脱落宿主 DOM 子树（`filterRow`、`pathFilterBanner`、`headerHint`、`progressHeader`、`listContainer`、`emptyMessage`、`statusMessage`），在 `paintFromModel()` 增设 `this._store.isDisposed` 入口拦截；在 `sourcesChangesList.ts` 补充 `override dispose()` 移除 `toolbar`、`contentContainer`、`commitRow` 并清理 host class，在 `renderFromSnapshot()` 入口增设销毁守卫；在 `conversationDiffReviewPane.ts` 的 `dispose()` 增加 `this.container?.remove()`；在上述文件及 `sourcesDiffPanelView.ts` 中消除冗余链式 `.catch(onUnexpectedError).catch(onUnexpectedError)`。类型检查 0 错误，槽提交 `1f3ab4d89c0`。
