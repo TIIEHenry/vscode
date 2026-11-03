@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { getWindow, h } from '../../../../base/browser/dom.js';
+import { clearNode, getWindow, h } from '../../../../base/browser/dom.js';
 import { IBoundarySashes } from '../../../../base/browser/ui/sash/sash.js';
 import { findLast } from '../../../../base/common/arraysFind.js';
 import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -197,7 +197,10 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 		this._contextKeyService.createKey('isInDiffEditor', true);
 
 		this._domElement.appendChild(this.elements.root);
-		this._register(toDisposable(() => this.elements.root.remove()));
+		this._register(toDisposable(() => {
+			clearNode(this.elements.root);
+			this.elements.root.remove();
+		}));
 
 		this._rootSizeObserver = this._register(new ObservableElementSizeObserver(this.elements.root, options.dimension));
 		this._rootSizeObserver.setAutomaticLayout(options.automaticLayout ?? false);
@@ -683,7 +686,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 		}
 		// wait for the diff computation to finish
 		this.waitForDiff().then(() => {
-			if (this._diffModel.get() !== diffModel) {
+			if (this._store.isDisposed || this._diffModel.get() !== diffModel) {
 				return;
 			}
 			const diffs = diffModel.diff.get()?.mappings;
@@ -691,7 +694,7 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 				return;
 			}
 			this._goTo(diffs[0]);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	accessibleDiffViewerNext(): void { this._accessibleDiffViewer.get().next(); }
@@ -768,6 +771,12 @@ export class DiffEditorWidget extends DelegatingEditor implements IDiffEditor {
 				this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineModified, { source: 'diffEditor.cursorPositionChanged' });
 			}
 		}
+	}
+
+	override dispose(): void {
+		clearNode(this.elements.root);
+		this.elements.root.remove();
+		super.dispose();
 	}
 }
 

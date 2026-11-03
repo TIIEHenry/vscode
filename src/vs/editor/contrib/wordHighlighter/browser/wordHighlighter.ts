@@ -229,6 +229,7 @@ class WordHighlighter {
 
 	private readonly _hasWordHighlights: IContextKey<boolean>;
 	private _ignorePositionChangeEvent: boolean;
+	private _isDisposed = false;
 
 	private readonly runDelayer: Delayer<void> = this.toUnhook.add(new Delayer<void>(50));
 
@@ -272,7 +273,7 @@ class WordHighlighter {
 				return;
 			}
 
-			this.runDelayer.trigger(() => { this._onPositionChanged(e); }).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.runDelayer.trigger(() => { if (this._isDisposed) { return; } this._onPositionChanged(e); }).catch(onUnexpectedError);
 		}));
 		this.toUnhook.add(editor.onDidFocusEditorText((e) => {
 			if (this.occurrencesHighlightEnablement === 'off') {
@@ -281,7 +282,7 @@ class WordHighlighter {
 			}
 
 			if (!this.workerRequest) {
-				this.runDelayer.trigger(() => { this._run(); }).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.runDelayer.trigger(() => { if (this._isDisposed) { return; } this._run(); }).catch(onUnexpectedError);
 			}
 		}));
 		this.toUnhook.add(editor.onDidChangeModelContent((e) => {
@@ -359,15 +360,18 @@ class WordHighlighter {
 	}
 
 	public restore(delay: number): void {
-		if (this.occurrencesHighlightEnablement === 'off') {
+		if (this._isDisposed || this.occurrencesHighlightEnablement === 'off') {
 			return;
 		}
 
 		this.runDelayer.cancel();
-		this.runDelayer.trigger(() => { this._run(false, delay); }).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.runDelayer.trigger(() => { if (this._isDisposed) { return; } this._run(false, delay); }).catch(onUnexpectedError);
 	}
 
 	public trigger() {
+		if (this._isDisposed) {
+			return;
+		}
 		this.runDelayer.cancel();
 		this._run(false, 0); // immediate rendering (delay = 0)
 	}
@@ -552,6 +556,9 @@ class WordHighlighter {
 	}
 
 	private _onPositionChanged(e: ICursorPositionChangedEvent): void {
+		if (this._isDisposed) {
+			return;
+		}
 
 		// disabled
 		if (this.occurrencesHighlightEnablement === 'off') {
@@ -645,6 +652,9 @@ class WordHighlighter {
 	}
 
 	private async _run(multiFileConfigChange?: boolean, delay?: number): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 
 		const hasTextFocus = this.editor.hasTextFocus();
 		if (!hasTextFocus) { // new nb cell scrolled in, didChangeModel fires
@@ -793,6 +803,9 @@ class WordHighlighter {
 	}
 
 	private renderDecorations(): void {
+		if (this._isDisposed) {
+			return;
+		}
 		this.renderDecorationsTimer = undefined;
 		// create new loop, iterate over current editors using this.codeEditorService.listCodeEditors(),
 		// if the URI of that codeEditor is in the map, then add the decorations to the decorations array
@@ -839,6 +852,11 @@ class WordHighlighter {
 	}
 
 	public dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		this.runDelayer.cancel();
 		this._stopSingular();
 		this.toUnhook.dispose();
 	}

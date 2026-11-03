@@ -87,9 +87,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const leftoverSaveCall = 'this.save()';
@@ -136,19 +136,19 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		assert.strictEqual(sites, 8);
 		const findHistory = fs.readFileSync(resolveSource(FIND_HISTORY_REL), 'utf8');
 		const replaceHistory = fs.readFileSync(resolveSource(REPLACE_HISTORY_REL), 'utf8');
-		assert.strictEqual(countIncludes(findHistory, `${leftoverSaveCall}${doubleCatch}`), 4);
-		assert.strictEqual(countIncludes(replaceHistory, `${leftoverSaveCall}${doubleCatch}`), 4);
+		assert.strictEqual(countIncludes(findHistory, `${leftoverSaveCall}.catch(onUnexpectedError)`), 4);
+		assert.strictEqual(countIncludes(replaceHistory, `${leftoverSaveCall}.catch(onUnexpectedError)`), 4);
 		assert.ok(!findHistory.includes('D978'));
 		assert.ok(!replaceHistory.includes('D978'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on editor this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-catch sites after leftover remaining unused stayed on editor this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d978Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -156,11 +156,11 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(FIND_HISTORY_REL) ?? ''), 4);
-		assert.strictEqual(countDoubleChains(seen.get(REPLACE_HISTORY_REL) ?? ''), 4);
+		assert.strictEqual(countDoubleChains(seen.get(FIND_HISTORY_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(REPLACE_HISTORY_REL) ?? ''), 0);
 	});
 
-	test('editor leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('editor leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-catch', () => {
 		const findHistory = fs.readFileSync(resolveSource(FIND_HISTORY_REL), 'utf8');
 		const replaceHistory = fs.readFileSync(resolveSource(REPLACE_HISTORY_REL), 'utf8');
 
@@ -172,8 +172,10 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 
 		assertWrapped(findHistory, leftoverSaveCall);
 		assertWrapped(replaceHistory, leftoverSaveCall);
-		assert.strictEqual(countIncludes(findHistory, `${leftoverSaveCall}${doubleCatch}`), 4);
-		assert.strictEqual(countIncludes(replaceHistory, `${leftoverSaveCall}${doubleCatch}`), 4);
+		assert.strictEqual(countIncludes(findHistory, `${leftoverSaveCall}.catch(onUnexpectedError)`), 4);
+		assert.strictEqual(countIncludes(replaceHistory, `${leftoverSaveCall}.catch(onUnexpectedError)`), 4);
+		assert.strictEqual(countDoubleChains(findHistory), 0);
+		assert.strictEqual(countDoubleChains(replaceHistory), 0);
 		assert.ok(!findHistory.includes('\t\tthis.save();\n'));
 		assert.ok(!replaceHistory.includes('\t\tthis.save();\n'));
 	});
@@ -272,14 +274,19 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		assert.ok(!themes.includes(`this.trigger(value)${doubleCatch}`));
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}.catch(onUnexpectedError)`));
+		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}.catch(onUnexpectedError)`));
+		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}.catch(onUnexpectedError)`));
+		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(chatTip.includes(doubleCatch));
 		assert.ok(extensionsRecs.includes(doubleCatch));
 		assert.ok(configService.includes(`${validateFoldersCall}${doubleCatch}`));
-		assert.ok(hover.includes(doubleCatch));
-		assert.ok(sticky.includes(doubleCatch));
+		assert.ok(hover.includes('.catch(onUnexpectedError)'));
+		assert.ok(!hover.includes(doubleCatch));
+		assert.ok(sticky.includes('.catch(onUnexpectedError)'));
+		assert.ok(!sticky.includes(doubleCatch));
 
 		for (const [rel, file] of [
 			[SEARCH_WIDGET_REL, searchWidget],

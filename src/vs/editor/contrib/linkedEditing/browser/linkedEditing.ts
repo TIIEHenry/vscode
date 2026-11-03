@@ -173,10 +173,13 @@ export class LinkedEditingContribution extends Disposable implements IEditorCont
 				rangeSyncScheduler.dispose();
 			}
 		});
-		this.updateRanges().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateRanges().catch(onUnexpectedError);
 	}
 
 	private _syncRanges(token: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// delayed invocation, make sure we're still on
 		if (!this._editor.hasModel() || token !== this._syncRangesToken || this._currentDecorations.length === 0) {
 			// nothing to do
@@ -274,7 +277,7 @@ export class LinkedEditingContribution extends Disposable implements IEditorCont
 	}
 
 	public async updateRanges(force = false): Promise<void> {
-		if (!this._editor.hasModel()) {
+		if (this._store.isDisposed || !this._editor.hasModel()) {
 			this.clearRanges();
 			return;
 		}
@@ -317,6 +320,9 @@ export class LinkedEditingContribution extends Disposable implements IEditorCont
 		try {
 			const sw = new StopWatch(false);
 			const response = await getLinkedEditingRanges(this._providers, model, position, currentRequestCts.token);
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._debounceInformation.update(model, sw.elapsed());
 			if (currentRequestCts !== this._currentRequestCts) {
 				return;

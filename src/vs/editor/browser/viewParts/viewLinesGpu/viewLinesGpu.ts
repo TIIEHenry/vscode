@@ -91,6 +91,9 @@ export class ViewLinesGpu extends ViewPart implements IViewLines {
 			const lastViewportData = this._lastViewportData;
 			if (lastViewportData) {
 				setTimeout(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (lastViewportData === this._lastViewportData) {
 						this.renderText(lastViewportData);
 					}
@@ -98,10 +101,14 @@ export class ViewLinesGpu extends ViewPart implements IViewLines {
 			}
 		}));
 
-		this.initWebgpu().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initWebgpu().catch(onUnexpectedError);
 	}
 
 	async initWebgpu() {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		// #region General
 
 		this._device = ViewGpuContext.deviceSync || await ViewGpuContext.device;
@@ -793,5 +800,14 @@ export class ViewLinesGpu extends ViewPart implements IViewLines {
 		}
 
 		return new Position(lineNumber, column + 1);
+	}
+
+	public override dispose(): void {
+		try {
+			this._viewGpuContext.ctx.unconfigure?.();
+		} catch {
+			// ignore if already unconfigured or context lost
+		}
+		super.dispose();
 	}
 }
