@@ -1163,7 +1163,10 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 	}
 
 	protected _triggerCommand(handlerId: string, payload: unknown): void {
-		this._commandService.executeCommand(handlerId, payload).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._commandService.executeCommand(handlerId, payload).catch(onUnexpectedError);
 	}
 
 	private _startComposition(): void {
@@ -1946,32 +1949,50 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		} else {
 			commandDelegate = {
 				paste: (text: string, pasteOnNewLine: boolean, multicursorText: string[] | null, mode: string | null) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					const payload: editorBrowser.PastePayload = { text, pasteOnNewLine, multicursorText, mode };
-					this._commandService.executeCommand(editorCommon.Handler.Paste, payload).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._commandService.executeCommand(editorCommon.Handler.Paste, payload).catch(onUnexpectedError);
 				},
 				type: (text: string) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					const payload: editorCommon.TypePayload = { text };
-					this._commandService.executeCommand(editorCommon.Handler.Type, payload).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._commandService.executeCommand(editorCommon.Handler.Type, payload).catch(onUnexpectedError);
 				},
 				compositionType: (text: string, replacePrevCharCnt: number, replaceNextCharCnt: number, positionDelta: number) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					// Try if possible to go through the existing `replacePreviousChar` command
 					if (replaceNextCharCnt || positionDelta) {
 						// must be handled through the new command
 						const payload: editorCommon.CompositionTypePayload = { text, replacePrevCharCnt, replaceNextCharCnt, positionDelta };
-						this._commandService.executeCommand(editorCommon.Handler.CompositionType, payload).catch(onUnexpectedError).catch(onUnexpectedError);
+						this._commandService.executeCommand(editorCommon.Handler.CompositionType, payload).catch(onUnexpectedError);
 					} else {
 						const payload: editorCommon.ReplacePreviousCharPayload = { text, replaceCharCnt: replacePrevCharCnt };
-						this._commandService.executeCommand(editorCommon.Handler.ReplacePreviousChar, payload).catch(onUnexpectedError).catch(onUnexpectedError);
+						this._commandService.executeCommand(editorCommon.Handler.ReplacePreviousChar, payload).catch(onUnexpectedError);
 					}
 				},
 				startComposition: () => {
-					this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {}).catch(onUnexpectedError);
 				},
 				endComposition: () => {
-					this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {}).catch(onUnexpectedError);
 				},
 				cut: () => {
-					this._commandService.executeCommand(editorCommon.Handler.Cut, {}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this._commandService.executeCommand(editorCommon.Handler.Cut, {}).catch(onUnexpectedError);
 				}
 			};
 		}
@@ -2023,9 +2044,11 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 		this._domElement.removeAttribute('data-mode-id');
 		if (removeDomNode && this._domElement.contains(removeDomNode)) {
+			dom.clearNode(removeDomNode);
 			removeDomNode.remove();
 		}
 		if (this._bannerDomNode && this._domElement.contains(this._bannerDomNode)) {
+			dom.clearNode(this._bannerDomNode);
 			this._bannerDomNode.remove();
 		}
 		return model;

@@ -68,10 +68,13 @@ export class RectangleRenderer extends ViewEventHandler {
 
 		this._context.addEventHandler(this);
 
-		this._initWebgpu(device).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._initWebgpu(device).catch(onUnexpectedError);
 	}
 
 	private async _initWebgpu(device: Promise<GPUDevice>) {
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// #region General
 
@@ -294,5 +297,14 @@ export class RectangleRenderer extends ViewEventHandler {
 
 		const commandBuffer = encoder.finish();
 		this._device.queue.submit([commandBuffer]);
+	}
+
+	public override dispose(): void {
+		try {
+			this._ctx.unconfigure?.();
+		} catch {
+			// ignore if already unconfigured or context lost
+		}
+		super.dispose();
 	}
 }

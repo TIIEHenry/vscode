@@ -242,7 +242,7 @@ class DocumentUnicodeHighlighter extends Disposable {
 	}
 
 	private _update(): void {
-		if (this._model.isDisposed()) {
+		if (this._store.isDisposed || this._model.isDisposed()) {
 			return;
 		}
 
@@ -255,7 +255,7 @@ class DocumentUnicodeHighlighter extends Disposable {
 		this._editorWorkerService
 			.computedUnicodeHighlights(this._model.uri, this._options)
 			.then((info) => {
-				if (this._model.isDisposed()) {
+				if (this._store.isDisposed || this._model.isDisposed()) {
 					return;
 				}
 				if (this._model.getVersionId() !== modelVersionId) {
@@ -266,6 +266,10 @@ class DocumentUnicodeHighlighter extends Disposable {
 					return;
 				}
 				this._updateState(info);
+
+				if (this._store.isDisposed) {
+					return;
+				}
 
 				const decorations: IModelDeltaDecoration[] = [];
 				if (!info.hasMore) {
@@ -279,7 +283,7 @@ class DocumentUnicodeHighlighter extends Disposable {
 					}
 				}
 				this._decorations.set(decorations);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	public getDecorationInfo(decoration: IModelDecoration): UnicodeHighlighterDecorationInfo | null {
@@ -340,7 +344,7 @@ class ViewportUnicodeHighlighter extends Disposable {
 	}
 
 	private _update(): void {
-		if (this._model.isDisposed()) {
+		if (this._store.isDisposed || this._model.isDisposed()) {
 			return;
 		}
 

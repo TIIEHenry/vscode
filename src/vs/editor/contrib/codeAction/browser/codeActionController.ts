@@ -128,7 +128,7 @@ export class CodeActionController extends Disposable implements IEditorContribut
 		this._lightBulbWidget = new Lazy(() => {
 			const widget = this._editor.getContribution<LightBulbWidget>(LightBulbWidget.ID);
 			if (widget) {
-				this._register(widget.onClick(e => this.showCodeActionsFromLightbulb(e.actions, e).catch(onUnexpectedError).catch(onUnexpectedError)));
+				this._register(widget.onClick(e => this.showCodeActionsFromLightbulb(e.actions, e).catch(onUnexpectedError)));
 				widget.onlyWithEmptySelection = this._onlyLightBulbWithEmptySelection;
 			}
 			return widget;
@@ -141,10 +141,14 @@ export class CodeActionController extends Disposable implements IEditorContribut
 
 	override dispose() {
 		this._disposed = true;
+		this._actionWidgetService.hide();
 		super.dispose();
 	}
 
 	private async showCodeActionsFromLightbulb(actions: CodeActionSet, at: IAnchor | IPosition): Promise<void> {
+		if (this._disposed || this._store.isDisposed) {
+			return;
+		}
 		if (actions.allAIFixes && actions.validActions.length === 1) {
 			const actionItem = actions.validActions[0];
 			const command = actionItem.action.command;
@@ -187,6 +191,9 @@ export class CodeActionController extends Disposable implements IEditorContribut
 	}
 
 	async applyCodeAction(action: CodeActionItem, retrigger: boolean, preview: boolean, actionReason: ApplyCodeActionReason): Promise<void> {
+		if (this._disposed || this._store.isDisposed) {
+			return;
+		}
 		const progress = this._progressService.show(true, 500);
 		try {
 			await this._instantiationService.invokeFunction(applyCodeAction, action, actionReason, { preview, editor: this._editor });
@@ -274,7 +281,7 @@ export class CodeActionController extends Disposable implements IEditorContribut
 			}
 
 			this._activeCodeActions.value = actions;
-			this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false }).catch(onUnexpectedError);
 		} else {
 			// auto magically triggered
 			if (this._actionWidgetService.isVisible) {
@@ -320,6 +327,9 @@ export class CodeActionController extends Disposable implements IEditorContribut
 	});
 
 	public async showCodeActionList(actions: CodeActionSet, at: IAnchor | IPosition, options: IActionShowOptions): Promise<void> {
+		if (this._disposed || this._store.isDisposed) {
+			return;
+		}
 
 		const currentDecorations = this._editor.createDecorationsCollection();
 
@@ -337,7 +347,10 @@ export class CodeActionController extends Disposable implements IEditorContribut
 
 		const delegate: IActionListDelegate<CodeActionItem> = {
 			onSelect: async (action: CodeActionItem, preview?: boolean) => {
-				this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._disposed || this._store.isDisposed) {
+					return;
+				}
+				this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions).catch(onUnexpectedError);
 				this._actionWidgetService.hide(false);
 				currentDecorations.clear();
 			},
@@ -369,6 +382,10 @@ export class CodeActionController extends Disposable implements IEditorContribut
 				return { canPreview: canPreview || !!action.action.edit?.edits.length };
 			},
 			onFocus: (action: CodeActionItem | undefined) => {
+				if (this._disposed || this._store.isDisposed) {
+					currentDecorations.clear();
+					return;
+				}
 				if (action && action.action) {
 					const ranges = action.action.ranges;
 					const diagnostics = action.action.diagnostics;

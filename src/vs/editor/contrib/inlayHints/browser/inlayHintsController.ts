@@ -142,6 +142,7 @@ export class InlayHintsController implements IEditorContribution {
 		return editor.getContribution<InlayHintsController>(InlayHintsController.ID) ?? undefined;
 	}
 
+	private _isDisposed = false;
 	private readonly _disposables = new DisposableStore();
 	private readonly _sessionDisposables = new DisposableStore();
 	private readonly _decorationsMetadata = new Map<string, InlayHintDecorationRenderInfo>();
@@ -176,6 +177,7 @@ export class InlayHintsController implements IEditorContribution {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		this._sessionDisposables.dispose();
 		this._removeAllDecorations();
 		this._disposables.dispose();
@@ -360,14 +362,23 @@ export class InlayHintsController implements IEditorContribution {
 		}));
 		store.add(gesture.onCancel(() => sessionStore.clear()));
 		store.add(gesture.onExecute(async e => {
+			if (this._isDisposed || this._disposables.isDisposed || this._sessionDisposables.isDisposed) {
+				return;
+			}
 			const label = this._getInlayHintLabelPart(e);
 			if (label) {
 				const part = label.part;
 				if (part.location) {
 					// location -> execute go to def
-					this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._isDisposed || this._disposables.isDisposed || this._sessionDisposables.isDisposed) {
+						return;
+					}
+					this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location).catch(onUnexpectedError);
 				} else if (languages.Command.is(part.command)) {
 					// command -> execute it
+					if (this._isDisposed || this._disposables.isDisposed || this._sessionDisposables.isDisposed) {
+						return;
+					}
 					await this._invokeCommand(part.command, label.item);
 				}
 			}
@@ -488,6 +499,9 @@ export class InlayHintsController implements IEditorContribution {
 	}
 
 	private _updateHintsDecorators(ranges: readonly Range[], items: readonly InlayHintItem[]): void {
+		if (this._isDisposed || this._disposables.isDisposed) {
+			return;
+		}
 
 		const itemFixedLengths = new Map<InlayHintItem, number>();
 

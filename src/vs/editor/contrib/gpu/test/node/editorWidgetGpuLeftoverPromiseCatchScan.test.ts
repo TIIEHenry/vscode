@@ -45,30 +45,31 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 	test('this knife covers eight leftover Promise sites', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const gpu = fs.readFileSync(resolveSource(GPU_REL), 'utf8');
-		const trigger = (widget.match(/this\._commandService\.executeCommand\(handlerId, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const paste = (widget.match(/executeCommand\(editorCommon\.Handler\.Paste, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const type = (widget.match(/executeCommand\(editorCommon\.Handler\.Type, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const compositionType = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionType, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const replacePrev = (widget.match(/executeCommand\(editorCommon\.Handler\.ReplacePreviousChar, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const startComposition = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionStart, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const trigger = (widget.match(/this\._commandService\.executeCommand\(handlerId, payload\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const paste = (widget.match(/executeCommand\(editorCommon\.Handler\.Paste, payload\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const type = (widget.match(/executeCommand\(editorCommon\.Handler\.Type, payload\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const compositionType = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionType, payload\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const replacePrev = (widget.match(/executeCommand\(editorCommon\.Handler\.ReplacePreviousChar, payload\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const startComposition = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionStart, \{\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
 		const saveAtlas = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst workspaceContextService = accessor\.get\(IWorkspaceContextService\);[\s\S]*?await Promise\.all\(promises\);\n\t\t\t\t\t\}\n\t\t\t\t\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
 		const drawGlyph = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst configurationService = accessor\.get\(IConfigurationService\);[\s\S]*?await fileService\.writeFile\(resource, VSBuffer\.wrap\(new Uint8Array\(await blob\.arrayBuffer\(\)\)\)\);\n\t\t\t\t\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
 		assert.strictEqual(trigger + paste + type + compositionType + replacePrev + startComposition + saveAtlas + drawGlyph, 8);
+		assert.ok(!widget.includes(doubleCatch));
 		assert.ok(!gpu.includes(doubleCatch));
 	});
 
-	test('codeEditorWidget leftover _triggerCommand executeCommand is Promise double-chain', () => {
+	test('codeEditorWidget leftover _triggerCommand executeCommand is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const call = 'this._commandService.executeCommand(handlerId, payload)';
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 	});
 
-	test('codeEditorWidget leftover clipboard executeCommand FOFs are Promise double-chain', () => {
+	test('codeEditorWidget leftover clipboard executeCommand FOFs are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
@@ -78,9 +79,11 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 		const replacePrev = 'this._commandService.executeCommand(editorCommon.Handler.ReplacePreviousChar, payload)';
 		const startComposition = 'this._commandService.executeCommand(editorCommon.Handler.CompositionStart, {})';
 		for (const call of [paste, type, compositionType, replacePrev, startComposition]) {
-			assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+			assert.ok(source.includes(`${call}.catch(onUnexpectedError);`), `missing single-chain: ${call}`);
+			assert.ok(!source.includes(`${call}${doubleCatch};`), `unexpected double-chain: ${call}`);
 			assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
 		}
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('gpuActions leftover async invokeFunction FOFs are Promise single-catch; sync void stays skipped', () => {

@@ -61,17 +61,20 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		assert.strictEqual(lightbulb + applyOnSelect + applyHover + hoverPresentations + standalonePresentations + goto, 7);
 	});
 
-	test('codeAction leftover lightbulb onClick and list onSelect applyCodeAction are Promise double-chain', () => {
+	test('codeAction leftover lightbulb onClick and list onSelect applyCodeAction are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(CONTROLLER_REL), 'utf8');
 		assertPromiseSignature(source, 'private async showCodeActionsFromLightbulb(actions: CodeActionSet, at: IAnchor | IPosition): Promise<void> {');
 		assertPromiseSignature(source, 'async applyCodeAction(action: CodeActionItem, retrigger: boolean, preview: boolean, actionReason: ApplyCodeActionReason): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(source.includes(`this.showCodeActionsFromLightbulb(e.actions, e)${doubleCatch}`));
+		assert.ok(source.includes('this.showCodeActionsFromLightbulb(e.actions, e).catch(onUnexpectedError)'));
+		assert.ok(!source.includes(`this.showCodeActionsFromLightbulb(e.actions, e)${doubleCatch}`));
 		assert.ok(!source.includes('this.showCodeActionsFromLightbulb(e.actions, e));'));
-		assert.ok(source.includes(`this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions)${doubleCatch};`));
+		assert.ok(source.includes('this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions)${doubleCatch};`));
 		assert.ok(!source.includes('this.applyCodeAction(action, /* retrigger */ true, !!preview, options.fromLightbulb ? ApplyCodeActionReason.FromAILightbulb : ApplyCodeActionReason.FromCodeActions);'));
 		assert.ok(source.includes('await this.applyCodeAction(actionItem, false, false, ApplyCodeActionReason.FromAILightbulb);'));
 		assert.ok(source.includes('await this.applyCodeAction(validActionToApply, false, false, ApplyCodeActionReason.FromCodeActions);'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('markerHover leftover applyCodeAction is Promise single-catch; opener / two-arg then stay skipped', () => {
@@ -110,13 +113,15 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		assert.ok(!standalone.includes('updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover);'));
 	});
 
-	test('inlayHints leftover goToDefinitionWithLocation FOF is Promise double-chain', () => {
+	test('inlayHints leftover goToDefinitionWithLocation FOF is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(INLAY_CTRL_REL), 'utf8');
 		const loc = fs.readFileSync(resolveSource(INLAY_LOC_REL), 'utf8');
 		assertPromiseSignature(loc, 'export async function goToDefinitionWithLocation(accessor: ServicesAccessor, event: ClickLinkMouseEvent, editor: IActiveCodeEditor, location: Location) {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(source.includes(`this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location)${doubleCatch};`));
+		assert.ok(source.includes('this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location)${doubleCatch};`));
 		assert.ok(!source.includes('this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor as IActiveCodeEditor, part.location);'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / two-arg then / Resolve / D703 / D709 / Connect / Watch / Pty stay skipped', () => {
@@ -152,7 +157,8 @@ suite('editor apply/color/inlay leftover Promise fire-and-forget catch scan (D71
 		assert.ok(!goto.includes(`this.startFindDefinition(position)${doubleCatch};`));
 		assert.ok(sticky.includes('this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor }).catch(onUnexpectedError);'));
 		assert.ok(!sticky.includes(`this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor })${doubleCatch};`));
-		assert.ok(controller.includes(`this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false })${doubleCatch};`));
+		assert.ok(controller.includes('this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false }).catch(onUnexpectedError);'));
+		assert.ok(!controller.includes(`this.showCodeActionList(actions, this.toCoords(newState.position), { includeDisabledActions, fromLightbulb: false })${doubleCatch};`));
 		assert.ok(inlay.includes('labelPart.item.resolve(cts.token);'));
 		assert.ok(!inlay.includes('labelPart.item.resolve(cts.token).catch(onUnexpectedError)'));
 		for (const source of [marker, links, word, fold, hover, format, goto, sticky, controller, inlay]) {

@@ -30,6 +30,7 @@ export class CodeLensContribution implements IEditorContribution {
 
 	static readonly ID: string = 'css.editor.codeLens';
 
+	private _isDisposed = false;
 	private readonly _disposables = new DisposableStore();
 	private readonly _localToDispose = new DisposableStore();
 
@@ -73,6 +74,7 @@ export class CodeLensContribution implements IEditorContribution {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		this._localDispose();
 		this._localToDispose.dispose();
 		this._disposables.dispose();
@@ -278,7 +280,10 @@ export class CodeLensContribution implements IEditorContribution {
 				for (const lens of this._lenses) {
 					const command = lens.getCommand(target as HTMLLinkElement);
 					if (command) {
-						this._commandService.executeCommand(command.id, ...(command.arguments || [])).catch(err => this._notificationService.error(err)).catch(onUnexpectedError).catch(onUnexpectedError);
+						if (this._isDisposed || this._disposables.isDisposed || this._localToDispose.isDisposed) {
+							break;
+						}
+						this._commandService.executeCommand(command.id, ...(command.arguments || [])).catch(err => this._notificationService.error(err)).catch(onUnexpectedError);
 						break;
 					}
 				}
@@ -299,7 +304,7 @@ export class CodeLensContribution implements IEditorContribution {
 	}
 
 	private _renderCodeLensSymbols(symbols: CodeLensModel): void {
-		if (!this._editor.hasModel()) {
+		if (this._isDisposed || !this._editor.hasModel()) {
 			return;
 		}
 

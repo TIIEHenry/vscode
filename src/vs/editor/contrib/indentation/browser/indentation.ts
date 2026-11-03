@@ -137,6 +137,9 @@ export class ChangeIndentationSizeAction extends EditorAction {
 		const autoFocusIndex = Math.min(model.getOptions().tabSize - 1, 7);
 
 		setTimeout(() => {
+			if (model.isDisposed()) {
+				return;
+			}
 			quickInputService.pick(picks, { placeHolder: nls.localize({ key: 'selectTabWidth', comment: ['Tab corresponds to the tab key'] }, "Select Tab Size for Current File"), activeItem: picks[autoFocusIndex] }).then(pick => {
 				if (pick) {
 					if (model && !model.isDisposed()) {
@@ -154,7 +157,7 @@ export class ChangeIndentationSizeAction extends EditorAction {
 						}
 					}
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}, 50/* quick input is sensitive to being opened so soon after another */);
 	}
 }
@@ -370,6 +373,7 @@ export class AutoIndentOnPasteCommand implements ICommand {
 export class AutoIndentOnPaste implements IEditorContribution {
 	public static readonly ID = 'editor.contrib.autoIndentOnPaste';
 
+	private _isDisposed = false;
 	private readonly callOnDispose = new DisposableStore();
 	private readonly callOnModel = new DisposableStore();
 
@@ -404,6 +408,10 @@ export class AutoIndentOnPaste implements IEditorContribution {
 	}
 
 	public trigger(range: Range): void {
+		if (this._isDisposed || this.callOnDispose.isDisposed) {
+			return;
+		}
+
 		const selections = this.editor.getSelections();
 		if (selections === null || selections.length > 1) {
 			return;
@@ -563,6 +571,7 @@ export class AutoIndentOnPaste implements IEditorContribution {
 	}
 
 	public dispose(): void {
+		this._isDisposed = true;
 		this.callOnDispose.dispose();
 		this.callOnModel.dispose();
 	}

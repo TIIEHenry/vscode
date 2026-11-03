@@ -48,15 +48,17 @@ suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const suggest = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
 		const codelens = fs.readFileSync(resolveSource(CODELENS_REL), 'utf8');
-		const compositionEnd = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionEnd, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const cut = (widget.match(/executeCommand\(editorCommon\.Handler\.Cut, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const compositionEnd = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionEnd, \{\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const cut = (widget.match(/executeCommand\(editorCommon\.Handler\.Cut, \{\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
 		const fallback = (suggest.match(/executeCommand\(arg\.fallback\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		const notifyThenDouble = (codelens.match(/\.catch\(err => this\._notificationService\.error\(err\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		assert.strictEqual(compositionEnd + cut + fallback + notifyThenDouble, 4);
+		const notifyThenSingle = (codelens.match(/\.catch\(err => this\._notificationService\.error\(err\)\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		assert.strictEqual(compositionEnd + cut + fallback + notifyThenSingle, 4);
+		assert.ok(!widget.includes(doubleCatch));
+		assert.ok(!codelens.includes(doubleCatch));
 		assert.ok(!suggest.includes(doubleCatch));
 	});
 
-	test('codeEditorWidget leftover CompositionEnd / Cut executeCommand FOFs are Promise double-chain', () => {
+	test('codeEditorWidget leftover CompositionEnd / Cut executeCommand FOFs are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
@@ -64,10 +66,11 @@ suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 		const compositionEnd = 'this._commandService.executeCommand(editorCommon.Handler.CompositionEnd, {})';
 		const cut = 'this._commandService.executeCommand(editorCommon.Handler.Cut, {})';
 		for (const call of [compositionEnd, cut]) {
-			assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+			assert.ok(source.includes(`${call}.catch(onUnexpectedError);`), `missing single-chain: ${call}`);
+			assert.ok(!source.includes(`${call}${doubleCatch};`), `unexpected double-chain: ${call}`);
 			assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
-			assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
 		}
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('suggest leftover executeCommand(arg.fallback) is Promise single-catch; Promise.all().finally stays skipped', () => {
@@ -84,7 +87,7 @@ suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 		assert.ok(!/Promise\.all\(tasks\)\.finally\(\(\) => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)/.test(source));
 	});
 
-	test('codelens leftover executeCommand keeps notification then is Promise double-chain', () => {
+	test('codelens leftover executeCommand keeps notification then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(CODELENS_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		const notify = fs.readFileSync(resolveSource(NOTIFY_REL), 'utf8');
@@ -93,9 +96,10 @@ suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 		assert.ok(source.includes("import { onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';"));
 		const call = 'this._commandService.executeCommand(command.id, ...(command.arguments || []))';
 		const notifyCatch = '.catch(err => this._notificationService.error(err))';
-		assert.ok(source.includes(`${call}${notifyCatch}${doubleCatch};`));
-		assert.ok(!source.includes(`${call}${notifyCatch};`));
+		assert.ok(source.includes(`${call}${notifyCatch}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${notifyCatch}${doubleCatch};`));
 		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('await commandService.executeCommand(command.id, ...(command.arguments || []));'));
 	});
 
