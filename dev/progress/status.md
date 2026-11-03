@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-04
-summary: "多槽并行编排完成 Slot A（Comments 与 Accessibility 错误处理去重、DOM 清理与生命周期销毁守卫）、Slot B（MergeEditor 与 CodeEditor 错误处理去重、DOM 清理与生命周期销毁守卫）、Slot C（Issue 与 Workspaces 错误处理去重、DOM 清理与生命周期销毁守卫）及跨轨扫描单测协调。merge 槽单流水线全量编译 compile-client 0 错误（19s），valid-layers-check 0 错误，14 项跨模块扫描单测（82 tests）全部全绿通过。"
+summary: "多槽并行编排完成 Wave 21：Slot A（Preferences、Themes 与 BulkEdit 错误处理去重、DOM 清理与生命周期销毁守卫）、Slot B（AgentsVoice、ExternalUriOpener 与 Markdown 错误处理去重、DOM 清理与生命周期销毁守卫）、Slot C（Sessions、Automations 与 SessionInputBanners 错误处理去重、DOM 清理与生命周期销毁守卫）及配套扫描单测对齐。merge 槽单流水线全量编译 compile-client 0 错误（20s），valid-layers-check 0 错误，21 项扫描单测（65 tests）全部全绿通过。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-04 轮次二十一）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Preferences, Themes 与 BulkEdit 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 `keybindingsEditorContribution.ts`、`preferences.contribution.ts`、`preferencesWidgets.ts`、`keybindingsEditor.ts`、`settingsEditor2.ts`、`preferencesRenderers.ts`、`themes.contribution.ts`、`themes.test.contribution.ts`、`bulkEdit.contribution.ts`、`bulkEditPane.ts`、`bulkEditPreview.ts` 全面收敛 double catch 为单级 `.catch(onUnexpectedError)`；在 `settingsEditor2.ts` 将未托管 `setTimeout` 改写为经由 `this._store` 托管的 `TimeoutTimer` 及 `RunOnceScheduler`，并在 `dispose()` 中以 `clearNode` + `.remove()` 彻底脱落清空 `rootElement` DOM 容器；在 `themes.contribution.ts` 将 `mainWindow.setTimeout` 替换为受管 `TimeoutTimer`；在 `bulkEditPane.ts` 与 `bulkEditPreview.ts` 增设 `_disposables` 销毁守卫并在 Teardown 时释放模型引用；对齐 5 项 companion scanner 单测。槽提交 `81495a80a5d`。
+  - **槽位 B (AgentsVoice, ExternalUriOpener 与 Markdown 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 `agentsVoiceWidget.ts`、`agentsVoiceWindowService.ts`、`voiceEventStreamView.ts`、`voiceTranscriptsView.ts`、`voiceModeOnboarding.ts`、`contributedOpeners.ts`、`markdownSettingRenderer.ts` 全面收敛 double catch 为单级 `.catch(onUnexpectedError)`；在 `voiceTranscriptsView.ts` 与 `voiceEventStreamView.ts` 的 `dispose()` 中以 `clearNode` + `.remove()` 彻底脱落清空 DOM 容器，并在异步回调与转录流式刷新中增设 `this._store.isDisposed || this._isDisposed` 守卫；在 `voiceModeOnboarding.ts` 增设异步生命周期防护；对齐 5 项 companion scanner 单测。槽提交 `bae96f0d188`。
+  - **槽位 C (Sessions, Automations 与 SessionInputBanners 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 `sessionInputBannerWidget.ts`、`sessionInputBanners.ts`、`automationDialog.ts`、`sessionsActions.ts`、`sessionsWindowNotifier.ts`、`sessionsMouseNavigation.ts`、`sessionsTitleBarWidget.ts`、`sessionHoverContent.ts`、`sessionsView.ts`、`automationsView.ts`、`sessionsList.ts` 全面收敛 double catch 为单级 `.catch(onUnexpectedError)`；在 `sessionInputBannerWidget.ts`、`sessionsTitleBarWidget.ts`、`sessionsView.ts`、`automationsView.ts`、`sessionsList.ts` 中增设 `override dispose()` 实施 DOM 容器 `clearNode` + `.remove()` 彻底脱落；为异步会话切换、自动化触发、卡片更新全面增设生命周期销毁守卫；对齐 11 项 companion scanner 单测。槽提交 `a88702714f1`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `2d5ca7aff60`、`041b3309fa5`、`938ff246254`）。全量客户端编译 `npm run compile-client` 0 错误（20s），分层校验 `npm run valid-layers-check` 0 错误。21 项扫描单测（65 tests）100% 全绿通过。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `themes.contribution.ts` 在颜色主题预览切换中使用原生 `mainWindow.setTimeout` 产生浮动悬空计时器，自主替换为托管 `TimeoutTimer` 并由 quickpick 销毁时显式释放；
+    2) 发现 `bulkEditPreview.ts` 在 `queueMicrotask` 异步解析模型引用时缺少引用创建后的二次销毁验证，自主在引用生成后增加二次销毁判定并即时调用 `ref.dispose()` 阻断游离模型泄漏；
+    3) 发现历史扫描单测中跨模块断言仍保留 double-catch 预期，自主在各槽位按最新单级 catch 规范同步对齐断言。
 
 - **多槽并行开发与单流水线集成（2026-11-04 轮次二十）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Comments 与 Accessibility 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 `commentNode.ts`、`commentService.ts`、`commentReply.ts`、`commentsController.ts` 全面收敛 double catch 为单级 `.catch(onUnexpectedError)`；在 `commentsView.ts` 与 `commentThreadWidget.ts` 引入 `_isDisposed` 追踪，增设 `refresh()`、`display()` 与 `collapse()` 销毁守卫并在 `dispose()` 中以 `clearNode` + `.remove()` 彻底脱落清空 DOM 容器；在 `accessibleView.ts` 增设 `_isDisposed` 守卫与 DOM 清理；在 `accessibilityStatus.ts` 将未托管 `setTimeout` 改写为经由 `this._store` 托管的 `TimeoutTimer`，增设销毁时通知撤销与 `isDisposed` 状态防护；在 `extensionAccesibilityHelp.contribution.ts` 收敛 double catch；对齐 3 项 Comments/Speech 扫描单测。槽提交 `18e2b67d95e`。
