@@ -456,6 +456,7 @@ suite('ConversationIdentityStrip', () => {
 			engineChip.style.height = '24px';
 		}
 
+		engineChip.scrollIntoView?.({ block: 'nearest' });
 		const rect = engineChip.getBoundingClientRect();
 		const overlay = document.createElement('div');
 		overlay.className = 'conversation-session-bar monaco-split-view2';
