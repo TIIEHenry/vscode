@@ -524,6 +524,12 @@ export class ConversationInboxOverlay extends Disposable {
 			},
 			onDOMEvent: e => {
 				if (isContextViewClick(e)) {
+					const raw = (e as Event & { readonly browserEvent?: Event }).browserEvent ?? e;
+					const path = typeof raw.composedPath === 'function' ? raw.composedPath() : [];
+					const isInside = path.some((node: EventTarget) => node instanceof HTMLElement && (this.element.contains(node) || Boolean(node.closest?.('.context-view'))));
+					if (isInside) {
+						return;
+					}
 					const target = getContextViewEventTarget(e);
 					if (target && !this.element.contains(target) && !target.closest('.context-view')) {
 						this.listContextView?.close();
@@ -545,7 +551,6 @@ export class ConversationInboxOverlay extends Disposable {
 		if (!panel || !host) {
 			return;
 		}
-		this.listPanelDisposables.clear();
 		reset(host);
 		this.renderQueueList(host);
 	}

@@ -270,7 +270,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				const result = await (projectPath
 					? host.uaConnection.listAgentProfiles({ projectPath })
 					: host.uaConnection.listAgentProfiles());
-				if (generation !== host.composerCatalogGeneration || !host.sessionViewLease) {
+				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
 				const options = composerAgentSelectOptions(result.profiles);
@@ -288,10 +288,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 		if (caps.models.support === 'SUPPORTED' && modelOwner) {
 			try {
 				const result = await host.uaConnection.listModels(modelOwner);
-				if (generation !== host.composerCatalogGeneration || !host.sessionViewLease) {
-					return;
-				}
-				if (!ownsComposerModelRead(host, modelOwner)) {
+				if (generation !== host.composerCatalogGeneration || !ownsComposerModelRead(host, modelOwner)) {
 					return;
 				}
 				const sessionId = host.getBoundSessionId();
@@ -334,7 +331,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 		if (caps.tools.support === 'SUPPORTED') {
 			try {
 				const result = await host.uaConnection.listTools();
-				if (generation !== host.composerCatalogGeneration || !host.sessionViewLease) {
+				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
 				const names = composerToolNames(result.tools);
