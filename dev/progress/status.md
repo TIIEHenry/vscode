@@ -4,10 +4,22 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-04
-summary: "多槽并行编排完成 Slot A（Workbench Layout, Statusbar, PaneComposite 与 CompositeBar DOM 生命周期清理、销毁守卫与错误处理去重）、Slot B（Editor Parts, Editor Groups, Panes 与 DropTarget DOM 生命周期清理与错误处理去重）、Slot C（Window, Titlebar, Menubar, Dialogs 与 Notifications DOM 生命周期清理与错误处理去重）及跨轨扫描单测协调。merge 槽单流水线全量编译 compile-client 0 错误（23s），valid-layers-check 0 错误，单元测试全绿通过。"
+summary: "多槽并行编排完成 Slot A（Workbench Views, MultiEditorTabsControl, EditorParts 与 ViewPaneContainer DOM 清理、销毁守卫与错误处理去重）、Slot B（Workbench API 与 ExtHost Services 资源清理、错误处理去重与销毁守卫）、Slot C（Editor Contrib Suggest, ColorPicker, Hover, GotoSymbol, StickyScroll 等部件 DOM 清理与错误处理去重）及跨轨扫描单测协调。merge 槽单流水线全量编译 compile-client 0 错误（20s），valid-layers-check 0 错误，单元测试全绿通过。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-04 轮次十六）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Workbench Views, MultiEditorTabsControl, EditorParts 与 ViewPaneContainer DOM 生命周期清理、销毁守卫与错误处理去重)**：在 `multiEditorTabsControl.ts` 收敛 9 处双重 catch 为单级 `.catch(onUnexpectedError)`，为 drag/drop 观察者、点击处理器、`selectEditor` 与 `unselectEditor` 增加 `this._store.isDisposed` 守卫，在 `dispose()` 中执行 `clearNode(this.tabsContainer); this.tabsContainer.remove(); this.tabsContainer = undefined;` 彻底脱落标签 DOM；在 `editorParts.ts` 消除 4 处双重 catch，增设 `_isDisposed` 状态与守卫；在 `editorPart.ts`、`auxiliaryEditorPart.ts`、`modalEditorPart.ts` 规范 `_isDisposed` 为 `protected` 并为异步 `close()` 增设守卫；在 `editorCommands.ts`、`viewPaneContainer.ts`、`treeView.ts`、`configuration.ts` 去重错误处理，并在 `viewPaneContainer` 与 `treeView` 的 `dispose()` 彻底脱落清空 `paneview`、`treeContainer` 与 `domNode`。槽提交 `d707ab25a9c`。
+  - **槽位 B (Workbench API 与 ExtHost Services 生命周期资源释放、错误处理去重与销毁守卫)**：在 `mainThreadEditorTabs.ts` 收敛 `whenReady` 错误处理并增设 `_createTabsModel` 销毁拦截；在 `mainThreadDecorations.ts` 将 `DecorationRequestsQueue` 改造为规范 `IDisposable`，在取消时清空定时器并拒绝未决请求杜绝内存与计时器泄漏；在 `extHostAuthentication.ts` 使用 `_servers = new Set<LoopbackAuthServer>()` 追踪并显式在 `dispose()` 停止全部 HTTP loopback 监听服务；在 `extHostTunnelService.ts` 实现 `dispose()` 终止候选端口发现循环；在 `extHostMcpNode.ts`、`extHostSearch.ts`、`extHostTask.ts`、`extHostLoggerService.ts` 全面收敛冗余双重 catch 并增设 `this._store.isDisposed` 防护。槽提交 `c9570472c49`。
+  - **槽位 C (Editor Contrib Suggest, ColorPicker, Hover, GotoSymbol, StickyScroll 等核心部件 DOM 生命周期清理与错误处理去重)**：在 25 个 editor contrib 核心文件中收敛消除 35+ 处冗余双重 catch；为 `SuggestWidget`、`SuggestDetailsWidget`、`SuggestDetailsOverlay`、`ReferenceWidget`、`ColorPickerWidget`、`StandaloneColorPickerWidget`、`ContentHoverWidget`、`GlyphHoverWidget`、`MarkerGotoWidget`、`ParameterHintsWidget`、`StickyScrollWidget` 等 10 个部件类规范 `dispose()`，调用 `dom.clearNode()` 与 `element.remove()` 彻底脱落 DOM 树杜绝游离节点泄漏；为 `SuggestModel`（setTimeout 遥测取消）、`SuggestController`、`ReferencesController`、`InPlaceReplaceController`、`ColorDetector`、`StickyScrollProvider`、`UnusualLineTerminatorsDetector`、`GutterIndicatorView` 补全异步继续与销毁守卫。槽提交 `a84ee5d74d1`。
+  - **跨轨扫描单测对齐 (merge 槽)**：对齐 `editorApplyColorInlayLeftoverPromiseCatchScan.test.ts` 与 `apiLeftoverPromiseCatchScanD972.test.ts` 跨模块单测断言至单级 `.catch(onUnexpectedError)` 标准，全套 32+ 项扫描用例全部绿过。协调提交 `054fdd785e2`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并及跨轨单测协调分支合入 `codex/merge`。全量客户端编译 `npm run compile-client` 0 错误（20s），分层校验 `npm run valid-layers-check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `mainThreadDecorations.ts` 中 `DecorationRequestsQueue` 在提供者注销后未清理延迟计时器与未决 Promise，自主将其实现为 `IDisposable` 彻底销毁；
+    2) 发现 `extHostAuthentication.ts` 的本地回路 HTTP 服务在注销后未显式关闭导致端口挂起，自主通过 Set 追踪并在 `dispose()` 统一停止；
+    3) 发现 `extHostTunnelService.ts` 后台候选发现循环在服务销毁后仍持续触发 IPC，自主实现 `dispose()` 关停；
+    4) 发现 Suggest, Hover, ColorPicker, StickyScroll 等十余个常用编辑器交互小部件在关闭销毁时仅清理了事件监听，未脱落游离 DOM，自主调用 `dom.clearNode()` 与 `element.remove()` 彻底解决游离 DOM 泄漏。
 
 - **多槽并行开发与单流水线集成（2026-11-04 轮次十五）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Workbench Layout, Statusbar, PaneComposite 与 CompositeBar DOM 生命周期清理、销毁守卫与错误处理去重)**：在 `layout.ts` 收敛双重 catch 为单级 `.catch(onUnexpectedError)`，增加 `_isDisposed` 状态拦截；在 `paneCompositePart.ts` 实现 `override dispose()` 显式脱落并清理 `emptyPaneMessageElement`、`paneCompositeBarContainer`、`headerFooterCompositeBarContainer`、`contentArea` 与 `element`；在 `compositeBar.ts`、`globalCompositeBar.ts`、`paneCompositeBar.ts` 规范销毁流程，支持活动项视图与宿主容器 DOM 脱落；在 `statusbarItem.ts` 收敛级联 catch、增加异步执行销毁守卫并脱落 `labelContainer`、`beakContainer`、`entry.content`；在 `navigationActions.ts` 与 `contextkeys.ts` 去重链式 catch。槽提交 `6d11513916c`。
