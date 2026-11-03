@@ -174,7 +174,8 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
 
-		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(!nativeWindow.includes('this.handleWarnings();'));
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(nativeWindow.includes('this.openerService.open('));
@@ -196,8 +197,10 @@ suite('workbench editor leftover Promise fire-and-forget catch scan (D731)', () 
 		assert.ok(webFactory.includes('new BrowserMain(domElement, options).open().then(workbench => {'));
 		assert.ok(!webFactory.includes('onUnexpectedError'));
 
-		assert.ok(panePart.includes('this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(compositeBar.includes('this.openComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(panePart.includes('this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError);'));
+		assert.ok(!panePart.includes('this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(compositeBar.includes('this.openComposite(currentContainer.id, true).catch(onUnexpectedError);'));
+		assert.ok(!compositeBar.includes('this.openComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		for (const source of [tabs, groupView, nativeWindow, browserWindow, layout]) {
 			assert.ok(!source.includes('acknowledge('));

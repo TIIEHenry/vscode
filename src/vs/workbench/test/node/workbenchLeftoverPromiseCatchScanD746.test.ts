@@ -176,7 +176,8 @@ suite('workbench leftover Promise fire-and-forget catch scan (D746)', () => {
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(nativeWindow.includes('this.openerService.open('));
 		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
-		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(browserWindow.includes('this.setupOpenHandlers();'));
 		assert.ok(browserWindow.includes(')).then(async () => {'));

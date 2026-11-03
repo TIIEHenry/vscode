@@ -62,6 +62,8 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 
 		assert.ok(!windowSource.includes(doubleCatch), 'expected zero double-catches in native window');
 		assert.ok(!toasts.includes(doubleCatch), 'expected zero double-catches in notifications toasts');
+		assert.ok(!layout.includes(doubleCatch), 'expected zero double-catches in layout');
+		assert.ok(!contextkeys.includes(doubleCatch), 'expected zero double-catches in contextkeys');
 
 		const singleCalls = [
 			[windowSource, 'this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady())'],
@@ -80,11 +82,10 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
 		})`],
-		] as const;
-
-		const doubleCalls = [
-			[editorParts, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())'],
 			[layout, `this.editorGroupService.whenRestored.then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Handle visible editors changing for parts visibility
 			this._register(this.mainPartEditorService.onDidVisibleEditorsChange(e => {
@@ -108,6 +109,10 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
 		})`],
+		] as const;
+
+		const doubleCalls = [
+			[editorParts, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())'],
 		] as const;
 
 		assert.strictEqual(singleCalls.length + doubleCalls.length, 7);
@@ -165,12 +170,16 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		assert.ok(!source.includes('this.registerGroupsContextKeyListeners().catch'));
 	});
 
-	test('layout leftover whenRestored thens are Promise double-chain', () => {
+	test('layout leftover whenRestored thens are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'readonly whenRestored: Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
+		assert.ok(!source.includes(doubleCatch));
 		const listenersThen = `this.editorGroupService.whenRestored.then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Handle visible editors changing for parts visibility
 			this._register(this.mainPartEditorService.onDidVisibleEditorsChange(e => {
@@ -188,25 +197,22 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			// Revalidate center layout when active editor changes: diff editor quits centered mode
 			this._register(this.mainPartEditorService.onDidActiveEditorChange(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED))));
 		})`;
-		assert.ok(source.includes(`${listenersThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${listenersThen};`));
-		assert.ok(!source.includes(`${listenersThen}.catch(onUnexpectedError);`));
-		assertDoubleThen(source, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))');
+		assertSingleThen(source, listenersThen);
+		assertSingleThen(source, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))');
 	});
 
-	test('contextkeys leftover whenReady then is Promise double-chain; sync update* stays skipped', () => {
+	test('contextkeys leftover whenReady then is Promise single-catch; sync update* stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(CONTEXTKEYS_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'readonly whenReady: Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
+		assert.ok(!source.includes(doubleCatch));
 		const thenCall = `this.editorGroupService.whenReady.then(() => {
 			this.updateEditorAreaContextKeys();
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
-		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
+		assertSingleThen(source, thenCall);
 		assert.ok(source.includes('this.updateActiveEditorGroupContextKeys())'));
 		assert.ok(!source.includes('this.updateActiveEditorGroupContextKeys().catch'));
 	});

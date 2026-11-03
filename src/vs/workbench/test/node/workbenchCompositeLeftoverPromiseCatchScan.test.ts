@@ -54,12 +54,6 @@ function assertSingleCatch(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}${doubleCatch};`), `unexpected double-catch on: ${call}`);
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -76,12 +70,14 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
 
-		assertDoubleThen(menubar, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+		const singleCalls = [
+			[menubar, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+				if (this._isDisposed) {
+					return;
+				}
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
-			})`);
-
-		const singleCalls = [
+			})`],
 			[panePart, 'this.openPaneComposite(currentContainer.id, true)'],
 			[panePart, `this.openPaneComposite(newContainer.id, true).then(composite => {
 									composite?.openView(viewToMove.id, true);
@@ -95,25 +91,29 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 			[compositeBar, 'this.options.openComposite(defaultCompositeId, true)'],
 			[compositeBar, 'this.options.openComposite(visibleComposite)'],
 		] as const;
-		assert.strictEqual(singleCalls.length, 7);
+		assert.strictEqual(singleCalls.length, 8);
 		for (const [source, call] of singleCalls) {
 			assertSingleCatch(source, call);
 		}
 
-		for (const source of [panePart, paneBar, compositeBar]) {
+		for (const source of [panePart, paneBar, compositeBar, menubar]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 	});
 
-	test('menubar leftover alwaysUnderlineAccessKeys then is Promise double-chain', () => {
+	test('menubar leftover alwaysUnderlineAccessKeys then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(MENUBAR_REL), 'utf8');
 		const accessibility = fs.readFileSync(resolveSource(ACCESSIBILITY_REL), 'utf8');
 		assertPromiseSignature(accessibility, 'alwaysUnderlineAccessKeys(): Promise<boolean>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+		assertSingleCatch(source, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+				if (this._isDisposed) {
+					return;
+				}
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
 			})`);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('paneCompositePart leftover openPaneComposite fire-and-forget and then are Promise single-catch; sync CompositePart.openComposite stays skipped', () => {
@@ -177,8 +177,10 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		const breadcrumbs = fs.readFileSync(resolveSource(BREADCRUMBS_REL), 'utf8');
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
+		const menubar = fs.readFileSync(resolveSource(MENUBAR_REL), 'utf8');
 
-		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError);'));
+		assert.ok(!nativeWindow.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(!nativeWindow.includes('this.handleWarnings();'));
 		assert.ok(nativeWindow.includes('private async handleWarnings(): Promise<void> {'));
 		assert.ok(nativeWindow.includes('this.setupOpenHandlers();'));
@@ -199,13 +201,16 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(!breadcrumbs.includes(`${doubleCatch}`));
 
 		assert.ok(toasts.includes(`this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Show toast for initial notifications if any
 			this.model.notifications.forEach(notification => this.addToast(notification));
 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
-		})${doubleCatch};`));
+		})${singleCatch};`));
 		assert.ok(editorParts.includes(`this.whenReady.then(() => this.registerGroupsContextKeyListeners())${doubleCatch};`));
 		assert.ok(contextkeys.includes(`this.editorGroupService.whenReady.then(() => {
 			this.updateEditorAreaContextKeys();
@@ -217,9 +222,9 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(viewPane.includes(`${doubleCatch}`));
 		assert.ok(!paneBar.includes(doubleCatch));
 		assert.ok(treeView.includes(`this.tree.setInput(this.root).then(() => this.updateContentAreas())${doubleCatch};`));
-		assert.ok(editorStatus.includes(`${doubleCatch}`));
+		assert.ok(!editorStatus.includes(doubleCatch));
 
-		for (const source of [layout, panePart, paneBar, compositeBar, globalBar, contextkeys]) {
+		for (const source of [layout, panePart, paneBar, compositeBar, globalBar, contextkeys, menubar, editorStatus]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 
