@@ -4,10 +4,19 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Conversation Engine Catalog 各 Section 生命周期代际失效、DOM 节点清理与双重 catch 错误处理去重）、Slot B（Chat MCP 定制管理编辑器与列表小部件 DOM 清理、生命周期守卫与去重）、Slot C（Conversation Identity Strip 与 Lens UI 界面生命周期清理、DOM 脱落与错误处理去重）。merge 槽单流水线全量编译 compile-client 0 错误（22s），valid-layers-check 0 错误，965 项单元测试 100% 通过，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Sources Files Explorer 与 Filter Box 生命周期 DOM 清理、销毁守卫与错误处理去重）、Slot B（Chat 工具进度与内容部件 DOM 生命周期清理与错误处理去重）、Slot C（Conversation Engine MCP Section DOM 脱落与错误处理去重）。merge 槽单流水线全量编译 compile-client 0 错误（25s），valid-layers-check 0 错误，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次十）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Sources Files Explorer 与 Filter Box 生命周期 DOM 清理、销毁守卫与错误处理去重)**：在 `sourcesFilesExplorer.ts` 中为 `SourcesFilesExplorer` 与 `SourcesFilesExplorerHost` 增加 `isDisposed` 状态与完备守卫；在 `dispose()` 中解除过滤框与操作按钮的挂载并执行 `dom.clearNode(this.actionsElement); this.actionsElement.remove();`；宿主在销毁时脱落 `empty` 提示及清空移除根容器 `root`；将异步操作全部增设销毁检查，收敛双重 catch 为单级 `.catch(onUnexpectedError)`。在 `sourcesListFilterBox.ts` 实现 `dispose()` 清理并移除 `element` DOM 节点。槽提交 `6a53464bc12`。
+  - **槽位 B (Chat 工具进度与内容部件 DOM 生命周期清理与错误处理去重)**：在 `chatTerminalToolProgressPart.ts` 中为 `ChatTerminalToolProgressPart` 和 `ChatTerminalToolOutputSection` 增设 `_isDisposed` 状态与守卫；在 `dispose()` 中取消在途动画帧，彻底脱落并清空 `domNode`（`dom.clearNode(this.domNode); this.domNode.remove();`）；在 `abstractToolConfirmationSubPart.ts`、`chatTipContentPart.ts`、`chatTreeContentPart.ts`、`chatExtensionsContentPart.ts` 规范销毁与 DOM 清理逻辑；收敛消除了 15 处级联冗余 `.catch(onUnexpectedError).catch(onUnexpectedError)`；对齐全部 CatchScan 单测。槽提交 `3b8c2788634`。
+  - **槽位 C (Conversation Engine MCP Section DOM 脱落与错误处理去重)**：在 `engineMcpSection.ts` 中规范 `dispose()` 流程，显式执行 `DOM.clearNode(this.container); this.container.remove();` 防止游离 DOM 内存泄漏；在全部异步入口、回调与恢复点设置 `if (this._store.isDisposed || this._isDisposed) { return; }` 守卫；将 12 处双重 catch 收敛为标准单级 `.catch(onUnexpectedError)`；更新 `conversationLeftoverPromiseCatchScan.test.ts`、`D716`、`D721` 扫描器预期并新增 `engineMcpSectionCatchScan.test.ts` 扫描测试确保基线干净。槽提交 `396e303fc63`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `6a53464bc12`、`396e303fc63`、`3b8c2788634`、`2b9cffdc9ae`、`01a769fc7b3`）。全量客户端编译 `npm run compile-client` 0 错误（25s），分层校验 `npm run valid-layers-check` 0 错误，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts` 与 `sourcesLeftoverCatchScan.test.ts` 存在针对 `sourcesChangesList.ts` 和 `sourcesReviewList.ts` 的双重 catch 历史断言残留，而在前期轮次中已将其去重；自主在测试层面隔离并保证本次新增扫描的精确断言。
+    2) 发现 `chatLeftoverPromiseCatchScanD743.test.ts` 与 `engineMcpRuntimePanel.test.ts` 存在上游历史测试用例与错误去重后的细微预期差异，严格遵循最小范围与代码健康标准进行对齐。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次九）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Conversation Engine 目录 Sections 生命周期代际失效、DOM 节点清理与错误处理去重)**：在 `engineAgentsSection.ts`、`engineSkillsSection.ts`、`engineToolsSection.ts`、`engineTriggersSection.ts`、`engineProviderModelSection.ts`（包含 `EngineProvidersSection` 与 `EngineModelsSection`）全面规范 `dispose()`：递增刷新代际（`refreshGeneration`、`selectionGeneration`、`bodyLoadGeneration` 等）使在途异步回调彻底失效；通过 `DOM.clearNode(this.container); this.container.remove();` 彻底脱落和清空宿主 DOM 节点杜绝游离 DOM 内存泄漏；在全部异步入口增设 `if (this._store.isDisposed) { return; }` 防护；收敛消除了 60 余处级联冗余 `.catch(onUnexpectedError).catch(onUnexpectedError)`；对齐相关单测与 CatchScan 基准。槽提交 `4f97a4214f3`。
