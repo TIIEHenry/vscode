@@ -3472,4 +3472,66 @@ suite('EngineSkillsSection (E1)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('toggling skill enablement updates the row DOM element immediately without scrolling', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'custom-skill', source: 'user', enabled: true }],
+			}),
+			setSkillEnabled: async () => ({ ok: true }),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 200);
+
+		const row = section.getDomNode().querySelector<HTMLElement>('.skill-item');
+		assert.ok(row, 'skill row with .skill-item class must exist in the DOM');
+		const toggle = row.querySelector<HTMLElement>('.monaco-custom-toggle');
+		assert.ok(toggle, 'toggle switch must exist in the skill row');
+
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'true');
+		assert.strictEqual(toggle.classList.contains('checked'), true);
+
+		await section.toggleSkillForTest('custom-skill', false);
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'false');
+		assert.strictEqual(toggle.classList.contains('checked'), false);
+
+		await section.toggleSkillForTest('custom-skill', true);
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'true');
+		assert.strictEqual(toggle.classList.contains('checked'), true);
+
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('toggling skill enablement reverts DOM element when engine RPC fails', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'failing-skill', source: 'user', enabled: true }],
+			}),
+			setSkillEnabled: async () => ({ ok: false }),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 200);
+
+		const row = section.getDomNode().querySelector<HTMLElement>('.skill-item');
+		assert.ok(row, 'skill row with .skill-item class must exist in the DOM');
+		const toggle = row.querySelector<HTMLElement>('.monaco-custom-toggle');
+		assert.ok(toggle, 'toggle switch must exist in the skill row');
+
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'true');
+		assert.strictEqual(toggle.classList.contains('checked'), true);
+
+		await section.toggleSkillForTest('failing-skill', false);
+		assert.strictEqual(toggle.getAttribute('aria-checked'), 'true');
+		assert.strictEqual(toggle.classList.contains('checked'), true);
+
+		section.getDomNode().parentElement?.remove();
+	});
 });
