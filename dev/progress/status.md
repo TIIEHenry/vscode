@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Sources Files Explorer 与 Filter Box 生命周期 DOM 清理、销毁守卫与错误处理去重）、Slot B（Chat 工具进度与内容部件 DOM 生命周期清理与错误处理去重）、Slot C（Conversation Engine MCP Section DOM 脱落与错误处理去重）。merge 槽单流水线全量编译 compile-client 0 错误（25s），valid-layers-check 0 错误，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Conversation 导航、会话窗口服务、编辑器面板与覆盖层生命周期 DOM 清理、销毁守卫与错误处理去重）、Slot B（Chat 输入部件、模型/模式/权限选择器 DOM 生命周期清理与错误处理去重）、Slot C（MCP 核心服务、服务器编辑器与视图 DOM 生命周期清理与错误处理去重）。merge 槽单流水线全量编译 compile-client 0 错误（21s），valid-layers-check 0 错误，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次十一）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Conversation 导航、会话窗口服务、编辑器面板与覆盖层生命周期 DOM 清理、销毁守卫与错误处理去重)**：在 `conversationEditorPane.ts` 收敛 `navigateAgentBreadcrumb` 双重 catch，在 `dispose()` 中执行 `clearNode(this.lensTablist); this.lensTablist.remove(); clearNode(this.pageRoot); this.pageRoot.remove();` 彻底脱落 DOM 节点，并为 `setInput()` 增加 `_store.isDisposed` 状态拦截；在 `conversationSessionWindowService.ts` 收敛 4 处双重 catch 为单级 `.catch(onUnexpectedError)`，全面增设 `attachGrid`、`ensurePrimaryWindow`、`openSessionBeside`、`revealSessionWindow`、`runReveal`、`applyRevealStateTable`、`replaceLeafWithNew`、`tryBootstrapPrimaryWindow`、`whenLeafPaneReady` 的销毁守卫；在 `conversationNavigation.contribution.ts`、`conversationSessionChatService.ts`、`conversationWorkRootMount.contribution.ts`、`conversationSplitActions.contribution.ts`、`conversationTrajectoryDetailInspector.ts`、`conversationVisualizeOverlay.ts`、`conversationComposerAt.ts`、`conversationTurnContentAdapter.ts` 收敛级联 catch 为单级错误处理并对齐 DOM 清理与防护；对齐 9 项测试套件。槽提交 `5b76ae5f387`。
+  - **槽位 B (Chat 输入部件、模型/模式/权限选择器 DOM 生命周期清理与错误处理去重)**：在 `chatInputPart.ts` 中收敛 `result.finally(...)` 级联 `.catch(onUnexpectedError).catch(onUnexpectedError)` 为单级 `.catch(onUnexpectedError);`，在 `dispose()` 中执行 `dom.clearNode(this.container); this.container.remove();` 彻底脱落宿主 DOM，为会话切换、历史导航、输入提交等异步入口增设 `this._store.isDisposed` 守卫；在 `modelPickerWidget.ts` 消除级联 catch，在 `dispose()` 显式脱落并清空 `this._domNode` 节点并在交互入口增加销毁守卫；在 `permissionPickerActionItem.ts`、`modePickerActionItem.ts`、`chatInputNotificationWidget.ts`、`chatPasteProviders.ts`、`agentHostInputCompletions.ts`、`chatInputEditorContrib.ts` 全面收敛错误处理至单级 catch 并对齐 DOM 清理；对齐 5 项 CatchScan 扫描测试。槽提交 `27fd8b47225`。
+  - **槽位 C (MCP 核心服务、服务器编辑器与视图 DOM 生命周期清理与错误处理去重)**：在 `mcpServerEditor.ts` 中消除 `openLogFile` 级联双重 catch，实现 `AdditionalDetailsWidget.dispose()` 显式清理并脱落 `this._domNode`，在 `McpServerEditor.dispose()` 中显式清理脱落 `this.contentElement`；在 `mcpServersView.ts` 的 `dispose()` 彻底脱落并清空 `this.listContainer`、`this.emptyMessage`、`this.filterEmpty` 并增加异步执行守卫；在 `mcpWorkbenchService.ts`、`mcpServer.ts`、`mcpCommands.ts`、`mcpCommandsAddConfiguration.ts`、`mcpResourceQuickAccess.ts`、`mcpMigration.ts`、`mcpGatewayService.ts`、`mcpServerRequestHandler.ts`、`mcpStdioStateHandler.ts`、`installedMcpServersDiscovery.ts`、`mcpGatewayToolBrokerChannel.ts`、`mcpTypesUtils.ts` 收敛冗余双重 catch；对齐 3 项 MCP 扫描测试。槽提交 `c9016d48b50`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `5b76ae5f387`、`cc6f484c437`、`d4c80b8a10d`）。全量客户端编译 `npm run compile-client` 0 错误（21s），分层校验 `npm run valid-layers-check` 0 错误，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `mcpServerEditor.ts` 中 `AdditionalDetailsWidget` 内部创建了悬浮/详情 DOM 节点但在宿主面板销毁时未进行子节点清空脱落，导致游离 DOM 内存泄漏隐患；本次自主实现组件专属 `dispose()` 彻底脱落。
+    2) 发现 `chatInputPart.ts` 与 `agentHostInputCompletions.ts` 的上游历史扫描器单测 `chatInputPartCatchScan.test.ts`、`agentHostInputCompletionsCatchScan.test.ts`、`chatLeftoverPromiseCatchScan*.test.ts` 中含有对重复级联 catch 的特异字符串断言，本轮自主将其对齐至无双重 catch、单级标准捕获的干净基线。
+    3) 发现 `conversationNavigation.test.ts` 预设了捕获警告数组双重项（`unexpectedWarns: ['boom', 'boom']`），系针对上游双重 catch 代码异味编写的特化测试断言；本轮将其与单级 catch 行为精准对齐。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次十）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Sources Files Explorer 与 Filter Box 生命周期 DOM 清理、销毁守卫与错误处理去重)**：在 `sourcesFilesExplorer.ts` 中为 `SourcesFilesExplorer` 与 `SourcesFilesExplorerHost` 增加 `isDisposed` 状态与完备守卫；在 `dispose()` 中解除过滤框与操作按钮的挂载并执行 `dom.clearNode(this.actionsElement); this.actionsElement.remove();`；宿主在销毁时脱落 `empty` 提示及清空移除根容器 `root`；将异步操作全部增设销毁检查，收敛双重 catch 为单级 `.catch(onUnexpectedError)`。在 `sourcesListFilterBox.ts` 实现 `dispose()` 清理并移除 `element` DOM 节点。槽提交 `6a53464bc12`。
