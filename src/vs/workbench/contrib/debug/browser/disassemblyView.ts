@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { PixelRatio } from '../../../../base/browser/pixelRatio.js';
-import { $, Dimension, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, Dimension, addStandardDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { ITableContextMenuEvent, ITableRenderer, ITableVirtualDelegate } from '../../../../base/browser/ui/table/table.js';
 import { binarySearch2 } from '../../../../base/common/arrays.js';
@@ -98,6 +98,7 @@ export class DisassemblyView extends EditorPane {
 	private _enableSourceCodeRender: boolean = true;
 	private _loadingLock: boolean = false;
 	private _loadSeq = 0;
+	private _container?: HTMLElement;
 	private readonly _referenceToMemoryAddress = new Map<string, bigint>();
 	private menu: IMenu;
 
@@ -204,6 +205,7 @@ export class DisassemblyView extends EditorPane {
 	}
 
 	protected createEditor(parent: HTMLElement): void {
+		this._container = parent;
 		this._enableSourceCodeRender = this._configurationService.getValue<IDebugConfiguration>('debug').disassemblyView.showSourceCode;
 		const lineHeight = this.fontInfo.lineHeight;
 		const thisOM = this;
@@ -279,25 +281,34 @@ export class DisassemblyView extends EditorPane {
 				return;
 			}
 
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.oldScrollTop > e.scrollTop && e.scrollTop < e.height) {
 				this._loadingLock = true;
 				const prevTop = Math.floor(e.scrollTop / this.fontInfo.lineHeight);
 				this.scrollUp_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).then((loaded) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (loaded > 0) {
 						this._disassembledInstructions!.reveal(prevTop + loaded, 0);
 					}
-				}).finally(() => { this._loadingLock = false; }).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).finally(() => { this._loadingLock = false; }).catch(onUnexpectedError);
 			} else if (e.oldScrollTop < e.scrollTop && e.scrollTop + e.height > e.scrollHeight - e.height) {
 				this._loadingLock = true;
-				this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; }).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; }).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this._disassembledInstructions.onContextMenu(e => this.onContextMenu(e)));
 
 		this._register(this._debugService.getViewModel().onDidFocusStackFrame(({ stackFrame }) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this._disassembledInstructions && stackFrame?.instructionPointerReference) {
-				void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0).catch(onUnexpectedError);
 			}
 			this._onDidChangeStackFrame.fire();
 		}));
@@ -694,7 +705,16 @@ export class DisassemblyView extends EditorPane {
 				this._disassembledInstructions!.setFocus([targetIndex]);
 			}
 			this._loadingLock = false;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this._referenceToMemoryAddress.clear();
+		this._loadingLock = false;
+		if (this._container) {
+			clearNode(this._container);
+		}
+		super.dispose();
 	}
 
 	private clear() {

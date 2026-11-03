@@ -144,13 +144,16 @@ export class DebugService implements IDebugService {
 		this.disposables.add(this.lifecycleService.onWillShutdown(this.dispose, this));
 
 		this.disposables.add(this.extensionHostDebugService.onAttachSession(event => {
+			if (this.disposables.isDisposed) {
+				return;
+			}
 			const session = this.model.getSession(event.sessionId, true);
 			if (session) {
 				// EH was started in debug mode -> attach to it
 				session.configuration.request = 'attach';
 				session.configuration.port = event.port;
 				session.setSubId(event.subId);
-				this.launchOrAttachToSession(session).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.launchOrAttachToSession(session).catch(onUnexpectedError);
 			}
 		}));
 		this.disposables.add(this.extensionHostDebugService.onTerminateSession(event => {
@@ -257,6 +260,7 @@ export class DebugService implements IDebugService {
 	}
 
 	dispose(): void {
+		this.activity?.dispose();
 		this.disposables.dispose();
 	}
 
@@ -1011,7 +1015,7 @@ export class DebugService implements IDebugService {
 				return await dbg.substituteVariables(folder, config);
 			} catch (err) {
 				if (err.message !== canceledName) {
-					this.showError(err.message, undefined, !!launch?.getConfiguration(config.name)).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.showError(err.message, undefined, !!launch?.getConfiguration(config.name)).catch(onUnexpectedError);
 				}
 				return undefined;	// bail out
 			}

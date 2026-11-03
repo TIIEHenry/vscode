@@ -40,27 +40,27 @@ suite('debug/search/scm/files/markers leftover Promise fire-and-forget catch sca
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('debug breakpointWidget updateBreakpoints leftover is double-chain; then(undefined) gone', () => {
+	test('debug breakpointWidget updateBreakpoints leftover is single-chain; then(undefined) gone', () => {
 		const source = fs.readFileSync(resolveSource(BREAKPOINT_WIDGET_REL), 'utf8');
 		const call = 'this.debugService.updateBreakpoints(this.breakpoint.originalUri, data, false)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.debugService\.updateBreakpoints\(this\.breakpoint\.originalUri, data, false\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call}.then(undefined, onUnexpectedError);`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('debug adapter getKnownTasks leftover then is double-chain', () => {
+	test('debug adapter getKnownTasks leftover then is single-chain', () => {
 		const source = fs.readFileSync(resolveSource(ADAPTER_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes(`this.tasksService.getKnownTasks().then(tasks => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.taskLabels = tasks.map(task => task._label);
 			this.updateDebugAdapterSchema();
-		})${doubleCatch};`));
-		assert.ok(!source.includes(`this.tasksService.getKnownTasks().then(tasks => {
-			this.taskLabels = tasks.map(task => task._label);
-			this.updateDebugAdapterSchema();
-		});`));
+		}).catch(onUnexpectedError);`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('searchView updateFileStats leftover then is double-chain', () => {

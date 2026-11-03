@@ -78,9 +78,15 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
 		this.watchExpressionsUpdatedScheduler = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const run = this._watchExpressionsUpdatedChain.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.needsRefresh = false;
-				return this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+				return this.tree.updateChildren().catch(onUnexpectedError);
 			});
 			this._watchExpressionsUpdatedChain = run.then(() => undefined, () => undefined);
 			return run;
@@ -121,7 +127,7 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 			overrideStyles: this.getLocationBasedColors().listOverrideStyles
 		});
 		this._register(this.tree);
-		void this.tree.setInput(this.debugService).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.tree.setInput(this.debugService).catch(onUnexpectedError);
 		CONTEXT_WATCH_EXPRESSIONS_FOCUSED.bindTo(this.tree.contextKeyService);
 
 		this._register(VisualizedVariableRenderer.rendererOnVisualizationRange(this.debugService.getViewModel(), this.tree));
@@ -159,8 +165,11 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 			}
 		}));
 		this._register(this.debugService.getViewModel().onWillUpdateViews(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!ignoreViewUpdates) {
-				void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.tree.updateChildren().catch(onUnexpectedError);
 			}
 		}));
 
@@ -204,6 +213,12 @@ export class WatchExpressionsView extends ViewPane implements IDebugViewWithVari
 	override focus(): void {
 		super.focus();
 		this.tree.domFocus();
+	}
+
+	override dispose(): void {
+		this.watchExpressionsUpdatedScheduler.cancel();
+		this._watchExpressionsUpdatedChain = Promise.resolve();
+		super.dispose();
 	}
 
 	collapseAll(): void {

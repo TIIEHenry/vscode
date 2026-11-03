@@ -138,7 +138,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 					if (pick) {
 						// Use the type of the provider, not of the config since config sometimes have subtypes (for example "node-terminal")
 						await configManager.selectConfiguration(pick.launch, pick.config.name, pick.config, { type: provider.type });
-						void this.debugService.startDebugging(pick.launch, pick.config, { startedByUser: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.debugService.startDebugging(pick.launch, pick.config, { startedByUser: true }).catch(onUnexpectedError);
 					}
 				}
 			});
@@ -163,7 +163,7 @@ export class StartDebugQuickAccessProvider extends PickerQuickAccessProvider<IPi
 				label,
 				description: this.contextService.getWorkbenchState() === WorkbenchState.WORKSPACE ? launch.name : '',
 				highlights: { label: matchesFuzzy(filter, label, true) ?? undefined },
-				accept: () => void this.commandService.executeCommand(ADD_CONFIGURATION_ID, launch.uri.toString()).catch(onUnexpectedError).catch(onUnexpectedError)
+				accept: () => void this.commandService.executeCommand(ADD_CONFIGURATION_ID, launch.uri.toString()).catch(onUnexpectedError)
 			});
 		}
 

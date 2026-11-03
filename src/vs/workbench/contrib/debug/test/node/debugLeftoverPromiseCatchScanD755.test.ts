@@ -38,16 +38,18 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertDoubleChain(source: string, call: string, count: number): void {
 	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count, `count mismatch: ${call}`);
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double-chain remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
-function countDouble(rel: string, call: string, catchText = doubleCatch): number {
+function countDouble(rel: string, call: string, catchText = singleCatch): number {
 	const source = fs.readFileSync(resolveSource(rel), 'utf8');
 	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${catchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 }
@@ -77,16 +79,26 @@ const breakpointsThen = `this.textModelService.createModelReference(breakpoint.u
 		})`;
 
 const breakpointWidgetThen = `this.textModelService.createModelReference(bp.uri).then(ref => {
+				if (this.isDisposed) {
+					ref.dispose();
+					return;
+				}
 				try {
 					breakpointOptions[i + 1].description = ref.object.textEditorModel.getLineContent(bp.lineNumber).trim();
 				} finally {
 					ref.dispose();
 				}
 			}).catch(() => {
+				if (this.isDisposed) {
+					return;
+				}
 				breakpointOptions[i + 1].description = nls.localize('noBpSource', 'Could not load source.');
 			})`;
 
 const linkStatThen = `this.fileService.stat(uri).then(stat => {
+			if (hoverBehavior.store.isDisposed) {
+				return;
+			}
 			if (stat.isDirectory) {
 				return;
 			}
@@ -105,7 +117,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D755)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers three leftover Promise double-chain sites after D744; search overflow stays with slot H', () => {
+	test('this knife covers three leftover Promise single-chain sites after D744; search overflow stays with slot H', () => {
 		const sites =
 			countDouble(BREAKPOINTS_VIEW_REL, breakpointsThen) +
 			countDouble(BREAKPOINT_WIDGET_REL, breakpointWidgetThen) +
@@ -113,23 +125,25 @@ suite('debug leftover Promise fire-and-forget catch scan (D755)', () => {
 		assert.strictEqual(sites, 3);
 	});
 
-	test('breakpointsView leftover createModelReference then is Promise double-chain', () => {
+	test('breakpointsView leftover createModelReference then is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(BREAKPOINTS_VIEW_REL), 'utf8');
 		const resolver = fs.readFileSync(resolveSource(RESOLVER_REL), 'utf8');
 		assertPromiseSignature(resolver, 'createModelReference(resource: URI): Promise<IReference<IResolvedTextEditorModel>>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleChain(source, breakpointsThen, 1);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('breakpointWidget leftover createModelReference then is Promise double-chain; assigned suggestionsPromise stays skipped', () => {
+	test('breakpointWidget leftover createModelReference then is Promise single-chain; assigned suggestionsPromise stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(BREAKPOINT_WIDGET_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleChain(source, breakpointWidgetThen, 1);
 		assert.ok(source.includes('suggestionsPromise = provideSuggestionItems(this.languageFeaturesService.completionProvider, underlyingModel, new Position(this.lineNumber, 1), new CompletionOptions(undefined, new Set<CompletionItemKind>().add(CompletionItemKind.Snippet)), _context, token).then(suggestions => {'));
 		assert.ok(!source.includes(`suggestionsPromise = provideSuggestionItems(this.languageFeaturesService.completionProvider, underlyingModel, new Position(this.lineNumber, 1), new CompletionOptions(undefined, new Set<CompletionItemKind>().add(CompletionItemKind.Snippet)), _context, token).then(suggestions => {${doubleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('linkDetector leftover fileService.stat then is Promise double-chain; opener / D145 stay skipped', () => {
+	test('linkDetector leftover fileService.stat then is Promise single-chain; opener / D145 stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(LINK_REL), 'utf8');
 		const files = fs.readFileSync(resolveSource(FILES_REL), 'utf8');
 		assertPromiseSignature(files, 'stat(resource: URI): Promise<IFileStatWithPartialMetadata>;');
@@ -139,9 +153,10 @@ suite('debug leftover Promise fire-and-forget catch scan (D755)', () => {
 		assert.ok(!source.includes(`this.openerService.open(url, { allowTunneling:${doubleCatch}`));
 		assert.ok(source.includes('this.editorService.openEditor({ resource: uri, options: { ...options, preserveFocus } })'));
 		assert.ok(!source.includes(`this.editorService.openEditor({ resource: uri, options: { ...options, preserveFocus } })${doubleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('already-double D686/D688/D690/D744 leftovers stay skipped; assigned / two-arg / returned stay skipped', () => {
+	test('already-single D686/D688/D690/D744 leftovers stay skipped; assigned / two-arg / returned stay skipped', () => {
 		const adapter = fs.readFileSync(resolveSource(ADAPTER_REL), 'utf8');
 		const callStack = fs.readFileSync(resolveSource(CALL_STACK_REL), 'utf8');
 		const actionView = fs.readFileSync(resolveSource(ACTION_VIEW_REL), 'utf8');
@@ -151,25 +166,34 @@ suite('debug leftover Promise fire-and-forget catch scan (D755)', () => {
 		const session = fs.readFileSync(resolveSource(SESSION_REL), 'utf8');
 		const taskRunner = fs.readFileSync(resolveSource(TASK_RUNNER_REL), 'utf8');
 		assert.ok(adapter.includes(`this.tasksService.getKnownTasks().then(tasks => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.taskLabels = tasks.map(task => task._label);
 			this.updateDebugAdapterSchema();
-		})${doubleCatch};`));
+		})${singleCatch};`));
 		assert.ok(callStack.includes('this.modelService.createModelReference(uri).then(reference => {'));
-		assert.ok(callStack.includes(`})${doubleCatch};`));
+		assert.ok(callStack.includes(`})${singleCatch};`));
 		assert.ok(actionView.includes(`configManager.getDynamicProviders().then(providers => {
+			if (this._isDisposed) {
+				return;
+			}
 			if (providers.length !== this.providers.length) {
 				this.providers = providers;
 				this.updateOptions();
 			}
-		})${doubleCatch};`));
+		})${singleCatch};`));
 		assert.ok(commands.includes(`session.stepInTargets(frame.frameId).then(targets => {
+			if (disposables.isDisposed) {
+				return;
+			}
 			qp.busy = false;
 			if (targets?.length) {
 				qp.items = targets?.map(target => ({ target, label: target.label }));
 			} else {
 				qp.placeholder = nls.localize('editor.debug.action.stepIntoTargets.none', "No step targets available");
 			}
-		})${doubleCatch};`));
+		})${singleCatch};`));
 		assert.ok(commands.includes('Promise.all(promises).then(() => disposables.dispose());'));
 		assert.ok(!commands.includes(`Promise.all(promises).then(() => disposables.dispose())${doubleCatch}`));
 		assert.ok(config.includes('this.remoteAgentService.getEnvironment().then(environment => {'));
@@ -188,6 +212,9 @@ suite('debug leftover Promise fire-and-forget catch scan (D755)', () => {
 		assert.ok(taskRunner.includes('const taskDonePromise: Promise<ITaskSummary | null> = this.taskService.getActiveTasks().then(async (tasks): Promise<ITaskSummary | null> => {'));
 		assert.ok(taskRunner.includes('taskDonePromise.then(result => {'));
 		assert.ok(!taskRunner.includes(`taskDonePromise.then(result => {${doubleCatch}`));
+		for (const source of [adapter, callStack, actionView, commands, config, model, session, taskRunner]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 	});
 
 	test('opener / D145 / Connect / Watch / Resolve / Pty / Action2.run / invented proto stay skipped', () => {

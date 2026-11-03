@@ -1681,7 +1681,14 @@ export class DebugModel extends Disposable implements IDebugModel {
 						this.schedulers.set(thread.getId(), {
 							completeDeferred: deferred,
 							scheduler: new RunOnceScheduler(() => {
+								if (this._store.isDisposed) {
+									deferred.complete();
+									return;
+								}
 								thread.fetchCallStack(19).then(() => {
+									if (this._store.isDisposed) {
+										return;
+									}
 									const stale = thread.getStaleCallStack();
 									const current = thread.getCallStack();
 									let bottomOfCallStackChanged = stale.length !== current.length;
@@ -1695,7 +1702,7 @@ export class DebugModel extends Disposable implements IDebugModel {
 								}).finally(() => {
 									deferred.complete();
 									this.schedulers.delete(thread.getId());
-								}).catch(onUnexpectedError).catch(onUnexpectedError);
+								}).catch(onUnexpectedError);
 							}, 420)
 						});
 					}
@@ -2174,5 +2181,17 @@ export class DebugModel extends Disposable implements IDebugModel {
 			}
 		});
 		this._onDidChangeCallStack.fire(undefined);
+	}
+
+	override dispose(): void {
+		for (const [, entry] of this.schedulers) {
+			entry.scheduler.cancel();
+			entry.scheduler.dispose();
+			entry.completeDeferred.complete();
+		}
+		this.schedulers.clear();
+		this._breakpointModes.clear();
+		this.sessions = [];
+		super.dispose();
 	}
 }

@@ -68,6 +68,7 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 	private _updateTreeChain: Promise<void> = Promise.resolve();
 	private needsRefresh = false;
 	private tree!: WorkbenchAsyncDataTree<IStackFrame | null, IExpression | IScope, FuzzyScore>;
+	private treeContainer?: HTMLElement;
 	private savedViewState = new Map<string, IAsyncDataTreeViewState>();
 	private autoExpandedScopes = new Set<string>();
 
@@ -93,7 +94,15 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 
 		// Use scheduler to prevent unnecessary flashing
 		this.updateTreeScheduler = this._register(new RunOnceScheduler(() => {
-			const run = this._updateTreeChain.then(() => this._updateTreeNow());
+			if (this._store.isDisposed) {
+				return;
+			}
+			const run = this._updateTreeChain.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				return this._updateTreeNow();
+			});
 			this._updateTreeChain = run.then(() => { }, () => { });
 		}, 400));
 	}
@@ -142,6 +151,7 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 		this.element.classList.add('debug-pane');
 		container.classList.add('debug-variables');
 		const treeContainer = renderViewTree(container);
+		this.treeContainer = treeContainer;
 		const expressionRenderer = this.instantiationService.createInstance(DebugExpressionRenderer);
 		this.tree = this.instantiationService.createInstance(WorkbenchAsyncDataTree<IStackFrame | null, IExpression | IScope, FuzzyScore>, 'VariablesView', treeContainer, new VariablesDelegate(),
 			[
@@ -158,11 +168,14 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 		});
 
 		this._register(VisualizedVariableRenderer.rendererOnVisualizationRange(this.debugService.getViewModel(), this.tree));
-		void this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null).catch(onUnexpectedError);
 
 		CONTEXT_VARIABLES_FOCUSED.bindTo(this.tree.contextKeyService);
 
 		this._register(this.debugService.getViewModel().onDidFocusStackFrame(sf => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!this.isBodyVisible()) {
 				this.needsRefresh = true;
 				return;
@@ -174,24 +187,33 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 			this.updateTreeScheduler.schedule(timeout);
 		}));
 		this._register(this.debugService.getViewModel().onWillUpdateViews(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const stackFrame = this.debugService.getViewModel().focusedStackFrame;
 			if (stackFrame && forgetScopes) {
 				stackFrame.forgetScopes();
 			}
 			forgetScopes = true;
-			void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.tree.updateChildren().catch(onUnexpectedError);
 		}));
 		this._register(this.tree);
 		this._register(this.tree.onMouseDblClick(e => this.onMouseDblClick(e)));
 		this._register(this.tree.onContextMenu(async e => await this.onContextMenu(e)));
 
 		this._register(this.onDidChangeBodyVisibility(visible => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (visible && this.needsRefresh) {
 				this.updateTreeScheduler.schedule();
 			}
 		}));
 		let horizontalScrolling: boolean | undefined;
 		this._register(this.debugService.getViewModel().onDidSelectExpression(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const variable = e?.expression;
 			if (variable && this.tree.hasNode(variable)) {
 				horizontalScrolling = this.tree.options.horizontalScrolling;
@@ -206,8 +228,14 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 			}
 		}));
 		this._register(this.debugService.getViewModel().onDidEvaluateLazyExpression(async e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e instanceof Variable && this.tree.hasNode(e)) {
 				await this.tree.updateChildren(e, false, true);
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.tree.expand(e);
 			}
 		}));
@@ -279,6 +307,18 @@ export class VariablesView extends ViewPane implements IDebugViewWithVariables {
 			getAnchor: () => e.anchor,
 			getActions: () => secondary
 		});
+	}
+
+	override dispose(): void {
+		this.updateTreeScheduler.cancel();
+		this._updateTreeChain = Promise.resolve();
+		this.savedViewState.clear();
+		this.autoExpandedScopes.clear();
+		if (this.treeContainer) {
+			dom.clearNode(this.treeContainer);
+			this.treeContainer.remove();
+		}
+		super.dispose();
 	}
 }
 
@@ -470,7 +510,7 @@ export class VisualizedVariableRenderer extends AbstractExpressionsRenderer {
 			}
 
 			const parent: IExpression = tree.getParentElement(original);
-			void tree.updateChildren(parent, false, false).catch(onUnexpectedError).catch(onUnexpectedError);
+			void tree.updateChildren(parent, false, false).catch(onUnexpectedError);
 		});
 
 	}
@@ -526,7 +566,7 @@ export class VisualizedVariableRenderer extends AbstractExpressionsRenderer {
 						// Do not refresh scopes due to a node limitation #15520
 						forgetScopes = false;
 						this.debugService.getViewModel().updateViews();
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}
 			}
 		};
@@ -605,7 +645,7 @@ export class VariablesRenderer extends AbstractExpressionsRenderer {
 							// Do not refresh scopes due to a node limitation #15520
 							forgetScopes = false;
 							this.debugService.getViewModel().updateViews();
-						}).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).catch(onUnexpectedError);
 				}
 			}
 		};
@@ -637,7 +677,7 @@ export class VariablesRenderer extends AbstractExpressionsRenderer {
 			} else {
 				actionBar.push(toAction({ id: 'debugViz', label: localize('useVisualizer', 'Visualize Variable...'), class: ThemeIcon.asClassName(Codicon.eye), run: () => this.pickVisualizer(actions, originalExpression, data) }), { icon: true, label: false });
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private pickVisualizer(actions: IAction[], expression: IExpression, data: IExpressionTemplateData) {

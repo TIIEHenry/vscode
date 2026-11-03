@@ -27,21 +27,16 @@ suite('BreakpointEditorContribution leftover fire-and-forget catch scan (D662)',
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('runTo(uri, lineNumber) leftover site double-catch onUnexpectedError (D662)', () => {
-		// runTo returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('runTo(uri, lineNumber) leftover site single-catch onUnexpectedError (D662)', () => {
 		const source = fs.readFileSync(breakpointEditorContributionSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const call = 'this.debugService.runTo(uri, lineNumber)';
 		const site = `run: () => ${call}`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.debugService\.runTo\(uri, lineNumber\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${site}${doubleCatch}`));
-		assert.ok(!source.includes(`${site}${doubleCatch};`));
+		assert.ok(source.includes(`${site}${singleCatch}`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(!source.includes(`${site};`));
-		assert.ok(!source.includes(`${site}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${site}\n`));
-		assert.ok(!source.includes(`${site}.catch(onUnexpectedError)\n`));
 	});
 });

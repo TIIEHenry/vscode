@@ -51,19 +51,19 @@ class RunAndDebugAccessibilityHelpProvider extends Disposable implements IAccess
 	public onClose(): void {
 		switch (this._focusedView) {
 			case 'Watch':
-				void this._commandService.executeCommand('workbench.debug.action.focusWatchView').catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._commandService.executeCommand('workbench.debug.action.focusWatchView').catch(onUnexpectedError);
 				break;
 			case 'Variables':
-				void this._commandService.executeCommand('workbench.debug.action.focusVariablesView').catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._commandService.executeCommand('workbench.debug.action.focusVariablesView').catch(onUnexpectedError);
 				break;
 			case 'Call Stack':
-				void this._commandService.executeCommand('workbench.debug.action.focusCallStackView').catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._commandService.executeCommand('workbench.debug.action.focusCallStackView').catch(onUnexpectedError);
 				break;
 			case 'Breakpoints':
-				void this._commandService.executeCommand('workbench.debug.action.focusBreakpointsView').catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._commandService.executeCommand('workbench.debug.action.focusBreakpointsView').catch(onUnexpectedError);
 				break;
 			default:
-				void this._commandService.executeCommand('workbench.view.debug').catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._commandService.executeCommand('workbench.view.debug').catch(onUnexpectedError);
 		}
 	}
 

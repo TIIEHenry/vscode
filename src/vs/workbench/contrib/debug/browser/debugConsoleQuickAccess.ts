@@ -43,7 +43,7 @@ export class DebugConsoleQuickAccess extends PickerQuickAccessProvider<IPickerQu
 		debugConsolePicks.push({
 			label: `$(plus) ${createTerminalLabel}`,
 			ariaLabel: createTerminalLabel,
-			accept: () => void this._commandService.executeCommand(SELECT_AND_START_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+			accept: () => void this._commandService.executeCommand(SELECT_AND_START_ID).catch(onUnexpectedError)
 		});
 		return debugConsolePicks;
 	}
@@ -57,7 +57,7 @@ export class DebugConsoleQuickAccess extends PickerQuickAccessProvider<IPickerQu
 				label,
 				highlights: { label: highlights },
 				accept: (keyMod, event) => {
-					void this._debugService.focusStackFrame(undefined, undefined, session, { explicit: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this._debugService.focusStackFrame(undefined, undefined, session, { explicit: true }).catch(onUnexpectedError);
 					if (!this._viewsService.isViewVisible(REPL_VIEW_ID)) {
 						this._viewsService.openView(REPL_VIEW_ID, true);
 					}

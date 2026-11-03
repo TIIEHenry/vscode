@@ -46,6 +46,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -62,9 +63,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double-chain remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const launchCall = 'this.launchOrAttachToSession(session)';
@@ -122,7 +124,7 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		const seen = new Map<string, string>([[SERVICE_REL, service], [EDITOR_REL, editor]]);
 		for (const [rel, call, count] of d847Calls) {
 			const source = seen.get(rel) ?? '';
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -130,15 +132,17 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		assert.ok(sites <= 8);
 		assert.ok(!service.includes('D847'));
 		assert.ok(!editor.includes('D847'));
+		assert.ok(!service.includes(doubleCatch));
+		assert.ok(!editor.includes(doubleCatch));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after leftover remaining unused stayed on debug launch/showError/toggleExceptionWidget', () => {
+	test('this knife covers five leftover Promise single-chain sites after leftover remaining unused stayed on debug launch/showError/toggleExceptionWidget', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d847Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -146,11 +150,11 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SERVICE_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(EDITOR_REL) ?? ''), 3);
+		assert.strictEqual(countDoubleChains(seen.get(SERVICE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(EDITOR_REL) ?? ''), 0);
 	});
 
-	test('debug leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('debug leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const service = fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
 		const editor = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
 		assertPromiseSignature(service, 'private async launchOrAttachToSession(session: IDebugSession, forceFocus = false): Promise<void> {');
@@ -161,16 +165,16 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		assertWrapped(service, launchCall);
 		assertWrapped(service, showErrorCall);
 		assertWrapped(editor, toggleCall);
-		assert.strictEqual(countIncludes(service, `${launchCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(service, `${showErrorCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(editor, `${toggleCall}${doubleCatch}`), 3);
+		assert.strictEqual(countIncludes(service, `${launchCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(service, `${showErrorCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(editor, `${toggleCall}${singleCatch}`), 3);
 		assert.ok(!service.includes('\t\t\t\tthis.launchOrAttachToSession(session);\n'));
 		assert.ok(service.includes('await this.launchOrAttachToSession(session);'));
-		assert.ok(!service.includes(`await this.launchOrAttachToSession(session)${doubleCatch}`));
+		assert.ok(!service.includes(`await this.launchOrAttachToSession(session)${singleCatch}`));
 		assert.ok(service.includes('await this.launchOrAttachToSession(session, shouldFocus);'));
-		assert.ok(!service.includes(`await this.launchOrAttachToSession(session, shouldFocus)${doubleCatch}`));
+		assert.ok(!service.includes(`await this.launchOrAttachToSession(session, shouldFocus)${singleCatch}`));
 		assert.ok(service.includes('await this.showError(message, actionList);'));
-		assert.ok(!service.includes(`await this.showError(message, actionList)${doubleCatch}`));
+		assert.ok(!service.includes(`await this.showError(message, actionList)${singleCatch}`));
 		assert.ok(service.includes('await this.showError(debuggerDisabledMessage(dbg.type), []);'));
 		assert.ok(service.includes('await this.showError(err.message);'));
 		assert.ok(service.includes('await this.showError(errorMessage, isErrorWithActions(error) ? error.actions : []);'));
@@ -178,7 +182,9 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		assert.ok(!editor.includes('\t\t\tthis.toggleExceptionWidget();\n'));
 		assert.ok(!editor.includes('\t\t\t\tthis.toggleExceptionWidget();\n'));
 		assert.ok(editor.includes('await this.toggleExceptionWidget();'));
-		assert.ok(!editor.includes(`await this.toggleExceptionWidget()${doubleCatch}`));
+		assert.ok(!editor.includes(`await this.toggleExceptionWidget()${singleCatch}`));
+		assert.ok(!service.includes(doubleCatch));
+		assert.ok(!editor.includes(doubleCatch));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -249,14 +255,15 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		const suggest = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
 		const profileModel = fs.readFileSync(resolveSource(PROFILE_MODEL_REL), 'utf8');
 
-		let alreadyDouble = 0;
+		let singleChain = 0;
 		for (const [call, count] of d843AlreadyDouble) {
-			const wrapped = countIncludes(config, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `D843 collision ${call}: expected ${count} already-double, got ${wrapped}`);
-			alreadyDouble += wrapped;
+			const wrapped = countIncludes(config, `${call}${singleCatch}`);
+			assert.strictEqual(wrapped, count, `D843 collision ${call}: expected ${count} single-chain, got ${wrapped}`);
+			singleChain += wrapped;
 		}
-		assert.strictEqual(alreadyDouble, 5);
-		assert.strictEqual(countDoubleChains(config), 5);
+		assert.strictEqual(singleChain, 5);
+		assert.strictEqual(countDoubleChains(config), 0);
+		assert.ok(!config.includes(doubleCatch));
 		assert.ok(!config.includes('D847'));
 
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
@@ -289,9 +296,9 @@ suite('leftover remaining unused after D843 moved to debug leftover remaining un
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.changeCurrentProfile(profileToUse, localize('reload message when removed', "The current profile has been removed. Please reload to switch back to default profile"))${doubleCatch}`));
 		assert.ok(gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch}`) || gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch};`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes('this.showEmbeddedMcpDetail(server).catch(onUnexpectedError)') || aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
+		assert.ok(discovery.includes('this.sync().catch(onUnexpectedError)') || discovery.includes(`this.sync()${doubleCatch}`));
+		assert.ok(configuration.includes('this.updateCache().catch(onUnexpectedError)') || configuration.includes(`this.updateCache()${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
 		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));

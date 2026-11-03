@@ -108,6 +108,11 @@ export class DebugHoverWidget implements IContentWidget {
 	private expressionToRender: IExpression | undefined;
 	private isUpdatingTree = false;
 	private setInputSequence = 0;
+	private _isDisposed = false;
+
+	public get isDisposed(): boolean {
+		return this._isDisposed;
+	}
 
 	public get isShowingComplexValue() {
 		return this.complexValueContainer?.hidden === false;
@@ -247,6 +252,9 @@ export class DebugHoverWidget implements IContentWidget {
 	}
 
 	async showAt(position: Position, focus: boolean, mouseEvent?: IMouseEvent): Promise<void | ShowDebugHoverResult> {
+		if (this._isDisposed) {
+			return ShowDebugHoverResult.NOT_AVAILABLE;
+		}
 		this.showCancellationSource?.dispose(true);
 		const cancellationSource = this.showCancellationSource = new CancellationTokenSource();
 		const session = this.debugService.getViewModel().focusedSession;
@@ -258,7 +266,7 @@ export class DebugHoverWidget implements IContentWidget {
 
 		const model = this.editor.getModel();
 		const result = await this.debugHoverComputer.compute(position, cancellationSource.token);
-		if (cancellationSource.token.isCancellationRequested) {
+		if (this._isDisposed || cancellationSource.token.isCancellationRequested) {
 			this.hide();
 			return ShowDebugHoverResult.CANCELLED;
 		}
@@ -273,7 +281,7 @@ export class DebugHoverWidget implements IContentWidget {
 		}
 
 		const expression = await this.debugHoverComputer.evaluate(session);
-		if (cancellationSource.token.isCancellationRequested) {
+		if (this._isDisposed || cancellationSource.token.isCancellationRequested) {
 			this.hide();
 			return ShowDebugHoverResult.CANCELLED;
 		}
@@ -385,12 +393,18 @@ export class DebugHoverWidget implements IContentWidget {
 			this.isUpdatingTree = true;
 			const currentSequence = ++this.setInputSequence;
 			this.tree.setInput(expression).then(() => {
+				if (this._isDisposed) {
+					return;
+				}
 				if (currentSequence === this.setInputSequence && this._isVisible) {
 					this.isUpdatingTree = false;
 					this.layoutTreeAndContainer();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError).then(() => {
-				// After the double catch: rejection and hidden fulfillment never reach the layout above.
+			}).catch(onUnexpectedError).then(() => {
+				if (this._isDisposed) {
+					return;
+				}
+				// After the catch: rejection and hidden fulfillment never reach the layout above.
 				// A stale sequence must not clear a newer setInput that is still in progress.
 				if (currentSequence === this.setInputSequence) {
 					this.isUpdatingTree = false;
@@ -438,7 +452,20 @@ export class DebugHoverWidget implements IContentWidget {
 	}
 
 	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		if (this.showCancellationSource) {
+			this.showCancellationSource.dispose(true);
+			this.showCancellationSource = undefined;
+		}
+		this.hide();
 		this.toDispose = lifecycle.dispose(this.toDispose);
+		if (this.domNode) {
+			dom.clearNode(this.domNode);
+			this.domNode.remove();
+		}
 	}
 }
 

@@ -28,21 +28,17 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function assertDoubleChain(source: string, call: string, count: number): void {
-	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
-	assert.ok(source.includes(`${call}${doubleCatch};`));
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('output FileOutputChannelModel / MultiFile leftover loadModelPromise thens are double-chain; poll stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(OUTPUT_MODEL_REL), 'utf8');
-		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes("import { CancellationError, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes(`loadModelPromise.then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (mode === OutputChannelUpdateMode.Clear || mode === OutputChannelUpdateMode.Replace) {
 				if (isNumber(till)) {
 					this.fileOutput.reset(till);
@@ -53,10 +49,16 @@ suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688
 			this.doUpdate(mode, immediate);
 		})${doubleCatch};`));
 		assert.ok(source.includes(`loadModelPromise.then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.multifileOutput.resetToEnd();
 			this.doUpdate(OutputChannelUpdateMode.Clear, true);
 		})${doubleCatch};`));
 		assert.ok(!source.includes(`loadModelPromise.then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (mode === OutputChannelUpdateMode.Clear || mode === OutputChannelUpdateMode.Replace) {
 				if (isNumber(till)) {
 					this.fileOutput.reset(till);
@@ -67,6 +69,9 @@ suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688
 			this.doUpdate(mode, immediate);
 		});`));
 		assert.ok(!source.includes(`loadModelPromise.then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.multifileOutput.resetToEnd();
 			this.doUpdate(OutputChannelUpdateMode.Clear, true);
 		});`));
@@ -74,7 +79,7 @@ suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688
 		assert.ok(!source.includes('this.doWatch().then(() => this.poll()).catch(onUnexpectedError)'));
 	});
 
-	test('debug variablesView leftover viz.edit / setVariable / getApplicableFor thens are double-chain', () => {
+	test('debug variablesView leftover viz.edit / setVariable / getApplicableFor thens are single-chain', () => {
 		const source = fs.readFileSync(resolveSource(VARIABLES_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const editThen = `viz.edit(value).then(() => {
@@ -102,18 +107,13 @@ suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688
 				actionBar.push(toAction({ id: 'debugViz', label: localize('useVisualizer', 'Visualize Variable...'), class: ThemeIcon.asClassName(Codicon.eye), run: () => this.pickVisualizer(actions, originalExpression, data) }), { icon: true, label: false });
 			}
 		})`;
-		assert.ok(source.includes(`${editThen}${doubleCatch};`));
-		assert.ok(source.includes(`${setThen}${doubleCatch};`));
-		assert.ok(source.includes(`${vizThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${editThen};`));
-		assert.ok(!source.includes(`${setThen};`));
-		assert.ok(!source.includes(`${vizThen};`));
-		assert.ok(!source.includes(`${editThen}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${setThen}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${vizThen}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${editThen}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${setThen}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${vizThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('debug callStackWidget leftover createModelReference then is double-chain', () => {
+	test('debug callStackWidget leftover createModelReference then is single-chain', () => {
 		const source = fs.readFileSync(resolveSource(CALL_STACK_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const call = `this.modelService.createModelReference(uri).then(reference => {
@@ -126,7 +126,8 @@ suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688
 			this.setupEditorAfterModel(item, template);
 			this.setupEditorLayout(item, template);
 		})`;
-		assertDoubleChain(source, call, 1);
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('extensions gallery leftover getExtensionGalleryManifest thens are double-chain', () => {
@@ -136,8 +137,8 @@ suite('debug/output/extensions leftover Promise fire-and-forget catch scan (D688
 		assert.ok(viewlet.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const contribThen = `extensionGalleryManifestService.getExtensionGalleryManifest()
 			.then(extensionGalleryManifest => {
-				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest);
-				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest)));
+				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError).catch(onUnexpectedError)));
 			})`;
 		const viewletThen = `extensionGalleryManifestService.getExtensionGalleryManifest()
 			.then(galleryManifest => {

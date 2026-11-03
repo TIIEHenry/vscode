@@ -101,6 +101,11 @@ export class DebugSession implements IDebugSession {
 	private _name: string | undefined;
 	private readonly _onDidChangeName = new Emitter<string>();
 
+	private _isDisposed = false;
+	get isDisposed(): boolean {
+		return this._isDisposed;
+	}
+
 	/**
 	 * Promise set while enabling dependent breakpoints to block the debugger
 	 * from continuing from a stopped state.
@@ -164,6 +169,9 @@ export class DebugSession implements IDebugSession {
 			toDispose.add(compoundRoot.onDidSessionStop(() => this.terminate()));
 		}
 		this.passFocusScheduler = new RunOnceScheduler(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			// If there is some session or thread that is stopped pass focus to it
 			if (this.debugService.getModel().getSessions().some(s => s.state === State.Stopped) || this.getAllThreads().some(t => t.stopped)) {
 				if (typeof this.lastContinuedThreadId === 'number') {
@@ -171,12 +179,12 @@ export class DebugSession implements IDebugSession {
 					if (thread && thread.threadId === this.lastContinuedThreadId && !thread.stopped) {
 						const toFocusThreadId = this.getStoppedDetails()?.threadId;
 						const toFocusThread = typeof toFocusThreadId === 'number' ? this.getThread(toFocusThreadId) : undefined;
-						void this.debugService.focusStackFrame(undefined, toFocusThread).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.debugService.focusStackFrame(undefined, toFocusThread).catch(onUnexpectedError);
 					}
 				} else {
 					const session = this.debugService.getViewModel().focusedSession;
 					if (session && session.getId() === this.getId() && session.state !== State.Stopped) {
-						void this.debugService.focusStackFrame(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.debugService.focusStackFrame(undefined).catch(onUnexpectedError);
 					}
 				}
 			}
@@ -1143,12 +1151,15 @@ export class DebugSession implements IDebugSession {
 				this.passFocusScheduler.cancel();
 				if (focusedThread && event.body.threadId === focusedThread.threadId) {
 					// De-focus the thread in case it was focused
-					void this.debugService.focusStackFrame(undefined, undefined, viewModel.focusedSession, { explicit: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.debugService.focusStackFrame(undefined, undefined, viewModel.focusedSession, { explicit: false }).catch(onUnexpectedError);
 				}
 			}
 		}));
 
 		this.rawListeners.add(this.raw.onDidTerminateDebugee(async event => {
+			if (this._isDisposed) {
+				return;
+			}
 			aria.status(localize('debuggingStopped', "Debugging stopped."));
 			if (event.body && event.body.restart) {
 				await this.debugService.restartSession(this, event.body.restart);
@@ -1158,6 +1169,9 @@ export class DebugSession implements IDebugSession {
 		}));
 
 		this.rawListeners.add(this.raw.onDidContinued(async event => {
+			if (this._isDisposed) {
+				return;
+			}
 			const allThreads = event.body.allThreadsContinued !== false;
 
 			let affectedThreads: number[] | Promise<number[]>;
@@ -1398,7 +1412,7 @@ export class DebugSession implements IDebugSession {
 				const focusedThread = this.debugService.getViewModel().focusedThread;
 				const focusedThreadDoesNotExist = focusedThread !== undefined && focusedThread.session === this && !this.threads.has(focusedThread.threadId);
 				if (focusedThreadDoesNotExist) {
-					void this.debugService.focusStackFrame(undefined, undefined, this).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.debugService.focusStackFrame(undefined, undefined, this).catch(onUnexpectedError);
 				}
 
 				const thread = typeof threadId === 'number' ? this.getThread(threadId) : undefined;
@@ -1408,6 +1422,9 @@ export class DebugSession implements IDebugSession {
 					// Second call is only done if there's few threads that stopped in this event.
 					const promises = this.model.refreshTopOfCallstack(<Thread>thread, /* fetchFullStack= */!hasLotsOfThreads);
 					const focus = async () => {
+						if (this._isDisposed) {
+							return;
+						}
 						if (focusedThreadDoesNotExist || (!event.preserveFocusHint && thread.getCallStack().length)) {
 							const focusedStackFrame = this.debugService.getViewModel().focusedStackFrame;
 							if (!focusedStackFrame || focusedStackFrame.thread.session === this) {
@@ -1535,7 +1552,14 @@ export class DebugSession implements IDebugSession {
 	}
 
 	public dispose() {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		this.cancelAllRequests();
+		this.fetchThreadsScheduler.rawValue?.dispose();
+		this.passFocusScheduler.cancel();
+		this.passFocusScheduler.dispose();
 		this.rawListeners.dispose();
 		this.globalDisposables.dispose();
 		this._onDidChangeState.dispose();

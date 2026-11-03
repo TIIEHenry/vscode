@@ -168,7 +168,12 @@ export class BreakpointsView extends ViewPane {
 		this._register(this.debugService.getModel().onDidChangeBreakpoints(() => this.onBreakpointsChange()));
 		this._register(this.debugService.getViewModel().onDidFocusSession(() => this.onBreakpointsChange()));
 		this._register(this.debugService.onDidChangeState(() => this.onStateChange()));
-		this.hintDelayer = this._register(new RunOnceScheduler(() => this.updateBreakpointsHint(true), 4000));
+		this.hintDelayer = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.updateBreakpointsHint(true);
+		}, 4000));
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -454,6 +459,9 @@ export class BreakpointsView extends ViewPane {
 	}
 
 	private onBreakpointsChange(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.isBodyVisible()) {
 			if (this.tree) {
 				this.setTreeInput();
@@ -467,6 +475,9 @@ export class BreakpointsView extends ViewPane {
 	}
 
 	private onStateChange(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.isBodyVisible()) {
 			this.needsStateChange = false;
 			const thread = this.debugService.getViewModel().focusedThread;
@@ -582,6 +593,16 @@ export class BreakpointsView extends ViewPane {
 		const elements = (<ReadonlyArray<IEnablement>>model.getExceptionBreakpointsForSession(sessionId)).concat(model.getFunctionBreakpoints()).concat(model.getDataBreakpoints()).concat(model.getBreakpoints()).concat(model.getInstructionBreakpoints());
 
 		return elements as BreakpointItem[];
+	}
+
+	override dispose(): void {
+		this.hintDelayer.cancel();
+		this.collapsedState.clear();
+		if (this.hintContainer) {
+			dom.clearNode(this.hintContainer.element);
+			this.hintContainer.element.remove();
+		}
+		super.dispose();
 	}
 }
 
@@ -972,7 +993,7 @@ class BreakpointsRenderer implements ICompressibleTreeRenderer<IBreakpoint, void
 			if (data.context === breakpoint) {
 				data.name.textContent = localize('cannotLoadLine', "(cannot load line)");
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	disposeElement(node: ITreeNode<IBreakpoint, void>, index: number, template: IBreakpointTemplateData): void {

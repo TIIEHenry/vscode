@@ -46,6 +46,11 @@ export class StartDebugActionViewItem extends BaseActionViewItem {
 	private toDispose: IDisposable[];
 	private selected = 0;
 	private providers: { label: string; type: string; pick: () => Promise<{ launch: ILaunch; config: IConfig } | undefined> }[] = [];
+	private _isDisposed = false;
+
+	public get isDisposed(): boolean {
+		return this._isDisposed;
+	}
 
 	constructor(
 		private context: unknown,
@@ -176,11 +181,14 @@ export class StartDebugActionViewItem extends BaseActionViewItem {
 
 		const configManager = this.debugService.getConfigurationManager();
 		const updateDynamicConfigs = () => configManager.getDynamicProviders().then(providers => {
+			if (this._isDisposed) {
+				return;
+			}
 			if (providers.length !== this.providers.length) {
 				this.providers = providers;
 				this.updateOptions();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this.toDispose.push(configManager.onDidChangeConfigurationProviders(updateDynamicConfigs));
 		updateDynamicConfigs();
@@ -228,7 +236,16 @@ export class StartDebugActionViewItem extends BaseActionViewItem {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		this.toDispose = dispose(this.toDispose);
+		if (this.start) {
+			dom.clearNode(this.start);
+			this.start.remove();
+		}
+		if (this.configurationContainer) {
+			dom.clearNode(this.configurationContainer);
+			this.configurationContainer.remove();
+		}
 		super.dispose();
 	}
 

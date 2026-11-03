@@ -296,7 +296,7 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		this.toDispose = [this.defaultHoverLockout, this.altListener, this.displayedStore];
 		this.registerListeners();
 		this.exceptionWidgetVisible = CONTEXT_EXCEPTION_WIDGET_VISIBLE.bindTo(contextKeyService);
-		this.toggleExceptionWidget().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.toggleExceptionWidget().catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {
@@ -326,8 +326,11 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 		this.toDispose.push(this.debugService.getViewModel().onWillUpdateViews(() => this.updateInlineValuesScheduler.schedule()));
 		this.toDispose.push(this.debugService.getViewModel().onDidEvaluateLazyExpression(() => this.updateInlineValuesScheduler.schedule()));
 		this.toDispose.push(this.editor.onDidChangeModel(async () => {
+			if (this.disposed) {
+				return;
+			}
 			this.addDocumentListeners();
-			this.toggleExceptionWidget().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.toggleExceptionWidget().catch(onUnexpectedError);
 			this.hideHoverWidget();
 			this._wordToLineNumbersMap = undefined;
 			const stackFrame = this.debugService.getViewModel().focusedStackFrame;
@@ -348,8 +351,11 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 			}
 		}));
 		this.toDispose.push(this.debugService.onDidChangeState((state: State) => {
+			if (this.disposed) {
+				return;
+			}
 			if (state !== State.Stopped) {
-				this.toggleExceptionWidget().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.toggleExceptionWidget().catch(onUnexpectedError);
 			}
 		}));
 
@@ -998,8 +1004,12 @@ export class DebugEditorContribution implements IDebugEditorContribution {
 	}
 
 	dispose(): void {
+		if (this.disposed) {
+			return;
+		}
 		this.disposed = true;
 		this.showHoverGeneration++;
+		this.updateInlineValuesScheduler?.cancel();
 		this.hoverWidget?.dispose();
 		this.configurationWidget?.dispose();
 		this.exceptionWidget?.dispose();
