@@ -254,6 +254,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 	private _pendingSearch: Promise<void> | undefined;
 	/** Pending while the active match is still being located, which can drop unreachable matches. */
 	private _settleBarrier: DeferredPromise<void> | undefined;
+	private _isDisposed = false;
 
 	/** Bounds the skip walk so a query whose matches are all unlocatable cannot spin. */
 	private static readonly MAX_UNLOCATABLE_SKIPS = 50;
@@ -355,7 +356,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 		if (this._flushPendingSearch()) {
 			// The query was not searched yet, so Enter lands on its first match, not its second.
 			this._navigateToActive();
-			void this.updateResultCount().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.updateResultCount().catch(onUnexpectedError);
 			return;
 		}
 		this._advanceActiveMatch(previous);
@@ -382,7 +383,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 			this._model.next();
 		}
 		this._navigateToActive();
-		void this.updateResultCount().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.updateResultCount().catch(onUnexpectedError);
 	}
 
 	/**
@@ -498,7 +499,13 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 	private async _whenSettled(): Promise<void> {
 		// `FindInput.onDidChange` reads the count before `onInput` schedules the search.
 		await Promise.resolve();
+		if (this._isDisposed || this._store?.isDisposed) {
+			return;
+		}
 		for (let attempt = 0; attempt < MAX_SETTLE_WAITS; attempt++) {
+			if (this._isDisposed || this._store?.isDisposed) {
+				return;
+			}
 			const pending = [this._pendingSearch, this._settleBarrier?.p].filter(isDefined);
 			if (!pending.length) {
 				return;
@@ -508,8 +515,21 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 		}
 	}
 
-	protected async _getResultCount(): Promise<{ resultIndex: number; resultCount: number } | undefined> {
+	override async updateResultCount(): Promise<void> {
+		if (this._isDisposed || this._store?.isDisposed) {
+			return;
+		}
+		return super.updateResultCount();
+	}
+
+	protected override async _getResultCount(): Promise<{ resultIndex: number; resultCount: number } | undefined> {
+		if (this._isDisposed || this._store?.isDisposed) {
+			return undefined;
+		}
 		await this._whenSettled();
+		if (this._isDisposed || this._store?.isDisposed) {
+			return undefined;
+		}
 		if (this._model.isInvalidRegex) {
 			return undefined;
 		}
@@ -537,7 +557,7 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 	}
 
 	private _onMatchesChanged(): void {
-		void this.updateResultCount().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.updateResultCount().catch(onUnexpectedError);
 	}
 
 	private _navigateToActive(): void {
@@ -850,8 +870,11 @@ export class ChatFindWidget extends SimpleFindWidget implements IChatFindControl
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		this._completeSettle();
 		this._clearHighlights();
+		this.getDomNode().remove();
+		dom.clearNode(this.getDomNode());
 		super.dispose();
 	}
 }

@@ -42,6 +42,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -58,9 +59,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const clearAllCall = 'this.clearAllInlineFeedback()';
@@ -131,7 +132,7 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assertPromiseSignature(source, 'private async submitApproval(action: IChatPlanApprovalAction): Promise<void> {');
 		let sites = 0;
 		for (const [, call, count] of d856Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -140,13 +141,13 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assert.ok(!source.includes('D856'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites after leftover remaining unused stayed on chatPlanReview', () => {
+	test('this knife covers seven leftover Promise single-chain sites after leftover remaining unused stayed on chatPlanReview', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d856Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -154,10 +155,10 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(PLAN_REVIEW_REL) ?? ''), 14);
+		assert.strictEqual(countDoubleChains(seen.get(PLAN_REVIEW_REL) ?? ''), 0);
 	});
 
-	test('chatPlanReview leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('chatPlanReview leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const source = fs.readFileSync(resolveSource(PLAN_REVIEW_REL), 'utf8');
 		assertPromiseSignature(source, 'private async clearAllInlineFeedback(): Promise<void> {');
 		assertPromiseSignature(source, 'private async exitFeedbackMode(): Promise<void> {');
@@ -171,12 +172,12 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assertWrapped(source, submitRejectionCall);
 		assertWrapped(source, submitApprovalActionCall);
 		assertWrapped(source, submitApprovalPrimaryCall);
-		assert.strictEqual(countIncludes(source, `${clearAllCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${exitFeedbackCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${revealCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${submitRejectionCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(source, `${submitApprovalActionCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${submitApprovalPrimaryCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${clearAllCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${exitFeedbackCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${revealCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${submitRejectionCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${submitApprovalActionCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${submitApprovalPrimaryCall}${singleCatch}`), 1);
 		assert.ok(!source.includes('\t\t\tthis._register(clearAllButton.onDidClick(() => this.clearAllInlineFeedback()));\n'));
 		assert.ok(!source.includes('\t\t\tthis._register(closeButton.onDidClick(() => this.exitFeedbackMode()));\n'));
 		assert.ok(!source.includes('\t\t\t\tthis.revealInlineComment(item);\n'));
@@ -184,16 +185,16 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assert.ok(!source.includes('\t\t\t\t\t\t\tthis.submitApproval(action);\n'));
 		assert.ok(!source.includes('\t\tthis._buttonStore.add(approveButton.onDidClick(() => this.submitApproval(primary)));\n'));
 		assert.ok(source.includes(leftoverEnterReviewCall));
-		assert.ok(!source.includes(`void this.enterReviewMode()${doubleCatch}`));
+		assert.ok(!source.includes(`void this.enterReviewMode()${singleCatch}`));
 		assert.ok(source.includes(leftoverSubmitFeedbackCall));
-		assert.ok(!source.includes(`submitFeedback: () => this.submitFeedback()${doubleCatch}`));
-		assert.ok(source.includes(`${markUsedCall}${doubleCatch}`));
-		assert.ok(source.includes(`${enterFeedbackCall}${doubleCatch}`));
-		assert.ok(source.includes(`${submitFeedbackVoidCall}${doubleCatch}`));
+		assert.ok(!source.includes(`submitFeedback: () => this.submitFeedback()${singleCatch}`));
+		assert.ok(source.includes(`${markUsedCall}${singleCatch}`));
+		assert.ok(source.includes(`${enterFeedbackCall}${singleCatch}`));
+		assert.ok(source.includes(`${submitFeedbackVoidCall}${singleCatch}`));
 		assert.ok(source.includes('await this.markUsed();'));
-		assert.ok(!source.includes(`await this.markUsed()${doubleCatch}`));
+		assert.ok(!source.includes(`await this.markUsed()${singleCatch}`));
 		assert.ok(source.includes('await this.enterFeedbackMode({ focus: true });'));
-		assert.ok(!source.includes(`await this.enterFeedbackMode({ focus: true })${doubleCatch}`));
+		assert.ok(!source.includes(`await this.enterFeedbackMode({ focus: true })${singleCatch}`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -209,9 +210,9 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assert.ok(!source.includes('registerAction2'));
 		assert.ok(!source.includes('async run('));
 		assert.ok(source.includes(returnedSubmitActionCall));
-		assert.ok(!source.includes(`submitAction: action => this.submitApproval(action)${doubleCatch}`));
+		assert.ok(!source.includes(`submitAction: action => this.submitApproval(action)${singleCatch}`));
 		assert.ok(source.includes(returnedRejectCall));
-		assert.ok(!source.includes(`reject: () => this.submitRejection()${doubleCatch}`));
+		assert.ok(!source.includes(`reject: () => this.submitRejection()${singleCatch}`));
 		assert.ok(source.includes('\t\t\t\t\t\t\treturn Promise.resolve();\n'));
 		assert.ok(!source.includes('.then(undefined,'));
 		assert.ok(!source.includes('return this.submitApproval'));
@@ -227,13 +228,13 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 
 		assert.ok(!source.includes('acknowledge('));
 		assert.ok(!source.includes('releaseLease('));
-		assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/ResolveTurn\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/ResolveTurn\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
 		assert.ok(!source.includes('SaveSkillContent'));
-		assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes('D856'));
 	});
 
@@ -310,9 +311,12 @@ suite('leftover remaining unused chatPlanReview leftover Promise fire-and-forget
 		assert.ok(source.includes(leftoverSubmitFeedbackCall));
 		assert.ok(source.includes(returnedSubmitActionCall));
 		assert.ok(source.includes(returnedRejectCall));
-		assert.strictEqual(countIncludes(source, `${markUsedCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(source, `${enterFeedbackCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(source, `${submitFeedbackVoidCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${markUsedCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(source, `${enterFeedbackCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${submitFeedbackVoidCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${markUsedCall}${doubleCatch}`), 0);
+		assert.strictEqual(countIncludes(source, `${enterFeedbackCall}${doubleCatch}`), 0);
+		assert.strictEqual(countIncludes(source, `${submitFeedbackVoidCall}${doubleCatch}`), 0);
 
 		for (const [rel, file] of [
 			[COMMENTS_VIEW_REL, comments],

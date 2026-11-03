@@ -130,4 +130,31 @@ suite('ChatRequestOriginPart', () => {
 			revealed: sideChatResource,
 		});
 	});
+
+	test('cleans up DOM nodes and clears children on dispose', () => {
+		const disposables = store.add(new DisposableStore());
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IChatRequestOriginService, disposables.add(new ChatRequestOriginService()));
+		instantiationService.stub(IChatSideChatService, disposables.add(new ChatSideChatService()));
+		instantiationService.stub(IChatService, new class extends mock<IChatService>() { });
+		instantiationService.stub(IChatWidgetService, new class extends mock<IChatWidgetService>() { });
+
+		const part = disposables.add(instantiationService.createInstance(
+			ChatRequestOriginPart,
+			URI.parse('agent-host-codex:/child-thread'),
+			{
+				kind: ChatRequestOriginKind.Delegation,
+				sourceSessionResource: URI.parse('agent-host-codex:/source-thread'),
+			},
+		));
+		const parent = document.createElement('div');
+		parent.appendChild(part.domNode);
+		assert.strictEqual(part.domNode.parentElement, parent);
+		assert.ok(part.domNode.childNodes.length > 0);
+
+		part.dispose();
+
+		assert.strictEqual(part.domNode.parentElement, null);
+		assert.strictEqual(part.domNode.childNodes.length, 0);
+	});
 });

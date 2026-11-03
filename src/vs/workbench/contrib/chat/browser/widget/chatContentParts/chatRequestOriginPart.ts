@@ -71,12 +71,22 @@ export class ChatRequestOriginPart extends Disposable {
 		}));
 
 		if (requestOrigin) {
-			this._openSource = () => this._openRequestOrigin(requestOrigin);
+			this._openSource = async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				await this._openRequestOrigin(requestOrigin);
+			};
 			this._renderRequestOrigin(requestOrigin);
 			return;
 		}
 
-		this._openSource = () => this._sideChatService.revealSideChatSource(sessionResource);
+		this._openSource = async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			await this._sideChatService.revealSideChatSource(sessionResource);
+		};
 		const origin = this._sideChatService.observeSideChatOrigin(sessionResource);
 		this._register(autorun(reader => {
 			this._renderSideChatOrigin(origin.read(reader));
@@ -131,11 +141,14 @@ export class ChatRequestOriginPart extends Disposable {
 		this._renderContent(title, quote);
 
 		if (shouldLoadSourceSession) {
-			void this._resolveSourceQuote(origin, title, renderVersion).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._resolveSourceQuote(origin, title, renderVersion).catch(onUnexpectedError);
 		}
 	}
 
 	private async _resolveSourceQuote(origin: IChatSideChatOrigin, title: string, renderVersion: number): Promise<void> {
+		if (this._store.isDisposed || this._disposeCts.token.isCancellationRequested) {
+			return;
+		}
 		try {
 			const reference = await this._chatService.acquireOrLoadSession(
 				origin.sourceSessionResource,
@@ -160,7 +173,7 @@ export class ChatRequestOriginPart extends Disposable {
 				reference.dispose();
 			}
 		} catch (error) {
-			if (!this._disposeCts.token.isCancellationRequested) {
+			if (!this._disposeCts.token.isCancellationRequested && !this._store.isDisposed) {
 				onUnexpectedError(error);
 			}
 		}
@@ -212,12 +225,27 @@ export class ChatRequestOriginPart extends Disposable {
 	}
 
 	private async _openRequestOrigin(origin: IChatRequestOrigin): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!await this._requestOriginService.open(origin)) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this._chatWidgetService.openSession(origin.sourceSessionResource);
 		}
 	}
 
 	private _open(): void {
-		void this._openSource?.().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this._openSource?.().catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this.domNode.remove();
+		dom.clearNode(this.domNode);
+		super.dispose();
 	}
 }
