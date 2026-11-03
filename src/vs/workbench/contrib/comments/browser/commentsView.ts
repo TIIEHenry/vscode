@@ -74,6 +74,7 @@ function createResourceCommentsIterator(model: ICommentsModel): Iterable<ITreeEl
 }
 
 export class CommentsPanel extends FilterViewPane implements ICommentsView {
+	private _isDisposed = false;
 	private treeLabels!: ResourceLabels;
 	private tree: CommentsList | undefined;
 	private treeContainer!: HTMLElement;
@@ -191,7 +192,7 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 				this.updateFilter();
 			}
 			if (event.sortBy) {
-				this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.refresh().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.filterWidget.onDidChangeFilterText(() => this.updateFilter()));
@@ -274,7 +275,7 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 
 		this._register(this.onDidChangeBodyVisibility(visible => {
 			if (visible) {
-				this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.refresh().catch(onUnexpectedError);
 			}
 		}));
 
@@ -505,6 +506,9 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		if (!this.tree) {
 			return;
 		}
@@ -533,7 +537,7 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 				unresolved++;
 			}
 		}
-		this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.refresh().catch(onUnexpectedError);
 	}
 
 	private onCommentsUpdated(e: ICommentThreadChangedEvent): void {
@@ -550,13 +554,13 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 				}
 			}
 		}
-		this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.refresh().catch(onUnexpectedError);
 	}
 
 	private onDataProviderDeleted(owner: string | undefined): void {
 		this.cachedFilterStats = undefined;
 		this.totalComments = 0;
-		this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.refresh().catch(onUnexpectedError);
 	}
 
 	private updateSomeCommentsExpanded() {
@@ -587,5 +591,18 @@ export class CommentsPanel extends FilterViewPane implements ICommentsView {
 			}
 		}
 		return false;
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		if (this.treeContainer) {
+			dom.clearNode(this.treeContainer);
+			this.treeContainer.remove();
+		}
+		if (this.messageBoxContainer) {
+			dom.clearNode(this.messageBoxContainer);
+			this.messageBoxContainer.remove();
+		}
+		super.dispose();
 	}
 }

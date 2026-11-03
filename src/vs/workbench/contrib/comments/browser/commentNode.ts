@@ -158,7 +158,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 		}));
 
 		if (pendingEdit) {
-			void this.switchToEditMode().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.switchToEditMode().catch(onUnexpectedError);
 		}
 
 		this.activeCommentListeners();
@@ -166,7 +166,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 
 	private activeCommentListeners() {
 		this._register(dom.addDisposableListener(this._domNode, dom.EventType.FOCUS_IN, () => {
-			void this.commentService.setActiveCommentAndThread(this.owner, { thread: this.commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commentService.setActiveCommentAndThread(this.owner, { thread: this.commentThread, comment: this.comment }).catch(onUnexpectedError);
 		}, true));
 	}
 
@@ -516,7 +516,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 			value: this.commentBodyValue
 		};
 		this.commentService.setActiveEditingCommentThread(commentThread);
-		void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError);
 
 		this._editModeDisposables.add(this._commentEditor.onDidFocusEditorWidget(() => {
 			commentThread.input = {
@@ -524,7 +524,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 				value: this.commentBodyValue
 			};
 			this.commentService.setActiveEditingCommentThread(commentThread);
-			void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError);
 		}));
 
 		this._editModeDisposables.add(this._commentEditor.onDidChangeModelContent(e => {
@@ -535,7 +535,7 @@ export class CommentNode<T extends IRange | ICellRange> extends Disposable {
 					input.value = newVal;
 					commentThread.input = input;
 					this.commentService.setActiveEditingCommentThread(commentThread);
-					void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.commentService.setActiveCommentAndThread(this.owner, { thread: commentThread, comment: this.comment }).catch(onUnexpectedError);
 				}
 			}
 		}));

@@ -37,6 +37,7 @@ import { isCodeEditor } from '../../../../editor/browser/editorBrowser.js';
 export const COMMENTEDITOR_DECORATION_KEY = 'commenteditordecoration';
 
 export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends Disposable implements ICommentThreadWidget {
+	private _isDisposed = false;
 	private _header!: CommentThreadHeader<T>;
 	private _body: CommentThreadBody<T>;
 	private _commentReply?: CommentReply<T>;
@@ -201,6 +202,9 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 	}
 
 	async updateCommentThread(commentThread: languages.CommentThread<T>) {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		const shouldCollapse = (this._commentThread.collapsibleState === languages.CommentThreadCollapsibleState.Expanded) && (this._commentThreadState === languages.CommentThreadState.Unresolved)
 			&& (commentThread.state === languages.CommentThreadState.Resolved);
 		this._commentThreadState = commentThread.state;
@@ -210,7 +214,7 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 		this._bindCommentThreadListeners();
 
 		await this._body.updateCommentThread(commentThread, this._commentReply?.isCommentEditorFocused() ?? false);
-		if (this._store.isDisposed || this._commentThread !== commentThread) {
+		if (this._store.isDisposed || this._isDisposed || this._commentThread !== commentThread) {
 			return;
 		}
 		this._threadIsEmpty.set(!this._body.length);
@@ -224,16 +228,19 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 		}
 
 		if (shouldCollapse && this.configurationService.getValue<ICommentsConfiguration>(COMMENTS_SECTION).collapseOnResolve) {
-			void this.collapse().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.collapse().catch(onUnexpectedError);
 		}
 	}
 
 	async display(lineHeight: number, focus: boolean) {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		const headHeight = Math.max(23, Math.ceil(lineHeight * 1.2)); // 23 is the value of `Math.ceil(lineHeight * 1.2)` with the default editor font size
 		this._header.updateHeight(headHeight);
 
 		await this._body.display();
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || this._isDisposed) {
 			return;
 		}
 
@@ -262,9 +269,14 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 	}
 
 	override dispose() {
+		this._isDisposed = true;
 		super.dispose();
 		dispose(this._commentThreadDisposables);
 		this.updateCurrentThread(false, false);
+		if (this.container) {
+			dom.clearNode(this.container);
+			this.container.remove();
+		}
 	}
 
 	private _bindCommentThreadListeners() {
@@ -375,10 +387,16 @@ export class CommentThreadWidget<T extends IRange | ICellRange = IRange> extends
 	}
 
 	async collapse() {
-		if ((await this._containerDelegate.collapse()) && Range.isIRange(this.commentThread.range) && isCodeEditor(this._parentEditor)) {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
+		const collapsed = await this._containerDelegate.collapse();
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
+		if (collapsed && Range.isIRange(this.commentThread.range) && isCodeEditor(this._parentEditor)) {
 			this._parentEditor.setSelection(this.commentThread.range);
 		}
-
 	}
 
 	applyTheme(fontInfo: FontInfo) {

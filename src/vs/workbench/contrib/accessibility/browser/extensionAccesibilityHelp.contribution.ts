@@ -55,7 +55,7 @@ function registerAccessibilityHelpAction(keybindingService: IKeybindingService, 
 				viewDescriptor.id,
 				{ type: AccessibleViewType.Help },
 				() => content,
-				() => viewsService.openView(viewDescriptor.id, true).catch(onUnexpectedError).catch(onUnexpectedError),
+				() => viewsService.openView(viewDescriptor.id, true).catch(onUnexpectedError),
 			);
 		},
 	}));

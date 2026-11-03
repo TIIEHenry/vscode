@@ -44,6 +44,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -60,9 +61,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const refreshCall = 'this.refresh()';
@@ -96,27 +97,28 @@ suite('leftover remaining unused comments leftover remaining unused Promise fire
 		const source = fs.readFileSync(resolveSource(VIEW_REL), 'utf8');
 		assertPromiseSignature(source, 'private async refresh(): Promise<void> {');
 		assert.ok(source.includes('private updateFilter() {'));
-		assert.ok(!source.includes(`this.updateFilter()${doubleCatch}`));
+		assert.ok(!source.includes(`this.updateFilter()${singleCatch}`));
 		assert.ok(source.includes('private renderComments(): void {'));
-		assert.ok(!source.includes(`this.renderComments()${doubleCatch}`));
+		assert.ok(!source.includes(`this.renderComments()${singleCatch}`));
 		let sites = 0;
 		for (const [, call, count] of d839Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused comments legal leftover >=4, got ${sites}`);
 		assert.ok(sites <= 8);
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(!source.includes('D839'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after leftover remaining unused stayed on comments', () => {
+	test('this knife covers five leftover Promise single-chain sites and zero double-catches after leftover remaining unused stayed on comments', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d839Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -124,15 +126,16 @@ suite('leftover remaining unused comments leftover remaining unused Promise fire
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(VIEW_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(VIEW_REL) ?? ''), 0);
 	});
 
-	test('comments leftover remaining unused async this.foo() FOF (refresh) leftover void promises are Promise/async + double-chain', () => {
+	test('comments leftover remaining unused async this.foo() FOF (refresh) leftover void promises are Promise/async + single-chain and zero double-catches', () => {
 		const source = fs.readFileSync(resolveSource(VIEW_REL), 'utf8');
 		assertPromiseSignature(source, 'private async refresh(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, refreshCall);
-		assert.strictEqual(countIncludes(source, `${refreshCall}${doubleCatch}`), 5);
+		assert.strictEqual(countIncludes(source, `${refreshCall}${singleCatch}`), 5);
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(!source.includes('\t\t\t\tthis.refresh();\n'));
 		assert.ok(!source.includes('\t\tthis.refresh();\n'));
 		assert.ok(!source.includes('await this.refresh();'));
@@ -156,7 +159,9 @@ suite('leftover remaining unused comments leftover remaining unused Promise fire
 		assert.ok(contrib.includes('registerAction2(class Collapse extends ViewAction<CommentsPanel>'));
 		assert.ok(!contrib.includes(`view.collapseAll()${doubleCatch}`));
 		assert.ok(!contrib.includes(`revealCommentThread(commentService, editorService, uriIdentityService, marshalledCommentThread.thread, marshalledCommentThread.thread.comments![marshalledCommentThread.thread.comments!.length - 1], true)${doubleCatch}`));
-		assert.ok(controller.includes(`void this.beginCompute()${doubleCatch}`));
+		assert.ok(controller.includes(`void this.beginCompute()${singleCatch}`));
+		assert.ok(!controller.includes(`void this.beginCompute()${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(controller), 0);
 		assert.ok(controller.includes(leftoverAddOrToggleCall));
 		assert.ok(!controller.includes(`${leftoverAddOrToggleCall}${doubleCatch}`));
 
@@ -221,12 +226,13 @@ suite('leftover remaining unused comments leftover remaining unused Promise fire
 		assert.ok(!gettingStartedContrib.includes(`editorPane.selectStepLoose(stepID)${doubleCatch}`));
 		assert.ok(gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch}`) || gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch};`));
 
-		assert.ok(controller.includes(`void this.beginCompute()${doubleCatch}`));
+		assert.ok(controller.includes(`void this.beginCompute()${singleCatch}`));
+		assert.strictEqual(countDoubleChains(controller), 0);
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${singleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${singleCatch}`));
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(configuration.includes(`this.updateCache()${singleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
 		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));

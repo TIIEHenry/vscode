@@ -45,6 +45,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -66,6 +67,12 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
+function assertSingleWrapped(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+}
+
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
@@ -74,6 +81,16 @@ function assertThenWrapped(source: string, thenStart: string): void {
 	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
 	assert.ok(!source.includes(`${thenStart};`));
 	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
+}
+
+function assertSingleThenWrapped(source: string, thenStart: string): void {
+	const idx = source.indexOf(thenStart);
+	assert.ok(idx >= 0, `missing then: ${thenStart}`);
+	const afterThen = source.slice(idx);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!source.includes(`${thenStart};`));
+	assert.ok(!source.includes(`${thenStart}${doubleCatch};`));
 }
 
 const startedCall = 'this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStarted)';
@@ -125,24 +142,37 @@ suite('speech leftover remaining overflowed to accessibility leftover Promise fi
 		assert.ok(!speech.includes(`this.doRecognizeKeyword(cts.token).then(status => {${doubleCatch}`));
 	});
 
-	test('this knife covers nine leftover Promise double-chain sites after speech leftover remaining overflow', () => {
+	test('this knife covers nine leftover Promise catch sites (speech double-chain, accessibility single-chain) after speech leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count, kind] of d793Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
+			const isAccessibility = rel === VIEW_REL || rel === STATUS_REL || rel === HELP_REL;
+			const expectedCatch = isAccessibility ? singleCatch : doubleCatch;
 			if (kind === 'then') {
-				assertThenWrapped(source, call);
+				if (isAccessibility) {
+					assertSingleThenWrapped(source, call);
+				} else {
+					assertThenWrapped(source, call);
+				}
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const wrapped = countIncludes(source, `${call}${expectedCatch}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-				assertWrapped(source, call);
+				if (isAccessibility) {
+					assertSingleWrapped(source, call);
+				} else {
+					assertWrapped(source, call);
+				}
 			}
 			sites += count;
 		}
 		assert.strictEqual(sites, 9);
-		assert.ok(sites >= 4);
+		assert.strictEqual(countDoubleChains(seen.get(VIEW_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(STATUS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(HELP_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(SPEECH_SIGNAL_REL) ?? ''), 2);
 	});
 
 	test('speech leftover playSignal fire-and-forgets are Promise double-chain; assigned two-arg recognizeKeyword then stays skipped', () => {
@@ -161,7 +191,7 @@ suite('speech leftover remaining overflowed to accessibility leftover Promise fi
 		assert.ok(!speech.includes(doubleCatch));
 	});
 
-	test('accessibility leftover playSignal / _getTextModel then / executeCommand / updateValue / openView are Promise double-chain', () => {
+	test('accessibility leftover playSignal / _getTextModel then / executeCommand / updateValue / openView are Promise single-chain and zero double-catches', () => {
 		const view = fs.readFileSync(resolveSource(VIEW_REL), 'utf8');
 		const status = fs.readFileSync(resolveSource(STATUS_REL), 'utf8');
 		const help = fs.readFileSync(resolveSource(HELP_REL), 'utf8');
@@ -177,17 +207,20 @@ suite('speech leftover remaining overflowed to accessibility leftover Promise fi
 		assert.ok(view.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(status.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(help.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(view, insertedCall);
-		assertWrapped(view, deletedCall);
-		assertThenWrapped(view, getTextModelThen);
-		assertWrapped(view, openLinkCall);
-		assertWrapped(status, updateOnCall);
-		assertWrapped(status, updateOffCall);
-		assertWrapped(help, openViewCall);
+		assertSingleWrapped(view, insertedCall);
+		assertSingleWrapped(view, deletedCall);
+		assertSingleThenWrapped(view, getTextModelThen);
+		assertSingleWrapped(view, openLinkCall);
+		assertSingleWrapped(status, updateOnCall);
+		assertSingleWrapped(status, updateOffCall);
+		assertSingleWrapped(help, openViewCall);
+		assert.strictEqual(countDoubleChains(view), 0);
+		assert.strictEqual(countDoubleChains(status), 0);
+		assert.strictEqual(countDoubleChains(help), 0);
 		assert.ok(!view.includes('playSignal(AccessibilitySignal.diffLineInserted);'));
 		assert.ok(!view.includes('playSignal(AccessibilitySignal.diffLineDeleted);'));
 		assert.ok(!view.includes("this._commandService.executeCommand('editor.action.openLink');"));
-		assert.ok(view.includes(`})${doubleCatch};\n\t\tthis._updateToolbar(this._currentProvider.actions, provider.options.type);`));
+		assert.ok(view.includes(`})${singleCatch};\n\t\tthis._updateToolbar(this._currentProvider.actions, provider.options.type);`));
 		assert.ok(!status.includes("this.configurationService.updateValue('editor.accessibilitySupport', 'on', ConfigurationTarget.USER);"));
 		assert.ok(!status.includes("this.configurationService.updateValue('editor.accessibilitySupport', 'off', ConfigurationTarget.USER);"));
 		assert.ok(!help.includes('() => viewsService.openView(viewDescriptor.id, true),'));

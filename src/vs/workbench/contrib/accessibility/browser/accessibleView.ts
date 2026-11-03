@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EventType, addDisposableListener, getActiveWindow, getWindow, isActiveElement } from '../../../../base/browser/dom.js';
+import { EventType, addDisposableListener, clearNode, getActiveWindow, getWindow, isActiveElement } from '../../../../base/browser/dom.js';
 import { IKeyboardEvent, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { alert } from '../../../../base/browser/ui/aria/aria.js';
@@ -86,6 +86,7 @@ export class AccessibleView extends Disposable {
 
 	private _codeBlocks?: ICodeBlock[];
 	private _isInQuickPick: boolean = false;
+	private _isDisposed = false;
 
 	get editorWidget() { return this._editorWidget; }
 	private _container: HTMLElement;
@@ -213,9 +214,9 @@ export class AccessibleView extends Disposable {
 		}
 		const lineContent = model.getLineContent(position.lineNumber);
 		if (lineContent?.startsWith('+')) {
-			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted).catch(onUnexpectedError);
 		} else if (lineContent?.startsWith('-')) {
-			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted).catch(onUnexpectedError);
 		}
 	}
 
@@ -468,6 +469,9 @@ export class AccessibleView extends Disposable {
 		quickPick.placeholder = localize('selectKeybinding', 'Select a command ID to configure a keybinding for it');
 		quickPick.show();
 		disposables.add(quickPick.onDidAccept(async () => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			const item = quickPick.selectedItems[0];
 			if (item) {
 				await this._commandService.executeCommand('workbench.action.openGlobalKeybindings', item.id);
@@ -613,6 +617,9 @@ export class AccessibleView extends Disposable {
 		const widgetIsFocused = this._editorWidget.hasTextFocus() || this._editorWidget.hasWidgetFocus();
 		const stableUri = this._getStableUri(provider.id);
 		this._getTextModel(stableUri).then((model) => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (renderSeq !== this._renderSeq) {
 				return;
 			}
@@ -696,7 +703,7 @@ export class AccessibleView extends Disposable {
 					}
 				}
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._updateToolbar(this._currentProvider.actions, provider.options.type);
 
 		const hide = (e?: KeyboardEvent | IKeyboardEvent): void => {
@@ -729,7 +736,7 @@ export class AccessibleView extends Disposable {
 		const disposableStore = new DisposableStore();
 		disposableStore.add(this._editorWidget.onKeyDown((e) => {
 			if (e.keyCode === KeyCode.Enter) {
-				this._commandService.executeCommand('editor.action.openLink').catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand('editor.action.openLink').catch(onUnexpectedError);
 			} else if (e.keyCode === KeyCode.Escape || shouldHide(e.browserEvent, this._keybindingService, this._configurationService)) {
 				hide(e);
 			} else if (e.keyCode === KeyCode.KeyH && provider.options.readMoreUrl) {
@@ -783,6 +790,9 @@ export class AccessibleView extends Disposable {
 	}
 
 	private async _getTextModel(resource: URI): Promise<ITextModel | null> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return null;
+		}
 		const existing = this._modelService.getModel(resource);
 		if (existing && !existing.isDisposed()) {
 			return existing;
@@ -952,6 +962,15 @@ export class AccessibleView extends Disposable {
 
 	private _readMoreHint(provider: AccesibleViewContentProvider): string {
 		return provider.options.readMoreUrl ? localize("openDoc", "\nOpen a browser window with more information related to accessibility{0}.", `<keybinding:${AccessibilityCommandId.AccessibilityHelpOpenHelpLink}>`) : '';
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		if (this._container) {
+			clearNode(this._container);
+			this._container.remove();
+		}
+		super.dispose();
 	}
 }
 

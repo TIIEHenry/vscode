@@ -80,7 +80,7 @@ export class CommentReply<T extends IRange | ICellRange> extends Disposable {
 		this.commentEditorIsEmpty = CommentContextKeys.commentIsEmpty.bindTo(this._contextKeyService);
 		this.commentEditorIsEmpty.set(!this._pendingComment);
 
-		void this.initialize(focus).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.initialize(focus).catch(onUnexpectedError);
 	}
 
 	private async initialize(focus: boolean) {
@@ -392,6 +392,10 @@ export class CommentReply<T extends IRange | ICellRange> extends Disposable {
 	}
 
 	override dispose(): void {
+		if (this._container) {
+			dom.clearNode(this._container);
+			this._container.remove();
+		}
 		super.dispose();
 		dispose(this._commentThreadDisposables);
 	}

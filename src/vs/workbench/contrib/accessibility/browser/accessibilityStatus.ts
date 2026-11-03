@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { TimeoutTimer } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Event } from '../../../../base/common/event.js';
@@ -20,9 +21,11 @@ export class AccessibilityStatus extends Disposable implements IWorkbenchContrib
 
 	static readonly ID = 'workbench.contrib.accessibilityStatus';
 
+	private _isDisposed = false;
 	private screenReaderNotification: INotificationHandle | null = null;
 	private promptedScreenReader: boolean = false;
 	private readonly screenReaderModeElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
+	private readonly screenReaderPromptTimer = this._register(new TimeoutTimer());
 
 	constructor(
 		@IConfigurationService private readonly configurationService: IConfigurationService,
@@ -51,23 +54,35 @@ export class AccessibilityStatus extends Disposable implements IWorkbenchContrib
 	}
 
 	private showScreenReaderNotification(): void {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		this.screenReaderNotification = this.notificationService.prompt(
 			Severity.Info,
 			localize('screenReaderDetectedExplanation.question', "Screen reader usage detected. Do you want to enable {0} to optimize the editor for screen reader usage?", 'editor.accessibilitySupport'),
 			[{
 				label: localize('screenReaderDetectedExplanation.answerYes', "Yes"),
 				run: () => {
-					this.configurationService.updateValue('editor.accessibilitySupport', 'on', ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
+					this.configurationService.updateValue('editor.accessibilitySupport', 'on', ConfigurationTarget.USER).catch(onUnexpectedError);
 				}
 			}, {
 				label: localize('screenReaderDetectedExplanation.answerNo', "No"),
 				run: () => {
-					this.configurationService.updateValue('editor.accessibilitySupport', 'off', ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
+					this.configurationService.updateValue('editor.accessibilitySupport', 'off', ConfigurationTarget.USER).catch(onUnexpectedError);
 				}
 			},
 			{
 				label: localize('screenReaderDetectedExplanation.answerLearnMore', "Learn More"),
 				run: () => {
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
 					this.openerService.open('https://code.visualstudio.com/docs/editor/accessibility#_screen-readers');
 				}
 			}],
@@ -98,6 +113,9 @@ export class AccessibilityStatus extends Disposable implements IWorkbenchContrib
 	}
 
 	private onScreenReaderModeChange(): void {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 
 		// We only support text based editors
 		const screenReaderDetected = this.accessibilityService.isScreenReaderOptimized();
@@ -106,7 +124,12 @@ export class AccessibilityStatus extends Disposable implements IWorkbenchContrib
 			if (screenReaderConfiguration === 'auto') {
 				if (!this.promptedScreenReader) {
 					this.promptedScreenReader = true;
-					setTimeout(() => this.showScreenReaderNotification(), 100);
+					this.screenReaderPromptTimer.cancelAndSet(() => {
+						if (this._store.isDisposed || this._isDisposed) {
+							return;
+						}
+						this.showScreenReaderNotification();
+					}, 100);
 				}
 			}
 		}
@@ -115,5 +138,14 @@ export class AccessibilityStatus extends Disposable implements IWorkbenchContrib
 			this.screenReaderNotification.close();
 		}
 		this.updateScreenReaderModeElement(this.accessibilityService.isScreenReaderOptimized());
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		if (this.screenReaderNotification) {
+			this.screenReaderNotification.close();
+			this.screenReaderNotification = null;
+		}
+		super.dispose();
 	}
 }
