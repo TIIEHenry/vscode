@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import sinon from 'sinon';
 import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
@@ -4575,6 +4576,410 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.notStrictEqual(after.state.kind, 'scm');
 		assert.ok(after.generation > before.generation);
 		assert.strictEqual(input.value, 'keep typed message');
+	});
+
+	suite('checkbox selection projection', () => {
+		const defaultPaths = ['src/a.ts', 'src/nested/b.ts', 'src/nested/c.ts', 'other/d.ts'];
+
+		async function createSelectionFixture(options: {
+			paths?: string[];
+			indexPaths?: string[];
+			mode?: 'no-hook' | 'unsupported';
+			height?: number;
+		} = {}) {
+			const rpc = { changes: 0, summary: 0, diff: 0, stage: 0, commit: 0, apply: 0 };
+			const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+			const changed = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+			let pairingPending = false;
+			const base = createGitReadConnection({
+				readGitChanges: async () => {
+					rpc.changes++;
+					return {
+						supported: true, reason: '', branch: 'main',
+						entries: [
+							...(options.paths ?? defaultPaths).map(path => ({ path, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' })),
+							...(options.indexPaths ?? []).map(path => ({ path, oldPath: '', kind: 'MODIFIED', indexState: 'INDEX' })),
+						],
+					};
+				},
+				readGitFileDiff: async () => {
+					rpc.diff++;
+					return { supported: true, reason: '', path: '', unifiedDiff: '' };
+				},
+			});
+			const snapshot = (): UniverseAgentConnectionSnapshot => ({
+				...base.getConnectionSnapshot(), pairingPending,
+				gitWriteCapability: {
+					writeGitStagePaths: options.mode === 'unsupported' ? 'UNSUPPORTED' : options.mode === 'no-hook' ? 'UNKNOWN' : 'SUPPORTED',
+					writeGitCommit: 'UNKNOWN', writeGitApplyHunks: 'UNKNOWN',
+				},
+			});
+			const connection = {
+				...base,
+				getConnectionSnapshot: snapshot,
+				onDidChangeConnection: changed.event,
+				readGitSummary: async () => {
+					rpc.summary++;
+					return { supported: true, reason: '', branch: 'main', changeCount: 1 };
+				},
+				writeGitStagePaths: options.mode === 'no-hook' ? undefined : async (request: UniverseAgentWriteGitStagePathsRequest) => {
+					rpc.stage++;
+					stageCalls.push(request);
+					return acceptedWrite;
+				},
+				writeGitCommit: async () => { rpc.commit++; return acceptedWrite; },
+				writeGitApplyHunks: async () => { rpc.apply++; return acceptedWrite; },
+			} as IUniverseAgentConnection;
+			const host = mountHost();
+			host.style.height = '800px';
+			const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+			const height = options.height ?? 600;
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = `${height}px`;
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			list.layout(height, 400);
+			await timeout(0);
+			const entries = Array.from({ length: list.length }, (_, index) => list.element(index));
+			return {
+				host, widget, list, entries, rpc, stageCalls,
+				holdPairing: async () => {
+					pairingPending = true;
+					changed.fire(snapshot());
+					await waitForWriteButtonsDisabled(host);
+					const deadline = Date.now() + 2000;
+					while (host.querySelector('.monaco-list-row.is-group-start .sources-change-group .sources-change-checkbox')?.getAttribute('aria-disabled') !== 'true' && Date.now() < deadline) {
+						await timeout(20);
+					}
+					assert.strictEqual(host.querySelector('.monaco-list-row.is-group-start .sources-change-group .sources-change-checkbox')?.getAttribute('aria-disabled'), 'true');
+				},
+			};
+		}
+
+		type SelectionFixture = Awaited<ReturnType<typeof createSelectionFixture>>;
+
+		function entry(fixture: SelectionFixture, path: string): ISourcesChangeEntry {
+			const found = fixture.entries.find(candidate => candidate.gitPath === path);
+			assert.ok(found, `missing entry ${path}`);
+			return found;
+		}
+
+		function fileCheckbox(fixture: SelectionFixture, path: string): HTMLElement {
+			const element = entry(fixture, path);
+			const node = fixture.host.querySelector<HTMLElement>(`.sources-change-file .sources-change-checkbox[aria-label="Select ${element.name}"]`);
+			assert.ok(node, `file checkbox ${path} must be rendered`);
+			return node;
+		}
+
+		function folderCheckbox(fixture: SelectionFixture, label: string, groupId = 'workingTree'): HTMLElement {
+			for (const row of fixture.host.querySelectorAll<HTMLElement>('.monaco-list-row')) {
+				if (fixture.list.element(Number(row.dataset.index)).groupId !== groupId) {
+					continue;
+				}
+				for (const folder of row.querySelectorAll<HTMLElement>('.sources-change-folder-row')) {
+					if (folder.querySelector('.sources-change-folder-name')?.textContent === label) {
+						const checkbox = folder.querySelector<HTMLElement>('.sources-change-folder-checkbox');
+						assert.ok(checkbox);
+						return checkbox;
+					}
+				}
+			}
+			throw new Error(`folder checkbox ${groupId}/${label} must be rendered`);
+		}
+
+		function groupCheckbox(fixture: SelectionFixture, groupId = 'workingTree'): HTMLElement {
+			for (const row of fixture.host.querySelectorAll<HTMLElement>('.monaco-list-row.is-group-start')) {
+				if (fixture.list.element(Number(row.dataset.index)).groupId === groupId) {
+					const checkbox = row.querySelector<HTMLElement>('.sources-change-group .sources-change-checkbox');
+					assert.ok(checkbox);
+					return checkbox;
+				}
+			}
+			throw new Error(`group checkbox ${groupId} must be rendered`);
+		}
+
+		function assertCheckbox(node: HTMLElement, state: boolean | 'mixed'): void {
+			assert.deepStrictEqual({
+				role: node.getAttribute('role'), aria: node.getAttribute('aria-checked'),
+				checked: node.classList.contains('checked'), check: node.classList.contains('codicon-check'), dash: node.classList.contains('codicon-dash'),
+			}, { role: 'checkbox', aria: String(state), checked: state === true, check: state === true, dash: state === 'mixed' });
+		}
+
+		function assertSelection(fixture: SelectionFixture, paths: string[], folders: Record<string, boolean | 'mixed'>, group: boolean | 'mixed'): void {
+			for (const element of fixture.entries) {
+				const selected = paths.includes(element.gitPath ?? '');
+				assert.strictEqual(fixture.widget.isEntryChecked(element), selected);
+				assertCheckbox(fileCheckbox(fixture, element.gitPath!), selected);
+			}
+			for (const [label, state] of Object.entries(folders)) {
+				const header = fixture.entries.flatMap(element => fixture.widget.folderHeaders(element)).find(folder => folder.label === label);
+				assert.ok(header);
+				assert.strictEqual(fixture.widget.folderCheckboxState(header.id), state);
+				assertCheckbox(folderCheckbox(fixture, label), state);
+			}
+			assert.strictEqual(fixture.widget.groupCheckboxState('workingTree'), group);
+			assertCheckbox(groupCheckbox(fixture), group);
+		}
+
+		function keyboardActivate(node: HTMLElement, keyCode: number): void {
+			const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true });
+			Object.defineProperty(event, 'keyCode', { get: () => keyCode });
+			node.dispatchEvent(event);
+		}
+
+		function observeNotifications(widget: SourcesChangesList): { count: number } {
+			// Observe actual completion notifications; tests never invoke the private emitter or projection callback.
+			const counter = { count: 0 };
+			const owner = widget as unknown as { onDidChangeCheckedState: { event: Event<void> } };
+			store.add(owner.onDidChangeCheckedState.event(() => counter.count++));
+			return counter;
+		}
+
+		function observeFileProjectionWrites(fixture: SelectionFixture) {
+			const spies = new Map<HTMLElement, sinon.SinonSpy<[string, string], void>>();
+			function currentNodes(): HTMLElement[] {
+				return [...fixture.host.querySelectorAll<HTMLElement>('.sources-change-file .sources-change-checkbox')];
+			}
+			function captureCurrentNodes(): void {
+				for (const node of currentNodes()) {
+					if (!spies.has(node)) {
+						const spy = sinon.spy(node, 'setAttribute');
+						store.add({ dispose: () => spy.restore() });
+						spies.set(node, spy);
+					}
+				}
+			}
+			captureCurrentNodes();
+			return {
+				reset: () => {
+					captureCurrentNodes();
+					for (const spy of spies.values()) {
+						spy.resetHistory();
+					}
+				},
+				assertProjectedOnce: () => {
+					captureCurrentNodes();
+					const current = new Set(currentNodes());
+					for (const [node, spy] of spies) {
+						const writes = spy.getCalls().filter(call => call.args[0] === 'aria-checked');
+						assert.strictEqual(writes.length, current.has(node) ? 1 : 0, `${node.getAttribute('aria-label')}: current node projects once; retired node is not written`);
+						if (current.has(node)) {
+							const row = node.closest<HTMLElement>('.monaco-list-row');
+							assert.ok(row);
+							assertCheckbox(node, fixture.widget.isEntryChecked(fixture.list.element(Number(row.dataset.index))));
+						}
+					}
+				},
+			};
+		}
+
+		test('file clicks propagate and undo boolean leaves and ancestor mixed states without writes', async () => {
+			const fixture = await createSelectionFixture();
+			const before = { ...fixture.rpc };
+			const none = { src: false, nested: false, other: false };
+			assertSelection(fixture, [], none, false);
+			fileCheckbox(fixture, 'src/nested/b.ts').click();
+			assertSelection(fixture, ['src/nested/b.ts'], { src: 'mixed', nested: 'mixed', other: false }, 'mixed');
+			fileCheckbox(fixture, 'src/nested/c.ts').click();
+			assertSelection(fixture, ['src/nested/b.ts', 'src/nested/c.ts'], { src: 'mixed', nested: true, other: false }, 'mixed');
+			fileCheckbox(fixture, 'src/a.ts').click();
+			assertSelection(fixture, defaultPaths.slice(0, 3), { src: true, nested: true, other: false }, 'mixed');
+			fileCheckbox(fixture, 'other/d.ts').click();
+			assertSelection(fixture, defaultPaths, { src: true, nested: true, other: true }, true);
+			for (const path of [...defaultPaths].reverse()) {
+				fileCheckbox(fixture, path).click();
+			}
+			assertSelection(fixture, [], none, false);
+			assert.deepStrictEqual(fixture.rpc, before);
+		});
+
+		for (const kind of ['folder', 'group'] as const) {
+			test(`${kind} batch clicks project all leaves and undo with one completion each`, async () => {
+				const fixture = await createSelectionFixture();
+				const before = { ...fixture.rpc };
+				const notifications = observeNotifications(fixture.widget);
+				const node = kind === 'folder' ? folderCheckbox(fixture, 'src') : groupCheckbox(fixture);
+				node.click();
+				assertSelection(fixture, kind === 'folder' ? defaultPaths.slice(0, 3) : defaultPaths, { src: true, nested: true, other: kind === 'group' }, kind === 'group' ? true : 'mixed');
+				assert.strictEqual(notifications.count, 1);
+				node.click();
+				assertSelection(fixture, [], { src: false, nested: false, other: false }, false);
+				assert.strictEqual(notifications.count, 2);
+				assert.deepStrictEqual(fixture.rpc, before);
+			});
+		}
+
+		for (const kind of ['file', 'folder', 'group'] as const) {
+			for (const key of [{ name: 'Space', code: 32 }, { name: 'Enter', code: 13 }]) {
+				test(`${kind} ${key.name} keeps the same connected active checkbox without focus repair`, async () => {
+					const fixture = await createSelectionFixture();
+					const node = kind === 'file' ? fileCheckbox(fixture, 'src/a.ts') : kind === 'folder' ? folderCheckbox(fixture, 'src') : groupCheckbox(fixture);
+					const notifications = observeNotifications(fixture.widget);
+					const before = { ...fixture.rpc };
+					const splice = sinon.spy(fixture.list, 'splice');
+					store.add({ dispose: () => splice.restore() });
+					node.focus();
+					assert.strictEqual(document.activeElement, node, 'precondition: actual checkbox focus must be available');
+					keyboardActivate(node, key.code);
+					await timeout(0);
+					assert.deepStrictEqual({ connected: node.isConnected, active: document.activeElement === node, notifications: notifications.count, splices: splice.callCount }, { connected: true, active: true, notifications: 1, splices: 0 });
+					assertCheckbox(node, true);
+					keyboardActivate(node, key.code);
+					await timeout(0);
+					assert.deepStrictEqual({ connected: node.isConnected, active: document.activeElement === node, notifications: notifications.count, splices: splice.callCount }, { connected: true, active: true, notifications: 2, splices: 0 });
+					assertCheckbox(node, false);
+					assert.deepStrictEqual(fixture.rpc, before);
+				});
+			}
+		}
+
+		test('selection preserves row identity, selection, focus index, scroll and collapsed folders with zero splices', async () => {
+			const fixture = await createSelectionFixture({ height: 120 });
+			folderCheckbox(fixture, 'nested').parentElement!.click();
+			fixture.list.setSelection([0]);
+			fixture.list.setFocus([0]);
+			fixture.list.scrollTop = 8;
+			await timeout(0);
+			assert.ok(fixture.list.scrollTop > 0, 'precondition: actual scroll offset must be nonzero');
+			const elements = Array.from({ length: fixture.list.length }, (_, index) => fixture.list.element(index));
+			const nodes = [...fixture.host.querySelectorAll('.monaco-custom-toggle')];
+			const before = { selection: fixture.list.getSelection(), focus: fixture.list.getFocus(), scrollTop: fixture.list.scrollTop, headers: fixture.entries.map(element => fixture.widget.folderHeaders(element)) };
+			const splice = sinon.spy(fixture.list, 'splice');
+			store.add({ dispose: () => splice.restore() });
+			fileCheckbox(fixture, 'src/a.ts').click();
+			fileCheckbox(fixture, 'src/a.ts').click();
+			await timeout(0);
+			assert.strictEqual(splice.callCount, 0);
+			assert.deepStrictEqual({ selection: fixture.list.getSelection(), focus: fixture.list.getFocus(), scrollTop: fixture.list.scrollTop, headers: fixture.entries.map(element => fixture.widget.folderHeaders(element)) }, before);
+			for (let index = 0; index < elements.length; index++) {
+				assert.strictEqual(fixture.list.element(index), elements[index]);
+			}
+			const afterNodes = [...fixture.host.querySelectorAll('.monaco-custom-toggle')];
+			assert.strictEqual(afterNodes.length, nodes.length);
+			for (let index = 0; index < nodes.length; index++) {
+				assert.strictEqual(afterNodes[index], nodes[index]);
+			}
+		});
+
+		test('programmatic batch interiors stay silent and checked projections do not recurse', async () => {
+			const fixture = await createSelectionFixture();
+			const notifications = observeNotifications(fixture.widget);
+			const before = { ...fixture.rpc };
+			const leaf = entry(fixture, 'src/a.ts');
+			fixture.widget.setEntryChecked(leaf, true, false);
+			assert.strictEqual(fixture.widget.isEntryChecked(leaf), true);
+			assertCheckbox(fileCheckbox(fixture, 'src/a.ts'), false);
+			assert.strictEqual(notifications.count, 0);
+			fixture.widget.setEntryChecked(leaf, true);
+			assertCheckbox(fileCheckbox(fixture, 'src/a.ts'), true);
+			assert.strictEqual(notifications.count, 1);
+			fixture.widget.setGroupChecked('workingTree', true);
+			assertSelection(fixture, defaultPaths, { src: true, nested: true, other: true }, true);
+			assert.strictEqual(notifications.count, 2);
+			fixture.widget.setGroupChecked('workingTree', false);
+			assertSelection(fixture, [], { src: false, nested: false, other: false }, false);
+			assert.strictEqual(notifications.count, 3);
+			fileCheckbox(fixture, 'src/a.ts').click();
+			assertCheckbox(fileCheckbox(fixture, 'src/a.ts'), true);
+			assert.strictEqual(notifications.count, 4);
+			assert.deepStrictEqual(fixture.rpc, before);
+		});
+
+		test('collapse, expand and filter rebinding remove stale element projection subscriptions', async () => {
+			const fixture = await createSelectionFixture();
+			const probe = observeFileProjectionWrites(fixture);
+			const input = fixture.host.querySelector<HTMLInputElement>('.sources-list-filter-input');
+			assert.ok(input);
+			const before = { ...fixture.rpc };
+			const leaf = entry(fixture, 'src/nested/b.ts');
+			function projectAndCheckCurrentBindings(): void {
+				const selected = !fixture.widget.isEntryChecked(leaf);
+				probe.reset();
+				fixture.widget.setEntryChecked(leaf, selected);
+				probe.assertProjectedOnce();
+			}
+			for (let round = 0; round < 3; round++) {
+				const oldFolder = folderCheckbox(fixture, 'nested');
+				const oldAria = oldFolder.getAttribute('aria-checked');
+				oldFolder.parentElement!.click();
+				projectAndCheckCurrentBindings();
+				assert.strictEqual(oldFolder.isConnected, false);
+				assert.strictEqual(oldFolder.getAttribute('aria-checked'), oldAria, 'retired folder checkbox must not be written again');
+				folderCheckbox(fixture, 'nested').parentElement!.click();
+				projectAndCheckCurrentBindings();
+				input.value = 'a.ts';
+				input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+				projectAndCheckCurrentBindings();
+				input.value = '';
+				input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+				projectAndCheckCurrentBindings();
+			}
+			assert.deepStrictEqual(fixture.rpc, before);
+		});
+
+		test('offscreen and recycled rows read the latest model with only current projection bindings', async () => {
+			const paths = Array.from({ length: 40 }, (_, index) => `bulk/file-${String(index).padStart(2, '0')}.ts`);
+			const fixture = await createSelectionFixture({ paths, height: 120 });
+			const first = entry(fixture, paths[0]);
+			const before = { ...fixture.rpc };
+			const probe = observeFileProjectionWrites(fixture);
+			for (let round = 0; round < 3; round++) {
+				fixture.list.reveal(fixture.list.length - 1, 1);
+				await timeout(0);
+				assert.strictEqual(fixture.host.querySelector(`[aria-label="Select ${first.name}"]`), null, 'first leaf must actually be offscreen');
+				probe.reset();
+				fixture.widget.setEntryChecked(first, round % 2 === 0);
+				probe.assertProjectedOnce();
+				fixture.list.reveal(0, 0);
+				await timeout(0);
+				assertCheckbox(fileCheckbox(fixture, paths[0]), round % 2 === 0);
+				assertCheckbox(folderCheckbox(fixture, 'bulk'), round % 2 === 0 ? 'mixed' : false);
+			}
+			assert.deepStrictEqual(fixture.rpc, before);
+		});
+
+		test('non-writable index leaves and disabled folder/group controls remain unselected', async () => {
+			const fixture = await createSelectionFixture({ indexPaths: ['locked/readonly.ts'] });
+			const before = { ...fixture.rpc };
+			const readonlyEntry = entry(fixture, 'locked/readonly.ts');
+			const folder = folderCheckbox(fixture, 'locked', 'index');
+			const group = groupCheckbox(fixture, 'index');
+			assert.deepStrictEqual([folder.getAttribute('aria-disabled'), group.getAttribute('aria-disabled')], ['true', 'true']);
+			for (const node of [fileCheckbox(fixture, 'locked/readonly.ts'), folder, group]) {
+				node.click();
+				keyboardActivate(node, 32);
+				keyboardActivate(node, 13);
+				assertCheckbox(node, false);
+			}
+			groupCheckbox(fixture).click();
+			assert.strictEqual(fixture.widget.isEntryChecked(readonlyEntry), false);
+			assertCheckbox(fileCheckbox(fixture, 'locked/readonly.ts'), false);
+			assertCheckbox(folder, false);
+			assertCheckbox(group, false);
+			assert.deepStrictEqual(fixture.rpc, before);
+		});
+
+		for (const mode of ['no-hook', 'unsupported', 'pairing-hold'] as const) {
+			test(`selection projection preserves disabled permission controls and zero writes under ${mode}`, async () => {
+				const fixture = await createSelectionFixture({ mode: mode === 'pairing-hold' ? undefined : mode });
+				if (mode === 'pairing-hold') {
+					await fixture.holdPairing();
+				}
+				const before = { ...fixture.rpc };
+				const folder = folderCheckbox(fixture, 'src');
+				const group = groupCheckbox(fixture);
+				assert.deepStrictEqual([folder.getAttribute('aria-disabled'), group.getAttribute('aria-disabled')], ['true', 'true']);
+				for (const node of [fileCheckbox(fixture, 'src/a.ts'), folder, group]) {
+					node.click();
+					keyboardActivate(node, 32);
+					keyboardActivate(node, 13);
+				}
+				assertSelection(fixture, [], { src: false, nested: false, other: false }, false);
+				stageSelectedButton(fixture.host)?.click();
+				forceClick(stageSelectedButton(fixture.host));
+				await timeout(20);
+				assert.deepStrictEqual(fixture.rpc, before);
+				assert.deepStrictEqual(fixture.stageCalls, []);
+			});
+		}
 	});
 
 	test('renders IDEA-style folder rows with counts, checkboxes, and collapse behavior', async function () {

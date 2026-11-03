@@ -34,6 +34,8 @@ SOURCES_PART（End 列下格；minimum 尺寸与 hide 关闭控件在 Part）
 
 Files 用资源管理器的 “Filter files”。Changes / Review 用紧凑 filter（`sourcesListFilterBox.ts` / `common/sourcesFilterModel.ts::filterSourcesEntries`，按文件名 / 路径子串）。Sources 部分宽至少 600px 时，当前 tab 的筛选框挪到标题栏 tab 和隐藏按钮之间，三个 tab 用同一套 22px 圆角输入；各自的文字还留在自己的框里，切换 tab 不会串。更窄时筛选回到面板里原来的位置。Review 的「仅未审阅」仍留在面板。空态节点 `flex: 1` 居中，JS 设 `display: ''` 好让 CSS 生效。Changes 现在按 SCM 分组和相对路径绘制 IDE 风格目录头，组 / 目录显示文件数，文件、目录和组提供三态勾选；顶部工具栏提供刷新、展开 / 收起和批量 stage / unstage。文件行仍显示父目录和状态字母，行内 stage / unstage 在行悬停或焦点时出现；底部 commit 是多行说明加按钮。`sourcesGitLocalOnlyMessage()` 画在提交条上的状态点（`.sources-changes-provenance`），不另占一行；失败文案仍在 `.sources-changes-status`。Diff 宿主标题统一底边与 4px 8px 内边距；无 ref / 打开失败时藏 Panel 头与 Conversation「Open Diff in Preview」。
 
+Changes 勾选是当前可写叶子的选择状态，文件为布尔值，目录与分组按当前叶子聚合成 false / mixed / true；它不表示 Git 已暂存。共享 TriStateCheckbox 在构造、程序赋值和真实激活后同步 checked、图标与 `aria-checked`，公开监听器内同步重设的 mixed 状态不会被旧激活栈覆盖。Changes 的文件、目录与分组选择结束后通过私有选择完成通知，向当前行既有 checkbox 的 checked 原位投影；批量内部逐叶更新不逐次通知，外层完成后只通知一次并更新工具栏。选择不 splice 列表、不重建目录/分组控件，也不补 focus 或发 Git RPC。每个渲染元素的订阅归其 `elementDisposables`，重绑前与 `disposeElement` 时清理，离屏/退休元素不继续投影；新渲染元素从当前模型取得状态，不代替真实焦点宿主或读屏验收。
+
 ## 3. 诚实空文案
 
 | 情形 | 文案（`*Strings.ts`） |

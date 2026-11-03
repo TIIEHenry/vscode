@@ -392,9 +392,10 @@ export class TriStateCheckbox extends BaseCheckbox {
 		);
 
 		this._register(checkbox);
+		this.syncCheckedState();
 		this._register(this.checkbox.onChange(keyboard => {
 			this._state = this.checkbox.checked;
-			this.applyStyles();
+			this.syncCheckedState();
 			this._onChange.fire(keyboard);
 		}));
 	}
@@ -406,9 +407,14 @@ export class TriStateCheckbox extends BaseCheckbox {
 	set checked(newState: boolean | 'mixed') {
 		if (this._state !== newState) {
 			this._state = newState;
-			this.checkbox.checked = newState === true;
-			this.applyStyles();
+			this.syncCheckedState();
 		}
+	}
+
+	private syncCheckedState(): void {
+		this.checkbox.checked = this._state === true;
+		this.domNode.setAttribute('aria-checked', String(this._state));
+		this.applyStyles();
 	}
 
 	protected override applyStyles(enabled?: boolean): void {
