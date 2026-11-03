@@ -41,76 +41,92 @@ suite('remote electron-browser / tunnel leftover Promise fire-and-forget catch s
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers six leftover Promise double-chain sites', () => {
+	test('this knife covers six leftover Promise single-catch sites and zero double catch', () => {
 		const electron = fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8');
 		const tunnel = fs.readFileSync(resolveSource(TUNNEL_REL), 'utf8');
-		const sites = (electron.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length
+		const doubleSites = (electron.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length
 			+ (tunnel.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		assert.strictEqual(sites, 6);
+		assert.strictEqual(doubleSites, 0);
+		assert.ok(!electron.includes(doubleCatch));
+		assert.ok(!tunnel.includes(doubleCatch));
+		const singleSites = (electron.match(/\.catch\(onUnexpectedError\)/g) ?? []).length
+			+ (tunnel.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+		assert.ok(singleSites >= 6);
 	});
 
-	test('electron leftover when / nested hasWSLFeatureInstalled thens are Promise double-chain', () => {
+	test('electron leftover when / nested hasWSLFeatureInstalled thens are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const native = fs.readFileSync(resolveSource(NATIVE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
 		assertPromiseSignature(native, 'hasWSLFeatureInstalled(): Promise<boolean>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(!source.includes(doubleCatch));
 		const whenThen = `lifecycleService.when(LifecyclePhase.Eventually).then(async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				nativeHostService.hasWSLFeatureInstalled().then(res => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (res) {
 						contextKey.set(true);
 						// once detected, set to true
 						storageService.store(storageKey, true, StorageScope.APPLICATION, StorageTarget.MACHINE);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			})`;
-		assert.ok(source.includes(`${whenThen}${doubleCatch};`));
+		assert.ok(source.includes(`${whenThen}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${whenThen};`));
-		assert.ok(!source.includes(`${whenThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${whenThen}${doubleCatch};`));
 		const innerThen = `nativeHostService.hasWSLFeatureInstalled().then(res => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (res) {
 						contextKey.set(true);
 						// once detected, set to true
 						storageService.store(storageKey, true, StorageScope.APPLICATION, StorageTarget.MACHINE);
 					}
 				})`;
-		assert.ok(source.includes(`${innerThen}${doubleCatch};`));
+		assert.ok(source.includes(`${innerThen}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${innerThen};`));
-		assert.ok(!source.includes(`${innerThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${innerThen}${doubleCatch};`));
 	});
 
-	test('electron leftover updateRemoteTelemetryEnablement calls are Promise double-chain', () => {
+	test('electron leftover updateRemoteTelemetryEnablement calls are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8');
 		const agent = fs.readFileSync(resolveSource(AGENT_REL), 'utf8');
 		assertPromiseSignature(source, 'private updateRemoteTelemetryEnablement(): Promise<void> {');
 		assertPromiseSignature(agent, 'updateTelemetryLevel(telemetryLevel: TelemetryLevel): Promise<void>;');
 		const call = 'this.updateRemoteTelemetryEnablement()';
-		assert.strictEqual((source.match(/this\.updateRemoteTelemetryEnablement\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual((source.match(/this\.updateRemoteTelemetryEnablement\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 	});
 
-	test('tunnelView leftover forward thens are Promise double-chain', () => {
+	test('tunnelView leftover forward thens are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TUNNEL_REL), 'utf8');
 		const explorer = fs.readFileSync(resolveSource(EXPLORER_REL), 'utf8');
 		assertPromiseSignature(explorer, 'forward(tunnelProperties: TunnelProperties, attributes?: Attributes | null): Promise<RemoteTunnel | string | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(!source.includes(doubleCatch));
 		const inlineThen = `remoteExplorerService.forward({
 							remote: { host: parsed.host, port: parsed.port },
 							elevateIfNeeded: true
 						}).then(tunnelOrError => error(notificationService, tunnelOrError, parsed!.host, parsed!.port))`;
-		assert.ok(source.includes(`${inlineThen}${doubleCatch};`));
+		assert.ok(source.includes(`${inlineThen}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${inlineThen};`));
-		assert.ok(!source.includes(`${inlineThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${inlineThen}${doubleCatch};`));
 		const paletteThen = `remoteExplorerService.forward({
 					remote: { host: parsed.host, port: parsed.port },
 					elevateIfNeeded: true
 				}).then(tunnel => error(notificationService, tunnel, parsed!.host, parsed!.port))`;
-		assert.ok(source.includes(`${paletteThen}${doubleCatch};`));
+		assert.ok(source.includes(`${paletteThen}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${paletteThen};`));
-		assert.ok(!source.includes(`${paletteThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${paletteThen}${doubleCatch};`));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty stay skipped; D692 already-double sites untouched', () => {
@@ -134,9 +150,12 @@ suite('remote electron-browser / tunnel leftover Promise fire-and-forget catch s
 			if (remoteEnv) {
 				timerService.setPerformanceMarks('server', remoteEnv.marks);
 			}
-		})${doubleCatch};`));
-		assert.ok(explorer.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(contrib.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		}).catch(onUnexpectedError);`));
+		assert.ok(!remote.includes(doubleCatch));
+		assert.ok(!explorer.includes(doubleCatch));
+		assert.ok(!contrib.includes(doubleCatch));
+		assert.ok(explorer.includes('}).catch(onUnexpectedError);'));
+		assert.ok(contrib.includes('}).catch(onUnexpectedError);'));
 		for (const source of [electron, tunnel]) {
 			assert.ok(!source.includes('Wire('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

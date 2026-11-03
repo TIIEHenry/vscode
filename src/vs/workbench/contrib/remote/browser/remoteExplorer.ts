@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import * as nls from '../../../../nls.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { Disposable, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { Extensions, IViewContainersRegistry, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
 import { IRemoteExplorerService, PORT_AUTO_FALLBACK_SETTING, PORT_AUTO_FORWARD_SETTING, PORT_AUTO_SOURCE_SETTING, PORT_AUTO_SOURCE_SETTING_HYBRID, PORT_AUTO_SOURCE_SETTING_OUTPUT, PORT_AUTO_SOURCE_SETTING_PROCESS, PortsEnablement, TUNNEL_VIEW_CONTAINER_ID, TUNNEL_VIEW_ID } from '../../../services/remote/common/remoteExplorerService.js';
@@ -77,7 +77,7 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 				: nls.localize('noRemoteNoPorts', "No forwarded ports. Forward a port to access your locally running services over the internet.\n[Forward a Port]({0})", `command:${ForwardPortAction.INLINE_ID}`),
 		}));
 		this.enableBadgeAndStatusBar();
-		this.enableForwardedPortsFeatures().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.enableForwardedPortsFeatures().catch(onUnexpectedError);
 		if (!this.environmentService.remoteAuthority) {
 			this._register(Event.once(this.tunnelService.onTunnelOpened)(() => {
 				this.hasPortsInSession = true;
@@ -109,6 +109,9 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 				this.contextKeyService.createKey(forwardedPortsViewEnabled.key, true);
 			}
 			const viewContainer = await this.getViewContainer();
+			if (this._store.isDisposed) {
+				return;
+			}
 			const tunnelPanelDescriptor = new TunnelPanelDescriptor(new TunnelViewModel(this.remoteExplorerService, this.tunnelService), this.environmentService);
 			const viewsRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 			if (viewContainer) {
@@ -117,8 +120,11 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 			}
 		} else {
 			this.contextKeyListener.value = this.contextKeyService.onDidChangeContext(e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (e.affectsSome(new Set([...forwardedPortsFeaturesEnabled.keys(), ...forwardedPortsViewEnabled.keys()]))) {
-					this.enableForwardedPortsFeatures().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.enableForwardedPortsFeatures().catch(onUnexpectedError);
 				}
 			});
 		}
@@ -128,15 +134,21 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 		const disposable = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry).onViewsRegistered(e => {
 			if (e.find(view => view.views.find(viewDescriptor => viewDescriptor.id === TUNNEL_VIEW_ID))) {
 				this._register(Event.debounce(this.remoteExplorerService.tunnelModel.onForwardPort, (_last, e) => e, 50)(() => {
-					this.updateActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.updateActivityBadge().catch(onUnexpectedError);
 					this.updateStatusBar();
 				}));
 				this._register(Event.debounce(this.remoteExplorerService.tunnelModel.onClosePort, (_last, e) => e, 50)(() => {
-					this.updateActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.updateActivityBadge().catch(onUnexpectedError);
 					this.updateStatusBar();
 				}));
 
-				this.updateActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateActivityBadge().catch(onUnexpectedError);
 				this.updateStatusBar();
 				disposable.dispose();
 			}
@@ -144,6 +156,9 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 	}
 
 	private async updateActivityBadge() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.remoteExplorerService.tunnelModel.forwarded.size > 0) {
 			this.activityBadge.value = this.activityService.showViewActivity(TUNNEL_VIEW_ID, {
 				badge: new NumberBadge(this.remoteExplorerService.tunnelModel.forwarded.size, n => n === 1 ? nls.localize('1forwardedPort', "1 forwarded port") : nls.localize('nForwardedPorts', "{0} forwarded ports", n))
@@ -154,6 +169,9 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 	}
 
 	private updateStatusBar() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.environmentService.remoteAuthority && !this.hasPortsInSession) {
 			// We only want to show the ports status bar entry when the user has taken an action that indicates that they might care about it.
 			return;
@@ -186,25 +204,47 @@ export class ForwardedPortsView extends Disposable implements IWorkbenchContribu
 			command: TOGGLE_VIEW_ACTION_ID
 		};
 	}
+
+	override dispose(): void {
+		if (this.entryAccessor) {
+			this.entryAccessor.dispose();
+			this.entryAccessor = undefined;
+		}
+		super.dispose();
+	}
 }
 
-export class PortRestore implements IWorkbenchContribution {
+export class PortRestore implements IWorkbenchContribution, IDisposable {
+	private _isDisposed = false;
+	private readonly _disposables = new DisposableStore();
+
 	constructor(
 		@IRemoteExplorerService private readonly remoteExplorerService: IRemoteExplorerService,
 		@ILogService private readonly logService: ILogService
 	) {
 		if (!this.remoteExplorerService.tunnelModel.environmentTunnelsSet) {
-			Event.once(this.remoteExplorerService.tunnelModel.onEnvironmentTunnelsSet)(async () => {
+			this._disposables.add(Event.once(this.remoteExplorerService.tunnelModel.onEnvironmentTunnelsSet)(async () => {
+				if (this._isDisposed) {
+					return;
+				}
 				await this.restore();
-			});
+			}));
 		} else {
-			this.restore().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.restore().catch(onUnexpectedError);
 		}
 	}
 
 	private async restore() {
+		if (this._isDisposed) {
+			return;
+		}
 		this.logService.trace('ForwardedPorts: Doing first restore.');
 		return this.remoteExplorerService.restore();
+	}
+
+	dispose(): void {
+		this._isDisposed = true;
+		this._disposables.dispose();
 	}
 }
 
@@ -237,15 +277,21 @@ export class AutomaticPortForwarding extends Disposable implements IWorkbenchCon
 		}
 
 		configurationService.whenRemoteConfigurationLoaded().then(() => remoteAgentService.getEnvironment()).then(environment => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.setup(environment);
 			this._register(configurationService.onDidChangeConfiguration(e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (e.affectsConfiguration(PORT_AUTO_SOURCE_SETTING)) {
 					this.setup(environment);
 				} else if (e.affectsConfiguration(PORT_AUTO_FALLBACK_SETTING) && !this.portListener) {
 					this.listenForPorts();
 				}
 			}));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		if (!this.storageService.getBoolean('processPortForwardingFallback', StorageScope.WORKSPACE, true)) {
 			this.configurationService.updateValue(PORT_AUTO_FALLBACK_SETTING, 0, ConfigurationTarget.WORKSPACE);
@@ -692,7 +738,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 		super();
 		this.notifier = new OnAutoForwardedAction(notificationService, remoteExplorerService, openerService, externalOpenerService, tunnelService, hostService, logService, contextKeyService);
 		alreadyAutoForwarded?.forEach(port => this.autoForwarded.add(port));
-		this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initialize().catch(onUnexpectedError);
 	}
 
 	get forwarded(): Set<string> {
@@ -701,23 +747,41 @@ class ProcAutomaticPortForwarding extends Disposable {
 
 	private async initialize() {
 		if (!this.remoteExplorerService.tunnelModel.environmentTunnelsSet) {
-			await new Promise<void>(resolve => this.remoteExplorerService.tunnelModel.onEnvironmentTunnelsSet(() => resolve()));
+			await new Promise<void>(resolve => {
+				const disp = this.remoteExplorerService.tunnelModel.onEnvironmentTunnelsSet(() => {
+					disp.dispose();
+					resolve();
+				});
+				this._register(disp);
+			});
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 
 		this._register(this.configurationService.onDidChangeConfiguration(async (e) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.affectsConfiguration(PORT_AUTO_FORWARD_SETTING)) {
 				await this.startStopCandidateListener();
 			}
 		}));
 
 		this.portsFeatures = this._register(this.remoteExplorerService.onEnabledPortsFeatures(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this.startStopCandidateListener();
 		}));
 
-		this.startStopCandidateListener().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.startStopCandidateListener().catch(onUnexpectedError);
 	}
 
 	private async startStopCandidateListener() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.configurationService.getValue(PORT_AUTO_FORWARD_SETTING)) {
 			await this.startCandidateListener();
 		} else {
@@ -734,7 +798,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 	}
 
 	private async startCandidateListener() {
-		if (this.candidateListener || (this.remoteExplorerService.portsFeaturesEnabled !== PortsEnablement.AdditionalFeatures)) {
+		if (this._store.isDisposed || this.candidateListener || (this.remoteExplorerService.portsFeaturesEnabled !== PortsEnablement.AdditionalFeatures)) {
 			return;
 		}
 		this.portsFeatures?.dispose();
@@ -745,7 +809,7 @@ class ProcAutomaticPortForwarding extends Disposable {
 		await this.setInitialCandidates();
 
 		// Need to check the setting again, since it may have changed while we waited for the initial candidates to be set.
-		if (listenerEpoch !== this.candidateListenerEpoch) {
+		if (this._store.isDisposed || listenerEpoch !== this.candidateListenerEpoch) {
 			return;
 		}
 		if (!this.configurationService.getValue(PORT_AUTO_FORWARD_SETTING)) {
@@ -764,7 +828,16 @@ class ProcAutomaticPortForwarding extends Disposable {
 		}
 		let startingCandidates = this.remoteExplorerService.tunnelModel.candidatesOrUndefined;
 		if (!startingCandidates) {
-			await new Promise<void>(resolve => this.remoteExplorerService.tunnelModel.onCandidatesChanged(() => resolve()));
+			await new Promise<void>(resolve => {
+				const disp = this.remoteExplorerService.tunnelModel.onCandidatesChanged(() => {
+					disp.dispose();
+					resolve();
+				});
+				this._register(disp);
+			});
+			if (this._store.isDisposed) {
+				return;
+			}
 			startingCandidates = this.remoteExplorerService.tunnelModel.candidates;
 		}
 
@@ -850,6 +923,9 @@ class ProcAutomaticPortForwarding extends Disposable {
 		}
 
 		for (const removedPort of removed) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const key = removedPort[0];
 			let value = removedPort[1];
 			const forwardedValue = mapHasAddressLocalhostOrAllInterfaces(autoForwarded, value.host, value.port);
@@ -860,6 +936,9 @@ class ProcAutomaticPortForwarding extends Disposable {
 					value = { host: forwardedValue.remoteHost, port: forwardedValue.remotePort };
 				}
 				await this.remoteExplorerService.close(value, TunnelCloseReason.AutoForwardEnd);
+				if (this._store.isDisposed) {
+					return;
+				}
 				removedPorts.push(value.port);
 			} else if (this.notifiedOnly.delete(key)) {
 				removedPorts.push(value.port);
@@ -868,15 +947,21 @@ class ProcAutomaticPortForwarding extends Disposable {
 			}
 		}
 
-		if (this.unforwardOnly) {
+		if (this.unforwardOnly || this._store.isDisposed) {
 			return;
 		}
 
 		if (removedPorts.length > 0) {
 			await this.notifier.hide(removedPorts);
 		}
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		const tunnels = await this.forwardCandidates();
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (tunnels) {
 			await this.notifier.doAction(tunnels);
 		}

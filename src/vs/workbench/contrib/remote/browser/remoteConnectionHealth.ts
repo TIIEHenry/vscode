@@ -20,12 +20,15 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import Severity from '../../../../base/common/severity.js';
 import { ILinkDescriptor } from '../../../../platform/opener/browser/link.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
 
 const REMOTE_UNSUPPORTED_CONNECTION_CHOICE_KEY = 'remote.unsupportedConnectionChoice';
 const BANNER_REMOTE_UNSUPPORTED_CONNECTION_DISMISSED_KEY = 'workbench.banner.remote.unsupportedConnection.dismissed';
 const BANNER_REMOTE_ARM32_DEPRECATION_DISMISSED_KEY = 'workbench.banner.remote.arm32Deprecation.dismissed';
 
-export class InitialRemoteConnectionHealthContribution implements IWorkbenchContribution {
+export class InitialRemoteConnectionHealthContribution implements IWorkbenchContribution, IDisposable {
+
+	private _isDisposed: boolean = false;
 
 	constructor(
 		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
@@ -39,7 +42,7 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 		@IProductService private readonly productService: IProductService,
 	) {
 		if (this._environmentService.remoteAuthority) {
-			this._checkInitialRemoteConnectionHealth().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._checkInitialRemoteConnectionHealth().catch(onUnexpectedError);
 		}
 	}
 
@@ -71,6 +74,10 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 			}
 		});
 
+		if (this._isDisposed) {
+			return false;
+		}
+
 		if (result === ConnectionChoice.LearnMore) {
 			return await this._confirmConnection();
 		}
@@ -86,12 +93,18 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 	private async _checkInitialRemoteConnectionHealth(): Promise<void> {
 		try {
 			const environment = await this._remoteAgentService.getRawEnvironment();
+			if (this._isDisposed) {
+				return;
+			}
 			const isArm32Server = environment?.os === OperatingSystem.Linux && environment.arch === 'arm';
 
 			if (environment && environment.isUnsupportedGlibc) {
 				let allowed = this.storageService.getBoolean(`${REMOTE_UNSUPPORTED_CONNECTION_CHOICE_KEY}.${this._environmentService.remoteAuthority}`, StorageScope.PROFILE);
 				if (allowed === undefined) {
 					allowed = await this._confirmConnection();
+					if (this._isDisposed) {
+						return;
+					}
 				}
 				if (allowed) {
 					this._showVersionedBanner(
@@ -146,6 +159,9 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 				tunnelName: getRemoteServerRootPath(this._environmentService.remoteAuthority)
 			});
 
+			if (this._isDisposed) {
+				return;
+			}
 			await this._measureExtHostLatency();
 
 		} catch (err) {
@@ -189,6 +205,9 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 			icon: Codicon.warning,
 			closeLabel: localize('remoteBannerDoNotShowAgainThisVersion', "Do not show again in v{0}", this.productService.version),
 			onClose: () => {
+				if (this._isDisposed) {
+					return;
+				}
 				this.storageService.store(storageKey, this.productService.version, StorageScope.PROFILE, StorageTarget.MACHINE);
 			}
 		});
@@ -196,7 +215,7 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 
 	private async _measureExtHostLatency() {
 		const measurement = await remoteConnectionLatencyMeasurer.measure(this._remoteAgentService);
-		if (measurement === undefined) {
+		if (this._isDisposed || measurement === undefined) {
 			return;
 		}
 
@@ -218,5 +237,9 @@ export class InitialRemoteConnectionHealthContribution implements IWorkbenchCont
 			remoteName: getRemoteName(this._environmentService.remoteAuthority),
 			latencyMs: measurement.current
 		});
+	}
+
+	dispose(): void {
+		this._isDisposed = true;
 	}
 }

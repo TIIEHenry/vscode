@@ -98,7 +98,7 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(!diffs.includes('this._recompute(reader).catch'));
 	});
 
-	test('remote leftover getEnvironment / confirm / whenRemoteConfigurationLoaded thens are Promise double-chain', () => {
+	test('remote leftover getEnvironment / confirm / whenRemoteConfigurationLoaded thens are Promise single-catch', () => {
 		const remote = fs.readFileSync(resolveSource(REMOTE_REL), 'utf8');
 		const explorer = fs.readFileSync(resolveSource(REMOTE_EXPLORER_REL), 'utf8');
 		const contrib = fs.readFileSync(resolveSource(REMOTE_CONTRIB_REL), 'utf8');
@@ -111,29 +111,41 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(remote.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(explorer.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(contrib.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(!remote.includes(doubleCatch));
+		assert.ok(!explorer.includes(doubleCatch));
+		assert.ok(!contrib.includes(doubleCatch));
 		const markersThen = `remoteAgentService.getEnvironment().then(remoteEnv => {
 			if (remoteEnv) {
 				timerService.setPerformanceMarks('server', remoteEnv.marks);
 			}
 		})`;
-		assert.ok(remote.includes(`${markersThen}${doubleCatch};`));
+		assert.ok(remote.includes(`${markersThen}.catch(onUnexpectedError);`));
 		assert.ok(!remote.includes(`${markersThen};`));
-		assert.ok(!remote.includes(`${markersThen}.catch(onUnexpectedError);`));
+		assert.ok(!remote.includes(`${markersThen}${doubleCatch};`));
 		const confirmThen = `dialogService.confirm({
 								type: Severity.Error,
 								message: nls.localize('reconnectionPermanentFailure', "Cannot reconnect. Please reload the window."),
 								primaryButton: nls.localize({ key: 'reloadWindow.dialog', comment: ['&& denotes a mnemonic'] }, "&&Reload Window")
 							}).then(result => {
+								if (this._store.isDisposed) {
+									return;
+								}
 								if (result.confirmed) {
 									commandService.executeCommand(ReloadWindowAction.ID);
 								}
 							})`;
-		assert.ok(remote.includes(`${confirmThen}${doubleCatch};`));
+		assert.ok(remote.includes(`${confirmThen}.catch(onUnexpectedError);`));
 		assert.ok(!remote.includes(`${confirmThen};`));
-		assert.ok(!remote.includes(`${confirmThen}.catch(onUnexpectedError);`));
+		assert.ok(!remote.includes(`${confirmThen}${doubleCatch};`));
 		const explorerThen = `configurationService.whenRemoteConfigurationLoaded().then(() => remoteAgentService.getEnvironment()).then(environment => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.setup(environment);
 			this._register(configurationService.onDidChangeConfiguration(e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (e.affectsConfiguration(PORT_AUTO_SOURCE_SETTING)) {
 					this.setup(environment);
 				} else if (e.affectsConfiguration(PORT_AUTO_FALLBACK_SETTING) && !this.portListener) {
@@ -141,20 +153,23 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 				}
 			}));
 		})`;
-		assert.ok(explorer.includes(`${explorerThen}${doubleCatch};`));
+		assert.ok(explorer.includes(`${explorerThen}.catch(onUnexpectedError);`));
 		assert.ok(!explorer.includes(`${explorerThen};`));
-		assert.ok(!explorer.includes(`${explorerThen}.catch(onUnexpectedError);`));
+		assert.ok(!explorer.includes(`${explorerThen}${doubleCatch};`));
 		const labelThen = `this.remoteAgentService.getEnvironment().then(remoteEnvironment => {
 			this.registerRemoteLabelFormatter(remoteEnvironment);
 		}, () => {
 			// Failure has no remote OS. Register once, the same as an empty environment.
 			this.registerRemoteLabelFormatter(null);
 		})`;
-		assert.ok(contrib.includes(`${labelThen}${doubleCatch};`));
+		assert.ok(contrib.includes(`${labelThen}.catch(onUnexpectedError);`));
 		assert.ok(!contrib.includes(`${labelThen};`));
-		assert.ok(!contrib.includes(`${labelThen}.catch(onUnexpectedError);`));
+		assert.ok(!contrib.includes(`${labelThen}${doubleCatch};`));
 		assert.strictEqual((contrib.match(/this\.remoteAgentService\.getEnvironment\(\)\.then\(remoteEnvironment => \{/g) ?? []).length, 1);
 		const detectorThen = `remoteAgentService.getEnvironment().then(remoteEnv => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (remoteEnv) {
 					// we use the presence of \`remoteEnv\` to figure out
 					// if we got a healthy remote connection
@@ -162,9 +177,9 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 					this.validateRemoteWorkspace();
 				}
 			})`;
-		assert.ok(contrib.includes(`${detectorThen}${doubleCatch};`));
+		assert.ok(contrib.includes(`${detectorThen}.catch(onUnexpectedError);`));
 		assert.ok(!contrib.includes(`${detectorThen};`));
-		assert.ok(!contrib.includes(`${detectorThen}.catch(onUnexpectedError);`));
+		assert.ok(!contrib.includes(`${detectorThen}${doubleCatch};`));
 	});
 
 	test('webview leftover origin Promise then is double-chain', () => {
@@ -202,6 +217,7 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(diffs.includes('\t\t\tthis._recompute(reader);'));
 		assert.ok(!diffs.includes('this._recompute(reader).catch'));
 		for (const source of [remote, explorer, contrib]) {
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('Wire('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

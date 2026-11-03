@@ -86,9 +86,18 @@ class RemoteExtensionHostEnvironmentUpdater extends Disposable implements IWorkb
 		const connection = remoteAgentService.getConnection();
 		if (connection) {
 			this._register(connection.onDidStateChange(e => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (e.type === PersistentConnectionEventType.ConnectionGain) {
 					const run = this._gainChain.then(async () => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						const resolveResult = await remoteResolverService.resolveAuthority(connection.remoteAuthority);
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (resolveResult.options && resolveResult.options.extensionHostEnv) {
 							await extensionService.setRemoteEnvironment(resolveResult.options.extensionHostEnv);
 						}
@@ -111,11 +120,14 @@ class RemoteTelemetryEnablementUpdater extends Disposable implements IWorkbenchC
 	) {
 		super();
 
-		this.updateRemoteTelemetryEnablement().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateRemoteTelemetryEnablement().catch(onUnexpectedError);
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.affectsConfiguration(TELEMETRY_SETTING_ID) || e.affectsConfiguration(TELEMETRY_OLD_SETTING_ID) || e.affectsConfiguration(TELEMETRY_CRASH_REPORTER_SETTING_ID)) {
-				this.updateRemoteTelemetryEnablement().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateRemoteTelemetryEnablement().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -151,13 +163,16 @@ class RemoteEmptyWorkbenchPresentation extends Disposable implements IWorkbenchC
 		const { remoteAuthority, filesToDiff, filesToMerge, filesToOpenOrCreate, filesToWait } = environmentService;
 		if (remoteAuthority && contextService.getWorkbenchState() === WorkbenchState.EMPTY && !filesToDiff?.length && !filesToMerge?.length && !filesToOpenOrCreate?.length && !filesToWait) {
 			remoteAuthorityResolverService.resolveAuthority(remoteAuthority).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (shouldShowExplorer()) {
 					commandService.executeCommand('workbench.view.explorer');
 				}
 				if (shouldShowTerminal()) {
 					commandService.executeCommand('workbench.action.terminal.toggleTerminal');
 				}
-			});
+			}).catch(onUnexpectedError);
 		}
 	}
 }
@@ -187,14 +202,20 @@ class WSLContextKeyInitializer extends Disposable implements IWorkbenchContribut
 
 		if (defaultValue === undefined) {
 			lifecycleService.when(LifecyclePhase.Eventually).then(async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				nativeHostService.hasWSLFeatureInstalled().then(res => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (res) {
 						contextKey.set(true);
 						// once detected, set to true
 						storageService.store(storageKey, true, StorageScope.APPLICATION, StorageTarget.MACHINE);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 }

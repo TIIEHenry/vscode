@@ -39,7 +39,7 @@ export class RemoteStartEntry extends Disposable implements IWorkbenchContributi
 		this.startCommand = remoteExtensionTips?.startEntry?.startCommand ?? '';
 		this.remoteExtensionId = remoteExtensionTips?.extensionId ?? '';
 
-		this._init().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._init().catch(onUnexpectedError);
 		this.registerActions();
 		this.registerListeners();
 	}
@@ -67,7 +67,9 @@ export class RemoteStartEntry extends Disposable implements IWorkbenchContributi
 
 	private registerListeners(): void {
 		this._register(this.extensionEnablementService.onEnablementChanged(async (result) => {
-
+			if (this._store.isDisposed) {
+				return;
+			}
 			for (const ext of result) {
 				if (ExtensionIdentifier.equals(this.remoteExtensionId, ext.identifier.id)) {
 					if (this.extensionEnablementService.isEnabled(ext)) {
@@ -84,6 +86,9 @@ export class RemoteStartEntry extends Disposable implements IWorkbenchContributi
 
 		// Check if installed and enabled
 		const installed = (await this.extensionManagementService.getInstalled()).find(value => ExtensionIdentifier.equals(value.identifier.id, this.remoteExtensionId));
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (installed) {
 			if (this.extensionEnablementService.isEnabled(installed)) {
 				showStartEntryInWeb.bindTo(this.contextKeyService).set(true);
@@ -92,7 +97,10 @@ export class RemoteStartEntry extends Disposable implements IWorkbenchContributi
 	}
 
 	private async showWebRemoteStartActions() {
-		this.commandService.executeCommand(this.startCommand).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.commandService.executeCommand(this.startCommand).catch(onUnexpectedError);
 		this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
 			id: this.startCommand,
 			from: 'remote start entry'

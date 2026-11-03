@@ -34,6 +34,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -46,9 +47,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double catch: ${call}`);
 }
 
 const updateWhenCall = 'this.updateWhenInstalledExtensionsRegistered()';
@@ -85,22 +86,23 @@ suite('remote leftover remaining Promise fire-and-forget catch scan (D784)', () 
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eleven leftover Promise double-chain sites in remote only', () => {
+	test('this knife covers eleven leftover Promise single-catch sites in remote only with zero double catch', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d784Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
+			assert.ok(!source.includes(doubleCatch), `${rel} has leftover double-catch`);
 			sites += count;
 		}
 		assert.strictEqual(sites, 11);
 		assert.ok(sites >= 4);
 	});
 
-	test('remote leftover updateWhenInstalledExtensionsRegistered / initializeRemoteMetadata / executeCommand fire-and-forgets are Promise double-chain', () => {
+	test('remote leftover updateWhenInstalledExtensionsRegistered / initializeRemoteMetadata / executeCommand fire-and-forgets are Promise single-catch', () => {
 		const indicator = fs.readFileSync(resolveSource(INDICATOR_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assertPromiseSignature(indicator, 'private async updateWhenInstalledExtensionsRegistered(): Promise<void> {');
@@ -115,9 +117,10 @@ suite('remote leftover remaining Promise fire-and-forget catch scan (D784)', () 
 		assert.ok(!indicator.includes('this.initializeRemoteMetadata();'));
 		assert.ok(!indicator.includes('this.commandService.executeCommand(startCommand);'));
 		assert.ok(!indicator.includes('\t\t\t\t\tthis.commandService.executeCommand(commandId);'));
+		assert.ok(!indicator.includes(doubleCatch));
 	});
 
-	test('remote leftover _init / startCommand / _checkInitialRemoteConnectionHealth fire-and-forgets are Promise double-chain', () => {
+	test('remote leftover _init / startCommand / _checkInitialRemoteConnectionHealth fire-and-forgets are Promise single-catch', () => {
 		const start = fs.readFileSync(resolveSource(START_REL), 'utf8');
 		const health = fs.readFileSync(resolveSource(HEALTH_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
@@ -132,9 +135,11 @@ suite('remote leftover remaining Promise fire-and-forget catch scan (D784)', () 
 		assert.ok(!start.includes('\t\tthis._init();\n'));
 		assert.ok(!start.includes('this.commandService.executeCommand(this.startCommand);'));
 		assert.ok(!health.includes('this._checkInitialRemoteConnectionHealth();'));
+		assert.ok(!start.includes(doubleCatch));
+		assert.ok(!health.includes(doubleCatch));
 	});
 
-	test('remote leftover enableForwardedPortsFeatures / restore / initialize fire-and-forgets are Promise double-chain', () => {
+	test('remote leftover enableForwardedPortsFeatures / restore / initialize fire-and-forgets are Promise single-catch', () => {
 		const explorer = fs.readFileSync(resolveSource(EXPLORER_REL), 'utf8');
 		assertPromiseSignature(explorer, 'private async enableForwardedPortsFeatures() {');
 		assertPromiseSignature(explorer, 'private async restore() {');
@@ -143,12 +148,13 @@ suite('remote leftover remaining Promise fire-and-forget catch scan (D784)', () 
 		assertWrapped(explorer, enableFeaturesCall);
 		assertWrapped(explorer, restoreCall);
 		assertWrapped(explorer, initializeCall);
-		assert.strictEqual(countIncludes(explorer, `${enableFeaturesCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(explorer, `${restoreCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(explorer, `${enableFeaturesCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(explorer, `${restoreCall}${singleCatch}`), 1);
 		assert.ok(explorer.includes('await this.restore();'));
 		assert.ok(!explorer.includes(`await this.restore()${doubleCatch}`));
 		assert.ok(!explorer.includes('\t\tthis.enableForwardedPortsFeatures();\n'));
 		assert.ok(!explorer.includes('\t\tthis.initialize();\n'));
+		assert.ok(!explorer.includes(doubleCatch));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Connect / Watch / Resolve / Pty / D145 stay skipped', () => {
@@ -203,18 +209,22 @@ suite('remote leftover remaining Promise fire-and-forget catch scan (D784)', () 
 
 		assert.ok(explorer.includes('await this.restore();'));
 		assert.ok(!explorer.includes(`await this.restore()${doubleCatch}`));
-		assert.ok(explorer.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!explorer.includes(doubleCatch));
 		assert.ok(remote.includes(`remoteAgentService.getEnvironment().then(remoteEnv => {
 			if (remoteEnv) {
 				timerService.setPerformanceMarks('server', remoteEnv.marks);
 			}
-		})${doubleCatch};`));
-		assert.ok(common.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		}).catch(onUnexpectedError);`));
+		assert.ok(!remote.includes(doubleCatch));
+		assert.ok(!common.includes(doubleCatch));
+		assert.ok(explorer.includes('}).catch(onUnexpectedError);'));
+		assert.ok(common.includes('}).catch(onUnexpectedError);'));
 
 		assert.ok(indicator.includes('this.updateRemoteStatusIndicator();'));
 		assert.ok(!indicator.includes(`this.updateRemoteStatusIndicator()${doubleCatch}`));
 
 		for (const source of [indicator, start, health, explorer, remote, tunnel, electron, common, browserContrib]) {
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

@@ -35,7 +35,7 @@ import { ReconnectionWaitEvent, PersistentConnectionEventType } from '../../../.
 import Severity from '../../../../base/common/severity.js';
 import { ReloadWindowAction } from '../../../browser/actions/windowActions.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { Disposable, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { SwitchRemoteViewItem } from './explorerViewItems.js';
 import { isStringArray } from '../../../../base/common/types.js';
 import { HelpInformation, IRemoteExplorerService } from '../../../services/remote/common/remoteExplorerService.js';
@@ -679,7 +679,7 @@ export class RemoteMarkers implements IWorkbenchContribution {
 			if (remoteEnv) {
 				timerService.setPerformanceMarks('server', remoteEnv.marks);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 
@@ -847,6 +847,8 @@ export class RemoteAgentConnectionStatusListener extends Disposable implements I
 				}
 			}
 
+			this._register(toDisposable(() => hideProgress()));
+
 			let reconnectionToken: string = '';
 			let lastIncomingDataTime: number = 0;
 			let reconnectionAttempts: number = 0;
@@ -894,6 +896,9 @@ export class RemoteAgentConnectionStatusListener extends Disposable implements I
 			// ReconnectionRunning -> ConnectionGain, ReconnectionPermanentFailure
 
 			this._register(connection.onDidStateChange((e) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				visibleProgress?.stopTimer();
 				disposableListener.clear();
 
@@ -1015,10 +1020,13 @@ export class RemoteAgentConnectionStatusListener extends Disposable implements I
 								message: nls.localize('reconnectionPermanentFailure', "Cannot reconnect. Please reload the window."),
 								primaryButton: nls.localize({ key: 'reloadWindow.dialog', comment: ['&& denotes a mnemonic'] }, "&&Reload Window")
 							}).then(result => {
+								if (this._store.isDisposed) {
+									return;
+								}
 								if (result.confirmed) {
 									commandService.executeCommand(ReloadWindowAction.ID);
 								}
-							}).catch(onUnexpectedError).catch(onUnexpectedError);
+							}).catch(onUnexpectedError);
 						}
 						break;
 

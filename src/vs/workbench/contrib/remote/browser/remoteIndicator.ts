@@ -193,7 +193,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		this.registerActions();
 		this.registerListeners();
 
-		this.updateWhenInstalledExtensionsRegistered().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateWhenInstalledExtensionsRegistered().catch(onUnexpectedError);
 		this.updateRemoteStatusIndicator();
 	}
 
@@ -319,6 +319,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		}
 
 		this._register(this.extensionService.onDidChangeExtensions(async (result) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			for (const ext of result.added) {
 				const index = this.remoteExtensionMetadata.findIndex(value => ExtensionIdentifier.equals(value.id, ext.identifier));
 				if (index > -1) {
@@ -329,6 +332,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		}));
 
 		this._register(this.extensionManagementService.onDidUninstallExtension(async (result) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const index = this.remoteExtensionMetadata.findIndex(value => ExtensionIdentifier.equals(value.id, result.identifier.id));
 			if (index > -1) {
 				this.remoteExtensionMetadata[index].installed = false;
@@ -348,7 +354,11 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			const extensionId = this.remoteExtensionMetadata[i].id;
 			const supportedPlatforms = this.remoteExtensionMetadata[i].supportedPlatforms;
 			const installedEpochBefore = this._remoteExtensionMetadataInstalledEpoch[i];
-			const isInstalled = (await this.extensionManagementService.getInstalled()).find(value => ExtensionIdentifier.equals(value.identifier.id, extensionId)) ? true : false;
+			const installed = await this.extensionManagementService.getInstalled();
+			if (this._store.isDisposed) {
+				return;
+			}
+			const isInstalled = installed.find(value => ExtensionIdentifier.equals(value.identifier.id, extensionId)) ? true : false;
 
 			if (installedEpochBefore === this._remoteExtensionMetadataInstalledEpoch[i]) {
 				this.remoteExtensionMetadata[i].installed = isInstalled;
@@ -364,6 +374,10 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			}
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		this.remoteMetadataInitialized = true;
 		this._onDidChangeEntries.fire();
 		this.updateRemoteStatusIndicator();
@@ -375,6 +389,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 	private async updateWhenInstalledExtensionsRegistered(): Promise<void> {
 		await this.extensionService.whenInstalledExtensionsRegistered();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		const remoteAuthority = this.remoteAuthority;
 		if (remoteAuthority) {
@@ -401,7 +418,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		}
 
 		this.updateRemoteStatusIndicator();
-		this.initializeRemoteMetadata().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeRemoteMetadata().catch(onUnexpectedError);
 	}
 
 	private setConnectionState(newState: 'disconnected' | 'connected' | 'reconnecting'): void {
@@ -449,6 +466,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 
 		if (this.hostService.hasFocus && this.networkState !== 'offline') {
 			const measurement = await remoteConnectionLatencyMeasurer.measure(this.remoteAgentService);
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (measurement && !this.isNetworkOffline()) {
 				if (measurement.high) {
 					this.setNetworkState('high-latency');
@@ -458,6 +478,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			}
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.measureNetworkConnectionLatencyScheduler?.schedule();
 	}
 
@@ -698,6 +721,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 					detail: error && !isCancellationError(error) ? toErrorMessage(error) : undefined,
 					primaryButton: nls.localize('retry', "Retry")
 				});
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (confirmed) {
 					return this.installExtension(extensionId, remoteLabel);
 				}
@@ -717,7 +743,11 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 			return ext;
 		}, 300, 10);
 
-		this.commandService.executeCommand(startCommand).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+
+		this.commandService.executeCommand(startCommand).catch(onUnexpectedError);
 		this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
 			id: 'remoteInstallAndRun',
 			detail: extensionId,
@@ -872,6 +902,9 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 					} finally {
 						quickPick.hide();
 					}
+					if (this._store.isDisposed) {
+						return;
+					}
 					await this.runRemoteStartCommand(remoteExtension.id, remoteExtension.startCommand);
 				}
 				else {
@@ -879,7 +912,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 						id: commandId,
 						from: 'remote indicator'
 					});
-					this.commandService.executeCommand(commandId).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.commandService.executeCommand(commandId).catch(onUnexpectedError);
 					quickPick.hide();
 				}
 			}
@@ -908,6 +941,14 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 		}
 
 		quickPick.show();
+	}
+
+	override dispose(): void {
+		if (this.remoteStatusEntry) {
+			this.remoteStatusEntry.dispose();
+			this.remoteStatusEntry = undefined;
+		}
+		super.dispose();
 	}
 }
 

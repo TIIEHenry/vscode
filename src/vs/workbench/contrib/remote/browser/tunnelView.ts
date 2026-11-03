@@ -815,6 +815,9 @@ export class TunnelPanel extends ViewPane {
 
 		this.registerPrivacyActions();
 		this._register(Event.once(this.tunnelService.onAddedTunnelProvider)(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			let updated = false;
 			if (this.tunnelPrivacyEnabledContext.get() === false) {
 				this.tunnelPrivacyEnabledContext.set(tunnelService.canChangePrivacy);
@@ -916,6 +919,9 @@ export class TunnelPanel extends ViewPane {
 		rerender();
 		let lastPortCount = this.portCount;
 		this.tableDisposables.add(Event.debounce(this.viewModel.onForwardedPortsChanged, (_last, e) => e, 50)(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const newPortCount = this.portCount;
 			if (((lastPortCount === 0) || (newPortCount === 0)) && (lastPortCount !== newPortCount)) {
 				this._onDidChangeViewWelcomeState.fire();
@@ -944,6 +950,9 @@ export class TunnelPanel extends ViewPane {
 		}));
 
 		this.tableDisposables.add(this.remoteExplorerService.onDidChangeEditable(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.isEditing = !!this.remoteExplorerService.getEditableData(e?.tunnel, e?.editId);
 			this._onDidChangeViewWelcomeState.fire();
 
@@ -1070,6 +1079,9 @@ export class TunnelPanel extends ViewPane {
 				return undefined;
 			},
 			onHide: (wasCancelled?: boolean) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (wasCancelled) {
 					this.table?.domFocus();
 				}
@@ -1092,6 +1104,20 @@ export class TunnelPanel extends ViewPane {
 		this.width = width;
 		super.layoutBody(height, width);
 		this.table?.layout(height, width);
+	}
+
+	override dispose(): void {
+		this.tableDisposables.dispose();
+		if (this.table) {
+			this.table.dispose();
+			this.table = undefined;
+		}
+		if (this.panelContainer) {
+			dom.clearNode(this.panelContainer);
+			this.panelContainer.remove();
+			this.panelContainer = undefined;
+		}
+		super.dispose();
 	}
 }
 
@@ -1211,7 +1237,7 @@ export namespace ForwardPortAction {
 						remoteExplorerService.forward({
 							remote: { host: parsed.host, port: parsed.port },
 							elevateIfNeeded: true
-						}).then(tunnelOrError => error(notificationService, tunnelOrError, parsed!.host, parsed!.port)).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).then(tunnelOrError => error(notificationService, tunnelOrError, parsed!.host, parsed!.port)).catch(onUnexpectedError);
 					}
 				},
 				validationMessage: (value) => validateInput(remoteExplorerService, tunnelService, value, tunnelService.canElevate),
@@ -1237,7 +1263,7 @@ export namespace ForwardPortAction {
 				remoteExplorerService.forward({
 					remote: { host: parsed.host, port: parsed.port },
 					elevateIfNeeded: true
-				}).then(tunnel => error(notificationService, tunnel, parsed!.host, parsed!.port)).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).then(tunnel => error(notificationService, tunnel, parsed!.host, parsed!.port)).catch(onUnexpectedError);
 			}
 		};
 	}

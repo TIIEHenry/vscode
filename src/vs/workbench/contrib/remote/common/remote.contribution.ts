@@ -50,7 +50,7 @@ export class LabelContribution implements IWorkbenchContribution {
 		}, () => {
 			// Failure has no remote OS. Register once, the same as an empty environment.
 			this.registerRemoteLabelFormatter(null);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private registerRemoteLabelFormatter(remoteEnvironment: IRemoteAgentEnvironment | null): void {
@@ -113,24 +113,30 @@ class RemoteInvalidWorkspaceDetector extends Disposable implements IWorkbenchCon
 		// (see https://github.com/microsoft/vscode/issues/133872)
 		if (this.environmentService.remoteAuthority) {
 			remoteAgentService.getEnvironment().then(remoteEnv => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (remoteEnv) {
 					// we use the presence of `remoteEnv` to figure out
 					// if we got a healthy remote connection
 					// (see https://github.com/microsoft/vscode/issues/135331)
 					this.validateRemoteWorkspace();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
 	private async validateRemoteWorkspace(): Promise<void> {
 		const workspace = this.contextService.getWorkspace();
 		const workspaceUriToStat = workspace.configuration ?? workspace.folders.at(0)?.uri;
-		if (!workspaceUriToStat) {
+		if (!workspaceUriToStat || this._store.isDisposed) {
 			return; // only when in workspace
 		}
 
 		const exists = await this.fileService.exists(workspaceUriToStat);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (exists) {
 			return; // all good!
 		}
@@ -141,6 +147,10 @@ class RemoteInvalidWorkspaceDetector extends Disposable implements IWorkbenchCon
 			detail: localize('invalidWorkspaceDetail', "Please select another workspace to open."),
 			primaryButton: localize({ key: 'invalidWorkspacePrimary', comment: ['&& denotes a mnemonic'] }, "&&Open Workspace...")
 		});
+
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		if (res.confirmed) {
 
