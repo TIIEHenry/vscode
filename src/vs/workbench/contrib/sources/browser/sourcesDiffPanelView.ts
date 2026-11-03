@@ -352,7 +352,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		button.type = 'button';
 		button.textContent = label;
 		button.style.display = 'none';
-		button.addEventListener('click', onClick);
+		this._register(dom.addDisposableListener(button, 'click', onClick));
 		return button;
 	}
 

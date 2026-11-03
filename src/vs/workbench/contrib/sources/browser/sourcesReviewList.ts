@@ -172,16 +172,16 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 			button.textContent = chip.label;
 			button.title = this.delegate.getChipTitle(chip);
 			button.setAttribute('aria-label', this.delegate.getChipTitle(chip));
-			button.addEventListener('click', event => {
+			templateData.elementDisposables.add(dom.addDisposableListener(button, 'click', event => {
 				event.preventDefault();
 				event.stopPropagation();
 				this.delegate.onChipClick(chip.toolCallId);
-			});
-			button.addEventListener('keydown', event => {
+			}));
+			templateData.elementDisposables.add(dom.addDisposableListener(button, 'keydown', event => {
 				if (event.key === ' ' || event.key === 'Enter') {
 					event.stopPropagation();
 				}
-			});
+			}));
 		}
 	}
 

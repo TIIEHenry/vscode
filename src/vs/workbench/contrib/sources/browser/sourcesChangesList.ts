@@ -1333,15 +1333,84 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runOnEntries(entries: readonly ISourcesChangeEntry[], action: SourcesChangeRowAction): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWriteClosed()) {
 			return;
 		}
+
+		if (action === 'stage') {
+			const snapshot = this.changesModel.getSnapshot();
+			if (snapshot.state.kind !== 'scm') {
+				const enginePathsBySession = new Map<string, string[]>();
+				const otherEntries: ISourcesChangeEntry[] = [];
+				for (const entry of entries) {
+					if (!isSourcesChangeStageable(entry.groupId)) {
+						continue;
+					}
+					if (entry.origin === 'engine') {
+						if (isSourcesEngineWriteSessionBlocked(entry.origin, entry.sessionId, this.session.getActiveSessionId())) {
+							this.setWriteStatusMessage(sourcesGitSessionChangedMessage());
+							return;
+						}
+						if (!entry.gitPath) {
+							this.setWriteStatusMessage(sourcesGitEmptyStagePathMessage());
+							return;
+						}
+						const sessionId = entry.sessionId ?? '';
+						let paths = enginePathsBySession.get(sessionId);
+						if (!paths) {
+							paths = [];
+							enginePathsBySession.set(sessionId, paths);
+						}
+						paths.push(entry.gitPath);
+					} else {
+						otherEntries.push(entry);
+					}
+				}
+
+				for (const [sessionId, paths] of enginePathsBySession) {
+					if (this._store.isDisposed) {
+						return;
+					}
+					const handled = await this.tryStagePaths(paths, sessionId);
+					if (this._store.isDisposed) {
+						return;
+					}
+					if (!handled) {
+						this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+					}
+				}
+
+				for (const entry of otherEntries) {
+					if (this._store.isDisposed) {
+						return;
+					}
+					await this.runResourceAction(entry, action);
+					if (this._store.isDisposed) {
+						return;
+					}
+				}
+				return;
+			}
+		}
+
 		for (const entry of entries) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this.runResourceAction(entry, action);
+			if (this._store.isDisposed) {
+				return;
+			}
 		}
 	}
 
 	private async runResourceAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (action === 'stage' && !isSourcesChangeStageable(entry.groupId)) {
 			return;
 		}
@@ -1373,12 +1442,18 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 		const handled = await this.tryStagePaths([entry.gitPath], entry.sessionId ?? '');
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!handled) {
 			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 		}
 	}
 
 	private async runLocalGitResource(entry: ISourcesChangeEntry, commandId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const resource = entry.scmResource;
 		if (!resource) {
 			if (commandId === SOURCES_GIT_STAGE_COMMAND && this.canWriteStage()) {
@@ -1394,9 +1469,15 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		try {
 			await this.commandService.executeCommand(commandId, resource);
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.setWriteStatusMessage(undefined);
 			this.scheduleRefresh();
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.setWriteStatusMessage(commandId === SOURCES_GIT_STAGE_COMMAND
 				? localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error))
 				: localize('sourcesChangesList.unstageFailed', "Unable to unstage: {0}", getErrorMessage(error)));
