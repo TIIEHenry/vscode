@@ -27,7 +27,7 @@ export class TerminalNativeContribution extends Disposable implements IWorkbench
 	) {
 		super();
 
-		ipcRenderer.on('vscode:openFiles', (_: unknown, ...args: unknown[]) => { void this._onOpenFileRequest(args[0] as INativeOpenFileRequest).catch(onUnexpectedError).catch(onUnexpectedError); });
+		ipcRenderer.on('vscode:openFiles', (_: unknown, ...args: unknown[]) => { void this._onOpenFileRequest(args[0] as INativeOpenFileRequest).catch(onUnexpectedError); });
 		this._register(nativeHostService.onDidResumeOS(() => this._onOsResume()));
 
 		this._terminalService.setNativeDelegate({
@@ -64,10 +64,21 @@ export class TerminalNativeContribution extends Disposable implements IWorkbench
 		return new Promise<void>(resolve => {
 			let running = false;
 			const interval = disposableWindowInterval(getActiveWindow(), async () => {
+				if (this._store.isDisposed) {
+					interval.dispose();
+					resolve(undefined);
+					return;
+				}
 				if (!running) {
 					running = true;
 					const exists = await this._fileService.exists(path);
 					running = false;
+
+					if (this._store.isDisposed) {
+						interval.dispose();
+						resolve(undefined);
+						return;
+					}
 
 					if (!exists) {
 						interval.dispose();
@@ -75,6 +86,7 @@ export class TerminalNativeContribution extends Disposable implements IWorkbench
 					}
 				}
 			}, 1000);
+			this._register(interval);
 		});
 	}
 }

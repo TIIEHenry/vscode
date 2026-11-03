@@ -248,6 +248,26 @@ export class CommandDetectionCapability extends Disposable implements ICommandDe
 		this._onSetRichCommandDetection.fire(value);
 	}
 
+	override dispose(): void {
+		for (const command of this._commands) {
+			command.promptStartMarker?.dispose();
+			command.marker?.dispose();
+			command.executedMarker?.dispose();
+			command.endMarker?.dispose();
+		}
+		this._commands.length = 0;
+		this._currentCommand.promptStartMarker?.dispose();
+		this._currentCommand.commandStartMarker?.dispose();
+		this._currentCommand.commandExecutedMarker?.dispose();
+		this._currentCommand.commandFinishedMarker?.dispose();
+		this._currentCommand.currentContinuationMarker?.dispose();
+		this._currentCommand.commandLines?.dispose();
+		for (const continuation of this._currentCommand.continuations ?? []) {
+			continuation.marker.dispose();
+		}
+		super.dispose();
+	}
+
 	setIsCommandStorageDisabled(): void {
 		this.__isCommandStorageDisabled = true;
 	}
@@ -624,6 +644,12 @@ class WindowsPtyHeuristics extends Disposable {
 		}));
 	}
 
+	override dispose(): void {
+		this._tryAdjustCommandStartMarkerScheduler?.cancel();
+		this._tryAdjustCommandStartMarkerScheduler = undefined;
+		super.dispose();
+	}
+
 	preHandleResize(e: { cols: number; rows: number }) {
 		// Resize behavior is different under conpty; instead of bringing parts of the scrollback
 		// back into the viewport, new lines are inserted at the bottom (ie. the same behavior as if
@@ -642,6 +668,9 @@ class WindowsPtyHeuristics extends Disposable {
 		// conpty reprints the screen
 		if (rowsDifference > 0) {
 			this._waitForCursorMove().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				// Calculate the number of lines the content may have shifted, this will max out at
 				// scrollback count since the standard behavior will be used then
 				const potentialShiftedLineCount = Math.min(rowsDifference, baseY);
@@ -682,7 +711,7 @@ class WindowsPtyHeuristics extends Disposable {
 						amount: potentialShiftedLineCount
 					});
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -936,6 +965,11 @@ class WindowsPtyHeuristics extends Disposable {
 		let totalDelay = 0;
 		return new Promise<void>((resolve, reject) => {
 			const interval = setInterval(() => {
+				if (this._store.isDisposed) {
+					clearInterval(interval);
+					resolve();
+					return;
+				}
 				if (cursorX !== this._terminal.buffer.active.cursorX || cursorY !== this._terminal.buffer.active.cursorY) {
 					resolve();
 					clearInterval(interval);

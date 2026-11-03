@@ -375,7 +375,13 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 		);
 		this._register(xterm.parser.registerOscHandler(ShellIntegrationOscPs.SetCwd, data => this._doHandleSetCwd(data)));
 		this._register(xterm.parser.registerOscHandler(ShellIntegrationOscPs.SetWindowsFriendlyCwd, data => this._doHandleSetWindowsFriendlyCwd(data)));
-		this._ensureCapabilitiesOrAddFailureTelemetry().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._ensureCapabilitiesOrAddFailureTelemetry().catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this._clearActivationTimeout();
+		this._disposeCommonProtocol();
+		super.dispose();
 	}
 
 	getMarkerId(terminal: Terminal, vscodeMarkerId: string) {
@@ -452,10 +458,13 @@ export class ShellIntegrationAddon extends Disposable implements IShellIntegrati
 	}
 
 	private async _ensureCapabilitiesOrAddFailureTelemetry(): Promise<void> {
-		if (!this._telemetryService || this._disableTelemetry) {
+		if (this._store.isDisposed || !this._telemetryService || this._disableTelemetry) {
 			return;
 		}
 		this._activationTimeout = setTimeout(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!this.capabilities.get(TerminalCapability.CommandDetection) && !this.capabilities.get(TerminalCapability.CwdDetection)) {
 				this._telemetryService?.publicLog2<{}, { owner: 'meganrogge'; comment: 'Indicates shell integration activation timeout' }>('terminal/shellIntegrationActivationTimeout');
 				this._logService.warn('Shell integration failed to add capabilities within 10 seconds');

@@ -480,12 +480,18 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 
 		// Report the latency to the pty host when idle
 		runWhenWindowIdle(getActiveWindow(), () => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			void Promise.resolve(this.backend?.getLatency()).then(measurements => {
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				if (!measurements) {
 					return;
 				}
 				this._logService.info(`Latency measurements for ${this.remoteAuthority ?? 'local'} backend\n${measurements.map(e => `${e.label}: ${e.latency.toFixed(2)}ms`).join('\n')}`);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		});
 
 		return undefined;

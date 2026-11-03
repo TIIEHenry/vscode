@@ -421,7 +421,7 @@ export class TerminalTabbedView extends Disposable {
 			if (!this._shouldHandleEmptyAreaDrop(event)) {
 				return;
 			}
-			void this._handleContainerDrop(event).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._handleContainerDrop(event).catch(onUnexpectedError);
 		}));
 		this._register(dom.addDisposableListener(terminalContainer, 'mousedown', async (event: MouseEvent) => {
 			const terminal = this._terminalGroupService.activeInstance;
@@ -509,7 +509,23 @@ export class TerminalTabbedView extends Disposable {
 		this._setEmptyAreaDropState(false);
 	}
 
+	override dispose(): void {
+		this._removeSashListener();
+		if (this._tabContainer) {
+			dom.clearNode(this._tabContainer);
+			this._tabContainer.remove();
+		}
+		if (this._terminalContainer) {
+			dom.clearNode(this._terminalContainer);
+			this._terminalContainer.remove();
+		}
+		super.dispose();
+	}
+
 	private async _handleContainerDrop(event: DragEvent): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		event.preventDefault();
 		event.stopPropagation();
 		this._resetEmptyAreaDropState();
@@ -537,9 +553,18 @@ export class TerminalTabbedView extends Disposable {
 		}
 		if (promises.length) {
 			const processes = (await Promise.all(promises)).filter((process): process is IProcessDetails => !!process);
+			if (this._store.isDisposed) {
+				return;
+			}
 			let lastInstance: ITerminalInstance | undefined;
 			for (const attachPersistentProcess of processes) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				lastInstance = await this._terminalService.createTerminal({ config: { attachPersistentProcess } });
+			}
+			if (this._store.isDisposed) {
+				return;
 			}
 			if (lastInstance) {
 				this._terminalService.setActiveInstance(lastInstance);

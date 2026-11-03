@@ -57,6 +57,11 @@ export class ChildProcessMonitor extends Disposable {
 		super();
 	}
 
+	override dispose(): void {
+		++this._refreshGeneration;
+		super.dispose();
+	}
+
 	/**
 	 * Updates the pid to monitor. This is needed when the pid is not available
 	 * immediately after spawn (e.g. node-pty deferred conpty connection).
@@ -70,7 +75,7 @@ export class ChildProcessMonitor extends Disposable {
 	 * Input was triggered on the process.
 	 */
 	handleInput() {
-		this._refreshActive().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._refreshActive().catch(onUnexpectedError);
 	}
 
 	/**
@@ -100,7 +105,7 @@ export class ChildProcessMonitor extends Disposable {
 
 	@throttle(Constants.InactiveThrottleDuration)
 	private _refreshInactive(): void {
-		this._refreshActive().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._refreshActive().catch(onUnexpectedError);
 	}
 
 	private _processContainsChildren(processItem: ProcessItem): boolean {

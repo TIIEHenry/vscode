@@ -70,6 +70,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -77,6 +78,10 @@ function countIncludes(source: string, needle: string): number {
 
 function countDoubleChains(source: string): number {
 	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
+function countSingleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -97,7 +102,7 @@ const handleExternalDropCall = 'this._handleExternalDrop(targetInstance, origina
 const leftoverResizeCall = 'this._resize();';
 const leftoverResizeTrueCall = 'this._resize(true);';
 const leftoverUnicodeCall = 'this._updateUnicodeVersion();';
-const leftoverSendTextCall = 'this.sendText(e.command.command, e.noNewLine ? false : true);';
+const leftoverSendTextCall = 'this._sendTextOrThrow(e.command.command, e.noNewLine ? false : true)';
 const leftoverShowBackgroundCall = 'this.showBackgroundTerminal(value);';
 const leftoverRevealCall = 'this.revealTerminal(instance);';
 const leftoverMoveCall = 'this.moveToTerminalView(sourceInstance, instance, e.side);';
@@ -164,12 +169,18 @@ suite('leftover remaining unused after D748 leftover remaining unused terminal l
 		const mark = fs.readFileSync(resolveSource(MARK_REL), 'utf8');
 		const processManager = fs.readFileSync(resolveSource(PROCESS_REL), 'utf8');
 		const env = fs.readFileSync(resolveSource(ENV_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(instance), 7);
-		assert.strictEqual(countDoubleChains(service), 5);
-		assert.strictEqual(countDoubleChains(xterm), 11);
-		assert.strictEqual(countDoubleChains(mark), 1);
-		assert.strictEqual(countDoubleChains(processManager), 1);
-		assert.strictEqual(countDoubleChains(env), 2);
+		assert.strictEqual(countDoubleChains(instance), 0);
+		assert.strictEqual(countDoubleChains(service), 0);
+		assert.strictEqual(countDoubleChains(xterm), 0);
+		assert.strictEqual(countDoubleChains(mark), 0);
+		assert.strictEqual(countDoubleChains(processManager), 0);
+		assert.strictEqual(countDoubleChains(env), 0);
+		assert.strictEqual(countSingleChains(instance), 7);
+		assert.strictEqual(countSingleChains(service), 5);
+		assert.strictEqual(countSingleChains(xterm), 11);
+		assert.strictEqual(countSingleChains(mark), 1);
+		assert.strictEqual(countSingleChains(processManager), 1);
+		assert.strictEqual(countSingleChains(env), 2);
 		assert.ok(instance.includes(leftoverResizeCall));
 		assert.ok(!instance.includes(`this._resize()${doubleCatch}`));
 		assert.ok(instance.includes(leftoverResizeTrueCall));
@@ -177,7 +188,7 @@ suite('leftover remaining unused after D748 leftover remaining unused terminal l
 		assert.ok(instance.includes(leftoverUnicodeCall));
 		assert.ok(!instance.includes(`this._updateUnicodeVersion()${doubleCatch}`));
 		assert.ok(instance.includes(leftoverSendTextCall));
-		assert.ok(!instance.includes(`${leftoverSendTextCall.slice(0, -1)}${doubleCatch}`));
+		assert.ok(!instance.includes(`${leftoverSendTextCall}${doubleCatch}`));
 		assert.ok(service.includes(leftoverShowBackgroundCall));
 		assert.ok(!service.includes(`this.showBackgroundTerminal(value)${doubleCatch}`));
 		assert.ok(service.includes(leftoverRevealCall));
@@ -193,8 +204,9 @@ suite('leftover remaining unused after D748 leftover remaining unused terminal l
 		for (const [rel, call, count] of d862AlreadyDouble) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `D862 already-double drifted: ${rel} ${call}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
+			assert.strictEqual(wrapped, count, `D862 already-single drifted: ${rel} ${call}`);
+			assert.ok(!source.includes(`${call}${doubleCatch}`));
 			d862Sites += count;
 		}
 		assert.strictEqual(d862Sites, 5);
@@ -338,17 +350,23 @@ suite('leftover remaining unused after D748 leftover remaining unused terminal l
 		const langDetect = fs.readFileSync(resolveSource(LANG_DETECT_REL), 'utf8');
 		const editTelemetry = fs.readFileSync(resolveSource(EDIT_TELEMETRY_REL), 'utf8');
 
-		assert.strictEqual(countIncludes(main, `${initCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(resolver, `${refreshDefaultCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(profile, `${refreshAvailableCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(tabs, `${handleExternalDropCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(main, `${initCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(resolver, `${refreshDefaultCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(profile, `${refreshAvailableCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(tabs, `${handleExternalDropCall}${singleCatch}`), 1);
+		assert.ok(!main.includes(doubleCatch));
+		assert.ok(!resolver.includes(doubleCatch));
+		assert.ok(!profile.includes(doubleCatch));
+		assert.ok(!tabs.includes(doubleCatch));
 
 		assert.ok(instance.includes(leftoverResizeCall));
 		assert.ok(!instance.includes(`this._resize()${doubleCatch}`));
 		assert.ok(service.includes(leftoverShowBackgroundCall));
 		assert.ok(!service.includes(`this.showBackgroundTerminal(value)${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(instance), 7);
-		assert.strictEqual(countDoubleChains(service), 5);
+		assert.strictEqual(countDoubleChains(instance), 0);
+		assert.strictEqual(countDoubleChains(service), 0);
+		assert.strictEqual(countSingleChains(instance), 7);
+		assert.strictEqual(countSingleChains(service), 5);
 
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
@@ -396,7 +414,8 @@ suite('leftover remaining unused after D748 leftover remaining unused terminal l
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(suggestContrib.includes('this._prepareAddonLayout(xterm)'));
 		assert.ok(suggestContrib.includes(doubleCatch));
-		assert.ok(xterm.includes(`this._updateUnicodeVersion()${doubleCatch}`));
+		assert.ok(xterm.includes(`this._updateUnicodeVersion()${singleCatch}`));
+		assert.ok(!xterm.includes(`this._updateUnicodeVersion()${doubleCatch}`));
 
 		for (const [rel, file] of [
 			[FIND_MODEL_REL, findModel],

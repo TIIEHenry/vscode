@@ -48,7 +48,7 @@ export class TerminalMainContribution extends Disposable implements IWorkbenchCo
 			terminalEditorService,
 			terminalGroupService,
 			terminalInstanceService
-		).catch(onUnexpectedError).catch(onUnexpectedError);
+		).catch(onUnexpectedError);
 	}
 
 	private async _init(

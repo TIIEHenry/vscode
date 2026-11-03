@@ -257,6 +257,15 @@ export class TerminalTabList extends WorkbenchList<ITerminalInstance> {
 		}, true);
 	}
 
+	override dispose(): void {
+		const domNode = this.getHTMLElement();
+		if (domNode) {
+			DOM.clearNode(domNode);
+			domNode.remove();
+		}
+		super.dispose();
+	}
+
 	private _updateContextKey() {
 		this._terminalTabsSingleSelectedContextKey.set(this.getSelectedElements().length === 1);
 		const instance = this.getFocusedElements();
@@ -743,7 +752,7 @@ class TerminalTabsDragAndDrop extends Disposable implements IListDragAndDrop<ITe
 
 		if (sourceInstances === undefined) {
 			if (!(data instanceof ElementsDragAndDropData)) {
-				this._handleExternalDrop(targetInstance, originalEvent).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._handleExternalDrop(targetInstance, originalEvent).catch(onUnexpectedError);
 				return;
 			}
 
@@ -780,8 +789,13 @@ class TerminalTabsDragAndDrop extends Disposable implements IListDragAndDrop<ITe
 		}
 	}
 
+	override dispose(): void {
+		this._autoFocusDisposable.dispose();
+		super.dispose();
+	}
+
 	private async _handleExternalDrop(instance: ITerminalInstance | undefined, e: DragEvent) {
-		if (!instance || !e.dataTransfer) {
+		if (this._store.isDisposed || !instance || !e.dataTransfer) {
 			return;
 		}
 
@@ -803,6 +817,10 @@ class TerminalTabsDragAndDrop extends Disposable implements IListDragAndDrop<ITe
 		}
 
 		if (!resource) {
+			return;
+		}
+
+		if (this._store.isDisposed || instance.isDisposed) {
 			return;
 		}
 

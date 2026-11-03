@@ -21,6 +21,7 @@ export class TerminalTabsChatEntry extends Disposable {
 	private readonly _deleteButton: HTMLElement;
 
 	override dispose(): void {
+		dom.clearNode(this._entry);
 		this._entry.remove();
 		this._label.remove();
 		this._deleteButton.remove();
@@ -55,7 +56,10 @@ export class TerminalTabsChatEntry extends Disposable {
 		this._deleteButton.setAttribute('title', localize('terminal.tabs.chatEntryDeleteTooltip', "Kill all hidden chat terminals"));
 
 		const runChatTerminalsCommand = () => {
-			void this._commandService.executeCommand('workbench.action.terminal.chat.viewHiddenChatTerminals').catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this._commandService.executeCommand('workbench.action.terminal.chat.viewHiddenChatTerminals').catch(onUnexpectedError);
 		};
 		this._register(dom.addDisposableListener(this._entry, dom.EventType.CLICK, e => {
 			// Don't trigger if clicking on the delete button
@@ -93,6 +97,9 @@ export class TerminalTabsChatEntry extends Disposable {
 	}
 
 	private async _deleteAllHiddenTerminals(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hiddenTerminals = this._terminalChatService.getToolSessionTerminalInstances(true);
 		if (hiddenTerminals.length === 0) {
 			return;

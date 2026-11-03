@@ -58,6 +58,14 @@ export class MarkNavigationAddon extends Disposable implements IMarkTracker, ITe
 		super();
 	}
 
+	override dispose(): void {
+		this.clear();
+		if (this._currentMarker && typeof this._currentMarker !== 'number') {
+			this._currentMarker.dispose();
+		}
+		super.dispose();
+	}
+
 	private _getMarkers(skipEmptyCommands?: boolean): readonly IMarker[] {
 		const commandCapability = this._capabilities.get(TerminalCapability.CommandDetection);
 		const partialCommandCapability = this._capabilities.get(TerminalCapability.PartialCommandDetection);
@@ -417,10 +425,13 @@ export class MarkNavigationAddon extends Disposable implements IMarkTracker, ITe
 				// Number picked to align with symbol highlight in the editor
 				if (showOutline) {
 					timeout(350).then(() => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (renderedElement) {
 							renderedElement.classList.remove('terminal-scroll-highlight-outline');
 						}
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}
 			}
 		}

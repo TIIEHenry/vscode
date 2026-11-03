@@ -35,7 +35,7 @@ export class TerminalAutoResponder extends Disposable {
 		super();
 
 		this._register(proc.onProcessData(e => {
-			if (this._paused || this._throttled) {
+			if (this._store.isDisposed || this._paused || this._throttled) {
 				return;
 			}
 			const data = isString(e) ? e : e.data;
@@ -50,11 +50,16 @@ export class TerminalAutoResponder extends Disposable {
 					logService.debug(`Auto reply match: "${matchWord}", response: "${response}"`);
 					proc.input(response);
 					this._throttled = true;
-					timeout(1000).then(() => this._throttled = false).catch(onUnexpectedError).catch(onUnexpectedError);
+					timeout(1000).then(() => this._throttled = false).catch(onUnexpectedError);
 					this._reset();
 				}
 			}
 		}));
+	}
+
+	override dispose(): void {
+		this._throttled = false;
+		super.dispose();
 	}
 
 	private _reset() {

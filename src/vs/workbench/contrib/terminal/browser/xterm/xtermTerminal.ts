@@ -307,7 +307,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 					this.updateConfig();
 				}
 				if (e.affectsConfiguration(TerminalSettingId.UnicodeVersion)) {
-					this._updateUnicodeVersion().catch(onUnexpectedError).catch(onUnexpectedError);
+					this._updateUnicodeVersion().catch(onUnexpectedError);
 				}
 				if (e.affectsConfiguration(TerminalSettingId.ShellIntegrationDecorationsEnabled)) {
 					this._updateTheme();
@@ -328,7 +328,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		this._register(this.raw.onData(e => this._lastInputEvent = e));
 
 		// Load addons
-		this._updateUnicodeVersion().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._updateUnicodeVersion().catch(onUnexpectedError);
 		this._markNavigationAddon = this._instantiationService.createInstance(MarkNavigationAddon, options.capabilities);
 		this.raw.loadAddon(this._markNavigationAddon);
 		this._decorationAddon = this._instantiationService.createInstance(DecorationAddon, resource, this._capabilities);
@@ -353,7 +353,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 				}
 			});
 			this.raw.loadAddon(this._clipboardAddon);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._xtermAddonLoader.importAddon('progress').then(ProgressAddon => {
 			if (this._store.isDisposed) {
 				return;
@@ -380,7 +380,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 				});
 				this._store.add(disposable);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._anyTerminalFocusContextKey = TerminalContextKeys.focusInAny.bindTo(contextKeyService);
 		this._anyFocusedTerminalHasSelection = TerminalContextKeys.textSelectedInFocused.bindTo(contextKeyService);
@@ -524,7 +524,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		// TODO: Move before open so the DOM renderer doesn't initialize
 		if (options.enableGpu) {
 			if (this._shouldLoadWebgl()) {
-				this._enableWebglRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._enableWebglRenderer().catch(onUnexpectedError);
 			}
 		}
 
@@ -550,7 +550,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 			}
 		}, { passive: true }));
 
-		this._refreshLigaturesAddon().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._refreshLigaturesAddon().catch(onUnexpectedError);
 
 		this._attached = { container, options };
 		// Screen must be created at this point as xterm.open is called
@@ -636,12 +636,12 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		if (this._attached) {
 			if (this._attached.options.enableGpu) {
 				if (this._shouldLoadWebgl()) {
-					this._enableWebglRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
+					this._enableWebglRenderer().catch(onUnexpectedError);
 				} else {
 					this._disposeOfWebglRenderer();
 				}
 			}
-			this._refreshLigaturesAddon().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._refreshLigaturesAddon().catch(onUnexpectedError);
 		}
 	}
 
@@ -965,7 +965,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 				this._logService.info(`Webgl lost context, disposing of webgl renderer`);
 				this._disposeOfWebglRenderer();
 			});
-			this._refreshImageAddon().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._refreshImageAddon().catch(onUnexpectedError);
 			// WebGL renderer cell dimensions differ from the DOM renderer, make sure the terminal
 			// gets resized after the webgl addon is loaded
 			this._onDidRequestRefreshDimensions.fire();
@@ -1092,7 +1092,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 			// ignore
 		}
 		this._webglAddon = undefined;
-		this._refreshImageAddon().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._refreshImageAddon().catch(onUnexpectedError);
 		// WebGL renderer cell dimensions differ from the DOM renderer, make sure the terminal
 		// gets resized after the webgl addon is disposed
 		this._onDidRequestRefreshDimensions.fire();
@@ -1192,7 +1192,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		this._updateTheme();
 		this._decorationAddon.refreshLayouts();
 		if (this._webglAddon || this._webglAddonLoading) {
-			this._enableWebglRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._enableWebglRenderer().catch(onUnexpectedError);
 		}
 	}
 
@@ -1219,6 +1219,11 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		this._anyTerminalFocusContextKey.reset();
 		this._anyFocusedTerminalHasSelection.reset();
 		this._disposeOfWebglRenderer();
+		if (this.raw.element) {
+			dom.clearNode(this.raw.element);
+			this.raw.element.remove();
+		}
+		this._attached = undefined;
 		this._onDidDispose.fire();
 		super.dispose();
 	}

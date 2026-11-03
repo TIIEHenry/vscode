@@ -25,34 +25,39 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
-function assertDoubleChain(source: string, call: string, count: number): void {
+function assertSingleChain(source: string, call: string, count: number): void {
 	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
-	assert.ok(source.includes(`${call}${doubleCatch};`));
+	assert.ok(source.includes(`${call}${singleCatch};`));
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 suite('Terminal leftover Promise fire-and-forget catch scan (D685)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('tabbed view _handleContainerDrop leftover void is double-chain', () => {
+	test('tabbed view _handleContainerDrop leftover void is single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TABBED_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _handleContainerDrop(event: DragEvent): Promise<void> {'));
-		assertDoubleChain(source, 'void this._handleContainerDrop(event)', 1);
+		assertSingleChain(source, 'void this._handleContainerDrop(event)', 1);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('tabs chat entry executeCommand leftover void is double-chain', () => {
+	test('tabs chat entry executeCommand leftover void is single-catch', () => {
 		const source = fs.readFileSync(resolveSource(CHAT_ENTRY_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleChain(source, "void this._commandService.executeCommand('workbench.action.terminal.chat.viewHiddenChatTerminals')", 1);
+		assertSingleChain(source, "void this._commandService.executeCommand('workbench.action.terminal.chat.viewHiddenChatTerminals')", 1);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('agentHostPty leftover stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(PTY_REL), 'utf8');
 		assert.ok(source.includes('void this._connection.disposeTerminal(this._terminalUri).catch(err => this._logHostDisposalError(err));'));
 		assert.ok(!source.includes('void this._connection.disposeTerminal(this._terminalUri).catch(onUnexpectedError)'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

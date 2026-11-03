@@ -248,6 +248,14 @@ export class TerminalViewPane extends ViewPane {
 		this._terminalTabbedView?.layout(width, height);
 	}
 
+	override dispose(): void {
+		if (this._parentDomElement) {
+			dom.clearNode(this._parentDomElement);
+			this._parentDomElement = undefined;
+		}
+		super.dispose();
+	}
+
 	override createActionViewItem(action: Action, options: IBaseActionViewItemOptions): IActionViewItem | undefined {
 		switch (action.id) {
 			case TerminalCommandId.Split: {
@@ -457,7 +465,7 @@ class SingleTerminalTabActionViewItem extends MenuEntryActionViewItem {
 	override async onClick(event: MouseEvent): Promise<void> {
 		this._terminalGroupService.lastAccessedMenu = 'inline-tab';
 		if (event.altKey && this._menuItemAction.alt) {
-			void this._commandService.executeCommand(this._menuItemAction.alt.id, { location: TerminalLocation.Panel } satisfies ICreateTerminalOptions).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._commandService.executeCommand(this._menuItemAction.alt.id, { location: TerminalLocation.Panel } satisfies ICreateTerminalOptions).catch(onUnexpectedError);
 		} else {
 			this._openContextMenu();
 		}
@@ -563,6 +571,14 @@ class SingleTerminalTabActionViewItem extends MenuEntryActionViewItem {
 			},
 			onHide: () => actionRunner.dispose()
 		});
+	}
+
+	override dispose(): void {
+		if (this.element) {
+			dom.clearNode(this.element);
+			this.element.remove();
+		}
+		super.dispose();
 	}
 }
 

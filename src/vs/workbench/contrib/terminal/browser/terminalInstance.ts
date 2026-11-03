@@ -614,7 +614,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			if (!this.isDisposed) {
 				throw err;
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this._configurationService.onDidChangeConfiguration(async e => {
 			if (e.affectsConfiguration(AccessibilityVerbositySettingId.Terminal)) {
@@ -684,10 +684,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 				onUnexpectedError(err);
 			}
 			this._xtermReadyPromise.then(xterm => {
+				if (this.isDisposed || this._store.isDisposed) {
+					return;
+				}
 				if (xterm) {
 					contribution.xtermReady?.(xterm);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			this._register(this.onWillDispose(() => {
 				contribution.dispose();
 				this._contributions.delete(desc.id);
@@ -965,8 +968,11 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		}
 
 		this._pathService.userHome().then(userHome => {
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
 			this._userHome = userHome.fsPath;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		if (this._isVisible) {
 			this._open();
@@ -1146,10 +1152,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		for (const contribution of this._contributions.values()) {
 			if (!this.xterm) {
 				this._xtermReadyPromise.then(xterm => {
+					if (this.isDisposed || this._store.isDisposed) {
+						return;
+					}
 					if (xterm) {
 						contribution.xtermOpen?.(xterm);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			} else {
 				contribution.xtermOpen?.(this.xterm);
 			}
@@ -1356,6 +1365,11 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		} catch (err: unknown) {
 			// See https://github.com/microsoft/vscode/issues/153486
 			this._logService.error('Exception occurred during xterm disposal', err);
+		}
+
+		if (this._wrapperElement) {
+			dom.clearNode(this._wrapperElement);
+			this._wrapperElement.remove();
 		}
 
 		// HACK: Workaround for Firefox bug https://bugzilla.mozilla.org/show_bug.cgi?id=559561,
@@ -1572,11 +1586,17 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 				// Listen to xterm.js' sequence title change event, trigger this async to ensure
 				// _xtermReadyPromise is ready constructed since this is called from the ctor
 				setTimeout(() => {
+					if (this.isDisposed || this._store.isDisposed) {
+						return;
+					}
 					this._xtermReadyPromise.then(xterm => {
+						if (this.isDisposed || this._store.isDisposed) {
+							return;
+						}
 						if (xterm) {
 							this._messageTitleDisposable.value = xterm.raw.onTitleChange(e => this._onTitleChange(e));
 						}
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				});
 				// When a title template is provided, use the name as the initial process name
 				// so it can be referenced via ${process} in the template
@@ -1827,7 +1847,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 				if (xterm.raw.textarea) {
 					this._attachPressAnyKeyToCloseListener(xterm.raw);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		} else {
 			if (exitMessage) {
 				const failedDuringLaunch = this._processManager.processState === ProcessState.KilledDuringLaunch;
@@ -2098,10 +2118,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		for (const contribution of this._contributions.values()) {
 			if (!this.xterm) {
 				this._xtermReadyPromise.then(xterm => {
+					if (this.isDisposed || this._store.isDisposed) {
+						return;
+					}
 					if (xterm) {
 						contribution.layout?.(xterm, dimension);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			} else {
 				contribution.layout?.(this.xterm, dimension);
 			}
