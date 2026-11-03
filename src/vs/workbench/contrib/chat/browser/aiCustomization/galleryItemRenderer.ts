@@ -40,6 +40,7 @@ export interface IGalleryItemProvider<TElement> {
 }
 
 interface IGalleryItemTemplateData {
+	readonly container: HTMLElement;
 	readonly name: HTMLElement;
 	readonly publisher: HTMLElement;
 	readonly description: HTMLElement;
@@ -72,7 +73,7 @@ export class GalleryItemRenderer<TElement> implements IListRenderer<TElement, IG
 		const templateDisposables = new DisposableStore();
 		templateDisposables.add(installButton);
 
-		return { name, publisher, description, installButton, elementDisposables: new DisposableStore(), templateDisposables };
+		return { container, name, publisher, description, installButton, elementDisposables: new DisposableStore(), templateDisposables };
 	}
 
 	renderElement(element: TElement, _index: number, templateData: IGalleryItemTemplateData): void {
@@ -87,6 +88,9 @@ export class GalleryItemRenderer<TElement> implements IListRenderer<TElement, IG
 
 		templateData.elementDisposables.add(templateData.installButton.onDidClick(() => {
 			void (async () => {
+				if (templateData.elementDisposables.isDisposed || templateData.templateDisposables.isDisposed) {
+					return;
+				}
 				if (this._provider.getInstallState(element) !== GalleryItemInstallState.Uninstalled) {
 					return;
 				}
@@ -98,9 +102,11 @@ export class GalleryItemRenderer<TElement> implements IListRenderer<TElement, IG
 				try {
 					await this._provider.install(element);
 				} finally {
-					this._updateInstallButton(templateData.installButton, element);
+					if (!templateData.elementDisposables.isDisposed && !templateData.templateDisposables.isDisposed) {
+						this._updateInstallButton(templateData.installButton, element);
+					}
 				}
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		}));
 
 		const changeListener = this._provider.onDidChangeInstallState?.(element, () => this._updateInstallButton(templateData.installButton, element));
@@ -129,5 +135,6 @@ export class GalleryItemRenderer<TElement> implements IListRenderer<TElement, IG
 	disposeTemplate(templateData: IGalleryItemTemplateData): void {
 		templateData.elementDisposables.dispose();
 		templateData.templateDisposables.dispose();
+		DOM.clearNode(templateData.container);
 	}
 }

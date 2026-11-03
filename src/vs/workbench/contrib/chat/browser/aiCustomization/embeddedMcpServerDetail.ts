@@ -93,6 +93,9 @@ export class EmbeddedMcpServerDetail extends Disposable {
 
 		// Refresh when the underlying server changes (install state, enablement, etc.).
 		this._register(this.mcpWorkbenchService.onChange(server => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.current && server && server.id === this.current.id) {
 				this.current = createWorkbenchMcpServerDetailInput(server);
 				this.renderItem();
@@ -100,6 +103,17 @@ export class EmbeddedMcpServerDetail extends Disposable {
 		}));
 
 		this.renderItem();
+	}
+
+	override dispose(): void {
+		this.current = undefined;
+		this.definitionModel.clear();
+		DOM.clearNode(this.definitionEditorContainer);
+		DOM.clearNode(this.headerEl);
+		DOM.clearNode(this.emptyEl);
+		DOM.clearNode(this.root);
+		this.root.remove();
+		super.dispose();
 	}
 
 	get element(): HTMLElement {
@@ -156,21 +170,24 @@ export class EmbeddedMcpServerDetail extends Disposable {
 			this.setDefinition(`${JSON.stringify({ servers: { [server.name]: server.config } }, null, '\t')}\n`);
 		} else if (server.source) {
 			this.setDefinition(undefined, localize('mcpDefinitionLoading', "Loading MCP server definition..."));
-			void this.loadSourceDefinition(server, server.source, renderGeneration).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.loadSourceDefinition(server, server.source, renderGeneration).catch(onUnexpectedError);
 		} else {
 			this.setDefinition(undefined);
 		}
 	}
 
 	private async loadSourceDefinition(server: IMcpServerDetailInput, source: NonNullable<IMcpServerDetailInput['source']>, renderGeneration: number): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			const content = (await this.fileService.readFile(source.uri)).value.toString();
-			if (this.current !== server || this.renderGeneration !== renderGeneration) {
+			if (this._store.isDisposed || this.current !== server || this.renderGeneration !== renderGeneration) {
 				return;
 			}
 			this.setDefinition(source.range ? getTextInRange(content, source.range) : content);
 		} catch {
-			if (this.current === server && this.renderGeneration === renderGeneration) {
+			if (!this._store.isDisposed && this.current === server && this.renderGeneration === renderGeneration) {
 				this.setDefinition(undefined, localize('mcpDefinitionLoadFailed', "The MCP server definition could not be loaded."));
 			}
 		}

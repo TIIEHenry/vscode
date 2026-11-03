@@ -19,7 +19,7 @@ import { MigratableConfiguration } from '../../../common/promptSyntax/service/cu
 import { PromptsStorage } from '../../../common/promptSyntax/service/promptsService.js';
 import { IHeaderAttribute } from '../../../common/promptSyntax/promptFileParser.js';
 import { PromptFileSource, PromptsType, Target } from '../../../common/promptSyntax/promptTypes.js';
-import { AICustomizationManagementSection, AICustomizationSources } from '../../../common/aiCustomizationWorkspaceService.js';
+import { AICustomizationManagementSection, AICustomizationSources, IAICustomizationWorkspaceService } from '../../../common/aiCustomizationWorkspaceService.js';
 import { CustomizationMigrationCategoryId } from '../../../browser/aiCustomization/customizationMigrationCategories.js';
 import type { ICustomizationSourceFolder } from '../../../common/customizationHarnessService.js';
 import type { ICustomizationMigrationCategorySummary } from '../../../browser/aiCustomization/aiCustomizationWelcomePage.js';
@@ -52,6 +52,11 @@ suite('aiCustomizationManagementEditor', () => {
 	});
 
 	type TestableEditor = {
+		workspaceService: IAICustomizationWorkspaceService;
+		container: HTMLElement | undefined;
+		embeddedEditor: unknown;
+		embeddedMcpDetail: unknown;
+		dispose(): void;
 		currentEditingPromptType: PromptsType | undefined;
 		currentEditingSource: string | undefined;
 		currentEditingReadOnly: boolean;
@@ -111,6 +116,16 @@ suite('aiCustomizationManagementEditor', () => {
 
 	function createTestEditor(hoverService?: IHoverService, configurationService?: IConfigurationService): TestableEditor {
 		const editor = Object.create(AICustomizationManagementEditor.prototype) as unknown as TestableEditor;
+		editor.editorPreviewDisposables = new DisposableStore();
+		(editor as unknown as { _store: DisposableStore })._store = editor.editorPreviewDisposables.add(new DisposableStore());
+		editor.workspaceService = {
+			isSessionsWindow: true,
+			managementSections: [],
+			clearOverrideProjectRoot() { },
+		} as unknown as IAICustomizationWorkspaceService;
+		editor.container = undefined;
+		editor.embeddedEditor = undefined;
+		editor.embeddedMcpDetail = undefined;
 		editor.currentEditingPromptType = undefined;
 		editor.currentEditingSource = undefined;
 		editor.currentEditingReadOnly = false;
@@ -119,7 +134,6 @@ suite('aiCustomizationManagementEditor', () => {
 		editor.activeMigrationCategoryId = undefined;
 		editor.editorDisplayMode = 'preview';
 		editor.editorPreviewFrontMatterContainer = document.createElement('div');
-		editor.editorPreviewDisposables = new DisposableStore();
 		editor.editorDisposables = editor.editorPreviewDisposables.add(new DisposableStore());
 		editor.harnessService = {
 			activeSessionResource: observableValue('activeSessionResource', URI.parse('agent-host-test:/session-a')),
@@ -741,5 +755,38 @@ suite('aiCustomizationManagementEditor', () => {
 			editor.migrationPageDisposables.dispose();
 			editor.editorPreviewDisposables.dispose();
 		}
+	});
+
+	test('cleans up and detaches DOM container and embedded editors on dispose', () => {
+		const editor = createTestEditor();
+		const parent = document.createElement('div');
+		const container = document.createElement('div');
+		const child = document.createElement('span');
+		container.appendChild(child);
+		parent.appendChild(container);
+		editor.container = container;
+
+		let modelCleared = false;
+		let mcpDetailCleared = false;
+		editor.embeddedEditor = {
+			setModel(model: unknown) {
+				if (model === null) {
+					modelCleared = true;
+				}
+			}
+		};
+		editor.embeddedMcpDetail = {
+			clearInput() {
+				mcpDetailCleared = true;
+			}
+		};
+
+		editor.dispose();
+		editor.editorPreviewDisposables.dispose();
+
+		assert.strictEqual(container.childNodes.length, 0);
+		assert.strictEqual(container.parentElement, null);
+		assert.strictEqual(modelCleared, true);
+		assert.strictEqual(mcpDetailCleared, true);
 	});
 });

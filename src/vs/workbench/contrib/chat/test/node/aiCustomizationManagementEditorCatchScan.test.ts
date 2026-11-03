@@ -27,58 +27,50 @@ suite('AICustomizationManagementEditor leftover fire-and-forget catch scan (D566
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('migration refresh / migrate / reveal voids double-catch onUnexpectedError', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('migration refresh / migrate / reveal voids single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(editorSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleRefresh = `void this.refreshCustomizationMigrationInfo()${doubleCatch}`;
-		const doubleMigrate = `void this.migrateSelectedCustomizations(category, selectedCustomizations)${doubleCatch};`;
-		const doubleReveal = `void this.revealMigratedCustomizations(migratedCustomizations)${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleRefresh = `void this.refreshCustomizationMigrationInfo()${singleCatch}`;
+		const singleMigrate = `void this.migrateSelectedCustomizations(category, selectedCustomizations)${singleCatch};`;
+		const singleReveal = `void this.revealMigratedCustomizations(migratedCustomizations)${singleCatch};`;
 
 		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
-		assert.strictEqual((source.match(/void this\.migrateSelectedCustomizations\(category, selectedCustomizations\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.revealMigratedCustomizations\(migratedCustomizations\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleRefresh));
-		assert.ok(source.includes(doubleMigrate));
-		assert.ok(source.includes(doubleReveal));
-		assert.ok(source.includes(`() => ${doubleRefresh},`));
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.migrateSelectedCustomizations\(category, selectedCustomizations\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.revealMigratedCustomizations\(migratedCustomizations\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(singleRefresh));
+		assert.ok(source.includes(singleMigrate));
+		assert.ok(source.includes(singleReveal));
+		assert.ok(source.includes(`() => ${singleRefresh},`));
 		assert.ok(source.includes('await this.refreshCustomizationMigrationInfo();'));
 		assert.ok(!source.includes('void this.refreshCustomizationMigrationInfo();'));
 		assert.ok(!source.includes('void this.refreshCustomizationMigrationInfo(),'));
 		assert.ok(!source.includes('void this.migrateSelectedCustomizations(category, selectedCustomizations);'));
 		assert.ok(!source.includes('void this.revealMigratedCustomizations(migratedCustomizations);'));
-		assert.ok(!source.includes('void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.migrateSelectedCustomizations(category, selectedCustomizations).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.revealMigratedCustomizations(migratedCustomizations).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('await this.refreshCustomizationMigrationInfo().catch(onUnexpectedError)'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('listWidget.setSection / showEmbeddedEditor leftover voids double-catch onUnexpectedError (D574)', () => {
+	test('listWidget.setSection / showEmbeddedEditor leftover voids single-catch onUnexpectedError (D574)', () => {
 		const source = fs.readFileSync(editorSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleSelectedSection = `void this.listWidget.setSection(this.selectedSection)${doubleCatch};`;
-		const doubleSection = `void this.listWidget.setSection(section)${doubleCatch};`;
-		const doubleSectionId = `void this.listWidget.setSection(sectionId)${doubleCatch};`;
-		const doubleShowEmbeddedEditor = `void this.showEmbeddedEditor(\n\t\t\t\tcustomization.uri,\n\t\t\t\tcustomization.name ?? basename(customization.uri),\n\t\t\t\tcustomization.type,\n\t\t\t\tcustomization.storage,\n\t\t\t\tisWorkspaceFile,\n\t\t\t)${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleSelectedSection = `void this.listWidget.setSection(this.selectedSection)${singleCatch};`;
+		const singleSection = `void this.listWidget.setSection(section)${singleCatch};`;
+		const singleSectionId = `void this.listWidget.setSection(sectionId)${singleCatch};`;
+		const singleShowEmbeddedEditor = `void this.showEmbeddedEditor(\n\t\t\t\tcustomization.uri,\n\t\t\t\tcustomization.name ?? basename(customization.uri),\n\t\t\t\tcustomization.type,\n\t\t\t\tcustomization.storage,\n\t\t\t\tisWorkspaceFile,\n\t\t\t)${singleCatch};`;
 
-		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
-		assert.ok(source.includes(doubleSelectedSection));
-		assert.ok(source.includes(doubleSection));
-		assert.ok(source.includes(doubleSectionId));
-		assert.ok(source.includes(doubleShowEmbeddedEditor));
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.ok(source.includes(singleSelectedSection));
+		assert.ok(source.includes(singleSection));
+		assert.ok(source.includes(singleSectionId));
+		assert.ok(source.includes(singleShowEmbeddedEditor));
 		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(\n\t\t\t\tcustomization\.uri,/g) ?? []).length, 1);
 		assert.ok(source.includes('await this.listWidget.setSection(section);'));
 		assert.ok(source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);'));
 		assert.ok(!source.includes('void this.listWidget.setSection(this.selectedSection);'));
 		assert.ok(!source.includes('void this.listWidget.setSection(section);'));
 		assert.ok(!source.includes('void this.listWidget.setSection(sectionId);'));
-		assert.ok(!source.includes('void this.listWidget.setSection(this.selectedSection).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.listWidget.setSection(section).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.listWidget.setSection(sectionId).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void this.showEmbeddedEditor(\n\t\t\t\tcustomization.uri,\n\t\t\t\tcustomization.name ?? basename(customization.uri),\n\t\t\t\tcustomization.type,\n\t\t\t\tcustomization.storage,\n\t\t\t\tisWorkspaceFile,\n\t\t\t);'));
-		assert.ok(!source.includes('await this.listWidget.setSection(section).catch(onUnexpectedError)'));
-		assert.ok(!source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true).catch(onUnexpectedError)'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });
 
@@ -86,34 +78,30 @@ suite('AICustomizationManagementEditor leftover save / editor-action catch scan 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('handleEditorActionButton / saveExistingCustomization / saveBuiltinPromptCopy rejection paths double-catch onUnexpectedError', () => {
-		// Single-layer console.error+notification still leaks when mocha's unexpected handler warn-then-rethrows.
+	test('handleEditorActionButton / saveExistingCustomization / saveBuiltinPromptCopy rejection paths single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(editorSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleHandle = `void this.handleEditorActionButton()${doubleCatch};`;
-		const doubleSaveExisting = `void this.saveExistingCustomization(saveRequest)${doubleCatch};`;
-		const doubleSaveBuiltin = `void this.saveBuiltinPromptCopy(saveRequest).then(() => {\n\t\t\t\t\tvoid this.listWidget?.refresh();\n\t\t\t\t})${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleHandle = `void this.handleEditorActionButton()${singleCatch};`;
+		const singleSaveExisting = `void this.saveExistingCustomization(saveRequest)${singleCatch};`;
 
 		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.saveExistingCustomization\(saveRequest\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.saveBuiltinPromptCopy\(saveRequest\)\.then\(\(\) => \{\s*void this\.listWidget\?\.refresh\(\);\s*\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleHandle));
-		assert.ok(source.includes(doubleSaveExisting));
-		assert.ok(source.includes(doubleSaveBuiltin));
+		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.saveExistingCustomization\(saveRequest\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.saveBuiltinPromptCopy\(saveRequest\)\.then\(\(\) => \{\s*(?:if \(!this\._store\.isDisposed\) \{\s*)?void this\.listWidget\?\.refresh\(\);\s*\}?\s*\}\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(singleHandle));
+		assert.ok(source.includes(singleSaveExisting));
 		assert.ok(source.includes('await this.saveBuiltinPromptCopy(saveRequest);'));
 		assert.ok(source.includes('void this.listWidget?.refresh();'));
 		assert.ok(!source.includes('void this.handleEditorActionButton().catch(error => {'));
 		assert.ok(!source.includes('void this.saveExistingCustomization(saveRequest).catch(error => {'));
-		assert.ok(!source.includes('void this.handleEditorActionButton().catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.saveExistingCustomization(saveRequest).catch(onUnexpectedError);'));
 		assert.ok(!source.includes("console.error('Failed to handle editor back action:'"));
 		assert.ok(!source.includes("console.error('Failed to save customization changes on exit:'"));
 		assert.ok(!source.includes(', error => {\n\t\t\t\t\tconsole.error(\'Failed to save built-in override:\''));
 		assert.ok(source.includes("console.error('Failed to save built-in override:', error);"));
 		assert.ok(source.includes("console.error('Failed to load model for embedded editor:', error);"));
-		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
-		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });
 
@@ -121,23 +109,22 @@ suite('AICustomizationManagementEditor leftover showEmbeddedEditor select/plugin
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('onDidSelectItem / openPromptsItemFromPluginDetail showEmbeddedEditor leftover voids double-catch onUnexpectedError', () => {
+	test('onDidSelectItem / openPromptsItemFromPluginDetail showEmbeddedEditor leftover voids single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(editorSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleItemShow = `void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly)${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleItemShow = `void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly)${singleCatch};`;
 
-		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(item\.uri, item\.name, item\.promptType, source \?\? AICustomizationSources\.builtin, isWorkspaceFile, isReadOnly\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.ok(source.includes(doubleItemShow));
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(item\.uri, item\.name, item\.promptType, source \?\? AICustomizationSources\.builtin, isWorkspaceFile, isReadOnly\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(source.includes(singleItemShow));
 		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(/g) ?? []).length, 3);
 		assert.ok(source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);'));
 		assert.ok(!source.includes('\n\t\t\tthis.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);'));
 		assert.ok(!source.includes('\n\t\t\t\tthis.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);'));
 		assert.ok(!source.includes('void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly);'));
-		assert.ok(!source.includes('void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true).catch(onUnexpectedError)'));
-		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
-		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
-		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });
 
@@ -145,28 +132,27 @@ suite('AICustomizationManagementEditor leftover create catch scan (D598)', () =>
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('onDidRequestCreate / onDidRequestCreateManual leftover voids double-catch onUnexpectedError', () => {
+	test('onDidRequestCreate / onDidRequestCreateManual leftover voids single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(editorSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleCreateAI = `void this.createNewItemWithAI(promptType)${doubleCatch};`;
-		const doubleCreateManual = `void this.createNewItemManual(type, target, rootFileName)${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleCreateAI = `void this.createNewItemWithAI(promptType)${singleCatch};`;
+		const singleCreateManual = `void this.createNewItemManual(type, target, rootFileName)${singleCatch};`;
 
-		assert.strictEqual((source.match(/void this\.createNewItemWithAI\(promptType\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.createNewItemManual\(type, target, rootFileName\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCreateAI));
-		assert.ok(source.includes(doubleCreateManual));
+		assert.strictEqual((source.match(/void this\.createNewItemWithAI\(promptType\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.createNewItemManual\(type, target, rootFileName\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(singleCreateAI));
+		assert.ok(source.includes(singleCreateManual));
 		assert.ok(!source.includes('\n\t\t\tthis.createNewItemWithAI(promptType);'));
 		assert.ok(!source.includes('\n\t\t\tthis.createNewItemManual(type, target, rootFileName);'));
 		assert.ok(!source.includes('void this.createNewItemWithAI(promptType);'));
 		assert.ok(!source.includes('void this.createNewItemManual(type, target, rootFileName);'));
-		assert.ok(!source.includes('void this.createNewItemWithAI(promptType).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.createNewItemManual(type, target, rootFileName).catch(onUnexpectedError);'));
 		// refresh(): void — .catch on the return value would throw at runtime.
 		assert.strictEqual((source.match(/void this\.listWidget\?\.refresh\(\);/g) ?? []).length, 2);
 		assert.ok(!source.includes('void this.listWidget?.refresh().catch(onUnexpectedError)'));
-		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
-		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
-		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(item\.uri, item\.name, item\.promptType, source \?\? AICustomizationSources\.builtin, isWorkspaceFile, isReadOnly\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\.refreshCustomizationMigrationInfo\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.listWidget\.setSection\([^)]+\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.showEmbeddedEditor\(item\.uri, item\.name, item\.promptType, source \?\? AICustomizationSources\.builtin, isWorkspaceFile, isReadOnly\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });

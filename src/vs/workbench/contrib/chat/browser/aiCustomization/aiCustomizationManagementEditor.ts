@@ -506,6 +506,28 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.updateStyles();
 	}
 
+	override dispose(): void {
+		this.currentModelRef?.dispose();
+		this.currentModelRef = undefined;
+		if (this.builtinEditingSessions) {
+			this.disposeBuiltinEditingSessions();
+		}
+		this.embeddedEditor?.setModel(null);
+		this.embeddedMcpDetail?.clearInput();
+		this.embeddedPluginDetail?.clearInput();
+		this.embeddedToolDetail?.clearInput();
+		this.editorDisposables?.clear();
+		this.editorPreviewDisposables?.clear();
+		this.migrationPageDisposables?.clear();
+		this.contributedSectionContainers?.clear();
+		this.contributedSectionWidgets?.clear();
+		if (this.container) {
+			DOM.clearNode(this.container);
+			this.container.remove();
+		}
+		super.dispose();
+	}
+
 	private createSplitView(): void {
 		this.splitViewContainer = DOM.append(this.container, $('.management-split-view'));
 
@@ -767,7 +789,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 			// Candidates are only collected for enabled categories, so enabling one must re-scan.
 			if (CUSTOMIZATION_MIGRATION_CATEGORIES.some(category => e.affectsConfiguration(category.enablementSetting))) {
-				void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);
 			}
 		}));
 
@@ -1205,13 +1227,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.migrationMigrateButton.element.classList.add('list-add-button', 'prompt-migration-button');
 		this.editorDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), this.migrationMigrateButton.element, () => this.getActiveMigrationCategory()?.migrateButtonTooltip ?? ''));
 		this.editorDisposables.add(this.migrationMigrateButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const category = this.getActiveMigrationCategory();
 			if (!category) {
 				return;
 			}
 			const selectedCustomizations = this.getMigrationCandidates(category)
 				.filter(customization => this.isCustomizationSelectedForMigration(customization));
-			void this.migrateSelectedCustomizations(category, selectedCustomizations).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.migrateSelectedCustomizations(category, selectedCustomizations).catch(onUnexpectedError);
 		}));
 		this.renderCustomizationMigrationPage();
 	}
@@ -1231,7 +1256,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 				this.promptsService.onDidChangeInstructions,
 				this.promptsService.onDidChangeAgentInstructions,
 			)(() => {
-				void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);
 			}));
 			this.registerCustomizationMigrationSessionRefresh();
 		}
@@ -1246,6 +1274,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Handle item selection
 		this.editorDisposables.add(this.listWidget.onDidSelectItem(item => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.telemetryService.publicLog2<CustomizationEditorItemSelectedEvent, CustomizationEditorItemSelectedClassification>('chatCustomizationEditor.itemSelected', {
 				section: this.selectedSection ?? 'welcome',
 				promptType: item.promptType,
@@ -1254,17 +1285,23 @@ export class AICustomizationManagementEditor extends EditorPane {
 			const source = item.source;
 			const isWorkspaceFile = source === AICustomizationSources.local;
 			const isReadOnly = !source || source === AICustomizationSources.extension || source === AICustomizationSources.plugin || source === AICustomizationSources.builtin;
-			void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError);
 		}));
 
 		// Handle create actions - AI-guided creation
 		this.editorDisposables.add(this.listWidget.onDidRequestCreate(promptType => {
-			void this.createNewItemWithAI(promptType).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.createNewItemWithAI(promptType).catch(onUnexpectedError);
 		}));
 
 		// Handle manual create actions - open editor directly
 		this.editorDisposables.add(this.listWidget.onDidRequestCreateManual(({ type, target, rootFileName }) => {
-			void this.createNewItemManual(type, target, rootFileName).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.createNewItemManual(type, target, rootFileName).catch(onUnexpectedError);
 		}));
 
 		// Container for Models content (only in sessions)
@@ -1298,11 +1335,17 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.mcpDetailContainer = DOM.append(contentInner, $('.mcp-detail-container'));
 
 			this.editorDisposables.add(this.mcpListWidget.onDidSelectServer(server => {
-				this.showEmbeddedMcpDetail(server).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.showEmbeddedMcpDetail(server).catch(onUnexpectedError);
 			}));
 
 			this.editorDisposables.add(this.mcpListWidget.onDidRequestShowPlugin(item => {
-				this.showPluginDetail(item).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.showPluginDetail(item).catch(onUnexpectedError);
 			}));
 		}
 
@@ -1317,8 +1360,11 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.createEmbeddedPluginDetail();
 
 			this.editorDisposables.add(this.pluginListWidget.onDidSelectPlugin(item => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.pluginDetailReturnSection = undefined;
-				this.showEmbeddedPluginDetail(item).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.showEmbeddedPluginDetail(item).catch(onUnexpectedError);
 			}));
 		}
 
@@ -1334,7 +1380,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.createEmbeddedToolDetail();
 
 			this.editorDisposables.add(this.toolsListWidget.onDidSelectExtension(extension => {
-				this.showEmbeddedToolDetail(extension).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.showEmbeddedToolDetail(extension).catch(onUnexpectedError);
 			}));
 		}
 
@@ -1397,23 +1446,26 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Load items for the initial section
 		if (this.isPromptsSection(this.selectedSection)) {
-			void this.listWidget.setSection(this.selectedSection).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.listWidget.setSection(this.selectedSection).catch(onUnexpectedError);
 		}
 
 		if (this.workspaceService.isSessionsWindow) {
-			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);
 		}
 	}
 
 	private registerCustomizationMigrationSessionRefresh(): void {
 		this.editorDisposables.add(autorun(reader => {
 			this.harnessService.activeSessionResource.read(reader);
-			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);
 		}));
 	}
 
 	private async refreshCustomizationMigrationInfo(): Promise<void> {
-		if (!this.workspaceService.isSessionsWindow) {
+		if (this._store.isDisposed || !this.workspaceService.isSessionsWindow) {
 			return;
 		}
 
@@ -1445,7 +1497,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				const migration = await this.customizationMigrationService.computeMigration(activeSessionResource, type);
 				return [category.id, migration] as const;
 			}));
-			if (refreshSequence !== this.customizationMigrationRefreshSequence || activeHarnessId !== this.harnessService.activeHarness.get() || !isEqual(activeSessionResource, this.harnessService.activeSessionResource.get())) {
+			if (this._store.isDisposed || refreshSequence !== this.customizationMigrationRefreshSequence || activeHarnessId !== this.harnessService.activeHarness.get() || !isEqual(activeSessionResource, this.harnessService.activeSessionResource.get())) {
 				return;
 			}
 
@@ -1458,13 +1510,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 				const folders = await provider?.provideSourceFolders?.(activeSessionResource, targetType, CancellationToken.None);
 				return [targetType, folders ?? []] as const;
 			}));
-			if (refreshSequence !== this.customizationMigrationRefreshSequence || activeHarnessId !== this.harnessService.activeHarness.get() || !isEqual(activeSessionResource, this.harnessService.activeSessionResource.get())) {
+			if (this._store.isDisposed || refreshSequence !== this.customizationMigrationRefreshSequence || activeHarnessId !== this.harnessService.activeHarness.get() || !isEqual(activeSessionResource, this.harnessService.activeSessionResource.get())) {
 				return;
 			}
 			const targetFoldersByType = new Map<PromptsType, readonly ICustomizationSourceFolder[]>(targetFolderEntries);
 			this.customizationMigrationLoading = false;
 			this.setCustomizationsToMigrate(candidatesByCategory, targetFoldersByType);
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (refreshSequence === this.customizationMigrationRefreshSequence) {
 				this.customizationMigrationLoading = false;
 				this.customizationMigrationLoadError = getErrorMessage(error);
@@ -1600,13 +1655,13 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async migrateSelectedCustomizations(category: ICustomizationMigrationCategory, customizations: readonly MigratableConfiguration[]): Promise<void> {
-		if (customizations.length === 0 || !this.isMigrationCategoryEnabled(category)) {
+		if (this._store.isDisposed || customizations.length === 0 || !this.isMigrationCategoryEnabled(category)) {
 			return;
 		}
 
 		const sessionResource = this.harnessService.activeSessionResource.get();
 		const targetFolders = await this.resolveCustomizationMigrationTargetFolders(customizations, this.customizationMigrationTargetFoldersByType, sessionResource);
-		if (!targetFolders || !this.isCustomizationMigrationSessionActive(sessionResource)) {
+		if (this._store.isDisposed || !targetFolders || !this.isCustomizationMigrationSessionActive(sessionResource)) {
 			return;
 		}
 
@@ -1627,7 +1682,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			},
 			primaryButton: confirmation.primaryButton,
 		});
-		if (!confirmResult.confirmed || !this.isCustomizationMigrationSessionActive(sessionResource)) {
+		if (this._store.isDisposed || !confirmResult.confirmed || !this.isCustomizationMigrationSessionActive(sessionResource)) {
 			return;
 		}
 
@@ -1638,6 +1693,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 			onUnexpectedError,
 			{ deleteOriginalFiles: confirmResult.checkboxChecked !== false },
 		);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const { migratedCount, failedCustomizationFileNames, unsupportedHeaderKeys, migratedCustomizations } = migrationResult;
 
 		if (failedCustomizationFileNames.length > 0) {
@@ -1654,13 +1712,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		await this.refreshCustomizationMigrationInfo();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		const unsupportedKeysLabel = unsupportedHeaderKeys.join(', ');
 		this.notificationService.info(unsupportedKeysLabel.length > 0 && category.getMigratedWithReviewMessage
 			? category.getMigratedWithReviewMessage(migratedCount, unsupportedKeysLabel)
 			: category.getMigratedMessage(migratedCount));
 
-		void this.revealMigratedCustomizations(migratedCustomizations).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.revealMigratedCustomizations(migratedCustomizations).catch(onUnexpectedError);
 	}
 
 	private renderCustomizationMigrationPage(): void {
@@ -1689,7 +1750,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.renderCustomizationMigrationState(
 				localize('customizationMigrationLoadError', "Customizations could not be loaded"),
 				localize('customizationMigrationLoadErrorDescription', "Check the active agent connection, then try again."),
-				() => void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError),
+				() => void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError),
 			);
 			this.migrationMigrateButton.enabled = false;
 			return;
@@ -1704,6 +1765,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		const openCustomizationInEmbeddedEditor = (customization: MigratableConfiguration): void => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const isWorkspaceFile = customization.storage === PromptsStorage.local;
 			void this.showEmbeddedEditor(
 				customization.uri,
@@ -1711,7 +1775,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				customization.type,
 				customization.storage,
 				isWorkspaceFile,
-			).catch(onUnexpectedError).catch(onUnexpectedError);
+			).catch(onUnexpectedError);
 		};
 		const renderSelectionCheckbox = (row: HTMLElement, customization: MigratableConfiguration, onSelectionChange?: () => void): Checkbox => {
 			const checkboxContainer = DOM.append(row, $('.item-sync-checkbox.prompt-migration-checkbox'));
@@ -1955,6 +2019,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async deleteCustomizationFile(customization: MigratableConfiguration): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const fileName = customization.name ?? basename(customization.uri);
 		const confirmation = await this.dialogService.confirm({
 			message: localize('confirmDeleteCustomizationFile', "Are you sure you want to delete '{0}'?", fileName),
@@ -1963,16 +2030,22 @@ export class AICustomizationManagementEditor extends EditorPane {
 			type: 'warning',
 		});
 
-		if (!confirmation.confirmed) {
+		if (this._store.isDisposed || !confirmation.confirmed) {
 			return;
 		}
 
 		const useTrash = this.fileService.hasCapability(customization.uri, FileSystemProviderCapabilities.Trash);
 		await this.fileService.del(customization.uri, { useTrash });
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (customization.storage === PromptsStorage.local) {
 			const projectRoot = this.workspaceService.getActiveProjectRoot();
 			if (projectRoot) {
 				await this.workspaceService.deleteFiles(projectRoot, [customization.uri]);
+				if (this._store.isDisposed) {
+					return;
+				}
 			}
 		}
 
@@ -2057,6 +2130,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async pickCustomizationMigrationTargetFolder(sourceFolders: readonly ICustomizationSourceFolder[], targetType: PromptsType): Promise<ICustomizationSourceFolder | undefined> {
+		if (this._store.isDisposed) {
+			return undefined;
+		}
 		const picks: IMigrationTargetQuickPickItem[] = sourceFolders.map(folder => ({
 			label: folder.label,
 			description: this.labelService.getUriLabel(folder.uri, { relative: true }),
@@ -2068,6 +2144,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 			placeHolder: this.getMigrationTargetFolderPlaceholder(targetType),
 			matchOnDescription: true,
 		});
+		if (this._store.isDisposed) {
+			return undefined;
+		}
 		return selected?.folder;
 	}
 
@@ -2117,6 +2196,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async revealMigratedCustomizations(migratedCustomizations: readonly { uri: URI; type: PromptsType }[]): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const targetTypes = new Set(migratedCustomizations.map(customization => customization.type));
 		if (targetTypes.size !== 1) {
 			this.showWelcomePage();
@@ -2132,6 +2214,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		this.selectSection(section);
 		await this.listWidget.setSection(section);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.listWidget.revealAndSelectFirstItemByUri(migratedUris)) {
 			return;
 		}
@@ -2143,6 +2228,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		for (let attempt = 0; attempt < 10; attempt++) {
 			await timeout(100);
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.listWidget.revealAndSelectFirstItemByUri(migratedUris)) {
 				return;
 			}
@@ -2231,6 +2319,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private selectSection(section: AICustomizationManagementSection, options?: { showMarketplace?: boolean }): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.selectedSection === section && !options?.showMarketplace) {
 			this.ensureSectionsListReflectsActiveSection(section);
 			return;
@@ -2271,7 +2362,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		// Load items for the new section (only for prompts-based sections)
 		if (this.isPromptsSection(section)) {
-			void this.listWidget.setSection(section).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.listWidget.setSection(section).catch(onUnexpectedError);
 		}
 
 		// Re-layout after visibility change so the newly-visible widget can
@@ -2448,6 +2539,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	 * Creates a new customization using the AI-guided flow.
 	 */
 	private async createNewItemWithAI(type: PromptsType): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.telemetryService.publicLog2<CustomizationEditorCreateItemEvent, CustomizationEditorCreateItemClassification>('chatCustomizationEditor.createItem', {
 			section: this.selectedSection ?? 'welcome',
 			promptType: type,
@@ -2464,6 +2558,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	 * Creates a new prompt file and opens it in the embedded editor.
 	 */
 	private async createNewItemManual(type: PromptsType, target: 'local' | 'user' | 'workspace-root', rootFileName?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.telemetryService.publicLog2<CustomizationEditorCreateItemEvent, CustomizationEditorCreateItemClassification>('chatCustomizationEditor.createItem', {
 			section: this.selectedSection ?? 'welcome',
 			promptType: type,
@@ -2476,18 +2573,30 @@ export class AICustomizationManagementEditor extends EditorPane {
 		// the section override's rootFile, then AGENTS.md as the default.
 		if (target === 'workspace-root') {
 			const projectRoot = this.workspaceService.getActiveProjectRoot();
-			if (!projectRoot) {
+			if (!projectRoot || this._store.isDisposed) {
 				return;
 			}
 			const override = this.selectedSection ? this.harnessService.getActiveDescriptor().sectionOverrides?.get(this.selectedSection) : undefined;
 			const fileName = rootFileName ?? override?.rootFile ?? AGENT_MD_FILENAME;
 			const fileUri = URI.joinPath(projectRoot, fileName);
 			if (await this.fileService.exists(fileUri)) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				// File already exists — just open it
 				await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);
 			} else {
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.fileService.createFile(fileUri);
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.showEmbeddedEditor(fileUri, fileName, PromptsType.instructions, PromptsStorage.local, true);
+			}
+			if (this._store.isDisposed) {
+				return;
 			}
 			this.listWidget.refresh();
 			return;
@@ -2499,6 +2608,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 				// Sessions: show hooks filtered to Copilot CLI (GitHub Copilot) hook types
 				await this.instantiationService.invokeFunction(showConfigureHooksQuickPick, {
 					openEditor: async (resource) => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						await this.showEmbeddedEditor(resource, basename(resource), PromptsType.hook, preferredStorage, preferredStorage === PromptsStorage.local);
 						return;
 					},
@@ -2509,6 +2621,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 				// Donor window: create hook definition files without Copilot/VS Code task event picker.
 				await this.instantiationService.invokeFunction(showConfigureHooksQuickPick, {
 					openEditor: async (resource) => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						await this.showEmbeddedEditor(resource, basename(resource), PromptsType.hook, preferredStorage, preferredStorage === PromptsStorage.local);
 						return;
 					},
@@ -2525,8 +2640,8 @@ export class AICustomizationManagementEditor extends EditorPane {
 			type,
 			target,
 		);
-		if (targetDir === null) {
-			return; // User cancelled the picker
+		if (this._store.isDisposed || targetDir === null) {
+			return; // User cancelled the picker or disposed
 		}
 
 		if (targetDir === undefined) {
@@ -2546,6 +2661,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 			targetStorage: target === AICustomizationSources.user ? PromptsStorage.user : PromptsStorage.local,
 			fileExtension: override?.fileExtension,
 			openFile: async (uri) => {
+				if (this._store.isDisposed) {
+					return undefined;
+				}
 				const isWorkspace = target === AICustomizationSources.local;
 				await this.showEmbeddedEditor(uri, basename(uri), type, target, isWorkspace);
 				return this.embeddedEditor;
@@ -2562,6 +2680,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		await this.commandService.executeCommand(commandId, options);
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.listWidget.refresh();
 	}
 
@@ -2572,6 +2693,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	override async setInput(input: AICustomizationManagementEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// On (re)open, clear any override so the root comes from the default source
 		this.workspaceService.clearOverrideProjectRoot();
 
@@ -2585,6 +2709,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 		});
 
 		await super.setInput(input, options, context, token);
+		if (this._store.isDisposed) {
+			return;
+		}
 		input.setTargetLabel(this.getActiveHarnessLabel());
 
 		if (this.dimension) {
@@ -2692,6 +2819,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	 * Selects a specific section programmatically.
 	 */
 	public selectSectionById(sectionId: AICustomizationManagementSection, options?: { showMarketplace?: boolean }): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const index = this.sections.findIndex(s => s.id === sectionId);
 		if (index >= 0) {
 			// Directly update state and UI, bypassing the early-return guard in selectSection
@@ -2720,7 +2850,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			this.storageService.store(AI_CUSTOMIZATION_MANAGEMENT_SELECTED_SECTION_KEY, sectionId, StorageScope.PROFILE, StorageTarget.USER);
 			this.updateContentVisibility();
 			if (this.isPromptsSection(sectionId)) {
-				void this.listWidget.setSection(sectionId).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.listWidget.setSection(sectionId).catch(onUnexpectedError);
 			}
 			// Re-layout after visibility change so the newly-visible widget
 			// can measure its flex-computed container height correctly.
@@ -2868,7 +2998,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.editorActionButtonIcon = DOM.append(this.editorActionButton, $(`.codicon.codicon-${Codicon.arrowLeft.id}.editor-action-button-icon`));
 		this.editorActionButtonIcon.setAttribute('aria-hidden', 'true');
 		this.editorDisposables.add(DOM.addDisposableListener(this.editorActionButton, 'click', () => {
-			void this.handleEditorActionButton().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleEditorActionButton().catch(onUnexpectedError);
 		}));
 
 		const itemInfo = DOM.append(editorHeader, $('.editor-item-info'));
@@ -2881,6 +3014,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.editorModeButton.setAttribute('aria-pressed', 'false');
 		this.editorDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), this.editorModeButton, () => this.getEditorModeButtonTooltip()));
 		this.editorDisposables.add(DOM.addDisposableListener(this.editorModeButton, 'click', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.toggleEditorDisplayMode();
 		}));
 
@@ -2926,6 +3062,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async showEmbeddedEditor(uri: URI, displayName: string, promptType: PromptsType, source: AICustomizationSource, isWorkspaceFile = false, isReadOnly = false): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.editorReturnViewMode = this.viewMode === 'migration' ? 'migration' : 'list';
 		this.currentModelRef?.dispose();
 		this.currentModelRef = undefined;
@@ -2953,7 +3092,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			if (source === AICustomizationSources.builtin && (promptType === PromptsType.prompt || promptType === PromptsType.skill)) {
 				const session = await this.getOrCreateBuiltinEditingSession(uri);
 
-				if (!isEqual(this.currentEditingUri, uri)) {
+				if (this._store.isDisposed || !isEqual(this.currentEditingUri, uri)) {
 					return;
 				}
 
@@ -2982,9 +3121,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 			const ref = await this.textModelService.createModelReference(uri);
 
-			if (!isEqual(this.currentEditingUri, uri)) {
+			if (this._store.isDisposed || !isEqual(this.currentEditingUri, uri)) {
 				ref.dispose();
-				return; // another item was selected while loading
+				return; // another item was selected while loading or disposed
 			}
 
 			this.currentModelRef = ref;
@@ -3018,6 +3157,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 				}
 			}));
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			console.error('Failed to load model for embedded editor:', error);
 			if (isEqual(this.currentEditingUri, uri)) {
 				this.goBackToList();
@@ -3026,6 +3168,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private goBackToList(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const returnViewMode = this.editorReturnViewMode;
 		this.editorReturnViewMode = 'list';
 		const fileUri = this.currentEditingUri;
@@ -3062,7 +3207,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (returnViewMode === 'migration') {
 			this.renderCustomizationMigrationPage();
-			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);
 		} else {
 			// Refresh the list to pick up newly created/edited files
 			void this.listWidget?.refresh();
@@ -3079,7 +3224,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (backgroundSaveRequest) {
 			const saveRequest = backgroundSaveRequest;
-			void this.saveExistingCustomization(saveRequest).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.saveExistingCustomization(saveRequest).catch(onUnexpectedError);
 		}
 	}
 
@@ -3213,7 +3358,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async handleEditorActionButton(): Promise<void> {
-		if (this.editorActionButtonInProgress) {
+		if (this._store.isDisposed || this.editorActionButtonInProgress) {
 			return;
 		}
 
@@ -3225,7 +3370,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		try {
 			if (this.shouldShowBuiltinSaveAction()) {
 				const selection = await this.pickBuiltinPromptSaveTarget();
-				if (!selection || selection.target === 'cancel') {
+				if (this._store.isDisposed || !selection || selection.target === 'cancel') {
 					return;
 				}
 
@@ -3247,8 +3392,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 			if (backgroundSaveRequest) {
 				const saveRequest = backgroundSaveRequest;
 				void this.saveBuiltinPromptCopy(saveRequest).then(() => {
-					void this.listWidget?.refresh();
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (!this._store.isDisposed) {
+						void this.listWidget?.refresh();
+					}
+				}).catch(onUnexpectedError);
 			}
 		} finally {
 			this.editorActionButtonInProgress = false;
@@ -3663,10 +3810,13 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async showEmbeddedMcpDetail(server: IMcpServerDetailInput): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.embeddedMcpDetail) {
 			this.createEmbeddedMcpDetail();
 		}
-		if (!this.embeddedMcpDetail) {
+		if (this._store.isDisposed || !this.embeddedMcpDetail) {
 			return;
 		}
 
@@ -3709,10 +3859,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		this.embeddedPluginDetail = this.editorDisposables.add(this.instantiationService.createInstance(EmbeddedAgentPluginDetail, detailBody));
 		this.editorDisposables.add(this.embeddedPluginDetail.onDidRequestOpenSkill(uri => {
-			this.openSkillFromPluginDetail(uri).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.openSkillFromPluginDetail(uri).catch(onUnexpectedError);
 		}));
 		this.editorDisposables.add(this.embeddedPluginDetail.onDidRequestOpenAgent(uri => {
-			this.openPromptsItemFromPluginDetail(AICustomizationManagementSection.Agents, uri).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.openPromptsItemFromPluginDetail(AICustomizationManagementSection.Agents, uri).catch(onUnexpectedError);
 		}));
 		this.editorDisposables.add(this.embeddedPluginDetail.onDidRequestOpenSection(section => {
 			this.openSectionFromPluginDetail(section);
@@ -3734,7 +3890,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async showEmbeddedPluginDetail(item: IAgentPluginItem): Promise<void> {
-		if (!this.embeddedPluginDetail) {
+		if (this._store.isDisposed || !this.embeddedPluginDetail) {
 			return;
 		}
 
@@ -3751,10 +3907,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async openSkillFromPluginDetail(uri: URI): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.openPromptsItemFromPluginDetail(AICustomizationManagementSection.Skills, uri);
 	}
 
 	private async openPromptsItemFromPluginDetail(section: AICustomizationManagementSection, uri: URI): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.pluginDetailDisposables.clear();
 		this.embeddedPluginDetail?.clearInput();
 		this.pluginDetailReturnSection = undefined;
@@ -3765,10 +3927,13 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.updateContentVisibility();
 		const navigationGeneration = this.contentNavigationGeneration;
 		await this.listWidget.setSection(section);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const modelSection = ITEMS_MODEL_SECTIONS.find(s => s === section);
 		if (modelSection) {
 			await this.itemsModel.whenSectionLoaded(modelSection);
-			if (!isCurrentPluginContributionNavigation(navigationGeneration, this.contentNavigationGeneration, section, this.selectedSection, this.viewMode === 'list')) {
+			if (this._store.isDisposed || !isCurrentPluginContributionNavigation(navigationGeneration, this.contentNavigationGeneration, section, this.selectedSection, this.viewMode === 'list')) {
 				return;
 			}
 			const item = this.itemsModel.getItems(modelSection).get().find(item => isEqual(item.uri, uri));
@@ -3776,8 +3941,11 @@ export class AICustomizationManagementEditor extends EditorPane {
 				const source = item.source;
 				const isWorkspaceFile = source === AICustomizationSources.local;
 				const isReadOnly = !source || source === AICustomizationSources.extension || source === AICustomizationSources.plugin || source === AICustomizationSources.builtin;
-				void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.showEmbeddedEditor(item.uri, item.name, item.promptType, source ?? AICustomizationSources.builtin, isWorkspaceFile, isReadOnly).catch(onUnexpectedError);
 			}
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 		this.ensureSectionsListReflectsActiveSection(section);
 		if (this.dimension) {
@@ -3799,6 +3967,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	 * Saves the current section so the back button returns the user to it.
 	 */
 	public async showPluginDetail(item: IAgentPluginItem): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.selectedSection !== AICustomizationManagementSection.Plugins) {
 			this.pluginDetailReturnSection = this.selectedSection ?? AICustomizationManagementSection.Agents;
 		}
@@ -3857,7 +4028,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async showEmbeddedToolDetail(extension: IExtension): Promise<void> {
-		if (!this.embeddedToolDetail) {
+		if (this._store.isDisposed || !this.embeddedToolDetail) {
 			return;
 		}
 

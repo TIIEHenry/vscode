@@ -392,6 +392,7 @@ export class McpServerItemRenderer implements IListRenderer<IMcpServerItemEntry 
 	disposeTemplate(templateData: IMcpServerItemTemplateData): void {
 		templateData.elementDisposables.dispose();
 		templateData.actionDisposables.dispose();
+		DOM.clearNode(templateData.container);
 	}
 }
 
@@ -416,7 +417,7 @@ export function registerMcpInlineButtonAction(store: Pick<DisposableStore, 'add'
 		DOM.EventHelper.stop(event, true);
 		const result = action();
 		if (result instanceof Promise) {
-			void result.catch(onUnexpectedError).catch(onUnexpectedError);
+			void result.catch(onUnexpectedError);
 		}
 	}));
 }
@@ -1128,19 +1129,25 @@ export class McpListWidget extends Disposable {
 		));
 		this._register(resizeObserver.observe(this.element));
 		this.updateAccessState();
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(mcpAccessConfig)) {
 				this.updateAccessState();
 			}
 		}));
-		this._register({
-			dispose: () => {
-				this.delayedFilter.cancel();
-				this.delayedGallerySearch.cancel();
-				this.galleryCts?.dispose(true);
-			}
-		});
+	}
+
+	override dispose(): void {
+		this.delayedFilter.cancel();
+		this.delayedGallerySearch.cancel();
+		this.galleryCts?.dispose(true);
+		this.galleryCts = undefined;
+		this.cardDisposables.clear();
+		this.disabledLinkListener.clear();
+		DOM.clearNode(this.cardContainer);
+		DOM.clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 
 	private create(): void {
@@ -1211,14 +1218,22 @@ export class McpListWidget extends Disposable {
 		this.donorAddButton.element.classList.add('list-add-button');
 		this.donorAddButton.label = addLabel;
 		this.donorAddButton.element.style.display = isDonorWindow ? '' : 'none';
-		this._register(this.donorAddButton.onDidClick(() => void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.donorAddButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError);
+		}));
 
 		this._register(this.searchInput.onDidChange(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.searchQuery = this.searchInput.value;
 			this.galleryCts?.dispose(true);
 			this.galleryCts = undefined;
 			this.searchInput.hideMessage();
-			void this.delayedFilter.trigger(() => this.filterServers()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.delayedFilter.trigger(() => this.filterServers()).catch(onUnexpectedError);
 			if (isDonorWindow) {
 				return;
 			}
@@ -1233,12 +1248,12 @@ export class McpListWidget extends Disposable {
 			}
 			if (query) {
 				this.gallerySearchLoading = true;
-				void this.delayedGallerySearch.trigger(() => this.queryMcpSearch()).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.delayedGallerySearch.trigger(() => this.queryMcpSearch()).catch(onUnexpectedError);
 			} else {
 				this.gallerySearchLoading = false;
 				this.delayedGallerySearch.cancel();
 				if (this.visible && this.gallerySnapshotServers.length === 0) {
-					void this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot()).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot()).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -1263,20 +1278,32 @@ export class McpListWidget extends Disposable {
 
 		// Listen to MCP service changes
 		this._register(this.mcpWorkbenchService.onChange(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			const servers = this.mcpService.servers.read(reader);
 			for (const server of servers) {
 				server.enablement.read(reader);
 			}
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			this.customizationHarnessService.activeSessionResource.read(reader);
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(this.agentHostCustomizationService.onDidChangeCustomizations(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const previousMembership = this.getInstalledEntryMembershipSignature();
 			this.filterServers(false);
 			if (!hasSameMcpMembership(previousMembership, this.getInstalledEntryMembershipSignature())) {
@@ -1287,6 +1314,9 @@ export class McpListWidget extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.filterServers();
 		if (shouldLoadMcpGallerySnapshot(this.visible, this.searchQuery, this.gallerySnapshotServers.length, this.gallerySnapshotFailed, this.gallerySnapshotLoading, this.mcpAccessEnabled, this.workspaceService.isSessionsWindow)) {
 			await this.queryGallerySnapshot();
@@ -1294,12 +1324,12 @@ export class McpListWidget extends Disposable {
 	}
 
 	setVisible(visible: boolean): void {
-		if (this.visible === visible) {
+		if (this._store.isDisposed || this.visible === visible) {
 			return;
 		}
 		this.visible = visible;
 		if (visible) {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}
 	}
 
@@ -1335,29 +1365,32 @@ export class McpListWidget extends Disposable {
 				link.setAttribute('role', 'button');
 				this.disabledLinkListener.value = DOM.addDisposableListener(link, 'click', (e) => {
 					e.preventDefault();
-					void this.commandService.executeCommand('workbench.action.openSettings', `@id:${mcpAccessConfig}`).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand('workbench.action.openSettings', `@id:${mcpAccessConfig}`).catch(onUnexpectedError);
 				});
 			}
 		} else if (accessChanged && this.visible) {
 			if (this.searchQuery.trim()) {
-				void this.queryMcpSearch().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.queryMcpSearch().catch(onUnexpectedError);
 			} else {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}
 	}
 
 	public showBrowseMarketplace(): void {
-		if (!this.workspaceService.isSessionsWindow || !this.mcpAccessEnabled) {
+		if (this._store.isDisposed || !this.workspaceService.isSessionsWindow || !this.mcpAccessEnabled) {
 			return;
 		}
 		this.searchInput.value = '';
 		this.searchQuery = '';
-		void this.queryGallerySnapshot(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.queryGallerySnapshot(true).catch(onUnexpectedError);
 	}
 
 	private async queryGallerySnapshot(revealMarketplace = false): Promise<void> {
-		if (!this.workspaceService.isSessionsWindow || !this.mcpAccessEnabled) {
+		if (this._store.isDisposed || !this.workspaceService.isSessionsWindow || !this.mcpAccessEnabled) {
 			return;
 		}
 		this.galleryCts?.dispose(true);
@@ -1366,7 +1399,7 @@ export class McpListWidget extends Disposable {
 
 		try {
 			const pager = await this.mcpWorkbenchService.queryGallery(undefined, cts.token);
-			if (this.galleryCts !== cts || cts.token.isCancellationRequested || !this.mcpAccessEnabled || this.searchQuery.trim()) {
+			if (this._store.isDisposed || this.galleryCts !== cts || cts.token.isCancellationRequested || !this.mcpAccessEnabled || this.searchQuery.trim()) {
 				return;
 			}
 
@@ -1379,7 +1412,7 @@ export class McpListWidget extends Disposable {
 				this.availableSection?.scrollIntoView({ block: 'start' });
 			}
 		} catch {
-			if (this.galleryCts === cts && !cts.token.isCancellationRequested && this.mcpAccessEnabled) {
+			if (!this._store.isDisposed && this.galleryCts === cts && !cts.token.isCancellationRequested && this.mcpAccessEnabled) {
 				this.gallerySnapshotServers = [];
 				this.galleryServers = [];
 				this.gallerySnapshotFailed = true;
@@ -1394,7 +1427,7 @@ export class McpListWidget extends Disposable {
 	}
 
 	private async queryMcpSearch(): Promise<void> {
-		if (!this.workspaceService.isSessionsWindow) {
+		if (this._store.isDisposed || !this.workspaceService.isSessionsWindow) {
 			return;
 		}
 		const query = this.searchQuery.trim();
@@ -1407,13 +1440,13 @@ export class McpListWidget extends Disposable {
 		this.gallerySearchLoading = true;
 		try {
 			const pager = await this.mcpWorkbenchService.queryGallery({ text: query }, cts.token);
-			if (this.galleryCts !== cts || cts.token.isCancellationRequested || !this.mcpAccessEnabled || this.searchQuery.trim() !== query) {
+			if (this._store.isDisposed || this.galleryCts !== cts || cts.token.isCancellationRequested || !this.mcpAccessEnabled || this.searchQuery.trim() !== query) {
 				return;
 			}
 			this.galleryServers = pager.firstPage.items;
 			this.searchInput.hideMessage();
 		} catch {
-			if (this.galleryCts === cts && !cts.token.isCancellationRequested && this.mcpAccessEnabled && this.searchQuery.trim() === query) {
+			if (!this._store.isDisposed && this.galleryCts === cts && !cts.token.isCancellationRequested && this.mcpAccessEnabled && this.searchQuery.trim() === query) {
 				this.galleryServers = this.gallerySnapshotServers.filter(server => this.matchesGalleryServerQuery(server, query.toLowerCase()));
 				this.searchInput.showMessage({
 					content: localize('mcpSearchMarketplaceUnavailable', "Marketplace results are unavailable. Showing installed MCP servers only."),
@@ -1421,7 +1454,7 @@ export class McpListWidget extends Disposable {
 				});
 			}
 		} finally {
-			if (this.galleryCts === cts && this.mcpAccessEnabled && this.searchQuery.trim() === query) {
+			if (!this._store.isDisposed && this.galleryCts === cts && this.mcpAccessEnabled && this.searchQuery.trim() === query) {
 				this.gallerySearchLoading = false;
 				this.filterServers();
 			}
@@ -1585,7 +1618,12 @@ export class McpListWidget extends Disposable {
 		add.element.classList.add('plugin-installed-action');
 		add.label = this.narrowLayout ? localize('addServerNarrow', "Add") : addLabel;
 		this.firstCardFocusElement ??= add.element;
-		this.cardDisposables.add(add.onDidClick(() => void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.cardDisposables.add(add.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError);
+		}));
 	}
 
 	private renderFeaturedServers(parent: HTMLElement): void {
@@ -1601,8 +1639,11 @@ export class McpListWidget extends Disposable {
 				const retry = this.cardDisposables.add(new Button(grid, { ...defaultButtonStyles, secondary: true, ariaLabel: localize('retryMcpMarketplace', "Retry Loading MCP Servers") }));
 				retry.label = localize('retry', "Retry");
 				this.cardDisposables.add(retry.onDidClick(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this.gallerySnapshotFailed = false;
-					void this.queryGallerySnapshot().catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.queryGallerySnapshot().catch(onUnexpectedError);
 				}));
 			}
 			return;
@@ -1797,7 +1838,12 @@ export class McpListWidget extends Disposable {
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installMcpServerAria', "Install {0}", server.label) }));
 		install.element.classList.add('plugin-list-item-install-button');
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplaceServer(server, install).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.cardDisposables.add(install.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.installMarketplaceServer(server, install).catch(onUnexpectedError);
+		}));
 		this.cardListControllers.get(parent)?.addItem({
 			row,
 			primaryAction,
@@ -1818,7 +1864,12 @@ export class McpListWidget extends Disposable {
 		const actions = DOM.append(header, $('.plugin-card-actions'));
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installMcpServerAria', "Install {0}", server.label) }));
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplaceServer(server, install).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.cardDisposables.add(install.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.installMarketplaceServer(server, install).catch(onUnexpectedError);
+		}));
 		this.cardListControllers.get(parent)?.addItem({
 			row: card,
 			primaryAction: titleBlock,
@@ -1828,13 +1879,22 @@ export class McpListWidget extends Disposable {
 	}
 
 	private async installMarketplaceServer(server: IWorkbenchMcpServer, button: Button): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		button.label = localize('installing', "Installing...");
 		button.enabled = false;
 		try {
 			await this.mcpWorkbenchService.install(server);
+			if (this._store.isDisposed) {
+				return;
+			}
 			status(localize('mcpServerInstalledStatus', "{0} installed.", server.label));
 			await this.refresh();
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			button.label = localize('install', "Install");
 			button.enabled = true;
 			this.notificationService.error(localize('mcpInstallFailed', "Unable to install MCP server: {0}", getErrorMessage(error)));
@@ -2262,6 +2322,9 @@ export class McpListWidget extends Disposable {
 							primaryButton: localize('uninstallPluginBtn', "Uninstall Plugin"),
 							type: 'question',
 						});
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (result.confirmed) {
 							await plugin.remove?.();
 						}
