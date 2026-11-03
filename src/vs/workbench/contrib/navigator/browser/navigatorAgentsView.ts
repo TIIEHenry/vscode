@@ -348,18 +348,44 @@ export class NavigatorAgentsView extends ViewPane {
 		this.engineConnectedContextKey = UA_ENGINE_CONNECTED_KEY.bindTo(this.scopedContextKeyService);
 		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
 			this.rosterService,
-			() => this.refreshFromLease(),
-			error => this.notificationService.error(getErrorMessage(error)),
+			() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.refreshFromLease();
+			},
+			error => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.notificationService.error(getErrorMessage(error));
+			},
 		));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.updateEngineConnectedContextKey();
 			this.refreshFromLease();
 		}));
-		this._register(this.rosterService.onDidChangeActiveSession(() => this.refreshFromLease()));
+		this._register(this.rosterService.onDidChangeActiveSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refreshFromLease();
+		}));
 		// D457: KEEP leftover list-fail flips via roster session events, not connection.
-		this._register(this.rosterService.onDidChangeSession(() => this.syncKeepLeftoverWriteChrome()));
+		this._register(this.rosterService.onDidChangeSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.syncKeepLeftoverWriteChrome();
+		}));
 		// Tree first-fetch fail/clear fires via connection snapshot (D21), not lease patches.
 		this._register(this.uaConnection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.updateEngineConnectedContextKey();
 			this.refreshFromLease();
 		}));
@@ -379,8 +405,35 @@ export class NavigatorAgentsView extends ViewPane {
 	override dispose(): void {
 		this.agentTreeLoadRunner?.done();
 		this.agentTreeLoadRunner = undefined;
+		this.clearAgentsInspectLiveIds();
 		this.inspectService.setLiveAgentIds('agents', undefined);
 		this.inspectService.setLiveActivityIds(undefined);
+		const target = this.inspectService.getTarget();
+		if (target && (target.kind === 'agent' || target.kind === 'activity')) {
+			this.inspectService.setTarget(undefined);
+		}
+		this.hierarchyTree?.dispose();
+		this.hierarchyTree = undefined;
+		this.hierarchyTreeContainer?.remove();
+		this.hierarchyTreeContainer = undefined;
+		this.hierarchyEmpty?.remove();
+		this.hierarchyEmpty = undefined;
+		this.hierarchyNote?.remove();
+		this.hierarchyNote = undefined;
+		this.hierarchyBody?.remove();
+		this.hierarchyBody = undefined;
+		this.activityList?.dispose();
+		this.activityList = undefined;
+		this.activityListContainer?.remove();
+		this.activityListContainer = undefined;
+		this.activityEmpty?.remove();
+		this.activityEmpty = undefined;
+		this.activityNote?.remove();
+		this.activityNote = undefined;
+		this.activityBody?.remove();
+		this.activityBody = undefined;
+		this.filterBox?.dispose();
+		this.filterBox = undefined;
 		super.dispose();
 	}
 
@@ -389,7 +442,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	showHierarchy(): void {
-		if (this.subview === 'hierarchy') {
+		if (this._store.isDisposed || this.subview === 'hierarchy') {
 			return;
 		}
 		this.subview = 'hierarchy';
@@ -399,7 +452,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	showActivity(): void {
-		if (this.subview === 'activity') {
+		if (this._store.isDisposed || this.subview === 'activity') {
 			return;
 		}
 		this.subview = 'activity';
@@ -409,6 +462,9 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	refreshAgentTree(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const sessionId = this.rosterService.getActiveSessionId();
 		if (
 			!isConversationPairingHold(this.uaConnection)
@@ -427,6 +483,9 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private updateEngineConnectedContextKey(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.engineConnectedContextKey.set(
 			!isConversationPairingHold(this.uaConnection)
 			&& this.rosterService.isEngineConnected()
@@ -453,6 +512,9 @@ export class NavigatorAgentsView extends ViewPane {
 			filterPlaceholder,
 		));
 		this._register(this.filterBox.onDidChange(query => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.filterQuery = query;
 			this.applyFilter();
 		}));
@@ -479,6 +541,9 @@ export class NavigatorAgentsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.lastBodyHeight = height;
 		this.lastBodyWidth = width;
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
@@ -524,7 +589,7 @@ export class NavigatorAgentsView extends ViewPane {
 		));
 
 		this._register(this.hierarchyTree.onDidOpen(e => {
-			if (!e.element || !this.isAgentsRowActionLive()) {
+			if (this._store.isDisposed || !e.element || !this.isAgentsRowActionLive()) {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'agent', node: e.element.source, sessionId: e.element.sessionId });
@@ -556,7 +621,7 @@ export class NavigatorAgentsView extends ViewPane {
 		)) as WorkbenchList<INavigatorAgentsActivityItem>;
 
 		this._register(this.activityList.onDidOpen(e => {
-			if (!e.element || !this.isAgentsRowActionLive()) {
+			if (this._store.isDisposed || !e.element || !this.isAgentsRowActionLive()) {
 				return;
 			}
 			this.setActivityInspectTarget(e.element);
@@ -820,6 +885,9 @@ export class NavigatorAgentsView extends ViewPane {
 		emptyMessage?: string,
 		noteMessage?: string,
 	): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.hierarchyEntries = entries;
 		if (emptyMessage !== undefined) {
 			this.hierarchyHonestEmpty = emptyMessage;
@@ -835,6 +903,9 @@ export class NavigatorAgentsView extends ViewPane {
 		emptyMessage?: string,
 		noteMessage?: string,
 	): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.activityEntries = entries;
 		if (emptyMessage !== undefined) {
 			this.activityHonestEmpty = emptyMessage;
@@ -878,7 +949,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	inspectHierarchyNode(node: INavigatorAgentsHierarchyNode): void {
-		if (!this.isAgentsRowActionLive()) {
+		if (this._store.isDisposed || !this.isAgentsRowActionLive()) {
 			return;
 		}
 		this.inspectService.setTarget({ kind: 'agent', node: node.source, sessionId: node.sessionId });
@@ -886,7 +957,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	inspectActivityItem(item: INavigatorAgentsActivityItem): void {
-		if (!this.isAgentsRowActionLive()) {
+		if (this._store.isDisposed || !this.isAgentsRowActionLive()) {
 			return;
 		}
 		this.setActivityInspectTarget(item);
@@ -894,13 +965,16 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	revealHierarchyNode(node: INavigatorAgentsHierarchyNode): void {
-		if (!this.isAgentsRowActionLive()) {
+		if (this._store.isDisposed || !this.isAgentsRowActionLive()) {
 			return;
 		}
-		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label, node.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label, node.sessionId)).catch(onUnexpectedError);
 	}
 
 	inspectFocusedHierarchyNode(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const node = this.hierarchyTree?.getFocus()[0];
 		if (node) {
 			this.inspectHierarchyNode(node);
@@ -908,7 +982,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	inspectFocusedTitleAction(): void {
-		if (!this.isAgentsRowActionLive()) {
+		if (this._store.isDisposed || !this.isAgentsRowActionLive()) {
 			return;
 		}
 		if (this.subview === 'hierarchy') {
@@ -929,10 +1003,16 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private openInspectPanel(): void {
-		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError);
 	}
 
 	revealFocusedHierarchyNode(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const node = this.hierarchyTree?.getFocus()[0];
 		if (node) {
 			this.revealHierarchyNode(node);
@@ -1018,7 +1098,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private updateHierarchyDisplay(): void {
-		if (!this.hierarchyEmpty || !this.hierarchyTreeContainer || !this.hierarchyBody) {
+		if (this._store.isDisposed || !this.hierarchyEmpty || !this.hierarchyTreeContainer || !this.hierarchyBody) {
 			return;
 		}
 
@@ -1033,7 +1113,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private updateActivityDisplay(): void {
-		if (!this.activityEmpty || !this.activityListContainer || !this.activityBody) {
+		if (this._store.isDisposed || !this.activityEmpty || !this.activityListContainer || !this.activityBody) {
 			return;
 		}
 
@@ -1065,6 +1145,9 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private syncAgentTreeLoadingChrome(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.syncStubEmptyLoading(this.hierarchyEmpty);
 		this.syncStubEmptyLoading(this.activityEmpty);
 		if (!this.element) {
@@ -1085,12 +1168,15 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private updateSubviewVisibility(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.hierarchyBody?.classList.toggle('active', this.subview === 'hierarchy');
 		this.activityBody?.classList.toggle('active', this.subview === 'activity');
 	}
 
 	private relayoutCurrentSubview(): void {
-		if (this.lastBodyWidth <= 0 && this.lastBodyHeight <= 0) {
+		if (this._store.isDisposed || (this.lastBodyWidth <= 0 && this.lastBodyHeight <= 0)) {
 			return;
 		}
 		this.layoutBody(this.lastBodyHeight, this.lastBodyWidth);
@@ -1098,11 +1184,17 @@ export class NavigatorAgentsView extends ViewPane {
 
 	/** @internal test helper */
 	setHierarchyEntries(entries: INavigatorAgentsHierarchyNode[]): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.setHierarchyState(entries);
 	}
 
 	/** @internal test helper */
 	setActivityEntries(entries: INavigatorAgentsActivityItem[]): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.setActivityState(entries);
 	}
 }
