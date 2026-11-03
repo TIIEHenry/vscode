@@ -472,7 +472,8 @@ export class NavigatorTeamView extends ViewPane {
 		engineLink: NavigatorTeamEngineLink,
 	): boolean {
 		const currentLink = this.captureEngineLink();
-		return refreshSeq === this._refreshSeq
+		return !this._store.isDisposed
+			&& refreshSeq === this._refreshSeq
 			&& this.rosterService.getActiveSessionId() === sessionId
 			&& this.leaseHolder.getLease() === lease
 			&& currentLink.linkId === engineLink.linkId
@@ -569,6 +570,9 @@ export class NavigatorTeamView extends ViewPane {
 		const tasks: INavigatorTeamTaskEntry[] = [];
 
 		try {
+			if (!stillCurrent()) {
+				return;
+			}
 			for (const manager of managers) {
 				let managerLabel = manager.name || manager.agentId;
 				const teamId = resolveTeamIdForInfo(liveTeamId, listedTeams, manager.agentId);

@@ -644,7 +644,7 @@ export class NavigatorProjectsView extends ViewPane {
 				recentsFailureCopy = navigatorProjectsRecentsFailureMessage(error);
 			}
 
-			if (rebuildSeq !== this._rebuildSeq) {
+			if (this._store.isDisposed || rebuildSeq !== this._rebuildSeq) {
 				return;
 			}
 
