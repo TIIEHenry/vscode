@@ -402,8 +402,9 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		for (const [rel, call, count] of d862AlreadyDouble) {
 			const source = d862Seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			d862Seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `D862 already-double drifted: ${rel} ${call}`);
+			assert.strictEqual(countIncludes(source, `${call}${doubleCatch}`), 0, `D862 double-catch leaked: ${rel} ${call}`);
 			d862Sites += count;
 		}
 		assert.strictEqual(d862Sites, 5);
@@ -412,8 +413,8 @@ suite('leftover remaining unused after D763 leftover remaining unused webview le
 		assert.ok(!instance.includes(`this._resize()${doubleCatch}`));
 		assert.ok(service.includes(leftoverShowBackgroundCall));
 		assert.ok(!service.includes(`this.showBackgroundTerminal(value)${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(instance), 7);
-		assert.strictEqual(countDoubleChains(service), 5);
+		assert.strictEqual(countDoubleChains(instance), 0);
+		assert.strictEqual(countDoubleChains(service), 0);
 
 		assert.strictEqual(countIncludes(processExplorer, `${updateCall}${doubleCatch}`), 2);
 		assert.strictEqual(countIncludes(processExplorer, `${onTreeKeyDownCall}${doubleCatch}`), 1);

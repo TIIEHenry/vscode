@@ -246,13 +246,17 @@ suite('leftover remaining unused after D844 leftover remaining unused notebook l
 
 		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
 		assert.ok(!findModel.includes(doubleCatch));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${showErrorCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(!debugService.includes(`${launchCall}${doubleCatch}`));
+		assert.ok(debugService.includes(`${showErrorCall}${singleCatch}`));
+		assert.ok(!debugService.includes(`${showErrorCall}${doubleCatch}`));
+		assert.ok(debugEditor.includes(`${toggleCall}${singleCatch}`));
+		assert.ok(!debugEditor.includes(`${toggleCall}${doubleCatch}`));
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
 		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));

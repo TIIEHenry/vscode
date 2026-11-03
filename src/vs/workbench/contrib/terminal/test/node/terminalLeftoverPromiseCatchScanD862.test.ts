@@ -381,15 +381,20 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 
 		assert.ok(files.includes(`${resolveCall}${doubleCatch}`));
 		assert.ok(viewer.includes(`${processIgnoreCall}${doubleCatch}`));
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(findModel, `${researchCall}${doubleCatch}`), 4);
-		assert.ok(status.includes(`${updateCall}${doubleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(findModel, `${researchCall}${singleCatch}`), 4);
+		assert.strictEqual(countIncludes(findModel, `${researchCall}${doubleCatch}`), 0);
+		assert.ok(status.includes(`${updateCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(status, `${updateCall}${singleCatch}`), 8);
+		assert.strictEqual(countIncludes(status, `${updateCall}${doubleCatch}`), 0);
 		assert.ok(output.includes(`this.onDidRegisterChannel(channelIdentifier.id)${doubleCatch}`));
 		assert.ok(searchWidget.includes(`${submitSearchCall}${doubleCatch}`));
 		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(!debugService.includes(`${launchCall}${doubleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.strictEqual(countDoubleChains(find), 5);
