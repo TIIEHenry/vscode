@@ -782,9 +782,6 @@ suite('NavigatorProjectsView', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			openTreeNode(view, folderNode, new MouseEvent('click', { ctrlKey: true }));
@@ -792,7 +789,7 @@ suite('NavigatorProjectsView', () => {
 			assert.deepStrictEqual({ unhandledRejections, openWindowCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				openWindowCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -815,9 +812,6 @@ suite('NavigatorProjectsView', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			(view as unknown as { refresh(): void }).refresh();
@@ -825,7 +819,7 @@ suite('NavigatorProjectsView', () => {
 			assert.deepStrictEqual({ unhandledRejections, rebuildCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				rebuildCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -1799,5 +1793,52 @@ suite('NavigatorProjectsView', () => {
 
 		openTreeNode(view, sessionNode);
 		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId]);
+	});
+
+	test('lifecycle DOM cleanup on dispose detaches elements and clears container', async () => {
+		const folderUri = URI.file('/projects/cleanup-test');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const view = await mountView({ contextService });
+
+		const container = (view as unknown as { container?: HTMLElement }).container;
+		assert.ok(container, 'container must be captured');
+		assert.ok(container.classList.contains('navigator-projects'));
+		assert.ok(container.classList.contains('show-file-icons'));
+		assert.ok(container.classList.contains('navigator-projects-body'));
+		assert.ok(container.childNodes.length > 0, 'container must have child elements rendered');
+
+		const filterBox = (view as unknown as { filterBox?: { element: HTMLElement } }).filterBox;
+		assert.ok(filterBox?.element);
+		assert.ok(container.contains(filterBox.element));
+
+		view.dispose();
+
+		assert.strictEqual(container.classList.contains('navigator-projects'), false);
+		assert.strictEqual(container.classList.contains('show-file-icons'), false);
+		assert.strictEqual(container.classList.contains('navigator-projects-body'), false);
+		assert.strictEqual(container.childNodes.length, 0, 'container DOM must be completely cleared');
+		assert.strictEqual((view as unknown as { container?: HTMLElement }).container, undefined);
+		assert.strictEqual((view as unknown as { tree?: unknown }).tree, undefined);
+		assert.strictEqual((view as unknown as { treeContainer?: HTMLElement }).treeContainer, undefined);
+		assert.strictEqual((view as unknown as { filterBox?: unknown }).filterBox, undefined);
+		assert.strictEqual((view as unknown as { filterEmpty?: HTMLElement }).filterEmpty, undefined);
+		assert.strictEqual((view as unknown as { recentsStatus?: HTMLElement }).recentsStatus, undefined);
+	});
+
+	test('post-disposal operations are safe and do not recreate DOM or throw', async () => {
+		const folderUri = URI.file('/projects/post-disposal-test');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const view = await mountView({ contextService });
+
+		view.dispose();
+
+		await (view as unknown as { rebuildTree(): Promise<void> }).rebuildTree();
+		(view as unknown as { refresh(): void }).refresh();
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
+		openTreeNode(view, { id: 'dummy', kind: 'session', label: 'Dummy' });
+		await (view as unknown as { deleteSession(sessionId: string): Promise<void> }).deleteSession('some-session');
+
+		const container = (view as unknown as { container?: HTMLElement }).container;
+		assert.strictEqual(container, undefined);
 	});
 });

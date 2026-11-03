@@ -89,4 +89,9 @@ export class NavigatorProjectsInlineFilterBox extends Disposable {
 	private updateClearVisibility(): void {
 		this.element.classList.toggle('has-text', this.input.value.length > 0);
 	}
+
+	override dispose(): void {
+		this.element.remove();
+		super.dispose();
+	}
 }

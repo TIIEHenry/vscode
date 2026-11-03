@@ -230,6 +230,7 @@ export class AgentInspectView extends ViewPane {
 
 	static readonly ID = AGENT_INSPECT_VIEW_ID;
 
+	private container: HTMLElement | undefined;
 	private list: WorkbenchList<IAgentInspectEntry> | undefined;
 	private listContainer: HTMLElement | undefined;
 	private entries: IAgentInspectEntry[] = [];
@@ -251,15 +252,32 @@ export class AgentInspectView extends ViewPane {
 		@IAgentInspectService private readonly inspectService: IAgentInspectService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
-		this._register(this.inspectService.onDidChangeTarget(() => this.renderTarget()));
-		this._register(this.inspectService.onDidChangeLiveAgentIds(() => this.renderTarget()));
+		this._register(this.inspectService.onDidChangeTarget(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.renderTarget();
+		}));
+		this._register(this.inspectService.onDidChangeLiveAgentIds(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.renderTarget();
+		}));
 	}
 
 	override dispose(): void {
 		this.list?.dispose();
 		this.list = undefined;
 		this.listContainer?.remove();
+		this.listContainer = undefined;
 		this.staleNote?.remove();
+		this.staleNote = undefined;
+		if (this.container) {
+			this.container.classList.remove('agent-inspect-body');
+			dom.clearNode(this.container);
+			this.container = undefined;
+		}
 		super.dispose();
 	}
 
@@ -270,6 +288,7 @@ export class AgentInspectView extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
+		this.container = container;
 		container.classList.add('agent-inspect-body');
 		this.staleNote = dom.append(container, $('.agent-inspect-stale-note'));
 		this.staleNote.textContent = localize('agentInspectView.staleTarget', "No longer in the current tree");
