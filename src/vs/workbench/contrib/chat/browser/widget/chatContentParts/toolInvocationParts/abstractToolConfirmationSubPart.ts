@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as dom from '../../../../../../../base/browser/dom.js';
 import { Separator } from '../../../../../../../base/common/actions.js';
 import { Codicon } from '../../../../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../../../../base/common/errors.js';
@@ -63,7 +64,7 @@ export class ChatConfirmationOpenedEditors extends Disposable {
 			if (stateKind !== IChatToolInvocation.StateKind.WaitingForConfirmation && stateKind !== IChatToolInvocation.StateKind.WaitingForPostApproval) {
 				const { editor } = identifier;
 				if (!editor.isDisposed() && !editor.isDirty()) {
-					this._editorService.closeEditors([identifier]).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._editorService.closeEditors([identifier]).catch(onUnexpectedError);
 				}
 			}
 
@@ -84,7 +85,7 @@ export class ChatConfirmationOpenedEditors extends Disposable {
 		if (stateKind !== IChatToolInvocation.StateKind.WaitingForConfirmation && stateKind !== IChatToolInvocation.StateKind.WaitingForPostApproval) {
 			const toClose = this._opened.filter(({ editor }) => !editor.isDisposed() && !editor.isDirty());
 			if (toClose.length) {
-				this._editorService.closeEditors(toClose).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._editorService.closeEditors(toClose).catch(onUnexpectedError);
 			}
 		}
 
@@ -115,6 +116,7 @@ type AbstractToolPrimaryAction = IAbstractToolPrimaryAction | Separator;
  */
 export abstract class AbstractToolConfirmationSubPart extends BaseChatToolInvocationSubPart {
 	public domNode!: HTMLElement;
+	private _isDisposed = false;
 
 	/**
 	 * Tracks files the user opened from links in the confirmation message so they can be
@@ -167,7 +169,12 @@ export abstract class AbstractToolConfirmationSubPart extends BaseChatToolInvoca
 			const allowAction: IAbstractToolPrimaryAction = {
 				label: config.allowLabel,
 				tooltip: allowTooltip,
-				data: () => { this.confirmWith(toolInvocation, { type: ToolConfirmKind.UserAction }); },
+				data: () => {
+					if (this._isDisposed || this._store.isDisposed) {
+						return;
+					}
+					this.confirmWith(toolInvocation, { type: ToolConfirmKind.UserAction });
+				},
 			};
 
 			const primaryAction = sessionAction ?? allowAction;
@@ -188,6 +195,9 @@ export abstract class AbstractToolConfirmationSubPart extends BaseChatToolInvoca
 					label: localize('skip', "Skip"),
 					tooltip: skipTooltip,
 					data: () => {
+						if (this._isDisposed || this._store.isDisposed) {
+							return;
+						}
 						this.confirmWith(toolInvocation, { type: ToolConfirmKind.Skipped });
 					},
 					isSecondary: true,
@@ -228,6 +238,9 @@ export abstract class AbstractToolConfirmationSubPart extends BaseChatToolInvoca
 		hasToolConfirmation.set(true);
 
 		this._register(confirmWidget.onDidClick(({ button, isTouchClick }) => {
+			if (this._isDisposed || this._store.isDisposed) {
+				return;
+			}
 			button.data();
 			if (!isTouchClick) {
 				this.chatWidgetService.getWidgetBySessionResource(this.context.element.sessionResource)?.focusInput();
@@ -239,7 +252,19 @@ export abstract class AbstractToolConfirmationSubPart extends BaseChatToolInvoca
 		this.domNode = confirmWidget.domNode;
 	}
 
+	override dispose(): void {
+		this._isDisposed = true;
+		if (this.domNode) {
+			dom.clearNode(this.domNode);
+			this.domNode.remove();
+		}
+		super.dispose();
+	}
+
 	protected confirmWith(toolInvocation: IChatToolInvocation, reason: ConfirmedReason): void {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		IChatToolInvocation.confirmWith(toolInvocation, reason);
 	}
 
@@ -253,6 +278,9 @@ export abstract class AbstractToolConfirmationSubPart extends BaseChatToolInvoca
 		const makeAction = (option: ConfirmationOption): IChatConfirmationButton<(() => void)> => ({
 			label: option.label,
 			data: () => {
+				if (this._isDisposed || this._store.isDisposed) {
+					return;
+				}
 				this.confirmWith(toolInvocation, { type: ToolConfirmKind.UserAction, selectedButton: option.id, selectedButtonKind: option.kind });
 			},
 		});

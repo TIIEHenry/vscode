@@ -287,7 +287,8 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	public readonly domNode: HTMLElement;
 
 	private readonly _titleElement: HTMLElement;
-	private readonly _outputView: ChatTerminalToolOutputSection;
+	private _outputView: ChatTerminalToolOutputSection | undefined;
+	private _isDisposed = false;
 	private readonly _terminalOutputContextKey: IContextKey<boolean>;
 	private _terminalSessionRegistration: IDisposable | undefined;
 	private readonly _elementIndex: number;
@@ -441,7 +442,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		initializeTerminalActionsOnce();
 		void Promise.resolve(this._terminalService.whenConnected).then(() => {
 			initializeTerminalActionsOnce();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		const terminalToolSessionId = this._terminalData.terminalToolSessionId;
 		if (terminalToolSessionId) {
@@ -511,7 +512,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		const storedExpandedState = expandedStateByInvocation.get(toolInvocation);
 		const hasStoredExpandedState = expandedStateByInvocation.has(toolInvocation);
 		if (storedExpandedState || (!hasStoredExpandedState && this._forceExpandTerminalOutput) || (this._isInThinkingContainer && IChatToolInvocation.isComplete(toolInvocation) && hasStoredOutput)) {
-			void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._toggleOutput(true).catch(onUnexpectedError);
 		}
 		this._register(this._terminalChatService.registerProgressPart(this));
 	}
@@ -608,7 +609,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				isFirstRun = false;
 				return;
 			}
-			void this._toggleOutput(expanded).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._toggleOutput(expanded).catch(onUnexpectedError);
 		}));
 
 		return wrapper.domNode;
@@ -623,7 +624,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	private async _initializeTerminalActions(): Promise<void> {
-		if (this._store.isDisposed) {
+		if (this._isDisposed || this._store.isDisposed) {
 			return;
 		}
 		const terminalToolSessionId = this._terminalData.terminalToolSessionId;
@@ -714,11 +715,11 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			this._toolbarHasOutput = hasOutput;
 
 			// Auto-expand on first detection of failed output
-			if (hasOutput && !this._outputView.isExpanded) {
+			if (hasOutput && !this._outputView?.isExpanded) {
 				const autoExpandFailures = this._configurationService.getValue<boolean>(ChatConfiguration.AutoExpandToolFailures);
 				const exitCode = resolvedCommand?.exitCode ?? this._outputSource?.exitCode ?? this._terminalData.terminalCommandState?.exitCode;
 				if (exitCode !== undefined && exitCode !== 0 && autoExpandFailures) {
-					void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this._toggleOutput(true).catch(onUnexpectedError);
 				}
 			}
 		}
@@ -834,7 +835,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	 * or if the invocation was previously expanded (to preserve state across re-renders).
 	 */
 	private _shouldAutoExpand(): boolean {
-		return !this._outputView.isExpanded &&
+		return !this._outputView?.isExpanded &&
 			!this._userToggledOutput &&
 			!this._store.isDisposed &&
 			(!this._forceExpandTerminalOutput || !expandedStateByInvocation.has(this.toolInvocation)) &&
@@ -912,7 +913,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				if (this._usesCollapsibleWrapper) {
 					this.expandCollapsibleWrapper();
 				}
-				void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._toggleOutput(true).catch(onUnexpectedError);
 			}));
 
 			// Track data events to help hasRealOutput detect progress-style output
@@ -991,7 +992,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			if (this._usesCollapsibleWrapper) {
 				this.expandCollapsibleWrapper();
 			}
-			void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._toggleOutput(true).catch(onUnexpectedError);
 		}));
 
 		store.add(ahpSource.onCommandExecuted(cmd => {
@@ -1000,8 +1001,8 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 				this._terminalData.terminalCommandId = cmd.id;
 				this._updateToolbarContextKeys(terminalInstance, this._terminalData.terminalToolSessionId);
 			}
-			if (this._outputView.isExpanded) {
-				void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._outputView?.isExpanded) {
+				void this._toggleOutput(true).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1034,8 +1035,8 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		this.markCollapsibleWrapperComplete();
 
 		// Auto-collapse on success (exit code 0)
-		if (resolvedCommand?.exitCode === 0 && this._outputView.isExpanded && !this._userToggledOutput && !this._forceExpandTerminalOutput) {
-			void this._toggleOutput(false).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (resolvedCommand?.exitCode === 0 && this._outputView?.isExpanded && !this._userToggledOutput && !this._forceExpandTerminalOutput) {
+			void this._toggleOutput(false).catch(onUnexpectedError);
 		}
 
 		// Keep outer wrapper expanded on error for visibility
@@ -1046,13 +1047,16 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	private async _toggleOutput(expanded: boolean): Promise<boolean> {
+		if (this._isDisposed || this._store.isDisposed || !this._outputView) {
+			return false;
+		}
 		const didChange = await this._outputView.toggle(expanded);
+		if (this._isDisposed || this._store.isDisposed || !this._outputView) {
+			return didChange;
+		}
 		const isExpanded = this._outputView.isExpanded;
 		if (didChange) {
 			expandedStateByInvocation.set(this.toolInvocation, isExpanded);
-		}
-		if (this._store.isDisposed) {
-			return didChange;
 		}
 		// Only drop the title's bottom border/radius when the output section is
 		// actually rendered below the title to visually close the box. Display-only
@@ -1067,7 +1071,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	private async _ensureTerminalInstance(): Promise<ITerminalInstance | undefined> {
-		if (this._terminalData.isPty === false) {
+		if (this._isDisposed || this._store.isDisposed || this._terminalData.isPty === false) {
 			return undefined;
 		}
 		if (this._terminalInstance?.isDisposed) {
@@ -1108,12 +1112,12 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 			if (this._usesCollapsibleWrapper) {
 				this.expandCollapsibleWrapper();
 			}
-			void this._toggleOutput(true).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._toggleOutput(true).catch(onUnexpectedError);
 		}));
 		store.add(source.onDidChange(() => {
 			this._decoration.update();
 			this._updateToolbarContextKeys(undefined, this._terminalData.terminalToolSessionId);
-			void this._outputView.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._outputView?.refresh().catch(onUnexpectedError);
 			if (source.hasExited) {
 				onCommandFinished.fire();
 				this.markCollapsibleWrapperComplete();
@@ -1126,18 +1130,18 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 		}
 		this._decoration.update();
 		this._updateToolbarContextKeys(undefined, this._terminalData.terminalToolSessionId);
-		void this._outputView.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._outputView?.refresh().catch(onUnexpectedError);
 	}
 
 	private _handleOutputFocus(): void {
 		this._terminalOutputContextKey.set(true);
 		this._terminalChatService.setFocusedProgressPart(this);
-		this._outputView.updateAriaLabel();
+		this._outputView?.updateAriaLabel();
 	}
 
 	private _handleOutputBlur(event: FocusEvent): void {
 		const nextTarget = event.relatedTarget as HTMLElement | null;
-		if (this._outputView.containsElement(nextTarget)) {
+		if (this._outputView?.containsElement(nextTarget)) {
 			return;
 		}
 		this._terminalOutputContextKey.reset();
@@ -1150,11 +1154,20 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	public getCommandAndOutputAsText(): string | undefined {
-		return this._outputView.getCommandAndOutputAsText();
+		return this._outputView?.getCommandAndOutputAsText();
 	}
 
 	public focusOutput(): void {
-		this._outputView.focus();
+		this._outputView?.focus();
+	}
+
+	public override dispose(): void {
+		this._isDisposed = true;
+		this._outputView?.dispose();
+		this._outputView = undefined;
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
+		super.dispose();
 	}
 
 	private _focusChatInput(): void {
@@ -1163,7 +1176,7 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	public async focusTerminal(): Promise<void> {
-		if (this._terminalData.isPty === false) {
+		if (this._isDisposed || this._store.isDisposed || this._terminalData.isPty === false) {
 			return;
 		}
 		const instance = await this._ensureTerminalInstance();
@@ -1251,6 +1264,9 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	public async toggleOutputFromAction(): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed || !this._outputView) {
+			return;
+		}
 		this._userToggledOutput = true;
 
 		type ToggleChatTerminalOutputTelemetryEvent = {
@@ -1273,10 +1289,13 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	public async toggleOutputFromKeyboard(): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed || !this._outputView) {
+			return;
+		}
 		this._userToggledOutput = true;
 		if (!this._outputView.isExpanded) {
 			await this._toggleOutput(true);
-			if (this._store.isDisposed) {
+			if (this._isDisposed || this._store.isDisposed) {
 				return;
 			}
 			this.focusOutput();
@@ -1286,6 +1305,9 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
 	}
 
 	private async _collapseOutputAndFocusInput(): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed || !this._outputView) {
+			return;
+		}
 		if (this._outputView.isExpanded) {
 			await this._toggleOutput(false);
 		}
@@ -1350,6 +1372,8 @@ export class ChatTerminalToolProgressPart extends BaseChatToolInvocationSubPart 
  */
 export class ChatTerminalToolOutputSection extends Disposable {
 	public readonly domNode: HTMLElement;
+	private _isDisposed = false;
+	private _relayoutAnimationHandle: number | undefined;
 
 	public get isExpanded(): boolean {
 		return this.domNode.classList.contains('expanded');
@@ -1415,6 +1439,9 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	}
 
 	public async toggle(expanded: boolean): Promise<boolean> {
+		if (this._isDisposed || this._store.isDisposed) {
+			return false;
+		}
 		const currentlyExpanded = this.isExpanded;
 		if (expanded === currentlyExpanded) {
 			if (expanded) {
@@ -1431,18 +1458,21 @@ export class ChatTerminalToolOutputSection extends Disposable {
 
 		if (!this._scrollableContainer) {
 			await this._createScrollableContainer();
-			if (this._store.isDisposed) {
+			if (this._isDisposed || this._store.isDisposed) {
 				return false;
 			}
 		}
 		await this._updateTerminalContent();
-		if (this._store.isDisposed) {
+		if (this._isDisposed || this._store.isDisposed) {
 			return false;
 		}
 
 		// Only now show the expanded state (after content is ready)
 		this._setExpanded(true);
 		await this._layoutMirrorWidth();
+		if (this._isDisposed || this._store.isDisposed) {
+			return false;
+		}
 		this._layoutOutput();
 		this._scrollOutputToBottom();
 		this._scheduleOutputRelayout();
@@ -1450,6 +1480,9 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	}
 
 	public async refresh(): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (this.isExpanded) {
 			await this._updateTerminalContent();
 		}
@@ -1554,7 +1587,13 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	}
 
 	private async _updateTerminalContent(): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		const applyOutputSource = async (outputSource: IChatTerminalOutputSource): Promise<void> => {
+			if (this._isDisposed || this._store.isDisposed) {
+				return;
+			}
 			this._disposeLiveMirror();
 			if (outputSource.output) {
 				await this._renderSnapshotOutput({ text: outputSource.output });
@@ -1573,7 +1612,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 			return;
 		}
 		const liveTerminalInstance = await this._resolveLiveTerminal();
-		if (this._store.isDisposed) {
+		if (this._isDisposed || this._store.isDisposed) {
 			return;
 		}
 		const laterSource = this._getOutputSource();
@@ -1586,7 +1625,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 
 		if (liveTerminalInstance && command) {
 			const handled = await this._renderLiveOutput(liveTerminalInstance, command);
-			if (this._store.isDisposed) {
+			if (this._isDisposed || this._store.isDisposed) {
 				return;
 			}
 			const afterLiveSource = this._getOutputSource();
@@ -1600,6 +1639,9 @@ export class ChatTerminalToolOutputSection extends Disposable {
 		}
 
 		this._disposeLiveMirror();
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 
 		if (snapshot) {
 			await this._renderSnapshotOutput(snapshot);
@@ -1797,10 +1839,40 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	}
 
 	private _scheduleOutputRelayout(): void {
-		dom.getWindow(this.domNode).requestAnimationFrame(() => {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
+		const win = dom.getWindow(this.domNode);
+		if (this._relayoutAnimationHandle !== undefined) {
+			win.cancelAnimationFrame(this._relayoutAnimationHandle);
+			this._relayoutAnimationHandle = undefined;
+		}
+		this._relayoutAnimationHandle = win.requestAnimationFrame(() => {
+			this._relayoutAnimationHandle = undefined;
+			if (this._isDisposed || this._store.isDisposed) {
+				return;
+			}
 			this._layoutOutput();
 			this._scrollOutputToBottom();
 		});
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		if (this._relayoutAnimationHandle !== undefined) {
+			try {
+				dom.getWindow(this.domNode).cancelAnimationFrame(this._relayoutAnimationHandle);
+			} catch { }
+			this._relayoutAnimationHandle = undefined;
+		}
+		this._disposeLiveMirror();
+		if (this._snapshotMirror) {
+			this._snapshotMirror.dispose();
+			this._snapshotMirror = undefined;
+		}
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
+		super.dispose();
 	}
 
 	/**
@@ -1809,16 +1881,19 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	 * height and wrap width match what xterm actually painted.
 	 */
 	private _handleMirrorRowHeightChange(): void {
-		void this._layoutMirrorWidth().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
+		void this._layoutMirrorWidth().catch(onUnexpectedError);
 		this._layoutOutput();
 	}
 
 	private _handleResize(): void {
-		if (!this._scrollableContainer) {
+		if (!this._scrollableContainer || this._isDisposed || this._store.isDisposed) {
 			return;
 		}
 		if (this.isExpanded) {
-			void this._layoutMirrorWidth().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._layoutMirrorWidth().catch(onUnexpectedError);
 			this._layoutOutput();
 			this._scrollOutputToBottom();
 		} else {
@@ -1832,7 +1907,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 	 * layout opportunity.
 	 */
 	private async _layoutMirrorWidth(mirror: DetachedTerminalCommandMirror | DetachedTerminalSnapshotMirror | undefined = this._snapshotMirror ?? this._mirror): Promise<void> {
-		if (!mirror) {
+		if (this._isDisposed || this._store.isDisposed || !mirror) {
 			return;
 		}
 		const width = this._terminalContainer.clientWidth || this._outputBody.clientWidth || this.domNode.clientWidth || (this.domNode.parentElement?.clientWidth ?? 0);
@@ -1840,7 +1915,7 @@ export class ChatTerminalToolOutputSection extends Disposable {
 			return;
 		}
 		const result = await mirror.layout(width);
-		if (this._store.isDisposed || (mirror !== this._mirror && mirror !== this._snapshotMirror)) {
+		if (this._isDisposed || this._store.isDisposed || (mirror !== this._mirror && mirror !== this._snapshotMirror)) {
 			return;
 		}
 		if (result?.lineCount !== undefined) {

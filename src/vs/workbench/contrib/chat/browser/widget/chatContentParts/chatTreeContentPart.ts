@@ -35,6 +35,7 @@ export class ChatTreeContentPart extends Disposable implements IChatContentPart 
 	public readonly onDidFocus: Event<void>;
 
 	private tree: WorkbenchCompressibleAsyncDataTree<IChatResponseProgressFileTreeData, IChatResponseProgressFileTreeData, void>;
+	private _isDisposed = false;
 
 	constructor(
 		data: IChatResponseProgressFileTreeData,
@@ -58,12 +59,18 @@ export class ChatTreeContentPart extends Disposable implements IChatContentPart 
 		}));
 
 		void Promise.resolve(this.tree.setInput(data)).then(() => {
-			if (!ref.isStale()) {
+			if (!ref.isStale() && !this._store.isDisposed && !this._isDisposed) {
 				this.tree.layout();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this.domNode = this.tree.getHTMLElement().parentElement!;
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		this.domNode.remove();
+		super.dispose();
 	}
 
 	domFocus() {
