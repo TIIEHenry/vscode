@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Sources 文件列表 DOM 生命周期、检索取消与重绘防销毁）、Slot B（Conversation 会话列表生命周期与错误捕获清理）、Slot C（Navigator 智能体视图生命周期与 Inspect 状态清理）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Sources DOM 生命周期清理、销毁防护与错误处理解偶）、Slot B（Conversation 覆盖层与偏好面板 DOM 生命周期管控）、Slot C（Navigator 视图 DOM 生命周期与 Inspect 状态清理）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次七）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Sources DOM 生命周期清理、销毁防护与错误处理解耦)**：在 `sourcesReviewList.ts` 的 `dispose()` 显式脱落宿主 DOM 子树（`filterRow`、`pathFilterBanner`、`headerHint`、`progressHeader`、`listContainer`、`emptyMessage`、`statusMessage`），在 `paintFromModel()` 增设 `this._store.isDisposed` 入口拦截；在 `sourcesChangesList.ts` 补充 `override dispose()` 移除 `toolbar`、`contentContainer`、`commitRow` 并清理 host class，在 `renderFromSnapshot()` 入口增设销毁守卫；在 `conversationDiffReviewPane.ts` 的 `dispose()` 增加 `this.container?.remove()`；在上述文件及 `sourcesDiffPanelView.ts` 中消除冗余链式 `.catch(onUnexpectedError).catch(onUnexpectedError)`。类型检查 0 错误，槽提交 `1f3ab4d89c0`。
+  - **槽位 B (Conversation 覆盖层与偏好面板 DOM 生命周期管控)**：在 `conversationInboxOverlay.ts` 实现 `override dispose()` 关闭 `listContextView`、解绑引用并执行 `element.remove()`；在 `enginePreferencesPane.ts` 实现 `override dispose()` 移除 `container`；在 `connectionPreferencesPane.ts` 的 `dispose()` 补充 `container.remove()`，并在 `initializeState()` 加载加解密支持前后增设双重 `this._store.isDisposed` 防护；收敛全处级联重复错误捕获至单级 `.catch(onUnexpectedError)`。类型检查 0 错误，槽提交 `e5c06d19c55`。
+  - **槽位 C (Navigator 视图 DOM 生命周期与 Inspect 状态清理)**：在 `navigatorProjectsList.ts` 的 `NavigatorProjectsView` 实现 `override dispose()` 销毁 `tree` 并脱落 `treeContainer`、`filterEmpty` 与 `recentsStatus`，在 `applyFilterToTree()` 增设销毁守卫；在 `navigatorTeamList.ts` 的 `NavigatorTeamView.dispose()` 增加 `treeContainer`、`filterEmpty` 与 `statusContainer` 的清理，并清空 live inspect 目标引用（`setLiveAgentIds('team', undefined)` 与 `setLiveTaskIds(undefined)`），在 `applyFilter()` 增设销毁守卫；在 `agentInspectView.ts` 的 `AgentInspectView` 实现 `override dispose()` 销毁 `list` 并清理 `listContainer` 与 `staleNote`，在 `renderTarget()` 与 `setEntries()` 增设销毁守卫；各视图收敛冗余级联错误捕获。类型检查 0 错误，测试 132/132 全过，槽提交 `1808c0b7e61`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `a92519bfb6b`、`5cafc289fe7`、`59a3c8df232`）。全量客户端编译 `npm run compile-client` 0 错误（25s），分层校验 `npm run valid-layers-check` 0 错误，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现并记录测试断言对历史双重捕获的代码异味硬依赖：`sourcesWiringScan.test.ts`、`sourcesLeftoverCatchScan.test.ts`、`conversationInboxOverlay.test.ts` 与 `conversationLeftoverPromiseCatchScan*.test.ts` 中存在对字符串 `'.catch(onUnexpectedError).catch(onUnexpectedError)'` 的 AST/源码匹配检查，系历史测试基准将偶发重复 catch 固化为测试断言的既有缺陷。
+    2) 解决 `NavigatorTeamView` 缺少容器元素引用字段导致无法统一步骤安全清理脱落 DOM 节点的缺陷，补充属性声明并纳入销毁流。
+    3) 解决 `ConnectionPreferencesPane.initializeState()` 异步查询加密能力返回后无视面板销毁状态继续向 DOM 节点添加提示的生命周期泄漏缺陷。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次六）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Sources 文件列表 DOM 生命周期、异步检索取消与重绘防销毁)**：在 `sourcesFilesExplorer.ts` 的 `SourcesFilesExplorerHost.dispose()` 增加 `this.root.remove()` 防止脱落 DOM 节点泄露；在 `syncExplorer` 增加双重 `this._store.isDisposed` 防护；在 `setListMode` 消除冗余重复 `.catch(onUnexpectedError)`；在 `sourcesFilesList.ts` 的 `dispose()` 遍历活跃的文件夹取消令牌及引擎取消令牌显式调用 `source.cancel()` 再 `source.dispose()`。槽提交 `03ebdbe391e`。
