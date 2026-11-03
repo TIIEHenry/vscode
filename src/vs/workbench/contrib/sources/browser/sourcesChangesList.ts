@@ -10,7 +10,7 @@ import { Checkbox, TriStateCheckbox } from '../../../../base/browser/ui/toggle/t
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -211,6 +211,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 	constructor(
 		private readonly labels: ResourceLabels,
 		private readonly delegate: ISourcesChangesRendererDelegate,
+		private readonly onDidChangeCheckedState: Event<void>,
 	) { }
 
 	renderTemplate(container: HTMLElement): ISourcesChangeTemplateData {
@@ -311,10 +312,12 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 			this.renderGroupAction(element, templateData);
 		}
 
+		const folderCheckboxes: { id: string; checkbox: TriStateCheckbox }[] = [];
 		for (const folder of folderHeaders) {
 			const folderRow = dom.append(templateData.folders, $('.sources-change-folder-row'));
 			folderRow.style.setProperty('--sources-change-depth', String(folder.depth));
 			const checkbox = templateData.elementDisposables.add(new TriStateCheckbox('', this.delegate.folderCheckboxState(folder.id), defaultCheckboxStyles));
+			folderCheckboxes.push({ id: folder.id, checkbox });
 			checkbox.domNode.tabIndex = -1;
 			checkbox.domNode.classList.add('sources-change-folder-checkbox');
 			if (this.delegate.folderCheckboxEnabled(folder.id)) {
@@ -351,6 +354,15 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		templateData.fileCheckbox.setTitle(localize('sourcesChangesList.fileCheckbox', "Select {0}", element.name));
 		templateData.elementDisposables.add(templateData.fileCheckbox.onChange(() => this.delegate.setEntryChecked(element, templateData.fileCheckbox.checked)));
 		templateData.elementDisposables.add(dom.addDisposableListener(templateData.fileCheckbox.domNode, 'click', event => dom.EventHelper.stop(event, true)));
+		templateData.elementDisposables.add(this.onDidChangeCheckedState(() => {
+			templateData.fileCheckbox.checked = this.delegate.isEntryChecked(element);
+			if (this.delegate.isGroupStart(element)) {
+				templateData.groupCheckbox.checked = this.delegate.groupCheckboxState(element.groupId);
+			}
+			for (const { id, checkbox } of folderCheckboxes) {
+				checkbox.checked = this.delegate.folderCheckboxState(id);
+			}
+		}));
 
 		this.renderFileAction(element, templateData);
 	}
@@ -461,6 +473,10 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		button.enabled = false;
 	}
 
+	disposeElement(_element: ISourcesChangeEntry, _index: number, templateData: ISourcesChangeTemplateData): void {
+		templateData.elementDisposables.clear();
+	}
+
 	disposeTemplate(templateData: ISourcesChangeTemplateData): void {
 		templateData.elementDisposables.dispose();
 		templateData.templateDisposables.dispose();
@@ -508,6 +524,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private groupCounts = new Map<string, number>();
 	private currentEntries: readonly ISourcesChangeEntry[] = [];
 	private readonly checkedEntryIds = new Set<string>();
+	private readonly onDidChangeCheckedState = this._register(new Emitter<void>());
 	private readonly expandedGroupIds = new Set<string>();
 	private readonly expandedFolderIds = new Set<string>();
 	private folderHeadersByEntry = new Map<string, readonly ISourcesChangeFolderHeader[]>();
@@ -860,7 +877,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			element => this.folderHeaders(element),
 			element => this.isFolderCollapsedAnchor(element),
 		);
-		const renderer = new SourcesChangesRenderer(this.labels, this);
+		const renderer = new SourcesChangesRenderer(this.labels, this, this.onDidChangeCheckedState.event);
 
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
@@ -1025,6 +1042,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		for (const entry of this.entriesInGroup(groupId)) {
 			this.setEntryChecked(entry, checked, false);
 		}
+		this.onDidChangeCheckedState.fire();
 		this.updateSelectionToolbar();
 	}
 
@@ -1072,6 +1090,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		for (const entry of this.folderEntries.get(folderId) ?? []) {
 			this.setEntryChecked(entry, checked, false);
 		}
+		this.onDidChangeCheckedState.fire();
 		this.updateSelectionToolbar();
 	}
 
@@ -1087,8 +1106,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.checkedEntryIds.delete(id);
 		}
 		if (refresh) {
+			this.onDidChangeCheckedState.fire();
 			this.updateSelectionToolbar();
-			this.list?.rerender();
 		}
 	}
 
