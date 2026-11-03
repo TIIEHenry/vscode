@@ -387,11 +387,14 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 	}
 
 	private async onDidChangeProfile() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const profileChangeGeneration = ++this.profileChangeGeneration;
 		const generation = ++this.localQueryGeneration;
 		this.invalidateRegistryVerification();
 		await this.queryLocalForGeneration(generation);
-		if (profileChangeGeneration !== this.profileChangeGeneration) {
+		if (this._store.isDisposed || profileChangeGeneration !== this.profileChangeGeneration) {
 			return;
 		}
 		this._onReset.fire();
@@ -490,11 +493,11 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 	private scheduleRegistrySync(): void {
 		const generation = ++this.registrySyncGeneration;
 		void this.registrySyncDelayer.trigger(() => this.syncInstalledMcpServers(generation))
-			.catch(error => this.logService.error(error)).catch(onUnexpectedError).catch(onUnexpectedError);
+			.catch(error => this.logService.error(error)).catch(onUnexpectedError);
 	}
 
 	private async syncInstalledMcpServers(generation: number): Promise<void> {
-		if (!this.mcpGalleryService.isEnabled()) {
+		if (this._store.isDisposed || !this.mcpGalleryService.isEnabled()) {
 			return;
 		}
 
@@ -513,7 +516,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 		}
 
 		const resolved = await this.mcpGalleryService.resolveMcpServersFromGallery(infos);
-		if (generation !== this.registrySyncGeneration) {
+		if (this._store.isDisposed || generation !== this.registrySyncGeneration) {
 			return;
 		}
 		this.syncInstalledMcpServersWithGallery(resolved, servers, generation);
@@ -585,7 +588,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 
 	private async queryLocalForGeneration(generation: number): Promise<boolean> {
 		const installed = await this.mcpManagementService.getInstalled();
-		if (generation !== this.localQueryGeneration) {
+		if (this._store.isDisposed || generation !== this.localQueryGeneration) {
 			return false;
 		}
 		this._local = this.sort(installed.map(i => {
@@ -912,7 +915,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 					if (galleryServer) {
 						this.rememberGallerySource(galleryServer, registryGeneration);
 						const local = this.local.find(e => e.name === galleryServer.name) ?? this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, galleryServer, undefined);
-						this.open(local).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.open(local).catch(onUnexpectedError);
 						return true;
 					}
 					this.logService.info(`MCP server '${name}' not found in gallery, installing as local`);
@@ -921,7 +924,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 				}
 			}
 
-			this.open(this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, undefined, { name, config, inputs })).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.open(this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, undefined, { name, config, inputs })).catch(onUnexpectedError);
 		} catch (e) {
 			// ignore
 		}
@@ -936,7 +939,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 				return true;
 			}
 			const local = this.local.find(e => e.name === gallery.name) ?? this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, gallery, undefined);
-			this.open(local).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.open(local).catch(onUnexpectedError);
 		} catch (e) {
 			// ignore
 			this.logService.error(e);
@@ -954,7 +957,7 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 			}
 			this.rememberGallerySource(gallery, registryGeneration);
 			const local = this.local.find(e => e.name === gallery.name) ?? this.instantiationService.createInstance(McpWorkbenchServer, e => this.getInstallState(e), e => this.getRuntimeStatus(e), undefined, gallery, undefined);
-			this.open(local).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.open(local).catch(onUnexpectedError);
 		} catch (e) {
 			// ignore
 			this.logService.error(e);
@@ -967,6 +970,9 @@ export class McpWorkbenchService extends Disposable implements IMcpWorkbenchServ
 	}
 
 	async open(extension: IWorkbenchMcpServer, options?: IEditorOptions): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const useModal = this.configurationService.getValue<boolean>('extensions.allowOpenInModalEditor');
 		await this.editorService.openEditor(this.instantiationService.createInstance(McpServerEditorInput, extension), options, useModal ? MODAL_GROUP : ACTIVE_GROUP);
 	}

@@ -511,7 +511,7 @@ export class McpAddConfigurationCommand {
 					if (state.state === McpConnectionState.Kind.Error) {
 						server.showOutput();
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 
 				store.dispose();
 			}

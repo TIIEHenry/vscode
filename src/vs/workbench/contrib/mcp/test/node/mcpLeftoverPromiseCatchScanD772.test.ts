@@ -49,6 +49,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -57,13 +58,17 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 const triggerCall = `void this.registrySyncDelayer.trigger(() => this.syncInstalledMcpServers(generation))
@@ -101,7 +106,10 @@ const toolUpdateCall = `			toolUpdate.then(tools => {
 					serverVersion: handler.serverInfo.version,
 				});
 			})`;
-const entryPromiseCall = 'entry.promise.then(() => { entry.resolved = true; })';
+const entryPromiseCall = `entry.promise.then(ready => {
+				entry.resolved = true;
+				entry.sawReady ||= ready;
+			})`;
 
 const d772Calls: Array<[string, string, number]> = [
 	[WORKBENCH_REL, triggerCall, 1],
@@ -126,7 +134,7 @@ suite('mcp leftover remaining Promise fire-and-forget catch scan (D772)', () => 
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers ten leftover Promise double-chain sites', () => {
+	test('this knife covers ten leftover Promise single-chain sites', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d772Calls) {
@@ -139,9 +147,12 @@ suite('mcp leftover remaining Promise fire-and-forget catch scan (D772)', () => 
 		}
 		assert.strictEqual(sites, 10);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
-	test('leftover void trigger / disposeGateway / confirm / handleMessage are Promise double-chain', () => {
+	test('leftover void trigger / disposeGateway / confirm / handleMessage are Promise single-chain', () => {
 		const workbench = fs.readFileSync(resolveSource(WORKBENCH_REL), 'utf8');
 		const electronGw = fs.readFileSync(resolveSource(ELECTRON_GW_REL), 'utf8');
 		const server = fs.readFileSync(resolveSource(SERVER_REL), 'utf8');
@@ -163,11 +174,11 @@ suite('mcp leftover remaining Promise fire-and-forget catch scan (D772)', () => 
 		assertWrapped(electronGw, disposeGatewayCall);
 		assertWrapped(server, confirmCall);
 		assertWrapped(handler, handleMessageCall);
-		assert.ok(!workbench.includes('void this.registrySyncDelayer.trigger(() => this.syncInstalledMcpServers(generation))\n\t\t\t.catch(error => this.logService.error(error));'));
-		assert.ok(!handler.includes('void this._rpc.handleMessage(message);'));
+		assert.ok(!workbench.includes(`${triggerCall}${doubleCatch}`));
+		assert.ok(!handler.includes(`${handleMessageCall}${doubleCatch}`));
 	});
 
-	test('leftover start / stop / open / toolUpdate / entry.promise then are Promise double-chain', () => {
+	test('leftover start / stop / open / toolUpdate / entry.promise then are Promise single-chain', () => {
 		const types = fs.readFileSync(resolveSource(TYPES_REL), 'utf8');
 		const typesUtils = fs.readFileSync(resolveSource(TYPES_UTILS_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
@@ -191,8 +202,8 @@ suite('mcp leftover remaining Promise fire-and-forget catch scan (D772)', () => 
 		assertWrapped(editor, openThenCall);
 		assertWrapped(server, toolUpdateCall);
 		assertWrapped(broker, entryPromiseCall);
-		assert.ok(!commands.includes('server.stop().then(() => server.start({ interaction }));'));
-		assert.ok(!broker.includes('entry.promise.then(() => { entry.resolved = true; });'));
+		assert.ok(!commands.includes(`${stopThenCall}${doubleCatch}`));
+		assert.ok(!broker.includes(`${entryPromiseCall}${doubleCatch}`));
 	});
 
 	test('leftover remaining executeCommand then / resource / elicitation / getTask stay leftover remaining', () => {

@@ -188,7 +188,7 @@ export class McpResourcePickHelper extends Disposable {
 		const noop = 'noop';
 		if (this._isDirectoryResource(resource)) {
 			//Check if directory
-			this.checkIfDirectoryAndPopulate(resource, server).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.checkIfDirectoryAndPopulate(resource, server).catch(onUnexpectedError);
 			return noop;
 		}
 		if (isMcpResourceTemplate(resource)) {

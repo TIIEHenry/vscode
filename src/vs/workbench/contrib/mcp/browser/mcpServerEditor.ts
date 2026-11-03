@@ -358,6 +358,9 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	private async render(mcpServer: IWorkbenchMcpServer, template: IExtensionEditorTemplate, preserveFocus: boolean): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.activeElement = null;
 		this.transientDisposables.clear();
 
@@ -436,6 +439,10 @@ export class McpServerEditor extends EditorPane {
 
 	override dispose(): void {
 		this.setInputIdentity++;
+		const container = this.getContainer();
+		if (container) {
+			clearNode(container);
+		}
 		super.dispose();
 	}
 
@@ -475,7 +482,7 @@ export class McpServerEditor extends EditorPane {
 					if (focus) {
 						this.focus();
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 		}
 	}
 
@@ -489,9 +496,12 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	private async openMarkdown(extension: IWorkbenchMcpServer, cacheResult: CacheResult<string>, noContentCopy: string, container: HTMLElement, webviewIndex: WebviewIndex, title: string, token: CancellationToken): Promise<IActiveElement | null> {
+		if (this._store.isDisposed) {
+			return null;
+		}
 		try {
 			const body = await this.renderMarkdown(extension, cacheResult, container, token);
-			if (token.isCancellationRequested) {
+			if (token.isCancellationRequested || this._store.isDisposed) {
 				return Promise.resolve(null);
 			}
 
@@ -556,7 +566,13 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	private async renderMarkdown(extension: IWorkbenchMcpServer, cacheResult: CacheResult<string>, container: HTMLElement, token?: CancellationToken): Promise<string> {
+		if (this._store.isDisposed) {
+			return '';
+		}
 		const contents = await this.loadContents(() => cacheResult, container);
+		if (this._store.isDisposed) {
+			return '';
+		}
 		if (token?.isCancellationRequested) {
 			return '';
 		}
@@ -635,6 +651,9 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	private async openDetails(extension: IWorkbenchMcpServer, template: IExtensionEditorTemplate, token: CancellationToken): Promise<IActiveElement | null> {
+		if (this._store.isDisposed) {
+			return null;
+		}
 		const details = append(template.content, $('.details'));
 		const readmeContainer = append(details, $('.content-container'));
 		const additionalDetailsContainer = append(details, $('.additional-details-container'));
@@ -644,11 +663,17 @@ export class McpServerEditor extends EditorPane {
 		this.contentDisposables.add(toDisposable(arrays.insert(this.layoutParticipants, { layout })));
 
 		const activeElement = await this.openMarkdown(extension, this.mcpServerReadme!.get(), localize('noReadme', "No README available."), readmeContainer, WebviewIndex.Readme, localize('Readme title', "Readme"), token);
+		if (this._store.isDisposed) {
+			return null;
+		}
 		this.renderAdditionalDetails(additionalDetailsContainer, extension);
 		return activeElement;
 	}
 
 	private async openConfiguration(mcpServer: IWorkbenchMcpServer, template: IExtensionEditorTemplate, token: CancellationToken): Promise<IActiveElement | null> {
+		if (this._store.isDisposed) {
+			return null;
+		}
 		const configContainer = append(template.content, $('.configuration'));
 		const content = $('div', { class: 'configuration-content' });
 
@@ -664,6 +689,9 @@ export class McpServerEditor extends EditorPane {
 	}
 
 	private async openManifestWithAdditionalDetails(mcpServer: IWorkbenchMcpServer, template: IExtensionEditorTemplate, token: CancellationToken): Promise<IActiveElement | null> {
+		if (this._store.isDisposed) {
+			return null;
+		}
 		const details = append(template.content, $('.details'));
 
 		const readmeContainer = append(details, $('.content-container'));
@@ -674,18 +702,23 @@ export class McpServerEditor extends EditorPane {
 		this.contentDisposables.add(toDisposable(arrays.insert(this.layoutParticipants, { layout })));
 
 		const activeElement = await this.openManifest(mcpServer, readmeContainer, token);
-
+		if (this._store.isDisposed) {
+			return null;
+		}
 		this.renderAdditionalDetails(additionalDetailsContainer, mcpServer);
 		return activeElement;
 	}
 
 	private async openManifest(mcpServer: IWorkbenchMcpServer, parent: HTMLElement, token: CancellationToken): Promise<IActiveElement | null> {
+		if (this._store.isDisposed) {
+			return null;
+		}
 		const manifestContainer = append(parent, $('.manifest'));
 		const content = $('div', { class: 'manifest-content' });
 
 		try {
 			const manifest = await this.loadContents(() => this.mcpServerManifest!.get(), content);
-			if (token.isCancellationRequested) {
+			if (token.isCancellationRequested || this._store.isDisposed) {
 				return null;
 			}
 			this.renderManifestDetails(content, manifest);
@@ -942,7 +975,13 @@ class AdditionalDetailsWidget extends Disposable {
 			this.renderMarketplaceInfo(this.container, extension);
 		}
 		this.renderTags(this.container, extension);
-		this.renderExtensionResources(this.container, extension).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.renderExtensionResources(this.container, extension).catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		clearNode(this.container);
+		this.container.remove();
+		super.dispose();
 	}
 
 	private renderTags(container: HTMLElement, extension: IWorkbenchMcpServer): void {
@@ -957,8 +996,14 @@ class AdditionalDetailsWidget extends Disposable {
 	}
 
 	private async renderExtensionResources(container: HTMLElement, extension: IWorkbenchMcpServer): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const resources: [string, ThemeIcon, URI][] = [];
 		const manifest = await this.mcpGalleryManifestService.getMcpGalleryManifest();
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (extension.repository) {
 			try {
 				resources.push([localize('repository', "Repository"), ThemeIcon.fromId(Codicon.repo.id), URI.parse(extension.repository)]);

@@ -101,7 +101,7 @@ export class WorkbenchMcpGatewayService implements IWorkbenchMcpGatewayService {
 					this._logService.info(`[McpGateway][Workbench] Disposing remote gateway: ${info.gatewayId}`);
 					void channel.call('disposeGateway', info.gatewayId).catch(error => {
 						this._logService.warn(`[McpGateway][Workbench] Failed to dispose remote gateway: ${info.gatewayId}`, error);
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}
 			};
 		});

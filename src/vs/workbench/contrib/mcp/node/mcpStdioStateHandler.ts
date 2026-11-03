@@ -56,16 +56,16 @@ export class McpStdioStateHandler implements IDisposable {
 				graceTime = 1;
 			}
 			this._procState = McpProcessState.StdinEnded;
-			this._nextTimeout = new TimeoutTimer(() => this.killPolite().catch(onUnexpectedError).catch(onUnexpectedError), graceTime);
+			this._nextTimeout = new TimeoutTimer(() => this.killPolite().catch(onUnexpectedError), graceTime);
 		} else {
 			this._nextTimeout?.dispose();
-			this.killForceful().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.killForceful().catch(onUnexpectedError);
 		}
 	}
 
 	private async killPolite() {
 		this._procState = McpProcessState.KilledPolite;
-		this._nextTimeout = new TimeoutTimer(() => this.killForceful().catch(onUnexpectedError).catch(onUnexpectedError), this._graceTimeMs);
+		this._nextTimeout = new TimeoutTimer(() => this.killForceful().catch(onUnexpectedError), this._graceTimeMs);
 
 		if (this._child.pid) {
 			if (!isWindows) {

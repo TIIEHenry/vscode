@@ -66,6 +66,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -81,9 +82,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const checkDirCall = 'this.checkIfDirectoryAndPopulate(resource, server)';
@@ -153,16 +154,16 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		const discovery = fs.readFileSync(resolveSource(DISCOVERY_REL), 'utf8');
 		const migration = fs.readFileSync(resolveSource(MIGRATION_REL), 'utf8');
 		const workbench = fs.readFileSync(resolveSource(WORKBENCH_REL), 'utf8');
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(migration.includes(`this.migrateMcpConfig()${doubleCatch}`));
-		assert.ok(workbench.includes(`this.open(local)${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(discovery), 1);
-		assert.strictEqual(countDoubleChains(migration), 1);
-		assert.strictEqual(countDoubleChains(workbench), 5);
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(migration.includes(`this.migrateMcpConfig()${singleCatch}`));
+		assert.ok(workbench.includes(`this.open(local)${singleCatch}`));
+		assert.strictEqual(countDoubleChains(discovery), 0);
+		assert.strictEqual(countDoubleChains(migration), 0);
+		assert.strictEqual(countDoubleChains(workbench), 0);
 		assert.ok(migration.includes(`${leftoverCheckFileCall};`));
-		assert.ok(!migration.includes(`${leftoverCheckFileCall}${doubleCatch}`));
+		assert.ok(!migration.includes(`${leftoverCheckFileCall}${singleCatch}`));
 		assert.ok(workbench.includes(`${leftoverProfileCall})`));
-		assert.ok(!workbench.includes(`${leftoverProfileCall}${doubleCatch}`));
+		assert.ok(!workbench.includes(`${leftoverProfileCall}${singleCatch}`));
 		assert.ok(!discovery.includes('D860'));
 		assert.ok(!migration.includes('D860'));
 		assert.ok(!workbench.includes('D860'));
@@ -171,7 +172,7 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		for (const [rel, call] of d860Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			sites += countIncludes(source, `${call}${doubleCatch}`);
+			sites += countIncludes(source, `${call}${singleCatch}`);
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused mcp legal leftover >=4 after discarding collision overflow, got ${sites}`);
 		assert.ok(sites <= 8);
@@ -183,7 +184,7 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		for (const [rel, call, count] of d860Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -191,16 +192,16 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countIncludes(seen.get(QUICK_REL) ?? '', `${checkDirCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(HANDLER_REL) ?? '', `${sendLogCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(EDITOR_REL) ?? '', `${renderResourcesCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(STDIO_REL) ?? '', `${killForcefulCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(seen.get(STDIO_REL) ?? '', `${killPoliteCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(SERVERS_VIEW_REL) ?? '', `${showCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(SERVER_REL) ?? '', `${showOutputCall}${doubleCatch}`), 1);
-		assert.strictEqual(countDoubleChains(seen.get(QUICK_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(STDIO_REL) ?? ''), 3);
-		assert.strictEqual(countDoubleChains(seen.get(SERVERS_VIEW_REL) ?? ''), 1);
+		assert.strictEqual(countIncludes(seen.get(QUICK_REL) ?? '', `${checkDirCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(HANDLER_REL) ?? '', `${sendLogCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(EDITOR_REL) ?? '', `${renderResourcesCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(STDIO_REL) ?? '', `${killForcefulCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(seen.get(STDIO_REL) ?? '', `${killPoliteCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(SERVERS_VIEW_REL) ?? '', `${showCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(SERVER_REL) ?? '', `${showOutputCall}${singleCatch}`), 1);
+		assert.strictEqual(countDoubleChains(seen.get(QUICK_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(STDIO_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(SERVERS_VIEW_REL) ?? ''), 0);
 	});
 
 	test('mcp leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -240,9 +241,9 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		assert.ok(!serversView.includes('() => this.show())'));
 		assert.ok(!server.includes('\t\t\t\t\tthis.showOutput();\n'));
 		assert.ok(handler.includes(`${leftoverMcpSendLogCall};`));
-		assert.ok(!handler.includes(`${leftoverMcpSendLogCall}${doubleCatch}`));
+		assert.ok(!handler.includes(`${leftoverMcpSendLogCall}${singleCatch}`));
 		assert.ok(server.includes(returnedShowOutputCall));
-		assert.ok(!server.includes(`run: () => this.showOutput()${doubleCatch}`));
+		assert.ok(!server.includes(`run: () => this.showOutput()${singleCatch}`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -266,7 +267,8 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		assert.ok(!quick.includes(`return this._resourceToAttachment(resource).then(val => val || noop)${doubleCatch}`));
 		assert.ok(quick.includes('return this._resourceTemplateToAttachment(resource).then(val => val || noop);'));
 		assert.ok(!quick.includes(`return this._resourceTemplateToAttachment(resource).then(val => val || noop)${doubleCatch}`));
-		assert.ok(handler.includes('void this._rpc.handleMessage(message).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(handler.includes('void this._rpc.handleMessage(message).catch(onUnexpectedError);'));
+		assert.ok(!handler.includes('void this._rpc.handleMessage(message).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(editor.includes(`this.open(id, extension, template, cts.token)
 				.then(activeElement => {`));
 		assert.ok(server.includes(returnedShowOutputCall));
@@ -283,7 +285,7 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('D860'));
 		}
 	});
@@ -352,9 +354,9 @@ suite('leftover remaining unused after D824 leftover remaining unused mcp leftov
 		assert.ok(searchEditor.includes(leftoverNoArgIncludesCall));
 		assert.ok(!searchEditor.includes(`() => this.triggerSearch()${doubleCatch}`));
 
-		assert.ok(planReview.includes(`${leftoverClearAllCall}${doubleCatch}`));
-		assert.ok(planReview.includes(`${leftoverExitFeedbackCall}${doubleCatch}`));
-		assert.ok(planReview.includes(`${leftoverSubmitRejectionCall}${doubleCatch}`));
+		assert.ok(planReview.includes(`${leftoverClearAllCall}${singleCatch}`));
+		assert.ok(planReview.includes(`${leftoverExitFeedbackCall}${singleCatch}`));
+		assert.ok(planReview.includes(`${leftoverSubmitRejectionCall}${singleCatch}`));
 		assert.ok(!planReview.includes('\t\t\tthis._register(clearAllButton.onDidClick(() => this.clearAllInlineFeedback()));\n'));
 
 		assert.ok(history.includes(`${loadMoreCall}${doubleCatch}`));
