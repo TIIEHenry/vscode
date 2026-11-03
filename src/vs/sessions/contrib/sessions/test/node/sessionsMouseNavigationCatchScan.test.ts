@@ -23,13 +23,17 @@ function sessionsMouseNavigationSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionsMouseNavigation leftover fire-and-forget catch scan (D607)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('openPreviousSession / openNextSession voids double-catch onUnexpectedError (D607)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('openPreviousSession / openNextSession voids single-catch onUnexpectedError (D607)', () => {
 		const source = fs.readFileSync(sessionsMouseNavigationSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const previous = 'void this.sessionsService.openPreviousSession()';
 		const next = 'void this.sessionsService.openNextSession()';
@@ -37,11 +41,12 @@ suite('SessionsMouseNavigation leftover fire-and-forget catch scan (D607)', () =
 		assert.ok(source.includes('private handleMouseNavigation(event: MouseEvent, isMouseDown: boolean): void'));
 		assert.strictEqual((source.match(/void this\.sessionsService\.openPreviousSession\(\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\.sessionsService\.openNextSession\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${previous}${doubleCatch};`));
-		assert.ok(source.includes(`${next}${doubleCatch};`));
+		assert.ok(source.includes(`${previous}${singleCatch};`));
+		assert.ok(source.includes(`${next}${singleCatch};`));
 		assert.ok(!source.includes(`${previous};`));
 		assert.ok(!source.includes(`${next};`));
-		assert.ok(!source.includes(`${previous}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${next}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${previous}${doubleCatch};`));
+		assert.ok(!source.includes(`${next}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

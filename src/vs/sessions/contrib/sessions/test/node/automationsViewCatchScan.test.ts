@@ -23,14 +23,18 @@ function automationsViewSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(text: string): number {
+	const matches = text.match(/\.catch\([a-zA-Z0-9_$.]+\)\s*\.catch\([a-zA-Z0-9_$.]+\)/g);
+	return matches ? matches.length : 0;
+}
+
 suite('AutomationsView leftover fire-and-forget catch scan (D603)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('automationsView leftover voids double-catch onUnexpectedError (D603)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('automationsView leftover voids single-catch onUnexpectedError (D603)', () => {
 		const source = fs.readFileSync(automationsViewSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const sites = [
 			'void this.runNow(currentAutomation)',
 			'void this.confirmDelete(currentAutomation)',
@@ -40,14 +44,11 @@ suite('AutomationsView leftover fire-and-forget catch scan (D603)', () => {
 			'void this.openRunSession(resource)',
 		] as const;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 12);
+		assert.strictEqual(countDoubleChains(source), 0);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
 		for (const site of sites) {
 			assert.strictEqual((source.split(site).length - 1), 1, `${site} should appear once`);
-			assert.ok(source.includes(`${site}${doubleCatch}`), `${site} missing double-catch`);
-			assert.ok(!source.includes(`${site}.catch(onUnexpectedError);`), `${site} leftover single-chain with semicolon`);
-			assert.ok(!source.includes(`${site}.catch(onUnexpectedError))`), `${site} leftover single-chain before )`);
-			assert.ok(!source.includes(`${site}.catch(onUnexpectedError),`), `${site} leftover single-chain before comma`);
+			assert.ok(source.includes(`${site}${singleCatch}`), `${site} missing single-catch`);
 		}
 	});
 });

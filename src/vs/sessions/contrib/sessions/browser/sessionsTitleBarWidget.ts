@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/sessionsTitleBarWidget.css';
-import { $, addDisposableGenericMouseDownListener, addDisposableListener, EventType, getDomNodePagePosition, getWindow, isAncestor, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableGenericMouseDownListener, addDisposableListener, clearNode, EventType, getDomNodePagePosition, getWindow, isAncestor, reset } from '../../../../base/browser/dom.js';
 import { combinedDisposable, Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { localize } from '../../../../nls.js';
@@ -260,7 +260,7 @@ export class SessionsTitleBarWidget extends BaseActionViewItem {
 	}
 
 	private _render(): void {
-		if (!this._container) {
+		if (this._store.isDisposed || !this._container) {
 			return;
 		}
 
@@ -653,15 +653,30 @@ export class SessionsTitleBarWidget extends BaseActionViewItem {
 		if (sideBySide) {
 			const session = this.sessionsManagementService.getSession(resource);
 			if (session) {
-				this.sessionsService.openSessionToSide(session, { preserveFocus, source: 'sessionsList' }).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.sessionsService.openSessionToSide(session, { preserveFocus, source: 'sessionsList' }).catch(onUnexpectedError);
 				return;
 			}
 		}
-		this.sessionsService.openSession(resource, { preserveFocus, source: 'sessionsList' }).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.sessionsService.openSession(resource, { preserveFocus, source: 'sessionsList' }).catch(onUnexpectedError);
 	}
 
 	private _showSessionsPicker(): void {
 		this.commandService.executeCommand(SHOW_SESSIONS_PICKER_COMMAND_ID);
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._openContextView?.close();
+		this._openContextView = undefined;
+		this._blockedList?.dispose();
+		this._blockedList = undefined;
+		if (this._container) {
+			clearNode(this._container);
+			this._container = undefined;
+		}
+		super.dispose();
 	}
 }
 

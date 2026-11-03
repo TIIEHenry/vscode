@@ -23,20 +23,25 @@ function sessionHoverContentSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionHoverContent leftover fire-and-forget catch scan (D648)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('externalSession onOpen openSettings double-catch onUnexpectedError (D648)', () => {
-		// openSettings returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('externalSession onOpen openSettings single-catch onUnexpectedError (D648)', () => {
 		const source = fs.readFileSync(sessionHoverContentSourcePath(), 'utf8');
 		const call = 'preferencesService.openSettings({';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/preferencesService\.openSettings\(/g) ?? []).length, 1);
 		assert.ok(source.includes(call));
-		assert.ok(source.includes(`})${doubleCatch};`));
+		assert.ok(source.includes(`})${singleCatch};`));
 		assert.ok(!source.includes(`${call});`));
-		assert.ok(!source.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`})${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

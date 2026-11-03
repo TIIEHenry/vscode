@@ -23,23 +23,28 @@ function sessionInputBannerWidgetSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionInputBannerWidget leftover fire-and-forget catch scan (D633)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('onDidClick _runAction void double-catch onUnexpectedError (D633)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('onDidClick _runAction void single-catch onUnexpectedError (D633)', () => {
 		const source = fs.readFileSync(sessionInputBannerWidgetSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._runAction(action)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _runAction(action: ISessionInputBannerAction): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._runAction\(action\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`store.add(button.onDidClick(() => { ${doubleCall} }));`));
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(`store.add(button.onDidClick(() => { ${singleCall} }));`));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 		assert.ok(source.includes('run: () => this._runAction(dropdownAction),'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

@@ -22,17 +22,24 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('Automation dialog fire-and-forget catch scan (D1330)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('repository reload and mobile dispatch catch rejected promises', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\.reloadRepository\([^\n;]+\)/g) ?? []).length, 2);
-		assert.strictEqual((source.match(new RegExp(`void this\\.reloadRepository\\([^\\n;]+\\)${doubleCatch}`, 'g')) ?? []).length, 2);
+		assert.strictEqual((source.match(new RegExp(`void this\\.reloadRepository\\([^\\n;]+\\)\\.catch\\(onUnexpectedError\\)`, 'g')) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\._dispatchPickerItem\(item\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`void this._dispatchPickerItem(item)${doubleCatch};`));
+		assert.ok(source.includes(`void this._dispatchPickerItem(item)${singleCatch};`));
+		assert.ok(!source.includes(`void this._dispatchPickerItem(item)${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

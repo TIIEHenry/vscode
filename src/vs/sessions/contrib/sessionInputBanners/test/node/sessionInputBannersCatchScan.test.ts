@@ -23,24 +23,29 @@ function sessionInputBannersSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionInputBanners leftover fire-and-forget catch scan (D626)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('revealCI _revealPullRequest void double-catch onUnexpectedError (D626)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('revealCI _revealPullRequest void single-catch onUnexpectedError (D626)', () => {
 		const source = fs.readFileSync(sessionInputBannersSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._revealPullRequest(state.pullRequest)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _revealPullRequest(pullRequest: IGitHubPullRequestRef): Promise<void> {'));
-		assert.ok(source.includes(`run: () => { if (!state.debug) { ${doubleCall} } },`));
+		assert.ok(source.includes(`run: () => { if (!state.debug) { ${singleCall} } },`));
 		assert.strictEqual((source.match(/void this\._revealPullRequest\(state\.pullRequest\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('void prModel.refresh().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(source.includes('void ciModelRef.object.refresh().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes('void prModel.refresh().catch(onUnexpectedError);'));
+		assert.ok(source.includes('void ciModelRef.object.refresh().catch(onUnexpectedError);'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

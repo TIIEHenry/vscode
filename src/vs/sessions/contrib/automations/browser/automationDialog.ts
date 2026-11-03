@@ -398,7 +398,7 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 				this.renderBranchControl();
 			},
 			onRetry: () => {
-					void this.reloadRepository(this.isolationModel.folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.reloadRepository(this.isolationModel.folderUri).catch(onUnexpectedError);
 			},
 			isolation: {
 				label: localize('automation.form.isolation.worktree', "New Worktree"),
@@ -432,7 +432,7 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 		this.renderDisposables.add(autorun(reader => {
 			const folderUri = this.workspaceFolder.read(reader);
 			this.refreshTargetAndRender();
-				void this.reloadRepository(folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.reloadRepository(folderUri).catch(onUnexpectedError);
 		}));
 		this.renderDisposables.add(this.onDidChangeTarget(() => {
 			this.refreshTargetAndRender();
@@ -665,7 +665,7 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 		try {
 			repo = await this.gitService.openRepository(folder);
 		} catch (error) {
-			if (requestId !== this.branchRequestId || cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || requestId !== this.branchRequestId || cts.token.isCancellationRequested) {
 				return;
 			}
 			this.pickerLogService.error('[AutomationDialog] Failed to open Git repository for branch selection.', error);
@@ -673,7 +673,7 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 			this.renderBranchControl();
 			return;
 		}
-		if (requestId !== this.branchRequestId || cts.token.isCancellationRequested) {
+		if (this._store.isDisposed || requestId !== this.branchRequestId || cts.token.isCancellationRequested) {
 			return;
 		}
 		if (!repo) {
@@ -702,19 +702,30 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 		this.renderBranchControl();
 		try {
 			const refs = await repo.getRefs({ pattern: 'refs/heads' }, cts.token);
-			if (requestId !== this.branchRequestId || cts.token.isCancellationRequested || this.repository !== repo) {
+			if (this._store.isDisposed || requestId !== this.branchRequestId || cts.token.isCancellationRequested || this.repository !== repo) {
 				return;
 			}
 			this.branches = normalizeAutomationBranchNames(refs.map(ref => ref.name));
 			this.branchLoadState = this.branches.length > 0 ? 'ready' : 'empty';
 		} catch (error) {
-			if (requestId !== this.branchRequestId || cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || requestId !== this.branchRequestId || cts.token.isCancellationRequested) {
 				return;
 			}
 			this.pickerLogService.error('[AutomationDialog] Failed to load local branches.', error);
 			this.branchLoadState = 'error';
 		}
-		this.renderBranchControl();
+		if (!this._store.isDisposed) {
+			this.renderBranchControl();
+		}
+	}
+
+	override dispose(): void {
+		this.cancelBranchRequest();
+		this.branchRepoDisposable.dispose();
+		this.renderDisposables.dispose();
+		this.repository = undefined;
+		this.branches = [];
+		super.dispose();
 	}
 }
 
@@ -1391,6 +1402,9 @@ export class AutomationsWorkspacePicker extends WorkspacePicker {
 
 	protected override async _dispatchPickerItem(item: IWorkspacePickerItem): Promise<boolean> {
 		const applied = await super._dispatchPickerItem(item);
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const selectedFolder = this.selectedFolderUri;
 		if (applied && selectedFolder && (item.folderUri || item.browseActionIndex !== undefined)) {
 			this.targetModel?.setQuickChat(false, selectedFolder);
@@ -1445,7 +1459,7 @@ export class MobileAutomationsWorkspacePicker extends AutomationsWorkspacePicker
 			this.layoutService,
 			triggerElement,
 			this._buildItems(),
-			item => { void this._dispatchPickerItem(item).catch(onUnexpectedError).catch(onUnexpectedError); },
+			item => { void this._dispatchPickerItem(item).catch(onUnexpectedError); },
 			this._getAllBrowseActions(),
 		);
 	}

@@ -74,7 +74,7 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 
 	private _trackSession(session: ISession): void {
 		const store = new DisposableStore();
-		const completedNotificationScheduler = store.add(new RunOnceScheduler(() => void this._notify(session, SessionStatus.Completed).catch(onUnexpectedError).catch(onUnexpectedError), this._getCompletedNotificationDelay()));
+		const completedNotificationScheduler = store.add(new RunOnceScheduler(() => void this._notify(session, SessionStatus.Completed).catch(onUnexpectedError), this._getCompletedNotificationDelay()));
 		store.add(autorunDelta(session.status, ({ lastValue, newValue }) => {
 			if (lastValue === undefined || lastValue === newValue) {
 				return;
@@ -87,14 +87,14 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 				completedNotificationScheduler.cancel();
 			}
 			if (newValue === SessionStatus.NeedsInput || newValue === SessionStatus.Error) {
-				void this._notify(session, newValue).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._notify(session, newValue).catch(onUnexpectedError);
 			}
 		}));
 		this._statusListeners.set(session.sessionId, store);
 	}
 
 	private async _notify(session: ISession, status: SessionStatus): Promise<void> {
-		if (session.status.get() !== status) {
+		if (this._store.isDisposed || session.status.get() !== status) {
 			return;
 		}
 		// A live chat model in this window is already covered by ChatWindowNotifier,
@@ -119,14 +119,14 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 			// so it always yields to a window that does. Without the delay it would win
 			// native deduplication and the toast would open the wrong window.
 			await timeout(this._getBackgroundNotificationDelay());
-			if (cts.token.isCancellationRequested || session.status.get() !== status
+			if (this._store.isDisposed || cts.token.isCancellationRequested || session.status.get() !== status
 				|| this._chatService.getSession(session.resource) || this._chatWidgetService.getWidgetBySessionResource(session.resource)) {
 				return;
 			}
 			if (!this._hostService.hasFocus) {
 				await this._hostService.focus(mainWindow, { mode: FocusMode.Notify });
 			}
-			if (cts.token.isCancellationRequested) {
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
 				return;
 			}
 
@@ -137,8 +137,15 @@ export class SessionsWindowNotifier extends Disposable implements IWorkbenchCont
 				dedupeKey: getChatNotificationDedupeKey(session.resource, status === SessionStatus.NeedsInput ? ChatNotificationKind.NeedsInput : ChatNotificationKind.Idle),
 			}, cts.token);
 
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
+				return;
+			}
+
 			if (result.clicked || typeof result.actionIndex === 'number') {
 				await this._hostService.focus(mainWindow, { mode: FocusMode.Force });
+				if (this._store.isDisposed || cts.token.isCancellationRequested) {
+					return;
+				}
 				await this._sessionsService.openSession(session.resource, { source: 'notification' });
 			}
 		} finally {

@@ -2482,7 +2482,10 @@ export class SessionsList extends Disposable implements ISessionsList {
 				aggregateChatApprovals: false,
 				toolbarMenuId: SessionItemToolbarMenuId,
 				onDidRequestRename: session => {
-					this.commandService.executeCommand(RENAME_SESSION_COMMAND_ID, session).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.commandService.executeCommand(RENAME_SESSION_COMMAND_ID, session).catch(onUnexpectedError);
 				},
 				activeGuideSessionIds: this.activeGuideSessionIds,
 				deriveStatusFromMainChat: true,
@@ -2694,6 +2697,9 @@ export class SessionsList extends Disposable implements ISessionsList {
 		}));
 
 		this._register(this.tree.onDidOpen(async e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const element = e.element;
 			if (!element) {
 				return;
@@ -2718,13 +2724,16 @@ export class SessionsList extends Disposable implements ISessionsList {
 				if (this.options.canOpenSession && !(await this.options.canOpenSession(element.session))) {
 					return;
 				}
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.markRead(element.session);
 				const isLeftClick = DOM.isMouseEvent(e.browserEvent) && e.browserEvent.button === 0;
 				const preserveFocus = isLeftClick ? false : (e.editorOptions.preserveFocus ?? false);
 				if (this.options.onChatOpen) {
 					this.options.onChatOpen(element.session, element.chat, preserveFocus, e.sideBySide);
 				} else {
-					this._sessionsService.openChat(element.session, element.chat.resource, { preserveFocus }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._sessionsService.openChat(element.session, element.chat.resource, { preserveFocus }).catch(onUnexpectedError);
 				}
 				return;
 			}
@@ -2738,6 +2747,9 @@ export class SessionsList extends Disposable implements ISessionsList {
 				// activation, folder mount). A refused open leaves the current
 				// session (or empty new-session slot) untouched.
 				if (this.options.canOpenSession && !(await this.options.canOpenSession(element))) {
+					return;
+				}
+				if (this._store.isDisposed) {
 					return;
 				}
 				this.markRead(element);
@@ -2921,6 +2933,9 @@ export class SessionsList extends Disposable implements ISessionsList {
 	 */
 	private updateSessionGroupLimit(): void {
 		this.assignmentService.getTreatment<number>(SessionsList.SESSION_GROUP_LIMIT_TREATMENT).then(value => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const limit = typeof value === 'number' && Number.isInteger(value) && value > 0
 				? value
 				: SessionsList.DEFAULT_SESSION_GROUP_LIMIT;
@@ -2930,7 +2945,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 					this.update();
 				}
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	refresh(): void {
@@ -4192,6 +4207,15 @@ export class SessionsList extends Disposable implements ISessionsList {
 		this.storageService.store(SessionsList.SECTION_COLLAPSE_STATE_KEY, JSON.stringify(state), StorageScope.PROFILE, StorageTarget.USER);
 	}
 
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		DOM.clearNode(this.listContainer);
+		this.listContainer.remove();
+		super.dispose();
+	}
+
 }
 
 //#endregion
@@ -4671,6 +4695,7 @@ export class SessionsFlatList extends Disposable {
 	private readonly _onDidApproveSession = this._register(new Emitter<IApprovedSession>());
 	/** Fires when a session's pending action is approved from its "Allow" button. */
 	readonly onDidApproveSession: Event<IApprovedSession> = this._onDidApproveSession.event;
+	private readonly listRoot: HTMLElement;
 	private readonly tree: WorkbenchObjectTree<SessionListItem, FuzzyScore>;
 	private readonly _delegate: SessionsTreeDelegate;
 	private _sessions: readonly ISession[] = [];
@@ -4699,7 +4724,7 @@ export class SessionsFlatList extends Disposable {
 
 		// Wrap in `.sessions-list-control` so the row styles scoped to that class
 		// (needs-input/pinned row highlights) apply exactly like the main list.
-		const listRoot = DOM.append(container, $('.sessions-list-control'));
+		this.listRoot = DOM.append(container, $('.sessions-list-control'));
 		const approvalModel = this.options.approvalModel ?? this._register(instantiationService.createInstance(AgentSessionApprovalModel));
 
 		// TEMPORARY (#320480): the row renderer reaches into a Copilot-provider
@@ -4745,7 +4770,7 @@ export class SessionsFlatList extends Disposable {
 		this.tree = this._register(instantiationService.createInstance(
 			WorkbenchObjectTree<SessionListItem, FuzzyScore>,
 			'SessionsFlatList',
-			listRoot,
+			this.listRoot,
 			this._delegate,
 			[sessionRenderer],
 			{
@@ -4768,6 +4793,9 @@ export class SessionsFlatList extends Disposable {
 		));
 
 		this._register(this.tree.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const element = e.element;
 			if (!element || !isSessionItem(element)) {
 				return;
@@ -4855,6 +4883,15 @@ export class SessionsFlatList extends Disposable {
 		}
 		this.tree.setFocus([session]);
 		this.tree.domFocus();
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		DOM.clearNode(this.listRoot);
+		this.listRoot.remove();
+		super.dispose();
 	}
 }
 

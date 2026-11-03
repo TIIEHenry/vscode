@@ -23,14 +23,18 @@ function sessionsViewSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(text: string): number {
+	const matches = text.match(/\.catch\([a-zA-Z0-9_$.]+\)\s*\.catch\([a-zA-Z0-9_$.]+\)/g);
+	return matches ? matches.length : 0;
+}
+
 suite('SessionsView leftover fire-and-forget catch scan (D630)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('onSessionOpen / onChatOpen then(onOpened) double-catch onUnexpectedError (D630)', () => {
-		// Single-chain `.then(onOpened).catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('onSessionOpen / onChatOpen then(onOpened) single-catch onUnexpectedError (D630)', () => {
 		const source = fs.readFileSync(sessionsViewSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const sites = [
 			"this.sessionsService.openSessionToSide(session, { preserveFocus, chatResource: mainChat.resource, source: 'sessionsList' })",
 			"this.sessionsService.openChat(session, mainChat.resource, { preserveFocus, source: 'sessionsList' })",
@@ -39,13 +43,13 @@ suite('SessionsView leftover fire-and-forget catch scan (D630)', () => {
 		] as const;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(source.includes("onUnexpectedError(new Error(`Unable to open session because '${resource.toString()}' is not available`));"));
-		assert.strictEqual((source.match(/\.then\(onOpened\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
+		assert.strictEqual(countDoubleChains(source), 0);
+		assert.strictEqual((source.match(/\.then\(onOpened\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
 		assert.strictEqual((source.match(/\.then\(onOpened\)/g) ?? []).length, 4);
 		for (const site of sites) {
 			assert.strictEqual((source.split(site).length - 1), 1, `${site} should appear once`);
-			assert.ok(source.includes(`${site}.then(onOpened)${doubleCatch};`), `${site} missing then + double-catch`);
+			assert.ok(source.includes(`${site}.then(onOpened)${singleCatch};`), `${site} missing then + single-catch`);
 			assert.ok(!source.includes(`${site}.then(onOpened);`), `${site} leftover bare then`);
-			assert.ok(!source.includes(`${site}.then(onOpened).catch(onUnexpectedError);`), `${site} leftover single-chain`);
 		}
 	});
 });
