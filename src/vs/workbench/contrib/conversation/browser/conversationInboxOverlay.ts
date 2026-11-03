@@ -10,7 +10,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
-import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { format } from '../../../../base/common/strings.js';
 import { localize } from '../../../../nls.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
@@ -117,6 +117,8 @@ export class ConversationInboxOverlay extends Disposable {
 	private contextRing: HTMLElement | undefined;
 	private contextUsage: ConversationInboxContextUsage | undefined;
 
+	private readonly listPanelDisposables = this._register(new DisposableStore());
+
 	private openPanel: InboxListPanel | undefined;
 	private listContextView: IOpenContextView | undefined;
 	private listPanelHost: HTMLElement | undefined;
@@ -213,6 +215,12 @@ export class ConversationInboxOverlay extends Disposable {
 
 	closeListPanel(): void {
 		this.listContextView?.close();
+	}
+
+	override dispose(): void {
+		this.listContextView?.close();
+		this.listPanelDisposables.dispose();
+		super.dispose();
 	}
 
 	private resolveSessionId(): string {
@@ -507,6 +515,7 @@ export class ConversationInboxOverlay extends Disposable {
 				this.renderQueueList(listRoot);
 				this.render();
 				return toDisposable(() => {
+					this.listPanelDisposables.clear();
 					this.listPanelHost = undefined;
 					this.listContextView = undefined;
 					this.openPanel = undefined;
@@ -536,6 +545,7 @@ export class ConversationInboxOverlay extends Disposable {
 		if (!panel || !host) {
 			return;
 		}
+		this.listPanelDisposables.clear();
 		reset(host);
 		this.renderQueueList(host);
 	}
@@ -614,14 +624,14 @@ export class ConversationInboxOverlay extends Disposable {
 		button.setAttribute('aria-disabled', String(!enabled));
 		button.title = enabled ? label : this.leftoverQueueWriteHoldReason();
 		button.setAttribute('aria-label', enabled ? label : `${label}. ${this.leftoverQueueWriteHoldReason()}`);
-		addDisposableListener(button, 'click', () => {
+		this.listPanelDisposables.add(addDisposableListener(button, 'click', () => {
 			if (!this.isLeftoverQueueWriteLive()) {
 				return;
 			}
 			run();
 			this.render();
 			this.refreshOpenListPanel();
-		});
+		}));
 	}
 
 	private renderEnqueueAction(actions: HTMLElement): void {
@@ -633,9 +643,9 @@ export class ConversationInboxOverlay extends Disposable {
 		enqueueButton.setAttribute('aria-disabled', String(!enabled));
 		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
 		enqueueButton.setAttribute('aria-label', enqueueButton.title);
-		addDisposableListener(enqueueButton, 'click', () => {
+		this.listPanelDisposables.add(addDisposableListener(enqueueButton, 'click', () => {
 			void this.onEnqueueClicked().catch(onUnexpectedError).catch(onUnexpectedError);
-		});
+		}));
 	}
 
 	private shouldRejectEnqueueWrite(): boolean {
@@ -898,14 +908,14 @@ export class ConversationInboxOverlay extends Disposable {
 			this.activateQueueItemEdit(item);
 		};
 
-		addDisposableListener(row, 'click', holdItem);
-		addDisposableListener(row, 'keydown', event => {
+		this.listPanelDisposables.add(addDisposableListener(row, 'click', holdItem));
+		this.listPanelDisposables.add(addDisposableListener(row, 'keydown', event => {
 			if (!shouldActivateConversationInboxQueueItem(event.key, event.target, row)) {
 				return;
 			}
 			event.preventDefault();
 			holdItem();
-		});
+		}));
 
 		return row;
 	}
@@ -919,10 +929,10 @@ export class ConversationInboxOverlay extends Disposable {
 		retryButton.setAttribute('aria-disabled', String(!connected));
 		retryButton.title = connected ? conversationLensInboxQueueRetry : conversationLensInboxQueueRetryUnavailable;
 		retryButton.setAttribute('aria-label', retryButton.title);
-		addDisposableListener(retryButton, 'click', e => {
+		this.listPanelDisposables.add(addDisposableListener(retryButton, 'click', e => {
 			e.stopPropagation();
 			void this.onQueueRetryClicked(this.resolveSessionId(), item);
-		});
+		}));
 		return retryButton;
 	}
 
