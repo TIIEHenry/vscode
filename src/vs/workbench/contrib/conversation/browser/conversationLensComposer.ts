@@ -117,7 +117,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 		keepLastGoodComposerCatalogOrEmpty(host);
 		host.updateSendEnabled();
 		host.updateGateRow();
-		void loadConnectedComposerCatalogs(host, generation).catch(onUnexpectedError).catch(onUnexpectedError);
+		void loadConnectedComposerCatalogs(host, generation).catch(onUnexpectedError);
 	
 }
 

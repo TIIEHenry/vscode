@@ -182,7 +182,7 @@ export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 
 export function toggleTuneContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
 
-		if (isComposerKeepLeftoverListFailed(host)) {
+		if ((host as { isDisposed?: boolean }).isDisposed || isComposerKeepLeftoverListFailed(host)) {
 			return;
 		}
 		if (host.tuneContextView) {
@@ -245,7 +245,10 @@ function renderTuneToolList(host: IConversationLensComposerChromeHost, popup: HT
 		event.preventDefault();
 		event.stopPropagation();
 		host.tuneContextView?.close();
-		void host.commandService.executeCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID, ENGINE_TOOLS_ZONE).catch(onUnexpectedError).catch(onUnexpectedError);
+		if ((host as { isDisposed?: boolean }).isDisposed) {
+			return;
+		}
+		void host.commandService.executeCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID, ENGINE_TOOLS_ZONE).catch(onUnexpectedError);
 	}));
 
 	const names = host.catalogToolNames;
@@ -333,6 +336,9 @@ function appendMoreMenuCurrentAgent(popup: HTMLElement, host: IConversationLensC
 
 export function toggleMoreContextView(host: IConversationLensComposerChromeHost): void {
 
+		if ((host as { isDisposed?: boolean }).isDisposed) {
+			return;
+		}
 		if (host.moreContextView) {
 			host.moreContextView.close();
 			return;
@@ -356,6 +362,9 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						e.preventDefault();
 						e.stopPropagation();
 						host.moreContextView?.close();
+						if ((host as { isDisposed?: boolean }).isDisposed) {
+							return;
+						}
 						run();
 					}));
 				};
@@ -383,7 +392,10 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 						e.preventDefault();
 						e.stopPropagation();
 						host.moreContextView?.close();
-						void applySessionPermissionIndex(host, sessionId, index).catch(onUnexpectedError).catch(onUnexpectedError);
+						if ((host as { isDisposed?: boolean }).isDisposed) {
+							return;
+						}
+						void applySessionPermissionIndex(host, sessionId, index).catch(onUnexpectedError);
 					}));
 				}
 				addAction(host.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
@@ -408,9 +420,19 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 	
 }
 
+export function dismissComposerPopups(host: IConversationLensComposerChromeHost): void {
+	host.addContextView?.close();
+	host.addContextView = undefined;
+	host.tuneContextView?.close();
+	host.tuneContextView = undefined;
+	host.moreContextView?.close();
+	host.moreContextView = undefined;
+	host.inboxOverlay?.closeListPanel?.();
+}
+
 export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId: string): void {
 
-		if (isConversationPairingHold(host.uaConnection)) {
+		if ((host as { isDisposed?: boolean }).isDisposed || isConversationPairingHold(host.uaConnection)) {
 			return;
 		}
 		if (isComposerKeepLeftoverListFailed(host)) {
@@ -444,7 +466,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 
 export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId: string): void {
 
-		if (isConversationPairingHold(host.uaConnection)) {
+		if ((host as { isDisposed?: boolean }).isDisposed || isConversationPairingHold(host.uaConnection)) {
 			return;
 		}
 		if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId === itemId) {
@@ -491,6 +513,9 @@ function queueEditKeptReason(host: IConversationLensComposerChromeHost): 'engine
  */
 export function exitComposerEdit(host: IConversationLensComposerChromeHost, restoreComposeDraft = true, releaseQueueHold = true): boolean {
 
+		if ((host as { isDisposed?: boolean }).isDisposed) {
+			return true;
+		}
 		if (host.composerPolicy === 'compose') {
 			return true;
 		}
@@ -524,6 +549,9 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 
 /** User cancel. Release waits for an explicit success; a refusal or disconnect keeps the draft and hold. */
 export function cancelQueueEdit(host: IConversationLensComposerChromeHost): void {
+	if ((host as { isDisposed?: boolean }).isDisposed) {
+		return;
+	}
 	if (host.composerPolicy !== 'queueEdit') {
 		exitComposerEdit(host);
 		return;
@@ -1226,17 +1254,26 @@ function sessionModelEpoch(host: IConversationLensComposerChromeHost, sessionId:
  * or leave its mode on the engine; the newest target is sent next.
  */
 async function drainSessionPermission(host: IConversationLensComposerChromeHost, sessionId: string, epoch: SessionPermissionEpoch): Promise<void> {
+	if ((host as { isDisposed?: boolean }).isDisposed) {
+		return;
+	}
 	const setPermissionMode = host.uaConnection.setPermissionMode;
 	if (!setPermissionMode) {
 		restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 		return;
 	}
 	while (true) {
+		if ((host as { isDisposed?: boolean }).isDisposed) {
+			return;
+		}
 		const sentGeneration = epoch.generation;
 		const sentIndex = epoch.targetIndex;
 		const mode = SESSION_TOOL_PERMISSION_MODES[sentIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
 		try {
 			const result = await setPermissionMode.call(host.uaConnection, { sessionId, mode });
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			if (epoch.generation !== sentGeneration) {
 				// Pairing-hold cannot take a correcting write. Keep the accepted value,
 				// not the newer target that was never sent.
@@ -1295,12 +1332,18 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
  * A stale result must not restore or keep its modelId.
  */
 async function drainSessionModel(host: IConversationLensComposerChromeHost, sessionId: string, epoch: SessionModelEpoch): Promise<void> {
+	if ((host as { isDisposed?: boolean }).isDisposed) {
+		return;
+	}
 	const switchModel = host.uaConnection.switchModel;
 	if (!switchModel) {
 		restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
 		return;
 	}
 	while (true) {
+		if ((host as { isDisposed?: boolean }).isDisposed) {
+			return;
+		}
 		const sentGeneration = epoch.generation;
 		const sentIndex = epoch.targetIndex;
 		const sentModelId = epoch.targetModelId;
@@ -1316,6 +1359,9 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 				modelType: '',
 				modelId: sentModelId,
 			});
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			if (epoch.generation !== sentGeneration) {
 				if (!epoch.targetModelId) {
 					return;
@@ -1391,6 +1437,9 @@ function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost
 }
 
 export async function applySessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): Promise<void> {
+	if ((host as { isDisposed?: boolean }).isDisposed) {
+		return;
+	}
 	const epoch = sessionPermissionEpoch(host, sessionId);
 	const previous = getSessionConfig(host, sessionId).permissionIndex;
 	if (permissionIndex === previous && !epoch.inFlight) {
@@ -1478,6 +1527,9 @@ function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, ses
 }
 
 export async function applySessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
+	if ((host as { isDisposed?: boolean }).isDisposed) {
+		return;
+	}
 	const epoch = sessionModelEpoch(host, sessionId);
 	const previous = host.modelSelectedIndex;
 	const previousId = (host.catalogModelIds[previous] ?? '').trim();

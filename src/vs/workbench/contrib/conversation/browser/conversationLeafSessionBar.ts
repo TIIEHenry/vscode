@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -61,6 +61,23 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		return this._register(disposable);
 	}
 
+	override dispose(): void {
+		if (this.sessionMoreContextView) {
+			this.sessionMoreContextView.close();
+			this.sessionMoreContextView = undefined;
+		}
+		this.engineHistoryList?.dispose();
+		this.engineHistoryList = undefined;
+		this.engineSnapshotsList?.dispose();
+		this.engineSnapshotsList = undefined;
+		const bar = this.barHost.querySelector<HTMLElement>('.conversation-lens-session-bar');
+		if (bar) {
+			clearNode(bar);
+			bar.remove();
+		}
+		super.dispose();
+	}
+
 	sessionTitleButton!: HTMLButtonElement;
 	sessionTitleLive!: HTMLElement;
 	sessionTitleInput!: HTMLInputElement;
@@ -116,9 +133,17 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		this.hideButton.title = localize('hideConversationSessionWindow', "Hide session window");
 		this.hideButton.setAttribute('aria-label', localize('hideConversationSessionWindow', "Hide session window"));
 		this.hideButton.classList.add(...ThemeIcon.asClassNameArray(Codicon.remove));
-		this._register(addDisposableListener(this.hideButton, 'click', () => this.sessionWindowService.hideSessionWindow(this.sessionKey)));
+		this._register(addDisposableListener(this.hideButton, 'click', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.sessionWindowService.hideSessionWindow(this.sessionKey);
+		}));
 		this._register(this.sessionWindowService.onDidChangeVisibleWindows(() => this.updateHideButton()));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.refreshSessionSelectOptions();
 			if (shouldRefreshActiveSessionChrome(this, sessionId)) {
 				if (!this.sessionTitleEditing) {
@@ -169,12 +194,15 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	async switchLeafSession(sessionId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const replaceOutgoingLeaf = this.sessionWindowService.getVisibleWindowCount() >= 2
 			&& !this.sessionWindowService.isSessionWindowVisible(sessionId);
 		const result = replaceOutgoingLeaf
 			? await this.sessionWindowService.revealSessionWindow(sessionId, { replace: this.sessionKey })
 			: await this.sessionWindowService.revealSessionWindow(sessionId);
-		if (result.cancelled) {
+		if (this._store.isDisposed || result.cancelled) {
 			return;
 		}
 		if (this.stubService.getActiveSessionId() !== sessionId) {
@@ -183,35 +211,59 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	setLensId(lensId: ConversationLensId): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.accessors.setLensId(lensId);
 	}
 
 	handleLensTablistKeyDown(event: KeyboardEvent): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.accessors.handleLensTablistKeyDown(event);
 	}
 
 	beginSessionTitleEdit(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		beginSessionTitleEdit(this);
 	}
 
 	commitSessionTitleEdit(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		commitSessionTitleEdit(this);
 	}
 
 	cancelSessionTitleEdit(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		cancelSessionTitleEdit(this);
 	}
 
 	createNewSession(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		createNewSession(this);
 	}
 
 	deleteActiveSession(): Promise<void> {
+		if (this._store.isDisposed) {
+			return Promise.resolve();
+		}
 		return deleteActiveSession(this);
 	}
 
 	switchToSession(sessionId: string): void {
-		void this.switchLeafSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this.switchLeafSession(sessionId).catch(onUnexpectedError);
 	}
 
 	get composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {
@@ -231,11 +283,14 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	refreshSessionSelectOptions(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		refreshSessionSelectOptions(this);
 	}
 
 	updateSessionTitle(): void {
-		if (!this.sessionTitleButton) {
+		if (this._store.isDisposed || !this.sessionTitleButton) {
 			return;
 		}
 		const sessionId = this.getBoundSessionId();

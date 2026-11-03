@@ -253,4 +253,21 @@ suite('ConversationLeafSessionBar', () => {
 		assert.strictEqual(titleButton.textContent, 'Renamed beside leaf');
 		assert.strictEqual(titleLive.textContent, 'Renamed beside leaf');
 	});
+
+	test('ConversationLeafSessionBar clears and detaches bar on dispose', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(b);
+		layoutParts(parts);
+		await waitForPane(partFor(parts, primaryId));
+		const paneB = await waitForPane(partFor(parts, b));
+		const leafSlots = sessionWindowService.getLeafSlots(b);
+		assert.ok(leafSlots);
+		assert.ok(leafSlots.sessionBar.querySelector('.conversation-lens-session-bar'));
+		assert.ok(paneB.leafSessionBarHost);
+
+		paneB.leafSessionBarHost.dispose();
+		assert.strictEqual(leafSlots.sessionBar.querySelector('.conversation-lens-session-bar'), null);
+	});
 });
