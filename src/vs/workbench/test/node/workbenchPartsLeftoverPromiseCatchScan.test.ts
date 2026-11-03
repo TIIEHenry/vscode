@@ -43,11 +43,18 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
+}
+
+function assertSingleCatch(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call};`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`), `unexpected double-catch on: ${call}`);
 }
 
 function assertDoubleThen(source: string, call: string): void {
@@ -66,7 +73,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise catch sites', () => {
 		const globalBar = fs.readFileSync(resolveSource(GLOBAL_BAR_REL), 'utf8');
 		const viewPane = fs.readFileSync(resolveSource(VIEW_PANE_REL), 'utf8');
 		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
@@ -74,12 +81,8 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		const menubar = fs.readFileSync(resolveSource(MENUBAR_REL), 'utf8');
 		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
 		const editorStatus = fs.readFileSync(resolveSource(EDITOR_STATUS_REL), 'utf8');
-		const calls = [
-			[globalBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
-			if (!this._store.isDisposed) {
-				this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, this._store)(() => this.toggleAccountsActivity()));
-			}
-		})`],
+
+		const doubleCalls = [
 			[viewPane, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			this.areExtensionsReady = true;
 			if (this.panes.length) {
@@ -92,18 +95,6 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 				}
 			}));
 		})`],
-			[paneBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
-			if (this._store.isDisposed) {
-				return;
-			}
-			this.onDidRegisterExtensions();
-			this._register(this.compositeBar.onDidChange(() => {
-				this.updateCompositeBarItemsFromStorage(true);
-				this.saveCachedViewContainers();
-			}));
-			this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, this.options.pinnedViewContainersKey, this._store)(() => this.updateCompositeBarItemsFromStorage(false)));
-		})`],
-			[layout, 'window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))'],
 			[menubar, `this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
 				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
 					return;
@@ -131,13 +122,41 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 							}
 						})`],
 		] as const;
-		assert.strictEqual(calls.length, 8);
-		for (const [source, call] of calls) {
+		assert.strictEqual(doubleCalls.length, 5);
+		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
+		}
+
+		const singleCalls = [
+			[globalBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (!this._store.isDisposed) {
+				this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, this._store)(() => this.toggleAccountsActivity()));
+			}
+		})`],
+			[paneBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.onDidRegisterExtensions();
+			this._register(this.compositeBar.onDidChange(() => {
+				this.updateCompositeBarItemsFromStorage(true);
+				this.saveCachedViewContainers();
+			}));
+			this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, this.options.pinnedViewContainersKey, this._store)(() => this.updateCompositeBarItemsFromStorage(false)));
+		})`],
+			[layout, 'window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))'],
+		] as const;
+		assert.strictEqual(singleCalls.length, 3);
+		for (const [source, call] of singleCalls) {
+			assertSingleCatch(source, call);
+		}
+
+		for (const source of [globalBar, paneBar, layout]) {
+			assert.ok(!source.includes(doubleCatch));
 		}
 	});
 
-	test('parts leftover whenInstalledExtensionsRegistered thens are Promise double-chain', () => {
+	test('parts leftover whenInstalledExtensionsRegistered thens are Promise catch handled', () => {
 		const globalBar = fs.readFileSync(resolveSource(GLOBAL_BAR_REL), 'utf8');
 		const viewPane = fs.readFileSync(resolveSource(VIEW_PANE_REL), 'utf8');
 		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
@@ -146,11 +165,12 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(globalBar.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(viewPane.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(paneBar.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(globalBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+		assertSingleCatch(globalBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			if (!this._store.isDisposed) {
 				this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, this._store)(() => this.toggleAccountsActivity()));
 			}
 		})`);
+		assert.ok(!globalBar.includes(doubleCatch));
 		assertDoubleThen(viewPane, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			this.areExtensionsReady = true;
 			if (this.panes.length) {
@@ -163,7 +183,7 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 				}
 			}));
 		})`);
-		assertDoubleThen(paneBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+		assertSingleCatch(paneBar, `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
 			if (this._store.isDisposed) {
 				return;
 			}
@@ -174,15 +194,17 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			}));
 			this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, this.options.pinnedViewContainersKey, this._store)(() => this.updateCompositeBarItemsFromStorage(false)));
 		})`);
+		assert.ok(!paneBar.includes(doubleCatch));
 	});
 
-	test('layout leftover whenStylesHaveLoaded then is Promise double-chain; D697 whenRestored stays', () => {
+	test('layout leftover whenStylesHaveLoaded then is Promise single-catch; D697 whenRestored stays', () => {
 		const source = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
 		const aux = fs.readFileSync(resolveSource(AUX_WINDOW_REL), 'utf8');
 		assertPromiseSignature(aux, 'readonly whenStylesHaveLoaded: Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
-		assertDoubleThen(source, 'window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))');
-		assertDoubleThen(source, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))');
+		assertSingleCatch(source, 'window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))');
+		assertSingleCatch(source, 'this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout))');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('menubar leftover getRecentlyOpened thens are Promise double-chain; D714 alwaysUnderlineAccessKeys stays chained', () => {
@@ -261,15 +283,15 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 		assert.ok(browserWindow.includes(')).then(async () => {'));
 		assert.ok(!browserWindow.includes('onUnexpectedError'));
 
-		assertDoubleThen(panePart, 'this.openPaneComposite(currentContainer.id, true)');
-		assertDoubleThen(panePart, `this.openPaneComposite(newContainer.id, true).then(composite => {
+		assertSingleCatch(panePart, 'this.openPaneComposite(currentContainer.id, true)');
+		assertSingleCatch(panePart, `this.openPaneComposite(newContainer.id, true).then(composite => {
 									composite?.openView(viewToMove.id, true);
 								})`);
-		assertDoubleThen(compositeBar, 'this.openComposite(currentContainer.id, true)');
-		assertDoubleThen(compositeBar, `this.openComposite(newContainer.id, true).then(composite => {
+		assertSingleCatch(compositeBar, 'this.openComposite(currentContainer.id, true)');
+		assertSingleCatch(compositeBar, `this.openComposite(newContainer.id, true).then(composite => {
 					composite?.openView(viewToMove.id, true);
 				})`);
-		assertDoubleThen(paneBar, `case 'focus':
+		assertSingleCatch(paneBar, `case 'focus':
 						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus)`);
 
 		assert.ok(breadcrumbs.includes('}).catch(err => {'));
@@ -294,7 +316,11 @@ suite('workbench parts leftover Promise fire-and-forget catch scan (D706)', () =
 			this.updateEditorAreaContextKeys();
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
-		})${doubleCatch};`));
+		})${singleCatch};`));
+
+		for (const source of [layout, panePart, paneBar, compositeBar, contextkeys]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 
 		for (const source of [layout, panePart, compositeBar, nativeWindow, browserWindow]) {
 			assert.ok(!source.includes('acknowledge('));

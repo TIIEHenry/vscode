@@ -326,6 +326,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	private stateModel!: LayoutStateModel;
 
 	private disposed = false;
+	protected get _isDisposed(): boolean {
+		return this.disposed || this._store.isDisposed;
+	}
 
 	constructor(
 		protected readonly parent: HTMLElement,
@@ -420,6 +423,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		// Wait to register these listeners after the editor group service
 		// is ready to avoid conflicts on startup
 		this.editorGroupService.whenRestored.then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Handle visible editors changing for parts visibility
 			this._register(this.mainPartEditorService.onDidVisibleEditorsChange(e => {
@@ -436,7 +442,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			// Revalidate center layout when active editor changes: diff editor quits centered mode
 			this._register(this.mainPartEditorService.onDidActiveEditorChange(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED))));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		// Configuration changes
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
@@ -528,7 +534,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this._register(this.auxiliaryWindowService.onDidOpenAuxiliaryWindow(({ window, disposables }) => {
 			const windowId = window.window.vscodeWindowId;
 			this.containerStylesLoaded.set(windowId, window.whenStylesHaveLoaded);
-			window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId)).catch(onUnexpectedError).catch(onUnexpectedError);
+			window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId)).catch(onUnexpectedError);
 			disposables.add(toDisposable(() => this.containerStylesLoaded.delete(windowId)));
 
 			const eventDisposables = disposables.add(new DisposableStore());
@@ -643,7 +649,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this.updateMenubarVisibility(!!skipLayout);
 
 		// Centered Layout
-		this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.editorGroupService.whenRestored.then(() => this.centerMainEditorLayout(this.stateModel.getRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED), skipLayout)).catch(onUnexpectedError);
 	}
 
 	private isShadowsDisabled(): boolean {
@@ -1036,6 +1042,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			// first ensure the editor part is ready
 			await this.editorGroupService.whenReady;
+			if (this._isDisposed) {
+				return;
+			}
 			mark('code/restoreEditors/editorGroupsReady');
 
 			// apply editor layout if any
@@ -1053,6 +1062,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// fully loaded.
 
 			const editors = await this.state.initialization.editor.editorsToOpen;
+			if (this._isDisposed) {
+				return;
+			}
 			mark('code/restoreEditors/editorsToOpenResolved');
 
 			let openEditorsPromise: Promise<unknown> | undefined = undefined;
@@ -1084,6 +1096,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 				openEditorsPromise = Promise.all(Array.from(mapEditorsToGroup).map(async ([groupId, editors]) => {
 					try {
+						if (this._isDisposed) {
+							return;
+						}
 						await this.editorService.openEditors(Array.from(editors), groupId, { validateTrust: true });
 					} catch (error) {
 						this.logService.error(error);
@@ -1146,6 +1161,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				// If we still have views left over, wait until all extensions have been registered and try again
 				if (defaultViews.length) {
 					await this.extensionService.whenInstalledExtensionsRegistered();
+					if (this._isDisposed) {
+						return;
+					}
 
 					let i = defaultViews.length;
 					while (i) {
@@ -1182,7 +1200,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Restoring views could mean that sidebar already
 			// restored, as such we need to test again
 			await restoreDefaultViewsPromise;
-			if (!this.state.initialization.views.containerToRestore.sideBar) {
+			if (this._isDisposed || !this.state.initialization.views.containerToRestore.sideBar) {
 				return;
 			}
 
@@ -1199,7 +1217,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Restoring views could mean that panel already
 			// restored, as such we need to test again
 			await restoreDefaultViewsPromise;
-			if (!this.state.initialization.views.containerToRestore.panel) {
+			if (this._isDisposed || !this.state.initialization.views.containerToRestore.panel) {
 				return;
 			}
 
@@ -1216,7 +1234,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Restoring views could mean that auxbar already
 			// restored, as such we need to test again
 			await restoreDefaultViewsPromise;
-			if (!this.state.initialization.views.containerToRestore.auxiliaryBar) {
+			if (this._isDisposed || !this.state.initialization.views.containerToRestore.auxiliaryBar) {
 				return;
 			}
 
@@ -1244,6 +1262,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		// Await for promises that we recorded to update
 		// our ready and restored states properly.
 		Promises.settled(layoutReadyPromises).finally(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Focus the active maximized part in case we have
 			// not yet focused a specific element and panel
@@ -1255,6 +1276,9 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			this.whenReadyPromise.complete();
 
 			Promises.settled(layoutRestoredPromises).finally(() => {
+				if (this._isDisposed) {
+					return;
+				}
 				if (
 					this.editorService.editors.length === 0 && 			// no editors opened or restored
 					this.isVisible(Parts.AUXILIARYBAR_PART) && 			// auxiliary bar is visible
@@ -1271,14 +1295,17 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	}
 
 	private async openViewContainer(location: ViewContainerLocation, id: string, focus?: boolean): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		let viewContainer = await this.paneCompositeService.openPaneComposite(id, location, focus);
-		if (viewContainer) {
+		if (this._isDisposed || viewContainer) {
 			return;
 		}
 
 		// fallback to default view container
 		viewContainer = await this.paneCompositeService.openPaneComposite(this.viewDescriptorService.getDefaultViewContainer(location)?.id, location, focus);
-		if (viewContainer) {
+		if (this._isDisposed || viewContainer) {
 			return;
 		}
 
@@ -1865,6 +1892,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	}
 
 	centerMainEditorLayout(active: boolean, skipLayout?: boolean): void {
+		if (this._isDisposed) {
+			return;
+		}
+
 		this.stateModel.setRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED, active);
 
 		const mainPart = this.editorGroupService.mainPart;
@@ -2184,7 +2215,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		else if (!hidden && !this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Sidebar)) {
 			const viewletToOpen = this.paneCompositeService.getLastActivePaneCompositeId(ViewContainerLocation.Sidebar);
 			if (viewletToOpen) {
-				this.openViewContainer(ViewContainerLocation.Sidebar, viewletToOpen).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.openViewContainer(ViewContainerLocation.Sidebar, viewletToOpen).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -2379,7 +2410,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 
 			if (panelToOpen) {
-				this.openViewContainer(ViewContainerLocation.Panel, panelToOpen, !skipLayout).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.openViewContainer(ViewContainerLocation.Panel, panelToOpen, !skipLayout).catch(onUnexpectedError);
 			}
 		}
 
@@ -2678,7 +2709,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			}
 
 			if (viewletToOpen) {
-				this.openViewContainer(ViewContainerLocation.AuxiliaryBar, viewletToOpen, !skipLayout).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.openViewContainer(ViewContainerLocation.AuxiliaryBar, viewletToOpen, !skipLayout).catch(onUnexpectedError);
 			}
 		}
 	}

@@ -40,11 +40,18 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
+}
+
+function assertSingleCatch(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call};`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`), `unexpected double-catch on: ${call}`);
 }
 
 function assertDoubleThen(source: string, call: string): void {
@@ -63,16 +70,18 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise catch sites', () => {
 		const menubar = fs.readFileSync(resolveSource(MENUBAR_REL), 'utf8');
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const paneBar = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
 		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
-		const calls = [
-			[menubar, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+
+		assertDoubleThen(menubar, `this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
-			})`],
+			})`);
+
+		const singleCalls = [
 			[panePart, 'this.openPaneComposite(currentContainer.id, true)'],
 			[panePart, `this.openPaneComposite(newContainer.id, true).then(composite => {
 									composite?.openView(viewToMove.id, true);
@@ -86,9 +95,13 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 			[compositeBar, 'this.options.openComposite(defaultCompositeId, true)'],
 			[compositeBar, 'this.options.openComposite(visibleComposite)'],
 		] as const;
-		assert.strictEqual(calls.length, 8);
-		for (const [source, call] of calls) {
-			assertDoubleThen(source, call);
+		assert.strictEqual(singleCalls.length, 7);
+		for (const [source, call] of singleCalls) {
+			assertSingleCatch(source, call);
+		}
+
+		for (const source of [panePart, paneBar, compositeBar]) {
+			assert.ok(!source.includes(doubleCatch));
 		}
 	});
 
@@ -103,44 +116,47 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 			})`);
 	});
 
-	test('paneCompositePart leftover openPaneComposite fire-and-forget and then are Promise double-chain; sync CompositePart.openComposite stays skipped', () => {
+	test('paneCompositePart leftover openPaneComposite fire-and-forget and then are Promise single-catch; sync CompositePart.openComposite stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		const compositePart = fs.readFileSync(resolveSource(COMPOSITE_PART_REL), 'utf8');
 		assertPromiseSignature(source, 'openPaneComposite(id: string | undefined, focus?: boolean): Promise<IPaneComposite | undefined>;');
 		assertPromiseSignature(source, 'async openPaneComposite(id?: string, focus?: boolean): Promise<PaneComposite | undefined> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.openPaneComposite(currentContainer.id, true)');
-		assertDoubleThen(source, `this.openPaneComposite(newContainer.id, true).then(composite => {
+		assertSingleCatch(source, 'this.openPaneComposite(currentContainer.id, true)');
+		assertSingleCatch(source, `this.openPaneComposite(newContainer.id, true).then(composite => {
 									composite?.openView(viewToMove.id, true);
 								})`);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('const result = this.openComposite(id, focus) as PaneComposite | undefined;'));
 		assert.ok(!source.includes('this.openComposite(id, focus).catch'));
 		assert.ok(compositePart.includes('protected openComposite(id: string, focus?: boolean): Composite | undefined {'));
 		assert.ok(!compositePart.includes('protected openComposite(id: string, focus?: boolean): Promise'));
 	});
 
-	test('paneCompositeBar leftover openPaneComposite fire-and-forget is Promise double-chain; await stays skipped', () => {
+	test('paneCompositeBar leftover openPaneComposite fire-and-forget is Promise single-catch; await stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(PANE_BAR_REL), 'utf8');
 		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
 		assertPromiseSignature(panePart, 'openPaneComposite(id: string | undefined, focus?: boolean): Promise<IPaneComposite | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, `case 'focus':
+		assertSingleCatch(source, `case 'focus':
 						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus)`);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('await this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus);'));
 		assert.ok(!source.includes('await this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus).catch'));
 	});
 
-	test('compositeBar leftover openComposite fire-and-forget and then are Promise double-chain; await stays skipped', () => {
+	test('compositeBar leftover openComposite fire-and-forget and then are Promise single-catch; await stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
 		assertPromiseSignature(source, 'private openComposite: (id: string, focus?: boolean) => Promise<IPaneComposite | null>,');
 		assertPromiseSignature(source, 'readonly openComposite: (compositeId: string, preserveFocus?: boolean) => Promise<IComposite | null>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.openComposite(currentContainer.id, true)');
-		assertDoubleThen(source, `this.openComposite(newContainer.id, true).then(composite => {
+		assertSingleCatch(source, 'this.openComposite(currentContainer.id, true)');
+		assertSingleCatch(source, `this.openComposite(newContainer.id, true).then(composite => {
 					composite?.openView(viewToMove.id, true);
 				})`);
-		assertDoubleThen(source, 'this.options.openComposite(defaultCompositeId, true)');
-		assertDoubleThen(source, 'this.options.openComposite(visibleComposite)');
+		assertSingleCatch(source, 'this.options.openComposite(defaultCompositeId, true)');
+		assertSingleCatch(source, 'this.options.openComposite(visibleComposite)');
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('await this.options.openComposite(compositeId);'));
 		assert.ok(!source.includes('await this.options.openComposite(compositeId).catch'));
 	});
@@ -195,13 +211,17 @@ suite('workbench composite leftover Promise fire-and-forget catch scan (D714)', 
 			this.updateEditorAreaContextKeys();
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
-		})${doubleCatch};`));
-		assert.ok(layout.includes(`window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))${doubleCatch};`));
-		assert.ok(globalBar.includes(`${doubleCatch}`));
+		})${singleCatch};`));
+		assert.ok(layout.includes(`window.whenStylesHaveLoaded.then(() => this.containerStylesLoaded.delete(windowId))${singleCatch};`));
+		assert.ok(!globalBar.includes(doubleCatch));
 		assert.ok(viewPane.includes(`${doubleCatch}`));
-		assert.ok(paneBar.includes(`${doubleCatch}`));
+		assert.ok(!paneBar.includes(doubleCatch));
 		assert.ok(treeView.includes(`this.tree.setInput(this.root).then(() => this.updateContentAreas())${doubleCatch};`));
 		assert.ok(editorStatus.includes(`${doubleCatch}`));
+
+		for (const source of [layout, panePart, paneBar, compositeBar, globalBar, contextkeys]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 
 		for (const source of [layout, panePart, compositeBar, nativeWindow, browserWindow]) {
 			assert.ok(!source.includes('acknowledge('));

@@ -67,11 +67,11 @@ abstract class BaseNavigationAction extends Action2 {
 				this.navigateToEditorGroup(this.direction === Direction.Right ? GroupLocation.FIRST : GroupLocation.LAST, editorGroupService);
 			}
 		} else if (neighborPart === Parts.SIDEBAR_PART) {
-			this.navigateToSidebar(layoutService, paneCompositeService).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.navigateToSidebar(layoutService, paneCompositeService).catch(onUnexpectedError);
 		} else if (neighborPart === Parts.PANEL_PART) {
-			this.navigateToPanel(layoutService, paneCompositeService).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.navigateToPanel(layoutService, paneCompositeService).catch(onUnexpectedError);
 		} else if (neighborPart === Parts.AUXILIARYBAR_PART) {
-			this.navigateToAuxiliaryBar(layoutService, paneCompositeService).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.navigateToAuxiliaryBar(layoutService, paneCompositeService).catch(onUnexpectedError);
 		}
 	}
 
