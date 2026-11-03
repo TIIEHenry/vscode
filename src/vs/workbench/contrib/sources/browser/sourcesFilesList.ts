@@ -14,7 +14,7 @@ import { CancellationToken, CancellationTokenSource } from '../../../../base/com
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, IDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { dirname, isEqualOrParent } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -462,11 +462,14 @@ export class SourcesFilesList extends Disposable {
 		}, ACTIVE_GROUP);
 	}
 
-	private openEngineFile(element: ISourcesFileEntry, preserveFocus: boolean | undefined, slot: EditorOpenSlot | undefined, sideBySide: boolean): Promise<unknown> {
+	private async openEngineFile(element: ISourcesFileEntry, preserveFocus: boolean | undefined, slot: EditorOpenSlot | undefined, sideBySide: boolean): Promise<unknown> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const engine = element.engine;
 		const readFile = this.connection.readFile;
 		if (!engine || typeof readFile !== 'function') {
-			return Promise.resolve(undefined);
+			return;
 		}
 		const resource = element.resource.scheme === SOURCES_ENGINE_FILE_SCHEME
 			? element.resource
@@ -479,6 +482,9 @@ export class SourcesFilesList extends Disposable {
 			source: EditorOpenSource.USER,
 		};
 		return readFile.call(this.connection, buildSourcesEngineReadFileRequest(sessionId, engine.path)).then(result => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.engineOpenGeneration !== generation || this.session.getActiveSessionId() !== sessionId) {
 				return undefined;
 			}
@@ -592,18 +598,18 @@ export class SourcesFilesList extends Disposable {
 			}
 		};
 		this._register(part.onDidChangeActiveGroup(() => paintIfList()));
-		const seen = new Set<IEditorGroup>();
+		const groupListeners = this._register(new DisposableMap<IEditorGroup, IDisposable>());
 		const track = (group: IEditorGroup | undefined) => {
-			if (!group || seen.has(group)) {
+			if (!group || groupListeners.has(group)) {
 				return;
 			}
-			seen.add(group);
-			this._register(group.onDidActiveEditorChange(() => paintIfList()));
+			groupListeners.set(group, group.onDidActiveEditorChange(() => paintIfList()));
 		};
 		for (const group of part.groups) {
 			track(group);
 		}
 		this._register(part.onDidAddGroup(group => track(group)));
+		this._register(part.onDidRemoveGroup(group => groupListeners.deleteAndDispose(group)));
 	}
 
 	private async paintCurrentLevel(seq: number): Promise<void> {
@@ -625,7 +631,7 @@ export class SourcesFilesList extends Disposable {
 				label = target.parentKey || this.engineRootLabel();
 			} else {
 				const stat = await this.fileService.resolve(target.directory);
-				if (seq !== this.levelSeq || this.viewMode !== 'list') {
+				if (this._store.isDisposed || seq !== this.levelSeq || this.viewMode !== 'list') {
 					return;
 				}
 				nodes = buildSourcesWorkspaceLevel(stat.children ?? [], resource => sourcesFileDescription(resource, folders));
@@ -639,7 +645,7 @@ export class SourcesFilesList extends Disposable {
 					: sourcesFilesListEmptyFolderMessage);
 			this.renderLevel(filtered, label, emptyText, false, true);
 		} catch (error) {
-			if (seq !== this.levelSeq || this.viewMode !== 'list') {
+			if (this._store.isDisposed || seq !== this.levelSeq || this.viewMode !== 'list') {
 				return;
 			}
 			this.renderLevel([], undefined, '', true, false, error);

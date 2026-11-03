@@ -542,6 +542,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly inputListeners = this._register(new DisposableMap<ISCMRepository>());
 	private activeRepository: ISCMRepository | undefined;
 	private gitCommandsAvailable = false;
+	private isCommitInFlight = false;
 	private writeStatusMessage: string | undefined;
 	private openStatusMessage: string | undefined;
 
@@ -652,7 +653,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 		this._register(dom.addDisposableListener(this.commitInput, 'keydown', (e: KeyboardEvent) => {
 			const event = new StandardKeyboardEvent(e);
-			if (event.keyCode === KeyCode.Enter && !event.shiftKey && this.commitButton.enabled) {
+			if (event.keyCode === KeyCode.Enter && !event.shiftKey && this.commitButton.enabled && !this.isCommitInFlight) {
 				event.preventDefault();
 				event.stopPropagation();
 				void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -1640,11 +1641,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			const acceptCommand = repo?.provider.acceptInputCommand;
 			const localCommit = (!!acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id))
 				|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
-			this.commitInput.disabled = !repo;
+			this.commitInput.disabled = !repo || this.isCommitInFlight;
 			this.presentToolbarAction(
 				this.commitButton,
 				commitLabel,
-				!!repo && hasMessage && localCommit && !this.isSourcesGitWriteClosed(),
+				!this.isCommitInFlight && !!repo && hasMessage && localCommit && !this.isSourcesGitWriteClosed(),
 				!hasMessage
 					? localize('sourcesChangesList.commitNeedsMessage', "Enter a commit message.")
 					: localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."),
@@ -1659,11 +1660,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| (!!acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id))
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
-		this.commitInput.disabled = !repo && !this.canWriteCommit();
+		this.commitInput.disabled = (!repo && !this.canWriteCommit()) || this.isCommitInFlight;
 		this.presentToolbarAction(
 			this.commitButton,
 			commitLabel,
-			(!this.isSourcesGitWriteClosed())
+			!this.isCommitInFlight
+				&& (!this.isSourcesGitWriteClosed())
 				&& (!!repo || this.canWriteCommit())
 				&& hasMessage
 				&& commitAvailable,
@@ -1760,36 +1762,43 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runCommit(): Promise<void> {
-		if (this.isSourcesGitWriteClosed()) {
+		if (this.isCommitInFlight || this.isSourcesGitWriteClosed()) {
 			return;
 		}
-		const message = this.commitInput.value;
-		if (!message.trim()) {
-			return;
-		}
-
-		const snapshot = this.changesModel.getSnapshot();
-		if (snapshot.state.kind === 'scm') {
-			const staged = uniqueSourcesStagedRepository(this.scmService.repositories);
-			if (!staged || this.activeRepository !== staged) {
+		this.isCommitInFlight = true;
+		this.updateCommitRow();
+		try {
+			const message = this.commitInput.value;
+			if (!message.trim()) {
 				return;
 			}
-			staged.input.setValue(message, false);
-			staged.provider.inputBoxTextModel.setValue(message);
-			await this.runLocalCommit(staged, staged);
-			return;
-		}
 
-		const repo = this.activeRepository;
-		if (!repo && !this.canWriteCommit()) {
-			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
-			return;
+			const snapshot = this.changesModel.getSnapshot();
+			if (snapshot.state.kind === 'scm') {
+				const staged = uniqueSourcesStagedRepository(this.scmService.repositories);
+				if (!staged || this.activeRepository !== staged) {
+					return;
+				}
+				staged.input.setValue(message, false);
+				staged.provider.inputBoxTextModel.setValue(message);
+				await this.runLocalCommit(staged, staged);
+				return;
+			}
+
+			const repo = this.activeRepository;
+			if (!repo && !this.canWriteCommit()) {
+				this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+				return;
+			}
+			const commitSessionId = this.commitSessionId(snapshot);
+			if (isSourcesEngineWriteSessionBlocked('engine', commitSessionId, this.session.getActiveSessionId())) {
+				this.setWriteStatusMessage(sourcesGitSessionChangedMessage());
+				return;
+			}
+			await this.runEngineCommit(commitSessionId, message, this.activeRepository);
+		} finally {
+			this.isCommitInFlight = false;
+			this.updateCommitRow();
 		}
-		const commitSessionId = this.commitSessionId(snapshot);
-		if (isSourcesEngineWriteSessionBlocked('engine', commitSessionId, this.session.getActiveSessionId())) {
-			this.setWriteStatusMessage(sourcesGitSessionChangedMessage());
-			return;
-		}
-		await this.runEngineCommit(commitSessionId, message, this.activeRepository);
 	}
 }
