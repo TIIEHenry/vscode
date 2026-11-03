@@ -58,11 +58,14 @@ class DefineKeybindingEditorContribution extends Disposable implements IDefineKe
 
 	showDefineKeybindingWidget(): void {
 		if (isInterestingEditorModel(this._editor, this._userDataProfileService)) {
-			this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError);
 		}
 	}
 
 	private _onAccepted(keybinding: string | null): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._editor.focus();
 		if (keybinding && this._editor.hasModel()) {
 			const regexp = new RegExp(/\\/g);
@@ -114,6 +117,9 @@ export class KeybindingEditorDecorationsRenderer extends Disposable {
 	}
 
 	private _updateDecorationsNow(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const model = assertReturnsDefined(this._editor.getModel());
 
 		const newDecorations: IModelDeltaDecoration[] = [];

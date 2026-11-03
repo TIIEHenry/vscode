@@ -55,6 +55,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -71,9 +72,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const affectedKeysCall = 'this.onConfigUpdate(e.affectedKeys)';
@@ -92,6 +93,9 @@ const configThenCall = `this.onConfigUpdate(undefined, true).then(() => {
 			this.updateTreeScrollSync();
 		})`;
 const clickThenCall = `p.then(() => {
+				if (this._store.isDisposed || generation !== this.searchTriggerGeneration) {
+					return;
+				}
 				this.onDidClickSetting(evt, true);
 			})`;
 const assignedThenCall = 'this._currentSuggestionDetails.then(() => {';
@@ -144,7 +148,7 @@ suite('userActivity leftover remaining moved through unused leftover remaining t
 		assert.ok(userActivityLegal < 4, `expected userActivity legal leftover <4, got ${userActivityLegal}`);
 		assert.ok(policy.includes(`${exportCall}${doubleCatch}`));
 		assert.ok(quickaccess.includes(`${openSettingsCall}${doubleCatch}`));
-		assert.ok(themes.includes(`${processThenCall}${doubleCatch}`));
+		assert.ok(themes.includes(`${processThenCall}${singleCatch}`));
 		assert.ok(lifecycle.includes(`${vetoThenCall}${doubleCatch}`));
 		assert.ok(emergency.includes(`this.fetchAlerts(emergencyAlertUrl)${doubleCatch}`));
 		const unusedLeftoverRemainingLegal = 0;
@@ -163,7 +167,7 @@ suite('userActivity leftover remaining moved through unused leftover remaining t
 		for (const [rel, call, count] of d817Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -171,7 +175,7 @@ suite('userActivity leftover remaining moved through unused leftover remaining t
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SETTINGS_REL) ?? ''), 10);
+		assert.strictEqual(countDoubleChains(seen.get(SETTINGS_REL) ?? ''), 0);
 	});
 
 	test('settingsEditor2 leftover remaining unused onConfigUpdate / refreshInstalledExtensionsList leftover void promises are Promise/async + double-chain', () => {
@@ -184,9 +188,9 @@ suite('userActivity leftover remaining moved through unused leftover remaining t
 		assertWrapped(settings, onConfigTrueCall);
 		assertWrapped(settings, onConfigFalseTrueCall);
 		assertWrapped(settings, onConfigKeyCall);
-		assert.strictEqual(countIncludes(settings, `${affectedKeysCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(settings, `${refreshCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(settings, `${onConfigTrueCall}${doubleCatch}`), 3);
+		assert.strictEqual(countIncludes(settings, `${affectedKeysCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(settings, `${refreshCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(settings, `${onConfigTrueCall}${singleCatch}`), 3);
 		assert.ok(!settings.includes('\t\t\t\tthis.onConfigUpdate(e.affectedKeys);\n'));
 		assert.ok(!settings.includes('\t\t\tthis.refreshInstalledExtensionsList();\n'));
 		assert.ok(!settings.includes('\t\t\tthis.onConfigUpdate(undefined, true);\n'));
@@ -205,9 +209,9 @@ suite('userActivity leftover remaining moved through unused leftover remaining t
 		assert.ok(!settings.includes(`${d794LockedCall}${doubleCatch}`));
 		assert.ok(settings.includes(`${openSettingsFileCall};`));
 		assert.ok(!settings.includes(`${openSettingsFileCall}${doubleCatch}`));
-		assert.ok(settings.includes(`${configThenCall}${doubleCatch};`));
+		assert.ok(settings.includes(`${configThenCall}${singleCatch};`));
 		assert.ok(!settings.includes(`${configThenCall};`));
-		assert.ok(settings.includes(`${clickThenCall}${doubleCatch}`));
+		assert.ok(settings.includes(`${clickThenCall}${singleCatch}`));
 		assert.ok(settings.includes('const p = this.triggerSearch(idQuery, true);'));
 		assert.ok(!settings.includes(`const p = this.triggerSearch(idQuery, true)${doubleCatch}`));
 		assert.ok(settings.includes('this.updateChangedSetting(key, value, manualReset, languageFilter, scope);'));
@@ -240,7 +244,7 @@ suite('userActivity leftover remaining moved through unused leftover remaining t
 		assert.ok(suggest.includes(assignedThenCall));
 		assert.ok(!suggest.includes(`${assignedThenCall}${doubleCatch}`));
 		assert.ok(settings.includes('const p = this.triggerSearch(idQuery, true);'));
-		assert.ok(settings.includes(`${clickThenCall}${doubleCatch}`));
+		assert.ok(settings.includes(`${clickThenCall}${singleCatch}`));
 		assert.ok(!settings.includes('.then(undefined,'));
 		assert.ok(settings.includes('return this.openSettingsFile({ query });'));
 		assert.ok(!settings.includes(`return this.openSettingsFile({ query })${doubleCatch}`));

@@ -58,6 +58,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -74,9 +75,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const leftoverSetThemeCall = 'this.setTheme(currentTheme, undefined)';
@@ -172,12 +173,13 @@ suite('leftover remaining unused themes leftover remaining unused overflowed to 
 		assert.ok(themes.includes('override async run(accessor: ServicesAccessor) {'));
 		assert.ok(themes.includes('return editorService.openEditor({ resource: undefined, contents, languageId: \'jsonc\', options: { pinned: true } });'));
 		assert.ok(!themes.includes(`openEditor({ resource: undefined, contents, languageId: 'jsonc', options: { pinned: true } })${doubleCatch}`));
-		assert.ok(themesTest.includes(`${leftoverProcessThenCall}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(themesTest), 1);
+		assert.ok(themesTest.includes(`${leftoverProcessThenCall}${singleCatch}`));
+		assert.strictEqual(countDoubleChains(themesTest), 0);
 		assertWrapped(themes, leftoverSetThemeCall);
-		const leftoverRemainingUnusedLegal = countIncludes(themes, `${leftoverSetThemeCall}${doubleCatch}`);
+		const leftoverRemainingUnusedLegal = countIncludes(themes, `${leftoverSetThemeCall}${singleCatch}`);
 		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused themes legal leftover <4 after discarding collision overflow, got ${leftoverRemainingUnusedLegal}`);
 		assert.strictEqual(leftoverRemainingUnusedLegal, 1);
+		assert.strictEqual(countDoubleChains(themes), 0);
 		assert.ok(!themes.includes('D898'));
 		assert.ok(!themesTest.includes('D898'));
 	});
@@ -188,7 +190,7 @@ suite('leftover remaining unused themes leftover remaining unused overflowed to 
 		for (const [rel, call, count] of d898Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -196,8 +198,8 @@ suite('leftover remaining unused themes leftover remaining unused overflowed to 
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(THEMES_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(NAV_REL) ?? ''), 3);
+		assert.strictEqual(countDoubleChains(seen.get(THEMES_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(NAV_REL) ?? ''), 0);
 	});
 
 	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -242,7 +244,7 @@ suite('leftover remaining unused themes leftover remaining unused overflowed to 
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
 		assert.ok(themes.includes(leftoverMarketplaceThenCall));
-		assert.ok(themesTest.includes(`${leftoverProcessThenCall}${doubleCatch}`));
+		assert.ok(themesTest.includes(`${leftoverProcessThenCall}${singleCatch}`));
 
 		for (const source of [themes, nav]) {
 			assert.ok(!source.includes('acknowledge('));
@@ -365,10 +367,10 @@ suite('leftover remaining unused themes leftover remaining unused overflowed to 
 		assert.ok(configuration.includes(leftoverReloadThenCall));
 		assert.ok(!configuration.includes(`${leftoverReloadThenCall}${doubleCatch}`));
 		assert.ok(searchWidget.includes(`this.submitSearch()${doubleCatch}`) || searchWidget.includes(doubleCatch));
-		assert.ok(comments.includes(`this.refresh()${doubleCatch}`));
+		assert.ok(comments.includes(`this.refresh()${singleCatch}`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
-		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
-		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
+		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${singleCatch}`));
+		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${singleCatch}`));
 		assert.ok(chatWidget.includes(doubleCatch));
 		assert.ok(testing.includes('this.openAndShow(') || testing.includes(doubleCatch));
 		assert.ok(tasks.includes('this.') || tasks.length > 0);

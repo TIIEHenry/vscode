@@ -54,6 +54,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -70,9 +71,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const executeCommandCall = 'this.executeCommand(command)';
@@ -129,10 +130,13 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		assertPromiseSignature(pane, 'private async _setTreeInput(input: BulkFileOperations) {');
 		assertPromiseSignature(preview, 'private async _applyTextEditsToPreviewModel(uri: URI) {');
 		assertPromiseSignature(contrib, 'private async _previewEdit(edits: ResourceEdit[]): Promise<ResourceEdit[]> {');
-		assert.ok(pane.includes(`${setTreeInputCall}${doubleCatch}`));
-		assert.ok(preview.includes(`${applyPreviewCall}${doubleCatch}`));
+		assert.ok(pane.includes(`${setTreeInputCall}${singleCatch}`));
+		assert.ok(preview.includes(`${applyPreviewCall}${singleCatch}`));
 		assert.ok(contrib.includes(`bulkEditService.setPreviewHandler(edits => ${previewEditCall})`));
-		assert.ok(!contrib.includes(`${previewEditCall}${doubleCatch}`));
+		assert.ok(!contrib.includes(`${previewEditCall}${singleCatch}`));
+		assert.strictEqual(countDoubleChains(pane), 0);
+		assert.strictEqual(countDoubleChains(preview), 0);
+		assert.strictEqual(countDoubleChains(contrib), 0);
 		const leftoverRemainingUnusedLegal = 0;
 		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused bulkEdit legal leftover <4, got ${leftoverRemainingUnusedLegal}`);
 		assert.ok(!pane.includes('D857'));
@@ -158,7 +162,7 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		for (const [rel, call, count] of d857Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -166,7 +170,7 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(STATUSBAR_REL) ?? ''), 4);
+		assert.strictEqual(countDoubleChains(seen.get(STATUSBAR_REL) ?? ''), 0);
 	});
 
 	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -174,7 +178,7 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		assertPromiseSignature(source, 'private async executeCommand(command: string | Command): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, executeCommandCall);
-		assert.strictEqual(countIncludes(source, `${executeCommandCall}${doubleCatch}`), 4);
+		assert.strictEqual(countIncludes(source, `${executeCommandCall}${singleCatch}`), 4);
 		assert.ok(!source.includes('\t\t\t\t\t\tthis.executeCommand(command);\n'));
 		assert.ok(!source.includes('() => this.executeCommand(command));'));
 		assert.ok(!source.includes('() => this.executeCommand(command)\n'));
@@ -200,7 +204,7 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		assert.ok(!source.includes('return this.executeCommand('));
 		assert.ok(!source.includes('await this.executeCommand('));
 
-		assert.ok(pane.includes(`${setTreeInputCall}${doubleCatch}`));
+		assert.ok(pane.includes(`${setTreeInputCall}${singleCatch}`));
 		assert.ok(outline.includes(`${handleEditorControlCall};`));
 		assert.ok(!outline.includes(`${handleEditorControlCall}${doubleCatch}`));
 
@@ -280,15 +284,15 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		assert.ok(discovery.includes(`${leftoverSyncCall}${doubleCatch}`) || discovery.includes('this.sync()'));
 		assert.ok(output.includes(leftoverShowChannelCall));
 
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.ok(status.includes(`${updateCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${showErrorCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(status.includes(`${updateCall}${singleCatch}`));
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(debugService.includes(`${showErrorCall}${singleCatch}`));
+		assert.ok(debugEditor.includes(`${toggleCall}${singleCatch}`));
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 

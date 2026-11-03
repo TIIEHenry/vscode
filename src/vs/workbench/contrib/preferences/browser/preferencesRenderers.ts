@@ -92,7 +92,7 @@ export class UserSettingsRenderer extends Disposable implements IPreferencesRend
 		const overrideIdentifiers = source.overrideOf ? overrideIdentifiersFromKey(source.overrideOf.key) : null;
 		const resource = this.preferencesModel.uri;
 		this.configurationService.updateValue(key, value, { overrideIdentifiers, resource }, this.preferencesModel.configurationTarget)
-			.then(() => this.onSettingUpdated(source)).catch(onUnexpectedError).catch(onUnexpectedError);
+			.then(() => this.onSettingUpdated(source)).catch(onUnexpectedError);
 	}
 
 	private onModelChanged(): void {
@@ -104,6 +104,9 @@ export class UserSettingsRenderer extends Disposable implements IPreferencesRend
 	}
 
 	private onSettingUpdated(setting: ISetting) {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.editor.focus();
 		setting = this.getSetting(setting)!;
 		if (setting) {

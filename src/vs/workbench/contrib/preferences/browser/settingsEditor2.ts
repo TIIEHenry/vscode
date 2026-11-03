@@ -13,7 +13,7 @@ import { ToggleActionViewItem } from '../../../../base/browser/ui/toggle/toggle.
 import { ITreeElement } from '../../../../base/browser/ui/tree/tree.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { Action } from '../../../../base/common/actions.js';
-import { CancelablePromise, createCancelablePromise, Delayer, raceTimeout } from '../../../../base/common/async.js';
+import { CancelablePromise, createCancelablePromise, Delayer, raceTimeout, RunOnceScheduler, TimeoutTimer } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Color } from '../../../../base/common/color.js';
 import { fromNow } from '../../../../base/common/date.js';
@@ -287,6 +287,14 @@ export class SettingsEditor2 extends EditorPane {
 	private uaClientSettingsView = false;
 	private readonly _onDidChangeSizeConstraints = this._register(new Emitter<void>());
 	override readonly onDidChangeSizeConstraints = this._onDidChangeSizeConstraints.event;
+	private readonly _visibilityTimer = this._register(new TimeoutTimer());
+	private readonly _clickSettingFocusTimer = this._register(new TimeoutTimer());
+	private readonly _scrollSyncScheduler = this._register(new RunOnceScheduler(() => {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.updateTreeScrollSync();
+	}, 0));
 	private headerContainer!: HTMLElement;
 	private searchContainer: HTMLElement | null = null;
 	private bodyContainer!: HTMLElement;
@@ -444,7 +452,7 @@ export class SettingsEditor2 extends EditorPane {
 				this.onConfigUpdate(undefined, true, true);
 			}
 			if (e.source !== ConfigurationTarget.DEFAULT) {
-				this.onConfigUpdate(e.affectedKeys).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.onConfigUpdate(e.affectedKeys).catch(onUnexpectedError);
 			}
 		}));
 
@@ -474,10 +482,10 @@ export class SettingsEditor2 extends EditorPane {
 		}));
 
 		this._register(extensionManagementService.onDidInstallExtensions(() => {
-			this.refreshInstalledExtensionsList().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.refreshInstalledExtensionsList().catch(onUnexpectedError);
 		}));
 		this._register(extensionManagementService.onDidUninstallExtension(() => {
-			this.refreshInstalledExtensionsList().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.refreshInstalledExtensionsList().catch(onUnexpectedError);
 		}));
 
 		this.modelDisposables = this._register(new DisposableStore());
@@ -491,7 +499,7 @@ export class SettingsEditor2 extends EditorPane {
 			this.dismissedExtensionSettings = this.storageService
 				.get(this.DISMISSED_EXTENSION_SETTINGS_STORAGE_KEY, StorageScope.PROFILE, '')
 				.split(this.DISMISSED_EXTENSION_SETTINGS_DELIMITER);
-			this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.onConfigUpdate(undefined, true).catch(onUnexpectedError);
 		});
 	}
 
@@ -645,7 +653,7 @@ export class SettingsEditor2 extends EditorPane {
 		this.modelDisposables.clear();
 		this.modelDisposables.add(model.onDidChangeGroups(() => {
 			this.updatedConfigSchemaDelayer.trigger(() => {
-				this.onConfigUpdate(undefined, false, true).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.onConfigUpdate(undefined, false, true).catch(onUnexpectedError);
 			});
 		}));
 		this.defaultSettingsEditorModel = model;
@@ -670,7 +678,7 @@ export class SettingsEditor2 extends EditorPane {
 
 			// Init TOC selection
 			this.updateTreeScrollSync();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		await this.refreshInstalledExtensionsList();
 	}
@@ -678,7 +686,7 @@ export class SettingsEditor2 extends EditorPane {
 	private async refreshInstalledExtensionsList(): Promise<void> {
 		const generation = ++this.refreshInstalledExtensionsListGeneration;
 		const installedExtensions = await this.extensionManagementService.getInstalled();
-		if (generation !== this.refreshInstalledExtensionsListGeneration) {
+		if (this._store.isDisposed || generation !== this.refreshInstalledExtensionsListGeneration) {
 			return;
 		}
 		this.installedExtensionIds = installedExtensions
@@ -751,6 +759,10 @@ export class SettingsEditor2 extends EditorPane {
 
 	override dispose(): void {
 		this.flushPendingSettingsEditOnLeave();
+		if (this.rootElement) {
+			DOM.clearNode(this.rootElement);
+			this.rootElement.remove();
+		}
 		super.dispose();
 	}
 
@@ -801,7 +813,10 @@ export class SettingsEditor2 extends EditorPane {
 
 		if (!visible) {
 			// Wait for editor to be removed from DOM #106303
-			setTimeout(() => {
+			this._visibilityTimer.setIfNotSet(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.searchWidget.onHide();
 				this.settingRenderers.cancelSuggesters();
 			}, 0);
@@ -1082,7 +1097,7 @@ export class SettingsEditor2 extends EditorPane {
 		this.flushPendingSettingsEditForContext(this.currentSettingsEditContext());
 
 		// TODO Instead of rebuilding the whole model, refresh and uncache the inspected setting value
-		this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.onConfigUpdate(undefined, true).catch(onUnexpectedError);
 	}
 
 	private onDidDismissExtensionSetting(extensionId: string): void {
@@ -1095,7 +1110,7 @@ export class SettingsEditor2 extends EditorPane {
 			StorageScope.PROFILE,
 			StorageTarget.USER
 		);
-		this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.onConfigUpdate(undefined, true).catch(onUnexpectedError);
 	}
 
 	private onDidClickSetting(evt: ISettingLinkClickEvent, recursed?: boolean): void {
@@ -1134,7 +1149,10 @@ export class SettingsEditor2 extends EditorPane {
 				// We need to shift focus from the setting that contains the link to the setting that's
 				// linked. Clicking on the link sets focus on the setting that contains the link,
 				// which is why we need the setTimeout.
-				setTimeout(() => {
+				this._clickSettingFocusTimer.setIfNotSet(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this.settingsTree.setFocus([targetElement]);
 				}, 50);
 
@@ -1164,7 +1182,7 @@ export class SettingsEditor2 extends EditorPane {
 					return;
 				}
 				this.onDidClickSetting(evt, true);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -1390,11 +1408,9 @@ export class SettingsEditor2 extends EditorPane {
 
 			this.settingsTreeScrollTop = this.settingsTree.scrollTop;
 
-			// setTimeout because calling setChildren on the settingsTree can trigger onDidScroll, so it fires when
+			// RunOnceScheduler because calling setChildren on the settingsTree can trigger onDidScroll, so it fires when
 			// setChildren has called on the settings tree but not the toc tree yet, so their rendered elements are out of sync
-			setTimeout(() => {
-				this.updateTreeScrollSync();
-			}, 0);
+			this._scrollSyncScheduler.schedule();
 		}));
 
 		this._register(this.settingsTree.onDidFocus(() => {
@@ -1686,7 +1702,7 @@ export class SettingsEditor2 extends EditorPane {
 		store.add(scheduledRefreshTracker.onDidBlur(() => {
 			this.scheduledRefreshes.get(key)?.dispose();
 			this.scheduledRefreshes.delete(key);
-			this.onConfigUpdate(new Set([key])).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.onConfigUpdate(new Set([key])).catch(onUnexpectedError);
 		}));
 		this.scheduledRefreshes.set(key, store);
 	}

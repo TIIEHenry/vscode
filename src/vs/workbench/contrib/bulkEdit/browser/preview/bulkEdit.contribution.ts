@@ -73,7 +73,7 @@ class UXState {
 				}
 
 				if (previewEditors.length) {
-					group.closeEditors(previewEditors, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+					group.closeEditors(previewEditors, { preserveFocus: true }).catch(onUnexpectedError);
 				}
 			}
 		}

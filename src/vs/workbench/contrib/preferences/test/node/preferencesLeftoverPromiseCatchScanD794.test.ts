@@ -36,10 +36,15 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -47,13 +52,21 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+function assertWrapped(source: string, call: string, isSingleCatch = false): void {
+	const expectedCatch = isSingleCatch ? singleCatch : doubleCatch;
+	assert.ok(source.includes(`${call}${expectedCatch}`), `missing catch chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${expectedCatch};`), `bare leftover remains: ${call}`);
+	if (isSingleCatch) {
+		assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	} else {
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	}
 }
 
 const clickThenCall = `p.then(() => {
+				if (this._store.isDisposed || generation !== this.searchTriggerGeneration) {
+					return;
+				}
 				this.onDidClickSetting(evt, true);
 			})`;
 const updateThenCall = `.then(() => this.onSettingUpdated(source))`;
@@ -125,11 +138,14 @@ suite('preferences leftover remaining overflowed to services/preferences leftove
 		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
 		const tree = fs.readFileSync(resolveSource(TREE_REL), 'utf8');
 		const contribLegal =
-			countIncludes(settings, `${clickThenCall}${doubleCatch}`) +
-			countIncludes(renderers, `${updateThenCall}${doubleCatch}`) +
-			countIncludes(contrib, `${registeredThenCall}${doubleCatch}`);
+			countIncludes(settings, `${clickThenCall}${singleCatch}`) +
+			countIncludes(renderers, `${updateThenCall}${singleCatch}`) +
+			countIncludes(contrib, `${registeredThenCall}${singleCatch}`);
 		assert.ok(contribLegal < 4, `expected preferences legal leftover <4, got ${contribLegal}`);
 		assert.strictEqual(contribLegal, 3);
+		assert.strictEqual(countDoubleChains(settings), 0);
+		assert.strictEqual(countDoubleChains(renderers), 0);
+		assert.strictEqual(countDoubleChains(contrib), 0);
 		assert.ok(tree.includes('this._openerService.open(content, { allowCommands: true }).catch(onUnexpectedError);'));
 		assert.ok(tree.includes('this._openerService.open(content).catch(onUnexpectedError);'));
 		assert.ok(!tree.includes(`this._openerService.open(content, { allowCommands: true })${doubleCatch}`));
@@ -142,13 +158,18 @@ suite('preferences leftover remaining overflowed to services/preferences leftove
 		for (const [rel, call, count] of d794Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const isContrib = rel === SETTINGS_REL || rel === RENDERERS_REL || rel === CONTRIB_REL;
+			const expectedCatch = isContrib ? singleCatch : doubleCatch;
+			const wrapped = countIncludes(source, `${call}${expectedCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
+			assertWrapped(source, call, isContrib);
 			sites += count;
 		}
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
+		assert.strictEqual(countDoubleChains(seen.get(SETTINGS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(RENDERERS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(CONTRIB_REL) ?? ''), 0);
 	});
 
 	test('preferences leftover click then / updatePreference then / whenInstalledExtensionsRegistered then are Promise double-chain', () => {
@@ -163,11 +184,11 @@ suite('preferences leftover remaining overflowed to services/preferences leftove
 		assert.ok(settings.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(renderers.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(contrib.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(settings, clickThenCall);
-		assertWrapped(renderers, updateThenCall);
-		assertWrapped(contrib, registeredThenCall);
+		assertWrapped(settings, clickThenCall, true);
+		assertWrapped(renderers, updateThenCall, true);
+		assertWrapped(contrib, registeredThenCall, true);
 		assert.ok(settings.includes(`this.onConfigUpdate(undefined, true).then(() => {`));
-		assert.ok(settings.includes(`})${doubleCatch};`));
+		assert.ok(settings.includes(`})${singleCatch};`));
 		assert.ok(settings.includes('this.onConfigUpdate(undefined, true, true);'));
 		assert.ok(!settings.includes(`this.onConfigUpdate(undefined, true, true)${doubleCatch}`));
 	});
@@ -211,7 +232,8 @@ suite('preferences leftover remaining overflowed to services/preferences leftove
 		assert.ok(!tree.includes(`this._openerService.open(content, { allowCommands: true })${doubleCatch}`));
 		assert.ok(!tree.includes(`this._openerService.open(content)${doubleCatch}`));
 
-		assert.ok(keybindingsContrib.includes('this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(keybindingsContrib.includes('this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError);'));
+		assert.ok(!keybindingsContrib.includes(`this._defineWidget.start().then(keybinding => this._onAccepted(keybinding))${doubleCatch};`));
 		assert.ok(settings.includes('return this.doAiSearch(query, token).then((results) => {'));
 		assert.ok(!settings.includes(`return this.doAiSearch(query, token).then((results) => {}${doubleCatch}`));
 		assert.ok(settings.includes('return this.configurationService.updateValue(key, value, overrides, configurationTarget, { handleDirtyFile: \'save\' })'));

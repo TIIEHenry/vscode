@@ -20,7 +20,7 @@ import { colorThemeSchemaId } from '../../../services/themes/common/colorThemeSc
 import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IQuickInputButton, IQuickInputService, IQuickPick, IQuickPickItem, QuickInputButtonLocation, QuickPickInput } from '../../../../platform/quickinput/common/quickInput.js';
 import { DEFAULT_PRODUCT_ICON_THEME_ID, ProductIconThemeData } from '../../../services/themes/browser/productIconThemeData.js';
-import { ThrottledDelayer } from '../../../../base/common/async.js';
+import { ThrottledDelayer, TimeoutTimer } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
@@ -329,19 +329,16 @@ class InstalledThemesPicker {
 			}
 		}
 
-		let selectThemeTimeout: number | undefined;
+		const selectThemeTimer = new TimeoutTimer();
 
 		const selectTheme = (theme: IWorkbenchTheme | undefined, applyTheme: boolean) => {
-			if (selectThemeTimeout) {
-				clearTimeout(selectThemeTimeout);
-			}
-			selectThemeTimeout = mainWindow.setTimeout(() => {
-				selectThemeTimeout = undefined;
+			selectThemeTimer.cancel();
+			selectThemeTimer.setIfNotSet(() => {
 				const newTheme = (theme ?? currentTheme) as IWorkbenchTheme;
 				this.setTheme(newTheme, applyTheme ? 'auto' : 'preview').then(undefined,
 					err => {
 						onUnexpectedError(err);
-						this.setTheme(currentTheme, undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.setTheme(currentTheme, undefined).catch(onUnexpectedError);
 					}
 				);
 			}, applyTheme ? 0 : 200);
@@ -408,6 +405,7 @@ class InstalledThemesPicker {
 		};
 		await pickInstalledThemes(currentTheme.id);
 
+		selectThemeTimer.dispose();
 		marketplaceThemePicker?.dispose();
 
 	}
