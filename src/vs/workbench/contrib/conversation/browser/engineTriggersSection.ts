@@ -12,7 +12,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -50,6 +50,7 @@ import { writeStatus } from './connectionPreferencesPane.js';
 import type { ConnectionStatusTone } from './connectionPreferencesPaneLabels.js';
 
 const $ = DOM.$;
+const dom = DOM;
 
 /**
  * Button writes these inline. Leaving them unset lets the toolbar class rules
@@ -153,6 +154,8 @@ export class EngineTriggersSection extends Disposable {
 	private readonly enabledStatus: HTMLElement;
 	private readonly deleteStatus: HTMLElement;
 	private readonly upsertStatus: HTMLElement;
+
+	readonly listDisposables = this._register(new DisposableStore());
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -427,6 +430,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private clearListPresentation(): void {
+		this.listDisposables.clear();
 		this.triggers = [];
 		this.setTriggerCount(0);
 		++this._setEnabledGeneration;
@@ -437,6 +441,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private paintList(): void {
+		this.listDisposables.clear();
 		this.setTriggerCount(this.triggers.length);
 		++this._setEnabledGeneration;
 		this.selectedTrigger = undefined;
@@ -462,8 +467,8 @@ export class EngineTriggersSection extends Disposable {
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
 			row.textContent = formatEngineTriggerListLabel(trigger);
-			row.addEventListener('click', () => this.selectTrigger(trigger));
-			row.addEventListener('keydown', event => this.onTriggerRowKeyDown(event, trigger));
+			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => this.selectTrigger(trigger)));
+			this.listDisposables.add(dom.addDisposableListener(row, 'keydown', event => this.onTriggerRowKeyDown(event, trigger)));
 		}
 	}
 

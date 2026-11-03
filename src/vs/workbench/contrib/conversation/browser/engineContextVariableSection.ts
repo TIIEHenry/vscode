@@ -10,7 +10,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -36,6 +36,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
+const dom = DOM;
 
 /**
  * Engine Preferences Context Variables — honest List + Read. Connected
@@ -57,6 +58,8 @@ export class EngineContextVariableSection extends Disposable {
 	private readonly listHost: HTMLElement;
 	private readonly readButton: Button;
 	private readonly readStatus: HTMLElement;
+
+	readonly listDisposables = this._register(new DisposableStore());
 
 	private sectionActive = false;
 	private renderGeneration = 0;
@@ -246,6 +249,7 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private clearListPresentation(): void {
+		this.listDisposables.clear();
 		this.rows = [];
 		this.setRowCount(0);
 		this.selectedRow = undefined;
@@ -255,6 +259,7 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private paintList(): void {
+		this.listDisposables.clear();
 		this.setRowCount(this.rows.length);
 		this.selectedRow = undefined;
 		DOM.clearNode(this.listHost);
@@ -279,8 +284,8 @@ export class EngineContextVariableSection extends Disposable {
 			item.tabIndex = 0;
 			item.setAttribute('aria-selected', 'false');
 			item.textContent = formatEngineContextVariableListLabel(row.source, row.entry);
-			item.addEventListener('click', () => this.selectContextRow(row));
-			item.addEventListener('keydown', event => this.onContextRowKeyDown(event, row));
+			this.listDisposables.add(dom.addDisposableListener(item, 'click', () => this.selectContextRow(row)));
+			this.listDisposables.add(dom.addDisposableListener(item, 'keydown', event => this.onContextRowKeyDown(event, row)));
 		}
 	}
 

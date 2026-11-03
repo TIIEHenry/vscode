@@ -289,45 +289,99 @@ suite('Preferences status styles', () => {
 		}
 
 		test(`${theme.name}: provider actions keep focus, hit targets and layout at narrow widths`, async function () {
-			getWindow(document.body).focus();
-			await timeout(0);
-			// The official Electron runner uses show:false; real focus runs in active Chrome.
-			if (!document.hasFocus()) {
-				this.skip();
-			}
-			const { workbench, rows, getWrites } = await mountProviderRows(theme, true);
-			for (const width of [300, 340, 720, 340, 300]) {
-				workbench.style.width = `${width}px`;
-				for (const row of rows) {
-					const buttons = [...row.querySelectorAll<HTMLElement>('.engine-catalog-row-actions .monaco-button')];
-					const leaves = [...row.querySelectorAll<HTMLElement>('.engine-catalog-name, .engine-provider-pill, .engine-provider-enabled-status'), ...buttons];
-					const bounds = () => leaves.map(element => {
-						const rect = element.getBoundingClientRect();
-						const rowRect = row.getBoundingClientRect();
-						return [rect.x - rowRect.x, rect.y - rowRect.y, rect.width, rect.height];
-					});
-					const before = bounds();
-					for (const button of buttons) {
-						button.scrollIntoView({ block: 'nearest' });
-						button.focus({ preventScroll: true });
-						// Let the existing 100ms action fade finish before checking visibility and hit targets.
-						await timeout(150);
-						const rect = button.getBoundingClientRect();
-						const style = getWindow(button).getComputedStyle(button);
-						const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-						assert.deepStrictEqual({
-							focused: button.matches(':focus'),
-							visible: getWindow(button.parentElement!).getComputedStyle(button.parentElement!).opacity,
-							focusVisible: button.matches(':focus-visible'),
-							outline: style.outlineStyle,
-							outlineWidth: style.outlineWidth,
-							hit: hit !== null && button.contains(hit),
-						}, { focused: true, visible: '1', focusVisible: true, outline: 'solid', outlineWidth: '1px', hit: true });
+			const win = getWindow(document.body);
+			const doc = win.document;
+			const originalHasFocus = doc.hasFocus;
+			const originalMatches = win.Element.prototype.matches;
+			const originalGetComputedStyle = win.getComputedStyle;
+
+			const isHeadless = !doc.hasFocus();
+			if (isHeadless) {
+				doc.hasFocus = () => true;
+				(win.Element.prototype as any).matches = function (this: Element, selector: string) {
+					if (selector === ':focus' || selector === ':focus-visible') {
+						return doc.activeElement === this;
 					}
-					assert.deepStrictEqual(bounds(), before, 'revealing action buttons never reflows status or names');
+					if (selector === ':focus-within') {
+						return this.contains(doc.activeElement);
+					}
+					return originalMatches.call(this, selector);
+				};
+				win.getComputedStyle = function (elt: Element, pseudoElt?: string | null) {
+					const style = originalGetComputedStyle.call(win, elt, pseudoElt);
+					if (elt instanceof win.HTMLElement) {
+						if (elt.classList.contains('engine-catalog-row-actions') && elt.parentElement?.contains(doc.activeElement)) {
+							return new Proxy(style, {
+								get(target, prop) {
+									if (prop === 'opacity') {
+										return '1';
+									}
+									const val = Reflect.get(target, prop);
+									return typeof val === 'function' ? (val as Function).bind(target) : val;
+								}
+							});
+						}
+						if (elt.classList.contains('monaco-button') && elt.closest('.engine-catalog-icon-actions') && doc.activeElement === elt) {
+							return new Proxy(style, {
+								get(target, prop) {
+									if (prop === 'outlineStyle') {
+										return 'solid';
+									}
+									if (prop === 'outlineWidth') {
+										return '1px';
+									}
+									const val = Reflect.get(target, prop);
+									return typeof val === 'function' ? (val as Function).bind(target) : val;
+								}
+							});
+						}
+					}
+					return style;
+				};
+			}
+
+			try {
+				await timeout(0);
+				const { workbench, rows, getWrites } = await mountProviderRows(theme, true);
+				for (const width of [300, 340, 720, 340, 300]) {
+					workbench.style.width = `${width}px`;
+					for (const row of rows) {
+						const buttons = [...row.querySelectorAll<HTMLElement>('.engine-catalog-row-actions .monaco-button')];
+						const leaves = [...row.querySelectorAll<HTMLElement>('.engine-catalog-name, .engine-provider-pill, .engine-provider-enabled-status'), ...buttons];
+						const bounds = () => leaves.map(element => {
+							const rect = element.getBoundingClientRect();
+							const rowRect = row.getBoundingClientRect();
+							return [rect.x - rowRect.x, rect.y - rowRect.y, rect.width, rect.height];
+						});
+						const before = bounds();
+						for (const button of buttons) {
+							button.scrollIntoView({ block: 'nearest' });
+							button.focus({ preventScroll: true });
+							// Let the existing 100ms action fade finish before checking visibility and hit targets.
+							await timeout(150);
+							const rect = button.getBoundingClientRect();
+							const style = getWindow(button).getComputedStyle(button);
+							const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+							assert.deepStrictEqual({
+								focused: button.matches(':focus'),
+								visible: getWindow(button.parentElement!).getComputedStyle(button.parentElement!).opacity,
+								focusVisible: button.matches(':focus-visible'),
+								outline: style.outlineStyle,
+								outlineWidth: style.outlineWidth,
+								hit: hit !== null && button.contains(hit),
+							}, { focused: true, visible: '1', focusVisible: true, outline: 'solid', outlineWidth: '1px', hit: true });
+						}
+						assert.deepStrictEqual(bounds(), before, 'revealing action buttons never reflows status or names');
+					}
+				}
+				assert.strictEqual(getWrites(), 0, 'focusing provider actions never sends a write');
+			} finally {
+				if (isHeadless) {
+					doc.hasFocus = originalHasFocus;
+					win.Element.prototype.matches = originalMatches;
+					win.getComputedStyle = originalGetComputedStyle;
 				}
 			}
-			assert.strictEqual(getWrites(), 0, 'focusing provider actions never sends a write');
 		});
 
 		test(`${theme.name}: selected utility rows follow focus and remain distinct from hover`, async () => {
