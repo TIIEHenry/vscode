@@ -4,17 +4,18 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WORKSPACE="${GITHUB_WORKSPACE:-$REPO_ROOT}"
+WORKSPACE="${BUILD_ARTIFACTSTAGINGDIRECTORY:-${GITHUB_WORKSPACE:-$REPO_ROOT}}"
 LIST_FILE="$REPO_ROOT/dev/progress/test-baseline-failures.txt"
 
 declare -A RESULT_XML=(
 	[conversation]="linux-x64-conversation-results.xml"
 	[sources]="linux-x64-sources-results.xml"
+	[sourcesNode]="linux-x64-sourcesnode-results.xml"
 	[universeAgent]="linux-x64-universeagent-results.xml"
 	[universeAgentNode]="linux-x64-universeagentnode-results.xml"
 )
 
-DOMAINS=(conversation sources universeAgent universeAgentNode)
+DOMAINS=(conversation sources sourcesNode universeAgent universeAgentNode)
 
 missing=()
 for domain in "${DOMAINS[@]}"; do
@@ -48,7 +49,7 @@ import xml.etree.ElementTree as ET
 
 workspace = os.environ["WORKSPACE"]
 list_file = os.environ["LIST_FILE"]
-domains = ("conversation", "sources", "universeAgent", "universeAgentNode")
+domains = ("conversation", "sources", "sourcesNode", "universeAgent", "universeAgentNode")
 xml_paths = {d: os.environ[f"XML_{d}"] for d in domains}
 
 min_cases: dict[str, int] = {}
@@ -90,6 +91,12 @@ for domain in domains:
             skipped_count += 1
         if tc.find("failure") is not None or tc.find("error") is not None:
             actual_failures.add(key)
+
+    root_skipped = root.get("skipped", "0")
+    if re.fullmatch(r"[0-9]+", root_skipped) is None:
+        print(f"error: {domain} has invalid root skipped={root_skipped!r}", file=sys.stderr)
+        sys.exit(1)
+    skipped_count = max(skipped_count, int(root_skipped))
 
     if domain in min_cases and case_count < min_cases[domain]:
         print(

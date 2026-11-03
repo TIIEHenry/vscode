@@ -3,8 +3,8 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-28
-summary: "单测、集成测与默认编辑器产品壳入口；焦点样式需真实聚焦浏览器，隐藏 Electron 的 pending 不算通过，Electron 取消费须显式业务断言；Node 单测按文件选择；何时 typecheck、valid-layers-check。"
+updated: 2026-11-02
+summary: "官方单测与五域自定义入口；Sources pending严格读取根汇总，私有短TMP避免Unix socket路径过长；焦点与真实产品窗口分别验收。"
 ---
 
 # 测试与校验
@@ -55,6 +55,50 @@ Node runner的文件选择以[`test/unit/node/index.js`](../../../test/unit/node
 Electron runner的[`renderer.html`](../../../test/unit/electron/renderer.html)和[`renderer.js`](../../../test/unit/electron/renderer.js)会忽略name为`Canceled`的未处理异常。因此“取消已消费”的回归须直接await动作正常resolve，并核请求次数、正文/按钮/反馈等业务状态；DOM的void动作增加局部无泄漏观察或等效的明确收尾证据。`Errors`元校验通过不能单独证明取消已被调用方处理，也不应为此修改全局runner。
 
 跑单测前若只要新鲜输出文件，用 `npm run transpile-client`，不要先 `compile` 再仪式性 typecheck。
+
+### 本地自定义五域与严格报告比较
+
+[`scripts/run-unit-custom.sh`](../../../scripts/run-unit-custom.sh) 是五域完整入口；它顺序调用官方 runner，最后由 [`scripts/check-test-baseline.sh`](../../../scripts/check-test-baseline.sh) 对照 [`test-baseline-failures.txt`](../../../dev/progress/test-baseline-failures.txt)。保持以下路由，不能用单个 Electron glob 代替 Sources 两种环境的并集：
+
+| 域 | 官方选择范围 |
+|:---|:---|
+| `conversation` | Electron 的 `contrib/conversation/test` 完整 glob |
+| `sources` | Electron 的 `contrib/sources/test/browser` 完整 glob |
+| `sourcesNode` | Node 的 `sourcesLeftoverCatchScan.test.ts`、`sourcesWiringScan.test.ts` 两个 `--run` |
+| `universeAgent` | 按现有收集器保留可在 Electron 加载的全部正式文件 |
+| `universeAgentNode` | 现有 17 份 Electron 不可加载 `test/node` 文件改在官方 Node runner 运行；不从门禁中丢弃 |
+
+Sources 新增文件必须进入可识别的 browser 路由或两份明确 Node 文件，否则入口直接拒绝。两个原 UA `--print-*` 分支只打印，不清报告或启动测试。实际入口按官方 reporter 相同优先级选择结果根：`BUILD_ARTIFACTSTAGINGDIRECTORY` → `GITHUB_WORKSPACE` → 仓根；仅清理该根 `test-results/` 内五个精确域文件，清理失败即停，避免复用上轮绿色 XML。Sources Node runner 非零退出在最后比较之后仍传播，绿色 XML 不能掩盖执行失败。
+
+五个域都按同一严格 skipped 规则处理：有效值为 `max(testcase 子节点 skipped 数, 根 skipped)`，根缺省零，存在时须完整匹配 ASCII 非负整数字符串，否则报域名并失败关闭。不累加嵌套套件，不把根 tests 数补作 testcase 数；原 min_cases、max_skipped、失败差集与 stale 名单不变。Sources 的既有 89/0、Sources Node 的59/0及其他域原阈值均保持。官方 reporter可能只在根记录 pending，不能把子节点计0当焦点通过。
+
+比较器按现有域顺序 fail-fast：2026-11-02 未改五份正式 XML 中 Conversation根skipped5/child0（1bench+4focus pending）超过原上限1，新五域规则首先拒绝它；旧只对Sources补根的版本先拒绝Sources5>0。未执行到的后三域不能称比较器通过，Sources原件根5/子0与零上限及独立合成Sources5拒绝须分别记录。此工具规则纠正报告完整性，不修复这些pending，也不提升真实焦点或产品验收。当前工具候选的23方法/192实际subtest与真实新旧报告重放见[报告汇总方案实际记录](../../../dev/plans/test-result-skipped-summary.md#10-e-工具候选实际验证2026-11-02)；在C原基线只处理Sources两域的历史行为不回写成已执行五域比较。
+
+在已有依赖和当前私有编译产物的工作树运行；使用 Node 24.18.0。Linux 的 `localEngineDiscovery` 用例创建 Unix socket，完整 socket 路径必须短于 108 字节。私有 TMP 用 `/sdd/tmp/sc-e-*` 这种短目录（权限 0700），不要把长工作树路径下的 `.build/task-tmp` 当 socket 临时根。XDG、缓存和报告仍放本工作树的私有 `.build`；`out` 也必须是本轮冻结输入对应的本工作树产物。以下示例创建全新报告根，编译与其他产品测试须由本聊天唯一验证者串行执行：
+
+```bash
+rtk proxy bash <<'SH'
+set -eu
+umask 077
+export PATH="/home/clarence/.nvm/versions/node/v24.18.0/bin:$PATH"
+export TMPDIR="$(mktemp -d /sdd/tmp/sc-e-XXXXXXXX)"
+task_artifacts="$(mktemp -d "$PWD/.build/unit-custom-XXXXXXXX")"
+export XDG_CACHE_HOME="$task_artifacts/cache"
+export XDG_CONFIG_HOME="$task_artifacts/config"
+export XDG_DATA_HOME="$task_artifacts/data"
+export npm_config_cache="$XDG_CACHE_HOME/npm"
+export BUILD_ARTIFACTSTAGINGDIRECTORY="$task_artifacts/reports"
+export GITHUB_WORKSPACE="$PWD"
+export VSCODE_SKIP_PRELAUNCH=1 NODE_DISABLE_COMPILE_CACHE=1 PYTHONDONTWRITEBYTECODE=1
+unset NODE_COMPILE_CACHE
+mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$BUILD_ARTIFACTSTAGINGDIRECTORY"
+bash -n scripts/run-unit-custom.sh scripts/check-test-baseline.sh
+python3 -m unittest discover -s scripts/tests -p test_unit_custom_sources.py -v
+xvfb-run -a ./scripts/run-unit-custom.sh
+SH
+```
+
+脚本回归中的 runner stub 仅证明入口/比较器控制分支；正式五域日志、XML、退出码和输入/产物摘要另存，分域通过不等于完整门禁通过。2026-11-02 的真实短 TMP 全入口结果、旧三项合同失配关闭、23 项脚本回归及继承 lint 诊断见 [Sources 方案的实际凭据](../../../dev/plans/sources-regression-contract-alignment.md#11-第五轮实际凭据与收口边界2026-11-02)，不把历史运行写成当前工作树的新通过。
 
 ### 单次隔离诊断与恢复证据
 

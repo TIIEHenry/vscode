@@ -17,6 +17,8 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [五域测试报告 skipped 汇总完整性](test-result-skipped-summary.md) | `draft` | 统一五域测试报告的严格 skipped 汇总，支持根 skipped 属性与子 testcase skipped 的 max 解析，门禁在超限时严格失败关闭。 |
+| [Sources 已登记回归与可执行合同对齐](sources-regression-contract-alignment.md) | `draft` | 对齐 Sources 回归测试可执行合同，恢复双环境严格门禁与 AST 扫描。 |
 | [Agent Profile 内容有效性与无损编辑](profile-content-validity.md) | `accepted` | 方案C0/I0/M0；A候选15源码/自动层通过，Node774同JS复用、browser526、私有精确新/旧对照及Node24双目标0；待专题Gate/集成/真实门，D1398hold/D1395open，整体不升implemented。 |
 | [Engine catalog 19个写入口的expectedOwner闭环](engine-catalog-mutation-ownership.md) | `implemented` | 19写入口原始归属已获最终专题CommitGate PASS C0/I0/M0，D1397仅本地代码/自动层closed；13P1族与6结构mock精确旧红新绿，D1398仍全局push hold。 |
 | [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `implemented` | D1394本地工具代码/自动层closed；18真Git矩阵与最终OV/原hooks通过，已合本波组合；D1397本地owner专题已签收，D1398另有全局发布硬门。 |
