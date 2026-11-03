@@ -200,8 +200,8 @@ suite('sessions/contrib leftover Promise fire-and-forget catch scan (D699)', () 
 		assert.ok(telemetry.includes('void this._sessionsTasksService.getAllTasks(session).then(tasks => {'));
 		assert.ok(telemetry.includes('void this._getOrFetchWorkspaceFileCount(session.sessionId, workspace).then(workspaceFileCount => {'));
 		assert.ok(telemetry.includes('void this._getSessionActionPayload(session).then(payload => {'));
-		assert.ok(!telemetry.includes('}).catch(onUnexpectedError);'));
-		assert.ok(telemetry.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(telemetry.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!telemetry.includes(doubleCatch));
 		assert.ok(workspacePicker.includes(`void this._sessionWorkspaceFallback.findWorkspace().then(restored => {`));
 		assert.ok(workspacePicker.includes(`})${doubleCatch};`));
 		for (const source of [layout, chat, picker, terminal, sessionsView, tree, attachments]) {

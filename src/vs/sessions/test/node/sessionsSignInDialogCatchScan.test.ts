@@ -27,31 +27,29 @@ suite('SessionsSignInDialog leftover fire-and-forget catch scan (D578/D586)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('constructor show void double-catch onUnexpectedError', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('constructor show void catches onUnexpectedError', () => {
 		const source = fs.readFileSync(sessionsSignInDialogSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this.show()';
-		const doubleCall = `${call}${doubleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
 		assert.ok(source.includes('async show('));
 		assert.strictEqual((source.match(/void this\.show\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('footer executeCommand RETURN_TO_VSCODE_EDITOR void double-catch onUnexpectedError (D586)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('footer executeCommand RETURN_TO_VSCODE_EDITOR void catches onUnexpectedError (D586)', () => {
 		const source = fs.readFileSync(sessionsSignInDialogSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void commandService.executeCommand<void>(RETURN_TO_VSCODE_EDITOR_COMMAND_ID)';
-		const doubleCall = `${call}${doubleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void commandService\.executeCommand<void>\(RETURN_TO_VSCODE_EDITOR_COMMAND_ID\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-		assert.ok(source.includes(`void this.show()${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.ok(source.includes(`void this.show()${singleCatch};`));
 	});
 });

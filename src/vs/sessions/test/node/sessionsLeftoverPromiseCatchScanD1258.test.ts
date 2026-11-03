@@ -30,6 +30,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -45,9 +46,8 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const leftoverProcessDialogsCall = 'this.processDialogs()';
@@ -91,13 +91,14 @@ suite('leftover remaining unused remaining remaining unused sessions leftover re
 		}
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused remaining remaining unused stayed on sessions this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise catch sites', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d1258Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const doubleCount = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = doubleCount > 0 ? doubleCount : countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -105,13 +106,13 @@ suite('leftover remaining unused remaining remaining unused sessions leftover re
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(DIALOG_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(MOBILE_TITLE_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(DIALOG_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(MOBILE_TITLE_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(ACCOUNT_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(RECENT_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(RECENT_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(ACTIONS_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(TITLEBAR_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(DIFF_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(TITLEBAR_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(DIFF_REL) ?? ''), 0);
 	});
 
 	test('sessions leftover remaining unused remaining remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -158,10 +159,13 @@ suite('leftover remaining unused remaining remaining unused sessions leftover re
 		assert.ok(!mobileTitle.includes(`() => this.refreshAccount()${doubleCatch}`));
 		assert.ok(account.includes('() => this.refreshAccount()'));
 		assert.ok(!account.includes(`() => this.refreshAccount()${doubleCatch}`));
-		assert.ok(recent.includes('() => this._refreshVSCodeRecentWorkspaces()'));
+		assert.ok(recent.includes('this._refreshVSCodeRecentWorkspaces()'));
 		assert.ok(!recent.includes(`() => this._refreshVSCodeRecentWorkspaces()${doubleCatch}`));
 		assert.ok(actions.includes('() => this.updateTitleBarTreatment()'));
 		assert.ok(!actions.includes(`() => this.updateTitleBarTreatment()${doubleCatch}`));
+		for (const source of [dialog, mobileTitle, recent, titlebar, diff]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 		for (const source of [dialog, mobileTitle, account, recent, actions, titlebar, diff]) {
 			assert.ok(!source.includes('D1258'));
 			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));

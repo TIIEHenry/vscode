@@ -27,9 +27,9 @@ suite('ChatGroupsView leftover fire-and-forget catch scan (D631)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('seven leftover Promise call sites double-catch onUnexpectedError (D631)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('seven leftover Promise call sites catch onUnexpectedError (D631)', () => {
 		const source = fs.readFileSync(chatGroupsViewSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const calls = [
 			'this._onChatDrop(groupId, zone, data)',
@@ -41,11 +41,10 @@ suite('ChatGroupsView leftover fire-and-forget catch scan (D631)', () => {
 			'this._splitChatIntoNewGroup(URI.parse(resource), source, source, direction)',
 		];
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 7);
+		assert.ok(!source.includes(doubleCatch));
 		for (const call of calls) {
-			const doubleCall = `${call}${doubleCatch};`;
-			assert.strictEqual((source.split(doubleCall).length - 1), 1, `expected one double-chain ${call}`);
-			assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+			const singleCall = `${call}${singleCatch};`;
+			assert.strictEqual((source.split(singleCall).length - 1), 1, `expected one single-catch ${call}`);
 		}
 		assert.ok(!source.includes('this._onChatDrop(groupId, zone, data);'));
 		assert.ok(!source.includes('this._sessionsService.openChat(this._session!, resource);'));

@@ -27,16 +27,15 @@ suite('SessionHeader leftover fire-and-forget catch scan (D632)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('inline renameSession double-catch onUnexpectedError (D632)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('inline renameSession catch onUnexpectedError (D632)', () => {
 		const source = fs.readFileSync(sessionHeaderSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = '.renameSession(session, newTitle)';
-		const doubleCall = `${call}\n\t\t\t\t\t${doubleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/\.renameSession\(session, newTitle\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
-		assert.ok(!source.includes(`${call}\n\t\t\t\t\t.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${call}\n\t\t\t\t\t${singleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes(`${call};`));
 	});
 });

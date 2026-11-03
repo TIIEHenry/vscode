@@ -29,14 +29,13 @@ suite('SessionsTelemetry leftover fire-and-forget catch scan (D645)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('telemetry then leftover single-chain gone; double-chain count matches (D645)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('telemetry then single-catch count matches; double-chain gone (D645)', () => {
 		const source = fs.readFileSync(sessionsTelemetrySourcePath(), 'utf8');
 		const leftoverSingle = '}).catch(onUnexpectedError);';
 		const leftoverDouble = '}).catch(onUnexpectedError).catch(onUnexpectedError);';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(!source.includes(leftoverSingle), 'leftover }).catch(onUnexpectedError); still in sessionsTelemetry.contribution.ts');
-		assert.ok(source.includes(leftoverDouble));
-		assert.strictEqual((source.split(leftoverDouble).length - 1), PREVIOUS_LEFTOVER_COUNT);
+		assert.ok(source.includes(leftoverSingle), 'single-catch }).catch(onUnexpectedError); missing in sessionsTelemetry.contribution.ts');
+		assert.ok(!source.includes(leftoverDouble), 'double-catch still in sessionsTelemetry.contribution.ts');
+		assert.strictEqual((source.split(leftoverSingle).length - 1), PREVIOUS_LEFTOVER_COUNT);
 	});
 });

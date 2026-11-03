@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/sessionsSetUp.css';
+import * as dom from '../../base/browser/dom.js';
 import { Button } from '../../base/browser/ui/button/button.js';
 import { Dialog, DialogContentsAlignment } from '../../base/browser/ui/dialog/dialog.js';
 import { Codicon } from '../../base/common/codicons.js';
@@ -34,7 +35,7 @@ export function createSessionsSignInDialogOptions(
 			footer,
 			localize('sessions.returnToVSCodeEditor', "Return to VS Code Editor"),
 			() => {
-				void commandService.executeCommand<void>(RETURN_TO_VSCODE_EDITOR_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+				void commandService.executeCommand<void>(RETURN_TO_VSCODE_EDITOR_COMMAND_ID).catch(onUnexpectedError);
 			}
 		) : undefined,
 		onDidDismissDialog: allowContinueWithoutSignIn ? onContinueWithoutSignIn : undefined,
@@ -78,18 +79,19 @@ export class SessionsSigningInDialog extends Disposable {
 		activeContainer.classList.add('sessions-signing-in-dialog-visible');
 		this._register(toDisposable(() => activeContainer.classList.remove('sessions-signing-in-dialog-visible')));
 
-		void this.show().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.show().catch(onUnexpectedError);
 	}
 
 	private async show(): Promise<void> {
 		await this.dialog.show();
-		if (!this.isDisposed) {
-			this.cancel();
+		if (this._store.isDisposed || this.isDisposed) {
+			return;
 		}
+		this.cancel();
 	}
 
 	private cancel(): void {
-		if (this.didCancel) {
+		if (this._store.isDisposed || this.isDisposed || this.didCancel) {
 			return;
 		}
 		this.didCancel = true;
@@ -108,5 +110,9 @@ function createDialogAction(container: HTMLElement, label: string, run: () => vo
 	action.element.classList.add('sessions-sign-in-dialog-action');
 	action.label = label;
 	disposables.add(action.onDidClick(run));
+	disposables.add(toDisposable(() => {
+		dom.clearNode(action.element);
+		action.element.remove();
+	}));
 	return disposables;
 }

@@ -34,21 +34,20 @@ suite('NewChatInput leftover fire-and-forget catch scan (D594)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('OTEL status hover executeCommand voids double-catch onUnexpectedError (D594)', () => {
-		// Bare executeCommand voids leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('OTEL status hover executeCommand voids catch onUnexpectedError (D594)', () => {
 		const source = fs.readFileSync(newChatInputSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const openDocs = `void this.commandService.executeCommand('vscode.open', URI.parse(OTEL_DOCS_URL))`;
 		const openSettings = `void this.commandService.executeCommand(OPEN_OTEL_SETTINGS_COMMAND)`;
 		assertImportsOnUnexpectedError(source);
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\('vscode\.open', URI\.parse\(OTEL_DOCS_URL\)\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_OTEL_SETTINGS_COMMAND\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${openDocs}${doubleCatch};`));
-		assert.ok(source.includes(`${openSettings}${doubleCatch};`));
+		assert.ok(source.includes(`${openDocs}${singleCatch};`));
+		assert.ok(source.includes(`${openSettings}${singleCatch};`));
 		assert.ok(!source.includes(`${openDocs};`));
 		assert.ok(!source.includes(`${openSettings};`));
-		assert.ok(!source.includes(`${openDocs}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${openSettings}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.strictEqual((source.match(/this\.hoverService\.hideHover\(true\);/g) ?? []).length, 2);
 	});
 });
@@ -57,21 +56,20 @@ suite('NewChatInput leftover fire-and-forget catch scan (D602)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('toggleDictation voids double-catch onUnexpectedError (D602)', () => {
-		// Bare toggleDictation voids leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('toggleDictation voids catch onUnexpectedError (D602)', () => {
 		const source = fs.readFileSync(newChatInputSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const pillVoid = 'void this.toggleDictation()';
 		const toggleHelper = 'const toggle = () => this.toggleDictation()';
 		assertImportsOnUnexpectedError(source);
 		assert.strictEqual((source.match(/void this\.toggleDictation\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${pillVoid}${doubleCatch};`));
+		assert.ok(source.includes(`${pillVoid}${singleCatch};`));
 		assert.ok(!source.includes(`${pillVoid};`));
-		assert.ok(!source.includes(`${pillVoid}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.strictEqual((source.match(/const toggle = \(\) => this\.toggleDictation\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${toggleHelper}${doubleCatch};`));
+		assert.ok(source.includes(`${toggleHelper}${singleCatch};`));
 		assert.ok(!source.includes(`${toggleHelper};`));
-		assert.ok(!source.includes(`${toggleHelper}.catch(onUnexpectedError);`));
 	});
 });
 
@@ -79,16 +77,16 @@ suite('NewChatInput leftover fire-and-forget catch scan (D610)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('dictation command handler toggleDictation double-catch onUnexpectedError (D610)', () => {
-		// Dropped handler Promise leaks on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('dictation command handler toggleDictation catch onUnexpectedError (D610)', () => {
 		const source = fs.readFileSync(newChatInputSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const handlerCall = 'activeDictationComposer?.toggleDictation()';
 		assertImportsOnUnexpectedError(source);
 		assert.strictEqual((source.match(/activeDictationComposer\?\.toggleDictation\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${handlerCall}?${doubleCatch}`));
+		assert.ok(source.includes(`${handlerCall}?${singleCatch}`));
 		assert.ok(!source.includes('handler: () => activeDictationComposer?.toggleDictation(),'));
-		assert.ok(!source.includes(`${handlerCall}?.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes(`${handlerCall};`));
 	});
 });

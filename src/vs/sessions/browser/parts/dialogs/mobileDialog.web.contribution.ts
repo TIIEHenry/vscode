@@ -43,16 +43,22 @@ export class MobileDialogHandlerContribution extends Disposable implements IWork
 		this.model = (this.dialogService as DialogService).model;
 
 		this._register(this.model.onWillShowDialog(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!this.currentDialog) {
-				this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.processDialogs().catch(onUnexpectedError);
 			}
 		}));
 
-		this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.processDialogs().catch(onUnexpectedError);
 	}
 
 	private async processDialogs(): Promise<void> {
 		while (this.model.dialogs.length) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.currentDialog = this.model.dialogs[0];
 
 			let result: IDialogResult | Error | undefined = undefined;
@@ -72,6 +78,10 @@ export class MobileDialogHandlerContribution extends Disposable implements IWork
 				}
 			} catch (error) {
 				result = error;
+			}
+
+			if (this._store.isDisposed) {
+				return;
 			}
 
 			this.currentDialog.close(result);

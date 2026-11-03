@@ -88,8 +88,13 @@ export class SessionsRecentWorkspacesService extends Disposable implements ISess
 	) {
 		super();
 
-		this._refreshVSCodeRecentWorkspaces().catch(onUnexpectedError).catch(onUnexpectedError);
-		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => this._refreshVSCodeRecentWorkspaces()));
+		this._refreshVSCodeRecentWorkspaces().catch(onUnexpectedError);
+		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			return this._refreshVSCodeRecentWorkspaces();
+		}));
 	}
 
 	getRecentWorkspaces(includeVSCodeRecents = true): IRecentWorkspace[] {

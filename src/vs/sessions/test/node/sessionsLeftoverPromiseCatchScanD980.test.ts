@@ -62,6 +62,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -77,9 +78,8 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const showWelcomeCall = 'this._showWelcome(false)';
@@ -139,13 +139,13 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assert.ok(!projectBar.includes('D980'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on sessions this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise catch sites', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d980Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`) + countIncludes(source, `${call}${doubleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -153,11 +153,11 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SETUP_REL) ?? ''), 10);
-		assert.strictEqual(countDoubleChains(seen.get(PROJECT_BAR_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(SETUP_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(PROJECT_BAR_REL) ?? ''), 0);
 	});
 
-	test('sessions leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('sessions leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + catch', () => {
 		const setup = fs.readFileSync(resolveSource(SETUP_REL), 'utf8');
 		const projectBar = fs.readFileSync(resolveSource(PROJECT_BAR_REL), 'utf8');
 
@@ -173,10 +173,10 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assertWrapped(setup, showAIDisabledCall);
 		assertWrapped(setup, proceedCall);
 		assertWrapped(projectBar, pickAndAddCall);
-		assert.strictEqual(countIncludes(setup, `${showWelcomeCall}${doubleCatch}`), 4);
-		assert.strictEqual(countIncludes(setup, `${showAIDisabledCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(setup, `${proceedCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(projectBar, `${pickAndAddCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(setup, `${showWelcomeCall}${singleCatch}`), 4);
+		assert.strictEqual(countIncludes(setup, `${showAIDisabledCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(setup, `${proceedCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(projectBar, `${pickAndAddCall}${singleCatch}`), 2);
 		assert.ok(!setup.includes('\t\tthis._showWelcome(false);\n'));
 		assert.ok(!setup.includes('\t\t\tthis._showWelcome(false);\n'));
 		assert.ok(!setup.includes('\t\t\t\tthis._showWelcome(false);\n'));
@@ -211,20 +211,22 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assert.ok(setup.includes('await this._proceedWithoutGitHub();'));
 		assert.ok(!setup.includes(`await this._proceedWithoutGitHub()${doubleCatch}`));
 		assert.ok(setup.includes('this.defaultAccountService.getDefaultAccount().then(() => {'));
-		assert.ok(setup.includes('\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(setup.includes('\t\t}).catch(onUnexpectedError);'));
 		assert.ok(!setup.includes('void this._checkWebAuth().finally(() => this._initialSetupFlow = false);'));
-		assert.ok(setup.includes('void this._checkWebAuth()\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError)\n\t\t\t\t.catch(onUnexpectedError);'));
+		assert.ok(setup.includes('void this._checkWebAuth()\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError);'));
 		assert.ok(!setup.includes('void this._watchSignInState().finally(() => this._initialSetupFlow = false);'));
-		assert.ok(setup.includes('void this._watchSignInState()\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError)\n\t\t\t\t.catch(onUnexpectedError);'));
+		assert.ok(setup.includes('void this._watchSignInState()\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError);'));
 		assert.ok(!setup.includes(`this._watchSignInState()${doubleCatch}`));
 		assert.ok(setup.includes(leftoverWatchStmtCall));
 		assert.ok(!setup.includes('void this._showWelcome(true).finally(() => this._initialSetupFlow = false);'));
-		assert.ok(setup.includes('void this._showWelcome(true)\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError)\n\t\t\t\t.catch(onUnexpectedError);'));
+		assert.ok(setup.includes('void this._showWelcome(true)\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError);'));
 		assert.ok(!setup.includes(`this._showWelcome(true)${doubleCatch}`));
 		assert.ok(projectBar.includes(`${leftoverApplySelectedCall};`));
 		assert.ok(!projectBar.includes(`${leftoverApplySelectedCall}${doubleCatch}`));
-		assert.ok(signIn.includes(`${alreadyDoubleShowCall}${doubleCatch}`));
-		assert.ok(newChatInput.includes(`${alreadyDoubleToggleCall}${doubleCatch}`));
+		assert.ok(signIn.includes(`${alreadyDoubleShowCall}${singleCatch}`));
+		assert.ok(!signIn.includes(`${alreadyDoubleShowCall}${doubleCatch}`));
+		assert.ok(newChatInput.includes(`${alreadyDoubleToggleCall}${singleCatch}`));
+		assert.ok(!newChatInput.includes(`${alreadyDoubleToggleCall}${doubleCatch}`));
 
 		for (const source of [setup, projectBar]) {
 			assert.ok(!source.includes('acknowledge('));
@@ -284,11 +286,11 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assert.ok(!themes.includes(`this.trigger(value)${doubleCatch}`));
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`) || compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`) || panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${singleCatch}`) || workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${singleCatch}`) || workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`) || titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
 		assert.ok(chatTip.includes(`${checkPromptCall}${doubleCatch}`));
 		assert.ok(extensionsRecs.includes(doubleCatch));
