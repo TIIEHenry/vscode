@@ -81,6 +81,8 @@ export class SuggestDetailsWidget {
 	}
 
 	dispose(): void {
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
 		this._disposables.dispose();
 		this._renderDisposeable.dispose();
 		this._onDidClose.dispose();
@@ -337,6 +339,8 @@ export class SuggestDetailsOverlay implements IOverlayWidget {
 		this._resizable.dispose();
 		this._disposables.dispose();
 		this.hide();
+		dom.clearNode(this._resizable.domNode);
+		this._resizable.domNode.remove();
 	}
 
 	getId(): string {

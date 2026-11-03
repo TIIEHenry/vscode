@@ -149,7 +149,7 @@ export class ShowDefinitionPreviewHoverAction extends EditorAction {
 				return;
 			}
 			controller.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Keyboard, true);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 

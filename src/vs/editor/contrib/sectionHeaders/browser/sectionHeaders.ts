@@ -149,7 +149,7 @@ export class SectionHeaderDetector extends Disposable implements IEditorContribu
 					return;
 				}
 				this.updateDecorations(sectionHeaders);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	private updateDecorations(sectionHeaders: SectionHeader[]): void {

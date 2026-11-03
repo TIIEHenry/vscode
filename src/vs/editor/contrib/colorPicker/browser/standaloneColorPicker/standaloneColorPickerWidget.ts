@@ -144,6 +144,13 @@ export class StandaloneColorPickerWidget extends Disposable implements IContentW
 		this._editor.focus();
 	}
 
+	override dispose(): void {
+		this._editor.removeContentWidget(this);
+		dom.clearNode(this._body);
+		this._body.remove();
+		super.dispose();
+	}
+
 	public focus(): void {
 		this._standaloneColorPickerFocused.set(true);
 		this._body.focus();

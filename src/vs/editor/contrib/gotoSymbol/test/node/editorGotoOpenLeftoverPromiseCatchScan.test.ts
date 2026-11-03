@@ -47,30 +47,35 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers six leftover Promise double-chain sites', () => {
+	test('this knife covers six leftover Promise sites', () => {
 		const sticky = fs.readFileSync(resolveSource(STICKY_REL), 'utf8');
 		const controller = fs.readFileSync(resolveSource(CONTROLLER_REL), 'utf8');
 		const gotoCmd = fs.readFileSync(resolveSource(GOTO_CMD_REL), 'utf8');
 		const refs = fs.readFileSync(resolveSource(REFS_REL), 'utf8');
 		const gotoErr = fs.readFileSync(resolveSource(GOTO_ERR_REL), 'utf8');
-		const stickyGoto = (sticky.match(/goToDefinitionWithLocation, e, this\._editor, \{ uri: this\._editor\.getModel\(\)\.uri, range: this\._stickyRangeProjectedOnEditor \}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const showList = (controller.match(/this\.showCodeActionList\(actions, this\.toCoords\(newState\.position\), \{ includeDisabledActions, fromLightbulb: false \}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const altAction = (gotoCmd.match(/altAction\.runEditorCommand\(accessor, editor, arg, range\)\.finally\(\(\) => \{\n\t\t\t\t\tSymbolNavigationAction\._activeAlternativeCommands\.delete\(this\.desc\.id\);\n\t\t\t\t\}\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const peek = (gotoCmd.match(/executeCommand\('editor\.action\.goToLocations', resource, position, references, multiple, undefined, true\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const openRef = (refs.match(/\}, this\._editor, sideBySide\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const related = (gotoErr.match(/\}, this\._editor\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const stickyGoto = (sticky.match(/goToDefinitionWithLocation, e, this\._editor, \{ uri: this\._editor\.getModel\(\)\.uri, range: this\._stickyRangeProjectedOnEditor \}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const showList = (controller.match(/this\.showCodeActionList\(actions, this\.toCoords\(newState\.position\), \{ includeDisabledActions, fromLightbulb: false \}\)/g) ?? []).length;
+		const altAction = (gotoCmd.match(/altAction\.runEditorCommand\(accessor, editor, arg, range\)\.finally\(\(\) => \{\n\t\t\t\t\tSymbolNavigationAction\._activeAlternativeCommands\.delete\(this\.desc\.id\);\n\t\t\t\t\}\)\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const peek = (gotoCmd.match(/executeCommand\('editor\.action\.goToLocations', resource, position, references, multiple, undefined, true\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const openRef = (refs.match(/\}, this\._editor, sideBySide\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const related = (gotoErr.match(/\}, this\._editor\)\.catch\(onUnexpectedError\);/g) ?? []).length;
 		assert.strictEqual(stickyGoto + showList + altAction + peek + openRef + related, 6);
+		assert.ok(!sticky.includes(doubleCatch));
+		assert.ok(!gotoCmd.includes(doubleCatch));
+		assert.ok(!refs.includes(doubleCatch));
+		assert.ok(!gotoErr.includes(doubleCatch));
 	});
 
-	test('stickyScroll leftover goToDefinitionWithLocation FOF is Promise double-chain', () => {
+	test('stickyScroll leftover goToDefinitionWithLocation FOF is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(STICKY_REL), 'utf8');
 		const loc = fs.readFileSync(resolveSource(INLAY_LOC_REL), 'utf8');
 		assertPromiseSignature(loc, 'export async function goToDefinitionWithLocation(accessor: ServicesAccessor, event: ClickLinkMouseEvent, editor: IActiveCodeEditor, location: Location) {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const call = 'this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor })';
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('codeAction leftover showCodeActionList FOF is Promise double-chain; awaited sites stay awaited', () => {
@@ -84,7 +89,7 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 		assert.ok(source.includes('return this.showCodeActionList(actions, at, { includeDisabledActions: false, fromLightbulb: false });'));
 	});
 
-	test('gotoSymbol leftover altAction runEditorCommand and peekLocations executeCommand are Promise double-chain; Action2.run bind stays skipped', () => {
+	test('gotoSymbol leftover altAction runEditorCommand and peekLocations executeCommand are Promise single-catch; Action2.run bind stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(GOTO_CMD_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assertPromiseSignature(source, 'override runEditorCommand(accessor: ServicesAccessor, editor: ICodeEditor, arg?: SymbolNavigationAnchor | unknown, range?: Range): Promise<void> {');
@@ -93,16 +98,19 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 		const altCall = `instaService.invokeFunction((accessor) => altAction.runEditorCommand(accessor, editor, arg, range).finally(() => {
 					SymbolNavigationAction._activeAlternativeCommands.delete(this.desc.id);
 				}))`;
-		assert.ok(source.includes(`${altCall}${doubleCatch};`));
+		assert.ok(source.includes(`${altCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${altCall};`));
+		assert.ok(!source.includes(`${altCall}${doubleCatch};`));
 		const peekCall = "accessor.get(ICommandService).executeCommand('editor.action.goToLocations', resource, position, references, multiple, undefined, true)";
-		assert.ok(source.includes(`${peekCall}${doubleCatch};`));
+		assert.ok(source.includes(`${peekCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${peekCall};`));
+		assert.ok(!source.includes(`${peekCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('accessor.get(IInstantiationService).invokeFunction(command.run.bind(command), editor);'));
 		assert.ok(!source.includes('accessor.get(IInstantiationService).invokeFunction(command.run.bind(command), editor).catch(onUnexpectedError)'));
 	});
 
-	test('references leftover openReference openCodeEditor is Promise double-chain; two-arg _gotoReference stays skipped', () => {
+	test('references leftover openReference openCodeEditor is Promise single-catch; two-arg _gotoReference stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(REFS_REL), 'utf8');
 		const editorSvc = fs.readFileSync(resolveSource(EDITOR_SVC_REL), 'utf8');
 		assertPromiseSignature(editorSvc, 'openCodeEditor(input: ITextResourceEditorInput, source: ICodeEditor | null, sideBySide?: boolean): Promise<ICodeEditor | null>;');
@@ -111,13 +119,15 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 			resource: uri,
 			options: { selection: range, selectionSource: TextEditorSelectionSource.JUMP, pinned }
 		}, this._editor, sideBySide)`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${thenCall};`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('}, (err) => {\n\t\t\tthis._ignoreModelChangeEvent = false;\n\t\t\tonUnexpectedError(err);\n\t\t});'));
 		assert.ok(!source.includes('}, (err) => {\n\t\t\tthis._ignoreModelChangeEvent = false;\n\t\t\tonUnexpectedError(err);\n\t\t}).catch(onUnexpectedError)'));
 	});
 
-	test('gotoError leftover related openCodeEditor is Promise double-chain; awaited navigate stays awaited', () => {
+	test('gotoError leftover related openCodeEditor is Promise single-catch; awaited navigate stays awaited', () => {
 		const source = fs.readFileSync(resolveSource(GOTO_ERR_REL), 'utf8');
 		const editorSvc = fs.readFileSync(resolveSource(EDITOR_SVC_REL), 'utf8');
 		assertPromiseSignature(editorSvc, 'openCodeEditor(input: ITextResourceEditorInput, source: ICodeEditor | null, sideBySide?: boolean): Promise<ICodeEditor | null>;');
@@ -126,8 +136,10 @@ suite('editor goto/open leftover Promise fire-and-forget catch scan (D725)', () 
 				resource: related.resource,
 				options: { pinned: true, revealIfOpened: true, selection: Range.lift(related).collapseToStart() }
 			}, this._editor)`;
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('const otherEditor = await this._editorService.openCodeEditor({'));
 	});
 

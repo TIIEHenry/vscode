@@ -149,7 +149,7 @@ export abstract class SymbolNavigationAction extends EditorAction2 {
 				SymbolNavigationAction._activeAlternativeCommands.add(this.desc.id);
 				instaService.invokeFunction((accessor) => altAction.runEditorCommand(accessor, editor, arg, range).finally(() => {
 					SymbolNavigationAction._activeAlternativeCommands.delete(this.desc.id);
-				})).catch(onUnexpectedError).catch(onUnexpectedError);
+				})).catch(onUnexpectedError);
 
 			} else {
 				// normal results handling
@@ -822,7 +822,7 @@ CommandsRegistry.registerCommand({
 		]
 	},
 	handler: async (accessor: ServicesAccessor, resource: any, position: any, references: any, multiple?: any) => {
-		accessor.get(ICommandService).executeCommand('editor.action.goToLocations', resource, position, references, multiple, undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		accessor.get(ICommandService).executeCommand('editor.action.goToLocations', resource, position, references, multiple, undefined, true).catch(onUnexpectedError);
 	}
 });
 

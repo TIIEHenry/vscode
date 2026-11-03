@@ -49,25 +49,31 @@ suite('editor remaining leftover Promise fire-and-forget catch scan (D709)', () 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise sites', () => {
 		const format = fs.readFileSync(resolveSource(FORMAT_REL), 'utf8');
 		const goto = fs.readFileSync(resolveSource(GOTO_REL), 'utf8');
 		const diff = fs.readFileSync(resolveSource(DIFF_REL), 'utf8');
 		const unusual = fs.readFileSync(resolveSource(UNUSUAL_REL), 'utf8');
-		const formatThenFinally = (format.match(/\}\)\.finally\(\(\) => \{\n\t\t\tunbind\.dispose\(\);\n\t\t\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		const gotoSites = (goto.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const formatThenFinally = (format.match(/\}\)\.finally\(\(\) => \{\n\t\t\tunbind\.dispose\(\);\n\t\t\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const gotoSites = (goto.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
 		const diffSites = (diff.match(/this\.waitForDiff\(\)\.then\(\(\) => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		const unusualSites = (unusual.match(/this\._checkForUnusualLineTerminators\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const unusualSites = (unusual.match(/this\._checkForUnusualLineTerminators\(\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		assert.strictEqual(formatThenFinally + gotoSites + diffSites + unusualSites, 8);
+		assert.ok(!format.includes(doubleCatch));
+		assert.ok(!goto.includes(doubleCatch));
+		assert.ok(!unusual.includes(doubleCatch));
 	});
 
-	test('FormatOnType leftover _trigger then+finally is Promise double-chain; FormatOnPaste D669 stays', () => {
+	test('FormatOnType leftover _trigger then+finally is Promise single-catch; FormatOnPaste D669 stays', () => {
 		const source = fs.readFileSync(resolveSource(FORMAT_REL), 'utf8');
 		const api = fs.readFileSync(resolveSource(FORMAT_API_REL), 'utf8');
 		assertPromiseSignature(api, 'export function getOnTypeFormattingEdits(\n\tworkerService: IEditorWorkerService,\n\tlanguageFeaturesService: ILanguageFeaturesService,\n\tmodel: ITextModel,\n\tposition: Position,\n\tch: string,\n\toptions: FormattingOptions,\n\ttoken: CancellationToken\n): Promise<TextEdit[] | null | undefined> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const thenCall = `).then(edits => {
 			if (cts.token.isCancellationRequested) {
+				return;
+			}
+			if (this._editor.getModel() !== model) {
 				return;
 			}
 			if (isNonEmptyArray(edits)) {
@@ -77,25 +83,27 @@ suite('editor remaining leftover Promise fire-and-forget catch scan (D709)', () 
 		}).finally(() => {
 			unbind.dispose();
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('this._instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, this.editor, range, FormattingMode.Silent, Progress.None, CancellationToken.None, false).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.ok(source.includes('this._instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, this.editor, range, FormattingMode.Silent, Progress.None, CancellationToken.None, false).catch(onUnexpectedError);'));
 	});
 
-	test('goToDefinitionAtPosition leftover gotoDefinition catch and startFindDefinition are Promise double-chain', () => {
+	test('goToDefinitionAtPosition leftover gotoDefinition catch and startFindDefinition are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(GOTO_REL), 'utf8');
 		assertPromiseSignature(source, 'private async gotoDefinition(position: Position, openToSide: boolean): Promise<unknown> {');
 		assertPromiseSignature(source, 'private async startFindDefinition(position: Position): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(source.includes(`this.gotoDefinition(mouseEvent.target.position!, mouseEvent.hasSideBySideModifier)
-					.catch(onUnexpectedError).catch(onUnexpectedError)
+					.catch(onUnexpectedError)
 					.finally(() => {`));
 		assert.ok(!source.includes('.catch((error: Error) => {'));
-		assert.ok(source.includes(`this.startFindDefinition(position)${doubleCatch};`));
+		assert.ok(source.includes(`this.startFindDefinition(position).catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`\t\tthis.startFindDefinition(position);`));
-		assert.ok(!source.includes(`this.startFindDefinition(position).catch(onUnexpectedError);`));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(!source.includes(`this.startFindDefinition(position)${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
 	});
 
 	test('diffEditor leftover waitForDiff then is Promise double-chain', () => {
@@ -103,6 +111,9 @@ suite('editor remaining leftover Promise fire-and-forget catch scan (D709)', () 
 		assertPromiseSignature(source, 'async waitForDiff(): Promise<void> {');
 		assert.ok(source.includes("import { BugIndicatingError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const thenCall = `this.waitForDiff().then(() => {
+			if (this._diffModel.get() !== diffModel) {
+				return;
+			}
 			const diffs = diffModel.diff.get()?.mappings;
 			if (!diffs || diffs.length === 0) {
 				return;
@@ -114,15 +125,16 @@ suite('editor remaining leftover Promise fire-and-forget catch scan (D709)', () 
 		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
 	});
 
-	test('unusualLineTerminators leftover _checkForUnusualLineTerminators voids are Promise double-chain', () => {
+	test('unusualLineTerminators leftover _checkForUnusualLineTerminators voids are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(UNUSUAL_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _checkForUnusualLineTerminators(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const call = 'this._checkForUnusualLineTerminators()';
-		assert.strictEqual((source.match(/this\._checkForUnusualLineTerminators\(\)/g) ?? []).length, 4);
-		assert.ok(source.includes(`${call}${doubleCatch}`));
+		assert.strictEqual((source.match(/this\._checkForUnusualLineTerminators\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError)`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / two-arg then / Resolve / D703 eight / outline swallow / grpc Wire / Connect / Watch / Pty stay skipped', () => {
@@ -145,17 +157,26 @@ suite('editor remaining leftover Promise fire-and-forget catch scan (D709)', () 
 		assert.ok(word.includes('.then(undefined, onUnexpectedExternalError);'));
 		assert.ok(fold.includes('}).then(undefined, onUnexpectedError);'));
 		assert.ok(!fold.includes('}).then(undefined, onUnexpectedError).catch(onUnexpectedError)'));
-		assert.ok(outline.includes('}).catch(_err => {\n\t\t\t\tthis._cache.delete(textModel.id);'));
+		assert.ok(outline.includes('}).catch(_err => {'));
+		assert.ok(outline.includes('this._cache.delete(textModel.id);'));
 		assert.ok(!outline.includes(doubleCatch));
-		assert.ok(hover.includes(`promise.then(() => {
+		const hoverCall = `promise.then(() => {
+			if (!editor.hasModel() || !editor.getPosition()?.equals(position)) {
+				return;
+			}
 			controller.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Keyboard, true);
-		})${doubleCatch};`));
-		assert.ok(access.includes(`this._model.next().then((() => this._onDidChangeContent.fire()))${doubleCatch};`));
-		assert.ok(access.includes(`this._model.previous().then((() => this._onDidChangeContent.fire()))${doubleCatch};`));
-		assert.ok(model.includes(`defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store))${doubleCatch};`));
+		}).catch(onUnexpectedError);`;
+		assert.ok(hover.includes(hoverCall));
+		assert.ok(!hover.includes(doubleCatch));
+		assert.ok(access.includes(`this._model.next().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError);`));
+		assert.ok(access.includes(`this._model.previous().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError);`));
+		assert.ok(!access.includes(doubleCatch));
+		assert.ok(model.includes(`defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store)).catch(onUnexpectedError);`));
+		assert.ok(!model.includes(doubleCatch));
 		assert.ok(indent.includes(`			})${doubleCatch};`));
-		assert.ok(sticky.includes(`			}))${doubleCatch};`));
-		assert.ok(section.includes(doubleCatch));
+		assert.ok(sticky.includes(`			})).catch(onUnexpectedError);`));
+		assert.ok(!sticky.includes(doubleCatch));
+		assert.ok(!section.includes(doubleCatch));
 		assert.ok(unicode.includes(doubleCatch));
 		for (const source of [marker, links, word, fold, outline, hover, access, model, indent, sticky, section, unicode]) {
 			assert.ok(!source.includes('acknowledge('));

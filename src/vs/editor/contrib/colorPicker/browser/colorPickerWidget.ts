@@ -47,4 +47,10 @@ export class ColorPickerWidget extends Widget implements IEditorHoverColorPicker
 	get domNode(): HTMLElement {
 		return this._domNode;
 	}
+
+	override dispose(): void {
+		dom.clearNode(this._domNode);
+		this._domNode.remove();
+		super.dispose();
+	}
 }

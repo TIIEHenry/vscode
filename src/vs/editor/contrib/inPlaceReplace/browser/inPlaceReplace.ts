@@ -39,6 +39,7 @@ class InPlaceReplaceController implements IEditorContribution {
 	private readonly decorations: IEditorDecorationsCollection;
 	private currentRequest?: CancelablePromise<IInplaceReplaceSupportResult | null>;
 	private decorationRemover?: CancelablePromise<void>;
+	private _isDisposed = false;
 
 	constructor(
 		editor: ICodeEditor,
@@ -50,6 +51,13 @@ class InPlaceReplaceController implements IEditorContribution {
 	}
 
 	public dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		this.currentRequest?.cancel();
+		this.decorationRemover?.cancel();
+		this.decorations.clear();
 	}
 
 	public run(source: string, up: boolean): Promise<void> | undefined {
@@ -120,9 +128,9 @@ class InPlaceReplaceController implements IEditorContribution {
 			// remove decoration after delay
 			this.decorationRemover?.cancel();
 			this.decorationRemover = timeout(350);
-			this.decorationRemover.then(() => this.decorations.clear()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.decorationRemover.then(() => this.decorations.clear()).catch(onUnexpectedError);
 
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 

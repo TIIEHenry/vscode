@@ -298,6 +298,10 @@ export class MarkerNavigationWidget extends PeekViewWidget {
 		this._callOnDispose.dispose();
 		this._onDidSelectRelatedInformation.dispose();
 		super.dispose();
+		if (this.domNode) {
+			dom.clearNode(this.domNode);
+			this.domNode.remove();
+		}
 	}
 
 	focus(): void {

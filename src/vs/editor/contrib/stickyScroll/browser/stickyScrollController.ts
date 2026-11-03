@@ -381,7 +381,7 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 				} else {
 					sessionStore.clear();
 				}
-			})).catch(onUnexpectedError).catch(onUnexpectedError);
+			})).catch(onUnexpectedError);
 		}));
 		this._register(gesture.onCancel(() => {
 			sessionStore.clear();
@@ -405,7 +405,7 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 				}
 				this._revealPosition({ lineNumber: position.lineNumber, column: 1 });
 			}
-			this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor }).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._instaService.invokeFunction(goToDefinitionWithLocation, e, this._editor, { uri: this._editor.getModel().uri, range: this._stickyRangeProjectedOnEditor }).catch(onUnexpectedError);
 		}));
 	}
 

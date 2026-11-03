@@ -49,34 +49,52 @@ suite('editor/contrib leftover Promise fire-and-forget catch scan (D703)', () =>
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
-		const files = [HOVER_REL, ACCESS_REL, MODEL_REL, INDENT_REL, STICKY_REL, SECTION_REL, UNICODE_REL];
-		let sites = 0;
-		for (const rel of files) {
-			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		}
-		assert.strictEqual(sites, 8);
+	test('this knife covers eight leftover Promise sites', () => {
+		const hover = fs.readFileSync(resolveSource(HOVER_REL), 'utf8');
+		const access = fs.readFileSync(resolveSource(ACCESS_REL), 'utf8');
+		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
+		const indent = fs.readFileSync(resolveSource(INDENT_REL), 'utf8');
+		const sticky = fs.readFileSync(resolveSource(STICKY_REL), 'utf8');
+		const section = fs.readFileSync(resolveSource(SECTION_REL), 'utf8');
+		const unicode = fs.readFileSync(resolveSource(UNICODE_REL), 'utf8');
+		assert.strictEqual((hover.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((access.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((model.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((indent.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((sticky.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((section.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((unicode.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(!hover.includes(doubleCatch));
+		assert.ok(!access.includes(doubleCatch));
+		assert.ok(!model.includes(doubleCatch));
+		assert.ok(indent.includes(doubleCatch));
+		assert.ok(!sticky.includes(doubleCatch));
+		assert.ok(!section.includes(doubleCatch));
+		assert.ok(unicode.includes(doubleCatch));
 	});
 
-	test('hover leftover startFindDefinitionFromCursor then is Promise double-chain; opener stays skipped', () => {
+	test('hover leftover startFindDefinitionFromCursor then is Promise single-catch; opener stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(HOVER_REL), 'utf8');
 		const goto = fs.readFileSync(resolveSource(GOTO_REL), 'utf8');
 		const marker = fs.readFileSync(resolveSource(MARKER_REL), 'utf8');
 		assertPromiseSignature(goto, 'async startFindDefinitionFromCursor(position: Position) {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const thenCall = `promise.then(() => {
+			if (!editor.hasModel() || !editor.getPosition()?.equals(position)) {
+				return;
+			}
 			controller.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Keyboard, true);
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(marker.includes('this._openerService.open(resource, {'));
 		assert.ok(marker.includes('}).catch(onUnexpectedError);'));
 		assert.ok(!marker.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
 	});
 
-	test('inlineCompletions leftover next / previous / getDefaultAccount thens are Promise double-chain; two-arg then stays skipped', () => {
+	test('inlineCompletions leftover next / previous / getDefaultAccount thens are Promise single-catch; two-arg then stays skipped', () => {
 		const access = fs.readFileSync(resolveSource(ACCESS_REL), 'utf8');
 		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
 		const account = fs.readFileSync(resolveSource(ACCOUNT_REL), 'utf8');
@@ -85,12 +103,14 @@ suite('editor/contrib leftover Promise fire-and-forget catch scan (D703)', () =>
 		assertPromiseSignature(account, 'getDefaultAccount(): Promise<IDefaultAccount | null>;');
 		assert.ok(access.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(model.includes("import { BugIndicatingError, onUnexpectedError, onUnexpectedExternalError } from '../../../../../base/common/errors.js';"));
-		assert.ok(access.includes(`this._model.next().then((() => this._onDidChangeContent.fire()))${doubleCatch};`));
-		assert.ok(access.includes(`this._model.previous().then((() => this._onDidChangeContent.fire()))${doubleCatch};`));
+		assert.ok(access.includes(`this._model.next().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError);`));
+		assert.ok(access.includes(`this._model.previous().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError);`));
 		assert.ok(!access.includes('this._model.next().then((() => this._onDidChangeContent.fire()));'));
 		assert.ok(!access.includes('this._model.previous().then((() => this._onDidChangeContent.fire()));'));
-		assert.ok(model.includes(`defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store))${doubleCatch};`));
+		assert.ok(!access.includes(doubleCatch));
+		assert.ok(model.includes(`defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store)).catch(onUnexpectedError);`));
 		assert.ok(!model.includes('defaultAccountService.getDefaultAccount().then(createDisposableCb(account => this.sku.set(skuFromAccount(account), undefined), this._store));'));
+		assert.ok(!model.includes(doubleCatch));
 		assert.ok(model.includes('.then(undefined, onUnexpectedExternalError);'));
 		assert.ok(!model.includes('.then(undefined, onUnexpectedExternalError).catch(onUnexpectedError)'));
 	});
@@ -107,34 +127,41 @@ suite('editor/contrib leftover Promise fire-and-forget catch scan (D703)', () =>
 		}, 50/* quick input is sensitive to being opened so soon after another */);`));
 	});
 
-	test('stickyScroll leftover getDefinitionsAtPosition then is Promise double-chain', () => {
+	test('stickyScroll leftover getDefinitionsAtPosition then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(STICKY_REL), 'utf8');
 		const goto = fs.readFileSync(resolveSource(GOTOSYM_REL), 'utf8');
 		assertPromiseSignature(goto, 'export function getDefinitionsAtPosition(registry: LanguageFeatureRegistry<DefinitionProvider>, model: ITextModel, position: Position, recursive: boolean, token: CancellationToken): Promise<LocationLink[]> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const thenCall = `getDefinitionsAtPosition(this._languageFeaturesService.definitionProvider, this._editor.getModel(), new Position(range.startLineNumber, range.startColumn + 1), false, cancellationToken.token).then((candidateDefinitions => {`;
 		assert.ok(source.includes(thenCall));
-		assert.ok(source.includes(`			}))${doubleCatch};`));
-		assert.ok(!source.includes(`			}));
-		}));`));
+		assert.ok(source.includes(`			})).catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`			}))${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('sectionHeaders leftover findSectionHeaders then is Promise double-chain', () => {
+	test('sectionHeaders leftover findSectionHeaders then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(SECTION_REL), 'utf8');
 		const worker = fs.readFileSync(resolveSource(WORKER_REL), 'utf8');
 		assertPromiseSignature(worker, 'findSectionHeaders(uri: URI, options: FindSectionHeaderOptions): Promise<SectionHeader[]>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const thenCall = `this.editorWorkerService.findSectionHeaders(model.uri, this.options)
+		const thenCall = `computePromise
 			.then((sectionHeaders) => {
+				if (this.computePromise !== computePromise) {
+					return;
+				}
 				if (model.isDisposed() || model.getVersionId() !== modelVersionId) {
 					// model changed in the meantime
 					return;
 				}
+				if (this.editor.getModel() !== model) {
+					return;
+				}
 				this.updateDecorations(sectionHeaders);
 			})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('unicodeHighlighter leftover computedUnicodeHighlights then is Promise double-chain', () => {

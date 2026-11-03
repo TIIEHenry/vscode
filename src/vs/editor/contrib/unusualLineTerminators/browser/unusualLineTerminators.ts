@@ -43,12 +43,12 @@ export class UnusualLineTerminatorsDetector extends Disposable implements IEdito
 		this._register(this._editor.onDidChangeConfiguration((e) => {
 			if (e.hasChanged(EditorOption.unusualLineTerminators)) {
 				this._config = this._editor.getOption(EditorOption.unusualLineTerminators);
-				this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._checkForUnusualLineTerminators().catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this._editor.onDidChangeModel(() => {
-			this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._checkForUnusualLineTerminators().catch(onUnexpectedError);
 		}));
 
 		this._register(this._editor.onDidChangeModelContent((e) => {
@@ -56,14 +56,14 @@ export class UnusualLineTerminatorsDetector extends Disposable implements IEdito
 				// skip checking in case of undoing
 				return;
 			}
-			this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._checkForUnusualLineTerminators().catch(onUnexpectedError);
 		}));
 
-		this._checkForUnusualLineTerminators().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._checkForUnusualLineTerminators().catch(onUnexpectedError);
 	}
 
 	private async _checkForUnusualLineTerminators(): Promise<void> {
-		if (this._config === 'off') {
+		if (this._store.isDisposed || this._config === 'off') {
 			return;
 		}
 		if (!this._editor.hasModel()) {

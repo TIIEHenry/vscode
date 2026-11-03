@@ -66,6 +66,15 @@ export class ParameterHintsWidget extends Disposable implements IContentWidget {
 		this.keyMultipleSignatures = Context.MultipleSignatures.bindTo(contextKeyService);
 	}
 
+	override dispose(): void {
+		this.editor.removeContentWidget(this);
+		if (this.domNodes) {
+			dom.clearNode(this.domNodes.element);
+			this.domNodes.element.remove();
+		}
+		super.dispose();
+	}
+
 	private createParameterHintDOMNodes() {
 		const element = $('.editor-widget.parameter-hints-widget');
 		const wrapper = dom.append(element, $('.phwrapper'));
