@@ -138,9 +138,12 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 		lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._initializeIfNeeded()?.catch(onUnexpectedError);
 			}, 50 /*max delay*/);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private async _scanAllLocalExtensions(): Promise<IExtensionDescription[]> {
@@ -170,7 +173,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 						run: () => {
 							this._instantiationService.invokeFunction((accessor) => {
 								const hostService = accessor.get(IHostService);
-								hostService.restart().catch(onUnexpectedError).catch(onUnexpectedError);
+								hostService.restart().catch(onUnexpectedError);
 							});
 						}
 					}]
@@ -186,7 +189,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 			if (this._localCrashTracker.shouldAutomaticallyRestart()) {
 				this._logService.info(`Automatically restarting the extension host.`);
 				this._notificationService.status(nls.localize('extensionService.autoRestart', "The extension host terminated unexpectedly. Restarting..."), { hideAfter: 5000 });
-				this.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.startExtensionHosts().catch(onUnexpectedError);
 			} else {
 				const choices: IPromptChoice[] = [];
 				if (this._environmentService.isBuilt) {
@@ -208,7 +211,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 
 				choices.push({
 					label: nls.localize('restart', "Restart Extension Host"),
-					run: () => this.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError)
+					run: () => this.startExtensionHosts().catch(onUnexpectedError)
 				});
 
 				if (this._environmentService.isBuilt) {
@@ -482,10 +485,10 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 			if (isCI) {
 				this._logService.info(`Asking native host service to exit with code ${code}.`);
 			}
-			this._nativeHostService.exit(code).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._nativeHostService.exit(code).catch(onUnexpectedError);
 		} else {
 			// Expected development extension termination: When the extension host goes down we also shutdown the window
-			this._nativeHostService.closeWindow().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._nativeHostService.closeWindow().catch(onUnexpectedError);
 		}
 	}
 
@@ -506,9 +509,12 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 					[{
 						label: nls.localize('enable', 'Enable and Reload'),
 						run: () => (async () => {
+							if (this._store.isDisposed) {
+								return;
+							}
 							await this._extensionEnablementService.setEnablement([toExtension(extension)], EnablementState.EnabledGlobally);
 							await this._hostService.reload();
-						})().catch(onUnexpectedError).catch(onUnexpectedError)
+						})().catch(onUnexpectedError)
 					}],
 					{
 						sticky: true,
@@ -523,7 +529,13 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 				[{
 					label: nls.localize('install', 'Install and Reload'),
 					run: () => (async () => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						const [galleryExtension] = await this._extensionGalleryService.getExtensions([{ id: resolverExtensionId }], CancellationToken.None);
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (galleryExtension) {
 							await this._extensionManagementService.installFromGallery(galleryExtension);
 							await this._hostService.reload();
@@ -531,7 +543,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 							this._notificationService.error(nls.localize('resolverExtensionNotFound', "`{0}` not found on marketplace"));
 						}
 
-					})().catch(onUnexpectedError).catch(onUnexpectedError)
+					})().catch(onUnexpectedError)
 				}],
 				{
 					sticky: true,
@@ -760,7 +772,7 @@ class RestartExtensionHostAction extends Action2 {
 
 		const stopped = await extensionService.stopExtensionHosts(nls.localize('restartExtensionHost.reason', "An explicit request"));
 		if (stopped) {
-			extensionService.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
+			extensionService.startExtensionHosts().catch(onUnexpectedError);
 		}
 	}
 }

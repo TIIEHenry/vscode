@@ -35,6 +35,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -42,9 +43,8 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch handler: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
 suite('workbench/services/extensions leftover Promise fire-and-forget catch scan (D698)', () => {
@@ -60,14 +60,27 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		const local = fs.readFileSync(resolveSource(LOCAL_REL), 'utf8');
 		const remote = fs.readFileSync(resolveSource(REMOTE_REL), 'utf8');
 		const manager = fs.readFileSync(resolveSource(MANAGER_REL), 'utf8');
+		const abstract = fs.readFileSync(resolveSource(ABSTRACT_REL), 'utf8');
+
+		assert.strictEqual((native.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((browser.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((local.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((abstract.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+
 		const calls = [
 			[native, `lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._initializeIfNeeded()?.catch(onUnexpectedError);
 			}, 50 /*max delay*/);
 		})`],
 			[browser, `lifecycleService.when(LifecyclePhase.Ready).then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this._initializeIfNeeded();
 		})`],
 			[enablement, `this.lifecycleService.when(LifecyclePhase.Eventually).then(() => {
@@ -114,10 +127,14 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
 		assertPromiseSignature(abstract, 'protected _initializeIfNeeded(): Promise<void> | null {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, `lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._initializeIfNeeded()?.catch(onUnexpectedError);
 			}, 50 /*max delay*/);
 		})`);
 	});
@@ -129,7 +146,11 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
 		assertPromiseSignature(abstract, 'protected _initializeIfNeeded(): Promise<void> | null {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, `lifecycleService.when(LifecyclePhase.Ready).then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this._initializeIfNeeded();
 		})`);
 	});
@@ -180,6 +201,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		const source = fs.readFileSync(resolveSource(LOCAL_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _createExtHostInitData(): Promise<IExtensionHostInitData> {');
 		assert.ok(source.includes("import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, `this._createExtHostInitData().then(data => {
 
 						// Wait 60s for the initialized message
@@ -242,8 +264,8 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.ok(native.includes("openerService.open('https://aka.ms/vscode-extension-bisect');"));
 		assert.ok(!native.includes("openerService.open('https://aka.ms/vscode-extension-bisect').catch"));
 		assert.ok(local.includes('this._extensionHostProcess.waitForExit(extensionHostGraceTimeMs).catch(() => { /* best-effort */ });'));
-		assert.ok(abstract.includes('void this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(abstract.includes('this._activateDeferredRemoteEvents().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(abstract.includes('void this._initializeIfNeeded()?.catch(onUnexpectedError);'));
+		assert.ok(abstract.includes('this._activateDeferredRemoteEvents().catch(onUnexpectedError);'));
 		assert.ok(contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);

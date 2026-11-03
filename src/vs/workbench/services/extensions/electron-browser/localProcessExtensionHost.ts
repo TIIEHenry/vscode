@@ -168,13 +168,19 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 
 		this._register(this._lifecycleService.onWillShutdown(e => this._onWillShutdown(e)));
 		this._register(this._extensionHostDebugService.onClose(event => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this._isExtensionDevHost && this._environmentService.debugExtensionHost.debugId === event.sessionId) {
-				this._nativeHostService.closeWindow().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._nativeHostService.closeWindow().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this._extensionHostDebugService.onReload(event => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this._isExtensionDevHost && this._environmentService.debugExtensionHost.debugId === event.sessionId) {
-				this._hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._hostService.reload().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -183,6 +189,9 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 		this._startGeneration++;
 		if (!this._terminating) {
 			this._terminating = true;
+		}
+		if (this._extensionHostProcess && !this._mainProcessHandlesExtHostShutdown) {
+			this._extensionHostProcess.waitForExit(extensionHostGraceTimeMs).catch(() => { /* best-effort */ });
 		}
 		super.dispose();
 		this._messageProtocol = null;
@@ -378,7 +387,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 				this._notificationService.prompt(Severity.Warning, msg,
 					[{
 						label: nls.localize('reloadWindow', "Reload Window"),
-						run: () => this._hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError)
+						run: () => this._hostService.reload().catch(onUnexpectedError)
 					}],
 					{
 						sticky: true,
@@ -461,7 +470,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 					onMessage: onMessage.event,
 					send: message => port.postMessage(message.buffer),
 				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 			// Now that the message port listener is installed, start the ext host process
 			const sw = StopWatch.create(false);
@@ -515,7 +524,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 						installTimeoutCheck();
 
 						protocol.send(VSBuffer.fromString(JSON.stringify(data)));
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 					return;
 				}
 

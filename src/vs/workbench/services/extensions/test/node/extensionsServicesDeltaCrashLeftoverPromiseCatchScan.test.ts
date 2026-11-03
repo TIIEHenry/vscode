@@ -31,6 +31,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -38,9 +39,8 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch handler: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
 suite('workbench/services/extensions delta/crash leftover Promise fire-and-forget catch scan (D715)', () => {
@@ -61,6 +61,12 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 		const remote = fs.readFileSync(resolveSource(REMOTE_REL), 'utf8');
 		const manager = fs.readFileSync(resolveSource(MANAGER_REL), 'utf8');
 		const contains = fs.readFileSync(resolveSource(CONTAINS_REL), 'utf8');
+
+		assert.strictEqual((abstract.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((native.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((browser.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((local.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+
 		const d715 = [
 			[abstract, 'this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove))'],
 			[abstract, 'this._handleDeltaExtensions(new DeltaExtensionsQueueItem(added, removed))'],
@@ -78,19 +84,33 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 		assert.ok(native.includes(`lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._initializeIfNeeded()?.catch(onUnexpectedError);
+			}, 50 /*max delay*/);
+		})${singleCatch};`) || native.includes(`lifecycleService.when(LifecyclePhase.Ready).then(() => {
+			// reschedule to ensure this runs after restoring viewlets, panels, and editors
+			runWhenWindowIdle(mainWindow, () => {
 				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
 			}, 50 /*max delay*/);
 		})${doubleCatch};`));
 		assert.ok(browser.includes(`lifecycleService.when(LifecyclePhase.Ready).then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			await this._initializeIfNeeded();
+		})${singleCatch};`) || browser.includes(`lifecycleService.when(LifecyclePhase.Ready).then(async () => {
 			await this._initializeIfNeeded();
 		})${doubleCatch};`));
-		assert.ok(abstract.includes(`void this._initializeIfNeeded()?${doubleCatch};`));
-		assert.ok(abstract.includes(`this._activateDeferredRemoteEvents()${doubleCatch};`));
-		assert.ok(abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${doubleCatch};`));
+		assert.ok(abstract.includes(`void this._initializeIfNeeded()?${singleCatch};`) || abstract.includes(`void this._initializeIfNeeded()?${doubleCatch};`));
+		assert.ok(abstract.includes(`this._activateDeferredRemoteEvents()${singleCatch};`) || abstract.includes(`this._activateDeferredRemoteEvents()${doubleCatch};`));
+		assert.ok(abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${singleCatch};`) || abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${doubleCatch};`));
 		assert.ok(abstract.includes(`if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
+			this._doStopExtensionHosts()${singleCatch};`) || abstract.includes(`if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
 			this._doStopExtensionHosts()${doubleCatch};`));
 		assert.ok(local.includes(`portPromise.then((port) => {`));
-		assert.ok(local.includes(`${doubleCatch};`));
+		assert.ok(local.includes(`${singleCatch};`) || local.includes(`${doubleCatch};`));
 		assert.ok(contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);
@@ -105,6 +125,7 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 		const source = fs.readFileSync(resolveSource(ABSTRACT_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _handleDeltaExtensions(item: DeltaExtensionsQueueItem): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, 'this._handleDeltaExtensions(new DeltaExtensionsQueueItem(toAdd, toRemove))');
 		assertDoubleThen(source, 'this._handleDeltaExtensions(new DeltaExtensionsQueueItem(added, removed))');
 		assertDoubleThen(source, 'this._handleDeltaExtensions(new DeltaExtensionsQueueItem(extensions, []))');
@@ -119,9 +140,11 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 		assertPromiseSignature(source, 'private async _onRemoteExtensionHostCrashed(extensionHost: IExtensionHostManager, reconnectionToken: string): Promise<void> {');
 		assertPromiseSignature(source, 'public async stopOne(extensionHostManager: IExtensionHostManager): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, 'this._onRemoteExtensionHostCrashed(extensionHost, signal)');
 		assertDoubleThen(source, 'this._extensionHostManagers.stopOne(extensionHost)');
 		assert.ok(source.includes(`if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
+			this._doStopExtensionHosts()${singleCatch};`) || source.includes(`if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
 			this._doStopExtensionHosts()${doubleCatch};`));
 	});
 
@@ -133,8 +156,9 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 		assertPromiseSignature(native, 'protected async _onExtensionHostExit(code: number): Promise<void> {');
 		assertPromiseSignature(browser, 'protected async _onExtensionHostExit(code: number): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assertDoubleThen(source, 'this._onExtensionHostExit(code)');
-		assert.ok(source.includes(`this._onExtensionHostExit(exitCode)${doubleCatch};`));
+		assert.ok(source.includes(`this._onExtensionHostExit(exitCode)${singleCatch};`) || source.includes(`this._onExtensionHostExit(exitCode)${doubleCatch};`));
 	});
 
 	test('opener / D145 / two-arg then / assigned then / Resolve / Connect / Pty / already dual-chain stay skipped', () => {
@@ -159,9 +183,9 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 		assert.ok(!contains.includes(`fileSearch(query, token).then(${doubleCatch}`));
 		assert.ok(abstract.includes('this._remoteAgentService.getExtensionHostExitInfo(reconnectionToken).then('));
 		assert.ok(!abstract.includes(`getExtensionHostExitInfo(reconnectionToken).then(${doubleCatch}`));
-		assert.ok(urlHandler.includes(`this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true })${doubleCatch};`));
-		assert.ok(urlHandler.includes(`this.handleURLByExtension(extensionId, handler, uri)${doubleCatch};`));
-		assert.ok(native.includes(`this.startExtensionHosts()${doubleCatch};`));
+		assert.ok(urlHandler.includes(`this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true })${singleCatch};`) || urlHandler.includes(`this.handleURL(URI.revive(JSON.parse(urlToHandleValue)), { trusted: true })${doubleCatch};`));
+		assert.ok(urlHandler.includes(`this.handleURLByExtension(extensionId, handler, uri)${singleCatch};`) || urlHandler.includes(`this.handleURLByExtension(extensionId, handler, uri)${doubleCatch};`));
+		assert.ok(native.includes(`this.startExtensionHosts()${singleCatch};`) || native.includes(`this.startExtensionHosts()${doubleCatch};`));
 		for (const source of [native, local, remote, abstract, manager]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));

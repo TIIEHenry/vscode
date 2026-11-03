@@ -107,8 +107,11 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 
 		// Initialize installed extensions first and do it only after workbench is ready
 		lifecycleService.when(LifecyclePhase.Ready).then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this._initializeIfNeeded();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._initFetchFileSystem();
 	}

@@ -61,7 +61,7 @@ export class DefaultConfiguration extends BaseDefaultConfiguration {
 
 	override reload(): ConfigurationModel {
 		this.cachedConfigurationDefaultsOverrides = {};
-		this.updateCachedConfigurationDefaultsOverrides().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateCachedConfigurationDefaultsOverrides().catch(onUnexpectedError);
 		return super.reload();
 	}
 
@@ -77,6 +77,9 @@ export class DefaultConfiguration extends BaseDefaultConfiguration {
 					// Read only when the cache exists
 					if (localStorage.getItem(DefaultConfiguration.DEFAULT_OVERRIDES_CACHE_EXISTS_KEY)) {
 						const content = await this.configurationCache.read(this.cacheKey);
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (content) {
 							this.cachedConfigurationDefaultsOverrides = JSON.parse(content);
 						}
@@ -91,7 +94,7 @@ export class DefaultConfiguration extends BaseDefaultConfiguration {
 	protected override onDidUpdateConfiguration(properties: string[], defaultsOverrides?: boolean): void {
 		super.onDidUpdateConfiguration(properties, defaultsOverrides);
 		if (defaultsOverrides) {
-			this.updateCachedConfigurationDefaultsOverrides().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateCachedConfigurationDefaultsOverrides().catch(onUnexpectedError);
 		}
 	}
 
@@ -141,7 +144,12 @@ export class ApplicationConfiguration extends UserSettings {
 	) {
 		super(userDataProfilesService.defaultProfile.settingsResource, { scopes: APPLICATION_SCOPES, skipUnregistered: true }, uriIdentityService.extUri, fileService, logService);
 		this._register(this.onDidChange(() => this.reloadConfigurationScheduler.schedule()));
-		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)).catch(onUnexpectedError).catch(onUnexpectedError), 50));
+		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.loadConfiguration().then(configurationModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._onDidChangeConfiguration.fire(configurationModel);
+		}).catch(onUnexpectedError), 50));
 	}
 
 	async initialize(): Promise<ConfigurationModel> {
@@ -182,7 +190,17 @@ export class UserConfiguration extends Disposable {
 		super();
 		this.userConfiguration.value = new UserSettings(settingsResource, this.configurationParseOptions, uriIdentityService.extUri, this.fileService, logService);
 		this.userConfigurationChangeDisposable.value = this.userConfiguration.value.onDidChange(() => this.reloadConfigurationScheduler.schedule());
-		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.userConfiguration.value!.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)).catch(onUnexpectedError).catch(onUnexpectedError), 50));
+		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed || !this.userConfiguration.value) {
+				return;
+			}
+			this.userConfiguration.value.loadConfiguration().then(configurationModel => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._onDidChangeConfiguration.fire(configurationModel);
+			}).catch(onUnexpectedError);
+		}, 50));
 	}
 
 	async reset(settingsResource: URI, tasksResource: URI | undefined, mcpResource: URI | undefined, configurationParseOptions: ConfigurationParseOptions): Promise<ConfigurationModel> {
@@ -416,13 +434,13 @@ export class RemoteUserConfiguration extends Disposable {
 		this._remoteAgentService = remoteAgentService;
 		this._logService = logService;
 		this._cachedConfiguration = this._register(new CachedRemoteUserConfiguration(remoteAuthority, configurationCache, { scopes: REMOTE_MACHINE_SCOPES }, logService));
-		// Detached startup owns the historical double chain. Disposal must not report it.
+		// Detached startup owns the historical error handling. Disposal must not report it.
 		this._ensureRemoteUserConfiguration(true).promise.catch(error => {
 			if (this._store.isDisposed) {
 				return;
 			}
 			return Promise.reject(error);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _ensureRemoteUserConfiguration(initial: boolean): RemoteUserConfigurationAttempt {
@@ -545,7 +563,10 @@ export class RemoteUserConfiguration extends Disposable {
 	}
 
 	private onDidUserConfigurationChange(configurationModel: ConfigurationModel): void {
-		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.updateCache().catch(onUnexpectedError);
 		this._onDidChangeConfiguration.fire(configurationModel);
 	}
 
@@ -558,6 +579,9 @@ export class RemoteUserConfiguration extends Disposable {
 				if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
 					return;
 				}
+			}
+			if (this._store.isDisposed) {
+				return;
 			}
 			await this._cachedConfiguration.updateConfiguration(content);
 		}
@@ -589,7 +613,12 @@ class FileServiceBasedRemoteUserConfiguration extends Disposable {
 		this.parseOptions = configurationParseOptions;
 		this._register(fileService.onDidFilesChange(e => this.handleFileChangesEvent(e)));
 		this._register(fileService.onDidRunOperation(e => this.handleFileOperationEvent(e)));
-		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.reload().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel)).catch(onUnexpectedError).catch(onUnexpectedError), 50));
+		this.reloadConfigurationScheduler = this._register(new RunOnceScheduler(() => this.reload().then(configurationModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._onDidChangeConfiguration.fire(configurationModel);
+		}).catch(onUnexpectedError), 50));
 		this._register(toDisposable(() => {
 			this.stopWatchingResource();
 			this.stopWatchingDirectory();
@@ -777,7 +806,7 @@ export class WorkspaceConfiguration extends Disposable {
 		if (!this._initialized) {
 			if (this.configurationCache.needsCaching(this._workspaceIdentifier.configPath)) {
 				this._workspaceConfiguration = this._cachedConfiguration;
-				this.waitAndInitialize(this._workspaceIdentifier).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.waitAndInitialize(this._workspaceIdentifier).catch(onUnexpectedError);
 			} else {
 				this.doInitialize(new FileServiceBasedWorkspaceConfiguration(this.fileService, this.uriIdentityService, this.logService));
 			}
@@ -827,9 +856,15 @@ export class WorkspaceConfiguration extends Disposable {
 
 	private async waitAndInitialize(workspaceIdentifier: IWorkspaceIdentifier): Promise<void> {
 		await whenProviderRegistered(workspaceIdentifier.configPath, this.fileService);
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!(this._workspaceConfiguration instanceof FileServiceBasedWorkspaceConfiguration)) {
 			const fileServiceBasedWorkspaceConfiguration = this._register(new FileServiceBasedWorkspaceConfiguration(this.fileService, this.uriIdentityService, this.logService));
 			await fileServiceBasedWorkspaceConfiguration.load(workspaceIdentifier, { scopes: WORKSPACE_SCOPES, skipRestricted: this.isUntrusted() });
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.doInitialize(fileServiceBasedWorkspaceConfiguration);
 			this.onDidWorkspaceConfigurationChange(false, true);
 		}
@@ -847,16 +882,25 @@ export class WorkspaceConfiguration extends Disposable {
 	}
 
 	private async onDidWorkspaceConfigurationChange(reload: boolean, fromCache: boolean): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (reload) {
 			await this.reload();
 		}
-		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.updateCache().catch(onUnexpectedError);
 		this._onDidUpdateConfiguration.fire(fromCache);
 	}
 
 	private async updateCache(): Promise<void> {
 		if (this._workspaceIdentifier && this.configurationCache.needsCaching(this._workspaceIdentifier.configPath) && this._workspaceConfiguration instanceof FileServiceBasedWorkspaceConfiguration) {
 			const content = await this._workspaceConfiguration.resolveContent(this._workspaceIdentifier);
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this._cachedConfiguration.updateWorkspace(this._workspaceIdentifier, content);
 		}
 	}
@@ -1151,10 +1195,13 @@ export class FolderConfiguration extends Disposable {
 			this.folderConfiguration = this.cachedFolderConfiguration;
 			whenProviderRegistered(workspaceFolder.uri, fileService)
 				.then(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this.folderConfiguration = this._register(this.createFileServiceBasedConfiguration(fileService, uriIdentityService, logService));
 					this._register(this.folderConfiguration.onDidChange(e => this.onDidFolderConfigurationChange()));
 					this.onDidFolderConfigurationChange();
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 		} else {
 			this.folderConfiguration = this._register(this.createFileServiceBasedConfiguration(fileService, uriIdentityService, logService));
 			this._register(this.folderConfiguration.onDidChange(e => this.onDidFolderConfigurationChange()));
@@ -1172,7 +1219,7 @@ export class FolderConfiguration extends Disposable {
 
 	reparse(): ConfigurationModel {
 		const configurationModel = this.folderConfiguration.reparse({ scopes: this.scopes, skipRestricted: this.isUntrusted() });
-		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateCache().catch(onUnexpectedError);
 		return configurationModel;
 	}
 
@@ -1185,7 +1232,10 @@ export class FolderConfiguration extends Disposable {
 	}
 
 	private onDidFolderConfigurationChange(): void {
-		this.updateCache().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.updateCache().catch(onUnexpectedError);
 		this._onDidChange.fire();
 	}
 
@@ -1198,6 +1248,9 @@ export class FolderConfiguration extends Disposable {
 	private async updateCache(): Promise<void> {
 		if (this.configurationCache.needsCaching(this.configurationFolder) && this.folderConfiguration instanceof FileServiceBasedConfiguration) {
 			const [settingsContent, standAloneConfigurationContents] = await this.folderConfiguration.resolveContents();
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.cachedFolderConfiguration.updateConfiguration(settingsContent, standAloneConfigurationContents);
 		}
 	}
