@@ -205,6 +205,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	override dispose(): void {
 		this.renderGeneration = allocateSourcesDiffLoadGeneration();
 		this.clearEditors();
+		this.bodyContainer?.remove();
 		super.dispose();
 	}
 
