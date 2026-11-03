@@ -223,16 +223,16 @@ suite('Sources leftover fire-and-forget catch scan (D677)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('progress invalidateResource leftover voids are double-chain', () => {
+	test('progress invalidateResource leftover voids are deduplicated single-chain', () => {
 		const source = fs.readFileSync(resolveSource(PROGRESS_REL), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const call = 'void this.invalidateResource(resource)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async invalidateResource(resource: URI): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\.invalidateResource\(resource\)/g) ?? []).length, 2);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${singleCatch}${singleCatch};`));
 		assert.ok(!/^\t+this\.invalidateResource\(resource\);/m.test(source));
 	});
 
