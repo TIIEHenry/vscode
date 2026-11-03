@@ -45,6 +45,8 @@ import {
 	sourcesRepositoryRootUris,
 	uniqueSourcesStagedRepository,
 } from '../common/sourcesChangesGit.js';
+export { SourcesChangesIdeaPanel } from './sourcesChangesIdeaPanel.js';
+export { SourcesCommitRow } from './sourcesCommitRow.js';
 import {
 	resolveSourcesGitResourceRoot,
 	sourcesGitChangeDescription,
@@ -638,13 +640,46 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.setAttribute('role', 'status');
 
-		this._register(this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage').catch(onUnexpectedError)));
-		this._register(this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage').catch(onUnexpectedError)));
-		this._register(this.refreshButton.onDidClick(() => void this.changesModel.refresh().catch(onUnexpectedError)));
-		this._register(this.expandAllButton.onDidClick(() => this.setAllFoldersExpanded(true)));
-		this._register(this.collapseAllButton.onDidClick(() => this.setAllFoldersExpanded(false)));
-		this._register(this.commitButton.onDidClick(() => void this.runCommit().catch(onUnexpectedError)));
+		this._register(this.stageSelectedButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.runOnSelected('stage').catch(onUnexpectedError);
+		}));
+		this._register(this.unstageSelectedButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.runOnSelected('unstage').catch(onUnexpectedError);
+		}));
+		this._register(this.refreshButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.changesModel.refresh().catch(onUnexpectedError);
+		}));
+		this._register(this.expandAllButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.setAllFoldersExpanded(true);
+		}));
+		this._register(this.collapseAllButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.setAllFoldersExpanded(false);
+		}));
+		this._register(this.commitButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.runCommit().catch(onUnexpectedError);
+		}));
 		this._register(dom.addStandardDisposableListener(this.commitInput, 'input', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const repo = this.activeRepository;
 			if (repo && this.commitInput.value !== repo.input.value) {
 				repo.input.setValue(this.commitInput.value, true);
@@ -654,6 +689,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.updateCommitRow();
 		}));
 		this._register(dom.addDisposableListener(this.commitInput, 'keydown', (e: KeyboardEvent) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const event = new StandardKeyboardEvent(e);
 			if (event.keyCode === KeyCode.Enter && !event.shiftKey && this.commitButton.enabled && !this.isCommitInFlight) {
 				event.preventDefault();
@@ -663,15 +701,24 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 
 		this._register(CommandsRegistry.onDidRegisterCommand(commandId => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (commandId === SOURCES_GIT_STAGE_COMMAND || commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_COMMIT_COMMAND) {
 				this.renderFromSnapshot();
 			}
 		}));
 
 		this._register(this.scmService.onDidAddRepository(repo => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.registerRepository(repo);
 		}));
 		this._register(this.scmService.onDidRemoveRepository(repo => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.unregisterRepository(repo);
 		}));
 
@@ -680,9 +727,17 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this._register(this.changesModel.onDidChange(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			void this.paintFromModel().catch(onUnexpectedError);
 		}));
-		this._register(this.session.onDidChangeActiveSession(() => this.refreshStageChrome()));
+		this._register(this.session.onDidChangeActiveSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refreshStageChrome();
+		}));
 		void this.paintFromModel().catch(onUnexpectedError);
 		// Leak tests flush this proxy. The model owns the timer.
 		void this.refreshScheduler;
@@ -692,6 +747,27 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.toolbar.remove();
 		this.contentContainer.remove();
 		this.commitRow.remove();
+		this.statusMessage.remove();
+		dom.clearNode(this.toolbar);
+		dom.clearNode(this.contentContainer);
+		dom.clearNode(this.listContainer);
+		dom.clearNode(this.commitRow);
+		dom.clearNode(this.provenance);
+		dom.clearNode(this.statusMessage);
+		this.groupStartKeys.clear();
+		this.groupCounts.clear();
+		this.checkedEntryIds.clear();
+		this.expandedGroupIds.clear();
+		this.expandedFolderIds.clear();
+		this.folderHeadersByEntry.clear();
+		this.folderCounts.clear();
+		this.folderEntries.clear();
+		this.folderFirstEntries.clear();
+		this.collapsedAnchorIds.clear();
+		this.currentEntries = [];
+		this.list = undefined;
+		this.labels = undefined;
+		this.listViewport = undefined;
 		this.host.classList.remove('show-file-icons', 'sources-changes-host');
 		super.dispose();
 	}
@@ -842,6 +918,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	// Click and the alternate-slot menu share one open-status generation. This list does not mark reviewed.
 	private async openChangeEntry(element: ISourcesChangeEntry, options: ISourcesChangeEntryOpenOptions): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
 		if (this.isSourcesGitFileDiffOpenSkipped()) {
 			return;
@@ -861,16 +940,25 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				editorGroupsService: this.editorGroupsService,
 				session: this.session,
 			}, options);
+			if (this._store.isDisposed) {
+				return;
+			}
 			settleSourcesOpenStatus(generation, isCurrentSourcesChangesOpenStatus, opened, {
 				onFalse: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this.setOpenStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(sourcesChangeOpenIncompleteMessage())));
 				},
 				onTrue: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this.setOpenStatusMessage(undefined);
 				},
 			});
 		} catch (error) {
-			if (!isCurrentSourcesChangesOpenStatus(generation)) {
+			if (this._store.isDisposed || !isCurrentSourcesChangesOpenStatus(generation)) {
 				return;
 			}
 			this.setOpenStatusMessage(sourcesGitDiffOpenFailureMessage(error));
@@ -943,6 +1031,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async paintFromModel(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.renderFromSnapshot();
 	}
 
@@ -1340,6 +1431,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runOnSelected(action: SourcesChangeRowAction): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const selected = this.checkedEntryIds.size > 0
 			? this.currentEntries.filter(entry => this.checkedEntryIds.has(sourcesChangeEntryIdentity(entry)))
 			: this.list?.getSelectedElements() ?? [];
@@ -1499,7 +1593,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async tryStagePaths(paths: readonly string[], sessionId: string): Promise<boolean> {
-		if (this.isSourcesGitWriteClosed()) {
+		if (this._store.isDisposed || this.isSourcesGitWriteClosed()) {
 			return true;
 		}
 		if (paths.some(path => !path)) {
@@ -1516,6 +1610,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.isSourcesGitWriteListFailed(),
 				this.getEngineSessionReady(),
 			);
+			if (this._store.isDisposed) {
+				return false;
+			}
 			if (!result) {
 				return false;
 			}
@@ -1531,6 +1628,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.scheduleRefresh();
 			return true;
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return false;
+			}
 			this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error)));
 			return true;
 		}
@@ -1577,6 +1677,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private setProvenance(message: string | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!message) {
 			this.provenanceText.textContent = '';
 			this.provenance.title = '';
@@ -1591,6 +1694,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private setStatusMessage(message: string | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
@@ -1603,6 +1709,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private syncCommitInputFromRepository(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const repo = this.activeRepository;
 		if (!repo) {
 			// Engine and other paints with no repository have nothing to copy.
@@ -1619,6 +1728,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	/** Keep the commit field one line with the button, and grow with Shift+Enter. */
 	private layoutCommitInput(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const input = this.commitInput;
 		const min = 28;
 		const max = 112;
@@ -1630,6 +1742,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private setCommitButtonLabel(repositoryName: string): string {
+		if (this._store.isDisposed) {
+			return '';
+		}
 		const label = repositoryName
 			? localize('sourcesChangesList.commitRepo', "Commit ({0})", repositoryName)
 			: localize('sourcesChangesList.commit', "Commit");
@@ -1645,6 +1760,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private updateCommitRow(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hasMessage = this.commitInput.value.trim().length > 0;
 		const snapshot = this.changesModel.getSnapshot();
 		if (snapshot.state.kind === 'scm') {
@@ -1714,8 +1832,14 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id)) {
 			try {
 				await this.commandService.executeCommand(acceptCommand.id, ...(acceptCommand.arguments ?? []));
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.setWriteStatusMessage(undefined);
 			} catch (error) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			}
 			return;
@@ -1724,8 +1848,14 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND)) {
 			try {
 				await this.commandService.executeCommand(SOURCES_GIT_COMMIT_COMMAND);
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.setWriteStatusMessage(undefined);
 			} catch (error) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
 			}
 			return;
@@ -1735,6 +1865,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runEngineCommit(sessionId: string, message: string, repository: ISCMRepository | undefined): Promise<void> {
+		if (this._store.isDisposed || this.activeRepository !== repository) {
+			return;
+		}
 		const writeHook = this.uaConnection.writeGitCommit;
 		try {
 			const written = await tryWriteSourcesGitCommit(
@@ -1775,7 +1908,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runCommit(): Promise<void> {
-		if (this.isCommitInFlight || this.isSourcesGitWriteClosed()) {
+		if (this._store.isDisposed || this.isCommitInFlight || this.isSourcesGitWriteClosed()) {
 			return;
 		}
 		this.isCommitInFlight = true;
@@ -1783,6 +1916,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		try {
 			const message = this.commitInput.value;
 			if (!message.trim()) {
+				return;
+			}
+			if (this._store.isDisposed) {
 				return;
 			}
 
@@ -1811,7 +1947,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			await this.runEngineCommit(commitSessionId, message, this.activeRepository);
 		} finally {
 			this.isCommitInFlight = false;
-			this.updateCommitRow();
+			if (!this._store.isDisposed) {
+				this.updateCommitRow();
+			}
 		}
 	}
 }
