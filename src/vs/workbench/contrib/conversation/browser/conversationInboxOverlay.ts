@@ -168,7 +168,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.goalButton.iconElement.setAttribute('aria-hidden', 'true');
 		this.goalButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-goal-button');
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
-		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked().catch(onUnexpectedError)));
 
 		this.pendingButton = append(this.leftCluster, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.pendingButton.type = 'button';
@@ -219,7 +219,8 @@ export class ConversationInboxOverlay extends Disposable {
 
 	override dispose(): void {
 		this.listContextView?.close();
-		this.listPanelDisposables.dispose();
+		this.listContextView = undefined;
+		this.element.remove();
 		super.dispose();
 	}
 
@@ -649,7 +650,7 @@ export class ConversationInboxOverlay extends Disposable {
 		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;
 		enqueueButton.setAttribute('aria-label', enqueueButton.title);
 		this.listPanelDisposables.add(addDisposableListener(enqueueButton, 'click', () => {
-			void this.onEnqueueClicked().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.onEnqueueClicked().catch(onUnexpectedError);
 		}));
 	}
 

@@ -595,7 +595,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const hubActions = DOM.append(this.hubAccountSection, DOM.$('.connection-actions.connection-hub-actions'));
 		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
 		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
-		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError)));
 		this._register(this.hubBaseUrlInput.onDidChange(() => this.updateHubLoginState()));
 		this._register(this.hubEmailInput.onDidChange(() => this.updateHubLoginState()));
 		this._register(this.hubPasswordInput.onDidChange(() => this.updateHubLoginState()));
@@ -603,11 +603,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		this.hubLogoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubLogoutButton.label = localize('ua.connectionHubLogout', "Sign out");
-		this._register(this.hubLogoutButton.onDidClick(() => void this.handleLogout().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.hubLogoutButton.onDidClick(() => void this.handleLogout().catch(onUnexpectedError)));
 
 		this.hubRefreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubRefreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
-		this._register(this.hubRefreshButton.onDidClick(() => void this.refreshHubDirectory().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.hubRefreshButton.onDidClick(() => void this.refreshHubDirectory().catch(onUnexpectedError)));
 
 		this.hubConnectStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-connect-status'));
 		this.hubConnectStatus.setAttribute('role', 'status');
@@ -623,7 +623,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			'HubDevices',
 			this.hubDevicesListContainer,
 			new HubDevicesDelegate(),
-			[new HubDevicesRenderer(device => void this.handleConnectDevice(device).catch(onUnexpectedError).catch(onUnexpectedError), device => this.canConnectDevice(device))],
+			[new HubDevicesRenderer(device => void this.handleConnectDevice(device).catch(onUnexpectedError), device => this.canConnectDevice(device))],
 			{
 				identityProvider: { getId: (device: HubDeviceProjection) => device.id },
 				accessibilityProvider: new HubDevicesAccessibilityProvider(),
@@ -634,14 +634,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.deviceActionsRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-actions.connection-hub-device-actions'));
 		this.renameDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
-		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError)));
 		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.revokeDeviceButton.element.classList.add('is-danger');
 		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
-		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError)));
 		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.rotateTokenButton.label = CONNECTION_DEVICE_ROTATE_TOKEN_LABEL;
-		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken().catch(onUnexpectedError)));
 
 		this.devicesConnectStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-devices-status'));
 		this.devicesConnectStatus.setAttribute('role', 'status');
@@ -666,10 +666,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const deviceCodeActions = DOM.append(deviceCodeRow, $('.connection-actions'));
 		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeActions, defaultButtonStyles));
 		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
-		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError)));
 		this.rejectDevicePairButton = this._register(new Button(deviceCodeActions, { ...defaultButtonStyles, secondary: true }));
 		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
-		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError)));
 		this.hubDeviceCodeStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-device-code-status'));
 		this.hubDeviceCodeStatus.setAttribute('role', 'status');
 
@@ -723,11 +723,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-actions.connection-direct-actions'));
 		this.connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
 		this.connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
-		this._register(this.connectDirectButton.onDidClick(() => void this.handleConnectDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.connectDirectButton.onDidClick(() => void this.handleConnectDirectAddress().catch(onUnexpectedError)));
 
 		const addDirectButton = this._register(new Button(directActions, { ...defaultButtonStyles, secondary: true }));
 		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
-		this._register(addDirectButton.onDidClick(() => void this.handleAddDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(addDirectButton.onDidClick(() => void this.handleAddDirectAddress().catch(onUnexpectedError)));
 
 		this.directAddressStatus = DOM.append(this.directAddressSection, DOM.$('.connection-status.connection-direct-address-status'));
 		this.directAddressStatus.setAttribute('role', 'status');
@@ -754,16 +754,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-actions.connection-profile-actions'));
 		this.connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
 		this.connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
-		this._register(this.connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError)));
 
 		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
-		this._register(disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError)));
 
 		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		forgetButton.element.classList.add('is-danger');
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
-		this._register(forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError)));
 
 		this.profilesConnectStatus = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-profiles-status'));
 		this.profilesConnectStatus.setAttribute('role', 'status');
@@ -790,7 +790,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.testStatus = DOM.append(testRow, DOM.$('.connection-status.connection-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
-		this._register(testButton.onDidClick(() => void this.handleTestConnection().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(testButton.onDidClick(() => void this.handleTestConnection().catch(onUnexpectedError)));
 
 		const remoteIoHint = DOM.append(testSection, DOM.$('.connection-remote-io-hint'));
 		remoteIoHint.textContent = getConnectionRemoteIoHintCopy();
@@ -844,7 +844,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderProfiles();
 			this.applyDesktopConnectionControlVisibility();
 			this.renderHubAccount();
-			void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshEngineDeviceLists().catch(onUnexpectedError);
 		}));
 
 		this.renderHubAccount();
@@ -856,8 +856,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.applyNarrowChrome();
 		this.selectZone(this.activeZoneId);
 		this._register(onDidRevealConnectionProfiles(() => this.revealProfilesZone()));
-		void this.initializeState().catch(onUnexpectedError).catch(onUnexpectedError);
-		void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.initializeState().catch(onUnexpectedError);
+		void this.refreshEngineDeviceLists().catch(onUnexpectedError);
 	}
 
 	private createFieldInput(
@@ -1034,7 +1034,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async initializeState(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.hubService.isEncryptionAvailable().then(available => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!available) {
 				const hint = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-encryption-hint'));
 				hint.textContent = localize('ua.connectionHubEncryptionUnavailable', "Secure storage unavailable — sign in again after restart.");
@@ -1153,6 +1159,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	override dispose(): void {
+		this.container.remove();
 		this.engineDevicesRefreshGeneration++;
 		this.hubDirectoryRefreshGeneration++;
 		this.enginePendingRefreshGeneration++;
