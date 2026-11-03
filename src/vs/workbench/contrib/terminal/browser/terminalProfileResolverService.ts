@@ -65,10 +65,10 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 			if (e.affectsConfiguration(TerminalSettingId.DefaultProfileWindows) ||
 				e.affectsConfiguration(TerminalSettingId.DefaultProfileMacOs) ||
 				e.affectsConfiguration(TerminalSettingId.DefaultProfileLinux)) {
-				this._refreshDefaultProfileName().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._refreshDefaultProfileName().catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._terminalProfileService.onDidChangeAvailableProfiles(() => this._refreshDefaultProfileName().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._terminalProfileService.onDidChangeAvailableProfiles(() => this._refreshDefaultProfileName().catch(onUnexpectedError)));
 	}
 
 	@debounce(200)
@@ -90,10 +90,10 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 		if (this._primaryBackendOsInFlight) {
 			return this._primaryBackendOsInFlight;
 		}
-		const read = this._remoteAgentService.getEnvironment().then(env => this._primaryBackendOs = env?.os || OS).catch(onUnexpectedError).catch(onUnexpectedError);
+		const read = this._remoteAgentService.getEnvironment().then(env => this._primaryBackendOs = env?.os || OS).catch(onUnexpectedError);
 		const attempt = read.then(() => this._primaryBackendOs);
 		this._primaryBackendOsInFlight = attempt;
-		// Double catch fulfills a rejection, so this promise is not the failed-read cache.
+		// Single catch fulfills a rejection, so this promise is not the failed-read cache.
 		// Drop the settled attempt. The next resolution calls getEnvironment again unless the OS was cached.
 		void attempt.then(() => {
 			if (this._primaryBackendOsInFlight === attempt) {

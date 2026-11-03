@@ -39,6 +39,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -46,35 +47,40 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleCatch(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single catch: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-catch sites and zero double-chain sites', () => {
 		const files = [SHELL_REL, COMMAND_REL, AUTO_REL, CHILD_REL, ADDON_REL];
-		let sites = 0;
+		let singleSites = 0;
+		let doubleSites = 0;
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			singleSites += (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+			doubleSites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			assert.ok(!source.includes(doubleCatch), `${rel} must have zero chained double catches`);
 		}
 		assert.strictEqual(files.length, 5);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(singleSites, 8);
+		assert.strictEqual(doubleSites, 0);
 	});
 
-	test('windowsShellHelper leftover _startMonitoringShell / checkShell / getShellName then are Promise double-chain', () => {
+	test('windowsShellHelper leftover _startMonitoringShell / checkShell / getShellName then are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(SHELL_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _startMonitoringShell(): Promise<void> {');
 		assertPromiseSignature(source, 'async checkShell(): Promise<void> {');
 		assertPromiseSignature(source, 'async getShellName(): Promise<string> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._startMonitoringShell()');
-		assertDoubleThen(source, 'this.checkShell()');
+		assertSingleCatch(source, 'this._startMonitoringShell()');
+		assertSingleCatch(source, 'this.checkShell()');
 		const thenCall = `this.getShellName().then(title => {
 				if (generation !== this._checkShellGeneration || this._store.isDisposed) {
 					return;
@@ -87,49 +93,52 @@ suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', ()
 					this._shellTitle = title;
 				}
 			})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}${singleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('commandDetection leftover _waitForCursorMove then is Promise double-chain', () => {
+	test('commandDetection leftover _waitForCursorMove then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(COMMAND_REL), 'utf8');
 		assertPromiseSignature(source, 'private _waitForCursorMove(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('this._waitForCursorMove().then(() => {'));
-		assert.ok(source.includes(`			})${doubleCatch};`));
-		assert.ok(!source.includes('this._waitForCursorMove().then(() => {') || source.includes(`${doubleCatch};`));
-		assert.ok(!source.includes(`this._waitForCursorMove().then(() => {}${doubleCatch}`));
+		assert.ok(source.includes(`			})${singleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.strictEqual((source.match(/this\._waitForCursorMove\(\)\.then/g) ?? []).length, 1);
 		assert.ok(!source.includes('this._waitForCursorMove().then(() => {\n				// Calculate the number of lines the content may have shifted, this will max out at\n				// scrollback count since the standard behavior will be used then\n				const potentialShiftedLineCount = Math.min(rowsDifference, baseY);\n				// For each command within the viewport, assume commands are in the correct order\n				for (let i = this._capability.commands.length - 1; i >= 0; i--) {\n					const command = this._capability.commands[i];\n					if (!command.marker || command.marker.line < baseY || command.commandStartLineContent === undefined) {\n						break;\n					}\n					const line = this._terminal.buffer.active.getLine(command.marker.line);\n					if (!line || line.translateToString(true) === command.commandStartLineContent) {\n						continue;\n					}\n					const shiftedY = command.marker.line - potentialShiftedLineCount;\n					const shiftedLine = this._terminal.buffer.active.getLine(shiftedY);\n					if (shiftedLine?.translateToString(true) !== command.commandStartLineContent) {\n						continue;\n					}\n					// HACK: xterm.js doesn\'t expose this by design as it\'s an internal core\n					// function an embedder could easily do damage with. Additionally, this\n					// can\'t really be upstreamed since the event relies on shell integration to\n					// verify the shifting is necessary.\n					interface IXtermWithCore extends Terminal {\n						_core: {\n							_bufferService: {\n								buffer: {\n									lines: {\n										onDeleteEmitter: {\n											fire(data: { index: number; amount: number }): void;\n										};\n									};\n								};\n							};\n						};\n					}\n					(this._terminal as IXtermWithCore)._core._bufferService.buffer.lines.onDeleteEmitter.fire({\n						index: this._terminal.buffer.active.baseY,\n						amount: potentialShiftedLineCount\n					});\n				}\n			});'));
 	});
 
-	test('autoResponder leftover timeout then is Promise double-chain', () => {
+	test('autoResponder leftover timeout then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(AUTO_REL), 'utf8');
 		const asyncSrc = fs.readFileSync(resolveSource(ASYNC_REL), 'utf8');
 		assertPromiseSignature(asyncSrc, 'export function timeout(millis: number): CancelablePromise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'timeout(1000).then(() => this._throttled = false)');
+		assertSingleCatch(source, 'timeout(1000).then(() => this._throttled = false)');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('childProcessMonitor leftover _refreshActive fire-and-forgets are Promise double-chain; sync handleInput / _refreshInactive stay skipped', () => {
+	test('childProcessMonitor leftover _refreshActive fire-and-forgets are Promise single-catch; sync handleInput / _refreshInactive stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(CHILD_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _refreshActive(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(source.includes('handleInput() {'));
 		assert.ok(source.includes('private _refreshInactive(): void {'));
-		assertDoubleThen(source, 'this._refreshActive()');
-		assert.strictEqual((source.match(/this\._refreshActive\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assertSingleCatch(source, 'this._refreshActive()');
+		assert.strictEqual((source.match(/this\._refreshActive\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 		assert.ok(!source.includes('this._refreshActive();'));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes('this.handleInput().catch'));
 		assert.ok(!source.includes('this._refreshInactive().catch'));
 	});
 
-	test('shellIntegration leftover _ensureCapabilitiesOrAddFailureTelemetry is Promise double-chain', () => {
+	test('shellIntegration leftover _ensureCapabilitiesOrAddFailureTelemetry is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(ADDON_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _ensureCapabilitiesOrAddFailureTelemetry(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._ensureCapabilitiesOrAddFailureTelemetry()');
+		assertSingleCatch(source, 'this._ensureCapabilitiesOrAddFailureTelemetry()');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / two-arg then / assigned then / already-done / windows electron-main stay skipped', () => {
@@ -167,16 +176,19 @@ suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', ()
 		assert.ok(processSrc.includes('this._windowsShellHelper?.checkShell();'));
 		assert.ok(!processSrc.includes(`this._windowsShellHelper?.checkShell()${doubleCatch}`));
 		assert.ok(windowImpl.includes(`this.ready().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
-			})${doubleCatch};`));
-		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`));
+			})${singleCatch};`));
+		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${singleCatch};`));
 		assert.ok(watcher.includes('this.initialize().then(null, error => logService.error(\'Error while initializing Extensions Watcher\', getErrorMessage(error)));'));
 		assert.ok(!watcher.includes(doubleCatch));
 		assert.ok(language.includes('.then(() => this.languagePacks);'));
 		assert.ok(!language.includes(doubleCatch));
-		assert.ok(fileManaged.includes('const rawSnapshot = channel.call<RawManagedSettingsData>(\'getRawManagedSettings\').then(managedSettings => {'));
+		assert.ok(fileManaged.includes("Promise.all([\n\t\t\tchannel.call<RawManagedSettingsData>('getRawManagedSettings'),\n\t\t\tchannel.call<ManagedSettingsData>('getManagedSettings'),\n\t\t]).then(([rawManagedSettings, managedSettings]) => {"));
 		assert.ok(!fileManaged.includes(doubleCatch));
 		assert.ok(telemetry.includes('.then(undefined, err => `Failed to log telemetry: ${console.warn(err)}`);'));
 		assert.ok(!telemetry.includes(doubleCatch));

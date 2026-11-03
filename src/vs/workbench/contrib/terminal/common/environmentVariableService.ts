@@ -52,12 +52,12 @@ export class EnvironmentVariableService extends Disposable implements IEnvironme
 			// Asynchronously invalidate collections where extensions have been uninstalled, this is
 			// async to avoid making all functions on the service synchronous and because extensions
 			// being uninstalled is rare.
-			void this._invalidateExtensionCollections().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._invalidateExtensionCollections().catch(onUnexpectedError);
 		}
 		this.mergedCollection = this._resolveMergedCollection();
 
 		// Listen for uninstalled/disabled extensions
-		this._register(this._extensionService.onDidChangeExtensions(() => void this._invalidateExtensionCollections().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._extensionService.onDidChangeExtensions(() => void this._invalidateExtensionCollections().catch(onUnexpectedError)));
 	}
 
 	set(extensionIdentifier: string, collection: IEnvironmentVariableCollectionWithPersistence): void {
@@ -110,7 +110,13 @@ export class EnvironmentVariableService extends Disposable implements IEnvironme
 	}
 
 	private async _invalidateExtensionCollections(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this._extensionService.whenInstalledExtensionsRegistered();
+		if (this._store.isDisposed) {
+			return;
+		}
 		const registeredExtensions = this._extensionService.extensions;
 		let changes = false;
 		this.collections.forEach((_, extensionIdentifier) => {

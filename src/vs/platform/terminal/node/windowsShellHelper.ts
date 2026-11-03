@@ -77,11 +77,12 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 			throw new Error(`WindowsShellHelper cannot be instantiated on ${platform}`);
 		}
 
-		this._startMonitoringShell().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._startMonitoringShell().catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
 		++this._checkShellGeneration;
+		this._currentRequest = undefined;
 		super.dispose();
 	}
 
@@ -89,7 +90,7 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.checkShell().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.checkShell().catch(onUnexpectedError);
 	}
 
 	@debounce(500)
@@ -114,7 +115,7 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 					this._shellType = type;
 					this._shellTitle = title;
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -174,6 +175,11 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 		}
 		this._currentRequest = new Promise<string>(resolve => {
 			windowsProcessTree.getProcessTree(this._rootProcessId, tree => {
+				if (this._store.isDisposed) {
+					this._currentRequest = undefined;
+					resolve('');
+					return;
+				}
 				const name = this.traverseTree(tree);
 				this._currentRequest = undefined;
 				resolve(name);

@@ -230,10 +230,10 @@ export class TerminalService extends Disposable implements ITerminalService {
 		this._register(_lifecycleService.onBeforeShutdown(async e => e.veto(this._onBeforeShutdown(e.reason), 'veto.terminal')));
 		this._register(_lifecycleService.onWillShutdown(e => this._onWillShutdown(e)));
 
-		void this._initializePrimaryBackend().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._initializePrimaryBackend().catch(onUnexpectedError);
 
 		// Create async as the class depends on `this`
-		timeout(0).then(() => this._register(this._instantiationService.createInstance(TerminalEditorStyle, mainWindow.document.head))).catch(onUnexpectedError).catch(onUnexpectedError);
+		timeout(0).then(() => this._register(this._instantiationService.createInstance(TerminalEditorStyle, mainWindow.document.head))).catch(onUnexpectedError);
 	}
 
 	async showProfileQuickPick(type: 'setDefault' | 'createInstance', cwd?: string | URI): Promise<ITerminalInstance | undefined> {
@@ -333,7 +333,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 			}));
 			mark('code/terminal/didGetPerformanceMarks');
 			this._whenConnected.complete();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	getPrimaryBackend(): ITerminalBackend | undefined {
@@ -525,7 +525,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 					if (group) {
 						this._terminalGroupService.activeGroup = group;
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}
 		return Promise.all(groupPromises).then(result => result.filter(e => !!e) as ITerminalGroup[]);
@@ -556,7 +556,7 @@ export class TerminalService extends Disposable implements ITerminalService {
 				config: { attachPersistentProcess },
 				location: lastInstance ? { parentTerminal: lastInstance } : TerminalLocation.Panel
 			});
-			lastInstance.then(() => mark(`code/terminal/didRecreateTerminal/${attachPersistentProcess.id}-${attachPersistentProcess.pid}`)).catch(onUnexpectedError).catch(onUnexpectedError);
+			lastInstance.then(() => mark(`code/terminal/didRecreateTerminal/${attachPersistentProcess.id}-${attachPersistentProcess.pid}`)).catch(onUnexpectedError);
 		}
 		const group = lastInstance?.then(instance => {
 			const g = this._terminalGroupService.getGroupForInstance(instance);

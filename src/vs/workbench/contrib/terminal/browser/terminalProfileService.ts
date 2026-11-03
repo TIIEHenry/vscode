@@ -106,11 +106,14 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 		this._updateWebContextKey();
 		this._ensureProfilesReady();
 		this.refreshAvailableProfiles();
-		void this._setupConfigListener().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._setupConfigListener().catch(onUnexpectedError);
 	}
 
 	private async _setupConfigListener(): Promise<void> {
 		const platformKey = await this.getPlatformKey();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		this._register(this._configurationService.onDidChangeConfiguration(async e => {
 			if (e.affectsConfiguration(TerminalSettingPrefix.AutomationProfile + platformKey) ||
@@ -163,7 +166,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 
 	@throttle(2000)
 	refreshAvailableProfiles(): void {
-		this._refreshAvailableProfilesNow().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._refreshAvailableProfilesNow().catch(onUnexpectedError);
 	}
 
 	protected async _refreshAvailableProfilesNow(): Promise<void> {

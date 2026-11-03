@@ -71,6 +71,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -80,15 +81,19 @@ function countDoubleChains(source: string): number {
 	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
+function countSingleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const initCall = 'this._init(\n\t\t\teditorResolverService,\n\t\t\tembedderTerminalService,\n\t\t\tworkbenchEnvironmentService,\n\t\t\tlabelService,\n\t\t\tlifecycleService,\n\t\t\tterminalService,\n\t\t\tterminalEditorService,\n\t\t\tterminalGroupService,\n\t\t\tterminalInstanceService\n\t\t)';
@@ -100,7 +105,7 @@ const getEnvironmentThenCall = 'this._remoteAgentService.getEnvironment().then(e
 const leftoverResizeCall = 'this._resize();';
 const leftoverResizeTrueCall = 'this._resize(true);';
 const leftoverUnicodeCall = 'this._updateUnicodeVersion();';
-const leftoverSendTextCall = 'this.sendText(e.command.command, e.noNewLine ? false : true);';
+const leftoverSendTextCall = 'this._sendTextOrThrow(e.command.command, e.noNewLine ? false : true)';
 const leftoverShowBackgroundCall = 'this.showBackgroundTerminal(value);';
 const leftoverRevealCall = 'this.revealTerminal(instance);';
 const leftoverMoveCall = 'this.moveToTerminalView(sourceInstance, instance, e.side);';
@@ -162,25 +167,29 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused terminal legal leftover >=4, got ${sites}`);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countIncludes(main, `${initCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(resolver, `${refreshDefaultCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(profile, `${refreshAvailableCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(tabs, `${handleExternalDropCall}${doubleCatch}`), 1);
-		assert.ok(resolver.includes(`${getEnvironmentThenCall}${doubleCatch}`));
-		assert.ok(profile.includes(`${setupConfigCall}${doubleCatch}`));
+		assert.strictEqual(countIncludes(main, `${initCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(resolver, `${refreshDefaultCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(profile, `${refreshAvailableCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(tabs, `${handleExternalDropCall}${singleCatch}`), 1);
+		assert.ok(resolver.includes(`${getEnvironmentThenCall}${singleCatch}`));
+		assert.ok(profile.includes(`${setupConfigCall}${singleCatch}`));
+		assert.ok(!main.includes(doubleCatch));
+		assert.ok(!resolver.includes(doubleCatch));
+		assert.ok(!profile.includes(doubleCatch));
+		assert.ok(!tabs.includes(doubleCatch));
 		assert.ok(!main.includes('D862'));
 		assert.ok(!resolver.includes('D862'));
 		assert.ok(!profile.includes('D862'));
 		assert.ok(!tabs.includes('D862'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after leftover remaining unused stayed on terminal leftover remaining unused', () => {
+	test('this knife covers five leftover Promise single-catch sites after leftover remaining unused stayed on terminal leftover remaining unused', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d862Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -188,13 +197,17 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(MAIN_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(RESOLVER_REL) ?? ''), 3);
-		assert.strictEqual(countDoubleChains(seen.get(PROFILE_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(TABS_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(MAIN_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(RESOLVER_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(PROFILE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(TABS_REL) ?? ''), 0);
+		assert.strictEqual(countSingleChains(seen.get(MAIN_REL) ?? ''), 1);
+		assert.strictEqual(countSingleChains(seen.get(RESOLVER_REL) ?? ''), 3);
+		assert.strictEqual(countSingleChains(seen.get(PROFILE_REL) ?? ''), 2);
+		assert.strictEqual(countSingleChains(seen.get(TABS_REL) ?? ''), 1);
 	});
 
-	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-catch', () => {
 		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const resolver = fs.readFileSync(resolveSource(RESOLVER_REL), 'utf8');
 		const profile = fs.readFileSync(resolveSource(PROFILE_REL), 'utf8');
@@ -267,7 +280,7 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('D862'));
 		}
 	});
@@ -323,14 +336,15 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 		assert.ok(instance.includes(leftoverUnicodeCall));
 		assert.ok(!instance.includes(`this._updateUnicodeVersion()${doubleCatch}`));
 		assert.ok(instance.includes(leftoverSendTextCall));
-		assert.ok(!instance.includes(`${leftoverSendTextCall.slice(0, -1)}${doubleCatch}`));
+		assert.ok(!instance.includes(`${leftoverSendTextCall}${doubleCatch}`));
 		assert.ok(service.includes(leftoverShowBackgroundCall));
 		assert.ok(!service.includes(`this.showBackgroundTerminal(value)${doubleCatch}`));
 		assert.ok(service.includes(leftoverRevealCall));
 		assert.ok(!service.includes(`this.revealTerminal(instance)${doubleCatch}`));
 		assert.ok(service.includes(leftoverMoveCall));
 		assert.ok(!service.includes(`this.moveToTerminalView(sourceInstance, instance, e.side)${doubleCatch}`));
-		assert.ok(xterm.includes(`this._updateUnicodeVersion()${doubleCatch}`));
+		assert.ok(xterm.includes(`this._updateUnicodeVersion()${singleCatch}`));
+		assert.ok(!xterm.includes(`this._updateUnicodeVersion()${doubleCatch}`));
 
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
