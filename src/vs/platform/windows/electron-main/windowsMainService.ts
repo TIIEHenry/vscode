@@ -488,7 +488,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				}
 			}
 
-			this.workspacesHistoryMainService.addRecentlyOpened(recents).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.workspacesHistoryMainService.addRecentlyOpened(recents).catch(onUnexpectedError);
 		}
 
 		// Handle `<app> --wait`
@@ -509,13 +509,16 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		if (openConfig.context === OpenContext.CLI && waitMarkerFileURI && usedWindows.length === 1 && usedWindows[0]) {
 			(async () => {
 				await usedWindows[0].whenClosedOrLoaded;
+				if (this._store.isDisposed) {
+					return;
+				}
 
 				try {
 					await this.fileService.del(waitMarkerFileURI);
 				} catch (error) {
 					// ignore - could have been deleted from the window already
 				}
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		}
 	}
 
@@ -925,7 +928,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 				detail: uri.scheme === Schemas.file ?
 					localize('pathNotExistDetail', "The path '{0}' does not exist on this computer.", getPathLabel(uri, { os: OS, tildify: this.environmentMainService })) :
 					localize('uriInvalidDetail', "The URI '{0}' is not valid and can not be opened.", uri.toString(true))
-			}, BrowserWindow.getFocusedWindow() ?? undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			}, BrowserWindow.getFocusedWindow() ?? undefined).catch(onUnexpectedError);
 
 			return undefined;
 		}));
@@ -1411,7 +1414,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		// on the same extension path.
 		const existingWindow = findWindowOnExtensionDevelopmentPath(this.getWindows(), extensionDevelopmentPaths);
 		if (existingWindow) {
-			this.lifecycleMainService.reload(existingWindow, openConfig.cli).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.lifecycleMainService.reload(existingWindow, openConfig.cli).catch(onUnexpectedError);
 			existingWindow.focus(); // make sure it gets focus and is restored
 
 			return [existingWindow];
@@ -1643,7 +1646,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 			const webContents = assertReturnsDefined(createdWindow.win?.webContents);
 			webContents.removeAllListeners('devtools-reload-page'); // remove built in listener so we can handle this on our own
-			disposables.add(Event.fromNodeEventEmitter(webContents, 'devtools-reload-page')(() => this.lifecycleMainService.reload(createdWindow).catch(onUnexpectedError).catch(onUnexpectedError)));
+			disposables.add(Event.fromNodeEventEmitter(webContents, 'devtools-reload-page')(() => this.lifecycleMainService.reload(createdWindow).catch(onUnexpectedError)));
 
 			// Lifecycle
 			this.lifecycleMainService.registerWindow(createdWindow);
@@ -1679,10 +1682,13 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 		// not vetoed
 		if (window.isReady) {
 			this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!veto) {
 					await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		} else {
 			await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 		}

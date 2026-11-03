@@ -261,7 +261,12 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 		super();
 
 		this.resolveRestarted();
-		this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.when(LifecycleMainPhase.Ready).then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.registerListeners();
+		}).catch(onUnexpectedError);
 	}
 
 	private resolveRestarted(): void {
@@ -443,6 +448,9 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 			// Otherwise prevent unload and handle it from window
 			e.preventDefault();
 			this.unload(window, UnloadReason.CLOSE).then(veto => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (veto) {
 					this.windowToCloseRequest.delete(windowId);
 					return;
@@ -456,7 +464,7 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 
 				// No veto, close window now
 				window.close();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 		windowListeners.add(Event.fromNodeEventEmitter<electron.Event>(win, 'closed')(() => {
 			this.trace(`Lifecycle#window.on('closed') - window ID ${window.id}`);
@@ -754,5 +762,11 @@ export class LifecycleMainService extends Disposable implements ILifecycleMainSe
 
 		// Now exit either after 1s or all windows destroyed
 		electron.app.exit(code);
+	}
+
+	override dispose(): void {
+		this.windowToCloseRequest.clear();
+		this.mapWindowIdToPendingUnload.clear();
+		super.dispose();
 	}
 }

@@ -35,6 +35,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -42,48 +43,52 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('platform webContentExtractor leftover Promise fire-and-forget catch scan (D733)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-chain sites and zero double-chain sites', () => {
 		const source = fs.readFileSync(resolveSource(LOADER_REL), 'utf8');
-		const sites = (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		assert.strictEqual(sites, 8);
+		const doubleSites = (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const singleSites = (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+		assert.strictEqual(doubleSites, 0);
+		assert.strictEqual(singleSites, 8);
 	});
 
-	test('loader leftover loadURL is Promise double-chain', () => {
+	test('loader leftover loadURL is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(LOADER_REL), 'utf8');
 		const loaderTest = fs.readFileSync(resolveSource(LOADER_TEST_REL), 'utf8');
 		assertPromiseSignature(source, 'public async load() {');
 		assert.ok(loaderTest.includes('public loadURL = sinon.stub().resolves();'));
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this._window.loadURL(this._uri.toString(true))');
+		assertSingleThen(source, 'void this._window.loadURL(this._uri.toString(true))');
 	});
 
-	test('loader leftover queue extractContent fire-and-forgets are Promise double-chain', () => {
+	test('loader leftover queue extractContent fire-and-forgets are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(LOADER_REL), 'utf8');
 		const asyncSrc = fs.readFileSync(resolveSource(ASYNC_REL), 'utf8');
 		assertPromiseSignature(asyncSrc, 'queue(factory: ITask<Promise<T>>): Promise<T>;');
 		assert.ok(asyncSrc.includes('export class Queue<T> extends Limiter<T> {'));
 		assertPromiseSignature(source, 'private async extractContent(errorResult?: WebContentExtractResult & { status: \'error\' }) {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this._queue.queue(() => this.extractContent())');
-		assert.strictEqual((source.match(/void this\._queue\.queue\(\(\) => this\.extractContent\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
+		assertSingleThen(source, 'void this._queue.queue(() => this.extractContent())');
+		assert.strictEqual((source.match(/void this\._queue\.queue\(\(\) => this\.extractContent\(\)\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
+		assert.strictEqual((source.match(/void this\._queue\.queue\(\(\) => this\.extractContent\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assert.ok(!source.includes('this._queue.queue(() => this.extractContent());'));
 	});
 
-	test('loader leftover queue extractContent error fire-and-forgets are Promise double-chain', () => {
+	test('loader leftover queue extractContent error fire-and-forgets are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(LOADER_REL), 'utf8');
-		assertDoubleThen(source, 'void this._queue.queue(() => this.extractContent({ status: \'error\', error: `Download not allowed: ${filename}` }))');
-		assertDoubleThen(source, 'void this._queue.queue(() => this.extractContent({ status: \'error\', statusCode, error }))');
-		assert.strictEqual((source.match(/void this\._queue\.queue\(\(\) => this\.extractContent\(\{ status: 'error', statusCode, error \}\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assertSingleThen(source, 'void this._queue.queue(() => this.extractContent({ status: \'error\', error: `Download not allowed: ${filename}` }))');
+		assertSingleThen(source, 'void this._queue.queue(() => this.extractContent({ status: \'error\', statusCode, error }))');
+		assert.strictEqual((source.match(/void this\._queue\.queue\(\(\) => this\.extractContent\(\{ status: 'error', statusCode, error \}\)\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\._queue\.queue\(\(\) => this\.extractContent\(\{ status: 'error', statusCode, error \}\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / two-arg then / assigned then / empty-catch / windows electron-main / terminal / browserView stay skipped', () => {
@@ -108,7 +113,7 @@ suite('platform webContentExtractor leftover Promise fire-and-forget catch scan 
 		assert.ok(!hover.includes(doubleCatch));
 		assert.ok(scanner.includes('this.fileService.exists(toCheck).then(exists => {'));
 		assert.ok(!scanner.includes(doubleCatch));
-		assert.ok(fileManaged.includes('const rawSnapshot = channel.call<RawManagedSettingsData>(\'getRawManagedSettings\').then(managedSettings => {'));
+		assert.ok(fileManaged.includes("channel.call<RawManagedSettingsData>('getRawManagedSettings'),"));
 		assert.ok(!fileManaged.includes(doubleCatch));
 		assert.ok(telemetry.includes('.then(undefined, err => `Failed to log telemetry: ${console.warn(err)}`);'));
 		assert.ok(!telemetry.includes(doubleCatch));
@@ -117,11 +122,16 @@ suite('platform webContentExtractor leftover Promise fire-and-forget catch scan 
 		assert.ok(language.includes('.then(() => this.languagePacks);'));
 		assert.ok(!language.includes(doubleCatch));
 		assert.ok(windowImpl.includes(`this.ready().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
-			})${doubleCatch};`));
-		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`));
+			})${singleCatch};`));
+		assert.ok(!windowImpl.includes(doubleCatch));
+		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${singleCatch};`));
+		assert.ok(!windowsMain.includes(doubleCatch));
 		assert.ok(shell.includes(`this._startMonitoringShell()${doubleCatch};`));
 		assert.ok(inspect.includes('this.browser.debugger.attach().then(conn => this._watchSession(conn)).catch(() => { });'));
 		assert.ok(!inspect.includes(`this.browser.debugger.attach().then(conn => this._watchSession(conn))${doubleCatch}`));
@@ -132,10 +142,10 @@ suite('platform webContentExtractor leftover Promise fire-and-forget catch scan 
 		assert.ok(!source.includes('acknowledge('));
 		assert.ok(!source.includes('releaseLease('));
 		assert.ok(!source.includes('Wire('));
-		assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+		assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
 		assert.ok(!source.includes('openerService.open'));
 		assert.ok(!source.includes('IOpenerService'));
 		assert.ok(!source.includes('then(clear,clear)'));
