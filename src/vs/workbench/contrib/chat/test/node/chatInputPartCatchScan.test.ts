@@ -27,20 +27,19 @@ suite('ChatInputPart leftover fire-and-forget catch scan (D599)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('chatInputPart result.finally void double-catch onUnexpectedError', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('chatInputPart result.finally void single-catch onUnexpectedError and zero double catches', () => {
 		const source = fs.readFileSync(chatInputPartSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const finallyCall = 'void result.finally(() => this._updateInputContentContextKeys())';
-		const doubleFinally = `${finallyCall}${doubleCatch};`;
+		const singleFinally = `${finallyCall}.catch(onUnexpectedError);`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private _requestProgrammaticLanguageModel('));
 		assert.ok(source.includes('requestProgrammaticSelection('));
 		assert.strictEqual((source.match(/void result\.finally\(\(\) => this\._updateInputContentContextKeys\(\)\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleFinally));
-		assert.ok(source.includes(`${doubleFinally}\n\t\treturn result;`));
+		assert.ok(source.includes(singleFinally));
+		assert.ok(source.includes(`${singleFinally}\n\t\treturn result;`));
 		assert.ok(!source.includes(`${finallyCall};`));
-		assert.ok(!source.includes(`${finallyCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes('return result.finally'));
 	});
 });

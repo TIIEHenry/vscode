@@ -63,6 +63,12 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
 }
 
+function assertSingleWrapped(source: string, call: string): void {
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError);`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double-chain remains: ${call}`);
+}
+
 suite('Chat leftover Promise fire-and-forget catch scan (D743)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -119,7 +125,7 @@ suite('Chat leftover Promise fire-and-forget catch scan (D743)', () => {
 			countIncludes(viewPane, 'void Promise.resolve(updatePromise)') +
 			countIncludes(setup, 'void Promise.resolve(this.extensionService.whenInstalledExtensionsRegistered())');
 		assert.strictEqual(sites, 17);
-		assert.strictEqual(countIncludes(find, `void this.updateResultCount()${doubleCatch}`), 3);
+		assert.strictEqual(countIncludes(find, 'void this.updateResultCount().catch(onUnexpectedError);'), 3);
 		assert.strictEqual(countIncludes(handler, 'void this._filterAutoGrantedMcpAuthentication(sessionResource, servers)'), 1);
 	});
 
@@ -194,27 +200,30 @@ suite('Chat leftover Promise fire-and-forget catch scan (D743)', () => {
 		assert.ok(ext.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(hover.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(widget.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(picker, `void Promise.resolve(this._workspaceTrustManagementService.workspaceTrustInitialized).then(() => {
+		assertSingleWrapped(picker, `void Promise.resolve(this._workspaceTrustManagementService.workspaceTrustInitialized).then(() => {
 			if (this._store.isDisposed) {
 				return;
 			}
 			this._workspaceTrustInitialized = true;
 			this._renderLabel();
 		})`);
-		assertWrapped(terminal, `void Promise.resolve(this._terminalService.whenConnected).then(() => {
+		assertSingleWrapped(terminal, `void Promise.resolve(this._terminalService.whenConnected).then(() => {
 			initializeTerminalActionsOnce();
 		})`);
-		assertWrapped(mode, `void Promise.resolve(assignmentService.getTreatment('chat.showOldAskMode')).then(showOldAskMode => {
+		assertSingleWrapped(mode, `void Promise.resolve(assignmentService.getTreatment('chat.showOldAskMode')).then(showOldAskMode => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			assignments.set({ showOldAskMode: showOldAskMode === 'enabled' }, undefined);
 		})`);
-		assertWrapped(tree, `void Promise.resolve(this.tree.setInput(data)).then(() => {
-			if (!ref.isStale()) {
+		assertSingleWrapped(tree, `void Promise.resolve(this.tree.setInput(data)).then(() => {
+			if (!ref.isStale() && !this._store.isDisposed && !this._isDisposed) {
 				this.tree.layout();
 			}
 		})`);
-		assertWrapped(ext, `void Promise.resolve(getExtensions(extensionsContent.extensions, extensionsWorkbenchService)).then(extensions => {
+		assertSingleWrapped(ext, `void Promise.resolve(getExtensions(extensionsContent.extensions, extensionsWorkbenchService)).then(extensions => {
 			loadingElement.remove();
-			if (this._store.isDisposed) {
+			if (this._store.isDisposed || this._isDisposed) {
 				return;
 			}
 			list.setModel(new PagedModel(extensions));
@@ -311,6 +320,6 @@ suite('Chat leftover Promise fire-and-forget catch scan (D743)', () => {
 		assert.ok(!hover.includes('commandService.executeCommand(showExtensionsWithIdsCommandId, [agent.extensionId.value]).catch'));
 		assert.ok(tree.includes('this.openerService.open(e.element.uri);'));
 		assert.ok(!tree.includes('this.openerService.open(e.element.uri).catch'));
-		assert.strictEqual(countIncludes(fs.readFileSync(resolveSource(FIND_REL), 'utf8'), `void this.updateResultCount()${doubleCatch}`), 3);
+		assert.strictEqual(countIncludes(fs.readFileSync(resolveSource(FIND_REL), 'utf8'), 'void this.updateResultCount().catch(onUnexpectedError);'), 3);
 	});
 });

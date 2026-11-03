@@ -188,7 +188,7 @@ export class ModelPickerWidget extends Disposable {
 			}
 			this._workspaceTrustInitialized = true;
 			this._renderLabel();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this._entitlementService.onDidChangeUsageBasedBilling(() => {
 			this._renderLabel();
@@ -288,6 +288,9 @@ export class ModelPickerWidget extends Disposable {
 	 * models and `onDidChangeLanguageModels` refreshes the picker.
 	 */
 	private async _requestWorkspaceTrust(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this._workspaceTrustRequestService.requestWorkspaceTrust({
 			message: localize('chat.modelPicker.trustMessage', "Trusting this workspace enables AI models and chat features.")
 		});
@@ -299,6 +302,9 @@ export class ModelPickerWidget extends Disposable {
 	 * refreshes the picker.
 	 */
 	private _requestSetup(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._commandService.executeCommand(CHAT_SETUP_ACTION_ID);
 	}
 
@@ -406,6 +412,9 @@ export class ModelPickerWidget extends Disposable {
 	}
 
 	show(anchor?: HTMLElement): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const anchorElement = anchor ?? this._domNode;
 		if (!anchorElement || this._domNode?.classList.contains('disabled')) {
 			return;
@@ -418,6 +427,9 @@ export class ModelPickerWidget extends Disposable {
 		const previousModel = this._selectedModel;
 
 		const onSelect = (model: ILanguageModelChatMetadataAndIdentifier) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._telemetryService.publicLog2<ChatModelChangeEvent, ChatModelChangeClassification>('chat.modelChange', {
 				fromModel: previousModel?.metadata.vendor === 'copilot' ? new TelemetryTrustedValue(previousModel.identifier) : 'unknown',
 				toModel: model.metadata.vendor === 'copilot' ? new TelemetryTrustedValue(model.identifier) : 'unknown',
@@ -432,6 +444,9 @@ export class ModelPickerWidget extends Disposable {
 		// close the model picker, then open the config picker focused on the
 		// requested section (Thinking Effort or Context Size).
 		const onConfigure = (model: ILanguageModelChatMetadataAndIdentifier, group: string) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			onSelect(model);
 			this._actionWidgetService.hide();
 			this._configuration.show(this._configButton, group);
@@ -448,6 +463,9 @@ export class ModelPickerWidget extends Disposable {
 		};
 		const manageSettingsUrl = this._defaultAccountService.resolveGitHubUrl(GitHubPaths.copilotSettings);
 		const onTogglePin = (modelIdentifier: string, pinned: boolean) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (pinned) {
 				this._languageModelsService.pinModel(modelIdentifier);
 			} else {
@@ -482,8 +500,18 @@ export class ModelPickerWidget extends Disposable {
 				onSelect,
 				onTogglePin,
 				onConfigure,
-				onRequestTrust: () => { void this._requestWorkspaceTrust().catch(onUnexpectedError).catch(onUnexpectedError); },
-				onRequestSetup: () => { this._requestSetup(); },
+				onRequestTrust: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this._requestWorkspaceTrust().catch(onUnexpectedError);
+				},
+				onRequestSetup: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this._requestSetup();
+				},
 			},
 		});
 
@@ -575,7 +603,7 @@ export class ModelPickerWidget extends Disposable {
 	}
 
 	private _renderLabel(): void {
-		if (!this._domNode || !this._nameButton) {
+		if (this._store.isDisposed || !this._domNode || !this._nameButton) {
 			return;
 		}
 
@@ -634,6 +662,18 @@ export class ModelPickerWidget extends Disposable {
 				: localize('chat.modelPicker.ariaLabel', "Models, {0}", modelLabel);
 		this._domNode.ariaLabel = ariaLabel;
 		this._nameButton.ariaLabel = ariaLabel;
+	}
+
+	override dispose(): void {
+		if (this._domNode) {
+			dom.clearNode(this._domNode);
+			this._domNode.remove();
+			this._domNode = undefined;
+		}
+		this._nameButton = undefined;
+		this._configButton = undefined;
+		this._badgeIcon = undefined;
+		super.dispose();
 	}
 
 }

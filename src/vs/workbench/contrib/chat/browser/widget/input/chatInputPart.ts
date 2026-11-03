@@ -1010,6 +1010,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		// Listen for session type changes from the welcome page delegate
 		if (this.options.sessionTypePickerDelegate?.onDidChangeActiveSessionProvider) {
 			this._register(this.options.sessionTypePickerDelegate.onDidChangeActiveSessionProvider(async (newSessionType) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				// Seed the destination type before the welcome widget asynchronously replaces its outgoing view model.
 				this._currentSessionType = newSessionType;
 				this.getVisibleOptionGroupsModeAndUpdateContextKeys(this.getCurrentSessionResource());
@@ -1856,6 +1859,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	public setCurrentLanguageModel(model: ILanguageModelChatMetadataAndIdentifier, isUserAction = false, storeSelection: boolean = isUserAction) {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const persistSelection = isUserAction && storeSelection;
 		this._modelSelectionDiagnostics.report('set-model', {
 			model: model.identifier,
@@ -1864,6 +1870,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			available: this.getModels().length,
 		}, 'info');
 		const apply = () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.cachedWidth) {
 				this.layout(this.cachedWidth);
 			}
@@ -1885,7 +1894,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 			this._inputModelSessionResource?.toString(),
 		);
 		this._updateInputContentContextKeys();
-		void result.finally(() => this._updateInputContentContextKeys()).catch(onUnexpectedError).catch(onUnexpectedError);
+		void result.finally(() => this._updateInputContentContextKeys()).catch(onUnexpectedError);
 		return result;
 	}
 
@@ -1893,7 +1902,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	 * By ID- prefer this method
 	 */
 	setChatMode(mode: ChatModeKind | string, storeSelection = true, isUserInitiated = false): void {
-		if (!this.options.supportsChangingModes) {
+		if (this._store.isDisposed || !this.options.supportsChangingModes) {
 			return;
 		}
 
@@ -1906,7 +1915,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	private setChatMode2(mode: IChatMode, storeSelection = true, isUserInitiated = false): void {
-		if (!this.options.supportsChangingModes) {
+		if (this._store.isDisposed || !this.options.supportsChangingModes) {
 			return;
 		}
 
@@ -2232,6 +2241,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	async showPreviousValue(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.history.isAtStart()) {
 			return;
 		}
@@ -2244,6 +2256,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	async showNextValue(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.history.isAtEnd()) {
 			return;
 		}
@@ -2259,6 +2274,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	 * Restores attachments to the input, re-fetching image binary data as needed.
 	 */
 	async restoreAttachments(attachments: readonly IChatRequestVariableEntry[]): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const boundSession = this._inputModelSessionResource;
 		let restored = [...attachments];
 
@@ -2291,6 +2309,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	private async navigateHistory(previous: boolean): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const boundSession = this._inputModelSessionResource;
 		const historyEntry = previous ?
 			this.history.previous() : this.history.next();
@@ -2358,6 +2379,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	 * @param userQuery If provided, this will be added to the history. Followups and programmatic queries should not be passed.
 	 */
 	async acceptInput(isUserQuery?: boolean, preserveFocus?: boolean, preserveInput?: boolean): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (isUserQuery) {
 			const userQuery = this.getCurrentInputState();
 			this.history.append(this._getFilteredEntry(userQuery));
@@ -2916,7 +2940,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	 * would land on the source session rather than the target the models belong to.
 	 */
 	private async applyNotificationModelConfiguration(modelIdentifier: string, values: IStringDictionary<unknown>): Promise<void> {
-		if (this._pendingDelegationTarget) {
+		if (this._store.isDisposed || this._pendingDelegationTarget) {
 			return;
 		}
 		await this._modelConfigStore.setModelConfiguration(modelIdentifier, values);
@@ -4320,6 +4344,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	async renderChatTodoListWidget(chatSessionResource: URI) {
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		const isTodoWidgetEnabled = this.configurationService.getValue<boolean>(ChatConfiguration.TodosShowWidget) !== false;
 		if (!isTodoWidgetEnabled) {
@@ -4905,6 +4932,9 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 				this._onDidFocus.fire();
 			}));
 			this._chatEditsDisposables.add(list.onDidOpen(async (e) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (e.element?.kind === 'reference' && URI.isUri(e.element.reference)) {
 					const modifiedFileUri = e.element.reference;
 					const originalUri = e.element.options?.originalUri;
@@ -4977,7 +5007,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 	}
 
 	async renderFollowups(items: IChatFollowup[] | undefined, response: IChatResponseViewModel | undefined): Promise<void> {
-		if (!this.options.renderFollowups) {
+		if (this._store.isDisposed || !this.options.renderFollowups) {
 			return;
 		}
 		this.followupsDisposables.clear();
@@ -5262,6 +5292,14 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 
 		this._forceVisibleScrollbarUntilAccept = false;
 		this.updateInputEditorScrollbarOptions();
+	}
+
+	override dispose(): void {
+		if (this.container) {
+			dom.clearNode(this.container);
+			this.container.remove();
+		}
+		super.dispose();
 	}
 }
 

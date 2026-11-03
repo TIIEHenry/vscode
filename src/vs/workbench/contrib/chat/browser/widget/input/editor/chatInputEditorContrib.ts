@@ -136,7 +136,7 @@ class InputEditorDecorations extends Disposable {
 				return;
 			}
 
-			void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri }).catch(onUnexpectedError);
 		}));
 		this._register(this.chatAgentService.onDidChangeAgents(() => this.triggerInputEditorDecorationsUpdate()));
 		this._register(this.customizationHarnessService.onDidChangeSlashCommands((e) => {

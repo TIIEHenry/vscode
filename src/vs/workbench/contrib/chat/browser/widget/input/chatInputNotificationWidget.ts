@@ -161,6 +161,9 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 	}
 
 	private _render(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// Tearing the content down would strand keyboard focus on <body>, which also
 		// drops the context keys the chat keybindings depend on. Hand it back to the
 		// input instead, the same way an onboarding card does when it stands down.
@@ -225,6 +228,9 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 	 * through here so the slot cannot end up marked empty while it has content.
 	 */
 	attachTo(slot: HTMLElement): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._slot = slot;
 		slot.appendChild(this.domNode);
 		setChatInputStackSlot(slot, this._visible ? ChatInputStackSlot.Docked : ChatInputStackSlot.Empty);
@@ -362,7 +368,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 					button.element.ariaLabel = `${ariaTitle} ${action.label}`;
 
 					this._contentDisposables.add(button.onDidClick(() => {
-						void this._executeAction(notification, action).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this._executeAction(notification, action).catch(onUnexpectedError);
 					}));
 				}
 			}
@@ -381,6 +387,9 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 	}
 
 	private async _executeAction(notification: IChatInputNotification, action: IChatInputNotificationAction): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._telemetryService.publicLog2<ChatInputNotificationActionTelemetryEvent, ChatInputNotificationActionTelemetryClassification>('chatInputNotificationAction', {
 			...this._getTelemetryData(notification),
 			actionKind: action.kind,
@@ -492,5 +501,18 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 			id: notification.id,
 			telemetryId: notification.telemetryId,
 		};
+	}
+
+	override dispose(): void {
+		this._contentDisposables.dispose();
+		if (this._slot) {
+			setChatInputStackSlot(this._slot, ChatInputStackSlot.Empty);
+			this._slot = undefined;
+		}
+		if (this.domNode) {
+			dom.clearNode(this.domNode);
+			this.domNode.remove();
+		}
+		super.dispose();
 	}
 }

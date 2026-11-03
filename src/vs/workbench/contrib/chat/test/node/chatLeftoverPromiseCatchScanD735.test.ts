@@ -51,9 +51,21 @@ function assertDoubleChain(source: string, call: string, count: number): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
+function assertSingleChain(source: string, call: string, count: number): void {
+	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`));
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+}
+
 function countDouble(rel: string, call: string): number {
 	const source = fs.readFileSync(resolveSource(rel), 'utf8');
 	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+}
+
+function countSingle(rel: string, call: string): number {
+	const source = fs.readFileSync(resolveSource(rel), 'utf8');
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.catch\\(onUnexpectedError\\);`, 'g')) ?? []).length;
 }
 
 suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
@@ -66,7 +78,7 @@ suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers twenty-one leftover Promise double-chain sites; D679/D728 stay skipped', () => {
+	test('this knife covers nineteen leftover Promise double-chain sites; D679/D728 stay skipped', () => {
 		const timeoutThen = `void timeout(200).then(() => {
 					if (!this.getWidgetBySessionResource(previousSessionResource) && this.chatService.getSession(previousSessionResource)) {
 						this._onDidBackgroundSession.fire(previousSessionResource);
@@ -77,12 +89,10 @@ suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
 			countDouble(SESSIONS_SVC_REL, "void this.chatService.cancelCurrentRequestForSession(session.resource, 'archive')") +
 			countDouble(PET_EDITOR_REL, 'void this.group.closeEditor(this.input)') +
 			countDouble(CHIPS_REL, 'void this._refreshInitialResolved(sessionResource, backendSession)') +
-			countDouble(INPUT_CONTRIB_REL, 'void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri })') +
 			countDouble(VOICE_PILL_REL, 'void this._onClickVoicePowerToggle()') +
 			countDouble(HANDLER_REL, 'void this._filterAutoGrantedMcpAuthentication(sessionResource, servers)') +
 			countDouble(WIDGET_SVC_REL, timeoutThen) +
 			countDouble(DEBUG_REL, 'void this.renderContentInner(token, () => token === this.renderToken, true)') +
-			countDouble(PERM_REL, 'void setSandboxEnabled(checked)') +
 			countDouble(LM_REL, 'void extensionsWorkbenchService.open(extId)') +
 			countDouble(LOCATOR_REL, 'void update()') +
 			countDouble(LOCATOR_REL, 'void updateWatchers()');
@@ -91,8 +101,8 @@ suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
 		const renderPlain = 'void this.renderContentInner(token, () => token === this.renderToken)';
 		assert.ok(debug.includes(`${renderPlain}${doubleCatch};`));
 		assert.ok(!debug.includes(`${renderPlain};`));
-		assert.strictEqual(sites + 1, 21);
-		assert.strictEqual(countDouble(FIND_REL, 'void this.updateResultCount()'), 3);
+		assert.strictEqual(sites + 1, 19);
+		assert.strictEqual(countSingle(FIND_REL, 'void this.updateResultCount()'), 3);
 	});
 
 	test('chatService leftover generate title IIFE is double-chain; await sendRequest stays skipped', () => {
@@ -127,12 +137,12 @@ suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
 		assertDoubleChain(source, 'void this._refreshInitialResolved(sessionResource, backendSession)', 1);
 	});
 
-	test('chatInputEditor leftover openEditor is double-chain', () => {
+	test('chatInputEditor leftover openEditor is single-chain', () => {
 		const source = fs.readFileSync(resolveSource(INPUT_CONTRIB_REL), 'utf8');
 		const editor = fs.readFileSync(resolveSource(EDITOR_SVC_REL), 'utf8');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../../../../base/common/errors.js';"));
 		assert.ok(editor.includes('openEditor('));
-		assertDoubleChain(source, 'void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri })', 1);
+		assertSingleChain(source, 'void this.editorService.openEditor({ resource: mouseDownPromptSlashCommand.uri })', 1);
 	});
 
 	test('voiceInputMode leftover _onClickVoicePowerToggle voids are double-chain', () => {
@@ -176,11 +186,11 @@ suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
 		assert.ok(!source.includes(`${withTrue}.catch(onUnexpectedError);`));
 	});
 
-	test('permissionPicker leftover setSandboxEnabled is double-chain', () => {
+	test('permissionPicker leftover setSandboxEnabled is single-chain', () => {
 		const source = fs.readFileSync(resolveSource(PERM_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(source.includes('const setSandboxEnabled = async (enableSandbox: boolean) => {'));
-		assertDoubleChain(source, 'void setSandboxEnabled(checked)', 1);
+		assertSingleChain(source, 'void setSandboxEnabled(checked)', 1);
 	});
 
 	test('languageModel leftover extensionsWorkbenchService.open voids are double-chain', () => {
@@ -215,6 +225,6 @@ suite('Chat leftover Promise fire-and-forget catch scan (D735)', () => {
 		assert.ok(!voice.includes('void this.connect(this._window ?? mainWindow).catch'));
 		assert.ok(sessions.includes('void promise.then(clearPendingSession, clearPendingSession);'));
 		assert.ok(!sessions.includes('void promise.then(clearPendingSession, clearPendingSession).catch'));
-		assert.strictEqual(countDouble(FIND_REL, 'void this.updateResultCount()'), 3);
+		assert.strictEqual(countSingle(FIND_REL, 'void this.updateResultCount()'), 3);
 	});
 });
