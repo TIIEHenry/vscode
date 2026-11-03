@@ -194,11 +194,11 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.disconnectedActions = DOM.append(this.disconnectedBanner, $('.engine-preferences-disconnected-actions'));
 		this.bannerTestButton = this._register(new Button(this.disconnectedActions, { ...defaultButtonStyles, secondary: true }));
 		this.bannerTestButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(this.bannerTestButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.bannerTestButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError)));
 		const bannerOpenConnection = this._register(new Button(this.disconnectedActions, defaultButtonStyles));
 		bannerOpenConnection.label = localize('ua.engineOpenConnection', "Open Connection");
 		this._register(bannerOpenConnection.onDidClick(() => {
-			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
 		}));
 
 		const body = DOM.append(this.container, $('.engine-preferences-body'));
@@ -259,7 +259,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testRow = DOM.append(this.container, $('.engine-test-row'));
 		const testButton = this._register(new Button(this.testRow, { ...defaultButtonStyles, secondary: true }));
 		testButton.label = localize('ua.engineTest', "Test Engine");
-		this._register(testButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(testButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError)));
 		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
@@ -594,5 +594,10 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 	search(_text: string): void {
 		// Header search disabled for this pane family.
+	}
+
+	override dispose(): void {
+		this.container.remove();
+		super.dispose();
 	}
 }
