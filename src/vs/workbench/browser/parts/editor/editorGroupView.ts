@@ -11,7 +11,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SideBySideEditorInput } from '../../../common/editor/sideBySideEditorInput.js';
 import { Emitter, Event, Relay } from '../../../../base/common/event.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { Dimension, trackFocus, addDisposableListener, EventType, EventHelper, findParentWithClass, isAncestor, IDomNodePagePosition, isMouseEvent, isActiveElement, getWindow, getActiveElement, $ } from '../../../../base/browser/dom.js';
+import { Dimension, trackFocus, addDisposableListener, EventType, EventHelper, findParentWithClass, isAncestor, IDomNodePagePosition, isMouseEvent, isActiveElement, getWindow, getActiveElement, $, clearNode } from '../../../../base/browser/dom.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
@@ -420,7 +420,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 					pinned: true,
 					override: DEFAULT_EDITOR_ASSOCIATION.id
 				}
-			}, this.id).catch(onUnexpectedError).catch(onUnexpectedError);
+			}, this.id).catch(onUnexpectedError);
 		}));
 
 		// Close empty editor group via middle mouse click
@@ -949,6 +949,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	get disposed(): boolean {
 		return this._disposed;
 	}
+	private _isDisposed = false;
 
 	get isEmpty(): boolean {
 		return this.count === 0;
@@ -977,7 +978,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		// Clear selection when group no longer active
 		if (!isActive && this.activeEditor && this.selectedEditors.length > 1) {
-			this.setSelection(this.activeEditor, []).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.setSelection(this.activeEditor, []).catch(onUnexpectedError);
 		}
 
 		// Update container
@@ -1060,6 +1061,10 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	}
 
 	async setSelection(activeSelectedEditor: EditorInput, inactiveSelectedEditors: EditorInput[]): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
+
 		if (!this.isActive(activeSelectedEditor)) {
 			// The active selected editor is not yet opened, so we go
 			// through `openEditor` to show it. We pass the inactive
@@ -1186,6 +1191,10 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	//#region openEditor()
 
 	async openEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {
+		if (this._isDisposed) {
+			return undefined;
+		}
+
 		return this.doOpenEditor(editor, options, {
 			// Appply given internal open options
 			...internalOptions,
@@ -1197,6 +1206,9 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	}
 
 	private async doOpenEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {
+		if (this._isDisposed) {
+			return undefined;
+		}
 
 		// Guard against invalid editors. Disposed editors
 		// should never open because they emit no events
@@ -1678,7 +1690,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 				preserveWindowOrder: true
 			};
 
-			this.doOpenEditor(nextActiveEditor, options, internalEditorOpenOptions).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.doOpenEditor(nextActiveEditor, options, internalEditorOpenOptions).catch(onUnexpectedError);
 		}
 
 		// Otherwise we are empty, so clear from editor control and send event
@@ -2309,8 +2321,23 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 	override dispose(): void {
 		this._disposed = true;
+		this._isDisposed = true;
 
 		this._onWillDispose.fire();
+
+		// Detach and clean DOM nodes
+		if (this.titleContainer) {
+			clearNode(this.titleContainer);
+			this.titleContainer.remove();
+		}
+		if (this.editorContainer) {
+			clearNode(this.editorContainer);
+			this.editorContainer.remove();
+		}
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+		}
 
 		super.dispose();
 	}

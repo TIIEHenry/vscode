@@ -6,7 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { Part } from '../../part.js';
-import { Dimension, $, EventHelper, addDisposableGenericMouseDownListener, getWindow, isAncestorOfActiveElement, getActiveElement, isHTMLElement } from '../../../../base/browser/dom.js';
+import { Dimension, $, EventHelper, addDisposableGenericMouseDownListener, getWindow, isAncestorOfActiveElement, getActiveElement, isHTMLElement, clearNode } from '../../../../base/browser/dom.js';
 import { Event, Emitter, Relay, PauseableEmitter } from '../../../../base/common/event.js';
 import { contrastBorder, editorBackground } from '../../../../platform/theme/common/colorRegistry.js';
 import { EditorActivation } from '../../../../platform/editor/common/editor.js';
@@ -112,6 +112,8 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 	private static readonly EDITOR_PART_UI_STATE_STORAGE_KEY = 'editorpart.state';
 	private static readonly EDITOR_PART_CENTERED_VIEW_STORAGE_KEY = 'editorpart.centeredview';
+
+	private _isDisposed = false;
 
 	//#region Events
 
@@ -470,7 +472,9 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 	restoreGroup(group: IEditorGroupView | GroupIdentifier): IEditorGroupView {
 		const groupView = this.assertGroupView(group);
-		this.doRestoreGroup(groupView);
+		if (!this._isDisposed) {
+			this.doRestoreGroup(groupView);
+		}
 
 		return groupView;
 	}
@@ -815,6 +819,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	}
 
 	private doRestoreGroup(group: IEditorGroupView): void {
+		if (this._isDisposed) {
+			return;
+		}
+
 		if (!this.gridWidget) {
 			return; // method is called as part of state restore very early
 		}
@@ -1159,6 +1167,9 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 		// Signal restored
 		Promises.settled(this.groups.map(group => group.whenRestored)).finally(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.whenRestoredPromise.complete();
 		});
 
@@ -1599,6 +1610,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	}
 
 	applyState(state: IEditorPartUIState | 'empty', options?: IEditorGroupViewOptions): Promise<void> {
+		if (this._isDisposed) {
+			return Promise.resolve();
+		}
+
 		if (state === 'empty') {
 			return this.doApplyEmptyState();
 		} else {
@@ -1608,6 +1623,9 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 	private async doApplyState(state: IEditorPartUIState, options?: IEditorGroupViewOptions): Promise<void> {
 		const groups = await this.doPrepareApplyState();
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Pause add/remove events for groups during the duration of applying the state
 		// This ensures that we can do this transition atomically with the new state
@@ -1644,10 +1662,16 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 					editor, options: { pinned: true, preserveFocus: true, inactive: true }
 				}))
 		);
+		if (this._isDisposed) {
+			return;
+		}
 	}
 
 	private async doApplyEmptyState(): Promise<void> {
 		await this.doPrepareApplyState();
+		if (this._isDisposed) {
+			return;
+		}
 
 		this.mergeAllGroups(this.activeGroup);
 	}
@@ -1662,6 +1686,9 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		const groups = this.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE);
 		for (const group of groups) {
 			await group.closeAllEditors({ excludeConfirming: true, force: true });
+			if (this._isDisposed) {
+				return [];
+			}
 		}
 
 		return groups;
@@ -1703,7 +1730,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 			const state = this.loadState();
 			if (state) {
-				this.applyState(state).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.applyState(state).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -1726,6 +1753,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 
 		// Event
 		this._onWillDispose.fire();
@@ -1735,6 +1763,11 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 		// Grid widget
 		this.gridWidget?.dispose();
+
+		// DOM container cleanup
+		clearNode(this.container);
+		this.container.remove();
+		this.element?.remove();
 
 		super.dispose();
 	}

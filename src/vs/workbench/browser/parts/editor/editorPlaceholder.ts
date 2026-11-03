@@ -187,7 +187,10 @@ export abstract class EditorPlaceholder extends EditorPane {
 	}
 
 	override dispose(): void {
-		this.container?.remove();
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+		}
 
 		super.dispose();
 	}
@@ -295,7 +298,7 @@ export class ErrorPlaceholderEditor extends EditorPlaceholder {
 			actions = [
 				{
 					label: localize('retry', "Try Again"),
-					run: () => this.group.openEditor(input, { ...options, source: EditorOpenSource.USER /* explicit user gesture */ }).catch(onUnexpectedError).catch(onUnexpectedError)
+					run: () => this.group.openEditor(input, { ...options, source: EditorOpenSource.USER /* explicit user gesture */ }).catch(onUnexpectedError)
 				},
 				{
 					label: localize('showLogs', "Show Logs"),
@@ -308,7 +311,7 @@ export class ErrorPlaceholderEditor extends EditorPlaceholder {
 		if (isFileNotFound && resource && this.fileService.hasProvider(resource)) {
 			disposables.add(this.fileService.onDidFilesChange(e => {
 				if (e.contains(resource, FileChangeType.ADDED, FileChangeType.UPDATED)) {
-					this.group.openEditor(input, options).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.group.openEditor(input, options).catch(onUnexpectedError);
 				}
 			}));
 		}
