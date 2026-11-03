@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Sources 提交重入防护与编辑器组生命周期）、Slot B（Conversation 收件箱覆盖层点击事件传播与生成代际守护）、Slot C（Navigator 团队数据刷新与项目树重建防销毁）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，全域单元测试 run-unit-custom.sh 865 项通过，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Sources 文件列表 DOM 生命周期、检索取消与重绘防销毁）、Slot B（Conversation 会话列表生命周期与错误捕获清理）、Slot C（Navigator 智能体视图生命周期与 Inspect 状态清理）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次六）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Sources 文件列表 DOM 生命周期、异步检索取消与重绘防销毁)**：在 `sourcesFilesExplorer.ts` 的 `SourcesFilesExplorerHost.dispose()` 增加 `this.root.remove()` 防止脱落 DOM 节点泄露；在 `syncExplorer` 增加双重 `this._store.isDisposed` 防护；在 `setListMode` 消除冗余重复 `.catch(onUnexpectedError)`；在 `sourcesFilesList.ts` 的 `dispose()` 遍历活跃的文件夹取消令牌及引擎取消令牌显式调用 `source.cancel()` 再 `source.dispose()`。槽提交 `03ebdbe391e`。
+  - **槽位 B (Conversation 会话列表生命周期与错误捕获清理)**：在 `conversationSessionsView.ts` 的 `dispose()` 显式清理 `this.listContainer?.remove()` 与 `this.emptyMessage?.remove()`；在异步更新与过滤方法入口添加 `if (this._store.isDisposed) { return; }`；移除冗余级联 `.catch(onUnexpectedError).catch(onUnexpectedError)`。槽提交 `a0a38805519`。
+  - **槽位 C (Navigator 智能体视图生命周期与 Inspect 状态清理)**：在 `navigatorAgentsView.ts` 的 `dispose()` 中通过 `inspectService.setLiveAgentIds('agents', undefined)` 与 `setLiveActivityIds(undefined)` 清除 live inspect 状态；在异步租约同步、过滤、残留写入控制点添加 `this._store.isDisposed` 状态拦截；消除冗余重复 `.catch(onUnexpectedError)`。槽提交 `15bb20b9044`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `3c5bc2ea906`、`9e7e08629b4`、`f051f7549c8`）。全量客户端编译 `npm run compile-client` 0 错误（28s），分层校验 `npm run valid-layers-check` 0 错误，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 解决 `sourcesFilesList.ts` 销毁时未提前 cancel 在途文件夹与引擎检索操作，导致后台异步检索流未阻断的潜在并发与资源泄漏问题。
+    2) 解决 `sourcesFilesExplorer.ts`、`conversationSessionsView.ts`、`navigatorAgentsView.ts` 中多处冗余链式 `.catch(onUnexpectedError).catch(onUnexpectedError)` 重复捕获代码异味。
+    3) 解决 `navigatorAgentsView.ts` 销毁后未重置 Live Agent/Activity Inspect 注册状态，导致 inspect 视图维持过时目标引用的预存缺陷。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次五）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Sources 提交重入防护与编辑器组生命周期)**：在 `sourcesChangesList.ts` 引入 `isCommitting` 重入锁与防御性重置，防止快速连击提交按钮触发并发提交调用；在 `sourcesFilesList.ts` 将 `onDidChangeActiveGroup` 监听收敛至专属生命周期管理，避免编辑器组频繁重排导致的监听器泄漏。定向测试全部通过，槽提交 `f5334f9b6b1`。
