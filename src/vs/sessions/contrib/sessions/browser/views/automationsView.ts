@@ -178,6 +178,15 @@ export class AutomationsCardsWidget extends Disposable {
 	focus(): void {
 		this.element.focus();
 	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		DOM.clearNode(this.element);
+		this.element.remove();
+		super.dispose();
+	}
 }
 
 //#region AutomationCardsSection
@@ -210,14 +219,23 @@ class AutomationCardsSection extends Disposable {
 		this.emptyContainer = DOM.append(parent, $('.automations-cards-empty'));
 		this.emptyContainer.style.display = 'none';
 		this.renderEmptyState();
-		this._register(toDisposable(() => {
-			for (const card of this.persistentCards.values()) {
-				card.disposables.dispose();
-				card.element.remove();
-			}
-			this.persistentCards.clear();
-			this.latestAutomations.clear();
-		}));
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		for (const card of this.persistentCards.values()) {
+			card.disposables.dispose();
+			card.element.remove();
+		}
+		this.persistentCards.clear();
+		this.latestAutomations.clear();
+		DOM.clearNode(this.container);
+		this.container.remove();
+		DOM.clearNode(this.emptyContainer);
+		this.emptyContainer.remove();
+		super.dispose();
 	}
 
 	render(automations: readonly IAutomationDescriptor[]): void {
@@ -312,6 +330,9 @@ class AutomationCardsSection extends Disposable {
 		const runBtn = this.createIconButton(buttonBar, Codicon.play, runNowLabel, this.automationService.canRunAutomation?.(automation.id) === false);
 		runBtn.element.classList.add('automations-card-run-button');
 		disposables.add(runBtn.onDidClick((e) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			e?.stopPropagation();
 			const currentAutomation = this.latestAutomations.get(automation.id);
 			if (!currentAutomation || this.automationService.canRunAutomation?.(automation.id) === false) {
@@ -325,20 +346,26 @@ class AutomationCardsSection extends Disposable {
 				runBtn.setAriaLabel(runNowLabel);
 				runBtn.setTitle(runNowLabel);
 			}, 10_000, disposables);
-			void this.runNow(currentAutomation).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runNow(currentAutomation).catch(onUnexpectedError);
 		}));
 
 		const deleteBtn = this.createIconButton(buttonBar, Codicon.trash, localize('deleteAutomation', "Delete"), this.automationService.canDeleteAutomation?.(automation.id) === false);
 		disposables.add(deleteBtn.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const currentAutomation = this.latestAutomations.get(automation.id);
 			if (!currentAutomation || this.automationService.canDeleteAutomation?.(automation.id) === false) {
 				return;
 			}
-			void this.confirmDelete(currentAutomation).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.confirmDelete(currentAutomation).catch(onUnexpectedError);
 		}));
 
 		for (const eventType of [DOM.EventType.CLICK, TouchEventType.Tap]) {
 			disposables.add(DOM.addDisposableListener(card, eventType, event => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const target = (event as GestureEvent).initialTarget ?? event.target;
 				if (target instanceof Node && DOM.isAncestor(target, actions)) {
 					return;
@@ -347,7 +374,7 @@ class AutomationCardsSection extends Disposable {
 				if (!currentAutomation || this.automationService.canUpdateAutomation?.(automation.id) === false) {
 					return;
 				}
-				void this.openEditDialog(currentAutomation).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.openEditDialog(currentAutomation).catch(onUnexpectedError);
 			}));
 		}
 
@@ -462,24 +489,35 @@ class AutomationCardsSection extends Disposable {
 		}));
 		createButton.label = localize('createAutomation', "Create Automation");
 		createButton.element.classList.add('automations-cards-create-button');
-		this.emptyStateDisposables.add(createButton.onDidClick(() => void this.openCreateDialog().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.emptyStateDisposables.add(createButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.openCreateDialog().catch(onUnexpectedError);
+		}));
 	}
 
 	private async openCreateDialog(): Promise<void> {
-		if (!await this.ensureEnabled()) {
+		if (this._store.isDisposed || !await this.ensureEnabled()) {
 			return;
 		}
 		const result = await this.automationDialogService.showAutomationDialog({});
-		if (!result || result.kind !== 'create') {
+		if (this._store.isDisposed || !result || result.kind !== 'create') {
 			return;
 		}
-		if (!await this.ensureEnabled()) {
+		if (!await this.ensureEnabled() || this._store.isDisposed) {
 			return;
 		}
 		try {
 			const created = await this.automationService.createAutomation(result.value, () => this.throwIfDisabled());
+			if (this._store.isDisposed) {
+				return;
+			}
 			status(localize('automationCreatedStatus', "Created automation {0}", created.name));
 		} catch (err) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.error('[AutomationsCards] Failed to create automation', err);
 			await this.dialogService.error(
 				localize('automationCreateFailed', "Failed to create automation."),
@@ -489,18 +527,21 @@ class AutomationCardsSection extends Disposable {
 	}
 
 	private async openEditDialog(automation: IAutomationDescriptor): Promise<void> {
-		if (!await this.ensureEnabled()) {
+		if (this._store.isDisposed || !await this.ensureEnabled()) {
 			return;
 		}
 		try {
 			const result = await this.automationDialogService.showAutomationDialog({ existing: automation });
-			if (!result || result.kind !== 'update') {
+			if (this._store.isDisposed || !result || result.kind !== 'update') {
 				return;
 			}
-			if (!await this.ensureEnabled()) {
+			if (!await this.ensureEnabled() || this._store.isDisposed) {
 				return;
 			}
 			const updateResult = await this.automationService.updateAutomationIfUnchanged(result.id, result.value, automation, () => this.throwIfDisabled());
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (updateResult.kind === 'conflict') {
 				throw new Error(updateResult.current
 					? localize('automationChangedDuringEdit', "This automation changed while the dialog was open. Reopen it to review the latest values.")
@@ -508,6 +549,9 @@ class AutomationCardsSection extends Disposable {
 			}
 			status(localize('automationUpdatedStatus', "Updated automation {0}", automation.name));
 		} catch (err) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.error('[AutomationsCards] Failed to update automation', err);
 			await this.dialogService.error(
 				localize('automationUpdateFailed', "Failed to update automation."),
@@ -564,7 +608,19 @@ class AutomationHistorySection extends Disposable {
 	private readonly currentSessions = observableValue<ReadonlyMap<string, ISession>>(this, new Map());
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.disposeAllGroups();
+		if (this.headerRow) {
+			DOM.clearNode(this.headerRow);
+			this.headerRow.remove();
+			this.headerRow = undefined;
+		}
+		DOM.clearNode(this.groupsContainer);
+		this.groupsContainer.remove();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -683,7 +739,10 @@ class AutomationHistorySection extends Disposable {
 		this.markAllButton.label = localize('markAllRead', "Mark all as read");
 		this.markAllButton.element.classList.add('automations-mark-all-read');
 		this.headerDisposables.add(this.markAllButton.onDidClick(() => {
-			void this.markAllRunsRead(this.currentRuns.get()).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.markAllRunsRead(this.currentRuns.get()).catch(onUnexpectedError);
 		}));
 		this.headerDisposables.add(autorun(reader => {
 			const runs = this.currentRuns.read(reader);
@@ -749,7 +808,12 @@ class AutomationHistorySection extends Disposable {
 			contextMenuId: Menus.AutomationsHistoryItemContext,
 			markSessionReadOnOpen: false,
 			approvalModel: this.approvalModel,
-			onSessionOpen: resource => void this.openRunSession(resource).catch(onUnexpectedError).catch(onUnexpectedError),
+			onSessionOpen: resource => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.openRunSession(resource).catch(onUnexpectedError);
+			},
 			onToolbarAction: (action, session) => this.handleSessionAction(action, session, entry.runsBySession),
 			onContextMenuAction: (action, session) => this.handleSessionAction(action, session, entry.runsBySession),
 		}));
@@ -885,12 +949,15 @@ class AutomationHistorySection extends Disposable {
 	}
 
 	private async openRunSession(resource: URI): Promise<void> {
-		if (!this.sessionsManagementService.getSession(resource)) {
+		if (this._store.isDisposed || !this.sessionsManagementService.getSession(resource)) {
 			return;
 		}
 		try {
 			await this.sessionsService.openSession(resource, { preserveFocus: false, source: 'automation' });
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.error('[AutomationsCards] Failed to open automation run', error);
 			await this.dialogService.error(
 				localize('automationRunOpenFailed', "Failed to open automation run."),
@@ -902,8 +969,14 @@ class AutomationHistorySection extends Disposable {
 	private async stopRunSession(session: ISession, automationName: string, action: IAction): Promise<void> {
 		try {
 			await this.sessionsManagementService.cancelCurrentRequest(session);
+			if (this._store.isDisposed) {
+				return;
+			}
 			status(localize('automationRunSessionStoppedStatus', "Stopped the session for {0}", automationName));
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			action.enabled = true;
 			this.logService.error('[AutomationsCards] Failed to stop automation run session', error);
 			await this.dialogService.error(
@@ -921,13 +994,16 @@ class AutomationHistorySection extends Disposable {
 			detail: localize('confirmDeleteAutomationRunSessionDetail', "This will permanently delete the session and remove this item from run history. This action cannot be undone."),
 			primaryButton: localize('delete', "Delete"),
 		});
-		if (!confirmed.confirmed) {
+		if (!confirmed.confirmed || this._store.isDisposed) {
 			return;
 		}
 		const focusRunId = hadFocus ? this.getFocusRunIdAfterDeletion(run.id) : undefined;
 		try {
 			await this.sessionsManagementService.deleteSession(session);
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.clearPendingFocus();
 			this.logService.error('[AutomationsCards] Failed to delete automation run session', error);
 			await this.dialogService.error(
@@ -936,15 +1012,24 @@ class AutomationHistorySection extends Disposable {
 			);
 			return;
 		}
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (hadFocus) {
 			this.pendingFocusRunId = focusRunId;
 			this.shouldRestoreFocus = true;
 		}
 		try {
 			await this.automationService.deleteRun(run.id);
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.restoreFocusAfterRender();
 			status(localize('automationRunSessionDeletedStatus', "Deleted the session for {0}", automationName));
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.restoreFocusAfterRender();
 			this.logService.error('[AutomationsCards] Failed to remove deleted automation run from history', error);
 			await this.dialogService.error(
@@ -993,13 +1078,18 @@ class AutomationHistorySection extends Disposable {
 			}
 			await this.sessionsManagementService.markAllRead([...sessions.values()]);
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.error('[AutomationsCards] Failed to mark automation runs read', error);
 			await this.dialogService.error(
 				localize('automationMarkAllReadFailed', "Failed to mark automation runs as read."),
 				getErrorMessage(error),
 			);
 		} finally {
-			this.isMarkingAllRead.set(false, undefined);
+			if (!this._store.isDisposed) {
+				this.isMarkingAllRead.set(false, undefined);
+			}
 		}
 	}
 }
@@ -1153,6 +1243,7 @@ export class AutomationsCustomView extends AbstractCustomView {
 	override readonly description: IObservable<string | undefined> = constObservable(
 		localize('automationsDescription', "Schedule agent sessions to run automatically on a cadence you choose."));
 
+	private _container: HTMLElement | undefined;
 	private _widget: AutomationsCardsWidget | undefined;
 
 	constructor(
@@ -1162,6 +1253,7 @@ export class AutomationsCustomView extends AbstractCustomView {
 	}
 
 	render(container: HTMLElement): void {
+		this._container = container;
 		container.classList.add('automations-cards-content');
 		this._widget = this._register(this.instantiationService.createInstance(AutomationsCardsWidget));
 		container.appendChild(this._widget.element);
@@ -1173,6 +1265,18 @@ export class AutomationsCustomView extends AbstractCustomView {
 
 	override focus(): void {
 		this._widget?.focus();
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this._container) {
+			DOM.clearNode(this._container);
+			this._container = undefined;
+		}
+		this._widget = undefined;
+		super.dispose();
 	}
 }
 

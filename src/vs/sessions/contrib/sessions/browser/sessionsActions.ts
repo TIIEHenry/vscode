@@ -1350,7 +1350,7 @@ export class NewSessionActionViewItemContribution extends Disposable implements 
 
 		// Resolve the titlebar experiment now and on refetch.
 		this._register(this.assignmentService.onDidRefetchAssignments(() => this.updateTitleBarTreatment()));
-		this.updateTitleBarTreatment().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateTitleBarTreatment().catch(onUnexpectedError);
 	}
 
 	private async updateTitleBarTreatment(): Promise<void> {
@@ -1360,6 +1360,9 @@ export class NewSessionActionViewItemContribution extends Disposable implements 
 			return;
 		}
 		const enabled = await this.assignmentService.getTreatment<boolean>(NewSessionActionViewItemContribution.NEW_SESSION_TITLEBAR_TREATMENT);
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.titleBarEnabledContext.set(enabled === true);
 	}
 }

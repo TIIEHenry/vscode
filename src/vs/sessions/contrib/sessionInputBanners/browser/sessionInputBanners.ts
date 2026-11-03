@@ -252,14 +252,14 @@ export class SessionInputBanners extends Disposable {
 			for (const pullRequest of getGitHubPullRequestRefs(gitHubInfo)) {
 				const prModelRef = reader.store.add(this.gitHubService.createPullRequestModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
 				const prModel = prModelRef.object;
-				void prModel.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void prModel.refresh().catch(onUnexpectedError);
 				reader.store.add(prModel.startPolling());
 				const livePullRequest = prModel.pullRequest.read(reader);
 				if (!livePullRequest || livePullRequest.isDraft || livePullRequest.state !== GitHubPullRequestState.Open) {
 					continue;
 				}
 				const ciModelRef = reader.store.add(this.gitHubService.createPullRequestCIModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number, livePullRequest.headSha));
-				void ciModelRef.object.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void ciModelRef.object.refresh().catch(onUnexpectedError);
 				reader.store.add(ciModelRef.object.startPolling());
 			}
 		}));
@@ -412,7 +412,7 @@ export class SessionInputBanners extends Disposable {
 		const revealCI: ISessionInputBannerAction = {
 			id: 'revealCI',
 			label: localize('inputBanner.revealCI', "Reveal CI"),
-			run: () => { if (!state.debug) { void this._revealPullRequest(state.pullRequest).catch(onUnexpectedError).catch(onUnexpectedError); } },
+			run: () => { if (!state.debug) { void this._revealPullRequest(state.pullRequest).catch(onUnexpectedError); } },
 		};
 		const revealComments: ISessionInputBannerAction = {
 			id: 'revealComments',
@@ -446,6 +446,9 @@ export class SessionInputBanners extends Disposable {
 	}
 
 	private async _fixChecks(state: IPRBannerState): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const widget = this.chatWidgetService.getWidgetBySessionResource(state.chatResource);
 		if (!widget) {
 			this.logService.error('[SessionInputBanners] Cannot fix CI checks: chat model is unavailable', state.chatResource.toString(), state.pullRequest.number);
@@ -453,8 +456,14 @@ export class SessionInputBanners extends Disposable {
 			return;
 		}
 		await this._withCurrentCIModel(state, async ciModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			try {
 				await submitFixCIChecks(ciModel, widget, this._queryFor(state, '/fix-ci'));
+				if (this._store.isDisposed) {
+					return;
+				}
 				// acceptInput can resolve without a response. Failures stay and the
 				// button re-enables; that used to look like the click did nothing.
 				if (!ciModel.fixRequested.get() && getFailedChecks(ciModel.checks.get()).length > 0) {
@@ -465,19 +474,32 @@ export class SessionInputBanners extends Disposable {
 					));
 				}
 			} catch (err) {
-				this._reportFixCIFailure(state, err);
+				if (!this._store.isDisposed) {
+					this._reportFixCIFailure(state, err);
+				}
 			}
 		});
 	}
 
 	private async _fixCIAndAddressComments(state: IPRBannerState): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this._withCurrentCIModel(state, async ciModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			// Don't accept comments until the prompt exists; a failed fetch must leave them actionable.
 			let prompt: string | undefined;
 			try {
 				prompt = await buildFixCIPrompt(ciModel, this._queryFor(state, '/fix-ci and /act-on-feedback'));
 			} catch (err) {
-				this._reportFixCIFailure(state, err);
+				if (!this._store.isDisposed) {
+					this._reportFixCIFailure(state, err);
+				}
+				return;
+			}
+			if (this._store.isDisposed) {
 				return;
 			}
 			if (!prompt) {
@@ -488,6 +510,9 @@ export class SessionInputBanners extends Disposable {
 			}
 			this._acceptComments(state);
 			const submitted = await this._submitComments(state, prompt, () => ciModel.markFixRequested());
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!submitted) {
 				this.logService.error('[SessionInputBanners] Failed to submit combined CI and comments request', state.sessionResource.toString(), state.pullRequest.number);
 			}
@@ -657,9 +682,15 @@ export class SessionInputBanners extends Disposable {
 	}
 
 	private async _revealPullRequest(pullRequest: IGitHubPullRequestRef): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			await this.commandService.executeCommand(OPEN_PULL_REQUEST_ACTION_ID, { pullRequest });
 		} catch (err) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.logService.error('[SessionInputBanners] Failed to reveal pull request', pullRequest.number, err);
 			this._notifyBannerFailure(localize(
 				'inputBanner.revealPullRequestFailed',
@@ -685,7 +716,7 @@ export class SessionInputBanners extends Disposable {
 				'inputBanner.revealCommentFailed',
 				"Couldn't reveal this comment.",
 			));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _dismiss(id: string): void {

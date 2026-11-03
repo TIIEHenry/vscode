@@ -169,7 +169,7 @@ export class SessionInputBannerWidget extends Disposable {
 				button.dropdownButton.setAriaLabel(localize('sessionInputBanner.moreActionsFor', "More Actions for {0}", action.label));
 			}
 			this._buttons.push({ button, primary: !!action.primary });
-			store.add(button.onDidClick(() => { void this._runAction(action).catch(onUnexpectedError).catch(onUnexpectedError); }));
+			store.add(button.onDidClick(() => { void this._runAction(action).catch(onUnexpectedError); }));
 		}
 
 		if (banner.dismiss && banner.dismissTooltip) {
@@ -319,6 +319,9 @@ export class SessionInputBannerWidget extends Disposable {
 	}
 
 	private async _runAction(action: ISessionInputBannerAction): Promise<void> {
+		if (this._store.isDisposed || this._disposed) {
+			return;
+		}
 		if (!action.primary) {
 			await action.run();
 			return;
@@ -336,6 +339,9 @@ export class SessionInputBannerWidget extends Disposable {
 			if (action.waitUntilReady && !await this._waitUntilReady(action.waitUntilReady)) {
 				return;
 			}
+			if (this._store.isDisposed || this._disposed) {
+				return;
+			}
 			// Readiness can resolve after the banner was replaced or torn down
 			// (e.g. the comments it acted on disappeared), and running then would
 			// act on state this banner no longer represents.
@@ -345,8 +351,10 @@ export class SessionInputBannerWidget extends Disposable {
 			}
 			await action.run();
 		} finally {
-			this._setPrimaryButtonsEnabled(true);
-			this._runningPrimaryAction = false;
+			if (!this._store.isDisposed && !this._disposed) {
+				this._setPrimaryButtonsEnabled(true);
+				this._runningPrimaryAction = false;
+			}
 		}
 	}
 
@@ -357,18 +365,30 @@ export class SessionInputBannerWidget extends Disposable {
 	}
 
 	private async _waitUntilReady(waitUntilReady: () => Promise<boolean>): Promise<boolean> {
+		if (this._store.isDisposed || this._disposed) {
+			return false;
+		}
 		this.domNode.setAttribute('aria-busy', 'true');
 		this._showWorkingAnimation.value = disposableTimeout(() => this.domNode.classList.add('working'), SHOW_WORKING_DELAY_MS);
 		try {
-			return await waitUntilReady();
+			const ready = await waitUntilReady();
+			if (this._store.isDisposed || this._disposed) {
+				return false;
+			}
+			return ready;
 		} finally {
 			this._showWorkingAnimation.clear();
-			this.domNode.classList.remove('working');
-			this.domNode.setAttribute('aria-busy', 'false');
+			if (!this._store.isDisposed && !this._disposed) {
+				this.domNode.classList.remove('working');
+				this.domNode.setAttribute('aria-busy', 'false');
+			}
 		}
 	}
 
 	setWorking(working: boolean): void {
+		if (this._disposed || this._store.isDisposed) {
+			return;
+		}
 		this._working = working;
 		this.domNode.classList.toggle('working', working);
 		this.domNode.setAttribute('aria-busy', String(working));
@@ -376,7 +396,7 @@ export class SessionInputBannerWidget extends Disposable {
 	}
 
 	private _setPrimaryButtonsEnabled(enabled: boolean): void {
-		if (this._disposed) {
+		if (this._disposed || this._store.isDisposed) {
 			return;
 		}
 		for (const { button, primary } of this._buttons) {
@@ -387,7 +407,16 @@ export class SessionInputBannerWidget extends Disposable {
 	}
 
 	override dispose(): void {
+		if (this._disposed || this._store.isDisposed) {
+			return;
+		}
 		this._disposed = true;
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
+		this._buttons.length = 0;
+		this._previousButton = undefined;
+		this._nextButton = undefined;
+		this._dismissButton = undefined;
 		super.dispose();
 	}
 }

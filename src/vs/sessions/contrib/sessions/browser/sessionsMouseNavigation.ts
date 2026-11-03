@@ -34,7 +34,7 @@ export class SessionsMouseNavigationContribution extends Disposable implements I
 	}
 
 	private handleMouseNavigation(event: MouseEvent, isMouseDown: boolean): void {
-		if (!this.configurationService.getValue(MOUSE_BACK_FORWARD_NAVIGATION_SETTING) || this.layoutService.hasFocus(Parts.EDITOR_PART)) {
+		if (this._store.isDisposed || !this.configurationService.getValue(MOUSE_BACK_FORWARD_NAVIGATION_SETTING) || this.layoutService.hasFocus(Parts.EDITOR_PART)) {
 			return;
 		}
 
@@ -51,9 +51,9 @@ export class SessionsMouseNavigationContribution extends Disposable implements I
 		}
 
 		if (event.button === 3) {
-			void this.sessionsService.openPreviousSession().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.sessionsService.openPreviousSession().catch(onUnexpectedError);
 		} else {
-			void this.sessionsService.openNextSession().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.sessionsService.openNextSession().catch(onUnexpectedError);
 		}
 	}
 }

@@ -207,10 +207,10 @@ export class SessionsView extends ViewPane {
 				const mainChat = session.mainChat.get();
 				if (sideBySide) {
 					// Alt-click: open the session to the right of the last visible session in the grid.
-					this.sessionsService.openSessionToSide(session, { preserveFocus, chatResource: mainChat.resource, source: 'sessionsList' }).then(onOpened).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.sessionsService.openSessionToSide(session, { preserveFocus, chatResource: mainChat.resource, source: 'sessionsList' }).then(onOpened).catch(onUnexpectedError);
 					return;
 				}
-				this.sessionsService.openChat(session, mainChat.resource, { preserveFocus, source: 'sessionsList' }).then(onOpened).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.sessionsService.openChat(session, mainChat.resource, { preserveFocus, source: 'sessionsList' }).then(onOpened).catch(onUnexpectedError);
 			},
 			canOpenSession: session => this.sessionsService.canOpenSession(session),
 			onChatOpen: (session, chat, preserveFocus, sideBySide) => {
@@ -220,10 +220,10 @@ export class SessionsView extends ViewPane {
 					}
 				};
 				if (sideBySide) {
-					this.sessionsService.openChatToSide(session, chat.resource, { preserveFocus }).then(onOpened).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.sessionsService.openChatToSide(session, chat.resource, { preserveFocus }).then(onOpened).catch(onUnexpectedError);
 					return;
 				}
-				this.sessionsService.openChat(session, chat.resource, { preserveFocus }).then(onOpened).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.sessionsService.openChat(session, chat.resource, { preserveFocus }).then(onOpened).catch(onUnexpectedError);
 			},
 		}));
 		this._register(this.onDidChangeBodyVisibility(visible => sessionsControl.setVisible(visible)));
@@ -736,7 +736,7 @@ export class SessionsView extends ViewPane {
 		];
 
 		showMobileSortGroupSheet(this.layoutService.mainContainer, localize('sortGroupSheet.title', "Sort"), items).then(selectedId => {
-			if (!selectedId) {
+			if (this._store.isDisposed || !selectedId) {
 				return;
 			}
 			if (selectedId === SessionsSorting.Created || selectedId === SessionsSorting.Updated) {
@@ -744,7 +744,7 @@ export class SessionsView extends ViewPane {
 			} else if (selectedId === SessionsGrouping.Workspace || selectedId === SessionsGrouping.Date) {
 				this.setGrouping(selectedId);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	setGrouping(grouping: SessionsGrouping): void {
@@ -768,5 +768,17 @@ export class SessionsView extends ViewPane {
 		this.storageService.store(SORTING_STORAGE_KEY, this.currentSorting, StorageScope.PROFILE, StorageTarget.USER);
 		this.sortingContextKey?.set(this.currentSorting);
 		this.sessionsControl?.update();
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this.sessionsContainer) {
+			DOM.clearNode(this.sessionsContainer);
+			this.sessionsContainer.remove();
+			this.sessionsContainer = undefined!;
+		}
+		super.dispose();
 	}
 }

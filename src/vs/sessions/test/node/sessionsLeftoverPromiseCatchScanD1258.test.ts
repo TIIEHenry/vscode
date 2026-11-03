@@ -110,7 +110,7 @@ suite('leftover remaining unused remaining remaining unused sessions leftover re
 		assert.strictEqual(countDoubleChains(seen.get(MOBILE_TITLE_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(ACCOUNT_REL) ?? ''), 2);
 		assert.strictEqual(countDoubleChains(seen.get(RECENT_REL) ?? ''), 0);
-		assert.strictEqual(countDoubleChains(seen.get(ACTIONS_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(ACTIONS_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(TITLEBAR_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(DIFF_REL) ?? ''), 0);
 	});
@@ -163,7 +163,7 @@ suite('leftover remaining unused remaining remaining unused sessions leftover re
 		assert.ok(!recent.includes(`() => this._refreshVSCodeRecentWorkspaces()${doubleCatch}`));
 		assert.ok(actions.includes('() => this.updateTitleBarTreatment()'));
 		assert.ok(!actions.includes(`() => this.updateTitleBarTreatment()${doubleCatch}`));
-		for (const source of [dialog, mobileTitle, recent, titlebar, diff]) {
+		for (const source of [dialog, mobileTitle, recent, actions, titlebar, diff]) {
 			assert.ok(!source.includes(doubleCatch));
 		}
 		for (const source of [dialog, mobileTitle, account, recent, actions, titlebar, diff]) {

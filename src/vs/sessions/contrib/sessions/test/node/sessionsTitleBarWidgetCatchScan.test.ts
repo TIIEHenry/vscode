@@ -23,13 +23,17 @@ function sessionsTitleBarWidgetSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionsTitleBarWidget leftover fire-and-forget catch scan (D629)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_openBlockedSession openSessionToSide / openSession double-catch onUnexpectedError (D629)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_openBlockedSession openSessionToSide / openSession single-catch onUnexpectedError (D629)', () => {
 		const source = fs.readFileSync(sessionsTitleBarWidgetSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const openToSide = 'this.sessionsService.openSessionToSide(session, { preserveFocus, source: \'sessionsList\' })';
 		const openSession = 'this.sessionsService.openSession(resource, { preserveFocus, source: \'sessionsList\' })';
@@ -37,13 +41,14 @@ suite('SessionsTitleBarWidget leftover fire-and-forget catch scan (D629)', () =>
 		assert.ok(source.includes('private _openBlockedSession(resource: URI, preserveFocus: boolean, sideBySide: boolean): void'));
 		assert.strictEqual((source.match(/this\.sessionsService\.openSessionToSide\(session, \{ preserveFocus, source: 'sessionsList' \}\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/this\.sessionsService\.openSession\(resource, \{ preserveFocus, source: 'sessionsList' \}\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${openToSide}${doubleCatch};`));
-		assert.ok(source.includes(`${openSession}${doubleCatch};`));
+		assert.ok(source.includes(`${openToSide}${singleCatch};`));
+		assert.ok(source.includes(`${openSession}${singleCatch};`));
 		assert.ok(!source.includes(`${openToSide};`));
 		assert.ok(!source.includes(`${openSession};`));
-		assert.ok(!source.includes(`${openToSide}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${openSession}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${openToSide}${doubleCatch};`));
+		assert.ok(!source.includes(`${openSession}${doubleCatch};`));
 		assert.ok(source.includes('this.commandService.executeCommand(SHOW_SESSIONS_PICKER_COMMAND_ID);'));
 		assert.ok(!source.includes('this.commandService.executeCommand(SHOW_SESSIONS_PICKER_COMMAND_ID).catch'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

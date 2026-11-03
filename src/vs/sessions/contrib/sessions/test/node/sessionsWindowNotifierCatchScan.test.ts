@@ -23,22 +23,27 @@ function sessionsWindowNotifierSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionsWindowNotifier leftover fire-and-forget catch scan (D636)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_notify(session, newValue) void double-catch onUnexpectedError (D636)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_notify(session, newValue) void single-catch onUnexpectedError (D636)', () => {
 		const source = fs.readFileSync(sessionsWindowNotifierSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._notify(session, newValue)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _notify(session: ISession, status: SessionStatus): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._notify\(session, newValue\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });
 
@@ -46,17 +51,18 @@ suite('SessionsWindowNotifier leftover fire-and-forget catch scan (D640)', () =>
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_notify(session, SessionStatus.Completed) scheduler void double-catch onUnexpectedError (D640)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_notify(session, SessionStatus.Completed) scheduler void single-catch onUnexpectedError (D640)', () => {
 		const source = fs.readFileSync(sessionsWindowNotifierSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._notify(session, SessionStatus.Completed)';
-		const doubleCall = `${call}${doubleCatch},`;
+		const singleCall = `${call}${singleCatch},`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _notify(session: ISession, status: SessionStatus): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._notify\(session, SessionStatus\.Completed\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call},`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError),`));
+		assert.ok(!source.includes(`${call}${doubleCatch},`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });
