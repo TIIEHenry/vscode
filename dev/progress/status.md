@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot B（Sources 暂存能力与测试桩）、Slot D（窄屏响应式布局与动作栏停靠适配）及 Slot E（五域严格 skipped 测试报告汇总与基线校验）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，Python 测试套件 49 项全过，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Sources Git暂存并发控制与会话刷新序列化）、Slot B（Conversation DOM生命周期管理与测试焦点仿真）、Slot C（Navigator 动作栏模板生命周期与Inspector链路弹性追踪）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，全域单元测试与基线校验 check-test-baseline.sh 全过，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次四）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Sources Git 暂存并发、会话刷新序列化与 DOM 生命周期)**：在 `sourcesChangesReadModel.ts` 引入基于 `readGeneration` 的并发刷新序列化，会话切换时代际递增直接作废在途 RPC 结果，规避全局 mutex 锁阻塞；在 `sourcesChangesList.ts` 将同会话暂存路径批量合并派发 `tryStagePaths(paths, sessionId)` 并为异步回调增加 `this._store.isDisposed` 防护；在 `sourcesReviewList.ts`、`sourcesDiffPanelView.ts` 消除裸 `addEventListener`，改由 `dom.addDisposableListener` 绑定组件与模板生命周期；在 `sourcesReviewProgressService.ts` 引入 `LRUCache<string, ILatestMutation>(1000)` 防止长时间会话内存膨胀；在 `sourcesFilesList.test.ts` 增加无头 Electron 焦点仿真。测试 762 passing 0 failing。槽提交 `9966cf79734`。
+  - **槽位 B (Conversation DOM 事件生命周期、废弃 API 移除与测试焦点基线)**：在 `conversationTurnContentAdapter.ts` 移除废弃的 `DOMNodeRemoved` 事件，改由 `TimeoutTimer` 与生命周期 `DisposableStore` 管理复制状态定时器重置；在 `conversationSessionPill.ts` 中 `appendConversationRefAnchor` 返回聚合 `IDisposable`，统一管控链接与悬停 adornment 生命周期；在 `conversationComposerAt.ts` 将 chip 移除与 at 候选项监听纳入动态重置的 `DisposableStore`；在 `engineContextVariableSection.ts`、`engineClipboardSection.ts` 与 `engineTriggersSection.ts` 增加 `listDisposables` 并在重绘时主动清理行监听；在 `preferencesStatusStyle.test.ts` 增加无头 Electron 焦点仿真，彻底消除无头环境下 4 项用例跳过（5 skipped 降为 1 skipped），满足 `max_skipped=1` 基线硬门。测试 3143 passing 1 skipped。槽提交 `581428508d6`。
+  - **槽位 C (Navigator 动作栏模板生命周期清理与 Inspector 链路弹性追踪)**：在 `IAgentsHierarchyTemplateData` 与 `IProjectNodeTemplateData` 挂载 `DisposableStore` 并在渲染器 `disposeTemplate()` 时释放，杜绝动作栏与行悬停事件残留；在 `agentInspectService.ts` 增强连接状态转换弹性，对 `expectedOwner === undefined` 阶段绑定的 target 采取采纳已发布 owner 而非一刀切清空，并在 `setLiveAgentIds` 前后增设 `isConnectingPhase()` 防护。测试 253 passing 0 failing。槽提交 `51736ed1ed8`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `ffb1d145723`、`85e9b112559`、`5e070d38a7f`）。全量客户端编译 `npm run compile-client` 0 错误，分层校验 `npm run valid-layers-check` 0 错误，全域单元测试（Conversation、Sources Browser、Sources Node、UniverseAgent Electron & Node）全过，`./scripts/check-test-baseline.sh` 基线校验通过，文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 确认并解决无头 Electron 环境下 `document.hasFocus()` 返回 false 导致 `preferencesStatusStyle.test.ts` 与 `sourcesFilesList.test.ts` 中 4 项测试被跳过从而触发 `check-test-baseline.sh` 阈值超标（5 > 1）的预存缺陷，通过无头焦点与选择器模拟使测试真实运行并全绿通过。
+    2) 解决列表模板渲染中直接使用 DOM 原生 `addEventListener` 导致 DOM 节点复用与销毁时监听器残留泄露的缺陷，统一由 `templateData.elementDisposables` 与 `dom.addDisposableListener` 安全管控。
+    3) 修复 `AgentInspectService` 在连接阶段过渡时将未明确 owner 的合法 target 误清空的缺陷，保障连接建立过程中 target 观测链不断连。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次三）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 B (Sources Changes List 暂存能力与测试桩修复)**：在 `sourcesChangesList.test.ts` 补充 `writeGitStagePaths` 钩子及 `gitWriteCapability: { writeGitStagePaths: 'SUPPORTED' }` 声明，彻底修复上游 pre-existing 缺陷（只读测试桩缺乏 stage 写权限导致 IDEA 风格文件夹测试中 `stageSelectedButton` 维持 disabled 导致断言失败）。测试 156 passing 0 failing。槽提交 `fdb69e1b2c7`。
