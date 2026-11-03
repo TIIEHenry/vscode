@@ -9,7 +9,7 @@ import { IMenuService, MenuId, IMenu, SubmenuItemAction, registerAction2, Action
 import { MenuBarVisibility, IWindowOpenable, getMenuBarVisibility, MenuSettings, hasNativeMenu } from '../../../../platform/window/common/window.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IAction, Action, SubmenuAction, Separator, IActionRunner, ActionRunner, WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification, toAction } from '../../../../base/common/actions.js';
-import { addDisposableListener, Dimension, EventType } from '../../../../base/browser/dom.js';
+import { addDisposableListener, clearNode, Dimension, EventType } from '../../../../base/browser/dom.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { isMacintosh, isWeb, isIOS, isNative } from '../../../../base/common/platform.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
@@ -48,6 +48,8 @@ import { truncateMiddle } from '../../../../base/common/strings.js';
 export type IOpenRecentAction = IAction & { uri: URI; remoteAuthority?: string };
 
 export abstract class MenubarControl extends Disposable {
+
+	protected _isDisposed = false;
 
 	protected keys = [
 		MenuSettings.MenuBarVisibility,
@@ -130,6 +132,9 @@ export abstract class MenubarControl extends Disposable {
 	}
 
 	protected setupMainMenu(): void {
+		if (this._isDisposed) {
+			return;
+		}
 		this.mainMenuDisposables.clear();
 		this.menus = {};
 		this.topLevelTitles = {};
@@ -144,6 +149,9 @@ export abstract class MenubarControl extends Disposable {
 	}
 
 	protected updateMenubar(): void {
+		if (this._isDisposed) {
+			return;
+		}
 		this.menuUpdater.schedule();
 	}
 
@@ -226,12 +234,12 @@ export abstract class MenubarControl extends Disposable {
 		if (!this.menubarHidden) {
 			const generation = ++this._recentlyOpenedGeneration;
 			this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
-				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
+				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed || this._isDisposed) {
 					return;
 				}
 				this.recentlyOpened = recentlyOpened;
 				this.updateMenubar();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -300,7 +308,15 @@ export abstract class MenubarControl extends Disposable {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		++this._recentlyOpenedGeneration;
+		this.menuUpdater.cancel();
+		this.mainMenuDisposables.dispose();
+		for (const key of Object.keys(this.menus)) {
+			this.menus[key]?.dispose();
+			delete this.menus[key];
+		}
+		this.topLevelTitles = {};
 		super.dispose();
 	}
 }
@@ -375,13 +391,19 @@ export class CustomMenubarControl extends MenubarControl {
 		}));
 
 		this.workspacesService.getRecentlyOpened().then((recentlyOpened) => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.recentlyOpened = recentlyOpened;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this.registerListeners();
 	}
 
 	protected doUpdateMenubar(firstTime: boolean): void {
+		if (this._isDisposed) {
+			return;
+		}
 		if (!this.focusInsideMenubar) {
 			this.setupCustomMenubar(firstTime);
 		}
@@ -513,7 +535,7 @@ export class CustomMenubarControl extends MenubarControl {
 	private readonly updateActionsDisposables = this._register(new DisposableStore());
 	private setupCustomMenubar(firstTime: boolean): void {
 		// If there is no container, we cannot setup the menubar
-		if (!this.container) {
+		if (!this.container || this._isDisposed) {
 			return;
 		}
 
@@ -526,9 +548,12 @@ export class CustomMenubarControl extends MenubarControl {
 			this.menubar = this.reinstallDisposables.add(new MenuBar(this.container, this.getMenuBarOptions(), defaultMenuStyles));
 
 			this.accessibilityService.alwaysUnderlineAccessKeys().then(val => {
+				if (this._isDisposed) {
+					return;
+				}
 				this.alwaysOnMnemonics = val;
 				this.menubar?.update(this.getMenuBarOptions());
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 			this.reinstallDisposables.add(this.menubar.onFocusStateChange(focused => {
 				this._onFocusStateChange.fire(focused);
@@ -615,6 +640,9 @@ export class CustomMenubarControl extends MenubarControl {
 			if (firstTime && menu) {
 				const menuChangedDisposable = this.reinstallDisposables.add(new DisposableStore());
 				this.reinstallDisposables.add(menu.onDidChange(() => {
+					if (this._isDisposed) {
+						return;
+					}
 					if (!this.focusInsideMenubar) {
 						const actions: IAction[] = [];
 						menuChangedDisposable.clear();
@@ -627,6 +655,9 @@ export class CustomMenubarControl extends MenubarControl {
 				if (menu === this.menus.File) {
 					const webMenuChangedDisposable = this.reinstallDisposables.add(new DisposableStore());
 					this.reinstallDisposables.add(this.webNavigationMenu.onDidChange(() => {
+						if (this._isDisposed) {
+							return;
+						}
 						if (!this.focusInsideMenubar) {
 							const actions: IAction[] = [];
 							webMenuChangedDisposable.clear();
@@ -756,12 +787,25 @@ export class CustomMenubarControl extends MenubarControl {
 		// Mnemonics require fullscreen in web
 		if (isWeb) {
 			this._register(onDidChangeFullscreen(windowId => {
+				if (this._isDisposed) {
+					return;
+				}
 				if (windowId === mainWindow.vscodeWindowId) {
 					this.updateMenubar();
 				}
 			}));
-			this._register(this.webNavigationMenu.onDidChange(() => this.updateMenubar()));
-			this._register(enableFocusMenuBarAction().event(() => this.menubar?.toggleFocus()));
+			this._register(this.webNavigationMenu.onDidChange(() => {
+				if (this._isDisposed) {
+					return;
+				}
+				this.updateMenubar();
+			}));
+			this._register(enableFocusMenuBarAction().event(() => {
+				if (this._isDisposed) {
+					return;
+				}
+				this.menubar?.toggleFocus();
+			}));
 		}
 	}
 
@@ -793,10 +837,29 @@ export class CustomMenubarControl extends MenubarControl {
 	}
 
 	layout(dimension: Dimension) {
+		if (this._isDisposed) {
+			return;
+		}
 		this.menubar?.update(this.getMenuBarOptions());
 	}
 
 	toggleFocus() {
+		if (this._isDisposed) {
+			return;
+		}
 		this.menubar?.toggleFocus();
+	}
+
+	override dispose(): void {
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+			this.container = undefined;
+		}
+		this.reinstallDisposables.dispose();
+		this.updateActionsDisposables.dispose();
+		this.menubar?.dispose();
+		this.menubar = undefined;
+		super.dispose();
 	}
 }

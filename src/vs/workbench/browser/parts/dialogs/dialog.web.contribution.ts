@@ -19,6 +19,7 @@ export class DialogHandlerContribution extends Disposable implements IWorkbenchC
 
 	static readonly ID = 'workbench.contrib.dialogHandler';
 
+	private _isDisposed = false;
 	private readonly model: IDialogsModel;
 	private readonly impl: Lazy<IDialogHandler>;
 
@@ -35,16 +36,21 @@ export class DialogHandlerContribution extends Disposable implements IWorkbenchC
 		this.model = (this.dialogService as DialogService).model;
 
 		this._register(this.model.onWillShowDialog(() => {
-			if (!this.currentDialog) {
-				this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (!this.currentDialog && !this._isDisposed) {
+				this.processDialogs().catch(onUnexpectedError);
 			}
 		}));
 
-		this.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.processDialogs().catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		super.dispose();
 	}
 
 	private async processDialogs(): Promise<void> {
-		while (this.model.dialogs.length) {
+		while (this.model.dialogs.length && !this._isDisposed) {
 			this.currentDialog = this.model.dialogs[0];
 
 			let result: IDialogResult | Error | undefined = undefined;

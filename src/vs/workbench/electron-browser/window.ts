@@ -84,9 +84,11 @@ import { IContextMenuService } from '../../platform/contextview/browser/contextV
 
 export class NativeWindow extends BaseWindow {
 
+	private _isDisposed = false;
+
 	private readonly customTitleContextMenuDisposable = this._register(new DisposableStore());
 
-	private readonly addRemoveFoldersScheduler = this._register(new RunOnceScheduler(() => { this.doAddRemoveFolders().catch(onUnexpectedError).catch(onUnexpectedError); }, 100));
+	private readonly addRemoveFoldersScheduler = this._register(new RunOnceScheduler(() => { if (this._isDisposed) { return; } this.doAddRemoveFolders().catch(onUnexpectedError); }, 100));
 	private pendingFoldersToAdd: URI[] = [];
 	private pendingFoldersToRemove: URI[] = [];
 
@@ -140,6 +142,11 @@ export class NativeWindow extends BaseWindow {
 		this.create();
 	}
 
+	private registerIpcListener(channel: string, listener: (event: unknown, ...argsRaw: unknown[]) => void): void {
+		ipcRenderer.on(channel, listener);
+		this._register(toDisposable(() => ipcRenderer.removeListener(channel, listener)));
+	}
+
 	protected registerListeners(): void {
 
 		// Layout
@@ -156,7 +163,10 @@ export class NativeWindow extends BaseWindow {
 		}
 
 		// Support `runAction` event
-		ipcRenderer.on('vscode:runAction', async (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:runAction', async (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const request = argsRaw[0] as INativeRunActionInWindowRequest;
 			const args: unknown[] = request.args || [];
 
@@ -181,15 +191,24 @@ export class NativeWindow extends BaseWindow {
 
 			try {
 				await this.commandService.executeCommand(request.id, ...args);
+				if (this._isDisposed) {
+					return;
+				}
 
 				this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: request.id, from: request.from });
 			} catch (error) {
+				if (this._isDisposed) {
+					return;
+				}
 				this.notificationService.error(error);
 			}
 		});
 
 		// Support runKeybinding event
-		ipcRenderer.on('vscode:runKeybinding', (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:runKeybinding', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const request = argsRaw[0] as INativeRunKeybindingInWindowRequest;
 			const activeElement = getActiveElement();
 			if (activeElement) {
@@ -198,7 +217,10 @@ export class NativeWindow extends BaseWindow {
 		});
 
 		// Shared Process crash reported from main
-		ipcRenderer.on('vscode:reportSharedProcessCrash', (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:reportSharedProcessCrash', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.notificationService.prompt(
 				Severity.Error,
 				localize('sharedProcessCrash', "A shared background process terminated unexpectedly. Please restart the application to recover."),
@@ -213,16 +235,29 @@ export class NativeWindow extends BaseWindow {
 		});
 
 		// Support openFiles event for existing and new files
-		ipcRenderer.on('vscode:openFiles', (event: unknown, ...argsRaw: unknown[]) => { this.onOpenFiles(argsRaw[0] as IOpenFileRequest).catch(onUnexpectedError).catch(onUnexpectedError); });
+		this.registerIpcListener('vscode:openFiles', (event: unknown, ...argsRaw: unknown[]) => { if (this._isDisposed) { return; } this.onOpenFiles(argsRaw[0] as IOpenFileRequest).catch(onUnexpectedError); });
 
 		// Support addRemoveFolders event for workspace management
-		ipcRenderer.on('vscode:addRemoveFolders', (event: unknown, ...argsRaw: unknown[]) => this.onAddRemoveFoldersRequest(argsRaw[0] as IAddRemoveFoldersRequest));
+		this.registerIpcListener('vscode:addRemoveFolders', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
+			this.onAddRemoveFoldersRequest(argsRaw[0] as IAddRemoveFoldersRequest);
+		});
 
 		// Message support
-		ipcRenderer.on('vscode:showInfoMessage', (event: unknown, ...argsRaw: unknown[]) => this.notificationService.info(argsRaw[0] as string));
+		this.registerIpcListener('vscode:showInfoMessage', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
+			this.notificationService.info(argsRaw[0] as string);
+		});
 
 		// Shell Environment Issue Notifications
-		ipcRenderer.on('vscode:showResolveShellEnvError', (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:showResolveShellEnvError', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const message = argsRaw[0] as string;
 			this.notificationService.prompt(
 				Severity.Error,
@@ -242,7 +277,10 @@ export class NativeWindow extends BaseWindow {
 			);
 		});
 
-		ipcRenderer.on('vscode:showCredentialsError', (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:showCredentialsError', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const message = argsRaw[0] as string;
 			this.notificationService.prompt(
 				Severity.Error,
@@ -254,7 +292,10 @@ export class NativeWindow extends BaseWindow {
 			);
 		});
 
-		ipcRenderer.on('vscode:showTranslatedBuildWarning', () => {
+		this.registerIpcListener('vscode:showTranslatedBuildWarning', () => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.notificationService.prompt(
 				Severity.Warning,
 				localize("runningTranslated", "You are running an emulated version of {0}. For better performance download the native arm64 version of {0} build for your machine.", this.productService.nameLong),
@@ -273,7 +314,10 @@ export class NativeWindow extends BaseWindow {
 			);
 		});
 
-		ipcRenderer.on('vscode:showArgvParseWarning', () => {
+		this.registerIpcListener('vscode:showArgvParseWarning', () => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.notificationService.prompt(
 				Severity.Warning,
 				localize("showArgvParseWarning", "The runtime arguments file 'argv.json' contains errors. Please correct them and restart."),
@@ -288,11 +332,24 @@ export class NativeWindow extends BaseWindow {
 		});
 
 		// Fullscreen Events
-		ipcRenderer.on('vscode:enterFullScreen', () => setFullscreen(true, mainWindow));
-		ipcRenderer.on('vscode:leaveFullScreen', () => setFullscreen(false, mainWindow));
+		this.registerIpcListener('vscode:enterFullScreen', () => {
+			if (this._isDisposed) {
+				return;
+			}
+			setFullscreen(true, mainWindow);
+		});
+		this.registerIpcListener('vscode:leaveFullScreen', () => {
+			if (this._isDisposed) {
+				return;
+			}
+			setFullscreen(false, mainWindow);
+		});
 
 		// Proxy Login Dialog
-		ipcRenderer.on('vscode:openProxyAuthenticationDialog', async (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:openProxyAuthenticationDialog', async (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const payload = argsRaw[0] as { authInfo: AuthInfo; username?: string; password?: string; replyChannel: string };
 			const rememberCredentialsKey = 'window.rememberProxyCredentials';
 			const rememberCredentials = this.storageService.getBoolean(rememberCredentialsKey, StorageScope.APPLICATION);
@@ -311,6 +368,10 @@ export class NativeWindow extends BaseWindow {
 					checked: rememberCredentials
 				}
 			});
+
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Reply back to the channel without result to indicate
 			// that the login dialog was cancelled
@@ -335,13 +396,19 @@ export class NativeWindow extends BaseWindow {
 		});
 
 		// Accessibility support changed event
-		ipcRenderer.on('vscode:accessibilitySupportChanged', (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:accessibilitySupportChanged', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const accessibilitySupportEnabled = argsRaw[0] as boolean;
 			this.accessibilityService.setAccessibilitySupport(accessibilitySupportEnabled ? AccessibilitySupport.Enabled : AccessibilitySupport.Disabled);
 		});
 
 		// Allow to update security settings around allowed UNC Host
-		ipcRenderer.on('vscode:configureAllowedUNCHost', async (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:configureAllowedUNCHost', async (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const host = argsRaw[0] as string;
 			if (!isWindows) {
 				return; // only supported on Windows
@@ -362,12 +429,18 @@ export class NativeWindow extends BaseWindow {
 				allowedUncHosts.add(host);
 
 				await getWorkbenchContribution<DynamicWorkbenchSecurityConfiguration>(DynamicWorkbenchSecurityConfiguration.ID).ready; // ensure this setting is registered
+				if (this._isDisposed) {
+					return;
+				}
 				this.configurationService.updateValue('security.allowedUNCHosts', [...allowedUncHosts.values()], ConfigurationTarget.USER);
 			}
 		});
 
 		// Allow to update security settings around protocol handlers
-		ipcRenderer.on('vscode:disablePromptForProtocolHandling', (event: unknown, ...argsRaw: unknown[]) => {
+		this.registerIpcListener('vscode:disablePromptForProtocolHandling', (event: unknown, ...argsRaw: unknown[]) => {
+			if (this._isDisposed) {
+				return;
+			}
 			const kind = argsRaw[0] as 'local' | 'remote';
 			const setting = kind === 'local' ? 'security.promptForLocalFileProtocolHandling' : 'security.promptForRemoteFileProtocolHandling';
 			this.configurationService.updateValue(setting, false);
@@ -398,7 +471,7 @@ export class NativeWindow extends BaseWindow {
 		// Listen to editor closing (if we run with --wait)
 		const filesToWait = this.nativeEnvironmentService.filesToWait;
 		if (filesToWait) {
-			this.trackClosedWaitFiles(filesToWait.waitMarkerFileUri, coalesce(filesToWait.paths.map(path => path.fileUri))).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.trackClosedWaitFiles(filesToWait.waitMarkerFileUri, coalesce(filesToWait.paths.map(path => path.fileUri))).catch(onUnexpectedError);
 		}
 
 		// macOS OS integration: represented file name
@@ -469,6 +542,9 @@ export class NativeWindow extends BaseWindow {
 	//#region Window Lifecycle
 
 	private onBeforeShutdown({ veto, reason }: BeforeShutdownEvent): void {
+		if (this._isDisposed) {
+			return;
+		}
 		if (reason === ShutdownReason.CLOSE) {
 			const confirmBeforeCloseSetting = this.configurationService.getValue<'always' | 'never' | 'keyboardOnly'>('window.confirmBeforeClose');
 
@@ -480,9 +556,15 @@ export class NativeWindow extends BaseWindow {
 				// can proceed or not.
 
 				return veto((async () => {
+					if (this._isDisposed) {
+						return false;
+					}
 					let actualReason: ShutdownReason = reason;
 					if (reason === ShutdownReason.CLOSE && !isMacintosh) {
 						const windowCount = await this.nativeHostService.getWindowCount();
+						if (this._isDisposed) {
+							return false;
+						}
 						if (windowCount === 1) {
 							actualReason = ShutdownReason.QUIT; // Windows/Linux: closing last window means to QUIT
 						}
@@ -490,7 +572,13 @@ export class NativeWindow extends BaseWindow {
 
 					let confirmed = true;
 					if (confirmBeforeClose) {
+						if (this._isDisposed) {
+							return false;
+						}
 						confirmed = await this.instantiationService.invokeFunction(accessor => NativeWindow.confirmOnShutdown(accessor, actualReason));
+						if (this._isDisposed) {
+							return false;
+						}
 					}
 
 					// Progress for long running shutdown
@@ -508,6 +596,9 @@ export class NativeWindow extends BaseWindow {
 	}
 
 	private progressOnBeforeShutdown(reason: ShutdownReason): void {
+		if (this._isDisposed) {
+			return;
+		}
 		this.progressService.withProgress({
 			location: ProgressLocation.Window, 	// use window progress to not be too annoying about this operation
 			delay: 800,							// delay so that it only appears when operation takes a long time
@@ -518,17 +609,26 @@ export class NativeWindow extends BaseWindow {
 				this.lifecycleService.onShutdownVeto, 	// or when shutdown was vetoed
 				this.dialogService.onWillShowDialog		// or when a dialog asks for input
 			));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private onBeforeShutdownError({ error, reason }: BeforeShutdownErrorEvent): void {
-		this.dialogService.error(this.toShutdownLabel(reason, true), localize('shutdownErrorDetail', "Error: {0}", toErrorMessage(error))).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._isDisposed) {
+			return;
+		}
+		this.dialogService.error(this.toShutdownLabel(reason, true), localize('shutdownErrorDetail', "Error: {0}", toErrorMessage(error))).catch(onUnexpectedError);
 	}
 
 	private onWillShutdown({ reason, force, joiners }: WillShutdownEvent): void {
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Delay so that the dialog only appears after timeout
-		const shutdownDialogScheduler = new RunOnceScheduler(() => {
+		const shutdownDialogScheduler = this._register(new RunOnceScheduler(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			const pendingJoiners = joiners();
 
 			this.progressService.withProgress({
@@ -543,7 +643,7 @@ export class NativeWindow extends BaseWindow {
 			}, () => {
 				force();
 			});
-		}, 1200);
+		}, 1200));
 		shutdownDialogScheduler.schedule();
 
 		// Dispose scheduler when we actually shutdown
@@ -693,14 +793,14 @@ export class NativeWindow extends BaseWindow {
 		this.setupOpenHandlers();
 
 		// Notify some services about lifecycle phases
-		this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady()).catch(onUnexpectedError);
 		this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this.sharedProcessService.notifyRestored();
 			this.utilityProcessWorkerWorkbenchService.notifyRestored();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		// Check for situations that are worth warning the user about
-		this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.handleWarnings().catch(onUnexpectedError);
 
 		// Touchbar menu (if enabled)
 		this.updateTouchbarMenu();
@@ -718,6 +818,9 @@ export class NativeWindow extends BaseWindow {
 
 		// After restored phase is fine for the following ones
 		await this.lifecycleService.when(LifecyclePhase.Restored);
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Integrity / Root warning
 		(async () => {
@@ -731,7 +834,7 @@ export class NativeWindow extends BaseWindow {
 			if (isAdmin && !isWindows) {
 				this.notificationService.warn(localize('runningAsRoot', "It is not recommended to run {0} as root user.", this.productService.nameShort));
 			}
-		})().catch(onUnexpectedError).catch(onUnexpectedError);
+		})().catch(onUnexpectedError);
 
 		// Installation Dir Warning
 		if (this.environmentService.isBuilt && !this.environmentService.extensionDevelopmentLocationURI?.length) {
@@ -791,7 +894,7 @@ export class NativeWindow extends BaseWindow {
 			location: ProgressLocation.Window,
 			delay: 1600,
 			buttons: [localize('learnMore', "Learn More")]
-		}, () => shellEnv, () => this.openerService.open('https://go.microsoft.com/fwlink/?linkid=2149667')).catch(onUnexpectedError).catch(onUnexpectedError);
+		}, () => shellEnv, () => this.openerService.open('https://go.microsoft.com/fwlink/?linkid=2149667')).catch(onUnexpectedError);
 	}
 
 	async resolveExternalUri(uri: URI, options?: OpenOptions): Promise<IResolvedExternalUri | undefined> {
@@ -1002,6 +1105,9 @@ export class NativeWindow extends BaseWindow {
 	//#endregion
 
 	private onAddRemoveFoldersRequest(request: IAddRemoveFoldersRequest): void {
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Buffer all pending requests
 		this.pendingFoldersToAdd.push(...request.foldersToAdd.map(folder => URI.revive(folder)));
@@ -1014,6 +1120,9 @@ export class NativeWindow extends BaseWindow {
 	}
 
 	private async doAddRemoveFolders(): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		const foldersToAdd: IWorkspaceFolderCreationData[] = this.pendingFoldersToAdd.map(folder => ({ uri: folder }));
 		const foldersToRemove = this.pendingFoldersToRemove.slice(0);
 
@@ -1024,18 +1133,31 @@ export class NativeWindow extends BaseWindow {
 			await this.workspaceEditingService.addFolders(foldersToAdd);
 		}
 
+		if (this._isDisposed) {
+			return;
+		}
+
 		if (foldersToRemove.length) {
 			await this.workspaceEditingService.removeFolders(foldersToRemove);
 		}
 	}
 
 	private async onOpenFiles(request: INativeOpenFileRequest): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		const diffMode = !!(request.filesToDiff && (request.filesToDiff.length === 2));
 		const mergeMode = !!(request.filesToMerge && (request.filesToMerge.length === 4));
 
 		const inputs = coalesce(await pathsToEditors(mergeMode ? request.filesToMerge : diffMode ? request.filesToDiff : request.filesToOpenOrCreate, this.fileService, this.logService));
+		if (this._isDisposed) {
+			return;
+		}
 		if (inputs.length) {
 			const openedEditorPanes = await this.openResources(inputs, diffMode, mergeMode);
+			if (this._isDisposed) {
+				return;
+			}
 
 			if (request.filesToWait) {
 
@@ -1056,9 +1178,15 @@ export class NativeWindow extends BaseWindow {
 	}
 
 	private async trackClosedWaitFiles(waitMarkerFile: URI, resourcesToWaitFor: URI[]): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 
 		// Wait for the resources to be closed in the text editor...
 		await this.instantiationService.invokeFunction(accessor => whenEditorClosed(accessor, resourcesToWaitFor));
+		if (this._isDisposed) {
+			return;
+		}
 
 		// ...before deleting the wait marker file
 		await this.fileService.del(waitMarkerFile);
@@ -1171,6 +1299,8 @@ export class NativeWindow extends BaseWindow {
 	//#endregion
 
 	override dispose(): void {
+		this._isDisposed = true;
+		this.addRemoveFoldersScheduler.cancel();
 		super.dispose();
 
 		for (const [, entry] of this.mapWindowIdToZoomStatusEntry) {

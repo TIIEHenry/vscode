@@ -6,6 +6,7 @@
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { getZoomFactor } from '../../../../base/browser/browser.js';
+import * as dom from '../../../../base/browser/dom.js';
 import { $, addDisposableListener, append, EventType, getWindow, getWindowId, hide, show } from '../../../../base/browser/dom.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
@@ -32,6 +33,8 @@ import { CodeWindow, mainWindow } from '../../../../base/browser/window.js';
 import { IsWindowAlwaysOnTopContext } from '../../../common/contextkeys.js';
 
 export class NativeTitlebarPart extends BrowserTitlebarPart {
+
+	private _isDisposed = false;
 
 	//#region IView
 
@@ -87,13 +90,19 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 
 		this.tahoeOrNewer = isTahoeOrNewer(environmentService.os.release);
 
-		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId).catch(onUnexpectedError);
 	}
 
 	private async handleWindowsAlwaysOnTop(targetWindowId: number): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		const isWindowAlwaysOnTopContext = IsWindowAlwaysOnTopContext.bindTo(this.contextKeyService);
 
 		this._register(this.nativeHostService.onDidChangeWindowAlwaysOnTop(({ windowId, alwaysOnTop }) => {
+			if (this._isDisposed) {
+				return;
+			}
 			if (windowId === targetWindowId) {
 				this.alwaysOnTopGeneration++;
 				isWindowAlwaysOnTopContext.set(alwaysOnTop);
@@ -102,9 +111,10 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 
 		const generation = this.alwaysOnTopGeneration;
 		const result = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId });
-		if (generation === this.alwaysOnTopGeneration) {
-			isWindowAlwaysOnTopContext.set(result);
+		if (this._isDisposed || generation !== this.alwaysOnTopGeneration) {
+			return;
 		}
+		isWindowAlwaysOnTopContext.set(result);
 	}
 
 	protected override onMenubarVisibilityChanged(visible: boolean): void {
@@ -198,9 +208,12 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 			// Restore
 			this.maxRestoreControl = append(this.windowControlsContainer, $('div.window-icon.window-max-restore'));
 			this._register(addDisposableListener(this.maxRestoreControl, EventType.CLICK, async () => {
+				if (this._isDisposed) {
+					return;
+				}
 				const generation = this.maximizedGeneration;
 				const maximized = await this.nativeHostService.isMaximized({ targetWindowId });
-				if (generation !== this.maximizedGeneration) {
+				if (this._isDisposed || generation !== this.maximizedGeneration) {
 					return;
 				}
 				if (maximized) {
@@ -296,6 +309,15 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 				});
 			}
 		}
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		if (this.element) {
+			dom.clearNode(this.element);
+			this.element.remove();
+		}
+		super.dispose();
 	}
 }
 
