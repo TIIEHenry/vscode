@@ -102,13 +102,30 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			updateTaskScheduler.schedule();
 		}));
 		this.lifecycleService.when(LifecyclePhase.Eventually)
-			.then(() => this.debugExtensionsAvailable.set(this.debuggers.length > 0)).catch(onUnexpectedError).catch(onUnexpectedError); // If no extensions with a debugger contribution are loaded
+			.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.debugExtensionsAvailable.set(this.debuggers.length > 0);
+			}).catch(onUnexpectedError); // If no extensions with a debugger contribution are loaded
 
 		this._register(delegate.onDidNewSession(s => {
 			this.usedDebugTypes.add(s.configuration.type);
 		}));
 
 		updateTaskScheduler.schedule();
+	}
+
+	override dispose(): void {
+		this.debugAdapterFactories.clear();
+		this.adapterDescriptorFactories = [];
+		this.debuggers = [];
+		this.breakpointContributions = [];
+		this.debuggerWhenKeys.clear();
+		this.usedDebugTypes.clear();
+		this.taskLabels = [];
+		this.earlyActivatedExtensions?.clear();
+		super.dispose();
 	}
 
 	private registerListeners(): void {
@@ -157,9 +174,12 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 
 	private updateTaskLabels() {
 		this.tasksService.getKnownTasks().then(tasks => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.taskLabels = tasks.map(task => task._label);
 			this.updateDebugAdapterSchema();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private updateDebugAdapterSchema() {
@@ -466,7 +486,7 @@ export class AdapterManager extends Disposable implements IAdapterManager {
 			}
 
 			if (picked) {
-				void this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel).catch(onUnexpectedError);
 			}
 
 			return undefined;

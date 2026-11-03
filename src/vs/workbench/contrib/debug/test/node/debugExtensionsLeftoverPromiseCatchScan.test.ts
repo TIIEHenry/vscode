@@ -92,30 +92,16 @@ suite('debug/extensions leftover Promise fire-and-forget catch scan (D690)', () 
 		assert.ok(!source.includes(`this.openerService.open(downloadUrl)${doubleCatch}`));
 	});
 
-	test('debug leftover getDynamicProviders / stepInTargets thens are double-chain', () => {
+	test('debug leftover getDynamicProviders / stepInTargets thens are single-chain', () => {
 		const actionView = fs.readFileSync(resolveSource(ACTION_VIEW_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		assert.ok(actionView.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(commands.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const dynamicThen = `configManager.getDynamicProviders().then(providers => {
-			if (providers.length !== this.providers.length) {
-				this.providers = providers;
-				this.updateOptions();
-			}
-		})`;
-		const stepThen = `session.stepInTargets(frame.frameId).then(targets => {
-			qp.busy = false;
-			if (targets?.length) {
-				qp.items = targets?.map(target => ({ target, label: target.label }));
-			} else {
-				qp.placeholder = nls.localize('editor.debug.action.stepIntoTargets.none', "No step targets available");
-			}
-		})`;
-		assert.ok(actionView.includes(`${dynamicThen}${doubleCatch};`));
-		assert.ok(commands.includes(`${stepThen}${doubleCatch};`));
-		assert.ok(!actionView.includes(`${dynamicThen};`));
-		assert.ok(!commands.includes(`${stepThen};`));
-		assert.ok(!actionView.includes(`${dynamicThen}.catch(onUnexpectedError);`));
-		assert.ok(!commands.includes(`${stepThen}.catch(onUnexpectedError);`));
+		assert.ok(actionView.includes('configManager.getDynamicProviders().then(providers => {'));
+		assert.ok(actionView.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!actionView.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(commands.includes('session.stepInTargets(frame.frameId).then(targets => {'));
+		assert.ok(commands.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!commands.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });

@@ -66,6 +66,11 @@ export class ConfigurationManager implements IConfigurationManager {
 	private readonly _onDidChangeConfigurationProviders = new Emitter<void>();
 	public readonly onDidChangeConfigurationProviders = this._onDidChangeConfigurationProviders.event;
 	private targetOperatingSystem = OS;
+	private _isDisposed = false;
+
+	public get isDisposed(): boolean {
+		return this._isDisposed;
+	}
 
 	constructor(
 		private readonly adapterManager: IAdapterManager,
@@ -93,15 +98,18 @@ export class ConfigurationManager implements IConfigurationManager {
 		this.debugConfigurationTypeContext = CONTEXT_DEBUG_CONFIGURATION_TYPE.bindTo(contextKeyService);
 		const dynamicConfig = previousSelectedType ? { type: previousSelectedType } : undefined;
 		if (previousSelectedLaunch && previousSelectedLaunch.getConfigurationNames().length) {
-			this.selectConfiguration(previousSelectedLaunch, previousSelectedName, undefined, dynamicConfig).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.selectConfiguration(previousSelectedLaunch, previousSelectedName, undefined, dynamicConfig).catch(onUnexpectedError);
 		} else if (this.launches.length > 0) {
-			this.selectConfiguration(undefined, previousSelectedName, undefined, dynamicConfig).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.selectConfiguration(undefined, previousSelectedName, undefined, dynamicConfig).catch(onUnexpectedError);
 		}
 		this.resolveTargetOperatingSystem();
 	}
 
 	private resolveTargetOperatingSystem(): void {
 		this.remoteAgentService.getEnvironment().then(environment => {
+			if (this._isDisposed) {
+				return;
+			}
 			const targetOperatingSystem = environment?.os ?? OS;
 			if (this.targetOperatingSystem !== targetOperatingSystem) {
 				this.targetOperatingSystem = targetOperatingSystem;
@@ -330,7 +338,7 @@ export class ConfigurationManager implements IConfigurationManager {
 		const remaining = this.getRecentDynamicConfigurations().filter(c => c.name !== name || c.type !== type);
 		this.storageService.store(DEBUG_RECENT_DYNAMIC_CONFIGURATIONS, JSON.stringify(remaining), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		if (this.selectedConfiguration.name === name && this.selectedType === type && this.selectedDynamic) {
-			this.selectConfiguration(undefined, undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.selectConfiguration(undefined, undefined).catch(onUnexpectedError);
 		} else {
 			this._onDidSelectConfigurationName.fire();
 		}
@@ -342,11 +350,17 @@ export class ConfigurationManager implements IConfigurationManager {
 
 	private registerListeners(): void {
 		this.toDispose.push(Event.any<IWorkspaceFoldersChangeEvent | WorkbenchState>(this.contextService.onDidChangeWorkspaceFolders, this.contextService.onDidChangeWorkbenchState)(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.initLaunches();
-			this.selectConfiguration(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.selectConfiguration(undefined).catch(onUnexpectedError);
 			this.setCompoundSchemaValues();
 		}));
 		this.toDispose.push(this.configurationService.onDidChangeConfiguration(async e => {
+			if (this._isDisposed) {
+				return;
+			}
 			if (e.affectsConfiguration('launch')) {
 				// A change happen in the launch.json. If there is already a launch configuration selected, do not change the selection.
 				await this.selectConfiguration(undefined);
@@ -366,7 +380,7 @@ export class ConfigurationManager implements IConfigurationManager {
 		this.launches.push(this.instantiationService.createInstance(UserLaunch, this, this.adapterManager));
 
 		if (this.selectedLaunch && this.launches.indexOf(this.selectedLaunch) === -1) {
-			this.selectConfiguration(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.selectConfiguration(undefined).catch(onUnexpectedError);
 		}
 	}
 
@@ -517,6 +531,9 @@ export class ConfigurationManager implements IConfigurationManager {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
+		this.configProviders = [];
+		this.launches = [];
 		this.toDispose = dispose(this.toDispose);
 	}
 }

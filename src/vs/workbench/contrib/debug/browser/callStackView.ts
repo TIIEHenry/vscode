@@ -178,7 +178,15 @@ export class CallStackView extends ViewPane {
 
 		// Create scheduler to prevent unnecessary flashing of tree when reacting to changes
 		this.onCallStackChangeScheduler = this._register(new RunOnceScheduler(() => {
-			const run = this._onCallStackChangeChain.then(() => this.onCallStackChangeNow());
+			if (this._store.isDisposed) {
+				return;
+			}
+			const run = this._onCallStackChangeChain.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				return this.onCallStackChangeNow();
+			});
 			this._onCallStackChangeChain = run.then(() => undefined, () => undefined);
 			return run;
 		}, 50));
@@ -302,7 +310,7 @@ export class CallStackView extends ViewPane {
 
 		CONTEXT_CALLSTACK_FOCUSED.bindTo(this.tree.contextKeyService);
 
-		void this.tree.setInput(this.debugService.getModel()).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.tree.setInput(this.debugService.getModel()).catch(onUnexpectedError);
 		this._register(this.tree);
 		this._register(this.tree.onDidOpen(async e => {
 			if (this.ignoreSelectionChangedEvent) {
@@ -312,7 +320,7 @@ export class CallStackView extends ViewPane {
 			const focusStackFrame = (stackFrame: IStackFrame | undefined, thread: IThread | undefined, session: IDebugSession, options: { explicit?: boolean; preserveFocus?: boolean; sideBySide?: boolean; pinned?: boolean } = {}) => {
 				this.ignoreFocusStackFrameEvent = true;
 				try {
-					void this.debugService.focusStackFrame(stackFrame, thread, session, { ...options, ...{ explicit: true } }).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.debugService.focusStackFrame(stackFrame, thread, session, { ...options, ...{ explicit: true } }).catch(onUnexpectedError);
 				} finally {
 					this.ignoreFocusStackFrameEvent = false;
 				}
@@ -341,12 +349,15 @@ export class CallStackView extends ViewPane {
 					const remainingFramesCount = typeof totalFrames === 'number' ? (totalFrames - thread.getCallStack().length) : undefined;
 					// Get all the remaining frames
 					await (<Thread>thread).fetchCallStack(remainingFramesCount);
+					if (this._store.isDisposed) {
+						return;
+					}
 					await this.tree.updateChildren();
 				}
 			}
 			if (element instanceof Array) {
 				element.forEach(sf => this.dataSource.deemphasizedStackFramesToShow.add(sf));
-				void this.tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.tree.updateChildren().catch(onUnexpectedError);
 			}
 		}));
 
@@ -417,12 +428,23 @@ export class CallStackView extends ViewPane {
 		this.tree.domFocus();
 	}
 
+	override dispose(): void {
+		this.onCallStackChangeScheduler.cancel();
+		this._onCallStackChangeChain = Promise.resolve();
+		this.autoExpandedSessions.clear();
+		if (this.stateMessage) {
+			dom.clearNode(this.stateMessage);
+			this.stateMessage.remove();
+		}
+		super.dispose();
+	}
+
 	collapseAll(): void {
 		this.tree.collapseAll();
 	}
 
 	private async updateTreeSelection(): Promise<void> {
-		if (!this.tree || !this.tree.getInput()) {
+		if (this._store.isDisposed || !this.tree || !this.tree.getInput()) {
 			// Tree not initialized yet
 			return;
 		}

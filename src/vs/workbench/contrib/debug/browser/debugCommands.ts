@@ -252,7 +252,7 @@ async function navigateCallStack(debugService: IDebugService, down: boolean) {
 		}
 
 		if (nextVisibleFrame) {
-			void debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError);
 		}
 	}
 }
@@ -265,7 +265,7 @@ async function goToBottomOfCallStack(debugService: IDebugService) {
 		if (callStack.length > 0) {
 			const nextVisibleFrame = findNextVisibleFrame(false, callStack, 0); // must consider the next frame up first, which will be the last frame
 			if (nextVisibleFrame) {
-				void debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+				void debugService.focusStackFrame(nextVisibleFrame, undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -275,7 +275,7 @@ function goToTopOfCallStack(debugService: IDebugService) {
 	const thread = debugService.getViewModel().focusedThread;
 
 	if (thread) {
-		void debugService.focusStackFrame(thread.getTopStackFrame(), undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void debugService.focusStackFrame(thread.getTopStackFrame(), undefined, undefined, { preserveFocus: false }).catch(onUnexpectedError);
 	}
 }
 
@@ -616,13 +616,16 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 		disposables.add(qp.onDidHide(() => disposables.dispose()));
 
 		session.stepInTargets(frame.frameId).then(targets => {
+			if (disposables.isDisposed) {
+				return;
+			}
 			qp.busy = false;
 			if (targets?.length) {
 				qp.items = targets?.map(target => ({ target, label: target.label }));
 			} else {
 				qp.placeholder = nls.localize('editor.debug.action.stepIntoTargets.none', "No step targets available");
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 });
 
@@ -735,7 +738,7 @@ CommandsRegistry.registerCommand({
 					const pick = await provider.pick();
 					if (pick) {
 						await configManager.selectConfiguration(pick.launch, pick.config.name, pick.config, { type: provider.type });
-						void debugService.startDebugging(pick.launch, pick.config, { noDebug: debugStartOptions?.noDebug, startedByUser: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+						void debugService.startDebugging(pick.launch, pick.config, { noDebug: debugStartOptions?.noDebug, startedByUser: true }).catch(onUnexpectedError);
 
 						return;
 					}

@@ -218,6 +218,7 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 	private ignoreBreakpointsChangeEvent = false;
 	private breakpointDecorations: IBreakpointDecoration[] = [];
 	private candidateDecorations: { decorationId: string; inlineWidget: InlineBreakpointWidget }[] = [];
+	private _isDisposed = false;
 	private setDecorationsScheduler!: RunOnceScheduler;
 	private _setDecorationsChain: Promise<void> = Promise.resolve();
 
@@ -490,7 +491,7 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 				id: 'runToLine',
 				label: nls.localize('runToLine', "Run to Line"),
 				enabled: true,
-				run: () => this.debugService.runTo(uri, lineNumber).catch(onUnexpectedError).catch(onUnexpectedError)
+				run: () => this.debugService.runTo(uri, lineNumber).catch(onUnexpectedError)
 			}));
 		} return actions;
 	}
@@ -574,11 +575,11 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 		}
 		if (desiredCandidatePositionsRaced === undefined) { // the timeout resolved first
 			desiredCandidatePositions.then(v => {
-				if (activeCodeEditor.getModel() !== model) {
+				if (this._isDisposed || activeCodeEditor.getModel() !== model) {
 					return;
 				}
 				activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		try {
@@ -686,8 +687,19 @@ export class BreakpointEditorContribution implements IBreakpointEditorContributi
 	}
 
 	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		this.breakpointWidget?.dispose();
+		this.setDecorationsScheduler.cancel();
 		this.setDecorationsScheduler.dispose();
+		for (const candidate of this.candidateDecorations) {
+			candidate.inlineWidget?.dispose();
+		}
+		for (const bpd of this.breakpointDecorations) {
+			bpd.inlineWidget?.dispose();
+		}
 		this.editor.removeDecorations(this.breakpointDecorations.map(bpd => bpd.decorationId));
 		dispose(this.toDispose);
 	}
@@ -816,6 +828,8 @@ class InlineBreakpointWidget implements IContentWidget, IDisposable {
 
 	dispose(): void {
 		this.editor.removeContentWidget(this);
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
 		dispose(this.toDispose);
 	}
 }

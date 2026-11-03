@@ -82,7 +82,7 @@ function _getPicksAndActiveItem(filter: string, selectAndStartID: string, debugS
 	debugConsolePicks.push({
 		label: `$(plus) ${createDebugSessionLabel}`,
 		ariaLabel: createDebugSessionLabel,
-		accept: () => void commandService.executeCommand(selectAndStartID).catch(onUnexpectedError).catch(onUnexpectedError)
+		accept: () => void commandService.executeCommand(selectAndStartID).catch(onUnexpectedError)
 	});
 
 	return { picks: debugConsolePicks, activeItems };
@@ -112,7 +112,7 @@ function _createPick(session: IDebugSession, filter: string, debugService: IDebu
 			ariaLabel: pickInfo.ariaLabel,
 			highlights: { label: highlights },
 			accept: () => {
-				void debugService.focusStackFrame(undefined, undefined, session, { explicit: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+				void debugService.focusStackFrame(undefined, undefined, session, { explicit: true }).catch(onUnexpectedError);
 				if (!viewsService.isViewVisible(REPL_VIEW_ID)) {
 					viewsService.openView(REPL_VIEW_ID, true);
 				}

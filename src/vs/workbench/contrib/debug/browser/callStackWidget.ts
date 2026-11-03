@@ -192,12 +192,12 @@ export class CallStackWidget extends Disposable {
 	}
 
 	private async loadFrame(replacing: SkippedCallFrames): Promise<void> {
-		if (!this.cts) {
+		if (this._store.isDisposed || !this.cts) {
 			return;
 		}
 
 		const frames = await replacing.load(this.cts.token);
-		if (this.cts.token.isCancellationRequested) {
+		if (this._store.isDisposed || this.cts.token.isCancellationRequested) {
 			return;
 		}
 
@@ -227,6 +227,16 @@ export class CallStackWidget extends Disposable {
 		}
 
 		return result;
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.cts?.dispose(true);
+		this.cts = undefined;
+		this.currentFramesDs.dispose();
+		super.dispose();
 	}
 }
 
@@ -475,7 +485,7 @@ class FrameCodeRenderer extends AbstractFrameRenderer<IStackTemplateData> {
 			editor.setModel(reference.object.textEditorModel);
 			this.setupEditorAfterModel(item, template);
 			this.setupEditorLayout(item, template);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private setupEditorLayout(item: WrappedCallStackFrame, { elementStore, container, editor }: IStackTemplateData) {

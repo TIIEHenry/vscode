@@ -41,6 +41,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -57,9 +58,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const selectPrevLaunchCall = 'this.selectConfiguration(previousSelectedLaunch, previousSelectedName, undefined, dynamicConfig)';
@@ -94,22 +95,23 @@ suite('leftover remaining unused after D834 moved to debug leftover remaining un
 		assertPromiseSignature(source, 'async selectConfiguration(launch: ILaunch | undefined, name?: string, config?: IConfig, dynamicConfig?: { type?: string }): Promise<void> {');
 		let sites = 0;
 		for (const [, call, count] of d843Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused debug legal leftover >=4, got ${sites}`);
 		assert.ok(sites <= 8);
 		assert.ok(!source.includes('D843'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after leftover remaining unused stayed on debugConfigurationManager', () => {
+	test('this knife covers five leftover Promise single-chain sites after leftover remaining unused stayed on debugConfigurationManager', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d843Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -117,10 +119,11 @@ suite('leftover remaining unused after D834 moved to debug leftover remaining un
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CONFIG_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(CONFIG_REL) ?? ''), 0);
+		assert.ok(!seen.get(CONFIG_REL)?.includes(doubleCatch));
 	});
 
-	test('debug leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('debug leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const source = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
 		assertPromiseSignature(source, 'async selectConfiguration(launch: ILaunch | undefined, name?: string, config?: IConfig, dynamicConfig?: { type?: string }): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
@@ -128,17 +131,18 @@ suite('leftover remaining unused after D834 moved to debug leftover remaining un
 		assertWrapped(source, selectPrevNameCall);
 		assertWrapped(source, selectUndefinedUndefinedCall);
 		assertWrapped(source, selectUndefinedCall);
-		assert.strictEqual(countIncludes(source, `${selectPrevLaunchCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${selectPrevNameCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${selectUndefinedUndefinedCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${selectUndefinedCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${selectPrevLaunchCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${selectPrevNameCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${selectUndefinedUndefinedCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${selectUndefinedCall}${singleCatch}`), 2);
 		assert.ok(!source.includes('\t\t\tthis.selectConfiguration(previousSelectedLaunch, previousSelectedName, undefined, dynamicConfig);\n'));
 		assert.ok(!source.includes('\t\t\tthis.selectConfiguration(undefined, previousSelectedName, undefined, dynamicConfig);\n'));
 		assert.ok(!source.includes('\t\t\tthis.selectConfiguration(undefined, undefined);\n'));
 		assert.ok(source.includes('await this.selectConfiguration(launch, config.name);'));
-		assert.ok(!source.includes(`await this.selectConfiguration(launch, config.name)${doubleCatch}`));
+		assert.ok(!source.includes(`await this.selectConfiguration(launch, config.name)${singleCatch}`));
 		assert.ok(source.includes('await this.selectConfiguration(undefined);'));
-		assert.ok(!source.includes(`await this.selectConfiguration(undefined)${doubleCatch}`));
+		assert.ok(!source.includes(`await this.selectConfiguration(undefined)${singleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -204,9 +208,9 @@ suite('leftover remaining unused after D834 moved to debug leftover remaining un
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch}`) || gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch};`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes('this.showEmbeddedMcpDetail(server).catch(onUnexpectedError)') || aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
+		assert.ok(discovery.includes('this.sync().catch(onUnexpectedError)') || discovery.includes(`this.sync()${doubleCatch}`));
+		assert.ok(configuration.includes('this.updateCache().catch(onUnexpectedError)') || configuration.includes(`this.updateCache()${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
 		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));

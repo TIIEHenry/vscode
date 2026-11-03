@@ -100,6 +100,11 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 	private heightInPx: number | undefined;
 	private triggeredByBreakpointInput: IBreakpoint | undefined;
 	private availableBreakpoints: IBreakpoint[] = [];
+	private _isDisposed = false;
+
+	public get isDisposed(): boolean {
+		return this._isDisposed;
+	}
 
 	constructor(editor: ICodeEditor, private lineNumber: number, private column: number | undefined, context: Context | undefined,
 		@IContextViewService private readonly contextViewService: IContextViewService,
@@ -333,14 +338,21 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 		// Load the source code for each breakpoint asynchronously
 		for (const [i, bp] of this.availableBreakpoints.entries()) {
 			this.textModelService.createModelReference(bp.uri).then(ref => {
+				if (this.isDisposed) {
+					ref.dispose();
+					return;
+				}
 				try {
 					breakpointOptions[i + 1].description = ref.object.textEditorModel.getLineContent(bp.lineNumber).trim();
 				} finally {
 					ref.dispose();
 				}
 			}).catch(() => {
+				if (this.isDisposed) {
+					return;
+				}
 				breakpointOptions[i + 1].description = nls.localize('noBpSource', 'Could not load source.');
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		return breakpointOptions;
@@ -528,7 +540,7 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 					mode,
 					modeLabel,
 				});
-				this.debugService.updateBreakpoints(this.breakpoint.originalUri, data, false).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.debugService.updateBreakpoints(this.breakpoint.originalUri, data, false).catch(onUnexpectedError);
 			} else {
 				const model = this.editor.getModel();
 				if (model) {
@@ -559,9 +571,29 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 	}
 
 	override dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		super.dispose();
 		this.input.dispose();
 		lifecycle.dispose(this.store);
+		if (this.selectContainer) {
+			dom.clearNode(this.selectContainer);
+			this.selectContainer.remove();
+		}
+		if (this.inputContainer) {
+			dom.clearNode(this.inputContainer);
+			this.inputContainer.remove();
+		}
+		if (this.selectBreakpointContainer) {
+			dom.clearNode(this.selectBreakpointContainer);
+			this.selectBreakpointContainer.remove();
+		}
+		if (this.selectModeContainer) {
+			dom.clearNode(this.selectModeContainer);
+			this.selectModeContainer.remove();
+		}
 		setTimeout(() => this.editor.focus(), 0);
 	}
 }

@@ -300,13 +300,16 @@ export class LinkDetector implements ILinkDetector {
 		link.tabIndex = 0;
 		const uri = URI.file(osPath.normalize(path));
 		this.fileService.stat(uri).then(stat => {
+			if (hoverBehavior.store.isDisposed) {
+				return;
+			}
 			if (stat.isDirectory) {
 				return;
 			}
 			this.decorateLink(link, uri, fulltext, hoverBehavior, (preserveFocus: boolean) => this.editorService.openEditor({ resource: uri, options: { ...options, preserveFocus } }));
 		}).catch(() => {
 			// If the uri can not be resolved we should not spam the console with error, remain quite #86587
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		return link;
 	}
 

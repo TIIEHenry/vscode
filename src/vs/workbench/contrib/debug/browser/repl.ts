@@ -180,22 +180,37 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 			this.onDidFocusSession(session);
 		}));
 		this._register(this.debugService.getViewModel().onDidEvaluateLazyExpression(async e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e instanceof Variable && this.tree?.hasNode(e)) {
 				await this.tree.updateChildren(e, false, true);
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.tree.expand(e);
 			}
 		}));
 		this._register(this.debugService.onWillNewSession(async newSession => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			// Need to listen to output events for sessions which are not yet fully initialised
 			const input = this.tree?.getInput();
 			if (!input || input.state === State.Inactive) {
 				await this.selectSession(newSession);
+			}
+			if (this._store.isDisposed) {
+				return;
 			}
 			this.multiSessionRepl.set(this.isMultiSessionView);
 		}));
 		this._register(this.debugService.onDidEndSession(async () => {
 			// Update view, since orphaned sessions might now be separate
 			await Promise.resolve(); // allow other listeners to go first, so sessions can update parents
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.multiSessionRepl.set(this.isMultiSessionView);
 		}));
 		this._register(this.themeService.onDidColorThemeChange(() => {
@@ -228,7 +243,7 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 				// (no debug session has been focused since this view was created),
 				// in which case `_updateChildren` would throw `Tree input not set`.
 				if (this.tree?.getInput()) {
-					void this.tree.updateChildren(undefined, true, false).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.tree.updateChildren(undefined, true, false).catch(onUnexpectedError);
 				}
 				this.onDidStyleChange();
 			}
@@ -875,6 +890,18 @@ export class Repl extends FilterViewPane implements IHistoryNavigationWidget {
 		this.replElementsChangeListener?.dispose();
 		this.refreshScheduler.dispose();
 		this.modelChangeListener.dispose();
+		if (this.treeContainer) {
+			dom.clearNode(this.treeContainer);
+			this.treeContainer.remove();
+		}
+		if (this.replInputContainer) {
+			dom.clearNode(this.replInputContainer);
+			this.replInputContainer.remove();
+		}
+		if (this.container) {
+			dom.clearNode(this.container);
+			this.container.remove();
+		}
 		super.dispose();
 	}
 }

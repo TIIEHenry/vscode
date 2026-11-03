@@ -48,18 +48,20 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertDoubleChain(source: string, call: string, count: number): void {
 	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count, `count mismatch: ${call}`);
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double-chain remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 function countDouble(rel: string, call: string): number {
 	const source = fs.readFileSync(resolveSource(rel), 'utf8');
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -72,13 +74,16 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	const candidateThen = `desiredCandidatePositions.then(v => {
-				if (activeCodeEditor.getModel() !== model) {
+				if (this._isDisposed || activeCodeEditor.getModel() !== model) {
 					return;
 				}
 				activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v));
 			})`;
 	const loadThen = `this.loadDisassembledInstructions(instructionReference, offset, -DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 4, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 8, loadSeq).then(() => {`;
 	const hoverThen = `this.tree.setInput(expression).then(() => {
+				if (this._isDisposed) {
+					return;
+				}
 				if (currentSequence === this.setInputSequence && this._isVisible) {
 					this.isUpdatingTree = false;
 					this.layoutTreeAndContainer();
@@ -91,15 +96,26 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers thirty-eight leftover Promise double-chain sites; D686/D688/D690/D662 stay skipped', () => {
+	test('this knife covers thirty-eight leftover Promise single-chain sites; D686/D688/D690/D662 stay skipped', () => {
 		const whenThen = `this.lifecycleService.when(LifecyclePhase.Eventually)
-			.then(() => this.debugExtensionsAvailable.set(this.debuggers.length > 0))`;
+			.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.debugExtensionsAvailable.set(this.debuggers.length > 0);
+			})`;
 		const scrollUp = `this.scrollUp_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).then((loaded) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (loaded > 0) {
 						this._disassembledInstructions!.reveal(prevTop + loaded, 0);
 					}
 				}).finally(() => { this._loadingLock = false; })`;
 		const fetch19 = `thread.fetchCallStack(19).then(() => {
+									if (this._store.isDisposed) {
+										return;
+									}
 									const stale = thread.getStaleCallStack();
 									const current = thread.getCallStack();
 									let bottomOfCallStackChanged = stale.length !== current.length;
@@ -121,7 +137,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 			countDouble(DISASSEMBLY_REL, scrollUp) +
 			countDouble(DISASSEMBLY_REL, 'this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; })') +
 			countDouble(DISASSEMBLY_REL, 'void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0)') +
-			(fs.readFileSync(resolveSource(DISASSEMBLY_REL), 'utf8').includes(`${loadThen}`) && fs.readFileSync(resolveSource(DISASSEMBLY_REL), 'utf8').includes(`this._loadingLock = false;\n\t\t})${doubleCatch};`) ? 1 : 0) +
+			(fs.readFileSync(resolveSource(DISASSEMBLY_REL), 'utf8').includes(`${loadThen}`) && fs.readFileSync(resolveSource(DISASSEMBLY_REL), 'utf8').includes(`this._loadingLock = false;\n\t\t})${singleCatch};`) ? 1 : 0) +
 			countDouble(MODEL_REL, fetch19) +
 			countDouble(VARIABLES_REL, 'void this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null)') +
 			countDouble(VARIABLES_REL, 'void this.tree.updateChildren()') +
@@ -155,7 +171,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assert.strictEqual(sites, 38);
 	});
 
-	test('adapter leftover when(Eventually).then / executeCommand are Promise double-chain', () => {
+	test('adapter leftover when(Eventually).then / executeCommand are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(ADAPTER_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_IFACE_REL), 'utf8');
@@ -163,18 +179,25 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const whenThen = `this.lifecycleService.when(LifecyclePhase.Eventually)
-			.then(() => this.debugExtensionsAvailable.set(this.debuggers.length > 0))`;
-		assert.ok(source.includes(`${whenThen}${doubleCatch};`));
+			.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.debugExtensionsAvailable.set(this.debuggers.length > 0);
+			})`;
+		assert.ok(source.includes(`${whenThen}${singleCatch};`));
 		assertDoubleChain(source, "void this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel)", 1);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('breakpointEditor leftover desiredCandidatePositions.then is Promise double-chain; runTo stays D662', () => {
+	test('breakpointEditor leftover desiredCandidatePositions.then is Promise single-chain; runTo stays D662', () => {
 		const source = fs.readFileSync(resolveSource(BREAKPOINT_EDITOR_REL), 'utf8');
 		assertDoubleChain(source, candidateThen, 1);
-		assert.ok(source.includes(`run: () => this.debugService.runTo(uri, lineNumber)${doubleCatch}`));
+		assert.ok(source.includes(`run: () => this.debugService.runTo(uri, lineNumber)${singleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('disassembly leftover scroll/load/goTo are Promise double-chain', () => {
+	test('disassembly leftover scroll/load/goTo are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(DISASSEMBLY_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async scrollUp_LoadDisassembledInstructions(instructionCount: number): Promise<number> {'));
@@ -182,6 +205,9 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assert.ok(source.includes('async goToInstructionAndOffset(instructionReference: string, offset: number, focus?: boolean)'));
 		assert.ok(source.includes('private async loadDisassembledInstructions(instructionReference: string, offset: number, instructionOffset: number, instructionCount: number, seq?: number): Promise<number> {'));
 		assertDoubleChain(source, `this.scrollUp_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).then((loaded) => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (loaded > 0) {
 						this._disassembledInstructions!.reveal(prevTop + loaded, 0);
 					}
@@ -189,14 +215,18 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertDoubleChain(source, 'this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; })', 1);
 		assertDoubleChain(source, 'void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0)', 1);
 		assert.ok(source.includes(loadThen));
-		assert.ok(source.includes(`this._loadingLock = false;\n\t\t})${doubleCatch};`));
+		assert.ok(source.includes(`this._loadingLock = false;\n\t\t})${singleCatch};`));
 		assert.ok(!source.includes(`this._loadingLock = false;\n\t\t});`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('debugModel leftover fetchCallStack(19).then.finally is Promise double-chain; assigned / two-arg stay skipped', () => {
+	test('debugModel leftover fetchCallStack(19).then.finally is Promise single-chain; assigned / two-arg stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleChain(source, `thread.fetchCallStack(19).then(() => {
+									if (this._store.isDisposed) {
+										return;
+									}
 									const stale = thread.getStaleCallStack();
 									const current = thread.getCallStack();
 									let bottomOfCallStackChanged = stale.length !== current.length;
@@ -215,9 +245,10 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assert.ok(!source.includes(`this.scopes = this.thread.session.scopes(this.frameId, this.thread.threadId).then(response => {${doubleCatch}`));
 		assert.ok(source.includes('entry.completeDeferred.p.then(c, e);'));
 		assert.ok(!source.includes(`entry.completeDeferred.p.then(c, e)${doubleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('tree leftover setInput / updateChildren are Promise double-chain', () => {
+	test('tree leftover setInput / updateChildren are Promise single-chain', () => {
 		const variables = fs.readFileSync(resolveSource(VARIABLES_REL), 'utf8');
 		const watch = fs.readFileSync(resolveSource(WATCH_REL), 'utf8');
 		const callStack = fs.readFileSync(resolveSource(CALLSTACK_REL), 'utf8');
@@ -236,9 +267,12 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertDoubleChain(callStack, 'void this.tree.updateChildren()', 1);
 		assertDoubleChain(hover, hoverThen, 1);
 		assertDoubleChain(repl, 'void this.tree.updateChildren(undefined, true, false)', 1);
+		for (const source of [variables, watch, callStack, hover, repl]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 	});
 
-	test('focusStackFrame / startDebugging leftover FOFs are Promise double-chain', () => {
+	test('focusStackFrame / startDebugging leftover FOFs are Promise single-chain', () => {
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		const session = fs.readFileSync(resolveSource(SESSION_REL), 'utf8');
 		const callStack = fs.readFileSync(resolveSource(CALLSTACK_REL), 'utf8');
@@ -259,9 +293,12 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertDoubleChain(picker, 'void debugService.focusStackFrame(undefined, undefined, session, { explicit: true })', 1);
 		assertDoubleChain(quick, 'void this.debugService.startDebugging(pick.launch, pick.config, { startedByUser: true })', 1);
 		assertDoubleChain(consoleQa, 'void this._debugService.focusStackFrame(undefined, undefined, session, { explicit: true })', 1);
+		for (const source of [commands, session, callStack, picker, quick, consoleQa]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 	});
 
-	test('leftover executeCommand FOFs are Promise double-chain; Action2.run Promise.all stays skipped', () => {
+	test('leftover executeCommand FOFs are Promise single-chain; Action2.run Promise.all stays skipped', () => {
 		const a11y = fs.readFileSync(resolveSource(A11Y_REL), 'utf8');
 		const picker = fs.readFileSync(resolveSource(PICKER_REL), 'utf8');
 		const quick = fs.readFileSync(resolveSource(QUICK_REL), 'utf8');
@@ -277,6 +314,9 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertDoubleChain(consoleQa, 'void this._commandService.executeCommand(SELECT_AND_START_ID)', 1);
 		assert.ok(commands.includes('Promise.all(promises).then(() => disposables.dispose());'));
 		assert.ok(!commands.includes(`Promise.all(promises).then(() => disposables.dispose())${doubleCatch}`));
+		for (const source of [a11y, picker, quick, consoleQa, commands]) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 	});
 
 	test('opener / D145 / Connect / Watch / Resolve / Pty / two-arg then / assigned then / Action2.run / invented proto / already-double stay skipped', () => {
