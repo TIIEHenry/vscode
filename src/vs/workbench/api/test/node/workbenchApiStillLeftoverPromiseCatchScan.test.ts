@@ -78,8 +78,11 @@ suite('workbench/api still leftover Promise fire-and-forget catch scan (D724)', 
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 5);
+		const nodeTaskSource = fs.readFileSync(resolveSource(NODE_TASK_REL), 'utf8');
+		assert.ok(!nodeTaskSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		const nodeLoggerSource = fs.readFileSync(resolveSource(NODE_LOGGER_REL), 'utf8');
+		assert.ok(!nodeLoggerSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('task leftover $registerSupportedExecutions / $registerTaskProvider / $unregisterTaskProvider are Promise double-chain; $registerTaskSystem stays sync void', () => {
@@ -97,27 +100,29 @@ suite('workbench/api still leftover Promise fire-and-forget catch scan (D724)', 
 		assert.ok(!source.includes('$registerTaskSystem(scheme, info).catch'));
 	});
 
-	test('node task leftover $registerSupportedExecutions is Promise double-chain; $executeTask empty catch stays leftover', () => {
+	test('node task leftover $registerSupportedExecutions is Promise single-chain; $executeTask empty catch stays leftover', () => {
 		const source = fs.readFileSync(resolveSource(NODE_TASK_REL), 'utf8');
 		const protocol = fs.readFileSync(resolveSource(PROTOCOL_REL), 'utf8');
 		assertPromiseSignature(protocol, '$registerSupportedExecutions(custom?: boolean, shell?: boolean, process?: boolean): Promise<void>;');
 		assertPromiseSignature(protocol, '$executeTask(task: tasks.ITaskHandleDTO | tasks.ITaskDTO): Promise<tasks.ITaskExecutionDTO>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._proxy.$registerSupportedExecutions(true, true, true)');
+		assert.ok(source.includes('this._proxy.$registerSupportedExecutions(true, true, true).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('this._proxy.$executeTask(handleDto).catch(() => { /* The error here isn\'t actionable. */ });'));
 		assert.ok(source.includes('this._proxy.$executeTask(dto).catch(() => { /* The error here isn\'t actionable. */ });'));
 		assert.ok(!source.includes('$executeTask(handleDto).catch(onUnexpectedError)'));
 		assert.ok(!source.includes('$executeTask(dto).catch(onUnexpectedError)'));
 	});
 
-	test('node logger leftover $registerLogger / $deregisterLogger are Promise double-chain', () => {
+	test('node logger leftover $registerLogger / $deregisterLogger are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(NODE_LOGGER_REL), 'utf8');
 		const protocol = fs.readFileSync(resolveSource(PROTOCOL_REL), 'utf8');
 		assertPromiseSignature(protocol, '$registerLogger(logger: UriDto<ILoggerResource>): Promise<void>;');
 		assertPromiseSignature(protocol, '$deregisterLogger(resource: UriComponents): Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._proxy.$registerLogger(resource)');
-		assertDoubleThen(source, 'this._proxy.$deregisterLogger(resource)');
+		assert.ok(source.includes('this._proxy.$registerLogger(resource).catch(onUnexpectedError);'));
+		assert.ok(source.includes('this._proxy.$deregisterLogger(resource).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('urls leftover $registerUriHandler / $unregisterUriHandler are Promise double-chain; opener $openUri stays skipped', () => {
@@ -161,7 +166,7 @@ suite('workbench/api still leftover Promise fire-and-forget catch scan (D724)', 
 		assert.ok(auth.includes('provider.onDidChangeSessions(e => this._proxy.$sendDidChangeSessions(id, e));'));
 		assert.ok(!auth.includes('$sendDidChangeSessions(id, e).catch'));
 
-		assert.ok(output.includes('channelPromise.then(channel => channel.append(value));'));
+		assert.ok(output.includes('withChannel(channel => channel.append(value));'));
 		assert.ok(!output.includes('channelPromise.then(channel => channel.append(value)).catch'));
 
 		assert.ok(windowSource.includes('return this._proxy.$openUri(stringOrUri, uriAsString, options);'));

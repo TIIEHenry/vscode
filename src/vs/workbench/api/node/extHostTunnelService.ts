@@ -193,9 +193,14 @@ export class NodeExtHostTunnelService extends ExtHostTunnelService {
 	) {
 		super(extHostRpc, initData, logService);
 		if (isLinux && initData.remote.isRemote && initData.remote.authority) {
-			this._proxy.$setRemoteTunnelService(process.pid).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._proxy.$setRemoteTunnelService(process.pid).catch(onUnexpectedError);
 			this.setInitialCandidates();
 		}
+	}
+
+	override dispose(): void {
+		this._candidateFindingEnabled = false;
+		super.dispose();
 	}
 
 	override async $registerCandidateFinder(enable: boolean): Promise<void> {
@@ -216,9 +221,12 @@ export class NodeExtHostTunnelService extends ExtHostTunnelService {
 		// Regularly scan to see if the candidate ports have changed.
 		const movingAverage = new MovingAverage();
 		let scanCount = 0;
-		while (this._candidateFindingEnabled) {
+		while (this._candidateFindingEnabled && !this._store.isDisposed) {
 			const startTime = new Date().getTime();
 			const newPorts = (await this.findCandidatePorts()).filter(candidate => (isLocalhost(candidate.host) || isAllInterfaces(candidate.host)));
+			if (!this._candidateFindingEnabled || this._store.isDisposed) {
+				break;
+			}
 			this.logService.trace(`ForwardedPorts: (ExtHostTunnelService) found candidate ports ${newPorts.map(port => port.port).join(', ')}`);
 			const timeTaken = new Date().getTime() - startTime;
 			this.logService.trace(`ForwardedPorts: (ExtHostTunnelService) candidate port scan took ${timeTaken} ms.`);
@@ -229,6 +237,9 @@ export class NodeExtHostTunnelService extends ExtHostTunnelService {
 			if (!oldPorts || (JSON.stringify(oldPorts) !== JSON.stringify(newPorts))) {
 				oldPorts = newPorts;
 				await this._proxy.$onFoundNewCandidates(oldPorts);
+			}
+			if (!this._candidateFindingEnabled || this._store.isDisposed) {
+				break;
 			}
 			const delay = this.calculateDelay(movingAverage.value);
 			this.logService.trace(`ForwardedPorts: (ExtHostTunnelService) next candidate port scan in ${delay} ms.`);
@@ -243,6 +254,9 @@ export class NodeExtHostTunnelService extends ExtHostTunnelService {
 
 	private async setInitialCandidates(): Promise<void> {
 		this._initialCandidates = await this.findCandidatePorts();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.logService.trace(`ForwardedPorts: (ExtHostTunnelService) Initial candidates found: ${this._initialCandidates.map(c => c.port).join(', ')}`);
 	}
 

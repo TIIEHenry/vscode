@@ -196,13 +196,17 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D749)', () => 
 		for (const rel of lockedLeftoverFiles) {
 			lockedSites += countDoubleChains(fs.readFileSync(resolveSource(rel), 'utf8'));
 		}
-		assert.strictEqual(lockedSites, 16);
+		assert.strictEqual(lockedSites, 12);
+		const tabsSource = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
+		assert.ok(!tabsSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		const searchSource = fs.readFileSync(resolveSource(SEARCH_REL), 'utf8');
+		assert.ok(!searchSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 
 		assertPromiseSignature(protocol, '$sendDidChangeSessions(providerId: string, event: Dto<AuthenticationSessionsChangeEvent>): Promise<void>;');
 		assert.ok(auth.includes('provider.onDidChangeSessions(e => this._proxy.$sendDidChangeSessions(id, e));'));
 		assert.ok(!auth.includes('$sendDidChangeSessions(id, e).catch'));
 
-		assert.ok(output.includes('channelPromise.then(channel => channel.append(value));'));
+		assert.ok(output.includes('withChannel(channel => channel.append(value));'));
 		assert.ok(!output.includes('channelPromise.then(channel => channel.append(value)).catch'));
 
 		assert.ok(windowSource.includes('return this._proxy.$openUri(stringOrUri, uriAsString, options);'));

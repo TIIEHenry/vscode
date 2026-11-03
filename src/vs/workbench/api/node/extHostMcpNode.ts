@@ -25,7 +25,7 @@ export class NodeExtHostMpcService extends ExtHostMcpService {
 
 	protected override _startMcp(id: number, launch: McpServerLaunch, defaultCwd?: URI, errorOnUserInteraction?: boolean): void {
 		if (launch.type === McpServerTransportType.Stdio) {
-			this.startNodeMpc(id, launch, defaultCwd).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.startNodeMpc(id, launch, defaultCwd).catch(onUnexpectedError);
 		} else if (launch.type === McpServerTransportType.HTTP) {
 			this._sseEventSources.set(id, new McpHTTPHandleNode(id, launch, this._proxy, this._logService, errorOnUserInteraction));
 		} else {
@@ -52,6 +52,10 @@ export class NodeExtHostMpcService extends ExtHostMcpService {
 	}
 
 	private async startNodeMpc(id: number, launch: McpServerTransportStdio, defaultCwd?: URI): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const onError = (err: Error | string) => this._proxy.$onDidChangeState(id, {
 			state: McpConnectionState.Kind.Error,
 			// eslint-disable-next-line local/code-no-any-casts
@@ -68,9 +72,15 @@ export class NodeExtHostMpcService extends ExtHostMcpService {
 					env[key] = value;
 				}
 			} catch (e) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				onError(`Failed to read envFile '${launch.envFile}': ${e.message}`);
 				return;
 			}
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 		for (const [key, value] of Object.entries(launch.env)) {
 			// For PATH, we want to append to the existing PATH instead of overwriting it.
@@ -96,6 +106,10 @@ export class NodeExtHostMpcService extends ExtHostMcpService {
 				env
 			);
 
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			this._proxy.$onDidPublishLog(id, LogLevel.Debug, `Server command line: ${executable} ${args.join(' ')}`);
 			child = spawn(executable, args, {
 				stdio: 'pipe',
@@ -110,6 +124,10 @@ export class NodeExtHostMpcService extends ExtHostMcpService {
 
 		// Create the connection manager for graceful shutdown
 		const connectionManager = new McpStdioStateHandler(child);
+		if (this._store.isDisposed) {
+			connectionManager.dispose();
+			return;
+		}
 
 		this._proxy.$onDidChangeState(id, { state: McpConnectionState.Kind.Starting });
 
