@@ -99,7 +99,7 @@ export class StickyLineCandidateProvider extends Disposable implements IStickyLi
 			this._model = null;
 			this.updateStickyModelProvider();
 			this._onDidChangeStickyScroll.fire();
-			this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.update().catch(onUnexpectedError);
 		}));
 		this._sessionStore.add(this._editor.onDidChangeHiddenAreas(() => this.update()));
 		this._sessionStore.add(this._editor.onDidChangeModelContent(() => this._updateSoon.schedule()));
@@ -109,7 +109,7 @@ export class StickyLineCandidateProvider extends Disposable implements IStickyLi
 			this._stickyModelProvider = null;
 		}));
 		this.updateStickyModelProvider();
-		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.update().catch(onUnexpectedError);
 	}
 
 	/**
@@ -139,9 +139,15 @@ export class StickyLineCandidateProvider extends Disposable implements IStickyLi
 	 * Update the sticky line candidates.
 	 */
 	public async update(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._cts?.dispose(true);
 		this._cts = new CancellationTokenSource();
 		await this.updateStickyModel(this._cts.token);
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._onDidChangeStickyScroll.fire();
 	}
 

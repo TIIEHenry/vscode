@@ -101,9 +101,11 @@ export class ContentHoverWidget extends ResizableContentWidget {
 	}
 
 	public override dispose(): void {
-		super.dispose();
 		this._renderedHover?.dispose();
 		this._editor.removeContentWidget(this);
+		dom.clearNode(this._resizableNode.domNode);
+		this._resizableNode.domNode.remove();
+		super.dispose();
 	}
 
 	public getId(): string {

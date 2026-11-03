@@ -296,6 +296,10 @@ export class ReferenceWidget extends peekView.PeekViewWidget {
 		dispose(this._previewModelReference);
 		this._splitView.dispose();
 		super.dispose();
+		if (this.domNode) {
+			dom.clearNode(this.domNode);
+			this.domNode.remove();
+		}
 	}
 
 	private _applyTheme(theme: IColorTheme) {

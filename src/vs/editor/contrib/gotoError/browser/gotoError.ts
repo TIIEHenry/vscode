@@ -114,7 +114,7 @@ export class MarkerController implements IEditorContribution {
 			this._editorService.openCodeEditor({
 				resource: related.resource,
 				options: { pinned: true, revealIfOpened: true, selection: Range.lift(related).collapseToStart() }
-			}, this._editor).catch(onUnexpectedError).catch(onUnexpectedError);
+			}, this._editor).catch(onUnexpectedError);
 			this.close(false);
 		}));
 		this._sessionDispoables.add(this._editor.onDidChangeModel(() => this._cleanUp()));
@@ -168,7 +168,7 @@ export class MarkerController implements IEditorContribution {
 			}
 			if (otherEditor) {
 				MarkerController.get(otherEditor)?.close();
-				void Promise.resolve(MarkerController.get(otherEditor)?.navigate(next, multiFile)).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(MarkerController.get(otherEditor)?.navigate(next, multiFile)).catch(onUnexpectedError);
 			}
 
 		} else {

@@ -27,11 +27,14 @@ suite('SuggestWidget leftover fire-and-forget catch scan (D673)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_currentSuggestionDetails.then leftover site keeps then body and is double-chain; single-chain gone (D673)', () => {
-		// _currentSuggestionDetails is CancelablePromise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('_currentSuggestionDetails.then leftover site keeps then body and is single-catch; double-chain gone (D673)', () => {
 		const source = fs.readFileSync(suggestWidgetSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const thenSite = `this._currentSuggestionDetails.then(() => {
+				if (this._isDisposed) {
+					return;
+				}
 				if (index >= this._list.length || item !== this._list.element(index)) {
 					return;
 				}
@@ -53,11 +56,11 @@ suite('SuggestWidget leftover fire-and-forget catch scan (D673)', () => {
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\._currentSuggestionDetails\.then\(/g) ?? []).length, 1);
 		assert.strictEqual((source.split(thenSite).length - 1), 1);
-		assert.ok(source.includes(`${thenSite}${doubleCatch};`));
+		assert.ok(source.includes(`${thenSite}${singleCatch};`));
 		assert.ok(!source.includes(`${thenSite};`));
-		assert.ok(!source.includes(`${thenSite}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes('\t\t}).catch(onUnexpectedError);'));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 2);
+		assert.ok(!source.includes(`${thenSite}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 0);
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 1);
 	});
 });

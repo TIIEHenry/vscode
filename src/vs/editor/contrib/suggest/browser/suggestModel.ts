@@ -133,6 +133,7 @@ function canShowSuggestOnTriggerCharacters(editor: ICodeEditor, contextKeyServic
 
 export class SuggestModel implements IDisposable {
 
+	private _isDisposed: boolean = false;
 	private readonly _toDispose = new DisposableStore();
 	private readonly _triggerCharacterListener = new DisposableStore();
 	private readonly _triggerQuickSuggest = new TimeoutTimer();
@@ -210,6 +211,10 @@ export class SuggestModel implements IDisposable {
 	}
 
 	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		dispose(this._triggerCharacterListener);
 		dispose([this._onDidCancel, this._onDidSuggest, this._onDidTrigger, this._triggerQuickSuggest]);
 		this._waitForInlineCompletions?.dispose();
@@ -652,7 +657,7 @@ export class SuggestModel implements IDisposable {
 				}
 			}
 
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	/**
@@ -665,6 +670,9 @@ export class SuggestModel implements IDisposable {
 		}
 
 		setTimeout(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			type Durations = { data: string };
 			type DurationsClassification = {
 				owner: 'jrieken';

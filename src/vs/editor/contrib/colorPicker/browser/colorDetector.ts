@@ -149,14 +149,20 @@ export class ColorDetector extends Disposable implements IEditorContribution {
 				this._timeoutTimer = new TimeoutTimer();
 				this._timeoutTimer.cancelAndSet(() => {
 					this._timeoutTimer = null;
-					this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.beginCompute().catch(onUnexpectedError);
 				}, this._debounceInformation.get(model));
 			}
 		}));
-		this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.beginCompute().catch(onUnexpectedError);
 	}
 
 	private async beginCompute(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._computePromise = createCancelablePromise(async token => {
 			const model = this._editor.getModel();
 			if (!model) {

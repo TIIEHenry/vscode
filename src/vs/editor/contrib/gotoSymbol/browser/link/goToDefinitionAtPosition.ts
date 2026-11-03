@@ -64,7 +64,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 		this.toUnhook.add(linkGesture.onExecute((mouseEvent: ClickLinkMouseEvent) => {
 			if (this.isEnabled(mouseEvent)) {
 				this.gotoDefinition(mouseEvent.target.position!, mouseEvent.hasSideBySideModifier)
-					.catch(onUnexpectedError).catch(onUnexpectedError)
+					.catch(onUnexpectedError)
 					.finally(() => {
 						this.removeLinkDecorations();
 					});
@@ -126,7 +126,7 @@ export class GotoDefinitionAtPositionEditorContribution implements IEditorContri
 
 		const position = mouseEvent.target.position!;
 
-		this.startFindDefinition(position).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.startFindDefinition(position).catch(onUnexpectedError);
 	}
 
 	private async startFindDefinition(position: Position): Promise<void> {

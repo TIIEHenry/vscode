@@ -133,6 +133,7 @@ export class SuggestController implements IEditorContribution {
 	get onWillInsertSuggestItem() { return this._onWillInsertSuggestItem.event; }
 
 	private _wantsForceRenderingAbove = false;
+	private _isDisposed = false;
 
 
 	constructor(
@@ -297,6 +298,10 @@ export class SuggestController implements IEditorContribution {
 	}
 
 	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		this._alternatives.dispose();
 		this._toDispose.dispose();
 		this.widget.dispose();
@@ -619,8 +624,11 @@ export class SuggestController implements IEditorContribution {
 		const positionNow = this.editor.getPosition();
 
 		const fallback = () => {
+			if (this._isDisposed) {
+				return;
+			}
 			if (positionNow.equals(this.editor.getPosition()!)) {
-				this._commandService.executeCommand(arg.fallback).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand(arg.fallback).catch(onUnexpectedError);
 			}
 		};
 

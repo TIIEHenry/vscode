@@ -121,6 +121,15 @@ export class StickyScrollWidget extends Disposable implements IOverlayWidget {
 		this._updateWidgetWidth();
 	}
 
+	override dispose(): void {
+		dom.clearNode(this._lineNumbersDomNode);
+		dom.clearNode(this._linesDomNode);
+		dom.clearNode(this._linesDomNodeScrollable);
+		dom.clearNode(this._rootDomNode);
+		this._rootDomNode.remove();
+		super.dispose();
+	}
+
 	get lineNumbers(): number[] {
 		return this._lineNumbers;
 	}

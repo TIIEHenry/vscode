@@ -305,7 +305,7 @@ export class MarkerHoverParticipant implements IEditorHoverParticipant<MarkerHov
 						iconClass: ThemeIcon.asClassName(Codicon.sparkle),
 						run: () => {
 							const controller = CodeActionController.get(this._editor);
-							controller?.applyCodeAction(aiCodeAction, false, false, ApplyCodeActionReason.FromProblemsHover).catch(onUnexpectedError).catch(onUnexpectedError);
+							controller?.applyCodeAction(aiCodeAction, false, false, ApplyCodeActionReason.FromProblemsHover).catch(onUnexpectedError);
 						}
 					});
 				} else {

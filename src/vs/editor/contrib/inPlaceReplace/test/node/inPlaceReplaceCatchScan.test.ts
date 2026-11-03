@@ -27,9 +27,9 @@ suite('InPlaceReplace leftover fire-and-forget catch scan (D671)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('decorationRemover then and outer currentRequest.then leftover sites are each one double-chain; single-chain gone in this file only', () => {
-		// Both return Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('decorationRemover then and outer currentRequest.then leftover sites are each single-catch; double-chain gone in this file only', () => {
 		const source = fs.readFileSync(inPlaceReplaceSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const thenSite = 'this.decorationRemover.then(() => this.decorations.clear())';
 		const outerThen = 'this.currentRequest.then(result => {';
@@ -37,12 +37,13 @@ suite('InPlaceReplace leftover fire-and-forget catch scan (D671)', () => {
 		assert.ok(source.includes(`return ${outerThen}`));
 		assert.strictEqual((source.match(/this\.decorationRemover\.then\(\(\) => this\.decorations\.clear\(\)\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/this\.currentRequest\.then\(result => \{/g) ?? []).length, 1);
-		assert.ok(source.includes(`${thenSite}${doubleCatch};`));
-		assert.ok(source.includes(`\t\t})${doubleCatch};`));
+		assert.ok(source.includes(`${thenSite}${singleCatch};`));
+		assert.ok(source.includes(`\t\t})${singleCatch};`));
 		assert.ok(!source.includes(`${thenSite};`));
-		assert.ok(!source.includes(`${thenSite}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes('\t\t}).catch(onUnexpectedError);'));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 4);
+		assert.ok(!source.includes(`${thenSite}${doubleCatch};`));
+		assert.ok(!source.includes(`\t\t})${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 0);
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 2);
 	});
 });

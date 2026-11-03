@@ -46,6 +46,7 @@ export abstract class ReferencesController implements IEditorContribution {
 	private _ignoreModelChangeEvent = false;
 
 	private readonly _referenceSearchVisible: IContextKey<boolean>;
+	private _isDisposed = false;
 
 	static get(editor: ICodeEditor): ReferencesController | null {
 		return editor.getContribution<ReferencesController>(ReferencesController.ID);
@@ -66,6 +67,10 @@ export abstract class ReferencesController implements IEditorContribution {
 	}
 
 	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		this._referenceSearchVisible.reset();
 		this._disposables.dispose();
 		this._widget?.dispose();
@@ -301,6 +306,9 @@ export abstract class ReferencesController implements IEditorContribution {
 	}
 
 	openReference(ref: Location, sideBySide: boolean, pinned: boolean): void {
+		if (this._isDisposed) {
+			return;
+		}
 		// clear stage
 		if (!sideBySide) {
 			this.closeWidget();
@@ -310,7 +318,7 @@ export abstract class ReferencesController implements IEditorContribution {
 		this._editorService.openCodeEditor({
 			resource: uri,
 			options: { selection: range, selectionSource: TextEditorSelectionSource.JUMP, pinned }
-		}, this._editor, sideBySide).catch(onUnexpectedError).catch(onUnexpectedError);
+		}, this._editor, sideBySide).catch(onUnexpectedError);
 	}
 }
 

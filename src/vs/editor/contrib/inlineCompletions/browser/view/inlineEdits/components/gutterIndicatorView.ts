@@ -143,7 +143,7 @@ export class InlineEditsGutterIndicator extends Disposable {
 		// pulse animation when hovering inline edit
 		this._register(runOnChange(this._isHoveredOverInlineEditDebounced, (isHovering) => {
 			if (isHovering) {
-				this.triggerAnimation().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.triggerAnimation().catch(onUnexpectedError);
 			}
 		}));
 
@@ -193,7 +193,7 @@ export class InlineEditsGutterIndicator extends Disposable {
 	});
 
 	public triggerAnimation(): Promise<Animation> {
-		if (this._accessibilityService.isMotionReduced()) {
+		if (this._store.isDisposed || this._accessibilityService.isMotionReduced()) {
 			return new Animation(null, null).finished;
 		}
 

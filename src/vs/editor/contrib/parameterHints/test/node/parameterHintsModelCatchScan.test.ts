@@ -27,9 +27,9 @@ suite('ParameterHintsModel leftover fire-and-forget catch scan (D670)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('throttledDelayer.trigger leftover site is one and double-chain; single-chain gone (D670)', () => {
-		// doTrigger returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('throttledDelayer.trigger leftover site is one and single-catch; double-chain gone (D670)', () => {
 		const source = fs.readFileSync(parameterHintsModelSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const triggerSite = `this.throttledDelayer.trigger(() => {
 			return this.doTrigger(triggerId);
@@ -37,9 +37,10 @@ suite('ParameterHintsModel leftover fire-and-forget catch scan (D670)', () => {
 			`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.throttledDelayer\.trigger\(\(\) => \{/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 2);
-		assert.ok(source.includes(`${triggerSite}${doubleCatch};`));
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 1);
+		assert.ok(source.includes(`${triggerSite}${singleCatch};`));
 		assert.ok(!source.includes(`${triggerSite};`));
-		assert.ok(!source.includes(`${triggerSite}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${triggerSite}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

@@ -27,13 +27,18 @@ suite('SuggestModel leftover fire-and-forget catch scan (D672)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Promise.all completions then leftover site is then + double-chain; single-chain gone for this site', () => {
-		// Promise.all returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('Promise.all completions then leftover site is then + single-catch; double-chain gone for this site', () => {
 		const source = fs.readFileSync(suggestModelSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const thenSite = `Promise.all([completions, wordDistance]).then(async ([completions, wordDistance]) => {
 
-			this._requestToken?.dispose();
+			if (this._requestToken !== requestToken) {
+				completions.disposable.dispose();
+				return;
+			}
+
+			this._requestToken.dispose();
 
 			if (!this._editor.hasModel()) {
 				completions.disposable.dispose();
@@ -45,7 +50,7 @@ suite('SuggestModel leftover fire-and-forget catch scan (D672)', () => {
 				clipboardText = await this._clipboardService.readText();
 			}
 
-			if (this._triggerState === undefined) {
+			if (this._requestToken !== requestToken || this._triggerState === undefined) {
 				completions.disposable.dispose();
 				return;
 			}
@@ -94,10 +99,10 @@ suite('SuggestModel leftover fire-and-forget catch scan (D672)', () => {
 		})`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/Promise\.all\(\[completions, wordDistance\]\)\.then\(/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 2);
-		assert.ok(source.includes(`${thenSite}${doubleCatch};`));
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 1);
+		assert.ok(source.includes(`${thenSite}${singleCatch};`));
 		assert.ok(!source.includes(`${thenSite};`));
-		assert.ok(!source.includes(`${thenSite}.catch(onUnexpectedError);`));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 0);
 	});
 });

@@ -105,6 +105,7 @@ export class SuggestWidget implements IDisposable {
 	private static LOADING_MESSAGE: string = nls.localize('suggestWidget.loading', "Loading...");
 	private static NO_SUGGESTIONS_MESSAGE: string = nls.localize('suggestWidget.noSuggestions', "No suggestions.");
 
+	private _isDisposed: boolean = false;
 	private _state: State = State.Hidden;
 	private _isAuto: boolean = false;
 	private readonly _loadingTimeout = new MutableDisposable();
@@ -315,6 +316,10 @@ export class SuggestWidget implements IDisposable {
 	}
 
 	dispose(): void {
+		if (this._isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
 		this._details.widget.dispose();
 		this._details.dispose();
 		this._list.dispose();
@@ -325,6 +330,8 @@ export class SuggestWidget implements IDisposable {
 		this._pendingShowDetails.dispose();
 		this._showTimeout.dispose();
 		this._contentWidget.dispose();
+		dom.clearNode(this.element.domNode);
+		this.element.domNode.remove();
 		this.element.dispose();
 		this._onDidSelect.dispose();
 		this._onDidFocus.dispose();
@@ -419,6 +426,9 @@ export class SuggestWidget implements IDisposable {
 
 			this._currentSuggestionDetails = createCancelablePromise(async token => {
 				const loading = disposableTimeout(() => {
+					if (this._isDisposed) {
+						return;
+					}
 					if (this._isDetailsVisible()) {
 						this._showDetails(true, false);
 					}
@@ -433,6 +443,9 @@ export class SuggestWidget implements IDisposable {
 			});
 
 			this._currentSuggestionDetails.then(() => {
+				if (this._isDisposed) {
+					return;
+				}
 				if (index >= this._list.length || item !== this._list.element(index)) {
 					return;
 				}
@@ -450,7 +463,7 @@ export class SuggestWidget implements IDisposable {
 				}
 
 				this.editor.setAriaOptions({ activeDescendant: this._list.getElementID(index) });
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		// emit an event
@@ -530,6 +543,9 @@ export class SuggestWidget implements IDisposable {
 		this._ctxSuggestWidgetVisible.set(true);
 
 		this._showTimeout.cancelAndSet(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.element.domNode.classList.add('visible');
 			this._onDidShow.fire(this);
 		}, 100);
@@ -543,7 +559,12 @@ export class SuggestWidget implements IDisposable {
 		this._isAuto = !!auto;
 
 		if (!this._isAuto) {
-			this._loadingTimeout.value = disposableTimeout(() => this._setState(State.Loading), delay);
+			this._loadingTimeout.value = disposableTimeout(() => {
+				if (this._isDisposed) {
+					return;
+				}
+				this._setState(State.Loading);
+			}, delay);
 		}
 	}
 

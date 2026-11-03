@@ -76,12 +76,12 @@ class InlineCompletionsAccessibleViewContentProvider extends Disposable implemen
 	}
 	public provideNextContent(): string | undefined {
 		// asynchronously update the model and fire the event
-		this._model.next().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._model.next().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError);
 		return;
 	}
 	public providePreviousContent(): string | undefined {
 		// asynchronously update the model and fire the event
-		this._model.previous().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._model.previous().then((() => this._onDidChangeContent.fire())).catch(onUnexpectedError);
 		return;
 	}
 	public onClose(): void {

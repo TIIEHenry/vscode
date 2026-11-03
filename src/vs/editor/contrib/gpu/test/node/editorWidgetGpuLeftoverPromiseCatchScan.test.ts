@@ -42,7 +42,7 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise sites', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const gpu = fs.readFileSync(resolveSource(GPU_REL), 'utf8');
 		const trigger = (widget.match(/this\._commandService\.executeCommand\(handlerId, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
@@ -51,9 +51,10 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 		const compositionType = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionType, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		const replacePrev = (widget.match(/executeCommand\(editorCommon\.Handler\.ReplacePreviousChar, payload\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		const startComposition = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionStart, \{\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const saveAtlas = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst workspaceContextService = accessor\.get\(IWorkspaceContextService\);[\s\S]*?await Promise\.all\(promises\);\n\t\t\t\t\t\}\n\t\t\t\t\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-		const drawGlyph = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst configurationService = accessor\.get\(IConfigurationService\);[\s\S]*?await fileService\.writeFile\(resource, VSBuffer\.wrap\(new Uint8Array\(await blob\.arrayBuffer\(\)\)\)\);\n\t\t\t\t\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+		const saveAtlas = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst workspaceContextService = accessor\.get\(IWorkspaceContextService\);[\s\S]*?await Promise\.all\(promises\);\n\t\t\t\t\t\}\n\t\t\t\t\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
+		const drawGlyph = (gpu.match(/invokeFunction\(async accessor => \{\n\t\t\t\t\tconst configurationService = accessor\.get\(IConfigurationService\);[\s\S]*?await fileService\.writeFile\(resource, VSBuffer\.wrap\(new Uint8Array\(await blob\.arrayBuffer\(\)\)\)\);\n\t\t\t\t\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
 		assert.strictEqual(trigger + paste + type + compositionType + replacePrev + startComposition + saveAtlas + drawGlyph, 8);
+		assert.ok(!gpu.includes(doubleCatch));
 	});
 
 	test('codeEditorWidget leftover _triggerCommand executeCommand is Promise double-chain', () => {
@@ -82,17 +83,18 @@ suite('editor widget/gpu leftover Promise fire-and-forget catch scan (D732)', ()
 		}
 	});
 
-	test('gpuActions leftover async invokeFunction FOFs are Promise double-chain; sync void stays skipped', () => {
+	test('gpuActions leftover async invokeFunction FOFs are Promise single-catch; sync void stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(GPU_REL), 'utf8');
 		const instantiation = fs.readFileSync(resolveSource(INSTANTIATION_REL), 'utf8');
 		assert.ok(instantiation.includes('invokeFunction<R, TS extends any[] = []>(fn: (accessor: ServicesAccessor, ...args: TS) => R, ...args: TS): R;'));
 		assert.ok(source.includes('instantiationService.invokeFunction(async accessor => {'));
 		assertPromiseSignature(source, 'instantiationService.invokeFunction(async accessor => {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const saveClose = '\t\t\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\t\t\tbreak;\n\t\t\tcase \'drawGlyph\':';
-		const drawClose = '\t\t\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\t\t\tbreak;\n\t\t}';
+		const saveClose = '\t\t\t\t}).catch(onUnexpectedError);\n\t\t\t\tbreak;\n\t\t\tcase \'drawGlyph\':';
+		const drawClose = '\t\t\t\t}).catch(onUnexpectedError);\n\t\t\t\tbreak;\n\t\t}';
 		assert.ok(source.includes(saveClose));
 		assert.ok(source.includes(drawClose));
+		assert.ok(!source.includes(doubleCatch));
 		assert.strictEqual((source.match(/invokeFunction\(async accessor => \{/g) ?? []).length, 2);
 		assert.ok(source.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t});"));
 		assert.ok(!source.includes("logService.info(['Texture atlas stats', ...stats].join('\\n\\n'));\n\t\t\t\t}).catch(onUnexpectedError)"));

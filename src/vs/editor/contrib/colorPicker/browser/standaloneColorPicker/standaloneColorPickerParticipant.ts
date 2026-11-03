@@ -58,7 +58,7 @@ export class StandaloneColorPickerRenderedParts extends Disposable {
 			this.color = color;
 		}));
 		this._register(colorPickerModel.onDidChangeColor((color: Color) => {
-			updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover).catch(onUnexpectedError).catch(onUnexpectedError);
+			updateColorPresentations(editorModel, colorPickerModel, color, colorHover.range, colorHover).catch(onUnexpectedError);
 		}));
 		let editorUpdatedByColorPicker = false;
 		this._register(editor.onDidChangeModelContent((e) => {
@@ -69,7 +69,7 @@ export class StandaloneColorPickerRenderedParts extends Disposable {
 				editor.focus();
 			}
 		}));
-		updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover).catch(onUnexpectedError).catch(onUnexpectedError);
+		updateColorPresentations(editorModel, colorPickerModel, this.color, colorHover.range, colorHover).catch(onUnexpectedError);
 	}
 }
 

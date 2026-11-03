@@ -63,6 +63,8 @@ export class GlyphHoverWidget extends Disposable implements IOverlayWidget, IHov
 	public override dispose(): void {
 		this._hoverComputerOptions = undefined;
 		this._editor.removeOverlayWidget(this);
+		dom.clearNode(this._hover.containerDomNode);
+		this._hover.containerDomNode.remove();
 		super.dispose();
 	}
 

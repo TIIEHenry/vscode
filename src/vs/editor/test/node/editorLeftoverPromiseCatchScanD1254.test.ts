@@ -49,6 +49,12 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
+function assertWrappedSingle(source: string, call: string): void {
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing single-catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+}
+
 const leftoverBeginComputeCall = 'this.beginCompute()';
 const leftoverUpdateCall = 'this.update()';
 const leftoverInitWebgpuCall = 'this.initWebgpu()';
@@ -89,29 +95,36 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		}
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on editor this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise sites after leftover remaining unused stayed on editor this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d1254Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
+			if (rel === COLOR_REL || rel === STICKY_PROVIDER_REL || rel === GUTTER_REL) {
+				const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
+				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} single-catch, got ${wrapped}`);
+				assertWrappedSingle(source, call);
+				assert.ok(!source.includes(doubleCatch));
+			} else {
+				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
+				assertWrapped(source, call);
+			}
 			sites += count;
 		}
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(COLOR_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(STICKY_PROVIDER_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(COLOR_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(STICKY_PROVIDER_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(VIEW_GPU_REL) ?? ''), 1);
 		assert.strictEqual(countDoubleChains(seen.get(RECT_REL) ?? ''), 1);
 		assert.strictEqual(countDoubleChains(seen.get(LINKED_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(GUTTER_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(GUTTER_REL) ?? ''), 0);
 	});
 
-	test('editor leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('editor leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + catch', () => {
 		const color = fs.readFileSync(resolveSource(COLOR_REL), 'utf8');
 		const provider = fs.readFileSync(resolveSource(STICKY_PROVIDER_REL), 'utf8');
 		const viewGpu = fs.readFileSync(resolveSource(VIEW_GPU_REL), 'utf8');
@@ -133,12 +146,15 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		assert.ok(linked.includes("import { isCancellationError, onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';"));
 		assert.ok(gutter.includes("import { BugIndicatingError, onUnexpectedError } from '../../../../../../../base/common/errors.js';"));
 
-		assertWrapped(color, leftoverBeginComputeCall);
-		assertWrapped(provider, leftoverUpdateCall);
+		assertWrappedSingle(color, leftoverBeginComputeCall);
+		assertWrappedSingle(provider, leftoverUpdateCall);
 		assertWrapped(viewGpu, leftoverInitWebgpuCall);
 		assertWrapped(rect, leftoverInitWebgpuDeviceCall);
 		assertWrapped(linked, leftoverUpdateRangesCall);
-		assertWrapped(gutter, leftoverTriggerAnimationCall);
+		assertWrappedSingle(gutter, leftoverTriggerAnimationCall);
+		assert.ok(!color.includes(doubleCatch));
+		assert.ok(!provider.includes(doubleCatch));
+		assert.ok(!gutter.includes(doubleCatch));
 		assert.ok(!color.includes('\t\tthis.beginCompute();\n'));
 		assert.ok(!provider.includes('\t\tthis.update();\n'));
 		assert.ok(!viewGpu.includes('\t\tthis.initWebgpu();\n'));

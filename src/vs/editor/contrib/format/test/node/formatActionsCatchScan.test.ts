@@ -27,15 +27,16 @@ suite('FormatOnPaste leftover fire-and-forget catch scan (D669)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('formatDocumentRangesWithSelectedProvider leftover site double-catch onUnexpectedError (D669)', () => {
-		// invokeFunction returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('formatDocumentRangesWithSelectedProvider leftover site single-catch onUnexpectedError (D669)', () => {
 		const source = fs.readFileSync(formatActionsSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'this._instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, this.editor, range, FormattingMode.Silent, Progress.None, CancellationToken.None, false)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\._instantiationService\.invokeFunction\(formatDocumentRangesWithSelectedProvider/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });
