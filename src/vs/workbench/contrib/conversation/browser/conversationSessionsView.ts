@@ -391,7 +391,7 @@ export class ConversationSessionsView extends ViewPane {
 		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
 		}
-		void this.sessionWindowService.openSessionBeside(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.sessionWindowService.openSessionBeside(sessionId).catch(onUnexpectedError);
 		this.conversationPartService.focus();
 	}
 
@@ -519,7 +519,17 @@ export class ConversationSessionsView extends ViewPane {
 		this.conversationPartService.focus();
 	}
 
+	override dispose(): void {
+		this.list?.dispose();
+		this.listContainer?.remove();
+		this.emptyMessage?.remove();
+		super.dispose();
+	}
+
 	private refreshList(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.applyFilterToList();
 	}
 
@@ -540,6 +550,9 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private applyFilterToList(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.listContainer || !this.emptyMessage) {
 			return;
 		}
