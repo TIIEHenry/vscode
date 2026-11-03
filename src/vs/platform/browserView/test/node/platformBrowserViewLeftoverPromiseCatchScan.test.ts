@@ -39,6 +39,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -46,28 +47,31 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('platform browserView leftover Promise fire-and-forget catch scan (D727)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers seven leftover Promise double-chain sites', () => {
+	test('this knife covers seven leftover Promise single-chain sites and zero double-chain sites', () => {
 		const files = [MAIN_REL, EMU_REL, TAB_REL, INSPECT_REL];
-		let sites = 0;
+		let doubleSites = 0;
+		let singleSites = 0;
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			doubleSites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			singleSites += (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
 		}
 		assert.strictEqual(files.length, 4);
-		assert.strictEqual(sites, 7);
+		assert.strictEqual(doubleSites, 0);
+		assert.strictEqual(singleSites, 7);
 	});
 
-	test('mainService leftover openNew / openExternal are Promise double-chain', () => {
+	test('mainService leftover openNew / openExternal are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const native = fs.readFileSync(resolveSource(NATIVE_REL), 'utf8');
 		const nativeIface = fs.readFileSync(resolveSource(NATIVE_IFACE_REL), 'utf8');
@@ -86,26 +90,29 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 						owner: view.owner,
 						session: view.session.id,
 					}, { preserveFocus: true, background: true }, 'browserLinkBackground')`;
-		assert.ok(source.includes(`${openLink}${doubleCatch};`));
-		assert.ok(source.includes(`${openImage}${doubleCatch};`));
+		assert.ok(source.includes(`${openLink}${singleCatch};`));
+		assert.ok(source.includes(`${openImage}${singleCatch};`));
 		assert.ok(!source.includes(`${openLink};`));
 		assert.ok(!source.includes(`${openImage};`));
-		assertDoubleThen(source, 'void this.nativeHostMainService.openExternal(undefined, params.linkURL)');
+		assert.ok(!source.includes(`${openLink}${doubleCatch};`));
+		assert.ok(!source.includes(`${openImage}${doubleCatch};`));
+		assertSingleThen(source, 'void this.nativeHostMainService.openExternal(undefined, params.linkURL)');
 	});
 
-	test('emulator leftover _applyTouchAndMedia is Promise double-chain; sync _reapply stays skipped', () => {
+	test('emulator leftover _applyTouchAndMedia is Promise single-chain; sync _reapply stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(EMU_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _applyTouchAndMedia(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(source.includes('private _reapply(): void {'));
-		assertDoubleThen(source, 'void this._applyTouchAndMedia()');
-		assert.strictEqual((source.match(/void this\._applyTouchAndMedia\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assertSingleThen(source, 'void this._applyTouchAndMedia()');
+		assert.strictEqual((source.match(/void this\._applyTouchAndMedia\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\._applyTouchAndMedia\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assert.ok(!source.includes('void this._applyTouchAndMedia();'));
 		assert.ok(source.includes('void this._reapply();'));
 		assert.ok(!source.includes('this._reapply().catch'));
 	});
 
-	test('playwrightTab leftover waitForFunction then is Promise double-chain', () => {
+	test('playwrightTab leftover waitForFunction then is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(TAB_REL), 'utf8');
 		const playwright = fs.readFileSync(resolveSource(PLAYWRIGHT_REL), 'utf8');
 		assertPromiseSignature(playwright, 'waitForFunction<R>(pageFunction: PageFunction<void, R>, arg?: any, options?: PageWaitForFunctionOptions): Promise<SmartHandle<R>>;');
@@ -116,12 +123,12 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 				this._onDialogStateChanged.fire();
 			}
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}${singleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
 	});
 
-	test('inspector leftover addComment queue is Promise double-chain; empty-catch queues stay skipped', () => {
+	test('inspector leftover addComment queue is Promise single-chain; empty-catch queues stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(INSPECT_REL), 'utf8');
 		assertPromiseSignature(source, 'private _queueInspectionOperation(operation: () => Promise<void>): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
@@ -131,13 +138,14 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 							handle.addComment();
 						}
 					})`;
-		assert.ok(source.includes(`${addComment}${doubleCatch};`));
+		assert.ok(source.includes(`${addComment}${singleCatch};`));
 		assert.ok(!source.includes(`${addComment};`));
-		assert.ok(!source.includes(`${addComment}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${addComment}${doubleCatch};`));
 		assert.ok(source.includes('void this._queueInspectionOperation(async () => {\n\t\t\t\tconst activeSelection = this._activeSelection.value;'));
 		assert.ok(source.includes('}).catch(() => { });'));
 		assert.strictEqual((source.match(/void this\._queueInspectionOperation\(async \(\) => \{/g) ?? []).length, 3);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / two-arg then / assigned then / already-done / windows electron-main / terminal stay skipped', () => {
@@ -165,7 +173,7 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 		assert.ok(!hover.includes(doubleCatch));
 		assert.ok(scanner.includes('this.fileService.exists(toCheck).then(exists => {'));
 		assert.ok(!scanner.includes(doubleCatch));
-		assert.ok(fileManaged.includes('const rawSnapshot = channel.call<RawManagedSettingsData>(\'getRawManagedSettings\').then(managedSettings => {'));
+		assert.ok(fileManaged.includes("channel.call<RawManagedSettingsData>('getRawManagedSettings'),"));
 		assert.ok(!fileManaged.includes(doubleCatch));
 		assert.ok(telemetry.includes('.then(undefined, err => `Failed to log telemetry: ${console.warn(err)}`);'));
 		assert.ok(!telemetry.includes(doubleCatch));
@@ -174,11 +182,16 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 		assert.ok(language.includes('.then(() => this.languagePacks);'));
 		assert.ok(!language.includes(doubleCatch));
 		assert.ok(windowImpl.includes(`this.ready().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
-			})${doubleCatch};`));
-		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`));
+			})${singleCatch};`));
+		assert.ok(!windowImpl.includes(doubleCatch));
+		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${singleCatch};`));
+		assert.ok(!windowsMain.includes(doubleCatch));
 		assert.ok(shell.includes(`this._startMonitoringShell()${doubleCatch};`));
 		assert.ok(inspect.includes('this.browser.debugger.attach().then(conn => this._watchSession(conn)).catch(() => { });'));
 		assert.ok(!inspect.includes(`this.browser.debugger.attach().then(conn => this._watchSession(conn))${doubleCatch}`));
@@ -192,10 +205,10 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('openerService.open'));
 			assert.ok(!source.includes('IOpenerService'));
 			assert.ok(!source.includes('then(clear,clear)'));

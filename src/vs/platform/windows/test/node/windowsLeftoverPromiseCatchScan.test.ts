@@ -30,6 +30,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -37,30 +38,36 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('platform windows / electron-main leftover Promise fire-and-forget catch scan (D704)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-chain sites and zero double-chain sites', () => {
 		const windowImpl = fs.readFileSync(resolveSource(WINDOW_IMPL_REL), 'utf8');
 		const windowsMain = fs.readFileSync(resolveSource(WINDOWS_MAIN_REL), 'utf8');
 		const launch = fs.readFileSync(resolveSource(LAUNCH_REL), 'utf8');
 		const readyThen = `this.ready().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
-			})${doubleCatch};`;
+			})${singleCatch};`;
 		const unloadThen = `this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!veto) {
 					await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 				}
-			})${doubleCatch};`;
+			})${singleCatch};`;
 		const boxCall = `this.dialogMainService.showMessageBox({
 				type: 'info',
 				buttons: [localize({ key: 'ok', comment: ['&& denotes a mnemonic'] }, "&&OK")],
@@ -68,39 +75,45 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 				detail: uri.scheme === Schemas.file ?
 					localize('pathNotExistDetail', "The path '{0}' does not exist on this computer.", getPathLabel(uri, { os: OS, tildify: this.environmentMainService })) :
 					localize('uriInvalidDetail', "The URI '{0}' is not valid and can not be opened.", uri.toString(true))
-			}, BrowserWindow.getFocusedWindow() ?? undefined)${doubleCatch};`;
+			}, BrowserWindow.getFocusedWindow() ?? undefined)${singleCatch};`;
 		const launchThen = `whenWindowReady.then(() => {
 				for (const { uri, originalUrl } of urlsToOpen) {
 					this.urlService.open(uri, { originalUrl });
 				}
-			})${doubleCatch};`;
+			})${singleCatch};`;
 		const sites = [
 			windowImpl.includes(readyThen),
 			windowsMain.includes(unloadThen),
-			windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`),
-			windowsMain.includes(`})()${doubleCatch};`),
+			windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${singleCatch};`),
+			windowsMain.includes(`})()${singleCatch};`),
 			windowsMain.includes(boxCall),
-			windowsMain.includes(`this.lifecycleMainService.reload(existingWindow, openConfig.cli)${doubleCatch};`),
-			windowsMain.includes(`() => this.lifecycleMainService.reload(createdWindow)${doubleCatch})`),
+			windowsMain.includes(`this.lifecycleMainService.reload(existingWindow, openConfig.cli)${singleCatch};`),
+			windowsMain.includes(`() => this.lifecycleMainService.reload(createdWindow)${singleCatch})`),
 			launch.includes(launchThen),
 		].filter(Boolean).length;
 		assert.strictEqual(sites, 8);
+		assert.ok(!windowImpl.includes(doubleCatch));
+		assert.ok(!windowsMain.includes(doubleCatch));
+		assert.ok(!launch.includes(doubleCatch));
 	});
 
-	test('windowImpl leftover ready then is Promise double-chain; sendWhenReady stays void; race timeout then stays skipped', () => {
+	test('windowImpl leftover ready then is Promise single-chain; sendWhenReady stays void; race timeout then stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_IMPL_REL), 'utf8');
 		const iface = fs.readFileSync(resolveSource(WINDOW_IFACE_REL), 'utf8');
 		assertPromiseSignature(source, 'ready(): Promise<ICodeWindow> {');
 		assert.ok(iface.includes('sendWhenReady(channel: string, token: CancellationToken, ...args: unknown[]): void;'));
 		assert.ok(source.includes("import { errorHandler, onUnexpectedError } from '../../../base/common/errors.js';"));
 		const readyThen = `this.ready().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
 			})`;
-		assert.ok(source.includes(`${readyThen}${doubleCatch};`));
+		assert.ok(source.includes(`${readyThen}${singleCatch};`));
 		assert.ok(!source.includes(`${readyThen};`));
-		assert.ok(!source.includes(`${readyThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${readyThen}${doubleCatch};`));
 		assert.ok(source.includes('sendWhenReady(channel: string, token: CancellationToken, ...args: unknown[]): void {'));
 		assert.ok(source.includes("this.sendWhenReady('vscode:enterFullScreen', CancellationToken.None);"));
 		assert.ok(!source.includes("this.sendWhenReady('vscode:enterFullScreen', CancellationToken.None).catch"));
@@ -108,24 +121,27 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 		assert.ok(!source.includes('timeout(10000).then(() => false).catch'));
 	});
 
-	test('windowsMain leftover unload LOAD then is Promise double-chain; returned doOpen stays skipped', () => {
+	test('windowsMain leftover unload LOAD then is Promise single-chain; returned doOpen stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(WINDOWS_MAIN_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'unload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		const unloadThen = `this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!veto) {
 					await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);
 				}
 			})`;
-		assert.ok(source.includes(`${unloadThen}${doubleCatch};`));
+		assert.ok(source.includes(`${unloadThen}${singleCatch};`));
 		assert.ok(!source.includes(`${unloadThen};`));
-		assert.ok(!source.includes(`${unloadThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${unloadThen}${doubleCatch};`));
 		assert.ok(source.includes('await this.doOpenInBrowserWindow(window, configuration, options, defaultProfile);'));
 		assert.ok(!source.includes('this.when(LifecycleMainPhase.Ready)'));
 	});
 
-	test('windowsMain leftover addRecentlyOpened / wait-marker IIFE / showMessageBox are Promise double-chain', () => {
+	test('windowsMain leftover addRecentlyOpened / wait-marker IIFE / showMessageBox are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(WINDOWS_MAIN_REL), 'utf8');
 		const history = fs.readFileSync(resolveSource(HISTORY_REL), 'utf8');
 		const dialog = fs.readFileSync(resolveSource(DIALOG_REL), 'utf8');
@@ -133,9 +149,10 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 		assertPromiseSignature(history, 'addRecentlyOpened(recents: IRecent[]): Promise<void>;');
 		assertPromiseSignature(dialog, 'showMessageBox(options: electron.MessageBoxOptions, window?: electron.BrowserWindow): Promise<electron.MessageBoxReturnValue>;');
 		assertPromiseSignature(iface, 'readonly whenClosedOrLoaded: Promise<void>;');
-		assertDoubleThen(source, 'this.workspacesHistoryMainService.addRecentlyOpened(recents)');
-		assert.ok(source.includes(`})()${doubleCatch};`));
+		assertSingleThen(source, 'this.workspacesHistoryMainService.addRecentlyOpened(recents)');
+		assert.ok(source.includes(`})()${singleCatch};`));
 		assert.ok(!source.includes('})();'));
+		assert.ok(!source.includes(`})()${doubleCatch};`));
 		const boxCall = `this.dialogMainService.showMessageBox({
 				type: 'info',
 				buttons: [localize({ key: 'ok', comment: ['&& denotes a mnemonic'] }, "&&OK")],
@@ -144,25 +161,25 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 					localize('pathNotExistDetail', "The path '{0}' does not exist on this computer.", getPathLabel(uri, { os: OS, tildify: this.environmentMainService })) :
 					localize('uriInvalidDetail', "The URI '{0}' is not valid and can not be opened.", uri.toString(true))
 			}, BrowserWindow.getFocusedWindow() ?? undefined)`;
-		assert.ok(source.includes(`${boxCall}${doubleCatch};`));
+		assert.ok(source.includes(`${boxCall}${singleCatch};`));
 		assert.ok(!source.includes(`${boxCall};`));
-		assert.ok(!source.includes(`${boxCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${boxCall}${doubleCatch};`));
 	});
 
-	test('windowsMain leftover reload voids are Promise double-chain; ICodeWindow.reload stays skipped', () => {
+	test('windowsMain leftover reload voids are Promise single-chain; ICodeWindow.reload stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(WINDOWS_MAIN_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const iface = fs.readFileSync(resolveSource(WINDOW_IFACE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'reload(window: ICodeWindow, cli?: NativeParsedArgs): Promise<void>;');
 		assert.ok(iface.includes('reload(cli?: NativeParsedArgs): void;'));
-		assertDoubleThen(source, 'this.lifecycleMainService.reload(existingWindow, openConfig.cli)');
-		assert.ok(source.includes(`() => this.lifecycleMainService.reload(createdWindow)${doubleCatch})`));
+		assertSingleThen(source, 'this.lifecycleMainService.reload(existingWindow, openConfig.cli)');
+		assert.ok(source.includes(`() => this.lifecycleMainService.reload(createdWindow)${singleCatch})`));
 		assert.ok(!source.includes('() => this.lifecycleMainService.reload(createdWindow));'));
-		assert.ok(!source.includes('() => this.lifecycleMainService.reload(createdWindow).catch(onUnexpectedError));'));
+		assert.ok(!source.includes(`() => this.lifecycleMainService.reload(createdWindow)${doubleCatch})`));
 		assert.ok(!source.includes('window.reload('));
 	});
 
-	test('launch leftover whenWindowReady then is Promise double-chain; two-arg then and url open stay skipped', () => {
+	test('launch leftover whenWindowReady then is Promise single-chain; two-arg then and url open stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(LAUNCH_REL), 'utf8');
 		const windowImpl = fs.readFileSync(resolveSource(WINDOW_IMPL_REL), 'utf8');
 		const url = fs.readFileSync(resolveSource(URL_REL), 'utf8');
@@ -175,9 +192,9 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 					this.urlService.open(uri, { originalUrl });
 				}
 			})`;
-		assert.ok(source.includes(`${readyThen}${doubleCatch};`));
+		assert.ok(source.includes(`${readyThen}${singleCatch};`));
 		assert.ok(!source.includes(`${readyThen};`));
-		assert.ok(!source.includes(`${readyThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${readyThen}${doubleCatch};`));
 		assert.ok(source.includes('this.urlService.open(uri, { originalUrl });'));
 		assert.ok(!source.includes('this.urlService.open(uri, { originalUrl }).catch'));
 		assert.ok(source.includes(']).then(() => undefined, () => undefined);'));
@@ -190,7 +207,8 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 		const launch = fs.readFileSync(resolveSource(LAUNCH_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const updateAbs = fs.readFileSync(resolveSource(UPDATE_ABS_REL), 'utf8');
-		assert.ok(lifecycle.includes('this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners()).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(lifecycle.includes('this.when(LifecycleMainPhase.Ready).then'));
+		assert.ok(!lifecycle.includes(doubleCatch));
 		assert.ok(updateAbs.includes('void this.checkForOverwriteUpdates().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(windowsMain.includes('private registerListeners(): void {'));
 		assert.ok(!windowsMain.includes('this.registerListeners().catch'));
@@ -198,10 +216,10 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('openerService.open'));
 			assert.ok(!source.includes('IOpenerService'));
 			assert.ok(!source.includes('then(clear,clear)'));

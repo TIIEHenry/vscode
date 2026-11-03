@@ -512,22 +512,33 @@ export class BrowserViewMainService extends Disposable implements IBrowserViewMa
 		const inspectTarget = windowConfiguration?.aiFeaturesDisabled
 			? undefined
 			: params.frame && await view.inspector.getElementHandle(BrowserViewInspectElementId.ContextMenuTarget, params.frame);
+		if (this._store.isDisposed || webContents.isDestroyed()) {
+			return;
+		}
 		const menu = new Menu();
 
 		if (params.linkURL) {
 			menu.append(new MenuItem({
 				label: localize('browser.contextMenu.openLinkInNewTab', 'Open Link in New Tab'),
 				click: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					void this.openNew(params.linkURL, {
 						hostWindowId: view.hostWindowId,
 						owner: view.owner,
 						session: view.session.id,
-					}, { preserveFocus: true, background: true }, 'browserLinkBackground').catch(onUnexpectedError).catch(onUnexpectedError);
+					}, { preserveFocus: true, background: true }, 'browserLinkBackground').catch(onUnexpectedError);
 				}
 			}));
 			menu.append(new MenuItem({
 				label: localize('browser.contextMenu.openLinkInExternalBrowser', 'Open Link in External Browser'),
-				click: () => { void this.nativeHostMainService.openExternal(undefined, params.linkURL).catch(onUnexpectedError).catch(onUnexpectedError); }
+				click: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.nativeHostMainService.openExternal(undefined, params.linkURL).catch(onUnexpectedError);
+				}
 			}));
 			menu.append(new MenuItem({ type: 'separator' }));
 			menu.append(new MenuItem({
@@ -548,11 +559,14 @@ export class BrowserViewMainService extends Disposable implements IBrowserViewMa
 			menu.append(new MenuItem({
 				label: localize('browser.contextMenu.openImageInNewTab', 'Open Image in New Tab'),
 				click: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					void this.openNew(params.srcURL!, {
 						hostWindowId: view.hostWindowId,
 						owner: view.owner,
 						session: view.session.id,
-					}, { preserveFocus: true, background: true }, 'browserLinkBackground').catch(onUnexpectedError).catch(onUnexpectedError);
+					}, { preserveFocus: true, background: true }, 'browserLinkBackground').catch(onUnexpectedError);
 				}
 			}));
 			menu.append(new MenuItem({
@@ -649,5 +663,10 @@ export class BrowserViewMainService extends Disposable implements IBrowserViewMa
 			y: viewBounds.y + params.y,
 			sourceType: params.menuSourceType
 		});
+	}
+
+	override dispose(): void {
+		this._windowConfigurations.clear();
+		super.dispose();
 	}
 }

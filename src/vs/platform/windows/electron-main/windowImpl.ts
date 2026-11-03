@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import electron, { BrowserWindowConstructorOptions, Display, screen } from 'electron';
-import { DeferredPromise, RunOnceScheduler, timeout, Delayer } from '../../../base/common/async.js';
+import { DeferredPromise, RunOnceScheduler, timeout, Delayer, TimeoutTimer } from '../../../base/common/async.js';
 import { CancellationToken } from '../../../base/common/cancellation.js';
 import { toErrorMessage } from '../../../base/common/errorMessage.js';
 import { Emitter, Event } from '../../../base/common/event.js';
@@ -595,6 +595,10 @@ export abstract class BaseWindow extends Disposable implements IBaseWindow {
 					timeout(10000).then(() => false)
 				]);
 
+				if (this._store.isDisposed) {
+					return;
+				}
+
 				if (this.joinNativeFullScreenTransition !== joinNativeFullScreenTransition) {
 					return; // another transition was requested later
 				}
@@ -725,6 +729,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	private readonly jsCallStackEffectiveSampleCount: number;
 	private readonly jsCallStackCollector: Delayer<void>;
 	private readonly jsCallStackCollectorStopScheduler: RunOnceScheduler;
+	private readonly menuBarVisibilityTimer = this._register(new TimeoutTimer());
 
 	constructor(
 		config: IWindowCreationOptions,
@@ -864,10 +869,10 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	private registerListeners(): void {
 
 		// Window error conditions to handle
-		this._register(Event.fromNodeEventEmitter(this._win, 'unresponsive')(() => this.onWindowError(WindowError.UNRESPONSIVE).catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(Event.fromNodeEventEmitter(this._win, 'responsive')(() => this.onWindowError(WindowError.RESPONSIVE).catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'render-process-gone', (event, details) => details)(details => this.onWindowError(WindowError.PROCESS_GONE, { ...details }).catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'did-fail-load', (event, exitCode, reason) => ({ exitCode, reason }))(({ exitCode, reason }) => this.onWindowError(WindowError.LOAD, { reason, exitCode }).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win, 'unresponsive')(() => this.onWindowError(WindowError.UNRESPONSIVE).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win, 'responsive')(() => this.onWindowError(WindowError.RESPONSIVE).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'render-process-gone', (event, details) => details)(details => this.onWindowError(WindowError.PROCESS_GONE, { ...details }).catch(onUnexpectedError)));
+		this._register(Event.fromNodeEventEmitter(this._win.webContents, 'did-fail-load', (event, exitCode, reason) => ({ exitCode, reason }))(({ exitCode, reason }) => this.onWindowError(WindowError.LOAD, { reason, exitCode }).catch(onUnexpectedError)));
 
 		// Prevent windows/iframes from blocking the unload
 		// through DOM events. We have our own logic for
@@ -945,6 +950,9 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	private async onWindowError(error: WindowError.PROCESS_GONE, details: { reason: string; exitCode: number }): Promise<void>;
 	private async onWindowError(error: WindowError.LOAD, details: { reason: string; exitCode: number }): Promise<void>;
 	private async onWindowError(type: WindowError, details?: { reason?: string; exitCode?: number }): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		switch (type) {
 			case WindowError.PROCESS_GONE:
@@ -989,7 +997,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				// back this state to the test runner by exiting with a
 				// non-zero exit code.
 				if (this.isExtensionDevelopmentTestFromCli) {
-					this.lifecycleMainService.kill(1).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.lifecycleMainService.kill(1).catch(onUnexpectedError);
 					return;
 				}
 
@@ -998,7 +1006,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				// and then calling the normal `quit` routine.
 				if (this.environmentMainService.args['enable-smoke-test-driver']) {
 					await this.destroyWindow(false, false);
-					this.lifecycleMainService.quit().catch(onUnexpectedError).catch(onUnexpectedError); // still allow for an orderly shutdown
+					this.lifecycleMainService.quit().catch(onUnexpectedError); // still allow for an orderly shutdown
 					return;
 				}
 
@@ -1015,7 +1023,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 					}
 
 					// Interrupt V8 and collect JavaScript stack
-					this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks()).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks()).catch(onUnexpectedError);
 					// Stack collection will stop under any of the following conditions:
 					// - The window becomes responsive again
 					// - The window is destroyed i-e reopen or closed
@@ -1034,6 +1042,10 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 						detail: localize('appStalledDetail', "You can reopen or close the window or keep waiting."),
 						checkboxLabel: this._config?.workspace ? localize('doNotRestoreEditors', "Don't restore editors") : undefined
 					}, this._win);
+
+					if (this._store.isDisposed) {
+						return;
+					}
 
 					// Handle choice
 					if (response !== 2 /* keep waiting */) {
@@ -1065,6 +1077,10 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 							localize('appGoneDetailEmptyWindow', "We are sorry for the inconvenience. You can open a new empty window to start again."),
 						checkboxLabel: this._config?.workspace ? localize('doNotRestoreEditors', "Don't restore editors") : undefined
 					}, this._win);
+
+					if (this._store.isDisposed) {
+						return;
+					}
 
 					// Handle choice
 					const reopen = response === 0;
@@ -1558,10 +1574,14 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 			// a timing issue with us opening the first window and the menu bar getting created. somehow the
 			// fact that we want to hide the menu without being able to bring it back via Alt key makes Electron
 			// still show the menu. Unable to reproduce from a simple Hello World application though...
-			setTimeout(() => {
+			this.menuBarVisibilityTimer.cancelAndSet(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.doSetMenuBarVisibility(visibility);
-			});
+			}, 0);
 		} else {
+			this.menuBarVisibilityTimer.cancel();
 			this.doSetMenuBarVisibility(visibility);
 		}
 	}
@@ -1614,10 +1634,13 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 			this.send(channel, ...args);
 		} else {
 			this.ready().then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (!token.isCancellationRequested) {
 					this.send(channel, ...args);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -1711,8 +1734,14 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	}
 
 	private async startCollectingJScallStacks(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.jsCallStackCollector.isTriggered()) {
 			const stack = await this._win?.webContents.mainFrame.collectJavaScriptCallStack();
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			// Increment the count for this stack trace
 			if (stack) {
@@ -1720,7 +1749,7 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 				this.jsCallStackMap.set(stack, count + 1);
 			}
 
-			this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.jsCallStackCollector.trigger(() => this.startCollectingJScallStacks()).catch(onUnexpectedError);
 		}
 	}
 
@@ -1759,6 +1788,9 @@ export class CodeWindow extends BaseWindow implements ICodeWindow {
 	}
 
 	override dispose(): void {
+		this.stopCollectingJScallStacks();
+		this.menuBarVisibilityTimer.dispose();
+
 		super.dispose();
 
 		// Deregister the loggers for this window

@@ -69,7 +69,7 @@ export class BrowserViewEmulator extends Disposable {
 
 		if (prev && !device && this.isSafeToApplyEmulation()) {
 			this.browser.webContents.disableDeviceEmulation();
-			void this._applyTouchAndMedia().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._applyTouchAndMedia().catch(onUnexpectedError);
 		}
 
 		this._lastApplied = undefined;
@@ -132,7 +132,7 @@ export class BrowserViewEmulator extends Disposable {
 		this.browser.webContents.enableDeviceEmulation(params);
 
 		if (mobile !== last?.mobile) {
-			void this._applyTouchAndMedia().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._applyTouchAndMedia().catch(onUnexpectedError);
 		}
 	}
 
@@ -141,17 +141,17 @@ export class BrowserViewEmulator extends Disposable {
 	}
 
 	private async _applyTouchAndMedia(): Promise<void> {
-		if (!this.isSafeToApplyEmulation()) {
+		if (this._store.isDisposed || !this.isSafeToApplyEmulation()) {
 			return;
 		}
 		const device = this._device;
 		const mobile = !!this._device?.mobile;
 		try {
 			await this.browser.debugger.sendCommandRaw('Emulation.setTouchEmulationEnabled', { enabled: mobile, maxTouchPoints: mobile ? 5 : 1 });
-			if (this.device !== device) { return; } // Bail if device changed while we were awaiting
+			if (this._store.isDisposed || this.device !== device) { return; } // Bail if device changed while we were awaiting
 
 			await this.browser.debugger.sendCommandRaw('Emulation.setEmulatedMedia', { features: this._device ? [{ name: 'pointer', value: mobile ? 'coarse' : 'fine' }] : [] });
-			if (this.device !== device) { return; } // Bail if device changed while we were awaiting
+			if (this._store.isDisposed || this.device !== device) { return; } // Bail if device changed while we were awaiting
 
 			await this.browser.debugger.sendCommandRaw('Emulation.setEmitTouchEventsForMouse', { enabled: mobile });
 		} catch (err) {

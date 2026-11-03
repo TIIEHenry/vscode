@@ -663,9 +663,9 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 		this.environmentMainService.unsetSnapExportedVariables();
 		try {
 			if (matchesSomeScheme(url, Schemas.http, Schemas.https)) {
-				this.openExternalBrowser(windowId, url, defaultApplication).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.openExternalBrowser(windowId, url, defaultApplication).catch(onUnexpectedError);
 			} else {
-				this.doOpenShellExternal(windowId, url).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.doOpenShellExternal(windowId, url).catch(onUnexpectedError);
 			}
 		} finally {
 			this.environmentMainService.restoreSnapExportedVariables();
@@ -682,6 +682,9 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 
 		if (configuredBrowser.includes(posix.sep) || configuredBrowser.includes(win32.sep)) {
 			const browserPathExists = await Promises.exists(configuredBrowser);
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!browserPathExists) {
 				this.logService.error(`Configured external browser path does not exist: ${configuredBrowser}`);
 				return this.doOpenShellExternal(windowId, url);
@@ -742,11 +745,15 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 				]
 			}, this.windowById(windowId)?.win ?? undefined);
 
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			if (response === 1 /* Cancel */) {
 				return;
 			}
 
-			this.writeClipboardText(windowId, url).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.writeClipboardText(windowId, url).catch(onUnexpectedError);
 		}
 	}
 
@@ -799,6 +806,11 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 				this.logService.trace(`[sudo-prompt] running command: ${sudoCommand.join(' ')}`);
 
 				sudoPrompt.exec(sudoCommand.join(' '), promptOptions, (error?, stdout?, stderr?) => {
+					if (this._store.isDisposed) {
+						reject(new CancellationError());
+						return;
+					}
+
 					if (stdout) {
 						this.logService.trace(`[sudo-prompt] received stdout: ${stdout}`);
 					}
@@ -1320,6 +1332,10 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 
 		const path = await contentTracing.stopRecording(`${randomPath(this.environmentMainService.userHome.fsPath, this.productService.applicationName)}.trace.txt`);
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		// Inform user to report an issue
 		await this.dialogMainService.showMessageBox({
 			type: 'info',
@@ -1328,8 +1344,12 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 			buttons: [localize({ key: 'trace.ok', comment: ['&& denotes a mnemonic'] }, "&&OK")],
 		}, BrowserWindow.getFocusedWindow() ?? undefined);
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		// Show item in explorer
-		this.showItemInFolder(undefined, path).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.showItemInFolder(undefined, path).catch(onUnexpectedError);
 	}
 
 	//#endregion

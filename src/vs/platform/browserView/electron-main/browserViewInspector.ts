@@ -121,6 +121,9 @@ export class BrowserViewInspector extends Disposable {
 
 		// Preload ready — the key correlation point between WebFrameMain and CDP target
 		const onIpcMessage = (_event: Electron.Event, channel: string, ...args: unknown[]) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const senderFrame = (_event as { senderFrame?: Electron.WebFrameMain }).senderFrame;
 			if (channel === 'vscode:browserView:preloadReady') {
 				if (!senderFrame) {
@@ -358,7 +361,12 @@ export class BrowserViewInspector extends Disposable {
 	}
 
 	private _queueInspectionOperation(operation: () => Promise<void>): Promise<void> {
-		const result = this._inspectionOperation.then(operation);
+		const result = this._inspectionOperation.then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			await operation();
+		});
 		this._inspectionOperation = result.catch(() => { });
 		return result;
 	}
@@ -451,6 +459,9 @@ export class BrowserViewInspector extends Disposable {
 				}
 				commentRequested = true;
 				setTimeout(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this._activeAreaSelection.clear();
 					this._activeSelection.clear();
 					void this._queueInspectionOperation(async () => {
@@ -458,7 +469,7 @@ export class BrowserViewInspector extends Disposable {
 							this.browser.webContents.focus();
 							handle.addComment();
 						}
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}, 0);
 			},
 			highlight: () => handle.highlight(),

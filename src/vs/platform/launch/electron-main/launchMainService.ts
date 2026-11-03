@@ -82,7 +82,7 @@ export class LaunchMainService implements ILaunchMainService {
 				for (const { uri, originalUrl } of urlsToOpen) {
 					this.urlService.open(uri, { originalUrl });
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		// Otherwise handle in windows service

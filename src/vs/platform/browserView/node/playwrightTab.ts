@@ -83,7 +83,7 @@ export class PlaywrightTab {
 				this._dialog = undefined;
 				this._onDialogStateChanged.fire();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._onDialogStateChanged.fire();
 	}
 
