@@ -215,6 +215,9 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 						tooltip: item.locked ? localize('permissions.ext.locked', "This option is locked") : '',
 						hover: item.description ? { content: item.description } : undefined,
 						run: async () => {
+							if (this._store.isDisposed) {
+								return;
+							}
 							delegate.setExtensionPermission?.(ext.groupId, item);
 							if (this.element) {
 								this.renderLabel(this.element);
@@ -227,7 +230,7 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 				const sandboxToggleEnabled = this.isSandboxToggleAvailable();
 				const sandboxTogglePresentation = delegate.sandboxTogglePresentation ?? 'inline';
 				const setSandboxEnabled = async (enableSandbox: boolean) => {
-					if (this.isSandboxManaged()) {
+					if (this._store.isDisposed || this.isSandboxManaged()) {
 						return;
 					}
 					const target: AgentSandboxEnabledValue = enableSandbox ? AgentSandboxEnabledValue.On : AgentSandboxEnabledValue.Off;
@@ -244,7 +247,12 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 						: localize('permissions.default.sandbox.toggle.title', "Run terminal commands inside a sandbox that restricts file system and network access"),
 					checked: this.isSandboxingEnabled(),
 					disabled: sandboxManaged,
-					onChange: (checked: boolean) => { void setSandboxEnabled(checked).catch(onUnexpectedError).catch(onUnexpectedError); },
+					onChange: (checked: boolean) => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						void setSandboxEnabled(checked).catch(onUnexpectedError);
+					},
 				} : undefined;
 				const levels = delegate.availableLevels ?? DEFAULT_PERMISSION_LEVELS;
 				const actions: IActionWidgetDropdownAction[] = levels.map(level => {
@@ -275,11 +283,17 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 							content: hover,
 						},
 						run: async () => {
+							if (this._store.isDisposed) {
+								return;
+							}
 							// Elevated levels show a one-time confirmation warning.
 							if (meta.elevated && !await maybeConfirmElevatedPermissionLevel(level, this.dialogService, storageService, {
 								defaultSettingKey: delegate.defaultSettingKey,
 								levelLabel: meta.label,
 							})) {
+								return;
+							}
+							if (this._store.isDisposed) {
 								return;
 							}
 							delegate.setPermissionLevel(level);
@@ -316,6 +330,9 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 				class: undefined,
 				enabled: true,
 				run: async () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					const ext = delegate.getExtensionPermissions?.();
 					const url = ext?.sessionType === SessionType.AgentHostClaude
 						? 'https://code.claude.com/docs/en/permission-modes#available-modes'
@@ -328,6 +345,9 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 		}, pickerOptions, actionWidgetService, keybindingService, contextKeyService, telemetryService);
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const settingId = this.getSandboxToggleSettingId();
 			const affectsSandboxToggle = e.affectsConfiguration(ChatConfiguration.PermissionsSandboxToggleEnabled)
 				|| (settingId !== undefined && e.affectsConfiguration(settingId))
@@ -339,6 +359,9 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 		if (delegate.managedSandboxEnforced) {
 			this._register(autorun(reader => {
 				delegate.managedSandboxEnforced?.read(reader);
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (this.element) {
 					this.renderLabel(this.element);
 				}

@@ -27,8 +27,7 @@ suite('AgentHostInputCompletions leftover fire-and-forget catch scan (D651)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('existing and added scheme _registerForScheme voids are double-caught; bare/single-chain gone in this file only', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('existing and added scheme _registerForScheme voids are single-caught; bare and double-chain gone in this file only', () => {
 		const source = fs.readFileSync(agentHostInputCompletionsSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const registerVoid = 'void this._registerForScheme(scheme)';
@@ -37,8 +36,8 @@ suite('AgentHostInputCompletions leftover fire-and-forget catch scan (D651)', ()
 		assert.ok(source.includes('for (const scheme of this._chatSessionsService.getContentProviderSchemes())'));
 		assert.ok(source.includes('for (const scheme of added)'));
 		assert.strictEqual((source.match(/void this\._registerForScheme\(scheme\)/g) ?? []).length, 2);
-		assert.strictEqual((source.split(`${registerVoid}${doubleCatch};`).length - 1), 2);
+		assert.strictEqual((source.split(`${registerVoid}.catch(onUnexpectedError);`).length - 1), 2);
 		assert.ok(!source.includes(`${registerVoid};`));
-		assert.ok(!source.includes(`${registerVoid}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

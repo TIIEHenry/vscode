@@ -35,37 +35,44 @@ function assertDoubleChain(source: string, call: string, count: number): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
+function assertSingleChain(source: string, call: string, count: number): void {
+	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call};`));
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+}
+
 suite('Chat leftover Promise fire-and-forget catch scan (D679)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('chatFindWidget updateResultCount leftover voids are double-chain', () => {
+	test('chatFindWidget updateResultCount leftover voids are single-chain', () => {
 		const source = fs.readFileSync(resolveSource(FIND_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
-		assertDoubleChain(source, 'void this.updateResultCount()', 3);
+		assertSingleChain(source, 'void this.updateResultCount()', 3);
 	});
 
-	test('modelPicker _requestWorkspaceTrust leftover is double-chain; opener leftover stays skipped', () => {
+	test('modelPicker _requestWorkspaceTrust leftover is single-chain; opener leftover stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(PICKER_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _requestWorkspaceTrust(): Promise<void> {'));
-		assertDoubleChain(source, 'void this._requestWorkspaceTrust()', 1);
+		assertSingleChain(source, 'void this._requestWorkspaceTrust()', 1);
 		assert.ok(source.includes('void this._openerService.open(uri, { allowCommands: true });'));
 		assert.ok(!source.includes('void this._openerService.open(uri, { allowCommands: true }).catch'));
 	});
 
-	test('chatPasteProviders primeSymbolReferenceCache leftover is double-chain', () => {
+	test('chatPasteProviders primeSymbolReferenceCache leftover is single-chain', () => {
 		const source = fs.readFileSync(resolveSource(PASTE_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async primeSymbolReferenceCache('));
-		assertDoubleChain(source, 'void this.primeSymbolReferenceCache(model, ranges[0], text, token)', 1);
+		assertSingleChain(source, 'void this.primeSymbolReferenceCache(model, ranges[0], text, token)', 1);
 	});
 
-	test('chatInputNotificationWidget _executeAction leftover is double-chain', () => {
+	test('chatInputNotificationWidget _executeAction leftover is single-chain', () => {
 		const source = fs.readFileSync(resolveSource(NOTIFY_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _executeAction(notification: IChatInputNotification, action: IChatInputNotificationAction): Promise<void> {'));
-		assertDoubleChain(source, 'void this._executeAction(notification, action)', 1);
+		assertSingleChain(source, 'void this._executeAction(notification, action)', 1);
 	});
 
 	test('chatAgentFeedbackReviewConfirmationSubPart _populate leftover is double-chain', () => {

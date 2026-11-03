@@ -232,7 +232,7 @@ export class CopyTextProvider implements DocumentPasteEditProvider {
 
 		const text = dataTransfer.get(Mimes.text);
 		if (text && ranges.length) {
-			void this.primeSymbolReferenceCache(model, ranges[0], text, token).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.primeSymbolReferenceCache(model, ranges[0], text, token).catch(onUnexpectedError);
 		}
 
 		return customDataTransfer;

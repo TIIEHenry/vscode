@@ -137,7 +137,7 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 				hover: { content: tooltip },
 				toolbarActions,
 				run: async () => {
-					if (isDisabledViaPolicy) {
+					if (this._store.isDisposed || isDisabledViaPolicy) {
 						return; // Block interaction if disabled by policy
 					}
 					// Session-less hosts (e.g. the automations dialog) provide
@@ -149,6 +149,9 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 					// command path (telemetry, confirmation, new-chat-on-clear).
 					if (this.delegate.setMode && !this.delegate.sessionResource()) {
 						this.delegate.setMode(mode);
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (this.element) {
 							this.renderLabel(this.element);
 						}
@@ -158,6 +161,9 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 						ToggleAgentModeActionId,
 						{ modeId: mode.id, sessionResource: this.delegate.sessionResource() } satisfies IToggleChatModeArgs
 					);
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (this.element) {
 						this.renderLabel(this.element);
 					}
@@ -268,16 +274,29 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 		// Listen to changes in the current mode and its properties
 		this._register(autorun(reader => {
 			this.delegate.currentMode.read(reader).label.read(reader); // use the reader so autorun tracks it
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.element) {
 				this.renderLabel(this.element);
 			}
 		}));
 
 		void Promise.resolve(assignmentService.getTreatment('chat.showOldAskMode')).then(showOldAskMode => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			assignments.set({ showOldAskMode: showOldAskMode === 'enabled' }, undefined);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._register(assignmentService.onDidRefetchAssignments(async () => {
-			assignments.set({ showOldAskMode: await assignmentService.getTreatment('chat.showOldAskMode') === 'enabled' }, undefined);
+			if (this._store.isDisposed) {
+				return;
+			}
+			const showOldAskMode = await assignmentService.getTreatment('chat.showOldAskMode') === 'enabled';
+			if (this._store.isDisposed) {
+				return;
+			}
+			assignments.set({ showOldAskMode }, undefined);
 		}));
 	}
 
@@ -318,6 +337,13 @@ export class ModePickerActionItem extends ChatInputPickerActionViewItem {
 		this.setAriaLabelAttributes(element);
 		element.ariaLabel = state;
 		return null;
+	}
+
+	override dispose(): void {
+		if (this.element) {
+			dom.clearNode(this.element);
+		}
+		super.dispose();
 	}
 }
 

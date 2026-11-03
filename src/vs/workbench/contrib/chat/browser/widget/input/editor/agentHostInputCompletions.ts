@@ -119,24 +119,24 @@ export class AgentHostInputCompletions extends AgentHostInputCompletionsBase<ICh
 
 		// Sync existing registrations and observe changes.
 		for (const scheme of this._chatSessionsService.getContentProviderSchemes()) {
-			void this._registerForScheme(scheme).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._registerForScheme(scheme).catch(onUnexpectedError);
 		}
 		this._register(this._chatSessionsService.onDidChangeContentProviderSchemes(({ added, removed }) => {
 			for (const scheme of removed) {
 				this._registrations.deleteAndDispose(scheme);
 			}
 			for (const scheme of added) {
-				void this._registerForScheme(scheme).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._registerForScheme(scheme).catch(onUnexpectedError);
 			}
 		}));
 	}
 
 	private async _registerForScheme(scheme: string): Promise<void> {
-		if (!isAgentHostTarget(scheme)) {
+		if (this._store.isDisposed || !isAgentHostTarget(scheme)) {
 			return;
 		}
 		const triggerCharacters = await this._chatSessionsService.getChatInputCompletionTriggerCharacters(scheme);
-		if (!triggerCharacters || triggerCharacters.length === 0) {
+		if (this._store.isDisposed || !triggerCharacters || triggerCharacters.length === 0) {
 			return;
 		}
 
