@@ -8,7 +8,7 @@ summary: "D1398完整Profile合同已签收；A候选15源码及自动层已通�
 ---
 
 # Agent Profile 内容有效性与无损编辑
-状态：执行中。负责：agent:codex。范围：D1398完整Profile模块；方案规则16 C0/I0/M0已签收，A候选源码/自动层完成，待专题Gate、集成与真实安全门，仍accepted且D1398open；未提交、未合入、未push。
+状态：执行中。负责：agent:codex。范围：D1398完整Profile模块；方案规则16 C0/I0/M0已签收，A1源码与文档已在 merge HEAD 本地合入（`cca88013437`，基线 `41f2001e0fc`），`compile-client` 与 `valid-layers-check` 均 0 错误。方案仍 accepted，真实默认窗口/钉死引擎安全门待执行；D1398 与 D1395 保持 open，产品 push hold。
 
 覆盖需求：PRD-025已有Agent档案编辑能力的完整性修复；不新增PRD、不提升产品状态。关联：[D1398](../progress/deferred-gaps.md)、[Engine catalog SSOT](../../docs/systems/workbench/engine-catalog.md)、[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。
 
@@ -85,4 +85,4 @@ rawbody与赋值后读回的display baseline必须作为绑定原profile/owner/�
 
 同一私有context25元数据中新Node2/0、browser10/0后，叠ca3旧18产物为Node0/2、browser0/10：Node仅首undefined未获Instructions错误，未到后续循环/tuple；UI5项实际Saved DTO丢body、2项outer显示先停、3项Tools观察save1及错误清dirty，不能概称12项真实PIN损坏。原loader/报告读取器错误保留，不计业务红。真实A out11975/merge out11973、私有3tests与15源码均保持；全证据见[阶段记录](../progress/tools-wiki-wave-2026-11-02-evidence.md)。
 
-必要知识/行动层正与源码形成同一A主题候选，尚未commit/真合。D1398真实安全门只在源码/自动独立签收、A主题commit、真三路merge及merge Node24实际产物核定后，另获父明确授权才执行；现无窗口/engine写，旧own2/无效目录/既有6项只读保留。D1395独立open、PRD不升，不把本段自动门当整体implemented或全球可push。
+必要知识/行动层已随 A1 与源码形成同一 merge 主题并完成本地编译/分层校验；D1398 真实安全门仍需父另行授权后执行，现无窗口/engine 写，旧own2/无效目录/既有6项只读保留。D1395 独立 open、PRD 不升，不把本地合入与自动门当整体产品交付或全球可 push。

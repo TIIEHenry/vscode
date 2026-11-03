@@ -16,14 +16,14 @@ summary: "ca3本地owner专题已签收/提交，D1397本地closed；D1398全局
 
 方案 `5a48ed3cba2` 已逐篇规则16签收；A/B 新分支为 `codex/tools-display-lifecycle-A` / `codex/wiki-git-context-B`，旧分支保留，不覆盖旧 tip。A 主题 `1ec07a675d5`、B 主题 `cb784d97706` 已本地提交并真三路合入 `6b3515f2135`；A 自动三套206/0与编译/lint通过，B 完整18真Git矩阵及原hooks通过，两域综合OV PASS。B 保留 D 的 9d471 原commit身份，D1394本地代码/自动层关闭；D1395真实窗口/引擎门仍open。Node24固定环境组合完整compile已通过；真实Tools交互子集有证据，但实际Save失败来源未定，D1395仍open，publish继续hold。A/B仍属本波，不释放重占。实际两域冲突矩阵、预约锁补充及唯一通道见[新看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。C/D/E/F 外部候选与 WIP 不接管，不重用这些槽。
 
-## D1398 必要closeout-remediation候选（自动层通过，待集成真实）
+## D1398 A1 本地合入后的真实安全门（仍待）
 
-父采纳Astra工作流裁决：通用closeout不变量1禁止新功能轨；D1398是现有发布P1的必要修复，仅A从已验ca3及正式方案独立docs commit创建`codex/profile-content-validity-A`，不继续在merge写prod，不增成员/letter，不改loop子模块。新[完整方案](../plans/profile-content-validity.md)已获独立全文规则16 APPROVED C0/I0/M0，首I1及窄复审两句已改入，accepted表示合同签收。独立docs提交`19a7aefedbd`后已建A新分支，父已授权唯一作者实施，尚未冻结/验证，不把方案签收当代码通过。B只读候选/方案准备，D1398解除并真实P5–P7结束后才可启独立F轨，无需另向人类确认。
+A1 已从原 profile-content-validity-A 主题合入当前 merge HEAD（`cca88013437`，基线 `41f2001e0fc`），并在 merge 单流水线通过 `compile-client` 与 `valid-layers-check`（均 0 错误）。D1398 仍是现有发布 P1 的真实安全门：默认窗口/钉死引擎验证尚未执行；产品 push hold、D1395 open、旧波与外部 WIP 保留。B 只读候选/方案准备，真实 P5–P7 完成前不启独立 F 轨。
 
 | 工位 | 实盘准备快照与有界下一步 |
 | --- | --- |
-| merge | `codex/merge`的当前源码基线ca3、方案docs基线19a7；仅维护本波process docs，不写prod、不parked、不push。唯一docs/Git及全部compile/lint/tests执行者。 |
-| A | 从19a7创建codex/profile-content-validity-A，旧Tools1ec07 ref不变；唯一作者profile_content的c3/15source保持冻结，Node24两目标0、Node774同JS复用、browser526/0、精确私有对照完成，lint11既有warning限定例外。唯一integration正在A补齐同主题知识/行动层，专题Gate/提交/真合及真实门待，不宣idle。 |
+| merge | `codex/merge` 当前已含 A1（`cca88013437`）；仅维护本波 process docs 与证据，不写真实窗口/engine、不 parked、不 push。唯一 docs/Git 及 compile/lint/tests 执行者。 |
+| A | A1源码/文档已合入 merge；Node24 两目标、Node/common、browser 与私有对照证据保留，lint 既有 warning 按原边界记录。真实窗口/引擎门待，不宣产品发布。 |
 | B | `codex/wiki-git-context-B=cb784d97706`、clean且为ca3祖先；仍属旧wave，仅只读F候选/方案准备，不先采F、不继承171信用、不授权prod。 |
 | 主仓/C/D/E/F | 人类WIP与外部在途候选保留，不接管、不对齐、不根据旧表推断idle。当前own2与旧无效profile目录只读不清理。 |
 

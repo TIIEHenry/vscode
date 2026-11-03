@@ -35,7 +35,7 @@ ToolInfo success 与 catch 同时校验捕获 engine/link/workroot/source、详�
 
 ### Profile 内容有效性与原始正文
 
-D1398的A候选代码/自动层已完成，尚未作为已集成真实产品签收；全局push hold仍在，当前阶段见[本波证据](../../../dev/progress/tools-wiki-wave-2026-11-02-evidence.md)。New使用标准Dialog收集Name与必填多行Instructions，仅Name trim；text opt-in多行复用标准输入/焦点/验证，password仍单行。多行Enter/ShiftEnter留换行，单行Enter沿原提交；有限高度保窄窗按钮可达。真实IME、额外主题和窄窗手测须按实际另列，不因DOM测试通过而称全面UI验收。
+D1398 A1源码与同主题文档已在当前 merge HEAD 本地合入（`cca88013437`，基线 `41f2001e0fc`），merge `compile-client` 与 `valid-layers-check` 均 0 错误；这仍不是默认窗口/钉死引擎真实产品签收。全局 push hold 仍在，当前阶段见[本波证据](../../../dev/progress/tools-wiki-wave-2026-11-02-evidence.md)。New使用标准Dialog收集Name与必填多行Instructions，仅Name trim；text opt-in多行复用标准输入/焦点/验证，password仍单行。多行Enter/ShiftEnter留换行，单行Enter沿原提交；有限高度保窄窗按钮可达。真实IME、额外主题和窄窗手测须按实际另列，不因DOM测试通过而称全面UI验收。
 
 `systemPrompt`是最终profile的raw Instructions权威。共同纯内容门要求string，在临时值上先仅去尾<=U+0020，再按PIN Kotlin兼容空白判非空；不改原串、不用JS trim、不解析raw body的frontmatter。metadata伪body不能替代Instructions。Agents创建/Markdown/Model/Tools派生与独立Tools Save/toggle都在最终组装后复用此门，无效时0写且保dirty/pending/选择，不创建或释放保存预约，不用旧prompt回填清空意图，外层不覆盖Instructions原因或取消文案。
 
@@ -55,7 +55,7 @@ ChannelClient 只原样转发意图，不能从新 cache 填 owner。主 IPC 在
 
 Agents、Tools、MCP、Plugins、Rules、Triggers、Clipboard 七节在意图开始、输入或确认之前捕获 owner 和目标，所有派生入口与 await 后续体保留该意图，并核原选择、操作代次和 dispose。Agents 的 Markdown/Model/Tools 派生保存不能把取消覆盖成后端失败；Tools 原草稿、预约与结果门继续有效。MCP 同捕 server id、origin/scope 和 project workDir，确认后不能取新目录/目标；同 id 不同 origin 的晚回不更新新页。Triggers 的晚 Fire/Delete 与后续刷新不覆盖新选择；Clipboard 对话框 helper 返回后的外层续体也核原 owner、action/render 代次与 dispose。未确认或归属取消不报告后端写失败。
 
-Profile 内容完整性另有[D1398/P1](../../../dev/progress/deferred-gaps.md)：现有 custom profile 的空正文/空白/仅frontmatter保存可使 PIN 先写后 reload 失败，New 又缺非空指令；本轮A已落实内容门及表示修复并通过自动层，仍待集成/真实门，不以 owner 门或IDE内容门代PIN多文件事务。当前没有实际复现用户资料损坏，不据此归因真实 Save 的来源未定问题。
+Profile 内容完整性另有[D1398/P1](../../../dev/progress/deferred-gaps.md)：现有 custom profile 的空正文/空白/仅frontmatter保存可使 PIN 先写后 reload 失败，New 又缺非空指令；本轮A已落实内容门及表示修复并通过自动层，且已在 merge 本地合入并通过 compile-client/valid-layers-check；真实窗口/钉死引擎门仍待，不以 owner 门或IDE内容门代 PIN 多文件事务。当前没有实际复现用户资料损坏，不据此归因真实 Save 的来源未定问题。
 
 前 13 个入口为可写路径的 P1 归属缺口；Triggers/Clipboard 六项仅同结构防漏，当前钉死引擎的空业务 scope/session 会先拒绝，保持原业务字段，不为验收填新 session。Config/Permission/raw 域未纳本批，不能据此声称安全；Context/Hooks/Token Usage/Overview catalog 为只读。本批19owner代码及自动层已获独立最终CommitGate PASS，D1397仅本地专题closed；准确范围与运行签收见[D1397 与本波证据](../../../dev/progress/tools-wiki-wave-2026-11-02-evidence.md)，真实窗口 Save 失败的 D1395 独立保持 open。
 
