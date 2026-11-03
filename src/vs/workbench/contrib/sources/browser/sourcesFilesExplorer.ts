@@ -106,6 +106,9 @@ export function readSourcesFilesListMode(
 export class SourcesFilesExplorer extends ExplorerView {
 
 	private _isDisposed = false;
+	get isDisposed(): boolean {
+		return this._isDisposed;
+	}
 	private listMode = false;
 	private listModeReady = false;
 	private listDirectory: URI | undefined;
@@ -199,9 +202,18 @@ export class SourcesFilesExplorer extends ExplorerView {
 
 	override dispose(): void {
 		this._isDisposed = true;
-		if (this.actionsElement && this.actionsElement.parentElement !== this.actionsHome) {
+		this.dockInlineFilter(undefined);
+		this.dockActions(undefined);
+		if (this.actionsElement) {
+			dom.clearNode(this.actionsElement);
 			this.actionsElement.remove();
+			this.actionsElement = undefined;
 		}
+		this.actionsHome = undefined;
+		this.actionsHost = undefined;
+		this.listRootItem = undefined;
+		this.listDirectory = undefined;
+		this.savedTreeViewState = undefined;
 		super.dispose();
 	}
 
@@ -252,6 +264,9 @@ export class SourcesFilesExplorer extends ExplorerView {
 	}
 
 	setListMode(list: boolean): void {
+		if (this.isDisposed) {
+			return;
+		}
 		if (this.listMode === list) {
 			this.listModeContext.set(list);
 			return;
@@ -274,7 +289,7 @@ export class SourcesFilesExplorer extends ExplorerView {
 		this.persistListMode(sourcesFilesListModeStorageKey(scope.projectKey, scope.sessionId), list ? 'list' : 'tree');
 		this.updateLocationBreadcrumb();
 		void this.setTreeInput().then(() => {
-			if (this._isDisposed) {
+			if (this.isDisposed) {
 				return;
 			}
 			this.updateLocationBreadcrumb();
@@ -329,6 +344,9 @@ export class SourcesFilesExplorer extends ExplorerView {
 	}
 
 	override collapseAll(): void {
+		if (this.isDisposed) {
+			return;
+		}
 		if (!this.listMode) {
 			super.collapseAll();
 			return;
@@ -383,13 +401,18 @@ export class SourcesFilesExplorer extends ExplorerView {
 		return item;
 	}
 
-	private showListDirectory(resource: URI): Promise<void> {
+	private async showListDirectory(resource: URI): Promise<void> {
+		if (this.isDisposed) {
+			return;
+		}
 		const folders = this.contextService.getWorkspace().folders.map(folder => folder.uri);
 		this.listDirectory = sourcesListDirectoryTarget(resource, folders, (candidate, parent) => this.uriIdentityService.extUri.isEqualOrParent(candidate, parent)) ?? resource;
 		this.updateLocationBreadcrumb();
-		return this.setTreeInput().then(() => {
-			this.updateLocationBreadcrumb();
-		});
+		await this.setTreeInput();
+		if (this.isDisposed) {
+			return;
+		}
+		this.updateLocationBreadcrumb();
 	}
 
 	private async findExplorerDirectory(resource: URI): Promise<ExplorerItem | undefined> {
@@ -459,6 +482,9 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	setFilterDock(dock: HTMLElement | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.filterDock = dock;
 		this.explorer?.dockInlineFilter(dock);
 		const actions = this.explorer?.getActionsElement();
@@ -468,6 +494,9 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	setActionsDock(dock: HTMLElement | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.actionsDock = dock;
 		this.explorer?.dockActions(dock);
 		const actions = this.explorer?.getActionsElement();
@@ -494,10 +523,16 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	getActionsElement(): HTMLElement | undefined {
+		if (this._store.isDisposed) {
+			return undefined;
+		}
 		return this.explorer?.getActionsElement();
 	}
 
 	setFilesTabActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.filesTabActive = active;
 		// The tab panel itself owns visibility. Do not toggle ExplorerView visibility
 		// here: ExplorerView refreshes and re-selects the active editor whenever it
@@ -515,6 +550,9 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	layout(height: number, width: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const actionsRowHeight = this.panelActionsRow.hidden ? 0 : this.panelActionsRow.offsetHeight;
 		this.paneView?.layout(Math.max(0, height - actionsRowHeight), width);
 	}
@@ -664,7 +702,11 @@ export class SourcesFilesExplorerHost extends Disposable {
 	override dispose(): void {
 		this.disposeEngineDirectory();
 		this.disposeExplorer();
+		this.empty.remove();
+		dom.clearNode(this.root);
 		this.root.remove();
+		this.filterDock = undefined;
+		this.actionsDock = undefined;
 		super.dispose();
 	}
 }

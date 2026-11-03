@@ -534,6 +534,7 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(!explorer.includes('registerViewContainer'));
 		assert.ok(!explorer.includes('viewsService.openView'));
 		assert.ok(!config.includes('sources.files.viewMode'));
+		assert.ok(!explorer.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });
 

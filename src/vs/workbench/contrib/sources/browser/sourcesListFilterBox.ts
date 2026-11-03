@@ -72,11 +72,17 @@ export class SourcesListFilterBox extends Disposable {
 	}
 
 	focus(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.input.focus();
 	}
 
 	/** `undefined` returns the box to the panel it was built in. */
 	dock(host: HTMLElement | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (host) {
 			if (this.element.parentElement !== host) {
 				if (this.element.parentElement) {
@@ -94,8 +100,18 @@ export class SourcesListFilterBox extends Disposable {
 	}
 
 	setAvailable(available: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.element.style.display = available ? '' : 'none';
 		this.element.classList.toggle('is-hidden', !available);
+	}
+
+	override dispose(): void {
+		this.dockHome = undefined;
+		dom.clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 
 	private updateClearVisibility(): void {

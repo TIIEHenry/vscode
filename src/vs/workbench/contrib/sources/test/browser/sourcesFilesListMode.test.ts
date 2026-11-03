@@ -65,6 +65,33 @@ suite('Sources - files list mode', () => {
 		assert.strictEqual(clear.getAttribute('aria-label'), 'Clear filter');
 	});
 
+	test('SourcesListFilterBox clears child nodes, detaches element, and guards methods on dispose', function () {
+		const parent = document.createElement('div');
+		const host = document.createElement('div');
+		const filterBox = new SourcesListFilterBox(parent, 'Filter files', 'Filter files');
+
+		assert.strictEqual(parent.contains(filterBox.element), true);
+		assert.strictEqual(filterBox.element.childNodes.length > 0, true);
+
+		filterBox.dock(host);
+		assert.strictEqual(host.contains(filterBox.element), true);
+		assert.strictEqual(filterBox.element.classList.contains('is-docked'), true);
+
+		filterBox.dispose();
+
+		assert.strictEqual(filterBox.element.parentElement, null);
+		assert.strictEqual(filterBox.element.childNodes.length, 0);
+
+		// Post-disposal calls should safely no-op and not re-attach or throw
+		filterBox.dock(parent);
+		assert.strictEqual(filterBox.element.parentElement, null);
+
+		filterBox.setAvailable(false);
+		assert.strictEqual(filterBox.element.parentElement, null);
+
+		filterBox.focus();
+	});
+
 	test('same project key shares list mode and different project keys stay independent', function () {
 		const values = new Map<string, string>();
 		const read = (key: string) => values.get(key);

@@ -1511,4 +1511,29 @@ suite('Sources - Files explorer engine directory', () => {
 		assert.strictEqual(explorerEmpty(mounted.container).style.display, 'none');
 		assert.ok(mounted.container.querySelector('.monaco-pane-view'));
 	});
+
+	test('SourcesFilesExplorerHost detaches and clears DOM tree on dispose', async function () {
+		const mounted = mountHost.call(this, { emptyWorkspace: true });
+		await timeout(0);
+
+		assert.ok(mounted.container.querySelector('.sources-files-explorer'));
+		assert.ok(mounted.container.querySelector('.sources-files-explorer-empty'));
+
+		const filterDock = document.createElement('div');
+		const actionsDock = document.createElement('div');
+		mounted.host.setFilterDock(filterDock);
+		mounted.host.setActionsDock(actionsDock);
+
+		mounted.host.dispose();
+
+		assert.strictEqual(mounted.container.childNodes.length, 0, 'host root and children should be removed from container');
+
+		// Post-disposal method calls safely no-op
+		mounted.host.setFilterDock(filterDock);
+		mounted.host.setActionsDock(actionsDock);
+		mounted.host.setFilesTabActive(true);
+		mounted.host.layout(100, 200);
+		assert.strictEqual(mounted.host.getActionsElement(), undefined);
+		assert.strictEqual(mounted.container.childNodes.length, 0);
+	});
 });
