@@ -230,7 +230,7 @@ export class EnginePluginsSection extends Disposable {
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
 		this.scanNewButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.enginePluginsScanNew', "Scan New"), Codicon.search));
-		this._register(this.scanNewButton.onDidClick(() => void this.scanNew().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.scanNewButton.onDidClick(() => void this.scanNew().catch(onUnexpectedError)));
 
 		this.scanResult = DOM.append(this.container, $('.engine-catalog-description.engine-plugins-scan-result'));
 		this.scanResult.setAttribute('role', 'status');
@@ -248,11 +248,11 @@ export class EnginePluginsSection extends Disposable {
 		this.rowToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-plugins-row-toolbar.engine-catalog-icon-actions'));
 		this.rowToolbar.style.display = 'none';
 		this.enableButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsEnable', "Enable"), Codicon.check));
-		this._register(this.enableButton.onDidClick(() => void this.enableSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.enableButton.onDidClick(() => void this.enableSelected().catch(onUnexpectedError)));
 		this.reloadButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsReload', "Reload"), Codicon.refresh));
-		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected().catch(onUnexpectedError)));
 		this.unloadButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsUnload', "Unload"), Codicon.debugDisconnect));
-		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected().catch(onUnexpectedError)));
 
 		this.infoStatus = this._register(new EngineCatalogStatusWidget(this.container));
 		this.hooksTable = DOM.append(this.container, $('table.engine-plugins-hooks-table')) as HTMLTableElement;
@@ -265,8 +265,8 @@ export class EnginePluginsSection extends Disposable {
 		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "class_name");
 		this.hooksBody = DOM.append(this.hooksTable, $('tbody'));
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError)));
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	getDomNode(): HTMLElement {
@@ -327,6 +327,9 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -335,12 +338,20 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	layout(width: number, height: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.list?.layout(Math.max(80, Math.floor(height * 0.45)), width);
 	}
 
 	override dispose(): void {
 		this.refreshGate.invalidate();
+		this.infoGeneration++;
 		this.clearCatalogPresentation();
+		this.list?.dispose();
+		this.list = undefined;
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -442,7 +453,7 @@ export class EnginePluginsSection extends Disposable {
 				this.selectedPlugin = entry?.plugin;
 				this.updateRowActions();
 				if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
-					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
 				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
@@ -512,6 +523,9 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async refreshListed(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const generation = this.refreshGate.begin();
 		this.dropLastScanIfLinkMoved();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
@@ -558,7 +572,7 @@ export class EnginePluginsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listPlugins();
-			if (!this.refreshGate.isCurrent(generation)) {
+			if (!this.refreshGate.isCurrent(generation) || this._store.isDisposed) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'plugin');
@@ -577,13 +591,13 @@ export class EnginePluginsSection extends Disposable {
 			this.renderScanResult();
 			this.renderStatus();
 			if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
-				void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError);
 			} else {
 				this.clearInfoPresentation();
 			}
 			return true;
 		} catch (error) {
-			if (!this.refreshGate.isCurrent(generation)) {
+			if (!this.refreshGate.isCurrent(generation) || this._store.isDisposed) {
 				return false;
 			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'plugin');
@@ -601,7 +615,7 @@ export class EnginePluginsSection extends Disposable {
 			});
 			this.renderStatus({
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError),
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverWriteChrome();
@@ -621,7 +635,7 @@ export class EnginePluginsSection extends Disposable {
 		this.infoStatus.render({
 			mode: 'disconnected',
 			featureLabel: PLUGIN_INFO_FEATURE,
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError),
 		});
 	}
 
@@ -640,6 +654,9 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async loadInfo(id: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// D372 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 			this.keepLeftoverHooksDisconnected();
@@ -707,7 +724,7 @@ export class EnginePluginsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: PLUGIN_INFO_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.loadInfo(id).catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => void this.loadInfo(id).catch(onUnexpectedError),
 			});
 		}
 	}
@@ -772,7 +789,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async enableSelected(): Promise<void> {
-		if (this.enableInFlight || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'enablePlugin')) {
+		if (this._store.isDisposed || this.enableInFlight || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'enablePlugin')) {
 			return;
 		}
 		const plugin = this.selectedPlugin;
@@ -798,7 +815,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async reloadSelected(): Promise<void> {
-		if (this.reloadInFlight || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'reloadPlugin')) {
+		if (this._store.isDisposed || this.reloadInFlight || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'reloadPlugin')) {
 			return;
 		}
 		const link = this.captureWriteLink();
@@ -819,7 +836,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async unloadSelected(): Promise<void> {
-		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'unloadPlugin')) {
+		if (this._store.isDisposed || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'unloadPlugin')) {
 			return;
 		}
 		if (this.selectedPlugin.source === EMBEDDED_SOURCE) {
@@ -834,7 +851,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async scanNew(): Promise<void> {
-		if (!this.canWrite() || !hasPluginWriteMethod(this.connection, 'scanNewPlugins')) {
+		if (this._store.isDisposed || !this.canWrite() || !hasPluginWriteMethod(this.connection, 'scanNewPlugins')) {
 			return;
 		}
 		const link = this.captureWriteLink();
@@ -879,6 +896,9 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async runWrite(op: () => Promise<unknown>, successCopy: string, guard: { readonly link: UniverseAgentPublishedLinkOwner; readonly pluginId: string }): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
@@ -941,7 +961,7 @@ export class EnginePluginsSection extends Disposable {
 			mode: 'failed',
 			featureLabel: PLUGINS_FEATURE,
 			reason,
-			onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+			onRetry: () => void this.refresh().catch(onUnexpectedError),
 		});
 	}
 
@@ -967,7 +987,7 @@ export class EnginePluginsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: PLUGINS_FEATURE,
 				reason: this.writeFailedReason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError),
 			});
 			return;
 		}
@@ -979,7 +999,7 @@ export class EnginePluginsSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
 				: undefined,
 		});
 	}
