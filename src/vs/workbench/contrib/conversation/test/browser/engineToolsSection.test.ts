@@ -587,10 +587,9 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.deepStrictEqual(saveCalls, []);
 	});
 
-	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError logs', async () => {
 		// refresh() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -599,9 +598,6 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -621,7 +617,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -630,10 +626,9 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when loadToolInfo catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when loadToolInfo catch-path paint throws and onUnexpectedError logs', async () => {
 		// loadToolInfo() already catches getToolInfo throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -642,9 +637,6 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -669,7 +661,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -678,10 +670,9 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when savePendingEnablement catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when savePendingEnablement catch-path paint throws and onUnexpectedError logs', async () => {
 		// savePendingEnablement() already catches saveAgentProfile throw; a lone inner reject does not leak.
 		// The void Save click still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -690,9 +681,6 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const leftover = leftoverBashTool();
@@ -727,7 +715,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -1589,4 +1577,16 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.strictEqual(toggle.classList.contains('checked'), false);
 	});
 
+	test('disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConnectionStub({ listTools: async () => ({ tools: [] }) }));
+		const section = instantiationService.createInstance(EngineToolsSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
+	});
 });

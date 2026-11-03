@@ -22,6 +22,7 @@ function sourcePath(): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 suite('Engine provider/model fire-and-forget catch scan (D1319)', () => {
@@ -31,6 +32,7 @@ suite('Engine provider/model fire-and-forget catch scan (D1319)', () => {
 	test('async settings actions catch dialog and transport failures', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
 		assert.ok(/import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/.test(source));
+		assert.strictEqual(source.includes(doubleCatch), false, 'source must not contain double catch');
 		for (const method of [
 			'promptProvider',
 			'clearProvider',
@@ -43,7 +45,7 @@ suite('Engine provider/model fire-and-forget catch scan (D1319)', () => {
 			const matches = source.match(new RegExp(`void this\\.${method}\\([^\\n;]*`, 'g')) ?? [];
 			assert.ok(matches.length > 0, `${method} should have at least one fire-and-forget call`);
 			for (const match of matches) {
-				assert.ok(match.includes(doubleCatch), `${method} fire-and-forget call must use a double catch: ${match}`);
+				assert.ok(match.includes(singleCatch), `${method} fire-and-forget call must use a single catch: ${match}`);
 			}
 		}
 	});

@@ -343,6 +343,9 @@ export class EngineToolsSection extends Disposable {
 		}));
 		this.profileSelect.render(this.profileSelectHost);
 		this._register(this.profileSelect.onDidSelect(event => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.activeProfile = this.profiles[event.index - this.profileSelectOffset];
 			this.profileSelectionMissing = !this.activeProfile;
 			this.updateSaveChrome();
@@ -353,7 +356,12 @@ export class EngineToolsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		this.saveButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.saveButton.label = localize('ua.engineToolsSave', "Save");
-		this._register(this.saveButton.onDidClick(() => void this.savePendingEnablement().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.saveButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.savePendingEnablement().catch(onUnexpectedError);
+		}));
 		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -367,21 +375,30 @@ export class EngineToolsSection extends Disposable {
 		this.infoHost.setAttribute('aria-label', localize('ua.engineToolsInfoRegion', "Tool details"));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 
 		if (this.sessionContext?.onDidChangeActiveSession) {
 			this._register(this.sessionContext.onDidChangeActiveSession(() => {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.refresh().catch(onUnexpectedError);
 			}));
 		}
 		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
 			this._register(this.sessionContext.onDidChangeActiveWorkRoot(() => {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.refresh().catch(onUnexpectedError);
 			}));
 		}
 
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	layout(width: number, listHeight: number): void {
@@ -391,8 +408,11 @@ export class EngineToolsSection extends Disposable {
 
 	override dispose(): void {
 		this.refreshGeneration++;
+		this.infoLoadGeneration++;
 		this.invalidateWriteResults();
 		this.clearCatalogPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -401,6 +421,9 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.updateContainerVisibility();
 	}
@@ -474,6 +497,9 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	selectTool(toolName: string): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const name = toolName.trim();
 		if (!name || !this.list) {
 			return false;
@@ -487,7 +513,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	async savePendingEnablement(): Promise<boolean> {
-		if (!this.canWrite() || !this.activeProfile || this.isActiveProfileBusy()) {
+		if (this._store.isDisposed || !this.canWrite() || !this.activeProfile || this.isActiveProfileBusy()) {
 			return false;
 		}
 		const prefix = `${this.activeProfile.id}\u0000`;
@@ -501,7 +527,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	async toggleTool(tool: UniverseAgentToolSummary, enabled: boolean): Promise<boolean> {
-		if (!this.canWrite() || !this.activeProfile || this.isActiveProfileBusy()) {
+		if (this._store.isDisposed || !this.canWrite() || !this.activeProfile || this.isActiveProfileBusy()) {
 			return false;
 		}
 		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
@@ -510,6 +536,9 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private async saveToolEnablement(changes: ReadonlyArray<{ readonly toolName: string; readonly enabled: boolean }>): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const scope = this.currentCatalogScope();
 		const activeProfile = this.activeProfile;
 		const owner = captureEnginePublishedLinkOwner(this.connection);
@@ -540,6 +569,9 @@ export class EngineToolsSection extends Disposable {
 				return false;
 			}
 			const result = await this.connection.saveAgentProfile({ profile }, owner);
+			if (this._store.isDisposed) {
+				return false;
+			}
 			const currentProfile = this.activeProfile;
 			if (!this.isWriteCurrent(operation) || !currentProfile) {
 				return false;
@@ -684,7 +716,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	setPendingEnablement(tool: UniverseAgentToolSummary, enabled: boolean): void {
-		if (!this.activeProfile || !this.canWrite()) {
+		if (this._store.isDisposed || !this.activeProfile || !this.canWrite()) {
 			return;
 		}
 		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
@@ -694,6 +726,9 @@ export class EngineToolsSection extends Disposable {
 
 	/** Test hook: programmatically toggle a tool by name. */
 	async toggleToolForTest(name: string, enabled: boolean): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const entry = this.listEntries.find(item => item.kind === 'tool' && item.tool.name === name);
 		if (entry?.kind === 'tool') {
 			return this.toggleTool(entry.tool, enabled);
@@ -744,14 +779,14 @@ export class EngineToolsSection extends Disposable {
 				},
 			)) as WorkbenchList<EngineToolListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
-				if (this.repaintingRows) {
+				if (this._store.isDisposed || this.repaintingRows) {
 					return;
 				}
 				const entry = e.elements[0];
 				if (entry?.kind === 'tool') {
 					this.selectedToolName = entry.tool.name;
 					if (canShowCatalogRows(this.mode)) {
-						void this.loadToolInfo(entry.tool.name).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.loadToolInfo(entry.tool.name).catch(onUnexpectedError);
 					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
 						this.infoHost.style.display = '';
 					} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
@@ -850,6 +885,9 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.syncCatalogScope();
 		const scope = this.catalogScope;
 		const generation = ++this.refreshGeneration;
@@ -898,7 +936,7 @@ export class EngineToolsSection extends Disposable {
 				this.listSessionTools(),
 				this.listSessionAgentProfiles(),
 			]);
-			if (generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
+			if (this._store.isDisposed || generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
 				return;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
@@ -923,10 +961,10 @@ export class EngineToolsSection extends Disposable {
 			if (selectedToolName && this.listEntries.some(entry => entry.kind === 'tool' && entry.tool.name === selectedToolName)) {
 				this.selectedToolName = selectedToolName;
 				// D275: keep leftover detail while the next getToolInfo is in-flight.
-				void this.loadToolInfo(selectedToolName).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadToolInfo(selectedToolName).catch(onUnexpectedError);
 			}
 		} catch (error) {
-			if (generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
+			if (this._store.isDisposed || generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
 				return;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
@@ -940,7 +978,12 @@ export class EngineToolsSection extends Disposable {
 			this.updateSaveChrome();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			if (leftoverAfterList) {
 				this.closeLeftoverRowToggleChrome();
@@ -957,7 +1000,12 @@ export class EngineToolsSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				}
 				: undefined,
 		});
 	}
@@ -1046,6 +1094,9 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private async loadToolInfo(toolName: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const name = toolName.trim();
 		if (!name) {
 			this.clearToolInfo();

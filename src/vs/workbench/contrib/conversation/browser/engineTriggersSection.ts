@@ -190,20 +190,45 @@ export class EngineTriggersSection extends Disposable {
 
 		const actionsRow = DOM.append(this.container, $('.engine-triggers-actions'));
 		this.addButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_ADD_LABEL, Codicon.add));
-		this._register(this.addButton.onDidClick(() => void this.handleUpsert('add').catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.addButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleUpsert('add').catch(onUnexpectedError);
+		}));
 
 		this.editButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_EDIT_LABEL, Codicon.edit));
-		this._register(this.editButton.onDidClick(() => void this.handleUpsert('edit').catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.editButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleUpsert('edit').catch(onUnexpectedError);
+		}));
 
 		this.fireButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_FIRE_LABEL, Codicon.play));
-		this._register(this.fireButton.onDidClick(() => void this.handleFire().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.fireButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleFire().catch(onUnexpectedError);
+		}));
 
 		this.setEnabledButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_ENABLE_LABEL, Codicon.check));
-		this._register(this.setEnabledButton.onDidClick(() => void this.handleSetEnabled().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.setEnabledButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleSetEnabled().catch(onUnexpectedError);
+		}));
 
 		this.deleteButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_DELETE_LABEL, Codicon.trash));
 		this.deleteButton.element.classList.add('is-danger');
-		this._register(this.deleteButton.onDidClick(() => void this.handleDelete().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.deleteButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleDelete().catch(onUnexpectedError);
+		}));
 
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
 		this.fireStatus.style.display = 'none';
@@ -219,8 +244,11 @@ export class EngineTriggersSection extends Disposable {
 		this.updateUpsertAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.sectionActive) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 				return;
 			}
 			// The nav stays visible while this section is hidden. A real disconnect
@@ -249,10 +277,13 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.container.style.display = active ? '' : 'none';
 		if (active) {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}
 	}
 
@@ -265,11 +296,20 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	override dispose(): void {
+		++this.renderGeneration;
 		++this._setEnabledGeneration;
+		++this._fireGeneration;
+		++this._deleteGeneration;
+		++this._upsertGeneration;
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
 	private async refresh(acceptResult: () => boolean = () => true): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const generation = ++this.renderGeneration;
 		++this._setEnabledGeneration;
 		++this._fireGeneration;
@@ -360,7 +400,12 @@ export class EngineTriggersSection extends Disposable {
 				mode: 'failed',
 				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
 				reason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			// D437: leftover rows stay; write chrome must close after list-fail.
 			this.updateWriteActions();
@@ -417,14 +462,24 @@ export class EngineTriggersSection extends Disposable {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+				onOpenConnection: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				},
 			});
 			return false;
 		}
 		this.clearListPresentation();
 		this.status.render({
 			mode: 'disconnected',
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+			onOpenConnection: () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+			},
 		});
 		return false;
 	}
@@ -473,6 +528,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private selectTrigger(trigger: UniverseAgentTrigger): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.selectedTrigger?.triggerId !== trigger.triggerId) {
 			++this._fireGeneration;
 			++this._deleteGeneration;
@@ -485,6 +543,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private onTriggerRowKeyDown(event: KeyboardEvent, trigger: UniverseAgentTrigger): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const action = readEngineListRowKey(event);
 		if (!action) {
 			return;
@@ -593,6 +654,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private async handleSetEnabled(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hook = this.connection.setTriggerEnabled;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), this.triggerSupported('setTriggerEnabled', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
@@ -627,6 +691,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private async handleFire(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hook = this.connection.fireTrigger;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), this.triggerSupported('fireTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
@@ -656,6 +723,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private async handleDelete(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hook = this.connection.deleteTrigger;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), this.triggerSupported('deleteTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
@@ -693,6 +763,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private async promptTrigger(mode: 'add' | 'edit', origin: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentTrigger | undefined> {
+		if (this._store.isDisposed) {
+			return undefined;
+		}
 		const selected = mode === 'edit' && this.selectedTrigger ? { ...this.selectedTrigger, target: { ...this.selectedTrigger.target } } : undefined;
 		if (mode === 'edit' && !selected) {
 			return undefined;
@@ -713,7 +786,7 @@ export class EngineTriggersSection extends Disposable {
 			inputs: triggerFormInputs(selected),
 			validate: triggerFormValidate,
 		});
-		if (!result.confirmed) {
+		if (this._store.isDisposed || !result.confirmed) {
 			return undefined;
 		}
 		if (!this.triggerWriteLinkStill(origin) || (mode === 'edit' && this.selectedTrigger?.triggerId !== selected?.triggerId)) {
@@ -730,6 +803,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hook = this.connection.upsertTrigger;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
@@ -741,7 +817,7 @@ export class EngineTriggersSection extends Disposable {
 		const origin = this.triggerWriteOrigin();
 		if (!origin) { return; }
 		const drafted = await this.promptTrigger(mode, origin);
-		if (!drafted) {
+		if (this._store.isDisposed || !drafted) {
 			return;
 		}
 		const liveHook = this.connection.upsertTrigger;

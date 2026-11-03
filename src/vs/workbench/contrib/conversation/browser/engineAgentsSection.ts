@@ -362,11 +362,26 @@ export class EngineAgentsSection extends Disposable {
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
 		const newButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineAgentsNew', "New agent"), Codicon.add));
-		this._register(newButton.onDidClick(() => void this.promptNewProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(newButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptNewProfile().catch(onUnexpectedError);
+		}));
 		this.resetButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineAgentsReset', "Reset"), Codicon.discard));
-		this._register(this.resetButton.onDidClick(() => void this.resetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.resetButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.resetSelectedProfile().catch(onUnexpectedError);
+		}));
 		this.deleteButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineAgentsDelete', "Delete"), Codicon.trash));
-		this._register(this.deleteButton.onDidClick(() => void this.confirmAndDeleteSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.deleteButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.confirmAndDeleteSelectedProfile().catch(onUnexpectedError);
+		}));
 		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -409,9 +424,24 @@ export class EngineAgentsSection extends Disposable {
 		this.modelTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
 		this.modelTab.label = localize('ua.engineAgentsTabModel', "Model");
 		this.modelTab.element.setAttribute('role', 'tab');
-		this._register(this.instructionsTab.onDidClick(() => this.setActiveDetailTab('instructions')));
-		this._register(this.toolsTab.onDidClick(() => this.setActiveDetailTab('tools')));
-		this._register(this.modelTab.onDidClick(() => this.setActiveDetailTab('model')));
+		this._register(this.instructionsTab.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.setActiveDetailTab('instructions');
+		}));
+		this._register(this.toolsTab.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.setActiveDetailTab('tools');
+		}));
+		this._register(this.modelTab.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.setActiveDetailTab('model');
+		}));
 
 		this.agentsEditorContainer = DOM.append(this.detailHost, $('.engine-agents-editor'));
 		this.agentsEditorContainer.style.display = 'none';
@@ -425,12 +455,20 @@ export class EngineAgentsSection extends Disposable {
 		}));
 		this.agentsEditorInput.element.classList.add('engine-agents-editor-input');
 		this._register(DOM.addDisposableListener(this.agentsEditorInput.inputElement, 'input', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.agentsMarkdownDirty = isAgentsMarkdownDirty(this.agentsEditorInput.value, this.loadedAgentsMarkdown);
 		}));
 		this.agentsEditorToolbar = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-toolbar'));
 		this.agentsEditorSaveButton = this._register(new Button(this.agentsEditorToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.agentsEditorSaveButton.label = localize('ua.engineAgentsMdSave', "Save AGENTS.md");
-		this._register(this.agentsEditorSaveButton.onDidClick(() => void this.saveAgentsMarkdown().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.agentsEditorSaveButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.saveAgentsMarkdown().catch(onUnexpectedError);
+		}));
 		this.agentsEditorStatus = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-status'));
 		this.agentsEditorStatus.setAttribute('role', 'status');
 		this.agentsEditorStatus.setAttribute('aria-live', 'polite');
@@ -445,7 +483,12 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsToolbar = DOM.append(this.toolsPanel, $('.engine-catalog-write-toolbar'));
 		this.toolsSaveButton = this._register(new Button(this.toolsToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.toolsSaveButton.label = localize('ua.engineAgentsToolsSave', "Save");
-		this._register(this.toolsSaveButton.onDidClick(() => void this.saveAgentToolEnablement().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.toolsSaveButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.saveAgentToolEnablement().catch(onUnexpectedError);
+		}));
 
 		this.modelPanel = DOM.append(this.detailHost, $('.engine-agents-model-panel'));
 		this.modelPanel.style.display = 'none';
@@ -473,13 +516,21 @@ export class EngineAgentsSection extends Disposable {
 		this.modelSaveButton.label = localize('ua.engineAgentsModelSave', "Save model");
 		this.modelSaveButton.enabled = false;
 		this.modelSaveButton.element.style.display = 'none';
-		this._register(this.modelSaveButton.onDidClick(() => void this.saveAgentModel().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.modelSaveButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.saveAgentModel().catch(onUnexpectedError);
+		}));
 		this.modelFormStatus = DOM.append(this.modelForm, $('.engine-agents-model-status'));
 		this.modelFormStatus.setAttribute('role', 'status');
 		this.modelFormStatus.setAttribute('aria-live', 'polite');
 		this.modelFormStatus.style.display = 'none';
 
 		this._register(this.list.onDidChangeSelection(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const entry = e.elements[0];
 			const next = entry?.kind === 'profile' ? entry.profile : undefined;
 			if ((this.agentsMarkdownDirty || this.modelDirty) && next?.id !== this.selectedProfile?.id) {
@@ -494,7 +545,7 @@ export class EngineAgentsSection extends Disposable {
 			}
 			this.selectedProfile = next;
 			this.updateWriteActions();
-			void this.loadAgentsEditorForSelection().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.loadAgentsEditorForSelection().catch(onUnexpectedError);
 			this.renderAgentTools();
 			// Paint the model form only on the Model tab (or when nothing is selected).
 			// Selecting a profile on Instructions must not mark an unopened form as leftover.
@@ -505,28 +556,37 @@ export class EngineAgentsSection extends Disposable {
 		}));
 
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.loadedAgentsContext && !this.sameWriteLink(this.loadedAgentsContext.owner)) {
 				this.retireAgentsEditorContext();
 			}
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}));
 
 		if (this.sessionContext?.onDidChangeActiveSession) {
 			this._register(this.sessionContext.onDidChangeActiveSession(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.retireAgentsEditorContext();
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}));
 		}
 		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
 			this._register(this.sessionContext.onDidChangeActiveWorkRoot(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.retireAgentsEditorContext();
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}));
 		}
 
 		this.renderModelTab();
 		this.setActiveDetailTab('instructions');
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	layout(width: number, viewportHeight: number): void {
@@ -538,7 +598,11 @@ export class EngineAgentsSection extends Disposable {
 	override dispose(): void {
 		this.refreshGeneration++;
 		this.agentToolsLoadGeneration++;
+		this.selectionGeneration++;
+		this.agentsEditorLoadGeneration++;
 		this.clearCatalogPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -677,6 +741,9 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.updateContainerVisibility();
 	}
@@ -809,6 +876,9 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	async saveAgentModelForTest(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		return this.saveAgentModel();
 	}
 
@@ -850,6 +920,9 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	async saveAgentToolEnablementForTest(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		return this.saveAgentToolEnablement();
 	}
 
@@ -870,6 +943,9 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	async selectProfileByIdForTest(id: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const index = this.listEntries.findIndex(entry => entry.kind === 'profile' && entry.profile.id === id);
 		if (index < 0) {
 			this.selectedProfile = undefined;
@@ -890,7 +966,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async promptNewProfile(): Promise<void> {
-		if (!this.canWrite()) {
+		if (this._store.isDisposed || !this.canWrite()) {
 			return;
 		}
 		const link = this.captureWriteLink();
@@ -918,7 +994,7 @@ export class EngineAgentsSection extends Disposable {
 			],
 			validate: values => !(values[0] ?? '').trim() ? required : getAgentProfileContentIssue({ systemPrompt: values[1] }),
 		});
-		if (!result.confirmed || !result.values || !this.canWrite() || !this.sameWriteLink(link)) {
+		if (this._store.isDisposed || !result.confirmed || !result.values || !this.canWrite() || !this.sameWriteLink(link)) {
 			return;
 		}
 		const name = (result.values[0] ?? '').trim();
@@ -937,7 +1013,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	async createProfile(profile?: UniverseAgentAgentProfileDetail, expectedOwner?: EngineWriteLink): Promise<boolean> {
-		if (!this.canWrite()) {
+		if (this._store.isDisposed || !this.canWrite()) {
 			return false;
 		}
 		const link = expectedOwner ?? this.captureWriteLink();
@@ -959,7 +1035,7 @@ export class EngineAgentsSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.saveAgentProfile({ profile: payload }, link);
-			if (!this.sameWriteLink(link)) {
+			if (this._store.isDisposed || !this.sameWriteLink(link)) {
 				return false;
 			}
 			if (!result.profile.id) {
@@ -969,7 +1045,7 @@ export class EngineAgentsSection extends Disposable {
 			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY, link)
 				&& this.sameWriteLink(link);
 		} catch (error) {
-			if (!this.sameWriteLink(link)) {
+			if (this._store.isDisposed || !this.sameWriteLink(link)) {
 				return false;
 			}
 			if (isCancellationError(error)) { this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
@@ -980,7 +1056,7 @@ export class EngineAgentsSection extends Disposable {
 
 	private async confirmAndDeleteSelectedProfile(): Promise<void> {
 		const selected = this.selectedProfile ? { ...this.selectedProfile } : undefined;
-		if (!this.canWrite() || !selected || selected.source === 'built_in') {
+		if (this._store.isDisposed || !this.canWrite() || !selected || selected.source === 'built_in') {
 			return;
 		}
 		const link = this.captureWriteLink();
@@ -995,7 +1071,7 @@ export class EngineAgentsSection extends Disposable {
 			detail: localize('ua.engineAgentsDeleteConfirmDetail', "This removes the profile from the engine."),
 			confirmLabel: localize('ua.engineAgentsDelete', "Delete"),
 		});
-		if (!confirmed || this.selectedProfile?.id !== selected.id || !this.canWrite() || !this.sameWriteLink(link)) {
+		if (this._store.isDisposed || !confirmed || this.selectedProfile?.id !== selected.id || !this.canWrite() || !this.sameWriteLink(link)) {
 			return;
 		}
 		await this.deleteSelectedProfile({ profile: selected, owner: link });
@@ -1003,7 +1079,7 @@ export class EngineAgentsSection extends Disposable {
 
 	async deleteSelectedProfile(intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: EngineWriteLink }): Promise<boolean> {
 		const selected = intent?.profile ?? this.selectedProfile;
-		if (!this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
+		if (this._store.isDisposed || !this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
 			return false;
 		}
 		if (selected.source === 'built_in') {
@@ -1019,7 +1095,7 @@ export class EngineAgentsSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.deleteAgentProfile({ id: profileId }, link);
-			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+			if (this._store.isDisposed || !this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -1032,12 +1108,13 @@ export class EngineAgentsSection extends Disposable {
 			this.selectionGeneration++;
 			const settledSelectionGeneration = this.selectionGeneration;
 			const settled = await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY, link)
+				&& !this._store.isDisposed
 				&& this.sameWriteLink(link)
 				&& this.selectionGeneration === settledSelectionGeneration;
 			this.focusListAfterProfileClear(deletedIndex);
 			return settled;
 		} catch (error) {
-			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+			if (this._store.isDisposed || !this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
 			if (isCancellationError(error)) { this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
@@ -1062,7 +1139,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	async resetSelectedProfile(): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedProfile) {
+		if (this._store.isDisposed || !this.canWrite() || !this.selectedProfile) {
 			return false;
 		}
 		if (this.selectedProfile.source !== 'built_in') {
@@ -1077,7 +1154,7 @@ export class EngineAgentsSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.resetAgentProfile({ id: profileId }, link);
-			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+			if (this._store.isDisposed || !this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -1085,6 +1162,7 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			if (!await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_RESET_SUCCESS_COPY, link)
+				|| this._store.isDisposed
 				|| !this.sameWriteLink(link)
 				|| !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
@@ -1094,7 +1172,7 @@ export class EngineAgentsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+			if (this._store.isDisposed || !this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
 			if (isCancellationError(error)) { this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
@@ -1105,7 +1183,7 @@ export class EngineAgentsSection extends Disposable {
 
 	async saveSelectedProfile(updates: Partial<UniverseAgentAgentProfileDetail> = {}, intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: EngineWriteLink; readonly onCancelled?: () => void; readonly onContentRejected?: (issue: string) => void; readonly isContextCurrent?: () => boolean }): Promise<boolean> {
 		const selected = intent?.profile ?? this.selectedProfile;
-		if (!this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
+		if (this._store.isDisposed || !this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
 			return false;
 		}
 		if (selected.source === 'built_in') {
@@ -1130,7 +1208,7 @@ export class EngineAgentsSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.saveAgentProfile({ profile }, link);
-			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration) || intent?.isContextCurrent?.() === false) {
+			if (this._store.isDisposed || !this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration) || intent?.isContextCurrent?.() === false) {
 				return false;
 			}
 			if (!result.profile.id) {
@@ -1138,11 +1216,12 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_SAVE_SUCCESS_COPY, link, intent?.isContextCurrent)
+				&& !this._store.isDisposed
 				&& this.sameWriteLink(link)
 				&& this.sameSelectedProfile(profileId, selectionGeneration)
 				&& intent?.isContextCurrent?.() !== false;
 		} catch (error) {
-			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration) || intent?.isContextCurrent?.() === false) {
+			if (this._store.isDisposed || !this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration) || intent?.isContextCurrent?.() === false) {
 				return false;
 			}
 			if (isCancellationError(error)) { intent?.onCancelled?.(); this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
@@ -1152,7 +1231,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	async saveAgentsMarkdown(): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedProfile || this.selectedProfile.source === 'built_in') {
+		if (this._store.isDisposed || !this.canWrite() || !this.selectedProfile || this.selectedProfile.source === 'built_in') {
 			return false;
 		}
 		const context = this.loadedAgentsContext;
@@ -1216,7 +1295,12 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsPanel.style.display = tab === 'tools' && this.selectedProfile ? '' : 'none';
 		this.modelPanel.style.display = tab === 'model' && this.selectedProfile ? '' : 'none';
 		if (tab === 'tools') {
-			void this.ensureAgentToolsLoaded(forceAgentToolsReload).then(() => this.renderAgentTools()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.ensureAgentToolsLoaded(forceAgentToolsReload).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.renderAgentTools();
+			}).catch(onUnexpectedError);
 		}
 		if (tab === 'model') {
 			this.renderModelTab();
@@ -1274,14 +1358,14 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async restoreCatalogWriteSuccessAfterRefresh(copy: string, link: EngineWriteLink, isContextCurrent: () => boolean = () => true): Promise<boolean> {
-		if (!this.sameWriteLink(link) || !isContextCurrent()) {
+		if (this._store.isDisposed || !this.sameWriteLink(link) || !isContextCurrent()) {
 			return false;
 		}
 		this.showCatalogWriteStatus(copy);
 		const listed = await this.refresh(isContextCurrent);
 		// A failed follow-up List is not a rejected write. An invalidated
 		// editing context cannot update even the saved-result bookkeeping.
-		const stillSame = this.sameWriteLink(link) && isContextCurrent();
+		const stillSame = !this._store.isDisposed && this.sameWriteLink(link) && isContextCurrent();
 		if (!stillSame) {
 			return false;
 		}
@@ -1293,11 +1377,11 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async restoreMarkdownSaveSuccessIfListed(profileId: string, link?: EngineWriteLink, isCurrent: () => boolean = () => true): Promise<void> {
-		if (this.selectedProfile?.id !== profileId || !isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
+		if (this._store.isDisposed || this.selectedProfile?.id !== profileId || !isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
 			return;
 		}
 		await this.loadAgentsEditorForSelection(true);
-		if (!isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
+		if (this._store.isDisposed || !isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
 			return;
 		}
 		this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'success');
@@ -1310,6 +1394,9 @@ export class EngineAgentsSection extends Disposable {
 	 * gate (not `canPerformCatalogWrite`).
 	 */
 	async restoreMarkdownSaveSuccessWithLeftoverReadyForTest(profileId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.mode = 'ready';
 		await this.restoreMarkdownSaveSuccessIfListed(profileId);
 	}
@@ -1446,7 +1533,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async saveAgentModel(): Promise<boolean> {
-		if (!this.canEditModel() || !this.selectedProfile || this.modelMaxTurnsInvalid) {
+		if (this._store.isDisposed || !this.canEditModel() || !this.selectedProfile || this.modelMaxTurnsInvalid) {
 			return false;
 		}
 		const parsed = agentProfileModelFieldsFromInput({
@@ -1464,7 +1551,7 @@ export class EngineAgentsSection extends Disposable {
 		const selectionGeneration = this.selectionGeneration;
 		// List profile already carries AGENTS.md. Reparsing it here drops a prompt that starts with ---.
 		const ok = await this.saveSelectedProfile(agentProfileModelSaveUpdates(parsed.fields), { profile: this.selectedProfile, owner });
-		if (!this.sameWriteLink(owner) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+		if (this._store.isDisposed || !this.sameWriteLink(owner) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 			return false;
 		}
 		if (!ok) {
@@ -1491,6 +1578,9 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async ensureAgentToolsLoaded(forceReload = false): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.agentToolsLoadGeneration;
 		// D352 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -1511,13 +1601,13 @@ export class EngineAgentsSection extends Disposable {
 				request?: { readonly projectPath?: string },
 			) => ReturnType<IUniverseAgentConnection['listTools']>;
 			const result = await (projectPath ? listTools.call(this.connection, { projectPath }) : this.connection.listTools());
-			if (generation !== this.agentToolsLoadGeneration) {
+			if (this._store.isDisposed || generation !== this.agentToolsLoadGeneration) {
 				return;
 			}
 			this.agentTools = [...result.tools];
 			this.agentToolsLoadFailed = undefined;
 		} catch (error) {
-			if (generation !== this.agentToolsLoadGeneration) {
+			if (this._store.isDisposed || generation !== this.agentToolsLoadGeneration) {
 				return;
 			}
 			if (this.agentTools.length === 0) {
@@ -1558,7 +1648,17 @@ export class EngineAgentsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: AGENT_TOOLS_FEATURE,
 				reason: this.agentToolsLoadFailed || undefined,
-				onRetry: () => void this.ensureAgentToolsLoaded(true).then(() => this.renderAgentTools()).catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.ensureAgentToolsLoaded(true).then(() => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						this.renderAgentTools();
+					}).catch(onUnexpectedError);
+				},
 			});
 			if (this.agentTools.length === 0) {
 				return;
@@ -1612,7 +1712,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async saveAgentToolEnablement(): Promise<boolean> {
-		if (!this.canEditAgentTools() || !this.selectedProfile) {
+		if (this._store.isDisposed || !this.canEditAgentTools() || !this.selectedProfile) {
 			return false;
 		}
 		const owner = this.captureWriteLink();
@@ -1631,7 +1731,7 @@ export class EngineAgentsSection extends Disposable {
 		}
 		const profile = applyToolEnablementChanges(summaryToProfileDetail(this.selectedProfile), changes);
 		const ok = await this.saveSelectedProfile(profile, { profile: this.selectedProfile, owner });
-		if (!this.sameWriteLink(owner) || !this.sameSelectedProfile(profileId, selectionGeneration)) { return false; }
+		if (this._store.isDisposed || !this.sameWriteLink(owner) || !this.sameSelectedProfile(profileId, selectionGeneration)) { return false; }
 		if (ok) {
 			for (const key of [...this.agentToolPending.keys()]) {
 				if (key.startsWith(prefix)) {
@@ -1640,7 +1740,7 @@ export class EngineAgentsSection extends Disposable {
 			}
 			await this.selectProfileByIdForTest(profileId);
 		}
-		return ok;
+		return ok && !this._store.isDisposed;
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
@@ -1715,7 +1815,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async refresh(isContextCurrent: () => boolean = () => true): Promise<boolean> {
-		if (!isContextCurrent()) {
+		if (this._store.isDisposed || !isContextCurrent()) {
 			return false;
 		}
 		const generation = ++this.refreshGeneration;
@@ -1764,7 +1864,7 @@ export class EngineAgentsSection extends Disposable {
 		const readOwner = this.publishedWriteLink();
 		try {
 			const result = await this.listSessionAgentProfiles();
-			if (generation !== this.refreshGeneration || !isContextCurrent()) {
+			if (this._store.isDisposed || generation !== this.refreshGeneration || !isContextCurrent()) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'profile');
@@ -1784,12 +1884,12 @@ export class EngineAgentsSection extends Disposable {
 			this.updateWriteActions();
 			this.syncDetailHost(true);
 			if (this.selectedProfile && !this.agentsMarkdownDirty && this.activeDetailTab === 'instructions') {
-				void this.loadAgentsEditorForSelection().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadAgentsEditorForSelection().catch(onUnexpectedError);
 			}
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration || !isContextCurrent()) {
+			if (this._store.isDisposed || generation !== this.refreshGeneration || !isContextCurrent()) {
 				return false;
 			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
@@ -1805,7 +1905,12 @@ export class EngineAgentsSection extends Disposable {
 			this.updateWriteActions();
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverAgentsEditorChrome();
@@ -1867,6 +1972,9 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private async loadAgentsEditorForSelection(acceptSavedReload = false): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.hideAgentsEditorStatus();
 
 		// D364 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
