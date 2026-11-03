@@ -27,14 +27,15 @@ suite('EmbeddedAgentPluginDetail leftover fire-and-forget catch scan (D593)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('install / uninstall / copy / open onDidClick IIFEs double-catch onUnexpectedError; bare async gone in this file only', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('install / uninstall / copy / open onDidClick IIFEs catch onUnexpectedError; bare async gone in this file only', () => {
 		const source = fs.readFileSync(embeddedAgentPluginDetailSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void \(async \(\) => \{/g) ?? []).length, 4);
-		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 4);
-		assert.ok(source.includes(`})()${doubleCatch};`));
+		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 4);
+		assert.ok(source.includes(`})()${singleCatch};`));
+		assert.ok(!source.includes(`})()${doubleCatch};`));
 		assert.ok(source.includes('await this.pluginInstallService.installPlugin(marketplacePlugin);'));
 		assert.ok(source.includes("localize('pluginInstallFailed', \"Unable to install plugin: {0}\", getErrorMessage(error))"));
 		assert.ok(source.includes('await uninstallAction.runAndGetResult();'));
@@ -49,6 +50,5 @@ suite('EmbeddedAgentPluginDetail leftover fire-and-forget catch scan (D593)', ()
 		assert.ok(!source.includes('uninstallButton.onDidClick(async () => {'));
 		assert.ok(!source.includes('copyButton.onDidClick(async () => {'));
 		assert.ok(!source.includes('openButton.onDidClick(async () => {'));
-		assert.ok(!source.includes('})().catch(onUnexpectedError);'));
 	});
 });

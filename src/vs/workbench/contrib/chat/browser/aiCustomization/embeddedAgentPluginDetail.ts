@@ -362,6 +362,9 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 						marketplaceType: item.marketplaceType,
 						readmeUri: item.readmeUri,
 					};
+					if (this._store.isDisposed) {
+						return;
+					}
 					try {
 						await this.pluginInstallService.installPlugin(marketplacePlugin);
 						if (this._store.isDisposed || this.current !== item) {
@@ -396,7 +399,7 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 						installButton.enabled = true;
 						this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
 					}
-				})().catch(onUnexpectedError).catch(onUnexpectedError);
+				})().catch(onUnexpectedError);
 			}));
 			return;
 		}
@@ -420,6 +423,9 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 			uninstallButton.enabled = uninstallAction.enabled;
 			this.renderDisposables.add(uninstallButton.onDidClick(() => {
 				void (async () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					try {
 						const removed = await uninstallAction.runAndGetResult();
 						if (removed && !this._store.isDisposed && this.current === item) {
@@ -430,7 +436,7 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 							this.notificationService.error(localize('pluginUninstallFailed', "Unable to uninstall plugin: {0}", getErrorMessage(error)));
 						}
 					}
-				})().catch(onUnexpectedError).catch(onUnexpectedError);
+				})().catch(onUnexpectedError);
 			}));
 		}
 
@@ -579,7 +585,13 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		this.renderDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), copyButton.element, () => copyPluginPathTooltip));
 		this.renderDisposables.add(copyButton.onDidClick(() => {
 			void (async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.clipboardService.writeText(uri.fsPath || uri.toString());
+				if (this._store.isDisposed) {
+					return;
+				}
 				copyButton.label = `$(${Codicon.check.id})`;
 				copyPluginPathTooltip = localize('copiedPluginPath', "Copied");
 				copyButton.setTitle(copyPluginPathTooltip);
@@ -589,7 +601,7 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 					copyPluginPathTooltip = copyPluginPathLabel;
 					copyButton.setTitle(copyPluginPathTooltip);
 				}, 1200);
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		}));
 		const openPluginFolderLabel = localize('openPluginFolder', "Open Plugin Folder");
 		const openButton = this.renderDisposables.add(new Button(container, { ...inlineButtonStyles, secondary: true, supportIcons: true, title: openPluginFolderLabel, ariaLabel: openPluginFolderLabel }));
@@ -598,17 +610,26 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		this.renderDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), openButton.element, openPluginFolderLabel));
 		this.renderDisposables.add(openButton.onDidClick(() => {
 			void (async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				try {
 					await this.commandService.executeCommand('revealFileInOS', uri);
 				} catch {
+					if (this._store.isDisposed) {
+						return;
+					}
 					await this.openerService.open(dirname(uri));
 				}
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		}));
 		return container;
 	}
 
 	private async renderReadme(item: IAgentPluginItem, renderGeneration: number): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		DOM.clearNode(this.readmeContentEl);
 		this.readmeEl.style.display = '';
 		let readme: IPluginReadme | undefined;
@@ -643,6 +664,15 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 	override dispose(): void {
 		this.current = undefined;
 		this.readmeRenderGuard.begin();
+		this.renderDisposables.dispose();
+		this.installWaitDisposables.dispose();
+		this.inputStateAutorun.dispose();
+		this.copyStateReset.dispose();
+		DOM.clearNode(this.titleActionsEl);
+		DOM.clearNode(this.factsEl);
+		DOM.clearNode(this.contributionsListEl);
+		DOM.clearNode(this.readmeContentEl);
+		this.root.remove();
 		super.dispose();
 	}
 

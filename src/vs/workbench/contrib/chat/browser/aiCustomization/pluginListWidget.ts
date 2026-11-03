@@ -488,7 +488,7 @@ class PluginMarketplaceItemRenderer implements IListRenderer<IPluginMarketplaceI
 					templateData.installButton.enabled = true;
 					this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
 				}
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		}));
 	}
 
@@ -723,6 +723,21 @@ export class PluginListWidget extends Disposable {
 		});
 	}
 
+	override dispose(): void {
+		this.delayedFilter.cancel();
+		this.delayedMarketplaceSearch.cancel();
+		this.marketplaceCts?.dispose(true);
+		this.marketplaceCts = undefined;
+		this.marketplaceSnapshotCts?.dispose(true);
+		this.marketplaceSnapshotCts = undefined;
+		this.cardDisposables.clear();
+		this.addDropdownActions.clear();
+		this.disabledLinkListener.clear();
+		DOM.clearNode(this.cardContainer);
+		this.element.remove();
+		super.dispose();
+	}
+
 	private create(): void {
 		// Section title header (title + description with inline learn more) at the top.
 		this.sectionTitleHeader = DOM.append(this.element, $('.section-title-header'));
@@ -801,14 +816,14 @@ export class PluginListWidget extends Disposable {
 			this.marketplaceCts?.dispose(true);
 			this.marketplaceCts = undefined;
 			if (this.browseMode) {
-				void this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace()).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.delayedMarketplaceSearch.trigger(() => this.queryMarketplace()).catch(onUnexpectedError);
 			} else if (this.searchQuery.trim()) {
-				void this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch()).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.delayedMarketplaceSearch.trigger(() => this.queryPluginSearch()).catch(onUnexpectedError);
 			} else {
 				this.delayedMarketplaceSearch.cancel();
 				this.marketplaceItems = [];
 				this.searchInput.hideMessage();
-				void this.delayedFilter.trigger(() => this.filterPlugins()).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.delayedFilter.trigger(() => this.filterPlugins()).catch(onUnexpectedError);
 			}
 		}));
 
@@ -972,13 +987,13 @@ export class PluginListWidget extends Disposable {
 		// Listen to plugin service changes
 		this._register(autorun(reader => {
 			this.agentPluginService.plugins.read(reader);
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(this.pluginMarketplaceService.onDidChangeMarketplaces(() => {
 			this.marketplaceItems = [];
 			this.marketplaceSnapshotCts?.dispose(true);
 			this.marketplaceSnapshot.reset();
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}));
 		this._register(autorun(reader => {
 			this.pluginMarketplaceService.recommendedPlugins.read(reader);
@@ -994,7 +1009,7 @@ export class PluginListWidget extends Disposable {
 			this.harnessService.activeHarness.read(reader);
 			this.updateToolbarActions();
 			if (!this.browseMode) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 			}
 		}));
 
@@ -1006,7 +1021,7 @@ export class PluginListWidget extends Disposable {
 			if (itemProvider) {
 				itemProviderChangeDisposable.value = itemProvider.onDidChange(() => {
 					if (!this.browseMode) {
-						void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.refresh().catch(onUnexpectedError);
 					}
 				});
 			} else {
@@ -1017,10 +1032,13 @@ export class PluginListWidget extends Disposable {
 		this.updateToolbarActions();
 
 		// Initial refresh
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.browseMode) {
 			await this.queryMarketplace();
 		} else if (this.searchQuery.trim()) {
@@ -1150,6 +1168,9 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async runPrimaryAddAction(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const [primary] = this.buildAddActions();
 		if (primary) {
 			await this.runPluginAction(primary);
@@ -1157,23 +1178,37 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async runCreatePluginAction(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.commandService.executeCommand('workbench.action.chat.createPlugin');
 	}
 
 	private async runInstallFromSourceAction(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.commandService.executeCommand('workbench.action.chat.installPluginFromSource');
 	}
 
 	private async runUpdatePluginsAction(button = this.updatePluginsButton): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		button.enabled = false;
 		try {
 			await this.commandService.executeCommand(UpdateAgentPluginsCommandId);
 		} finally {
-			button.enabled = true;
+			if (!this._store.isDisposed) {
+				button.enabled = true;
+			}
 		}
 	}
 
 	private async runPluginAction(action: ICustomizationItemAction): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (action.enabled !== false) {
 			await action.run();
 		}
@@ -1238,7 +1273,7 @@ export class PluginListWidget extends Disposable {
 
 		this.renderDiscoverySnapshot(content);
 		if (shouldLoadPluginMarketplaceSnapshot(this.visible, this.marketplaceSnapshot.state, this.isBrowseMarketplaceAvailable())) {
-			void this.queryMarketplaceSnapshot().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.queryMarketplaceSnapshot().catch(onUnexpectedError);
 		}
 
 		const installedList = this.renderCardSection(
@@ -1487,7 +1522,7 @@ export class PluginListWidget extends Disposable {
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installPluginAria', "Install {0}", item.name) }));
 		install.element.classList.add('plugin-list-item-install-button');
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplacePlugin(item, install).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplacePlugin(item, install).catch(onUnexpectedError)));
 		this.cardListControllers.get(parent)?.addItem({
 			row,
 			primaryAction,
@@ -1508,7 +1543,7 @@ export class PluginListWidget extends Disposable {
 		const actions = DOM.append(header, $('.plugin-card-actions'));
 		const install = this.cardDisposables.add(new Button(actions, { ...defaultButtonStyles, ariaLabel: localize('installPluginAria', "Install {0}", item.name) }));
 		install.label = localize('install', "Install");
-		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplacePlugin(item, install).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.cardDisposables.add(install.onDidClick(() => void this.installMarketplacePlugin(item, install).catch(onUnexpectedError)));
 		if (showRecommendedBadge && this.pluginMarketplaceService.recommendedPlugins.get().has(getMarketplaceRecommendationKey(item))) {
 			const badges = DOM.append(card, $('.plugin-card-badges'));
 			this.appendCardBadge(badges, localize('recommendedBadge', "Recommended"));
@@ -1571,7 +1606,7 @@ export class PluginListWidget extends Disposable {
 		retry.label = localize('retry', "Retry");
 		this.cardDisposables.add(retry.onDidClick(() => {
 			this.marketplaceSnapshot.reset();
-			void this.queryMarketplaceSnapshot().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.queryMarketplaceSnapshot().catch(onUnexpectedError);
 		}));
 	}
 
@@ -1635,6 +1670,9 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async installMarketplacePlugin(item: IMarketplacePluginItem, button: Button): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		button.label = localize('installing', "Installing...");
 		button.enabled = false;
 		try {
@@ -1649,9 +1687,15 @@ export class PluginListWidget extends Disposable {
 				marketplaceType: item.marketplaceType,
 				readmeUri: item.readmeUri,
 			});
+			if (this._store.isDisposed) {
+				return;
+			}
 			button.label = localize('installed', "Installed");
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			button.label = localize('install', "Install");
 			button.enabled = true;
 			this.notificationService.error(localize('pluginInstallFailed', "Unable to install plugin: {0}", getErrorMessage(error)));
@@ -1659,6 +1703,9 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async queryMarketplaceSnapshot(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.marketplaceSnapshot.beginLoading()) {
 			return;
 		}
@@ -1666,7 +1713,7 @@ export class PluginListWidget extends Disposable {
 		const cts = this.marketplaceSnapshotCts = new CancellationTokenSource();
 		try {
 			const plugins = await this.pluginMarketplaceService.fetchMarketplacePlugins(cts.token);
-			if (this.marketplaceSnapshotCts !== cts) {
+			if (this._store.isDisposed || this.marketplaceSnapshotCts !== cts) {
 				return;
 			}
 			if (cts.token.isCancellationRequested) {
@@ -1678,7 +1725,7 @@ export class PluginListWidget extends Disposable {
 				this.renderPluginHome();
 			}
 		} catch {
-			if (this.marketplaceSnapshotCts === cts && !cts.token.isCancellationRequested) {
+			if (!this._store.isDisposed && this.marketplaceSnapshotCts === cts && !cts.token.isCancellationRequested) {
 				this.marketplaceSnapshot.fail();
 				if (!this.browseMode && !this.searchQuery.trim()) {
 					this.renderPluginHome();
@@ -1702,7 +1749,7 @@ export class PluginListWidget extends Disposable {
 		}
 		this.visible = visible;
 		if (visible) {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}
 	}
 
@@ -1723,10 +1770,10 @@ export class PluginListWidget extends Disposable {
 		);
 
 		if (browse) {
-			void this.queryMarketplace().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.queryMarketplace().catch(onUnexpectedError);
 		} else {
 			this.marketplaceItems = [];
-			void this.filterPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.filterPlugins().catch(onUnexpectedError);
 		}
 
 		// Re-layout to account for the back link height change
@@ -1736,6 +1783,9 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async queryMarketplace(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.marketplaceCts?.dispose(true);
 		const cts = this.marketplaceCts = new CancellationTokenSource();
 		const query = this.searchQuery.toLowerCase().trim();
@@ -1749,7 +1799,7 @@ export class PluginListWidget extends Disposable {
 		try {
 			const plugins = await this.pluginMarketplaceService.fetchMarketplacePlugins(cts.token);
 
-			if (!this.isCurrentMarketplaceRequest(cts, query, browseMode)) {
+			if (this._store.isDisposed || !this.isCurrentMarketplaceRequest(cts, query, browseMode)) {
 				return;
 			}
 
@@ -1760,7 +1810,7 @@ export class PluginListWidget extends Disposable {
 					.filter(item => item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query))
 					.sort(compareInstalledPluginItems);
 				const remoteItems = [...await this.getRemotePluginItems(query)];
-				if (!this.isCurrentMarketplaceRequest(cts, query, browseMode)) {
+				if (this._store.isDisposed || !this.isCurrentMarketplaceRequest(cts, query, browseMode)) {
 					return;
 				}
 				this.installedItems = installedItems;
@@ -1779,13 +1829,17 @@ export class PluginListWidget extends Disposable {
 				})
 				.map(marketplacePluginToItem);
 
+			if (this._store.isDisposed) {
+				return;
+			}
+
 			if (query) {
 				this.updateSearchResultsList();
 			} else {
 				this.updateMarketplaceList();
 			}
 		} catch {
-			if (this.isCurrentMarketplaceRequest(cts, query, browseMode)) {
+			if (!this._store.isDisposed && this.isCurrentMarketplaceRequest(cts, query, browseMode)) {
 				this.marketplaceItems = [];
 				this.showEmptySurface();
 				this.emptyText.textContent = localize('marketplaceError', "Unable to load marketplace");
@@ -1795,6 +1849,9 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async queryPluginSearch(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.isBrowseMarketplaceAvailable()) {
 			this.marketplaceItems = [];
 			await this.filterPlugins();
@@ -1809,7 +1866,7 @@ export class PluginListWidget extends Disposable {
 		const cts = this.marketplaceCts = new CancellationTokenSource();
 		try {
 			const plugins = await this.pluginMarketplaceService.fetchMarketplacePlugins(cts.token);
-			if (!this.isCurrentMarketplaceRequest(cts, query, false)) {
+			if (this._store.isDisposed || !this.isCurrentMarketplaceRequest(cts, query, false)) {
 				return;
 			}
 			const installedItems = this.agentPluginService.plugins.get()
@@ -1817,7 +1874,7 @@ export class PluginListWidget extends Disposable {
 				.filter(item => item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query))
 				.sort(compareInstalledPluginItems);
 			const remoteItems = [...await this.getRemotePluginItems(query)];
-			if (!this.isCurrentMarketplaceRequest(cts, query, false)) {
+			if (this._store.isDisposed || !this.isCurrentMarketplaceRequest(cts, query, false)) {
 				return;
 			}
 			const filtered = query
@@ -1830,7 +1887,7 @@ export class PluginListWidget extends Disposable {
 					return !installedUris.has(expectedUri.toString());
 				})
 				.map(marketplacePluginToItem);
-			if (!this.isCurrentMarketplaceRequest(cts, query, false)) {
+			if (this._store.isDisposed || !this.isCurrentMarketplaceRequest(cts, query, false)) {
 				return;
 			}
 			this.installedItems = installedItems;
@@ -1838,7 +1895,7 @@ export class PluginListWidget extends Disposable {
 			this.marketplaceItems = marketplaceItems;
 			this.searchInput.hideMessage();
 		} catch {
-			if (!this.isCurrentMarketplaceRequest(cts, query, false)) {
+			if (this._store.isDisposed || !this.isCurrentMarketplaceRequest(cts, query, false)) {
 				return;
 			}
 			this.marketplaceItems = [];
@@ -1849,7 +1906,7 @@ export class PluginListWidget extends Disposable {
 			await this.filterPlugins();
 			return;
 		}
-		if (this.isCurrentMarketplaceRequest(cts, query, false)) {
+		if (!this._store.isDisposed && this.isCurrentMarketplaceRequest(cts, query, false)) {
 			this.updateSearchResultsList();
 			this._onDidChangeItemCount.fire(this.itemCount);
 		}
@@ -1926,12 +1983,15 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async getRemotePluginItems(query: string): Promise<readonly ICustomizationItem[]> {
-		if (!this.harnessService.getActiveDescriptor().itemProvider) {
+		if (this._store.isDisposed || !this.harnessService.getActiveDescriptor().itemProvider) {
 			return [];
 		}
 
 		try {
 			const provided = await this.itemsModel.getActiveItemSource().fetchProviderItems();
+			if (this._store.isDisposed) {
+				return [];
+			}
 			return provided.filter(item =>
 				isPluginCustomizationItem(item)
 				&& (!query
@@ -1945,12 +2005,15 @@ export class PluginListWidget extends Disposable {
 	}
 
 	private async filterPlugins(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.filterGeneration;
 		const query = this.searchQuery.toLowerCase().trim();
 		const browseMode = this.browseMode;
 		const allPlugins = this.agentPluginService.plugins.get();
 		const remoteItems = [...await this.getRemotePluginItems(query)];
-		if (generation !== this.filterGeneration || this.searchQuery.toLowerCase().trim() !== query || this.browseMode !== browseMode) {
+		if (this._store.isDisposed || generation !== this.filterGeneration || this.searchQuery.toLowerCase().trim() !== query || this.browseMode !== browseMode) {
 			return;
 		}
 		this.remoteItems = remoteItems;
@@ -1962,6 +2025,10 @@ export class PluginListWidget extends Disposable {
 				item.description.toLowerCase().includes(query)
 			)
 			.sort(compareInstalledPluginItems);
+
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		if (!query) {
 			this.renderPluginHome();
@@ -2007,7 +2074,7 @@ export class PluginListWidget extends Disposable {
 		} else {
 			this.collapsedGroups.add(entry.group);
 		}
-		void this.filterPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.filterPlugins().catch(onUnexpectedError);
 	}
 
 	/**
