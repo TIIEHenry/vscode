@@ -21,7 +21,7 @@ import { ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import { SourcesChangesList } from './sourcesChangesList.js';
 import { SourcesFilesExplorerHost } from './sourcesFilesExplorer.js';
 import { SourcesReviewList } from './sourcesReviewList.js';
-import { sourcesFilterFitsOnBar } from '../common/sourcesFilesListMode.js';
+import { sourcesActionsFitOnBar, sourcesFilterFitsOnBar } from '../common/sourcesFilesListMode.js';
 
 const $ = dom.$;
 
@@ -91,10 +91,10 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.selectTab(initialTab, false);
 		this._register(this.session.onDidChangeActiveSession(sessionId => this.restoreTabForSession(sessionId)));
 		this.sourcesPartService.setFocusDelegate(() => this.focusSelectedPanel());
-		const observer = new ResizeObserver(() => this.syncFilterDock());
+		const observer = new ResizeObserver(() => this.syncDocks());
 		observer.observe(this.tabHost);
 		this._register(toDisposable(() => observer.disconnect()));
-		this.syncFilterDock();
+		this.syncDocks();
 	}
 
 	override dispose(): void {
@@ -207,6 +207,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			tab.setAttribute('aria-controls', `sources-panel-${descriptor.id}`);
 			tab.id = `sources-tab-${descriptor.id}`;
 			tab.textContent = descriptor.label;
+			tab.title = descriptor.label;
 
 			this.tabButtons.set(descriptor.id, tab);
 
@@ -304,18 +305,20 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 				this.filesExplorer?.setFilesTabActive(selected);
 			}
 		}
-		this.syncFilterDock();
+		this.syncDocks();
 	}
 
-	private syncFilterDock(): void {
+	private syncDocks(): void {
 		const slot = this.filterSlot;
 		if (!slot) {
 			return;
 		}
 		const isFiles = this.selectedTab === SourcesTabId.Files;
-		const dock = sourcesFilterFitsOnBar(this.partWidth()) ? slot : undefined;
+		const width = this.partWidth();
+		const dock = sourcesFilterFitsOnBar(width) ? slot : undefined;
+		const actionsDock = sourcesActionsFitOnBar(width) ? slot : this.filesExplorer?.getPanelActionsHost?.();
 		this.filesExplorer?.setFilterDock(isFiles ? dock : undefined);
-		this.filesExplorer?.setActionsDock(isFiles ? slot : undefined);
+		this.filesExplorer?.setActionsDock(isFiles ? actionsDock : undefined);
 		this.changesList?.setFilterDock(this.selectedTab === SourcesTabId.Changes ? dock : undefined);
 		this.reviewList?.setFilterDock(this.selectedTab === SourcesTabId.Review ? dock : undefined);
 	}

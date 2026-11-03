@@ -11,6 +11,33 @@
 	flex-direction: column;
 }
 
+.monaco-workbench .part.sources .sources-files-actions-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	height: 26px;
+	padding: 0 4px;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.sources .sources-files-actions-row[hidden] {
+	display: none;
+}
+
+.monaco-workbench .part.sources .sources-files-actions-row .actions {
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+.monaco-workbench .part.sources .sources-files-actions-row .actions .actions-container {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	height: 100%;
+}
+
 .monaco-workbench .part.sources .sources-files-explorer > .monaco-pane-view {
 	flex: 1;
 	min-height: 0;
