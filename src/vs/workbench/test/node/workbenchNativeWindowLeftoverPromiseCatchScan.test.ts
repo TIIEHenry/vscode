@@ -31,6 +31,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -38,10 +39,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+function assertSingleCatch(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('workbench native window leftover Promise fire-and-forget catch scan (D722)', () => {
@@ -54,8 +54,9 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-catch sites and zero double-catches', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
+		assert.ok(!source.includes(doubleCatch), 'expected zero double-catches in native window');
 		const integrityIife = `(async () => {
 			const isAdmin = await this.nativeHostService.isAdmin();
 			const { isPure } = await this.integrityService.isPure();
@@ -97,16 +98,16 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 		] as const;
 		assert.strictEqual(calls.length, 8);
 		for (const call of calls) {
-			assertDoubleThen(source, call);
+			assertSingleCatch(source, call);
 		}
 	});
 
-	test('handleWarnings leftover fire-and-forget and integrity IIFE are Promise double-chain', () => {
+	test('handleWarnings leftover fire-and-forget and integrity IIFE are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		assertPromiseSignature(source, 'private async handleWarnings(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.handleWarnings()');
-		assertDoubleThen(source, `(async () => {
+		assertSingleCatch(source, 'this.handleWarnings()');
+		assertSingleCatch(source, `(async () => {
 			const isAdmin = await this.nativeHostService.isAdmin();
 			const { isPure } = await this.integrityService.isPure();
 
@@ -118,30 +119,33 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 				this.notificationService.warn(localize('runningAsRoot', "It is not recommended to run {0} as root user.", this.productService.nameShort));
 			}
 		})()`);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('onOpenFiles / trackClosedWaitFiles leftover fire-and-forget are Promise double-chain; returned trackClosedWaitFiles stays skipped', () => {
+	test('onOpenFiles / trackClosedWaitFiles leftover fire-and-forget are Promise single-catch; returned trackClosedWaitFiles stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		assertPromiseSignature(source, 'private async onOpenFiles(request: INativeOpenFileRequest): Promise<void> {');
 		assertPromiseSignature(source, 'private async trackClosedWaitFiles(waitMarkerFile: URI, resourcesToWaitFor: URI[]): Promise<void> {');
-		assertDoubleThen(source, 'this.onOpenFiles(argsRaw[0] as IOpenFileRequest)');
-		assertDoubleThen(source, 'this.trackClosedWaitFiles(filesToWait.waitMarkerFileUri, coalesce(filesToWait.paths.map(path => path.fileUri)))');
+		assertSingleCatch(source, 'this.onOpenFiles(argsRaw[0] as IOpenFileRequest)');
+		assertSingleCatch(source, 'this.trackClosedWaitFiles(filesToWait.waitMarkerFileUri, coalesce(filesToWait.paths.map(path => path.fileUri)))');
 		assert.ok(source.includes('return this.trackClosedWaitFiles(URI.revive(request.filesToWait.waitMarkerFileUri), coalesce(request.filesToWait.paths.map(path => URI.revive(path.fileUri))));'));
 		assert.ok(!source.includes('return this.trackClosedWaitFiles(URI.revive(request.filesToWait.waitMarkerFileUri), coalesce(request.filesToWait.paths.map(path => URI.revive(path.fileUri)))).catch'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('doAddRemoveFolders scheduler leftover is Promise double-chain', () => {
+	test('doAddRemoveFolders scheduler leftover is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		assertPromiseSignature(source, 'private async doAddRemoveFolders(): Promise<void> {');
-		assertDoubleThen(source, 'this.doAddRemoveFolders()');
+		assertSingleCatch(source, 'this.doAddRemoveFolders()');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('withProgress leftover fire-and-forget are Promise double-chain; onWillShutdown withProgress stays skipped', () => {
+	test('withProgress leftover fire-and-forget are Promise single-catch; onWillShutdown withProgress stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const progress = fs.readFileSync(resolveSource(PROGRESS_REL), 'utf8');
 		assertPromiseSignature(progress, '): Promise<R>;');
 		assert.ok(progress.includes('withProgress<R>('));
-		assertDoubleThen(source, `this.progressService.withProgress({
+		assertSingleCatch(source, `this.progressService.withProgress({
 			location: ProgressLocation.Window, 	// use window progress to not be too annoying about this operation
 			delay: 800,							// delay so that it only appears when operation takes a long time
 			title: this.toShutdownLabel(reason, false),
@@ -152,7 +156,7 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 				this.dialogService.onWillShowDialog		// or when a dialog asks for input
 			));
 		})`);
-		assertDoubleThen(source, `this.progressService.withProgress({
+		assertSingleCatch(source, `this.progressService.withProgress({
 			title: localize('resolveShellEnvironment', "Resolving shell environment..."),
 			location: ProgressLocation.Window,
 			delay: 1600,
@@ -166,14 +170,16 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 			});`));
 		assert.ok(!source.includes(`}, () => {
 				force();
-			})${doubleCatch}`));
+			}).catch`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('dialogService.error leftover fire-and-forget is Promise double-chain', () => {
+	test('dialogService.error leftover fire-and-forget is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const dialogs = fs.readFileSync(resolveSource(DIALOGS_REL), 'utf8');
 		assertPromiseSignature(dialogs, 'error(message: string, detail?: string): Promise<void>;');
-		assertDoubleThen(source, `this.dialogService.error(this.toShutdownLabel(reason, true), localize('shutdownErrorDetail', "Error: {0}", toErrorMessage(error)))`);
+		assertSingleCatch(source, `this.dialogService.error(this.toShutdownLabel(reason, true), localize('shutdownErrorDetail', "Error: {0}", toErrorMessage(error)))`);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / D697 Ready-Restored / workbench browser leftover stay skipped', () => {
@@ -190,7 +196,7 @@ suite('workbench native window leftover Promise fire-and-forget catch scan (D722
 		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
 		assert.ok(nativeWindow.includes('async resolveExternalUri(uri: URI, options?: OpenOptions): Promise<IResolvedExternalUri | undefined> {'));
 		assert.ok(!/resolveExternalUri\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(nativeWindow));
-		assert.ok(nativeWindow.includes('this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady()).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(nativeWindow.includes('this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady()).catch(onUnexpectedError);'));
 		assert.ok(nativeWindow.includes('run: () => this.nativeHostService.relaunch()'));
 		assert.ok(!nativeWindow.includes('run: () => this.nativeHostService.relaunch().catch'));
 		assert.ok(nativeWindow.includes('this.configurationService.updateValue(setting, false);'));

@@ -7,6 +7,7 @@ import './media/notificationsToasts.css';
 import { localize } from '../../../../nls.js';
 import { INotificationsModel, NotificationChangeType, INotificationChangeEvent, INotificationViewItem, NotificationViewItemContentChangeKind, NotificationsSettings, NotificationsPosition, getNotificationsPosition } from '../../../common/notifications.js';
 import { IDisposable, dispose, toDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import * as dom from '../../../../base/browser/dom.js';
 import { addDisposableListener, EventType, Dimension, scheduleAtNextAnimationFrame, isAncestorOfActiveElement, getWindow, $, isHTMLElement, isEditableElement, getActiveElement, getDomNodePagePosition, getClientArea } from '../../../../base/browser/dom.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { NotificationsList } from './notificationsList.js';
@@ -80,6 +81,7 @@ export class NotificationsToasts extends Themable implements INotificationsToast
 	private readonly notificationsToastsVisibleContextKey: IContextKey<boolean>;
 
 	private readonly addedToastsIntervalCounter = new IntervalCounter(NotificationsToasts.SPAM_PROTECTION.interval);
+	private _isDisposed = false;
 
 	constructor(
 		private readonly container: HTMLElement,
@@ -132,13 +134,16 @@ export class NotificationsToasts extends Themable implements INotificationsToast
 		// Delay some tasks until after we have restored
 		// to reduce UI pressure from the startup phase
 		this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Show toast for initial notifications if any
 			this.model.notifications.forEach(notification => this.addToast(notification));
 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		// Filter
 		this._register(this.model.onDidChangeFilter(({ global, sources }) => {
@@ -184,6 +189,9 @@ export class NotificationsToasts extends Themable implements INotificationsToast
 	}
 
 	private onDidChangeNotification(e: INotificationChangeEvent): void {
+		if (this._isDisposed) {
+			return;
+		}
 		switch (e.kind) {
 			case NotificationChangeType.ADD:
 				return this.addToast(e.item);
@@ -193,8 +201,8 @@ export class NotificationsToasts extends Themable implements INotificationsToast
 	}
 
 	private addToast(item: INotificationViewItem): void {
-		if (this.isNotificationsCenterVisible) {
-			return; // do not show toasts while notification center is visible
+		if (this._isDisposed || this.isNotificationsCenterVisible) {
+			return; // do not show toasts while notification center is visible or disposed
 		}
 
 		if (this.environmentService.enableSmokeTestDriver) {
@@ -713,5 +721,20 @@ export class NotificationsToasts extends Themable implements INotificationsToast
 
 	private isToastInDOM(toast: INotificationToast): boolean {
 		return !!toast.container.parentElement;
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		this.removeToasts();
+		if (this.notificationsToastsContainer) {
+			dom.clearNode(this.notificationsToastsContainer);
+			this.notificationsToastsContainer.remove();
+			this.notificationsToastsContainer = undefined;
+		}
+		if (this.container) {
+			dom.clearNode(this.container);
+			this.container.remove();
+		}
+		super.dispose();
 	}
 }

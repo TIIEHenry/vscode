@@ -55,12 +55,12 @@ export class NativeMenubarControl extends MenubarControl {
 		(async () => {
 			const generation = ++this._nativeRecentlyOpenedGeneration;
 			const recentlyOpened = await this.workspacesService.getRecentlyOpened();
-			if (generation !== this._nativeRecentlyOpenedGeneration || this._store.isDisposed) {
+			if (generation !== this._nativeRecentlyOpenedGeneration || this._store.isDisposed || this._isDisposed) {
 				return;
 			}
 			this.recentlyOpened = recentlyOpened;
 			this.doUpdateMenubar();
-		})().catch(onUnexpectedError).catch(onUnexpectedError);
+		})().catch(onUnexpectedError);
 
 		this.registerListeners();
 	}
@@ -71,6 +71,7 @@ export class NativeMenubarControl extends MenubarControl {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		++this._nativeRecentlyOpenedGeneration;
 		super.dispose();
 	}
@@ -87,6 +88,10 @@ export class NativeMenubarControl extends MenubarControl {
 	}
 
 	protected doUpdateMenubar(): void {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
+
 		// Since the native menubar is shared between windows (main process)
 		// only allow the focused window to update the menubar
 		if (!this.hostService.hasFocus) {

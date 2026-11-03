@@ -30,11 +30,17 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
+}
+
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 function assertDoubleThen(source: string, call: string): void {
@@ -47,19 +53,26 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers seven leftover Promise double-chain sites', () => {
+	test('this knife covers seven leftover Promise fire-and-forget catch sites', () => {
 		const windowSource = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const toasts = fs.readFileSync(resolveSource(TOASTS_REL), 'utf8');
 		const editorParts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
 		const layout = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
 		const contextkeys = fs.readFileSync(resolveSource(CONTEXTKEYS_REL), 'utf8');
-		const calls = [
+
+		assert.ok(!windowSource.includes(doubleCatch), 'expected zero double-catches in native window');
+		assert.ok(!toasts.includes(doubleCatch), 'expected zero double-catches in notifications toasts');
+
+		const singleCalls = [
 			[windowSource, 'this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady())'],
 			[windowSource, `this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this.sharedProcessService.notifyRestored();
 			this.utilityProcessWorkerWorkbenchService.notifyRestored();
 		})`],
 			[toasts, `this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Show toast for initial notifications if any
 			this.model.notifications.forEach(notification => this.addToast(notification));
@@ -67,6 +80,9 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
 		})`],
+		] as const;
+
+		const doubleCalls = [
 			[editorParts, 'this.whenReady.then(() => this.registerGroupsContextKeyListeners())'],
 			[layout, `this.editorGroupService.whenRestored.then(() => {
 
@@ -93,33 +109,41 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			this.updateVisiblePanesContextKeys();
 		})`],
 		] as const;
-		assert.strictEqual(calls.length, 7);
-		for (const [source, call] of calls) {
+
+		assert.strictEqual(singleCalls.length + doubleCalls.length, 7);
+		for (const [source, call] of singleCalls) {
+			assertSingleThen(source, call);
+		}
+		for (const [source, call] of doubleCalls) {
 			assertDoubleThen(source, call);
 		}
 	});
 
-	test('native window leftover when Ready / Restored then are Promise double-chain', () => {
+	test('native window leftover when Ready / Restored then are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady())');
+		assert.ok(!source.includes(doubleCatch));
+		assertSingleThen(source, 'this.lifecycleService.when(LifecyclePhase.Ready).then(() => this.nativeHostService.notifyReady())');
 		const restoredThen = `this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this.sharedProcessService.notifyRestored();
 			this.utilityProcessWorkerWorkbenchService.notifyRestored();
 		})`;
-		assert.ok(source.includes(`${restoredThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${restoredThen};`));
-		assert.ok(!source.includes(`${restoredThen}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${restoredThen}${singleCatch};`));
+		assert.ok(!source.includes(`${restoredThen}${doubleCatch};`));
 	});
 
-	test('notificationsToasts leftover when Restored then is Promise double-chain', () => {
+	test('notificationsToasts leftover when Restored then is Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(TOASTS_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(!source.includes(doubleCatch));
 		const restoredThen = `this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+			if (this._isDisposed) {
+				return;
+			}
 
 			// Show toast for initial notifications if any
 			this.model.notifications.forEach(notification => this.addToast(notification));
@@ -127,9 +151,8 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 			// Update toasts on notification changes
 			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
 		})`;
-		assert.ok(source.includes(`${restoredThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${restoredThen};`));
-		assert.ok(!source.includes(`${restoredThen}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${restoredThen}${singleCatch};`));
+		assert.ok(!source.includes(`${restoredThen}${doubleCatch};`));
 	});
 
 	test('editorParts leftover whenReady then is Promise double-chain; sync registerGroupsContextKeyListeners stays skipped', () => {
@@ -198,11 +221,13 @@ suite('workbench chrome leftover Promise fire-and-forget catch scan (D697)', () 
 		const desktopMain = fs.readFileSync(resolveSource(DESKTOP_MAIN_REL), 'utf8');
 
 		assert.ok(windowSource.includes('this.setupOpenHandlers();'));
-		assert.ok(windowSource.includes('this.handleWarnings().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(windowSource.includes('this.handleWarnings().catch(onUnexpectedError);'));
 		assert.ok(!windowSource.includes('this.handleWarnings();'));
 		assert.ok(windowSource.includes('this.openerService.open('));
 		assert.ok(!/this\.openerService\.open\([^)]*\)\.catch\(onUnexpectedError\)/.test(windowSource));
 		assert.ok(windowSource.includes('await this.lifecycleService.when(LifecyclePhase.Restored);'));
+		assert.ok(!windowSource.includes(doubleCatch));
+		assert.ok(!toasts.includes(doubleCatch));
 
 		assert.ok(editorParts.includes('void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
