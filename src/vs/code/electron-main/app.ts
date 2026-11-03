@@ -562,13 +562,16 @@ export class CodeApplication extends Disposable {
 		// macOS dock activate
 		app.on('activate', (event, hasVisibleWindows) => {
 			void (async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.logService.trace('app#activate');
 
 				// Mac only event: open new window when we get activated
 				if (!hasVisibleWindows) {
 					await this.windowsMainService?.openEmptyWindow({ context: OpenContext.DOCK });
 				}
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		});
 
 		//#region Security related measures (https://electronjs.org/docs/tutorial/security)
@@ -624,6 +627,12 @@ export class CodeApplication extends Disposable {
 
 		let macOpenFileURIs: IWindowOpenable[] = [];
 		let runningTimeout: Timeout | undefined = undefined;
+		this._register(toDisposable(() => {
+			if (runningTimeout !== undefined) {
+				clearTimeout(runningTimeout);
+				runningTimeout = undefined;
+			}
+		}));
 		app.on('open-file', (event, path) => {
 			path = normalizeNFC(path); // macOS only: normalize paths to NFC form
 
@@ -642,6 +651,9 @@ export class CodeApplication extends Disposable {
 			// Handle paths delayed in case more are coming!
 			runningTimeout = setTimeout(() => {
 				void (async () => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					await this.windowsMainService?.open({
 						context: OpenContext.DOCK /* can also be opening from finder while app is running */,
 						cli: this.environmentMainService.args,
@@ -652,14 +664,17 @@ export class CodeApplication extends Disposable {
 
 					macOpenFileURIs = [];
 					runningTimeout = undefined;
-				})().catch(onUnexpectedError).catch(onUnexpectedError);
+				})().catch(onUnexpectedError);
 			}, 100);
 		});
 
 		app.on('new-window-for-tab', () => {
 			void (async () => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				await this.windowsMainService?.openEmptyWindow({ context: OpenContext.DESKTOP }); //macOS native tab "+" button
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			})().catch(onUnexpectedError);
 		});
 
 		//#region Bootstrap IPC Handlers
@@ -1369,7 +1384,7 @@ export class CodeApplication extends Disposable {
 		// Policies (main & shared process)
 		const policyChannel = disposables.add(new PolicyChannel(accessor.get(IPolicyService)));
 		mainProcessElectronServer.registerChannel('policy', policyChannel);
-		sharedProcessClient.then(client => client.registerChannel('policy', policyChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel('policy', policyChannel)).catch(onUnexpectedError);
 
 		const nativeManagedSettingsChannel = disposables.add(new NativeManagedSettingsChannel(accessor.get(INativeManagedSettingsService)));
 		mainProcessElectronServer.registerChannel('nativeManagedSettings', nativeManagedSettingsChannel);
@@ -1382,12 +1397,12 @@ export class CodeApplication extends Disposable {
 		assertType(diskFileSystemProvider instanceof DiskFileSystemProvider);
 		const fileSystemProviderChannel = disposables.add(new DiskFileSystemProviderChannel(diskFileSystemProvider, this.logService, this.environmentMainService));
 		mainProcessElectronServer.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel);
-		sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel)).catch(onUnexpectedError);
 
 		// User Data Profiles
 		const userDataProfilesService = ProxyChannel.fromService(accessor.get(IUserDataProfilesMainService), disposables);
 		mainProcessElectronServer.registerChannel('userDataProfiles', userDataProfilesService);
-		sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService)).catch(onUnexpectedError);
 
 		// Update
 		const updateService = accessor.get(IUpdateService);
@@ -1400,7 +1415,7 @@ export class CodeApplication extends Disposable {
 		// Metered Connection
 		const meteredConnectionChannel = new MeteredConnectionChannel(accessor.get(IMeteredConnectionService) as MeteredConnectionMainService);
 		mainProcessElectronServer.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel);
-		sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel)).catch(onUnexpectedError);
 
 		// Process
 		const processChannel = ProxyChannel.fromService(new ProcessMainService(this.logService, accessor.get(IDiagnosticsService), accessor.get(IDiagnosticsMainService)), disposables);
@@ -1432,12 +1447,12 @@ export class CodeApplication extends Disposable {
 		// Browser View
 		const browserViewChannel = ProxyChannel.fromService(accessor.get(IBrowserViewMainService), disposables);
 		mainProcessElectronServer.registerChannel(ipcBrowserViewChannelName, browserViewChannel);
-		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel)).catch(onUnexpectedError);
 
 		// Browser View Group
 		const browserViewGroupChannel = ProxyChannel.fromService(accessor.get(IBrowserViewGroupMainService), disposables);
 		mainProcessElectronServer.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel);
-		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel)).catch(onUnexpectedError);
 
 		// Signing
 		const signChannel = ProxyChannel.fromService(accessor.get(ISignService), disposables);
@@ -1454,7 +1469,7 @@ export class CodeApplication extends Disposable {
 			unbufferedEvents: ['onDidBlurMainWindow']
 		});
 		mainProcessElectronServer.registerChannel('nativeHost', nativeHostChannel);
-		sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel)).catch(onUnexpectedError);
 
 		// Web Content Extractor
 		const webContentExtractorChannel = ProxyChannel.fromService(accessor.get(IWebContentExtractorService), disposables);
@@ -1479,11 +1494,11 @@ export class CodeApplication extends Disposable {
 		// Storage (main & shared process)
 		const storageChannel = disposables.add((new StorageDatabaseChannel(this.logService, accessor.get(IStorageMainService))));
 		mainProcessElectronServer.registerChannel('storage', storageChannel);
-		sharedProcessClient.then(client => client.registerChannel('storage', storageChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel('storage', storageChannel)).catch(onUnexpectedError);
 
 		// Profile Storage Changes Listener (shared process)
 		const profileStorageListener = disposables.add((new ProfileStorageChangesListenerChannel(accessor.get(IStorageMainService), accessor.get(IUserDataProfilesMainService), this.logService)));
-		sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener)).catch(onUnexpectedError);
 
 		// Terminal
 		const ptyHostChannel = ProxyChannel.fromService(accessor.get(ILocalPtyService), disposables);
@@ -1506,7 +1521,7 @@ export class CodeApplication extends Disposable {
 		// Logger
 		const loggerChannel = this._register(new LoggerChannel(accessor.get(ILoggerMainService)));
 		mainProcessElectronServer.registerChannel('logger', loggerChannel);
-		sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel)).catch(onUnexpectedError);
 
 		// Extension Host Debug Broadcasting
 		const electronExtensionHostDebugBroadcastChannel = new ElectronExtensionHostDebugBroadcastChannel(accessor.get(IWindowsMainService));
@@ -1658,7 +1673,7 @@ export class CodeApplication extends Disposable {
 		}
 
 		// Windows: mutex
-		this.installMutex().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.installMutex().catch(onUnexpectedError);
 
 		// Remote Authorities
 		protocol.registerHttpProtocol(Schemas.vscodeRemoteResource, (request, callback) => {
@@ -1672,10 +1687,10 @@ export class CodeApplication extends Disposable {
 		// Since this operation can take a long time, we want to warm it up while
 		// the window is opening.
 		// We also show an error to the user in case this fails.
-		this.resolveShellEnvironment(this.environmentMainService.args, process.env, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.resolveShellEnvironment(this.environmentMainService.args, process.env, true).catch(onUnexpectedError);
 
 		// Crash reporter
-		this.updateCrashReporterEnablement().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateCrashReporterEnablement().catch(onUnexpectedError);
 
 		// macOS: rosetta translation warning
 		if (isMacintosh && app.runningUnderARM64Translation) {
@@ -1905,7 +1920,7 @@ export class CodeApplication extends Disposable {
 
 		// Validate Device ID is up to date (delay this as it has shown significant perf impact)
 		// Refs: https://github.com/microsoft/vscode/issues/234064
-		validateDevDeviceId(this.stateService, this.logService).catch(onUnexpectedError).catch(onUnexpectedError);
+		validateDevDeviceId(this.stateService, this.logService).catch(onUnexpectedError);
 
 		instantiationService.invokeFunction(accessor => {
 			const telemetryService = accessor.get(ITelemetryService);
@@ -1914,14 +1929,20 @@ export class CodeApplication extends Disposable {
 			}
 
 			const nativeHostMainService = accessor.get(INativeHostMainService);
-			void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService).catch(onUnexpectedError);
 		});
 	}
 
 	private async logOSProxyConfigTelemetry(nativeHostMainService: INativeHostMainService, telemetryService: ITelemetryService): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const startTime = Date.now();
 		try {
 			const config = await nativeHostMainService.readProxyConfigWithPackage(undefined);
+			if (this._store.isDisposed) {
+				return;
+			}
 			const durationMs = Date.now() - startTime;
 			const pacScriptStats = config.pac ? getPACScriptStats(config.pac.content) : undefined;
 			telemetryService.publicLog2<OSProxyConfigEvent, OSProxyConfigClassification>('osProxyConfig', {

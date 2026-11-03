@@ -510,27 +510,40 @@ class WebSocketFlowManager extends Disposable {
 	}
 
 	public writeMessage(data: VSBuffer, options: FrameOptions): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._writeQueue.push({ data, options });
-		this._processWriteQueue().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._processWriteQueue().catch(onUnexpectedError);
 	}
 
 	private _isProcessingWriteQueue = false;
 	private async _processWriteQueue(): Promise<void> {
-		if (this._isProcessingWriteQueue) {
+		if (this._isProcessingWriteQueue || this._store.isDisposed) {
 			return;
 		}
 		this._isProcessingWriteQueue = true;
 		while (this._writeQueue.length > 0) {
+			if (this._store.isDisposed) {
+				this._writeQueue.length = 0;
+				break;
+			}
 			const { data, options } = this._writeQueue.shift()!;
 			if (this._zlibDeflateStream && options.compressed) {
 				const compressedData = await this._deflateMessage(this._zlibDeflateStream, data);
+				if (this._store.isDisposed) {
+					this._writeQueue.length = 0;
+					break;
+				}
 				this._writeFn(compressedData, options);
 			} else {
 				this._writeFn(data, { ...options, compressed: false });
 			}
 		}
 		this._isProcessingWriteQueue = false;
-		this._onDidFinishProcessingWriteQueue.fire();
+		if (!this._store.isDisposed) {
+			this._onDidFinishProcessingWriteQueue.fire();
+		}
 	}
 
 	public isProcessingWriteQueue(): boolean {
@@ -548,17 +561,24 @@ class WebSocketFlowManager extends Disposable {
 	}
 
 	public acceptFrame(data: VSBuffer, isCompressed: boolean, isLastFrameOfMessage: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._readQueue.push({ data, isCompressed, isLastFrameOfMessage });
-		this._processReadQueue().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._processReadQueue().catch(onUnexpectedError);
 	}
 
 	private _isProcessingReadQueue = false;
 	private async _processReadQueue(): Promise<void> {
-		if (this._isProcessingReadQueue) {
+		if (this._isProcessingReadQueue || this._store.isDisposed) {
 			return;
 		}
 		this._isProcessingReadQueue = true;
 		while (this._readQueue.length > 0) {
+			if (this._store.isDisposed) {
+				this._readQueue.length = 0;
+				break;
+			}
 			const frameInfo = this._readQueue.shift()!;
 			if (this._zlibInflateStream && frameInfo.isCompressed) {
 				// See https://datatracker.ietf.org/doc/html/rfc7692#section-9.2
@@ -566,13 +586,25 @@ class WebSocketFlowManager extends Disposable {
 				// that the other side might decide to send uncompressed messages
 				// So only decompress messages that have the RSV 1 bit set
 				const data = await this._inflateFrame(this._zlibInflateStream, frameInfo.data, frameInfo.isLastFrameOfMessage);
+				if (this._store.isDisposed) {
+					this._readQueue.length = 0;
+					break;
+				}
 				this._onData.fire(data);
 			} else {
 				this._onData.fire(frameInfo.data);
 			}
 		}
 		this._isProcessingReadQueue = false;
-		this._onDidFinishProcessingReadQueue.fire();
+		if (!this._store.isDisposed) {
+			this._onDidFinishProcessingReadQueue.fire();
+		}
+	}
+
+	override dispose(): void {
+		this._writeQueue.length = 0;
+		this._readQueue.length = 0;
+		super.dispose();
 	}
 
 	public isProcessingReadQueue(): boolean {

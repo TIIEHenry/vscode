@@ -27,16 +27,17 @@ suite('AsyncDataTree leftover fire-and-forget catch scan (D674)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('refreshAndRenderNode leftover site is one and double-chain; single-chain gone for this call (D674)', () => {
-		// refreshAndRenderNode returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('refreshAndRenderNode leftover site is one and single-chain; zero double-chain (D674)', () => {
 		const source = fs.readFileSync(asyncDataTreeSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const refreshSite = `this.refreshAndRenderNode(node.element, false)
 					`;
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../common/errors.js';"));
 		assert.strictEqual((source.match(/this\.refreshAndRenderNode\(node\.element, false\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${refreshSite}${doubleCatch};`));
+		assert.ok(source.includes(`${refreshSite}${singleCatch};`));
 		assert.ok(!source.includes(`${refreshSite};`));
-		assert.ok(!source.includes(`${refreshSite}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${refreshSite}${doubleCatch};`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });

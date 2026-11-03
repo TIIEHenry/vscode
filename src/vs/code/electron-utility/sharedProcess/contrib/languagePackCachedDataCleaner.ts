@@ -50,7 +50,10 @@ export class LanguagePackCachedDataCleaner extends Disposable {
 		// So only cleanup when we have a build version.
 		if (this.environmentService.isBuilt) {
 			const scheduler = this._register(new RunOnceScheduler(() => {
-				this.cleanUpLanguagePackCache().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.cleanUpLanguagePackCache().catch(onUnexpectedError);
 			}, 40 * 1000 /* after 40s */));
 			scheduler.schedule();
 		}
@@ -60,6 +63,9 @@ export class LanguagePackCachedDataCleaner extends Disposable {
 	 * Public for testing.
 	 */
 	async cleanUpLanguagePackCache(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.logService.trace('[language pack cache cleanup]: Starting to clean up unused language packs.');
 
 		try {
@@ -79,6 +85,9 @@ export class LanguagePackCachedDataCleaner extends Disposable {
 
 			const entries = await Promises.readdir(cacheDir);
 			for (const entry of entries) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (installed[entry]) {
 					this.logService.trace(`[language pack cache cleanup]: Skipping folder ${entry}. Language pack still in use.`);
 					continue;
@@ -91,6 +100,9 @@ export class LanguagePackCachedDataCleaner extends Disposable {
 
 			const now = Date.now();
 			for (const packEntry of Object.keys(installed)) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const folder = join(cacheDir, packEntry);
 				let entries: string[];
 				try {

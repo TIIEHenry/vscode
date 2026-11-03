@@ -137,7 +137,7 @@ class CodeMain {
 				// (https://github.com/microsoft/vscode/issues/127861#issuecomment-877417451)
 				FSPromises.writeFile(environmentMainService.mainLockfile, String(process.pid)).catch(err => {
 					logService.warn(`app#startup(): Error writing main lockfile: ${err.stack}`);
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 
 				// Delay creation of spdlog for perf reasons (https://github.com/microsoft/vscode/issues/72906)
 				bufferLogger.logger = loggerService.createLogger('main', { name: localize('mainLog', "Main") });
@@ -541,7 +541,7 @@ class CodeMain {
 			}
 		}
 
-		lifecycleMainService.kill(exitCode).catch(onUnexpectedError).catch(onUnexpectedError);
+		lifecycleMainService.kill(exitCode).catch(onUnexpectedError);
 	}
 
 	private async checkInnoSetupMutex(productService: IProductService, logService: ILogService): Promise<boolean> {
