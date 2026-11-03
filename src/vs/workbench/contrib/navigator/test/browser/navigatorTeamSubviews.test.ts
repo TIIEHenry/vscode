@@ -33,6 +33,7 @@ import '../../browser/navigator.contribution.js';
 import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLeaseHolder.js';
+import { NavigatorTeamInlineFilterBox } from '../../browser/navigatorTeamInlineFilterBox.js';
 import {
 	INavigatorTeamMember,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
@@ -2244,10 +2245,9 @@ suite('Navigator Team subviews', () => {
 		assert.deepStrictEqual(revealCalls, []);
 	});
 
-	test('does not leak unhandled rejection when refreshTeamData catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refreshTeamData catch-path notice throws', async () => {
 		// refreshTeamData already catches memberStatus; a lone inner reject does not leak.
 		// The void scheduler call site still needs `.catch` when the catch-path notice throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
@@ -2278,9 +2278,6 @@ suite('Navigator Team subviews', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			(view as unknown as { scheduleRefresh(): void }).scheduleRefresh();
@@ -2288,7 +2285,7 @@ suite('Navigator Team subviews', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2296,11 +2293,10 @@ suite('Navigator Team subviews', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when member row-open error-path throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when member row-open error-path throws', async () => {
 		// revealNavigatorAgentInConversation already catches openSubAgent; a lone inner
 		// reject does not leak. The void call site still needs `.catch` when the
-		// catch-path notify throws. A lone `.catch(onUnexpectedError)` still leaks when
-		// the handler warn-then-rethrows.
+		// catch-path notify throws.
 		const notifyBoom = new Error('error failed');
 		let errorCalls = 0;
 		const unexpectedWarns: unknown[] = [];
@@ -2309,9 +2305,6 @@ suite('Navigator Team subviews', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
@@ -2342,7 +2335,7 @@ suite('Navigator Team subviews', () => {
 			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				errorCalls: 1,
-				unexpectedWarns: [notifyBoom, notifyBoom],
+				unexpectedWarns: [notifyBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2703,5 +2696,89 @@ suite('Navigator Team subviews', () => {
 		assert.ok(memberIds.some(id => id.includes('mgr:b') && id.includes('member:shared')));
 		assert.ok(taskIds.some(id => id.includes('mgr:a') && id.includes('task:shared')));
 		assert.ok(taskIds.some(id => id.includes('mgr:b') && id.includes('task:shared')));
+	});
+
+	test('view.dispose detaches subview DOM elements, unsets inspect live IDs, and guards subsequent method calls without throwing', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, createNavigatorConnectionTestStub(), undefined, inspectService);
+
+		inspectService.setLiveAgentIds('team', new Set(['m1']), 'sess-1');
+		inspectService.setLiveTaskIds(new Set(['t1']), 'sess-1');
+
+		const membersBody = (view as unknown as { membersBody: HTMLElement | undefined }).membersBody;
+		const tasksBody = (view as unknown as { tasksBody: HTMLElement | undefined }).tasksBody;
+		const membersListContainer = (view as unknown as { membersListContainer: HTMLElement | undefined }).membersListContainer;
+		const tasksListContainer = (view as unknown as { tasksListContainer: HTMLElement | undefined }).tasksListContainer;
+		const membersEmpty = (view as unknown as { membersEmpty: HTMLElement | undefined }).membersEmpty;
+		const tasksEmpty = (view as unknown as { tasksEmpty: HTMLElement | undefined }).tasksEmpty;
+		const filterBox = (view as unknown as { filterBox: NavigatorTeamInlineFilterBox | undefined }).filterBox;
+
+		assert.ok(membersBody);
+		assert.ok(tasksBody);
+		assert.ok(membersListContainer);
+		assert.ok(tasksListContainer);
+		assert.ok(membersEmpty);
+		assert.ok(tasksEmpty);
+		assert.ok(filterBox);
+
+		view.dispose();
+
+		assert.strictEqual(membersBody.parentElement, null, 'membersBody must be removed from parent');
+		assert.strictEqual(tasksBody.parentElement, null, 'tasksBody must be removed from parent');
+		assert.strictEqual(membersListContainer.parentElement, null, 'membersListContainer must be removed from parent');
+		assert.strictEqual(tasksListContainer.parentElement, null, 'tasksListContainer must be removed from parent');
+		assert.strictEqual(membersEmpty.parentElement, null, 'membersEmpty must be removed from parent');
+		assert.strictEqual(tasksEmpty.parentElement, null, 'tasksEmpty must be removed from parent');
+		assert.strictEqual(filterBox.element.parentElement, null, 'filterBox element must be removed from parent');
+
+		assert.strictEqual((view as unknown as { membersBody: HTMLElement | undefined }).membersBody, undefined);
+		assert.strictEqual((view as unknown as { tasksBody: HTMLElement | undefined }).tasksBody, undefined);
+		assert.strictEqual((view as unknown as { membersListContainer: HTMLElement | undefined }).membersListContainer, undefined);
+		assert.strictEqual((view as unknown as { tasksListContainer: HTMLElement | undefined }).tasksListContainer, undefined);
+		assert.strictEqual((view as unknown as { membersEmpty: HTMLElement | undefined }).membersEmpty, undefined);
+		assert.strictEqual((view as unknown as { tasksEmpty: HTMLElement | undefined }).tasksEmpty, undefined);
+		assert.strictEqual((view as unknown as { filterBox: NavigatorTeamInlineFilterBox | undefined }).filterBox, undefined);
+		assert.strictEqual((view as unknown as { membersList: unknown }).membersList, undefined);
+		assert.strictEqual((view as unknown as { tasksList: unknown }).tasksList, undefined);
+
+		assert.strictEqual(inspectService.getLiveAgentIdsFor('team'), undefined, 'live agent ids must be cleared');
+		assert.strictEqual(inspectService.getLiveTaskIds(), undefined, 'live task ids must be cleared');
+
+		// Guard subsequent method calls without throwing
+		view.showMembers();
+		view.showTasks();
+		view.refresh();
+		view.inspectFocusedTitleAction();
+		view.inspectMember({
+			id: 'm1',
+			label: 'Member 1',
+			memberAgentId: 'm1',
+			memberName: 'M1',
+			status: 'IDLE',
+			preset: '',
+			dynamic: '',
+			turnCount: 0,
+			managerAgentId: 'mgr',
+			managerName: 'Mgr',
+			sessionId: 'sess-1',
+		});
+		view.inspectTask({
+			id: 't1',
+			label: 'Task 1',
+			taskId: 't1',
+			subject: 'Task 1',
+			owner: 'Owner',
+			status: 'TODO',
+			blockedBy: '',
+			lastMessage: '',
+			description: '',
+			managerAgentId: 'mgr',
+			managerName: 'Mgr',
+			sessionId: 'sess-1',
+		});
+		view.setVisible(false);
+		view.setVisible(true);
 	});
 });

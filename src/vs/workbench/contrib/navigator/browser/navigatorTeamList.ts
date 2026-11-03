@@ -205,9 +205,6 @@ export class NavigatorTeamView extends ViewPane {
 	private tasksListContainer: HTMLElement | undefined;
 	private tasksList: WorkbenchList<INavigatorTeamTaskEntry> | undefined;
 	private taskEntries: INavigatorTeamTaskEntry[] = [];
-	private treeContainer: HTMLElement | undefined;
-	private filterEmpty: HTMLElement | undefined;
-	private statusContainer: HTMLElement | undefined;
 
 	private teamInfoCallCount = 0;
 	private hadTeamSnapshot = false;
@@ -241,23 +238,57 @@ export class NavigatorTeamView extends ViewPane {
 		this.engineConnectedContextKey = UA_ENGINE_CONNECTED_KEY.bindTo(this.scopedContextKeyService);
 		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
 			this.rosterService,
-			() => this.scheduleRefresh(),
-			error => this.notificationService.error(getErrorMessage(error)),
+			() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.scheduleRefresh();
+			},
+			error => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.notificationService.error(getErrorMessage(error));
+			},
 		));
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData().catch(onUnexpectedError), 250));
-		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
+		this.refreshScheduler = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refreshTeamData().catch(onUnexpectedError);
+		}, 250));
+		this._register(this.rosterService.onDidChangeActiveSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.scheduleRefresh();
+		}));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.updateEngineConnectedContextKey();
 			this.scheduleRefresh();
 		}));
 		// D457: KEEP list-fail flips via roster session events, not connection.
-		this._register(this.rosterService.onDidChangeSession(() => this.syncKeepLeftoverListFailInspect()));
+		this._register(this.rosterService.onDidChangeSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.syncKeepLeftoverListFailInspect();
+		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.updateEngineConnectedContextKey();
 			this.scheduleRefresh();
 		}));
 
 		this._register(this.uaConnection.onDidChangeTeamRuntime(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.sessionId === this.rosterService.getActiveSessionId()) {
 				this.scheduleRefresh();
 			}
@@ -268,6 +299,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	override setVisible(visible: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		super.setVisible(visible);
 		this.leaseHolder.setVisible(visible);
 		if (!visible) {
@@ -281,9 +315,28 @@ export class NavigatorTeamView extends ViewPane {
 		this.agentTreeLoadRunner = undefined;
 		this.inspectService.setLiveAgentIds('team', undefined);
 		this.inspectService.setLiveTaskIds(undefined);
-		this.treeContainer?.remove();
-		this.filterEmpty?.remove();
-		this.statusContainer?.remove();
+		this.membersBody?.remove();
+		this.membersBody = undefined;
+		this.tasksBody?.remove();
+		this.tasksBody = undefined;
+		this.membersListContainer?.remove();
+		this.membersListContainer = undefined;
+		this.tasksListContainer?.remove();
+		this.tasksListContainer = undefined;
+		this.membersEmpty?.remove();
+		this.membersEmpty = undefined;
+		this.tasksEmpty?.remove();
+		this.tasksEmpty = undefined;
+		this.membersNote?.remove();
+		this.membersNote = undefined;
+		this.tasksNote?.remove();
+		this.tasksNote = undefined;
+		this.filterBox?.dispose();
+		this.filterBox = undefined;
+		this.membersList?.dispose();
+		this.membersList = undefined;
+		this.tasksList?.dispose();
+		this.tasksList = undefined;
 		super.dispose();
 	}
 
@@ -296,6 +349,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	refresh(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const sessionId = this.rosterService.getActiveSessionId();
 		if (!isConversationPairingHold(this.uaConnection) && !this.isKeepLeftoverListFailWrite() && this.rosterService.isEngineConnected() && sessionId) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
@@ -304,7 +360,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	showMembers(): void {
-		if (this.subview === 'members') {
+		if (this._store.isDisposed || this.subview === 'members') {
 			return;
 		}
 		this.subview = 'members';
@@ -315,7 +371,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	showTasks(): void {
-		if (this.subview === 'tasks') {
+		if (this._store.isDisposed || this.subview === 'tasks') {
 			return;
 		}
 		this.subview = 'tasks';
@@ -340,6 +396,9 @@ export class NavigatorTeamView extends ViewPane {
 			filterPlaceholder,
 		));
 		this._register(this.filterBox.onDidChange(query => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.filterQuery = query;
 			this.applyFilter();
 		}));
@@ -371,6 +430,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	protected override layoutBody(height: number, width: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		super.layoutBody(height, width);
 		this.lastBodyHeight = height;
 		this.lastBodyWidth = width;
@@ -387,6 +449,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private scheduleRefresh(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.refreshScheduler.schedule();
 	}
 
@@ -409,6 +474,9 @@ export class NavigatorTeamView extends ViewPane {
 		)) as WorkbenchList<INavigatorTeamMemberEntry>;
 
 		this._register(this.membersList.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
@@ -442,6 +510,9 @@ export class NavigatorTeamView extends ViewPane {
 		)) as WorkbenchList<INavigatorTeamTaskEntry>;
 
 		this._register(this.tasksList.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
@@ -489,6 +560,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async refreshTeamData(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const refreshSeq = ++this._refreshSeq;
 		const sessionId = this.rosterService.getActiveSessionId();
 		const lease = this.leaseHolder.getLease();
@@ -699,7 +773,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private async listTeamsForInfo(sessionId: string, liveTeamId: number | undefined): Promise<readonly UniverseAgentTeamListEntry[]> {
-		if (liveTeamId !== undefined || typeof this.uaConnection.listTeams !== 'function') {
+		if (this._store.isDisposed || liveTeamId !== undefined || typeof this.uaConnection.listTeams !== 'function') {
 			return [];
 		}
 		try {
@@ -850,6 +924,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private syncAgentTreeLoadingChrome(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.syncStubEmptyLoading(this.membersEmpty);
 		this.syncStubEmptyLoading(this.tasksEmpty);
 		if (!this.element) {
@@ -870,11 +947,17 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private updateSubviewContextKeys(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.membersContextKey.set(this.subview === 'members');
 		this.tasksContextKey.set(this.subview === 'tasks');
 	}
 
 	private updateSubviewVisibility(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.membersBody?.classList.toggle('active', this.subview === 'members');
 		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
 	}
@@ -885,6 +968,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private updateEngineConnectedContextKey(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.engineConnectedContextKey.set(
 			!isConversationPairingHold(this.uaConnection)
 			&& this.rosterService.isEngineConnected()
@@ -893,6 +979,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private syncKeepLeftoverListFailInspect(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.updateEngineConnectedContextKey();
 		if (!this.isKeepLeftoverListFailWrite()) {
 			return;
@@ -916,14 +1005,14 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private relayoutCurrentSubview(): void {
-		if (this.lastBodyWidth <= 0 && this.lastBodyHeight <= 0) {
+		if (this._store.isDisposed || (this.lastBodyWidth <= 0 && this.lastBodyHeight <= 0)) {
 			return;
 		}
 		this.layoutBody(this.lastBodyHeight, this.lastBodyWidth);
 	}
 
 	inspectMember(member: INavigatorTeamMemberEntry): void {
-		if (!this.isTeamRowActionLive()) {
+		if (this._store.isDisposed || !this.isTeamRowActionLive()) {
 			return;
 		}
 		const currentOwner = this.capturePublishedLinkOwner();
@@ -937,7 +1026,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	inspectTask(task: INavigatorTeamTaskEntry): void {
-		if (!this.isTeamRowActionLive()) {
+		if (this._store.isDisposed || !this.isTeamRowActionLive()) {
 			return;
 		}
 		const currentOwner = this.capturePublishedLinkOwner();
@@ -951,7 +1040,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	inspectFocusedTitleAction(): void {
-		if (!this.isTeamRowActionLive()) {
+		if (this._store.isDisposed || !this.isTeamRowActionLive()) {
 			return;
 		}
 		if (this.subview === 'members') {
@@ -973,6 +1062,9 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private openInspectPanel(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError);
 	}
 }
