@@ -35,7 +35,12 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+
+function countDoubleChains(source: string): number {
+	return (source.match(new RegExp(doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
+}
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
@@ -47,15 +52,23 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const submitFeedbackThen = `this.callbacks.submitFeedback(text).then(result => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (result.ok) {
 				this._feedbackDialogState.set({ isSubmitting: false, submitted: true }, undefined);
-				setTimeout(() => { this._feedbackDialogState.set(null, undefined); }, 3000);
+				this._feedbackResetTimer.value = new TimeoutTimer(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this._feedbackDialogState.set(null, undefined);
+				}, 3000);
 			} else {
 				this._feedbackDialogState.set({ isSubmitting: false, submitted: false, error: result.error ?? localize('agentsVoice.feedbackError', "Failed to submit") }, undefined);
 			}
@@ -81,22 +94,25 @@ suite('agentsVoice leftover Promise fire-and-forget catch scan (D779)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites in agentsVoice only', () => {
+	test('this knife covers five leftover Promise single-catch sites in agentsVoice only and zero double-catches', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d779Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
-	test('agentsVoice leftover submitFeedback then is Promise double-chain', () => {
+	test('agentsVoice leftover submitFeedback then is Promise single-catch', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const controller = fs.readFileSync(resolveSource(CONTROLLER_REL), 'utf8');
 		assertPromiseSignature(widget, 'submitFeedback(feedbackText: string): Promise<{ ok: boolean; error?: string }>;');
@@ -104,10 +120,11 @@ suite('agentsVoice leftover Promise fire-and-forget catch scan (D779)', () => {
 		assert.ok(widget.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(widget, submitFeedbackThen);
 		assert.ok(!widget.includes(`${submitFeedbackThen};`));
-		assert.ok(!widget.includes(`${submitFeedbackThen}.catch(onUnexpectedError);`));
+		assert.ok(!widget.includes(`${submitFeedbackThen}${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(widget), 0);
 	});
 
-	test('agentsVoice leftover switchToSession / focus / picker.show fire-and-forgets are Promise double-chain', () => {
+	test('agentsVoice leftover switchToSession / focus / picker.show fire-and-forgets are Promise single-catch', () => {
 		const windowSource = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		const host = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
@@ -117,13 +134,14 @@ suite('agentsVoice leftover Promise fire-and-forget catch scan (D779)', () => {
 		assertPromiseSignature(picker, 'async show(): Promise<void> {');
 		assert.ok(windowSource.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(windowSource, switchToSessionCall);
-		assert.strictEqual(countIncludes(windowSource, `${switchToSessionCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(windowSource, `${switchToSessionCall}${singleCatch}`), 2);
 		assertWrapped(windowSource, focusCall);
 		assertWrapped(windowSource, pickerShowCall);
 		assert.ok(!windowSource.includes(`${switchToSessionCall};`));
 		assert.ok(!windowSource.includes(`${switchToSessionCall}.catch(() => { /* ignore */ });`));
 		assert.ok(!windowSource.includes(`${focusCall};`));
 		assert.ok(!windowSource.includes('\t\t\t\tpicker.show();'));
+		assert.strictEqual(countDoubleChains(windowSource), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Connect / Watch / Resolve / Pty / D145 stay skipped', () => {
@@ -143,9 +161,12 @@ suite('agentsVoice leftover Promise fire-and-forget catch scan (D779)', () => {
 		assertPromiseSignature(controller, 'connect(window: Window & typeof globalThis): Promise<void>;');
 		assertPromiseSignature(sessionsModel, 'resolve(provider: string | string[] | undefined): Promise<void>;');
 
-		assert.ok(onboarding.includes('void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError)'));
-		assert.ok(transcripts.includes('void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(eventStream.includes('void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(onboarding.includes('void this.refreshMicrophones().catch(onUnexpectedError)'));
+		assert.ok(transcripts.includes('void this.refresh().catch(onUnexpectedError);'));
+		assert.ok(eventStream.includes('void this.refresh().catch(onUnexpectedError);'));
+		assert.ok(!onboarding.includes(`void this.refreshMicrophones()${doubleCatch}`));
+		assert.ok(!transcripts.includes(`void this.refresh()${doubleCatch}`));
+		assert.ok(!eventStream.includes(`void this.refresh()${doubleCatch}`));
 
 		assert.ok(windowSource.includes('this.voiceSessionController.connect(mainWindow);'));
 		assert.ok(!windowSource.includes(`this.voiceSessionController.connect(mainWindow)${doubleCatch}`));
@@ -179,8 +200,10 @@ suite('agentsVoice leftover Promise fire-and-forget catch scan (D779)', () => {
 		assert.ok(!widget.includes('.then(undefined,'));
 		assert.ok(!windowSource.includes('.then(undefined,'));
 		assert.ok(!widget.includes(` = ${submitFeedbackThen}${doubleCatch}`));
+		assert.ok(!widget.includes(` = ${submitFeedbackThen}${singleCatch}`));
 
 		for (const source of [widget, windowSource, picker, onboarding, transcripts, eventStream, contrib, binding]) {
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

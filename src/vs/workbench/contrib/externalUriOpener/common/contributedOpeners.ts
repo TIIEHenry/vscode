@@ -42,10 +42,20 @@ export class ContributedExternalUriOpenersStore extends Disposable {
 			}
 		}
 
-		this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError);
 
-		this._register(this._extensionService.onDidChangeExtensions(() => this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this._extensionService.onDidChangeExtensionsStatus(() => this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._extensionService.onDidChangeExtensions(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError);
+		}));
+		this._register(this._extensionService.onDidChangeExtensionsStatus(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.invalidateOpenersOnExtensionsChanged().catch(onUnexpectedError);
+		}));
 	}
 
 	public didRegisterOpener(id: string, extensionId: string): void {
@@ -84,6 +94,9 @@ export class ContributedExternalUriOpenersStore extends Disposable {
 
 	private async invalidateOpenersOnExtensionsChanged() {
 		await this._extensionService.whenInstalledExtensionsRegistered();
+		if (this._store.isDisposed) {
+			return;
+		}
 		const registeredExtensions = this._extensionService.extensions;
 
 		for (const [id, entry] of this._openers) {
@@ -112,5 +125,10 @@ export class ContributedExternalUriOpenersStore extends Disposable {
 		}
 
 		updateContributedOpeners(ids, descriptions);
+	}
+
+	override dispose(): void {
+		this._openers.clear();
+		super.dispose();
 	}
 }

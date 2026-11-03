@@ -464,10 +464,13 @@ class VoiceModeOnboardingAnimator extends Disposable {
 		this.running = true;
 		const targetWindow = dom.getWindow(this.container);
 		const tick = (time: number) => {
-			if (!this.running) {
+			if (!this.running || this._store.isDisposed) {
 				return;
 			}
 			this.draw(time);
+			if (!this.running || this._store.isDisposed) {
+				return;
+			}
 			this.animationFrame.value = dom.scheduleAtNextAnimationFrame(targetWindow, () => tick(targetWindow.performance.now()));
 		};
 		this.animationFrame.value = dom.scheduleAtNextAnimationFrame(targetWindow, () => tick(targetWindow.performance.now()));
@@ -592,6 +595,9 @@ class VoiceSamplePlayer extends Disposable {
 
 			this.setPlayingVoice(playingVoice);
 			audio.play().catch(error => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.logService.trace(`[voice] Voice Mode onboarding preview failed: ${error}`);
 				this.stop();
 			});
@@ -780,8 +786,8 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 
 		const mediaDevices = dom.getWindow(this.domNode).navigator.mediaDevices;
 		if (mediaDevices) {
-			this._register(dom.addDisposableListener(mediaDevices, 'devicechange', () => void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError)));
-			void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._register(dom.addDisposableListener(mediaDevices, 'devicechange', () => void this.refreshMicrophones().catch(onUnexpectedError)));
+			void this.refreshMicrophones().catch(onUnexpectedError);
 		}
 	}
 
@@ -853,6 +859,9 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 	}
 
 	private selectMicrophone(index: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const option = this.microphoneOptions[index];
 		if (!option) {
 			return;
@@ -1027,10 +1036,13 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 		dom.append(description, renderFormattedText(text, {
 			actionHandler: {
 				callback: index => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					const commandId = index === '0' ? VOICE_SETTINGS_COMMAND : CONFIGURE_VOICE_INSTRUCTIONS_ACTION_ID;
 					this.logAction(index === '0' ? 'openSettings' : 'openInstructions');
 					void this.commandService.executeCommand(commandId)
-						.catch(onUnexpectedError).catch(onUnexpectedError);
+						.catch(onUnexpectedError);
 				},
 				disposables: this._store,
 			},
@@ -1081,6 +1093,9 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 	}
 
 	private selectVoice(voice: IVoiceModeVoice): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.player.playingVoice === voice.id) {
 			this.player.stop();
 			status(localize('voiceMode.onboarding.voice.previewStopped', "{0} preview stopped.", voice.label));
@@ -1092,7 +1107,7 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 		this.player.play(voice.sampleId, voice.id);
 		status(localize('voiceMode.onboarding.voice.selected', "{0} selected.", voice.label));
 		void this.configurationService.updateValue(VOICE_SETTING, voice.id, ConfigurationTarget.USER)
-			.catch(onUnexpectedError).catch(onUnexpectedError);
+			.catch(onUnexpectedError);
 	}
 
 	/**
@@ -1100,6 +1115,9 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 	 * language - so previewing it just plays and stops, and never persists.
 	 */
 	private previewLocalizedVoice(voice: ILocalizedVoice): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.player.playingVoice === voice.id) {
 			this.player.stop();
 			status(localize('voiceMode.onboarding.voice.localizedStopped', "{0} preview stopped.", voice.label));
@@ -1164,6 +1182,22 @@ export class VoiceModeOnboardingBanner extends ChatInputNoticeWidget implements 
 		this.player.stop();
 		this.logAction('close');
 		this.options.onDismiss();
+	}
+
+	override dispose(): void {
+		this.player.stop();
+		this.voiceElements.clear();
+		this.microphoneOptions = [];
+		if (this.voicesContainer) {
+			dom.clearNode(this.voicesContainer);
+			this.voicesContainer = undefined;
+		}
+		if (this.microphonePickerContainer) {
+			dom.clearNode(this.microphonePickerContainer);
+			this.microphonePickerContainer = undefined;
+		}
+		dom.clearNode(this.domNode);
+		super.dispose();
 	}
 
 	private logAction(action: VoiceModeOnboardingAction): void {

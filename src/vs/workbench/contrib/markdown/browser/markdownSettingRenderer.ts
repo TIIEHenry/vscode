@@ -249,7 +249,7 @@ export class SimpleSettingRenderer {
 					tooltip: trySettingMessage,
 					label: trySettingMessage,
 					run: () => {
-						this.setSetting(settingId, currentSettingValue, newSettingValue).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.setSetting(settingId, currentSettingValue, newSettingValue).catch(onUnexpectedError);
 					}
 				});
 			}
@@ -274,7 +274,7 @@ export class SimpleSettingRenderer {
 			tooltip: nls.localize('copySettingId', "Copy Setting ID"),
 			label: nls.localize('copySettingId', "Copy Setting ID"),
 			run: () => {
-				this._clipboardService.writeText(settingId).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._clipboardService.writeText(settingId).catch(onUnexpectedError);
 			}
 		});
 

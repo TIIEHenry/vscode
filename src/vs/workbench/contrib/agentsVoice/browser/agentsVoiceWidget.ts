@@ -5,7 +5,8 @@
 
 import * as dom from '../../../../base/browser/dom.js';
 import { observableValue, derived, autorun, type ISettableObservable, type IReader } from '../../../../base/common/observable.js';
-import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { TimeoutTimer } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
@@ -171,6 +172,7 @@ export class AgentsVoiceWidget extends Disposable {
 	private readonly _feedbackDialogState: ISettableObservable<FeedbackDialogState | null> = observableValue(this, null);
 	private readonly _showOnboarding: ISettableObservable<boolean> = observableValue(this, false);
 	private readonly _onboardingPendingConnect: ISettableObservable<boolean> = observableValue(this, false);
+	private readonly _feedbackResetTimer = this._register(new MutableDisposable<TimeoutTimer>());
 
 	// --- Derived state ---
 	private readonly _shouldShowExpanded = derived(this, reader => this._expanded.read(reader));
@@ -1103,13 +1105,21 @@ export class AgentsVoiceWidget extends Disposable {
 	private _submitFeedback(text: string): void {
 		this._feedbackDialogState.set({ isSubmitting: true, submitted: false }, undefined);
 		this.callbacks.submitFeedback(text).then(result => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (result.ok) {
 				this._feedbackDialogState.set({ isSubmitting: false, submitted: true }, undefined);
-				setTimeout(() => { this._feedbackDialogState.set(null, undefined); }, 3000);
+				this._feedbackResetTimer.value = new TimeoutTimer(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this._feedbackDialogState.set(null, undefined);
+				}, 3000);
 			} else {
 				this._feedbackDialogState.set({ isSubmitting: false, submitted: false, error: result.error ?? localize('agentsVoice.feedbackError', "Failed to submit") }, undefined);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	// --- Glow animation (decoupled from autorun — direct DOM updates) ---
@@ -1119,6 +1129,9 @@ export class AgentsVoiceWidget extends Disposable {
 	private _startWaveformAnimation(): void {
 		if (this._animationFrameId !== undefined) { return; }
 		const animate = () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._animationFrameId = getWindow(this.container).requestAnimationFrame(animate);
 			const onboarding = this._showOnboarding.get();
 			const voiceState = this._voiceState.get();
@@ -1180,6 +1193,15 @@ export class AgentsVoiceWidget extends Disposable {
 		if (this._inputBoxMicBtn) {
 			this._inputBoxMicBtn.style.boxShadow = 'none';
 		}
+	}
+
+	override dispose(): void {
+		this._stopWaveformAnimation();
+		this._feedbackResetTimer.dispose();
+		dom.clearNode(this._rootDiv);
+		this._rootDiv.remove();
+		dom.clearNode(this.container);
+		super.dispose();
 	}
 }
 
