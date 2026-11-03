@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationEditorPane.css';
-import { $, append } from '../../../../base/browser/dom.js';
+import { $, append, clearNode } from '../../../../base/browser/dom.js';
 import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -90,7 +90,7 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			if (!parsed) {
 				return;
 			}
-			void this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId).catch(onUnexpectedError);
 		}));
 
 		const content = append(pageRoot, $('.conversation-editor-page-content'));
@@ -107,8 +107,11 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	}
 
 	override async setInput(input: ConversationChatInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await super.setInput(input, options, context, token);
-		if (token.isCancellationRequested || this.lensDisposables.isDisposed) {
+		if (token.isCancellationRequested || this._store.isDisposed || this.lensDisposables.isDisposed) {
 			return;
 		}
 		this.activeInput = input;
@@ -128,6 +131,19 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 
 	override dispose(): void {
 		this.teardownLens();
+		if (this.lensTablist) {
+			clearNode(this.lensTablist);
+			this.lensTablist.remove();
+			this.lensTablist = undefined;
+		}
+		if (this.pageRoot) {
+			clearNode(this.pageRoot);
+			this.pageRoot.remove();
+			this.pageRoot = undefined;
+		}
+		this.pageChrome = undefined;
+		this.timelineHost = undefined;
+		this.dockHost = undefined;
 		super.dispose();
 	}
 

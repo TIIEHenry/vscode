@@ -178,8 +178,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		return { ...harness, secondaryId };
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>, expectedCount = 1): Promise<void> {
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -187,7 +186,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
+			if (expectedCount > 1 && unexpectedWarns.length === 1) {
 				throw error;
 			}
 		});
@@ -196,7 +195,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

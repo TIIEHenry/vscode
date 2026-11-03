@@ -791,9 +791,8 @@ suite('Conversation navigation (S2)', () => {
 		assert.deepStrictEqual(harness.goForwardParts, []);
 	});
 
-	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void): Promise<void> {
-		// goBack / goForward / closeNonRootTabs return Promises. A lone
-		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void, expectedCount = 1): Promise<void> {
+		// goBack / goForward / closeNonRootTabs return Promises.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -801,7 +800,7 @@ suite('Conversation navigation (S2)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
+			if (expectedCount > 1 && unexpectedWarns.length === 1) {
 				throw error;
 			}
 		});
@@ -823,7 +822,7 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ goBackParts: harness.goBackParts, unexpectedWarns }, {
 					goBackParts: [harness.fakePart],
-					unexpectedWarns: ['boom', 'boom'],
+					unexpectedWarns: ['boom'],
 				});
 			},
 		);
@@ -836,7 +835,7 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ goForwardParts: harness.goForwardParts, unexpectedWarns }, {
 					goForwardParts: [harness.fakePart],
-					unexpectedWarns: ['boom', 'boom'],
+					unexpectedWarns: ['boom'],
 				});
 			},
 		);
@@ -855,7 +854,7 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ goBackParts: harness.goBackParts, unexpectedWarns }, {
 					goBackParts: [undefined],
-					unexpectedWarns: ['boom', 'boom'],
+					unexpectedWarns: ['boom'],
 				});
 			},
 		);
@@ -874,7 +873,7 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ goForwardParts: harness.goForwardParts, unexpectedWarns }, {
 					goForwardParts: [undefined],
-					unexpectedWarns: ['boom', 'boom'],
+					unexpectedWarns: ['boom'],
 				});
 			},
 		);
@@ -887,7 +886,7 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ upCalls: harness.upCalls(), unexpectedWarns }, {
 					upCalls: 1,
-					unexpectedWarns: ['boom', 'boom'],
+					unexpectedWarns: ['boom'],
 				});
 			},
 		);
@@ -900,7 +899,7 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ closeCalls: harness.closeCalls(), unexpectedWarns }, {
 					closeCalls: 1,
-					unexpectedWarns: ['boom', 'boom'],
+					unexpectedWarns: ['boom'],
 				});
 			},
 		);

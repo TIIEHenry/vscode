@@ -47,9 +47,8 @@ suite('Conversation timeline session pills', () => {
 		await timeout(0);
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
-		// handleTimelineLink's inner try/catch only wraps URI.parse. A lone
-		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void, expectedCount = 1): Promise<void> {
+		// handleTimelineLink's inner try/catch only wraps URI.parse.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -57,7 +56,7 @@ suite('Conversation timeline session pills', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
+			if (expectedCount > 1 && unexpectedWarns.length === 1) {
 				throw error;
 			}
 		});
@@ -66,7 +65,7 @@ suite('Conversation timeline session pills', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

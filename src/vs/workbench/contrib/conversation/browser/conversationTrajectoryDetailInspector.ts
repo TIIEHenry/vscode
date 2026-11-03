@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { clearNode } from '../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
@@ -51,12 +52,23 @@ export class TrajectoryDetailInspectorModel {
 	private readonly _onDidChange = new Emitter<void>();
 	readonly onDidChange = this._onDidChange.event;
 
+	constructor(private container?: HTMLElement) { }
+
+	setContainer(container?: HTMLElement): void {
+		this.container = container;
+	}
+
 	dispose(): void {
 		this.disposed = true;
 		this.sessionEpoch++;
 		this.cache.clear();
 		this.pendingRefs.clear();
 		this._onDidChange.dispose();
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+			this.container = undefined;
+		}
 	}
 
 	clearSession(): void {
@@ -117,7 +129,7 @@ export class TrajectoryDetailInspectorModel {
 		void Promise.resolve(request(detailRef)).then(
 			outcome => this.settle(detailRef, outcome, epoch),
 			() => this.settle(detailRef, { ok: false, reason: 'failed' }, epoch),
-		).catch(onUnexpectedError).catch(onUnexpectedError);
+		).catch(onUnexpectedError);
 	}
 
 	private settle(detailRef: string, outcome: DetailFetchOutcome, epoch: number): void {

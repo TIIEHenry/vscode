@@ -127,7 +127,7 @@ export class ConversationWorkRootMountContribution extends Disposable implements
 		}
 		this.attemptedKey = key;
 		const generation = ++this.resolveGeneration;
-		void this.mount(candidate, generation).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.mount(candidate, generation).catch(onUnexpectedError);
 	}
 
 	private stillCurrent(candidate: URI, generation: number): boolean {

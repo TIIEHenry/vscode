@@ -135,7 +135,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (this.isFocusedSessionAlreadyGone()) {
 				return;
 			}
-			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError);
 		}));
 
 		if (this.rosterService.onDidDeleteSession) {
@@ -199,7 +199,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	async ensurePrimaryWindow(sessionKey: string): Promise<void> {
-		if (!this.gridHost || this.primarySessionKey) {
+		if (this._store.isDisposed || !this.gridHost || this.primarySessionKey) {
 			return;
 		}
 
@@ -220,7 +220,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	async openSessionBeside(sessionKey: string): Promise<void> {
-		if (!this.gridHost) {
+		if (this._store.isDisposed || !this.gridHost) {
 			return;
 		}
 
@@ -313,6 +313,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	async revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<IRevealSessionWindowResult> {
+		if (this._store.isDisposed) {
+			return { cancelled: false };
+		}
+
 		if (sessionKey === ENGINE_BIND_FAILED_SESSION_ID) {
 			return { cancelled: false };
 		}
@@ -357,7 +361,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private async runReveal(sessionKey: string, state: IRevealInFlight): Promise<IRevealSessionWindowResult> {
-		if (state.cancelled) {
+		if (this._store.isDisposed || state.cancelled) {
 			return { cancelled: true };
 		}
 
@@ -410,6 +414,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private async applyRevealStateTable(sessionKey: string, state: IRevealInFlight): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const replace = state.replace;
 		const existing = this.leaves.get(sessionKey);
 		const visibleCount = this.getVisibleWindowCount();
@@ -477,6 +484,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private async replaceLeafWithNew(outgoingKey: string, incomingKey: string, state: IRevealInFlight): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (outgoingKey === this.primarySessionKey) {
 			await this.ensureLeaf(incomingKey, { primary: true });
 			this.promoteLeaf(incomingKey);
@@ -509,10 +519,13 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		}
 		this.gridHost = gridHost;
 		queueMicrotask(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const pending = this.pendingReveal;
 			this.pendingReveal = undefined;
 			if (pending) {
-				void this.revealSessionWindow(pending.sessionKey, pending.options).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.revealSessionWindow(pending.sessionKey, pending.options).catch(onUnexpectedError);
 				return;
 			}
 			// First list is still in flight: active id is "" and getSessions() is empty.
@@ -521,7 +534,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (!sessionKey || !this.rosterService.getSessions().some(session => session.id === sessionKey)) {
 				return;
 			}
-			void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId()).catch(onUnexpectedError);
 		});
 	}
 
@@ -668,11 +681,17 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private async whenLeafPaneReady(sessionKey: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const part = this.editorGroupsService.conversationParts.find(candidate => candidate.sessionKey === sessionKey);
 		if (!part) {
 			return;
 		}
 		await part.whenReady;
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (part.activeGroup.activeEditorPane?.getId() === ConversationEditorPaneId) {
 			return;
 		}
@@ -692,6 +711,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private async tryBootstrapPrimaryWindow(sessionKey: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.primaryBootstrapGeneration;
 		try {
 			const leaf = await this.ensureLeaf(sessionKey, { primary: true });
@@ -769,7 +791,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		if (!this.rosterService.getSessions().some(session => session.id === activeId)) {
 			return;
 		}
-		void this.revealSessionWindow(activeId).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.revealSessionWindow(activeId).catch(onUnexpectedError);
 	}
 
 	private layoutVisibleLeaves(): void {

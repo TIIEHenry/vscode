@@ -446,10 +446,9 @@ suite('Conversation session chat (S3)', () => {
 		return { instantiationService, parts, conversationPart, sessionChatService, rosterService, sessionWindow, sessionBar };
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void, expectedCount = 1): Promise<void> {
 		// Method bodies already catch the inner reject; catch-path notice throw still
-		// needs a call-site catch. A lone `.catch(onUnexpectedError)` still leaks when
-		// the handler warn-then-rethrows.
+		// needs a call-site catch.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -457,7 +456,7 @@ suite('Conversation session chat (S3)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
+			if (expectedCount > 1 && unexpectedWarns.length === 1) {
 				throw error;
 			}
 		});
@@ -466,7 +465,7 @@ suite('Conversation session chat (S3)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

@@ -306,7 +306,7 @@ export function renderComposerRefChipRow(host: IComposerAtHost, binding = bindin
 		);
 		const { disposable } = appendConversationRefAnchor(chip, resource, resolved, binding.hoverService, hit => {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
-			void host.activateConversationLink(hit).catch(onUnexpectedError).catch(onUnexpectedError);
+			void host.activateConversationLink(hit).catch(onUnexpectedError);
 		});
 		binding.chipDisposables.add(disposable);
 		const remove = append(chip, $('button.conversation-composer-ref-remove')) as HTMLButtonElement;

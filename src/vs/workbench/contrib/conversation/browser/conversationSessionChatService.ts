@@ -136,10 +136,10 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this.subAgentOverlays.set(sessionKey, overlay);
 		this.subAgentOverlayStores.set(sessionKey, store);
 		store.add(overlay.onDidRequestPromote(() => {
-			void this.promoteSubAgentDialog(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.promoteSubAgentDialog(sessionKey).catch(onUnexpectedError);
 		}));
 		store.add(overlay.onDidSelectBreadcrumb(chatId => {
-			void this.navigateAgentBreadcrumb(sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.navigateAgentBreadcrumb(sessionKey, chatId).catch(onUnexpectedError);
 		}));
 		store.add(overlay.onDidClose(() => {
 			const kind = this.subAgentDialogCloseKind;
@@ -204,6 +204,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			const overlay = this.subAgentOverlays.get(sessionKey);
 			if (overlay?.isOpen()) {
@@ -281,6 +284,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async goUpOneAgent(sessionKey?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const parentChatId = this.agentParentChatId(sessionKey);
 		if (!parentChatId) {
 			return;
@@ -316,6 +322,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async openDirectChildAgent(sessionKey: string | undefined, chatId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const key = this.resolveSessionKey(sessionKey);
 		const entry = this.listDirectChildAgents(key).find(child => child.chatId === chatId);
 		if (!entry) {
@@ -384,6 +393,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	private async navigateOverlayBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const overlay = this.subAgentOverlays.get(sessionKey);
 		const state = overlay?.getState();
 		if (!overlay || !state) {
@@ -427,6 +439,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async closeNonRootTabs(sessionKey?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const key = this.resolveSessionKey(sessionKey);
 		const part = this.getConversationPart(key);
 		if (!part) {
@@ -581,6 +596,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async openForkTab(forkedResource: URI, title?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const sessionKey = this.resolveSessionKey();
 		const chatId = deriveConversationChatIdFromForkResource(forkedResource);
 		this.registerForkChat(sessionKey, chatId, title ?? chatId);
@@ -588,6 +606,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async openExtensionTab(sessionKey: string, chatId: string, options?: { title?: string }): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const part = this.getConversationPart(sessionKey);
 		if (!part) {
 			throw new Error(`Conversation editor part for session ${sessionKey} is not available`);
@@ -611,6 +632,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async openSubAgent(sessionKey: string, chatId: string, title?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// An existing extension tab stays in its column. Opening it on the
 		// active group copies the same tab into the column the user is in.
 		const existing = this.findOpenChatGroup(sessionKey, chatId);
@@ -641,6 +665,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async promoteSubAgentDialog(sessionKey?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const key = this.resolveSessionKey(sessionKey);
 		const overlay = this.subAgentOverlays.get(key);
 		const state = overlay?.getState();
@@ -747,6 +774,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async splitSessionWindow(sessionKey?: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			const key = this.resolveSessionKey(sessionKey);
 			const part = this.getConversationPart(key);

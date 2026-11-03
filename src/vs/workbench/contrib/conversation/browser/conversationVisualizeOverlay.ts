@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -110,7 +110,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 
 		if (mountResult.webview) {
 			session.add(resetButton.onDidClick(() => {
-				void mountResult.webview!.postMessage({ type: 'resetPanZoom' }).catch(onUnexpectedError).catch(onUnexpectedError);
+				void mountResult.webview!.postMessage({ type: 'resetPanZoom' }).catch(onUnexpectedError);
 			}));
 		} else {
 			resetButton.enabled = false;
@@ -141,12 +141,20 @@ export class ConversationVisualizeOverlay extends Disposable {
 		}
 		this.sessionDisposables?.dispose();
 		this.sessionDisposables = undefined;
-		overlay?.remove();
+		if (overlay) {
+			clearNode(overlay);
+			overlay.remove();
+		}
 		this.overlayElement = undefined;
 	}
 
 	override dispose(): void {
 		this.close({ restoreFocus: false });
+		if (this.overlayElement) {
+			clearNode(this.overlayElement);
+			this.overlayElement.remove();
+			this.overlayElement = undefined;
+		}
 		super.dispose();
 	}
 }

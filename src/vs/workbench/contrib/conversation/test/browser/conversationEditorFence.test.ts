@@ -75,10 +75,9 @@ suite('Conversation editor fence', () => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput), new SyncDescriptor(RoutingReviewInput)], TEST_EDITOR_INPUT_ID));
 	});
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void, expectedCount = 1): Promise<void> {
 		// Overlay leftover already locks session-chat `navigateAgentBreadcrumb`.
-		// This pane click is a separate fire-and-forget. A lone
-		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		// This pane click is a separate fire-and-forget.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -86,7 +85,7 @@ suite('Conversation editor fence', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
+			if (expectedCount > 1 && unexpectedWarns.length === 1) {
 				throw error;
 			}
 		});
@@ -95,7 +94,7 @@ suite('Conversation editor fence', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

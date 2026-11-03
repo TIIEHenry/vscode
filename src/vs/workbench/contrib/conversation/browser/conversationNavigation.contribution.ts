@@ -215,7 +215,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		updateLevelButtons();
 
 		store.add(upButton.onDidClick(() => {
-			void this.sessionChatService.goUpOneAgent(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.sessionChatService.goUpOneAgent(sessionKey).catch(onUnexpectedError);
 		}));
 		store.add(downButton.onDidClick(() => {
 			if (!downButton.enabled) {
@@ -265,7 +265,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 						event.preventDefault();
 						event.stopPropagation();
 						openView?.close();
-						void this.sessionChatService.openDirectChildAgent(sessionKey, child.chatId).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.sessionChatService.openDirectChildAgent(sessionKey, child.chatId).catch(onUnexpectedError);
 					}));
 				}
 				popupStore.add(addDisposableListener(popup, 'focusin', event => {
@@ -404,13 +404,13 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		updateEditorNav();
 
 		store.add(backButton.onDidClick(() => {
-			void this.navigationService.goBack(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.navigationService.goBack(resolvePart()).catch(onUnexpectedError);
 		}));
 		store.add(forwardButton.onDidClick(() => {
-			void this.navigationService.goForward(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.navigationService.goForward(resolvePart()).catch(onUnexpectedError);
 		}));
 		store.add(closeNonRootButton.onDidClick(() => {
-			void this.sessionChatService.closeNonRootTabs(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.sessionChatService.closeNonRootTabs(sessionKey).catch(onUnexpectedError);
 		}));
 	}
 
@@ -462,9 +462,9 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		}
 
 		if (event.button === 3) {
-			void this.navigationService.goBack().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.navigationService.goBack().catch(onUnexpectedError);
 		} else {
-			void this.navigationService.goForward().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.navigationService.goForward().catch(onUnexpectedError);
 		}
 	}
 

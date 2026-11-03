@@ -155,7 +155,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 				allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
 			},
 			actionHandler: (href) => {
-				void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.handleTimelineLink(href).catch(onUnexpectedError);
 			},
 			codeBlockRendererSync: (languageId, value) => this.renderCodeBlock(languageId, value, store),
 		};
@@ -232,7 +232,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 					sessionKey ? this.sessionChatService.getCatalog(sessionKey) : [],
 				);
 				const { disposable } = appendConversationRefAnchor(row, resource, resolved, this.hoverService, hit => {
-					void this.activateConversationLink(hit).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.activateConversationLink(hit).catch(onUnexpectedError);
 				});
 				paintStore.add(disposable);
 			}

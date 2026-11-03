@@ -90,7 +90,7 @@ export class ConversationChatTablistKeyboard extends Disposable implements IWork
 		const tablistHost = e.target;
 		void cycleSameConversationChatTablist(this.editorGroupsService, delta).then(() => {
 			focusActiveConversationChatTab(tablistHost);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 

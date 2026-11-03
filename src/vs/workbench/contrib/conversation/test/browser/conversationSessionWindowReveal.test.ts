@@ -1595,13 +1595,12 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 				throw paintBoom;
 			});
 			harness.rosterService.fireActiveSession(target);
-		}, 2);
+		});
 	});
 
 	test('does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
 		// revealSessionWindow already catches create throw; a lone inner reject does not leak.
 		// The void attachGrid pending call site still needs `.catch` when the catch-path notice throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const harness = createLightweightWindowHarness({ delaySlots: true });
 		const target = harness.rosterService.seedSessionQuietly();
@@ -1612,17 +1611,18 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			});
 			void harness.sessionWindowService.revealSessionWindow(target, { replace: harness.rosterService.getActiveSessionId() });
 			harness.attachSlots();
-		}, 2);
+		});
 	});
 
-	test('session window fire-and-forget voids double-catch onUnexpectedError', async () => {
+	test('session window fire-and-forget voids single-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationSessionWindowService.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void this.revealSessionWindow(sessionKey)${doubleCatch}`));
-		assert.ok(source.includes(`void this.revealSessionWindow(pending.sessionKey, pending.options)${doubleCatch}`));
-		assert.ok(source.includes(`void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId())${doubleCatch}`));
+		const singleCatch = '.catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.revealSessionWindow(sessionKey)${singleCatch}`));
+		assert.ok(source.includes(`void this.revealSessionWindow(pending.sessionKey, pending.options)${singleCatch}`));
+		assert.ok(source.includes(`void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId())${singleCatch}`));
 		assert.ok(!source.includes('void this.revealSessionWindow(sessionKey);'));
 		assert.ok(!source.includes('void this.revealSessionWindow(pending.sessionKey, pending.options);'));
 		assert.ok(!source.includes('void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId());'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });
