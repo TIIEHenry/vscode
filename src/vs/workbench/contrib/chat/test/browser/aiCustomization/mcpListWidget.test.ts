@@ -8,7 +8,7 @@ import * as DOM from '../../../../../../base/browser/dom.js';
 import { Button, unthemedButtonStyles } from '../../../../../../base/browser/ui/button/button.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { Action, IAction, Separator } from '../../../../../../base/common/actions.js';
-import { Emitter } from '../../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableStore, isDisposable, MutableDisposable } from '../../../../../../base/common/lifecycle.js';
 import { observableValue } from '../../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
@@ -1005,6 +1005,34 @@ suite('mcpListWidget', () => {
 				shownChannels: [],
 				localOutputCount: 1,
 			});
+		});
+
+		test('disposeTemplate clears container DOM nodes', () => {
+			const sessionResource = URI.parse('vscode-agent-session:///session-1');
+			const agentHostCustomizationService = {
+				getMcpServers: () => [],
+				onDidChangeCustomizations: Event.None,
+				showMcpServerLog: async () => { },
+			} as unknown as IAgentHostCustomizationService;
+			const customizationHarnessService = {
+				activeSessionResource: observableValue<URI>('activeSessionResource', sessionResource),
+			} as unknown as ICustomizationHarnessService;
+			const renderer = new McpServerItemRenderer(
+				async () => { },
+				{ isSessionsWindow: true } as IAICustomizationWorkspaceService,
+				{ plugins: observableValue<readonly never[]>('plugins', []) } as unknown as IAgentPluginService,
+				{ setupManagedHover: () => Disposable.None } as unknown as IHoverService,
+				agentHostCustomizationService,
+				customizationHarnessService,
+				{ showChannel: async () => { } } as unknown as IOutputService,
+			);
+
+			const container = document.createElement('div');
+			const templateData = renderer.renderTemplate(container);
+			assert.ok(container.childNodes.length > 0);
+
+			renderer.disposeTemplate(templateData);
+			assert.strictEqual(container.childNodes.length, 0);
 		});
 	});
 });

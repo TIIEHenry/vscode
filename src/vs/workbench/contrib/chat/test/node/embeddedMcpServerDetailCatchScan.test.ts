@@ -27,17 +27,16 @@ suite('EmbeddedMcpServerDetail leftover fire-and-forget catch scan (D569)', () =
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('loadSourceDefinition void double-catch onUnexpectedError', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('loadSourceDefinition void single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(embeddedMcpServerDetailSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const call = 'void this.loadSourceDefinition(server, server.source, renderGeneration)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("from '../../../../../base/common/errors.js'"));
 		assert.ok(source.includes('onUnexpectedError'));
 		assert.strictEqual((source.match(/void this\.loadSourceDefinition\(server, server\.source, renderGeneration\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });

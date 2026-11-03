@@ -27,78 +27,71 @@ suite('McpListWidget leftover fire-and-forget catch scan', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('mcpListWidget async refresh / query voids double-catch onUnexpectedError', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('mcpListWidget async refresh / query voids single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleRefresh = `void this.refresh()${doubleCatch};`;
-		const doubleQuerySearch = `void this.queryMcpSearch()${doubleCatch};`;
-		const doubleGallery = `void this.queryGallerySnapshot()${doubleCatch};`;
-		const doubleGalleryReveal = `void this.queryGallerySnapshot(true)${doubleCatch};`;
-		const doubleDelayedSearch = `void this.delayedGallerySearch.trigger(() => this.queryMcpSearch())${doubleCatch};`;
-		const doubleDelayedGallery = `void this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot())${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleRefresh = `void this.refresh()${singleCatch};`;
+		const singleQuerySearch = `void this.queryMcpSearch()${singleCatch};`;
+		const singleGallery = `void this.queryGallerySnapshot()${singleCatch};`;
+		const singleGalleryReveal = `void this.queryGallerySnapshot(true)${singleCatch};`;
+		const singleDelayedSearch = `void this.delayedGallerySearch.trigger(() => this.queryMcpSearch())${singleCatch};`;
+		const singleDelayedGallery = `void this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot())${singleCatch};`;
 
-		assert.strictEqual((source.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 6);
-		assert.ok(source.includes(doubleRefresh));
-		assert.ok(source.includes(doubleQuerySearch));
-		assert.ok(source.includes(doubleGallery));
-		assert.ok(source.includes(doubleGalleryReveal));
-		assert.ok(source.includes(doubleDelayedSearch));
-		assert.ok(source.includes(doubleDelayedGallery));
+		assert.strictEqual((source.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 6);
+		assert.ok(source.includes(singleRefresh));
+		assert.ok(source.includes(singleQuerySearch));
+		assert.ok(source.includes(singleGallery));
+		assert.ok(source.includes(singleGalleryReveal));
+		assert.ok(source.includes(singleDelayedSearch));
+		assert.ok(source.includes(singleDelayedGallery));
 
 		assert.ok(!source.includes('void this.refresh();'));
 		assert.ok(!source.includes('void this.queryMcpSearch();'));
 		assert.ok(!source.includes('void this.queryGallerySnapshot();'));
 		assert.ok(!source.includes('void this.queryGallerySnapshot(true);'));
-		assert.ok(!source.includes('void this.refresh().catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.queryMcpSearch().catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.queryGallerySnapshot().catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.queryGallerySnapshot(true).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('this.delayedGallerySearch.trigger(() => this.queryMcpSearch());'));
 		assert.ok(!source.includes('this.delayedGallerySearch.trigger(() => this.queryGallerySnapshot());'));
-		assert.ok(!source.replaceAll(doubleRefresh, '').includes('\t\t\tthis.refresh();'));
+		assert.ok(!source.replaceAll(singleRefresh, '').includes('\t\t\tthis.refresh();'));
 		assert.ok(!source.includes('.catch(() => undefined)'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('mcpListWidget leftover async action / installMarketplaceServer voids double-catch onUnexpectedError', () => {
+	test('mcpListWidget leftover async action / installMarketplaceServer voids single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleInstall = `void this.installMarketplaceServer(server, install)${doubleCatch}`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleInstall = `void this.installMarketplaceServer(server, install)${singleCatch}`;
 
 		assert.ok(!source.includes('void action();'));
 		assert.ok(source.includes('const result = action();'));
-		assert.ok(source.includes(`if (result instanceof Promise) {\n\t\t\tvoid result${doubleCatch};\n\t\t}`));
-		assert.strictEqual((source.match(/void this\.installMarketplaceServer\(server, install\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
-		assert.ok(source.includes(doubleInstall));
+		assert.ok(source.includes(`if (result instanceof Promise) {\n\t\t\tvoid result${singleCatch};\n\t\t}`));
+		assert.strictEqual((source.match(/void this\.installMarketplaceServer\(server, install\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(singleInstall));
 		assert.ok(!source.includes('install.onDidClick(() => this.installMarketplaceServer(server, install));'));
-		assert.ok(!source.includes('void this.installMarketplaceServer(server, install).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void result.catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('mcpListWidget leftover executeCommand click voids double-catch onUnexpectedError', () => {
+	test('mcpListWidget leftover executeCommand click voids single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleAddConfiguration = `void this.commandService.executeCommand(McpCommandIds.AddConfiguration)${doubleCatch}`;
-		const doubleOpenSettings = `void this.commandService.executeCommand('workbench.action.openSettings', \`@id:\${mcpAccessConfig}\`)${doubleCatch}`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleAddConfiguration = `void this.commandService.executeCommand(McpCommandIds.AddConfiguration)${singleCatch}`;
+		const singleOpenSettings = `void this.commandService.executeCommand('workbench.action.openSettings', \`@id:\${mcpAccessConfig}\`)${singleCatch}`;
 
-		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(McpCommandIds\.AddConfiguration\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
-		assert.ok(source.includes(doubleAddConfiguration));
-		assert.ok(source.includes(doubleOpenSettings));
-		assert.ok(source.includes(`onDidClick(() => ${doubleAddConfiguration})`));
+		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(McpCommandIds\.AddConfiguration\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(singleAddConfiguration));
+		assert.ok(source.includes(singleOpenSettings));
 		assert.ok(!source.includes('onDidClick(() => this.commandService.executeCommand(McpCommandIds.AddConfiguration));'));
 		assert.ok(!source.includes("this.commandService.executeCommand('workbench.action.openSettings', `@id:${mcpAccessConfig}`);"));
-		assert.ok(!source.includes(`void this.commandService.executeCommand(McpCommandIds.AddConfiguration).catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`void this.commandService.executeCommand('workbench.action.openSettings', \`@id:\${mcpAccessConfig}\`).catch(onUnexpectedError);`));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('mcpListWidget leftover delayedFilter.trigger Promise is double-caught (D600)', () => {
+	test('mcpListWidget leftover delayedFilter.trigger Promise is single-caught (D600)', () => {
 		const source = fs.readFileSync(mcpListWidgetSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleFilter = `void this.delayedFilter.trigger(() => this.filterServers())${doubleCatch};`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const singleFilter = `void this.delayedFilter.trigger(() => this.filterServers())${singleCatch};`;
 		assert.strictEqual((source.match(/this\.delayedFilter\.trigger\(/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.delayedFilter\.trigger\(\(\) => this\.filterServers\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleFilter));
+		assert.strictEqual((source.match(/void this\.delayedFilter\.trigger\(\(\) => this\.filterServers\(\)\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(singleFilter));
 		assert.ok(!source.includes('this.delayedFilter.trigger(() => this.filterServers());'));
-		assert.ok(!source.includes('void this.delayedFilter.trigger(() => this.filterServers()).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });

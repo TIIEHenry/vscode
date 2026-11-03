@@ -27,18 +27,17 @@ suite('GalleryItemRenderer leftover fire-and-forget catch scan (D592)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('galleryItemRenderer leftover list-renderer Install onDidClick voids double-catch onUnexpectedError (D592)', () => {
-		// Inner try/finally is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('galleryItemRenderer leftover list-renderer Install onDidClick voids single-catch onUnexpectedError (D592)', () => {
 		const source = fs.readFileSync(galleryItemRendererSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void \(async \(\) => \{/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(source.includes(`})()${doubleCatch};`));
+		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(`})()${singleCatch};`));
 		assert.ok(source.includes('await this._provider.install(element);'));
 		assert.ok(!source.includes('installButton.onDidClick(async () => {'));
 		assert.ok(!source.includes('onDidClick(async () => {'));
 		assert.ok(!source.includes('onDidClick(async'));
-		assert.ok(!source.includes('})().catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 });
