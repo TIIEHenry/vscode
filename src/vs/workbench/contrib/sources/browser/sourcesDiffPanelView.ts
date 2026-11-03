@@ -217,16 +217,16 @@ export class SourcesDiffPanelView extends ViewPane {
 		const headerActions = dom.append(this.headerElement, $('.sources-diff-panel-actions'));
 
 		this.stageButton = this.createHeaderAction(headerActions, 'sources-diff-panel-stage', localize('sourcesDiffPanel.stage', "Stage"), () => {
-			void this.runStage().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runStage().catch(onUnexpectedError);
 		});
 		this.acceptButton = this.createHeaderAction(headerActions, 'sources-diff-panel-accept', localize('sourcesDiffPanel.accept', "Accept"), () => {
-			void this.runAccept().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runAccept().catch(onUnexpectedError);
 		});
 		this.revertButton = this.createHeaderAction(headerActions, 'sources-diff-panel-revert', localize('sourcesDiffPanel.revert', "Revert"), () => {
-			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND).catch(onUnexpectedError);
 		});
 		this.unstageButton = this.createHeaderAction(headerActions, 'sources-diff-panel-unstage', localize('sourcesDiffPanel.unstage', "Unstage"), () => {
-			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND).catch(onUnexpectedError);
 		});
 		this.unstageUnavailable = dom.append(headerActions, $('span.sources-diff-panel-unstage-unavailable'));
 		this.unstageUnavailable.textContent = sourcesGitUnstageUnavailableMessage();
@@ -275,7 +275,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		const promise = this.renderRef(ref, generation);
 		this.activeRender = { generation, promise };
 		this.sourcesDiffPanelService.attachPendingRender(generation, promise);
-		promise.catch(onUnexpectedError).catch(onUnexpectedError);
+		promise.catch(onUnexpectedError);
 	}
 
 	private async renderRef(ref: ISourcesChangeRef | undefined, generation: number): Promise<void> {
