@@ -159,3 +159,9 @@ summary: "多槽并行编排完成 Slot A（Sources 标签宿主与差异面板 
   - **槽 C（Navigator 团队子视图与 Inspect 注册清理）**：`navigatorTeamInlineFilterBox.ts` 与 `navigatorTeamList.ts` 补齐 `dispose()` 中子 DOM（members/tasks body、list container、empty、note、filterBox 等）移除与清空；清空注销 live inspect 目标（`setLiveAgentIds('team', undefined)` 及 `setLiveTaskIds(undefined)`）；为团队与任务刷新回调增加 `this._store.isDisposed` 保护；新增 `navigatorTeamSubviews.test.ts` 定向测试视图生命周期与注销。
   - **单路集成门禁验证（merge 槽）**：所有槽位分支整洁合入 `codex/merge`；快速转译 `npm run transpile-client` 0 errors；定向单元测试全部通过；在 merge 槽执行单一编译管道：`npm run compile-client` 耗时 18s 0 errors；架构分层校验 `npm run valid-layers-check` 0 errors。
 
+
+- **Wave 10 多槽并行与生命周期收敛（2026-11-03）**：
+  - **槽 A（Sources 文件列表与审查进度生命周期）**：`sourcesFilesList.ts` 完善 `dispose()` 生命周期，清理并取消 `folderCancellations` 与 `engineCancellation`，安全移除 `listContainer` 与清空 host `container`；为所有异步入口（如 `onFileClicked`、`collapseAll`、`expandAll`、`selectFolder` 等）及事件补齐 `if (this._store.isDisposed) { return; }` 防线；去重 8 处历史双重 `.catch(onUnexpectedError)`；`sourcesFilesList.test.ts` 适配警告断言并增加 DOM 卸载清理测试；定向测试 26 passing / 0 failing。
+  - **槽 B（Conversation 快照与历史列表生命周期与 DOM 清理）**：`conversationEngineSnapshotsList.ts` 与 `conversationEngineHistoryList.ts` 完善 `dispose()`，执行 `close({ restoreFocus: false })`，清空并移除 `overlayElement` 与 `element`，彻底清空 `rowDisposables`；为异步加载和点击操作补齐 `this._store.isDisposed` 防线；去重 11 处双重 catch；测试适配单 catch 警告期望并增加 DOM 脱落断言；定向测试 16 passing / 0 failing。
+  - **槽 C（Navigator 项目列表与 Agent 检查视图生命周期）**：`navigatorProjectsInlineFilterBox.ts`、`navigatorProjectsList.ts` 与 `agentInspectView.ts` 补齐 `dispose()` 中子 DOM 卸载与容器 class 清理；为所有异步操作补齐 `this._store.isDisposed` 防线；修复测试中历史遗留的双重警告断言并新增生命周期脱落测试；定向测试 156 passing / 0 failing。
+  - **单路集成门禁验证（merge 槽）**：所有槽位分支整洁合入 `codex/merge`；快速转译 `npm run transpile-client` 0 errors；全量定向测试 198 passing / 0 failing；执行单一编译管道：`npm run compile-client` 耗时 19s 0 errors；架构分层校验 `npm run valid-layers-check` 0 errors；文档健康检查 0 errors。
