@@ -115,7 +115,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 					this.renderMarkdown();
 				}
 				this._isSubmitted = true;
-				void this.markUsed().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.markUsed().catch(onUnexpectedError);
 			}));
 		}
 
@@ -200,7 +200,12 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		// Chevron collapse toggle.
 		this._collapseButton = this._register(new Button(this._titleActionsEl, { ...chatCardButtonStyles, secondary: true, supportIcons: true }));
 		this._collapseButton.element.classList.add('chat-card-icon-button', 'chat-card-icon-button-padded', 'chat-plan-review-title-button', 'chat-plan-review-title-icon-button');
-		this._register(this._collapseButton.onDidClick(() => this.toggleCollapsed()));
+		this._register(this._collapseButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.toggleCollapsed();
+		}));
 
 		// Scrollable message area (markdown).
 		const messageParent = this._messageEl.parentElement!;
@@ -259,7 +264,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		// Promote into review mode if inline feedback is already present
 		// (e.g. restored from a prior session).
 		if (!this._isSubmitted && this.getInlineFeedbackItems().length > 0) {
-			void this.enterFeedbackMode({ focus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.enterFeedbackMode({ focus: false }).catch(onUnexpectedError);
 		}
 	}
 
@@ -340,7 +345,12 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			const clearAllButton = this._register(new Button(headerActions, { ...chatCardButtonStyles, secondary: true, supportIcons: true, title: clearAllLabel, ariaLabel: clearAllLabel }));
 			clearAllButton.element.classList.add('chat-card-icon-button', 'chat-card-icon-button-padded', 'chat-plan-review-title-button', 'chat-plan-review-feedback-clear-all');
 			clearAllButton.label = clearAllLabel;
-			this._register(clearAllButton.onDidClick(() => this.clearAllInlineFeedback().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._register(clearAllButton.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.clearAllInlineFeedback().catch(onUnexpectedError);
+			}));
 			this._clearAllButtonEl = clearAllButton.element;
 		}
 
@@ -351,7 +361,12 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			const closeButton = this._register(new Button(headerActions, { ...chatCardButtonStyles, secondary: true, supportIcons: true, title: closeButtonLabel, ariaLabel: closeButtonLabel }));
 			closeButton.element.classList.add('chat-card-icon-button', 'chat-card-icon-button-padded', 'chat-plan-review-title-button', 'chat-plan-review-title-icon-button', 'chat-plan-review-feedback-close');
 			closeButton.label = `$(${Codicon.closeSmall.id})`;
-			this._register(closeButton.onDidClick(() => this.exitFeedbackMode().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._register(closeButton.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.exitFeedbackMode().catch(onUnexpectedError);
+			}));
 		}
 
 		// Inline comments list — wrapped in a Monaco scrollable for a styled
@@ -407,7 +422,10 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				if (ev.keyCode === KeyCode.Enter && !ev.shiftKey) {
 					e.preventDefault();
 					e.stopPropagation();
-					void this.submitFeedback().catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.submitFeedback().catch(onUnexpectedError);
 				}
 			}));
 		}
@@ -455,7 +473,10 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			textEl.textContent = item.text;
 
 			this._commentRowDisposables.add(dom.addDisposableListener(revealButton, dom.EventType.CLICK, () => {
-				this.revealInlineComment(item).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.revealInlineComment(item).catch(onUnexpectedError);
 			}));
 
 			const removeLabel = localize('chat.planReview.removeComment', "Remove comment on line {0}", item.line);
@@ -467,6 +488,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 
 			this._commentRowDisposables.add(dom.addDisposableListener(removeButton, dom.EventType.CLICK, e => {
 				e.stopPropagation();
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.removeInlineComment(item.id);
 			}));
 		}
@@ -480,6 +504,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async revealInlineComment(item: IPlanReviewFeedbackItem): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const planUri = this.review.planUri ? URI.revive(this.review.planUri) : undefined;
 		if (!planUri) {
 			return;
@@ -493,10 +520,13 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				selection: { startLineNumber: item.line, startColumn: item.column },
 			},
 		});
+		if (this._store.isDisposed) {
+			return;
+		}
 	}
 
 	private removeInlineComment(itemId: string): void {
-		if (this._isSubmitted) {
+		if (this._store.isDisposed || this._isSubmitted) {
 			return;
 		}
 		if (this.review.planUri) {
@@ -505,7 +535,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async clearAllInlineFeedback(): Promise<void> {
-		if (this._isSubmitted) {
+		if (this._store.isDisposed || this._isSubmitted) {
 			return;
 		}
 		const items = this.getInlineFeedbackItems();
@@ -518,7 +548,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			detail: localize('chat.planReview.clearAllDetail', 'These comments will be removed from the plan file and not sent to the agent.'),
 			primaryButton: localize('chat.planReview.clearAllConfirmPrimary', 'Clear All'),
 		});
-		if (!result.confirmed) {
+		if (this._store.isDisposed || this._isSubmitted || !result.confirmed) {
 			return;
 		}
 		if (this.review.planUri) {
@@ -527,14 +557,14 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private onInlineFeedbackChanged(): void {
-		if (this._isSubmitted) {
+		if (this._store.isDisposed || this._isSubmitted) {
 			return;
 		}
 		const items = this.getInlineFeedbackItems();
 
 		// Auto-promote into review mode the first time a comment shows up.
 		if (items.length > 0 && !this._isFeedbackMode) {
-			void this.enterFeedbackMode({ focus: false }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.enterFeedbackMode({ focus: false }).catch(onUnexpectedError);
 			return;
 		}
 
@@ -578,13 +608,23 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			this._submitButton = submitButton;
 			this._renderedSubmitInlineCount = inlineCount;
 			this._buttonStore.add(submitButton);
-			this._buttonStore.add(submitButton.onDidClick(() => void this.submitFeedback().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._buttonStore.add(submitButton.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.submitFeedback().catch(onUnexpectedError);
+			}));
 
 			if (includeReject) {
 				const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true });
 				rejectButton.label = localize('chat.planReview.reject', 'Reject');
 				this._buttonStore.add(rejectButton);
-				this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection().catch(onUnexpectedError).catch(onUnexpectedError)));
+				this._buttonStore.add(rejectButton.onDidClick(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.submitRejection().catch(onUnexpectedError);
+				}));
 			}
 			return;
 		}
@@ -608,7 +648,10 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 						undefined,
 						true,
 						() => {
-							this.submitApproval(action).catch(onUnexpectedError).catch(onUnexpectedError);
+							if (this._store.isDisposed) {
+								return Promise.resolve();
+							}
+							this.submitApproval(action).catch(onUnexpectedError);
 							return Promise.resolve();
 						},
 					);
@@ -624,7 +667,12 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		if (primary.description) {
 			approveButton.element.title = primary.description;
 		}
-		this._buttonStore.add(approveButton.onDidClick(() => this.submitApproval(primary).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._buttonStore.add(approveButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.submitApproval(primary).catch(onUnexpectedError);
+		}));
 
 		// Reject button (grey secondary) immediately after the approve button
 		// so the primary Approve / Reject pair stays grouped together —
@@ -635,7 +683,12 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			const rejectButton = new Button(container, { ...defaultButtonStyles, secondary: true });
 			rejectButton.label = localize('chat.planReview.reject', 'Reject');
 			this._buttonStore.add(rejectButton);
-			this._buttonStore.add(rejectButton.onDidClick(() => this.submitRejection().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._buttonStore.add(rejectButton.onDidClick(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.submitRejection().catch(onUnexpectedError);
+			}));
 		}
 	}
 
@@ -727,6 +780,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async enterReviewMode(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// Read-only / submitted plans: fall back to opening the file in an editor.
 		if (!this.review.canProvideFeedback || this._isSubmitted) {
 			if (this.review.planUri) {
@@ -734,6 +790,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 					resource: URI.revive(this.review.planUri),
 					options: { pinned: true, override: MARKDOWN_EDITOR_ID },
 				});
+				if (this._store.isDisposed) {
+					return;
+				}
 			}
 			return;
 		}
@@ -744,11 +803,14 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 			}
 			this.updateCollapsedPresentation();
 		}
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.enterFeedbackMode({ focus: true });
 	}
 
 	private async submitApproval(action: IChatPlanApprovalAction): Promise<void> {
-		if (this._isSubmitted || this._isSubmitting) {
+		if (this._store.isDisposed || this._isSubmitted || this._isSubmitting) {
 			return;
 		}
 		this._isSubmitting = true;
@@ -778,7 +840,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				rejected: false,
 				...(textareaFeedback ? { feedback: textareaFeedback, feedbackOverall: textareaFeedback } : {}),
 			});
-			void this.markUsed().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.markUsed().catch(onUnexpectedError);
 		} finally {
 			if (!this._isSubmitted) {
 				this._isSubmitting = false;
@@ -787,7 +849,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async submitRejection(): Promise<void> {
-		if (this._isSubmitted || this._isSubmitting) {
+		if (this._store.isDisposed || this._isSubmitted || this._isSubmitting) {
 			return;
 		}
 		this._isSubmitting = true;
@@ -805,7 +867,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 				rejected: true,
 				...(textareaFeedback ? { feedback: textareaFeedback, feedbackOverall: textareaFeedback } : {}),
 			});
-			void this.markUsed().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.markUsed().catch(onUnexpectedError);
 		} finally {
 			if (!this._isSubmitted) {
 				this._isSubmitting = false;
@@ -814,6 +876,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async savePlanFile(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		if (!this.review.planUri) {
 			return true;
 		}
@@ -853,6 +918,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async enterFeedbackMode(options?: { focus?: boolean }): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this._isFeedbackMode) {
 			if (this.review.planUri) {
 				await this._editorService.openEditor({
@@ -890,7 +958,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async exitFeedbackMode(): Promise<void> {
-		if (!this._isFeedbackMode) {
+		if (this._store.isDisposed || !this._isFeedbackMode) {
 			return;
 		}
 
@@ -910,7 +978,7 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async submitFeedback(): Promise<boolean> {
-		if (this._isSubmitted || this._isSubmitting) {
+		if (this._store.isDisposed || this._isSubmitted || this._isSubmitting) {
 			return false;
 		}
 		const textareaFeedback = this._feedbackTextarea?.value.trim();
@@ -983,6 +1051,9 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 	}
 
 	private async confirmAutopilot(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const result = await this._dialogService.prompt({
 			type: Severity.Warning,
 			message: localize('chat.planReview.autopilot.title', 'Enable Autopilot?'),
@@ -1016,5 +1087,16 @@ export class ChatPlanReviewPart extends Disposable implements IChatContentPart {
 		if (this._feedbackTextarea) {
 			this._feedbackTextarea.disabled = true;
 		}
+	}
+
+	override dispose(): void {
+		this._buttonStore.clear();
+		this._commentRowDisposables.clear();
+		this._planChangeListeners.clear();
+		this._messageContentDisposables.clear();
+		this._planReviewRegistration.clear();
+		this.domNode.remove();
+		dom.clearNode(this.domNode);
+		super.dispose();
 	}
 }

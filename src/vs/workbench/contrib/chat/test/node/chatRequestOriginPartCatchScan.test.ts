@@ -27,28 +27,28 @@ suite('ChatRequestOriginPart leftover fire-and-forget catch scan (D654)', () => 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_openSource?.() leftover site double-catch onUnexpectedError (D654)', () => {
-		// _openSource returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_openSource?.() leftover site single-catch onUnexpectedError (D654)', () => {
 		const source = fs.readFileSync(chatRequestOriginPartSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._openSource?.()';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._openSource\?\.\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 	});
 
-	test('_resolveSourceQuote leftover site double-catch onUnexpectedError', () => {
-		// _resolveSourceQuote returns Promise; inner try/catch is insufficient when onUnexpectedError warn-then-rethrows (D480).
+	test('_resolveSourceQuote leftover site single-catch onUnexpectedError', () => {
 		const source = fs.readFileSync(chatRequestOriginPartSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._resolveSourceQuote(origin, title, renderVersion)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.strictEqual((source.match(/void this\._resolveSourceQuote\(origin, title, renderVersion\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 	});
 });

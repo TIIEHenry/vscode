@@ -27,9 +27,9 @@ suite('ChatPlanReviewPart leftover fire-and-forget catch scan (D585)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('markUsed / enterFeedbackMode / submitFeedback voids double-caught; bare/single-chain gone in this file only', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('markUsed / enterFeedbackMode / submitFeedback voids single-caught; bare/double-chain gone in this file only', () => {
 		const source = fs.readFileSync(chatPlanReviewPartSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const markUsed = 'void this.markUsed()';
 		const enterFeedback = 'void this.enterFeedbackMode({ focus: false })';
@@ -41,16 +41,15 @@ suite('ChatPlanReviewPart leftover fire-and-forget catch scan (D585)', () => {
 		assert.strictEqual((source.match(/void this\.markUsed\(\)/g) ?? []).length, 3);
 		assert.strictEqual((source.match(/void this\.enterFeedbackMode\(\{ focus: false \}\)/g) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\.submitFeedback\(\)/g) ?? []).length, 2);
-		assert.ok(source.includes(`${markUsed}${doubleCatch};`));
-		assert.ok(source.includes(`${enterFeedback}${doubleCatch};`));
-		assert.ok(source.includes(`${submitFeedback}${doubleCatch};`));
-		assert.ok(source.includes(`() => ${submitFeedback}${doubleCatch}`));
+		assert.ok(source.includes(`${markUsed}${singleCatch};`));
+		assert.ok(source.includes(`${enterFeedback}${singleCatch};`));
+		assert.ok(source.includes(`${submitFeedback}${singleCatch};`));
 		assert.ok(!source.includes(`${markUsed};`));
 		assert.ok(!source.includes(`${enterFeedback};`));
 		assert.ok(!source.includes(`${submitFeedback};`));
-		assert.ok(!source.includes(`${markUsed}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${enterFeedback}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${submitFeedback}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${markUsed}${doubleCatch}`));
+		assert.ok(!source.includes(`${enterFeedback}${doubleCatch}`));
+		assert.ok(!source.includes(`${submitFeedback}${doubleCatch}`));
 		assert.ok(source.includes('await this.markUsed();'));
 		assert.ok(!source.includes('await this.markUsed().catch'));
 		assert.ok(source.includes('await this.enterFeedbackMode({ focus: true });'));

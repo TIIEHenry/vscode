@@ -1171,4 +1171,19 @@ suite('ChatPlanReviewPart', () => {
 			assert.strictEqual(widget.hasSameContent(other, [], {} as never), false);
 		});
 	});
+
+	suite('Lifecycle and DOM cleanup', () => {
+		test('cleans up DOM nodes and clears children on dispose', () => {
+			createWidget(createMockReviewWithPlan());
+			const parent = document.createElement('div');
+			parent.appendChild(widget.domNode);
+			assert.strictEqual(widget.domNode.parentElement, parent);
+			assert.ok(widget.domNode.childNodes.length > 0);
+
+			widget.dispose();
+
+			assert.strictEqual(widget.domNode.parentElement, null);
+			assert.strictEqual(widget.domNode.childNodes.length, 0);
+		});
+	});
 });
