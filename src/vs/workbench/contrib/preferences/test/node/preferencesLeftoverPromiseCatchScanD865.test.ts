@@ -60,6 +60,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -76,9 +77,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const createRendererCall = 'this._createPreferencesRenderer()';
@@ -155,7 +156,7 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		assert.ok(!settings.includes(`${openSettingsFileCall}${doubleCatch}`));
 		assert.ok(settings.includes(`${updateChangedSettingCall};`));
 		assert.ok(!settings.includes(`${updateChangedSettingCall}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(settings), 10);
+		assert.strictEqual(countDoubleChains(settings), 0);
 		assert.ok(tree.includes('this._openerService.open(content, { allowCommands: true }).catch(onUnexpectedError);'));
 		assert.ok(!tree.includes(`this._openerService.open(content, { allowCommands: true })${doubleCatch}`));
 		assert.ok(tree.includes(leftoverSyncSettingUpdateCall));
@@ -175,7 +176,7 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 			const source = rel === CONTRIB_REL ? contrib
 				: rel === KEYBINDINGS_REL ? keybindings
 					: widgets;
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -194,7 +195,7 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		for (const [rel, call, count] of d865Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -202,9 +203,9 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CONTRIB_REL) ?? ''), 4);
-		assert.strictEqual(countDoubleChains(seen.get(KEYBINDINGS_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(WIDGETS_REL) ?? ''), 3);
+		assert.strictEqual(countDoubleChains(seen.get(CONTRIB_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(KEYBINDINGS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(WIDGETS_REL) ?? ''), 0);
 	});
 
 	test('preferences leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -223,10 +224,10 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		assertWrapped(keybindings, defineCall);
 		assertWrapped(keybindings, renderCall);
 		assertWrapped(widgets, updateCall);
-		assert.strictEqual(countIncludes(contrib, `${createRendererCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(keybindings, `${defineCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(keybindings, `${renderCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(widgets, `${updateCall}${doubleCatch}`), 3);
+		assert.strictEqual(countIncludes(contrib, `${createRendererCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(keybindings, `${defineCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(keybindings, `${renderCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(widgets, `${updateCall}${singleCatch}`), 3);
 		assert.ok(!contrib.includes('\t\tthis._createPreferencesRenderer();\n'));
 		assert.ok(!keybindings.includes('\t\t\t\tthis.defineKeybinding(activeKeybindingEntry, false);\n'));
 		assert.ok(!keybindings.includes('() => this.render(!!this.keybindingFocusContextKey.get()));'));
@@ -277,7 +278,7 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		assert.ok(!settings.includes(`const p = this.triggerSearch(idQuery, true)${doubleCatch}`));
 		assert.ok(settings.includes('return this.openSettingsFile({ query });'));
 		assert.ok(!settings.includes(`return this.openSettingsFile({ query })${doubleCatch}`));
-		assert.ok(keybindingsContrib.includes('this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(keybindingsContrib.includes('this._defineWidget.start().then(keybinding => this._onAccepted(keybinding)).catch(onUnexpectedError);'));
 
 		for (const source of [contrib, keybindings, widgets, settings, actions]) {
 			assert.ok(!source.includes('acknowledge('));
@@ -337,11 +338,11 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		assert.ok(!suggest.includes(`${assignedThenCall}${doubleCatch}`));
 		assert.ok(settings.includes(`${d794LockedCall};`));
 		assert.ok(!settings.includes(`${d794LockedCall}${doubleCatch}`));
-		assert.ok(settings.includes(`${onConfigTrueCall}${doubleCatch}`));
-		assert.ok(settings.includes(`${refreshCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(settings, `${onConfigTrueCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(settings, `${refreshCall}${doubleCatch}`), 2);
-		assert.strictEqual(countDoubleChains(settings), 10);
+		assert.ok(settings.includes(`${onConfigTrueCall}${singleCatch}`));
+		assert.ok(settings.includes(`${refreshCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(settings, `${onConfigTrueCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(settings, `${refreshCall}${singleCatch}`), 2);
+		assert.strictEqual(countDoubleChains(settings), 0);
 
 		assert.ok(gettingStarted.includes(leftoverScrollPrevCall));
 		assert.ok(gettingStarted.includes(leftoverSelectStepIdCall));
@@ -369,21 +370,21 @@ suite('leftover remaining unused after D794/D817 leftover remaining unused prefe
 		assert.ok(discovery.includes(`${leftoverSyncCall}${doubleCatch}`) || discovery.includes('this.sync()'));
 		assert.ok(output.includes(leftoverShowChannelCall));
 
-		assert.ok(source.includes(`${executeCommandCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(source, `${executeCommandCall}${doubleCatch}`), 4);
-		assert.ok(pane.includes(`${setTreeInputCall}${doubleCatch}`));
+		assert.ok(source.includes(`${executeCommandCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(source, `${executeCommandCall}${singleCatch}`), 4);
+		assert.ok(pane.includes(`${setTreeInputCall}${singleCatch}`));
 		assert.ok(outline.includes(`${handleEditorControlCall};`));
 		assert.ok(!outline.includes(`${handleEditorControlCall}${doubleCatch}`));
 
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.ok(status.includes(`${notebookUpdateCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${showErrorCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(status.includes(`${notebookUpdateCall}${singleCatch}`));
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(debugService.includes(`${showErrorCall}${singleCatch}`));
+		assert.ok(debugEditor.includes(`${toggleCall}${singleCatch}`));
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${commentsRefreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${commentsRefreshCall}${singleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 

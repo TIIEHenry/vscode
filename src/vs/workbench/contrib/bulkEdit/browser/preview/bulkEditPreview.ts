@@ -401,7 +401,7 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 		}
 		this._disposables.add(Event.debounce(this._operations.checked.onDidChange, (_last, e) => e, MicrotaskDelay)(e => {
 			const uri = this._operations.getUriOfEdit(e);
-			this._applyTextEditsToPreviewModel(uri).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._applyTextEditsToPreviewModel(uri).catch(onUnexpectedError);
 		}));
 	}
 
@@ -459,8 +459,16 @@ export class BulkEditPreviewProvider implements ITextModelContentProvider {
 			// And all of this is off the eventloop to prevent endless recursion
 			queueMicrotask(() => {
 				void Promise.resolve((async () => {
-					this._disposables.add(await this._textModelResolverService.createModelReference(model!.uri));
-				})()).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._disposables.isDisposed) {
+						return;
+					}
+					const ref = await this._textModelResolverService.createModelReference(model!.uri);
+					if (this._disposables.isDisposed) {
+						ref.dispose();
+						return;
+					}
+					this._disposables.add(ref);
+				})()).catch(onUnexpectedError);
 			});
 		}
 		return model;

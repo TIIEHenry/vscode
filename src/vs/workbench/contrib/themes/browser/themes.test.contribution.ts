@@ -421,7 +421,7 @@ async function captureTokens(accessor: ServicesAccessor, resource: URI | undefin
 		if (file) {
 			process(file).then(result => {
 				console.log(result);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		} else {
 			console.log('No file editor active');
 		}

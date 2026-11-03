@@ -209,6 +209,13 @@ export class FolderSettingsActionViewItem extends BaseActionViewItem {
 
 		return label;
 	}
+
+	override dispose(): void {
+		if (this.anchorElement) {
+			this.anchorElement.remove();
+		}
+		super.dispose();
+	}
 }
 
 export type SettingsTarget = ConfigurationTarget.APPLICATION | ConfigurationTarget.USER_LOCAL | ConfigurationTarget.USER_REMOTE | ConfigurationTarget.WORKSPACE | URI;
@@ -219,6 +226,7 @@ export interface ISettingsTargetsWidgetOptions {
 
 export class SettingsTargetsWidget extends Widget {
 
+	private settingsTabsWidget?: HTMLElement;
 	private settingsSwitcherBar!: ActionBar;
 	private userLocalSettings!: Action;
 	private userRemoteSettings!: Action;
@@ -245,7 +253,7 @@ export class SettingsTargetsWidget extends Widget {
 		this.options = options ?? {};
 		this.create(parent);
 		this._register(this.contextService.onDidChangeWorkbenchState(() => this.onWorkbenchStateChanged()));
-		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.update().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.update().catch(onUnexpectedError)));
 	}
 
 	private resetLabels() {
@@ -258,8 +266,8 @@ export class SettingsTargetsWidget extends Widget {
 	}
 
 	private create(parent: HTMLElement): void {
-		const settingsTabsWidget = DOM.append(parent, DOM.$('.settings-tabs-widget'));
-		this.settingsSwitcherBar = this._register(new ActionBar(settingsTabsWidget, {
+		this.settingsTabsWidget = DOM.append(parent, DOM.$('.settings-tabs-widget'));
+		this.settingsSwitcherBar = this._register(new ActionBar(this.settingsTabsWidget, {
 			orientation: ActionsOrientation.HORIZONTAL,
 			focusOnlyEnabledItems: true,
 			ariaLabel: localize('settingsSwitcherBarAriaLabel', "Settings Switcher"),
@@ -283,7 +291,7 @@ export class SettingsTargetsWidget extends Widget {
 		this.folderSettings = this._register(this.instantiationService.createInstance(FolderSettingsActionViewItem, this.folderSettingsAction));
 
 		this.resetLabels();
-		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.update().catch(onUnexpectedError);
 
 		this.settingsSwitcherBar.push([this.userLocalSettings, this.userRemoteSettings, this.workspaceSettings, this.folderSettingsAction]);
 	}
@@ -341,7 +349,7 @@ export class SettingsTargetsWidget extends Widget {
 
 	private onWorkbenchStateChanged(): void {
 		this.folderSettings.folder = null;
-		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.update().catch(onUnexpectedError);
 		if (this.settingsTarget === ConfigurationTarget.WORKSPACE && this.contextService.getWorkbenchState() === WorkbenchState.WORKSPACE) {
 			this.updateTarget(ConfigurationTarget.USER_LOCAL);
 		}
@@ -362,12 +370,24 @@ export class SettingsTargetsWidget extends Widget {
 	}
 
 	private async update(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.settingsSwitcherBar.domNode.classList.toggle('empty-workbench', this.contextService.getWorkbenchState() === WorkbenchState.EMPTY);
 		this.userRemoteSettings.enabled = !!(this.options.enableRemoteSettings && this.environmentService.remoteAuthority);
 		this.workspaceSettings.enabled = this.contextService.getWorkbenchState() !== WorkbenchState.EMPTY;
 		this.folderSettings.action.enabled = this.contextService.getWorkbenchState() === WorkbenchState.WORKSPACE && this.contextService.getWorkspace().folders.length > 0;
 
 		this.workspaceSettings.tooltip = localize('workspaceSettings', "Workspace");
+	}
+
+	override dispose(): void {
+		if (this.settingsTabsWidget) {
+			DOM.clearNode(this.settingsTabsWidget);
+			this.settingsTabsWidget.remove();
+			this.settingsTabsWidget = undefined;
+		}
+		super.dispose();
 	}
 }
 
@@ -493,6 +513,10 @@ export class SearchWidget extends Widget {
 
 	override dispose(): void {
 		this.options.focusKey?.set(false);
+		if (this.domNode) {
+			DOM.clearNode(this.domNode);
+			this.domNode.remove();
+		}
 		super.dispose();
 	}
 }

@@ -584,7 +584,7 @@ class PreferencesActionsContribution extends Disposable implements IWorkbenchCon
 						return accessor.get(IPreferencesService).openRemoteSettings({ jsonEditor: true, ...args });
 					}
 				}));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	private registerSettingsEditorActions() {
@@ -1480,9 +1480,14 @@ class SettingsEditorContribution extends Disposable {
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService
 	) {
 		super();
-		this._createPreferencesRenderer().catch(onUnexpectedError).catch(onUnexpectedError);
-		this._register(this.editor.onDidChangeModel(e => this._createPreferencesRenderer().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this.workspaceContextService.onDidChangeWorkbenchState(() => this._createPreferencesRenderer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._createPreferencesRenderer().catch(onUnexpectedError);
+		this._register(this.editor.onDidChangeModel(e => this._createPreferencesRenderer().catch(onUnexpectedError)));
+		this._register(this.workspaceContextService.onDidChangeWorkbenchState(() => this._createPreferencesRenderer().catch(onUnexpectedError)));
+	}
+
+	override dispose(): void {
+		this.currentRenderer = undefined;
+		super.dispose();
 	}
 
 	private async _createPreferencesRenderer(): Promise<void> {

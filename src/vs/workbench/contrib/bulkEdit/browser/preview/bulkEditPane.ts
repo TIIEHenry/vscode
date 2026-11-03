@@ -109,6 +109,7 @@ export class BulkEditPane extends ViewPane {
 		this._tree.dispose();
 		this._disposables.dispose();
 		this._sessionDisposables.dispose();
+		this._message?.remove();
 		super.dispose();
 	}
 
@@ -150,7 +151,7 @@ export class BulkEditPane extends ViewPane {
 		);
 
 		this._disposables.add(this._tree.onContextMenu(this._onContextMenu, this));
-		this._disposables.add(this._tree.onDidOpen(e => void this._openElementInMultiDiffEditor(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._disposables.add(this._tree.onDidOpen(e => void this._openElementInMultiDiffEditor(e).catch(onUnexpectedError)));
 
 		// buttons
 		const buttonsContainer = document.createElement('div');
@@ -225,11 +226,11 @@ export class BulkEditPane extends ViewPane {
 			token.onCancellationRequested(() => resolve(undefined));
 
 			this._currentResolve = resolve;
-			this._setTreeInput(input).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._setTreeInput(input).catch(onUnexpectedError);
 
 			// refresh when check state changes
 			this._sessionDisposables.add(input.checked.onDidChange(() => {
-				this._tree.updateChildren().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._tree.updateChildren().catch(onUnexpectedError);
 				this._ctxHasCheckedChanges.set(input.checked.checkedCount > 0);
 			}));
 		});
@@ -246,13 +247,13 @@ export class BulkEditPane extends ViewPane {
 	}
 
 	private async _applyTreeInput(input: BulkFileOperations) {
-		if (this._currentInput !== input) {
+		if (this._store.isDisposed || this._currentInput !== input) {
 			return;
 		}
 
 		const viewState = this._treeViewStates.get(this._treeDataSource.groupByFile);
 		await this._tree.setInput(input, viewState);
-		if (this._currentInput !== input) {
+		if (this._store.isDisposed || this._currentInput !== input) {
 			return;
 		}
 		this._tree.domFocus();
@@ -264,7 +265,7 @@ export class BulkEditPane extends ViewPane {
 		// async expandAll (max=10) is the default when no view state is given
 		const expand = [...this._tree.getNode(input).children].slice(0, 10);
 		while (expand.length > 0) {
-			if (this._currentInput !== input) {
+			if (this._store.isDisposed || this._currentInput !== input) {
 				return;
 			}
 			const { element } = expand.shift()!;
@@ -298,7 +299,7 @@ export class BulkEditPane extends ViewPane {
 		if (conflictInput) {
 			this._conflictWarnInputs.push(conflictInput);
 		}
-		this._dialogService.warn(message).finally(() => this._done(false)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._dialogService.warn(message).finally(() => this._done(false)).catch(onUnexpectedError);
 	}
 
 	discard() {
@@ -349,7 +350,7 @@ export class BulkEditPane extends ViewPane {
 
 			// (2) toggle and update
 			this._treeDataSource.groupByFile = !this._treeDataSource.groupByFile;
-			this._setTreeInput(input).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._setTreeInput(input).catch(onUnexpectedError);
 
 			// (3) remember preference
 			this._storageService.store(BulkEditPane._memGroupByFile, this._treeDataSource.groupByFile, StorageScope.PROFILE, StorageTarget.USER);
@@ -381,7 +382,7 @@ export class BulkEditPane extends ViewPane {
 
 		const result = await this._computeResourceDiffEditorInputs.get(fileOperations);
 		const resourceId = await result.getResourceDiffEditorInputIdOfOperation(fileElement.edit);
-		if (generation !== this._openElementInMultiDiffEditorGeneration) {
+		if (this._store.isDisposed || generation !== this._openElementInMultiDiffEditorGeneration) {
 			return;
 		}
 		const options: Mutable<IMultiDiffEditorOptions> = {
@@ -402,7 +403,7 @@ export class BulkEditPane extends ViewPane {
 			isTransient: true,
 			description: label,
 			resources: result.resources
-		}, e.sideBySide ? SIDE_GROUP : ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
+		}, e.sideBySide ? SIDE_GROUP : ACTIVE_GROUP).catch(onUnexpectedError);
 	}
 
 	private readonly _computeResourceDiffEditorInputs = new LRUCachedFunction<

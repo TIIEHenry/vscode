@@ -136,7 +136,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 	) {
 		super(KeybindingsEditor.ID, group, telemetryService, themeService, storageService);
 		this.delayedFiltering = this._register(new Delayer<void>(300));
-		this._register(keybindingsService.onDidUpdateKeybindings(() => this.render(!!this.keybindingFocusContextKey.get()).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(keybindingsService.onDidUpdateKeybindings(() => this.render(!!this.keybindingFocusContextKey.get()).catch(onUnexpectedError)));
 
 		this.keybindingsEditorContextKey = CONTEXT_KEYBINDINGS_EDITOR.bindTo(this.contextKeyService);
 		this.searchFocusContextKey = CONTEXT_KEYBINDINGS_SEARCH_FOCUS.bindTo(this.contextKeyService);
@@ -191,6 +191,17 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		this.keybindingFocusContextKey.reset();
 	}
 
+	override dispose(): void {
+		if (this.overflowWidgetsDomNode) {
+			DOM.clearNode(this.overflowWidgetsDomNode);
+			this.overflowWidgetsDomNode.remove();
+		}
+		if (this.ariaLabelElement) {
+			this.ariaLabelElement.remove();
+		}
+		super.dispose();
+	}
+
 	layout(dimension: DOM.Dimension): void {
 		this.dimension = dimension;
 		this.layoutSearchWidget(dimension);
@@ -224,6 +235,9 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		this.showOverlayContainer();
 		try {
 			const key = await this.defineKeybindingWidget.define();
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (key) {
 				await this.updateKeybinding(keybindingEntry, key, keybindingEntry.keybindingItem.when, add);
 			}
@@ -273,6 +287,9 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		if (keybindingEntry.keybindingItem.keybinding) { // This should be a pre-condition
 			try {
 				await this.keybindingEditingService.removeKeybinding(keybindingEntry.keybindingItem.keybindingItem);
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.focus();
 			} catch (error) {
 				this.onKeybindingEditingError(error);
@@ -285,6 +302,9 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 		this.selectEntry(keybindingEntry);
 		try {
 			await this.keybindingEditingService.resetKeybinding(keybindingEntry.keybindingItem.keybindingItem);
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!keybindingEntry.keybindingItem.keybinding) { // reveal only if keybinding was added to unassinged. Because the entry will be placed in different position after rendering
 				this.unAssignedKeybindingItemToRevealAndFocus = keybindingEntry;
 			}
@@ -558,7 +578,7 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			}
 			const activeKeybindingEntry = this.activeKeybindingEntry;
 			if (activeKeybindingEntry) {
-				this.defineKeybinding(activeKeybindingEntry, false).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.defineKeybinding(activeKeybindingEntry, false).catch(onUnexpectedError);
 			}
 		}));
 
@@ -570,12 +590,12 @@ export class KeybindingsEditor extends EditorPane<IKeybindingsEditorMemento> imp
 			const generation = ++this.renderGeneration;
 			const input: KeybindingsEditorInput = this.input as KeybindingsEditorInput;
 			const model = await input.resolve();
-			if (generation !== this.renderGeneration || this.input !== input) {
+			if (this._store.isDisposed || generation !== this.renderGeneration || this.input !== input) {
 				return;
 			}
 			this.keybindingsEditorModel = model;
 			await this.keybindingsEditorModel.resolve(this.getActionsLabels());
-			if (generation !== this.renderGeneration || this.input !== input) {
+			if (this._store.isDisposed || generation !== this.renderGeneration || this.input !== input) {
 				return;
 			}
 			const searchFocused = this.searchWidget.hasFocus();
