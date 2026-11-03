@@ -59,7 +59,7 @@ export class NativeExtHostSearch extends ExtHostSearch implements IDisposable {
 				return;
 			}
 			this._disposables.add(provider.onDidChangeConfiguration(this.handleConfigurationChanged));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private handleConfigurationChanged(event: vscode.ConfigurationChangeEvent) {
@@ -70,7 +70,13 @@ export class NativeExtHostSearch extends ExtHostSearch implements IDisposable {
 	}
 
 	async getNumThreads(): Promise<number | undefined> {
+		if (this.isDisposed) {
+			return undefined;
+		}
 		const configProvider = await this.configurationService.getConfigProvider();
+		if (this.isDisposed) {
+			return undefined;
+		}
 		const numThreads = configProvider.getConfiguration('search').get<number>('ripgrep.maxThreads');
 		return numThreads;
 	}
@@ -99,7 +105,7 @@ export class NativeExtHostSearch extends ExtHostSearch implements IDisposable {
 	}
 
 	private _registerEHSearchProviders(): void {
-		if (this._registeredEHSearchProvider) {
+		if (this.isDisposed || this._registeredEHSearchProvider) {
 			return;
 		}
 

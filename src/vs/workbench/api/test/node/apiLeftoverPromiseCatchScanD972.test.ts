@@ -126,7 +126,6 @@ const d972Calls: Array<[string, string, number]> = [
 	[CHAT_SESSIONS_REL, leftoverAddOrUpdateCall, 1],
 	[CHAT_SESSIONS_REL, notifyOptionsCall, 1],
 	[MCP_REL, leftoverAuthSessionsCall, 1],
-	[MCP_NODE_REL, leftoverStartNodeMpcCall, 1],
 ];
 
 suite('leftover remaining unused api leftover remaining unused this.foo() leftover remaining unused Promise fire-and-forget catch scan (D972)', () => {
@@ -146,7 +145,7 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused api legal leftover >=4 after discarding collision overflow, got ${sites}`);
 		assert.ok(sites <= 8);
-		assert.strictEqual(sites, 6);
+		assert.strictEqual(sites, 5);
 		const chatSessions = fs.readFileSync(resolveSource(CHAT_SESSIONS_REL), 'utf8');
 		const mcp = fs.readFileSync(resolveSource(MCP_REL), 'utf8');
 		const mcpNode = fs.readFileSync(resolveSource(MCP_NODE_REL), 'utf8');
@@ -155,7 +154,7 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		assert.ok(!mcpNode.includes('D972'));
 	});
 
-	test('this knife covers six leftover Promise double-chain sites after leftover remaining unused stayed on api this.foo() FOF', () => {
+	test('this knife covers leftover Promise catch sites after leftover remaining unused stayed on api this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d972Calls) {
@@ -166,12 +165,14 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 			assertWrapped(source, call);
 			sites += count;
 		}
-		assert.strictEqual(sites, 6);
+		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
 		assert.strictEqual(countDoubleChains(seen.get(CHAT_SESSIONS_REL) ?? ''), 4);
 		assert.strictEqual(countDoubleChains(seen.get(MCP_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(MCP_NODE_REL) ?? ''), 1);
+		const mcpNode = fs.readFileSync(resolveSource(MCP_NODE_REL), 'utf8');
+		assert.strictEqual(countDoubleChains(mcpNode), 0);
+		assert.ok(!mcpNode.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('api leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -193,12 +194,14 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		assertWrapped(chatSessions, leftoverAddOrUpdateCall);
 		assertWrapped(chatSessions, notifyOptionsCall);
 		assertWrapped(mcp, leftoverAuthSessionsCall);
-		assertWrapped(mcpNode, leftoverStartNodeMpcCall);
+		assert.ok(mcpNode.includes(`${leftoverStartNodeMpcCall}.catch(onUnexpectedError);`));
+		assert.ok(!mcpNode.includes(`${leftoverStartNodeMpcCall}${doubleCatch}`));
 		assert.strictEqual(countIncludes(chatSessions, `${tryUpdateCall}${doubleCatch}`), 2);
 		assert.strictEqual(countIncludes(chatSessions, `${leftoverAddOrUpdateCall}${doubleCatch}`), 1);
 		assert.strictEqual(countIncludes(chatSessions, `${notifyOptionsCall}${doubleCatch}`), 1);
 		assert.strictEqual(countIncludes(mcp, `${leftoverAuthSessionsCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(mcpNode, `${leftoverStartNodeMpcCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(mcpNode, `${leftoverStartNodeMpcCall}${doubleCatch}`), 0);
+		assert.strictEqual(countIncludes(mcpNode, `${leftoverStartNodeMpcCall}.catch(onUnexpectedError)`), 1);
 		assert.ok(!chatSessions.includes('\t\t\tthis.tryUpdateItemForModel(model);\n'));
 		assert.ok(!chatSessions.includes('\t\t\tthis.addOrUpdateItem(existing);\n'));
 		assert.ok(!chatSessions.includes('\t\t\t\tthis.notifyOptionsChange(handle, sessionResource, updates);\n'));
@@ -308,11 +311,14 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		assert.ok(!host.includes(`this.reload()${doubleCatch}`));
 		assert.ok(editor.includes(`${leftoverReplaceEditorsCall};`));
 		assert.ok(!editor.includes(`${leftoverReplaceEditorsCall}${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}.catch(onUnexpectedError);`));
+		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}.catch(onUnexpectedError);`));
+		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
 		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
 		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}.catch(onUnexpectedError);`));
+		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
 		assert.ok(chatTip.includes(doubleCatch));
 		assert.ok(extensionsRecs.includes(doubleCatch));

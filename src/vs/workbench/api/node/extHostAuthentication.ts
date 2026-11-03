@@ -26,6 +26,9 @@ import { LoopbackAuthServer } from './loopbackServer.js';
 
 export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 
+	private _isDisposed = false;
+	private readonly _servers = new Set<LoopbackAuthServer>();
+
 	constructor(
 		extHostWindow: IExtHostWindow,
 		extHostUrls: IExtHostUrlsService,
@@ -75,7 +78,19 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 		}
 	}
 
+	override dispose(): void {
+		this._isDisposed = true;
+		for (const server of this._servers) {
+			void server.stop();
+		}
+		this._servers.clear();
+		super.dispose();
+	}
+
 	private async _createWithLoopbackServer(scopes: string[], progress: vscode.Progress<IProgressStep>, token: vscode.CancellationToken): Promise<IAuthorizationTokenResponse> {
+		if (this._isDisposed) {
+			throw new CancellationError();
+		}
 		if (!this._serverMetadata.authorization_endpoint) {
 			throw new Error('Authorization Endpoint required');
 		}
@@ -118,9 +133,11 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 			appUri,
 			this._initData.environment.appName
 		);
+		this._servers.add(server);
 		try {
 			await server.start();
 		} catch (err) {
+			this._servers.delete(server);
 			throw new Error(`Failed to start loopback server: ${err}`);
 		}
 
@@ -130,7 +147,9 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 
 		const promise = server.waitForOAuthResponse();
 		// Set up a Uri Handler but it's just to redirect not to handle the code
-		void this._proxy.$waitForUriHandler(appUri).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (!this._isDisposed) {
+			void this._proxy.$waitForUriHandler(appUri).catch(onUnexpectedError);
+		}
 
 		try {
 			// Open the browser for user authorization
@@ -165,12 +184,16 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 		} finally {
 			// Clean up the server
 			setTimeout(() => {
+				this._servers.delete(server);
 				void server.stop();
 			}, 5000);
 		}
 	}
 
 	private async _createWithDeviceCode(scopes: string[], progress: vscode.Progress<IProgressStep>, token: vscode.CancellationToken): Promise<IAuthorizationTokenResponse> {
+		if (this._isDisposed) {
+			throw new CancellationError();
+		}
 		if (!this._serverMetadata.token_endpoint) {
 			throw new Error('Token endpoint not available in server metadata');
 		}

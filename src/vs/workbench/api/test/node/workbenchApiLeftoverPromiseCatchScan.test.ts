@@ -56,15 +56,18 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers leftover Promise catch sites', () => {
 		const files = [WINDOW_REL, TABS_REL, TREES_REL, CONFIG_REL, SEARCH_REL, TOOLS_REL, WORKSPACE_REL, LOGGER_REL];
-		let sites = 0;
+		let doubleSites = 0;
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			doubleSites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(doubleSites, 6);
+		const tabsSource = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
+		assert.ok(!tabsSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		const searchSource = fs.readFileSync(resolveSource(SEARCH_REL), 'utf8');
+		assert.ok(!searchSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('extHostWindow leftover $getInitialState then is Promise double-chain; opener $openUri stays skipped', () => {
@@ -81,12 +84,13 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 		assert.ok(!source.includes('$openUri(stringOrUri, uriAsString, options).catch'));
 	});
 
-	test('mainThreadEditorTabs leftover whenReady then is Promise double-chain; sync _createTabsModel stays skipped', () => {
+	test('mainThreadEditorTabs leftover whenReady then is Promise single-chain; sync _createTabsModel stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'readonly whenReady: Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._editorGroupsService.whenReady.then(() => this._createTabsModel())');
+		assert.ok(source.includes('this._editorGroupsService.whenReady.then(() => this._createTabsModel()).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('private _createTabsModel(): void {'));
 		assert.ok(!source.includes('this._createTabsModel().catch'));
 	});
@@ -134,7 +138,7 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 		assertDoubleThen(source, 'this.getConfigProvider().then(provider => provider.$acceptConfigurationChanged(data, change))');
 	});
 
-	test('extHostSearch leftover getConfigProvider then is Promise double-chain', () => {
+	test('extHostSearch leftover getConfigProvider then is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_REL), 'utf8');
 		const config = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
 		assertPromiseSignature(config, 'public getConfigProvider(): Promise<ExtHostConfigProvider> {');
@@ -144,8 +148,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 				return;
 			}
 			this._disposables.add(provider.onDidChangeConfiguration(this.handleConfigurationChanged));
-		})`;
-		assertDoubleThen(source, thenCall);
+		}).catch(onUnexpectedError);`;
+		assert.ok(source.includes(thenCall));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('extHostLanguageModelTools leftover $getTools then is Promise double-chain', () => {

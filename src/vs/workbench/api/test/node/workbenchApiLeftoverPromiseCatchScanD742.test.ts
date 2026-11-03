@@ -74,8 +74,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 7);
+		const nodeTunnelSource = fs.readFileSync(resolveSource(TUNNEL_NODE_REL), 'utf8');
+		assert.ok(!nodeTunnelSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('scm leftover $registerGroups is Promise double-chain; leftover $updateSourceControl stays leftover', () => {
@@ -103,7 +104,7 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 		assertDoubleThen(source, 'this.proxy.$disposeSourceControlDiffInformation(this.handle)');
 	});
 
-	test('tunnel leftover $setTunnelProvider register / $setRemoteTunnelService are Promise double-chain; remaining $setTunnelProvider and mainThread getEnvironment stay skipped', () => {
+	test('tunnel leftover $setTunnelProvider register is double-chain and $setRemoteTunnelService is single-chain; remaining $setTunnelProvider and mainThread getEnvironment stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(TUNNEL_EXT_REL), 'utf8');
 		const nodeSource = fs.readFileSync(resolveSource(TUNNEL_NODE_REL), 'utf8');
 		const tunnel = fs.readFileSync(resolveSource(TUNNEL_MAIN_REL), 'utf8');
@@ -113,7 +114,8 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(nodeSource.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assertDoubleThen(source, 'this._proxy.$setTunnelProvider(tunnelFeatures, true)');
-		assertDoubleThen(nodeSource, 'this._proxy.$setRemoteTunnelService(process.pid)');
+		assert.ok(nodeSource.includes('this._proxy.$setRemoteTunnelService(process.pid).catch(onUnexpectedError);'));
+		assert.ok(!nodeSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('this._proxy.$setTunnelProvider(undefined, false);'));
 		assert.ok(!source.includes('$setTunnelProvider(undefined, false).catch'));
 		assert.ok(source.includes('this._proxy.$setTunnelProvider(tunnelFeatures, !!provider.tunnelFactory);'));
@@ -161,7 +163,7 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 		assert.ok(auth.includes('provider.onDidChangeSessions(e => this._proxy.$sendDidChangeSessions(id, e));'));
 		assert.ok(!auth.includes('$sendDidChangeSessions(id, e).catch'));
 
-		assert.ok(output.includes('channelPromise.then(channel => channel.append(value));'));
+		assert.ok(output.includes('withChannel(channel => channel.append(value));'));
 		assert.ok(!output.includes('channelPromise.then(channel => channel.append(value)).catch'));
 
 		assert.ok(windowSource.includes('return this._proxy.$openUri(stringOrUri, uriAsString, options);'));

@@ -78,7 +78,7 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 		this._dispoables.add(this._editorGroupsService.onDidRemoveGroup(() => this._createTabsModel()));
 
 		// Once everything is read go ahead and initialize the model
-		this._editorGroupsService.whenReady.then(() => this._createTabsModel()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._editorGroupsService.whenReady.then(() => this._createTabsModel()).catch(onUnexpectedError);
 	}
 
 	dispose(): void {
@@ -518,6 +518,9 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 	 * Builds the model from scratch based on the current state of the editor service.
 	 */
 	private _createTabsModel(): void {
+		if (this._dispoables.isDisposed) {
+			return;
+		}
 		if (this._editorGroupsService.groups.length === 0) {
 			return; // skip this invalid state, it may happen when the entire editor area is transitioning to other state ("editor working sets")
 		}

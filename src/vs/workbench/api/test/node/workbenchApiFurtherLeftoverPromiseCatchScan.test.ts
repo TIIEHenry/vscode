@@ -81,11 +81,14 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 6);
+		const decorationsSource = fs.readFileSync(resolveSource(DECORATIONS_REL), 'utf8');
+		assert.ok(!decorationsSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		const nodeAuthSource = fs.readFileSync(resolveSource(NODE_AUTH_REL), 'utf8');
+		assert.ok(!nodeAuthSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('decorations leftover $provideDecorations then is Promise double-chain', () => {
+	test('decorations leftover $provideDecorations then is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(DECORATIONS_REL), 'utf8');
 		const protocol = fs.readFileSync(resolveSource(PROTOCOL_REL), 'utf8');
 		assertPromiseSignature(protocol, '$provideDecorations(handle: number, requests: DecorationRequest[], token: CancellationToken): Promise<DecorationReply>;');
@@ -94,8 +97,9 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 				for (const [id, defer] of resolver) {
 					defer.complete(data[id]);
 				}
-			})`;
-		assertDoubleThen(source, thenCall);
+			}).catch(onUnexpectedError);`;
+		assert.ok(source.includes(thenCall));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('chatAgents leftover progress/task/externalEdit thens are Promise double-chain; Resolve stays skipped', () => {
@@ -131,12 +135,13 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 		assertDoubleThen(source, thenCall);
 	});
 
-	test('auth leftover $waitForUriHandler is Promise double-chain; opener $openUri stays skipped', () => {
+	test('auth leftover $waitForUriHandler is Promise single-chain; opener $openUri stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(NODE_AUTH_REL), 'utf8');
 		const protocol = fs.readFileSync(resolveSource(PROTOCOL_REL), 'utf8');
 		assertPromiseSignature(protocol, '$waitForUriHandler(expectedUri: UriComponents): Promise<UriComponents>;');
 		assert.ok(source.includes("import { CancellationError, isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this._proxy.$waitForUriHandler(appUri)');
+		assert.ok(source.includes('void this._proxy.$waitForUriHandler(appUri).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('await this._extHostWindow.openUri(authorizationUrl.toString(), {});'));
 		assert.ok(!source.includes('openUri(authorizationUrl.toString(), {}).catch'));
 	});
@@ -204,18 +209,18 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 		const tunnel = fs.readFileSync(resolveSource(TUNNEL_REL), 'utf8');
 		const shell = fs.readFileSync(resolveSource(SHELL_REL), 'utf8');
 
-		assert.ok(output.includes('channelPromise.then(channel => channel.append(value));'));
+		assert.ok(output.includes('withChannel(channel => channel.append(value));'));
 		assert.ok(!output.includes('channelPromise.then(channel => channel.append(value)).catch'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.appendLine(value));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.clear());'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.replace(value));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.show(columnOrPreserveFocus, preserveFocus));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.hide());'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.trace(value, ...args));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.debug(value, ...args));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.info(value, ...args));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.warn(value, ...args));'));
-		assert.ok(output.includes('channelPromise.then(channel => channel.error(value, ...args));'));
+		assert.ok(output.includes('withChannel(channel => channel.appendLine(value));'));
+		assert.ok(output.includes('withChannel(channel => channel.clear());'));
+		assert.ok(output.includes('withChannel(channel => channel.replace(value));'));
+		assert.ok(output.includes('withChannel(channel => channel.show(columnOrPreserveFocus, preserveFocus));'));
+		assert.ok(output.includes('withChannel(channel => channel.hide());'));
+		assert.ok(output.includes('withChannel(channel => channel.trace(value, ...args));'));
+		assert.ok(output.includes('withChannel(channel => channel.debug(value, ...args));'));
+		assert.ok(output.includes('withChannel(channel => channel.info(value, ...args));'));
+		assert.ok(output.includes('withChannel(channel => channel.warn(value, ...args));'));
+		assert.ok(output.includes('withChannel(channel => channel.error(value, ...args));'));
 
 		assert.ok(windowSource.includes('return this._proxy.$openUri(stringOrUri, uriAsString, options);'));
 		assert.ok(!windowSource.includes('$openUri(stringOrUri, uriAsString, options).catch'));

@@ -23,12 +23,18 @@ export class ExtHostLoggerService extends BaseExtHostLoggerService {
 
 	override registerLogger(resource: ILoggerResource): void {
 		super.registerLogger(resource);
-		this._proxy.$registerLogger(resource).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._proxy.$registerLogger(resource).catch(onUnexpectedError);
 	}
 
 	override deregisterLogger(resource: URI): void {
 		super.deregisterLogger(resource);
-		this._proxy.$deregisterLogger(resource).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._proxy.$deregisterLogger(resource).catch(onUnexpectedError);
 	}
 
 }

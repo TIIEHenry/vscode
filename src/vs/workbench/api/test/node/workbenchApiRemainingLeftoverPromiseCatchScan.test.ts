@@ -76,8 +76,7 @@ suite('workbench/api remaining leftover Promise fire-and-forget catch scan (D712
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 6);
 	});
 
 	test('debug registry leftover getExtensionRegistry then is Promise double-chain', () => {
@@ -107,20 +106,13 @@ suite('workbench/api remaining leftover Promise fire-and-forget catch scan (D712
 		assert.ok(!/Promise\.race\(\[timeout\(5000\), extensionsDeactivated\]\)\.finally\([^;]+\)\.catch\(errors\.onUnexpectedError\)\.catch\(errors\.onUnexpectedError\)/.test(source));
 	});
 
-	test('output leftover channelPromise setup thens are Promise double-chain; API-method thens stay leftover', () => {
+	test('output channelPromise setup and API calls route through withChannel and are single-chain', () => {
 		const source = fs.readFileSync(resolveSource(OUTPUT_REL), 'utf8');
 		assertPromiseSignature(source, 'private createExtHostOutputChannel(name: string, channelPromise: Promise<ExtHostOutputChannel>, channelDisposables: DisposableStore): vscode.OutputChannel {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'channelPromise.then(channel => channelDisposables.add(channel))');
-		const logThen = `channelPromise.then(channel => {
-			if (channel.logLevel !== logLevel) {
-				setLogLevel(channel.logLevel);
-			}
-			channelDisposables.add(channel.onDidChangeLogLevel(e => setLogLevel(e)));
-		})`;
-		assertDoubleThen(source, logThen);
-		assert.ok(source.includes('channelPromise.then(channel => channel.append(value));'));
-		assert.ok(!source.includes('channelPromise.then(channel => channel.append(value)).catch'));
+		assert.ok(source.includes("import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';"));
+		assert.ok(source.includes('channelPromise.then(callback, () => undefined).catch(onUnexpectedError);'));
+		assert.ok(source.includes('withChannel(channel => channel.append(value));'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('notebook leftover timeout then is Promise double-chain', () => {
