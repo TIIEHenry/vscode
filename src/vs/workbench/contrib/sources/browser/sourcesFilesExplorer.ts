@@ -105,6 +105,7 @@ export function readSourcesFilesListMode(
  */
 export class SourcesFilesExplorer extends ExplorerView {
 
+	private _isDisposed = false;
 	private listMode = false;
 	private listModeReady = false;
 	private listDirectory: URI | undefined;
@@ -197,6 +198,7 @@ export class SourcesFilesExplorer extends ExplorerView {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		if (this.actionsElement && this.actionsElement.parentElement !== this.actionsHome) {
 			this.actionsElement.remove();
 		}
@@ -244,7 +246,7 @@ export class SourcesFilesExplorer extends ExplorerView {
 			this.listRootItem = undefined;
 			this.updateLocationBreadcrumb();
 			if (this.listMode) {
-				void this.setTreeInput().then(() => this.updateLocationBreadcrumb()).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.setTreeInput().then(() => this.updateLocationBreadcrumb()).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -271,7 +273,12 @@ export class SourcesFilesExplorer extends ExplorerView {
 		const scope = this.currentListModeScope();
 		this.persistListMode(sourcesFilesListModeStorageKey(scope.projectKey, scope.sessionId), list ? 'list' : 'tree');
 		this.updateLocationBreadcrumb();
-		void this.setTreeInput().then(() => this.updateLocationBreadcrumb()).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.setTreeInput().then(() => {
+			if (this._isDisposed) {
+				return;
+			}
+			this.updateLocationBreadcrumb();
+		}).catch(onUnexpectedError);
 	}
 
 	private bindListModeToWorkRoot(): void {
@@ -328,7 +335,7 @@ export class SourcesFilesExplorer extends ExplorerView {
 		}
 		const root = this.listRootItem?.root.resource;
 		if (root && this.listDirectory && !this.uriIdentityService.extUri.isEqual(this.listDirectory, root)) {
-			void this.showListDirectory(root).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.showListDirectory(root).catch(onUnexpectedError);
 		}
 	}
 
@@ -522,6 +529,9 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	private syncExplorer(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const sessionId = this.session.getActiveSessionId();
 		if (this.listsEngineDirectory(sessionId)) {
 			this.showEngineDirectory();
@@ -654,6 +664,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 	override dispose(): void {
 		this.disposeEngineDirectory();
 		this.disposeExplorer();
+		this.root.remove();
 		super.dispose();
 	}
 }
