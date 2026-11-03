@@ -24,6 +24,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -40,9 +41,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const leftoverRenderBlocksCall = 'this.renderBlocks()';
@@ -79,13 +80,13 @@ suite('leftover remaining unused remaining remaining unused issue leftover remai
 		}
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused remaining remaining unused stayed on issue this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused remaining remaining unused stayed on issue this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d1294Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -93,11 +94,11 @@ suite('leftover remaining unused remaining remaining unused issue leftover remai
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(BASE_REL) ?? ''), 13);
-		assert.strictEqual(countDoubleChains(seen.get(FORM_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(BASE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(FORM_REL) ?? ''), 0);
 	});
 
-	test('issue leftover remaining unused remaining remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('issue leftover remaining unused remaining remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const base = fs.readFileSync(resolveSource(BASE_REL), 'utf8');
 		const form = fs.readFileSync(resolveSource(FORM_REL), 'utf8');
 
@@ -114,12 +115,12 @@ suite('leftover remaining unused remaining remaining unused issue leftover remai
 		assert.ok(!base.includes('this.renderBlocks();'));
 		assert.ok(!base.includes('this.updateIssueReporterUri(extension);'));
 		assert.ok(!form.includes('this.closeReporter();'));
-		assert.strictEqual(countIncludes(base, `${leftoverRenderBlocksCall}${doubleCatch}`), 6);
-		assert.strictEqual(countIncludes(base, `${leftoverUpdateIssueReporterUriCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(form, `${leftoverCloseReporterCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(base, `${leftoverRenderBlocksCall}${singleCatch}`), 6);
+		assert.strictEqual(countIncludes(base, `${leftoverUpdateIssueReporterUriCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(form, `${leftoverCloseReporterCall}${singleCatch}`), 1);
 		for (const source of [base, form]) {
 			assert.ok(!source.includes('D1294'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
 		}
 	});
 });

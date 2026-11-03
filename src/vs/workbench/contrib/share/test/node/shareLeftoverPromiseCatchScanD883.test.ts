@@ -62,6 +62,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -78,18 +79,18 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const updateTargetCall = 'this.updateExtensionStatus(targetExtension)';
 const updateMatchesCall = 'this.updateExtensionStatus(matches[0])';
 const closeCall = 'this.close()';
-const leftoverRenderCall = '\t\tthis.renderBlocks();\n';
-const leftoverRenderCatchCall = '\t\t\tthis.renderBlocks();\n';
-const leftoverRenderDataCall = '\t\t\tthis.renderBlocks();\n';
-const leftoverCloseReporterCall = '\t\t\t\t\t\tthis.closeReporter();\n';
+const leftoverRenderCall = 'this.renderBlocks().catch(onUnexpectedError);';
+const leftoverRenderCatchCall = 'this.renderBlocks().catch(onUnexpectedError);';
+const leftoverRenderDataCall = 'this.renderBlocks().catch(onUnexpectedError);';
+const leftoverCloseReporterCall = 'this.closeReporter().catch(onUnexpectedError);';
 const leftoverOpenLinkCall = '\t\t\tthis.openLink(url);\n';
 const leftoverShareRegisterCall = '\t\t\t\t\tthis.registerActions();\n';
 const leftoverShareOpenerCall = 'run: () => { urlService.open(result, { openExternal: true }); }';
@@ -122,6 +123,9 @@ const updateExtensionSelectedCall = 'void this.updateSelectedExtension(this.sele
 const updateExtensionSelectCall = 'void this.updateSelectedExtension(this.extensionOptions[e.index]?.value)';
 const searchSimilarCall = '() => this.doSearchSimilarIssues()';
 const systemInfoThen = `this.processService.getSystemInfo().then(info => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			this.issueReporterModel.update({ systemInfo: info });
 			this.receivedSystemInfo = true;
 
@@ -129,9 +133,15 @@ const systemInfoThen = `this.processService.getSystemInfo().then(info => {
 			this.updateButtonStates();
 		})`;
 const performanceInfoThenCtor = `this.processService.getPerformanceInfo().then(info => {
+				if (this._store.isDisposed || this._isDisposed) {
+					return;
+				}
 				this.updatePerformanceInfo(info as Partial<IssueReporterData>);
 			})`;
 const performanceInfoThenHandler = `this.processService.getPerformanceInfo().then(info => {
+					if (this._store.isDisposed || this._isDisposed) {
+						return;
+					}
 					this.updatePerformanceInfo(info as Partial<IssueReporterData>);
 				})`;
 
@@ -192,13 +202,13 @@ suite('leftover remaining unused after share leftover remaining unused overflowe
 		assert.ok(!iface.includes('D883'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites after leftover remaining unused overflowed to leftover remaining unused issue leftover remaining unused this.foo()', () => {
+	test('this knife covers seven leftover Promise single-chain sites after leftover remaining unused overflowed to leftover remaining unused issue leftover remaining unused this.foo()', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d883Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -206,15 +216,15 @@ suite('leftover remaining unused after share leftover remaining unused overflowe
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countIncludes(seen.get(BASE_REPORTER_REL) ?? '', `${updateTargetCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(BASE_REPORTER_REL) ?? '', `${updateMatchesCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(seen.get(BASE_REPORTER_REL) ?? '', `${closeCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(seen.get(REPORTER_REL) ?? '', `${closeCall}${doubleCatch}`), 1);
-		assert.strictEqual(countDoubleChains(seen.get(BASE_REPORTER_REL) ?? ''), 6);
-		assert.strictEqual(countDoubleChains(seen.get(REPORTER_REL) ?? ''), 5);
+		assert.strictEqual(countIncludes(seen.get(BASE_REPORTER_REL) ?? '', `${updateTargetCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(BASE_REPORTER_REL) ?? '', `${updateMatchesCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(seen.get(BASE_REPORTER_REL) ?? '', `${closeCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(seen.get(REPORTER_REL) ?? '', `${closeCall}${singleCatch}`), 1);
+		assert.strictEqual(countDoubleChains(seen.get(BASE_REPORTER_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(REPORTER_REL) ?? ''), 0);
 	});
 
-	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const base = fs.readFileSync(resolveSource(BASE_REPORTER_REL), 'utf8');
 		const reporter = fs.readFileSync(resolveSource(REPORTER_REL), 'utf8');
 		assertPromiseSignature(base, 'public async close(): Promise<void> {');
@@ -238,6 +248,8 @@ suite('leftover remaining unused after share leftover remaining unused overflowe
 		assert.ok(base.includes(leftoverRenderDataCall) || base.includes('\t\tthis.renderBlocks();\n'));
 		assert.ok(base.includes(leftoverOpenLinkCall));
 		assert.ok(!base.includes(`this.openLink(url)${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(base), 0);
+		assert.strictEqual(countDoubleChains(reporter), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -284,12 +296,12 @@ suite('leftover remaining unused after share leftover remaining unused overflowe
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('D883'));
 		}
 	});
 
-	test('locked leftover remaining stay leftover remaining unused; D773 already-double stay already-double; this knife did not occupy comments / chatSetup / searchWidget / searchEditor / testing / debug leftover remaining unused', () => {
+	test('locked leftover remaining stay leftover remaining unused; D773 single-chain stay single-chain; this knife did not occupy comments / chatSetup / searchWidget / searchEditor / testing / debug leftover remaining unused', () => {
 		const webview = fs.readFileSync(resolveSource(WEBVIEW_REL), 'utf8');
 		const viewlet = fs.readFileSync(resolveSource(VIEWLET_REL), 'utf8');
 		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
@@ -327,11 +339,18 @@ suite('leftover remaining unused after share leftover remaining unused overflowe
 		for (const [rel, call, count] of d773AlreadyDouble) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `D773 already-double drifted: ${rel} ${call}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
+			assert.strictEqual(wrapped, count, `D773 single-chain drifted: ${rel} ${call}`);
 			d773Sites += count;
 		}
 		assert.strictEqual(d773Sites, 11);
+		assert.strictEqual(countDoubleChains(seen.get(BASE_REPORTER_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(REPORTER_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(OVERLAY_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(PANE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(KEYBINDINGS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(form), 0);
+		assert.strictEqual(countDoubleChains(base), 0);
 
 		assert.ok(webview.includes(leftoverFindStopCall));
 		assert.ok(!webview.includes(`this._send('find-stop', { clearSelection: !keepSelection })${doubleCatch}`));

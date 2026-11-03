@@ -78,7 +78,7 @@ class IssueReporterOpenStateContribution extends Disposable {
 		}
 		e.preventDefault();
 		e.stopPropagation();
-		void this.commandService.executeCommand(commandId).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.commandService.executeCommand(commandId).catch(onUnexpectedError);
 	}
 }
 

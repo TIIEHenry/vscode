@@ -85,6 +85,17 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 	readonly _serviceBrand: undefined;
 
+	private _isDisposed = false;
+	protected get isDisposed(): boolean { return this._isDisposed || this._store.isDisposed; }
+
+	override dispose(): void {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
+		this._isDisposed = true;
+		super.dispose();
+	}
+
 	protected currentData: IssueReporterData | undefined;
 
 	protected issueReporterWindow: Window | null = null;
@@ -129,6 +140,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 	}
 
 	async submitIssue(host: IIssueSubmissionHost, data: IssueReporterData, title: string, body: string): Promise<boolean> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return false;
+		}
 		const screenshots = host.getScreenshots();
 		const recordings = host.getRecordings();
 
@@ -178,6 +192,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 				for (let i = 0; i < recordings.length; i++) {
 					const rec = recordings[i];
 					const fileContent = await this.fileService.readFile(URI.file(rec.filePath));
+					if (this._store.isDisposed || this._isDisposed) {
+						return false;
+					}
 					const ext = rec.filePath.endsWith('.mp4') ? 'mp4' : 'webm';
 					const contentType = ext === 'mp4' ? 'video/mp4' : 'video/webm';
 					filesToProcess.push({ key: `recording:${rec.filePath}`, name: `recording-${i + 1}.${ext}`, bytes: fileContent.value.buffer, contentType });
@@ -199,6 +216,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 						}
 
 						const resolvedRepoId = await resolveRepoId();
+						if (this._store.isDisposed || this._isDisposed) {
+							return false;
+						}
 						if (!resolvedRepoId) {
 							throw new Error('No GitHub repository resolved for attachment upload.');
 						}
@@ -206,6 +226,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 						const [result] = await this.githubUploadService.uploadViaMobileApi(
 							data.githubAccessToken, resolvedRepoId, [file]
 						);
+						if (this._store.isDisposed || this._isDisposed) {
+							return false;
+						}
 						if (!result) {
 							throw new Error(`Upload returned no result for ${file.name}.`);
 						}
@@ -237,6 +260,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 		if (url.length > MAX_URL_LENGTH && data.githubAccessToken && gitHubDetails) {
 			const shortenedBody = await this.tryCreateBodyWithIssueDataAttachment(host, issueBody, baseUrl, gitHubDetails, data.issueSource, data.githubAccessToken, resolveRepoId);
+			if (this._store.isDisposed || this._isDisposed) {
+				return false;
+			}
 			if (shortenedBody) {
 				previewBody = shortenedBody;
 				url = this.createIssuePreviewUrl(baseUrl, previewBody, gitHubDetails, data.issueSource);
@@ -245,11 +271,17 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 		if (url.length > MAX_URL_LENGTH) {
 			const shouldWrite = await this.showClipboardDialog();
+			if (this._store.isDisposed || this._isDisposed) {
+				return false;
+			}
 			if (!shouldWrite) {
 				return false;
 			}
 			try {
 				await this.clipboardService.writeText(issueBody);
+				if (this._store.isDisposed || this._isDisposed) {
+					return false;
+				}
 			} catch (error) {
 				this.logService.error('Writing issue data to clipboard failed', error);
 				return false;
@@ -281,6 +313,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 		githubAccessToken: string,
 		resolveRepoId: () => Promise<string | undefined>
 	): Promise<string | undefined> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return undefined;
+		}
 		const extracted = extractIssueData(issueBody);
 		if (!extracted) {
 			return undefined;
@@ -289,10 +324,16 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 		host.setUploading(true);
 		try {
 			const repoId = await resolveRepoId();
+			if (this._store.isDisposed || this._isDisposed) {
+				return undefined;
+			}
 			if (!repoId) {
 				return undefined;
 			}
 			const result = await this.uploadIssueDataFile(githubAccessToken, repoId, extracted.fileContent);
+			if (this._store.isDisposed || this._isDisposed) {
+				return undefined;
+			}
 			const bodyWithLink = this.createBodyWithIssueDataLink(extracted.body, result.assetUrl);
 			if (this.createIssuePreviewUrl(baseUrl, bodyWithLink, gitHubDetails, issueSource).length > MAX_URL_LENGTH) {
 				return undefined;
@@ -320,6 +361,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 			contentType: 'text/plain',
 		};
 		const [result] = await this.githubUploadService.uploadViaMobileApi(githubAccessToken, repoId, [file]);
+		if (this._store.isDisposed || this._isDisposed) {
+			throw new Error('Disposed');
+		}
 		if (!result) {
 			throw new Error('Issue data upload did not return a result.');
 		}
@@ -444,6 +488,9 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 	/** Opens the classic non-wizard reporter in an auxiliary window. */
 	async openAuxIssueReporterLegacy(data: IssueReporterData): Promise<void> {
 		await this.openAuxIssueReporter(data);
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 
 		if (this.issueReporterWindow) {
 			const issueReporter = this.instantiationService.createInstance(IssueWebReporter, false, data, { type: this.type, arch: this.arch, release: this.release }, product, this.issueReporterWindow);
@@ -468,11 +515,19 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 
 		// Auxiliary Window
 		const auxiliaryWindow = disposables.add(await this.auxiliaryWindowService.open({ mode: AuxiliaryWindowMode.Normal, bounds: issueReporterBounds, nativeTitlebar: true, disableFullscreen: true }));
+		if (this._store.isDisposed || this._isDisposed) {
+			disposables.dispose();
+			return;
+		}
 
 		const platformClass = isWindows ? 'windows' : isLinux ? 'linux' : 'mac';
 
 		if (auxiliaryWindow) {
 			await auxiliaryWindow.whenStylesHaveLoaded;
+			if (this._store.isDisposed || this._isDisposed) {
+				disposables.dispose();
+				return;
+			}
 			auxiliaryWindow.window.document.title = 'Issue Reporter';
 			auxiliaryWindow.window.document.body.classList.add('issue-reporter-body', 'monaco-workbench', platformClass);
 
@@ -582,7 +637,7 @@ export class IssueFormService extends Disposable implements IIssueFormService {
 				{
 					label: localize({ key: 'yes', comment: ['&& denotes a mnemonic'] }, "&&Yes"),
 					run: () => {
-						this.closeReporter().catch(onUnexpectedError).catch(onUnexpectedError);
+						this.closeReporter().catch(onUnexpectedError);
 						this.issueReporterWindow = null;
 					}
 				},
