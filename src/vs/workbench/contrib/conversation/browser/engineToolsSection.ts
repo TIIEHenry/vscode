@@ -782,14 +782,6 @@ export class EngineToolsSection extends Disposable {
 
 	private repaintToolRow(toolName: string): void {
 		this.rowRenderer?.updateTool(toolName);
-		if (!this.list) {
-			return;
-		}
-		const index = this.listEntries.findIndex(entry => entry.kind === 'tool' && entry.tool.name === toolName);
-		if (index >= 0) {
-			const entry = this.listEntries[index];
-			this.list.splice(index, 1, [entry]);
-		}
 	}
 
 	/** Fixed-height Lists do not implement rerender; preserve their existing traits. */

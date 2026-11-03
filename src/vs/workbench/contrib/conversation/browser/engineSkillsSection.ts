@@ -1163,9 +1163,6 @@ export class EngineSkillsSection extends Disposable {
 				if (this.selectedSkill?.name === skillName) {
 					this.selectedSkill = updatedSkill;
 				}
-				if (this.list) {
-					this.list.splice(index, 1, [updatedEntry]);
-				}
 			}
 		}
 		this.rowRenderer?.updateSkill(skillName, enabled);
