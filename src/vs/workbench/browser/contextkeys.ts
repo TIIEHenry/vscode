@@ -220,7 +220,7 @@ export class WorkbenchContextKeysHandler extends Disposable {
 			this.updateEditorAreaContextKeys();
 			this.updateActiveEditorGroupContextKeys();
 			this.updateVisiblePanesContextKeys();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this.editorService.onDidActiveEditorChange(() => this.updateActiveEditorGroupContextKeys()));
 		this._register(this.editorService.onDidVisibleEditorsChange(() => this.updateVisiblePanesContextKeys()));

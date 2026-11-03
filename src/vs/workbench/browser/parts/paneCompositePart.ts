@@ -16,7 +16,7 @@ import { IView } from '../../../base/browser/ui/grid/grid.js';
 import { IWorkbenchLayoutService, Parts, SINGLE_WINDOW_PARTS, getFloatingOuterGutterEdges, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPaneCompositeVerticalOuterEdges } from '../../services/layout/browser/layoutService.js';
 import { CompositePart, ICompositePartOptions, ICompositeTitleLabel } from './compositePart.js';
 import { IPaneCompositeBarOptions, PaneCompositeBar } from './paneCompositeBar.js';
-import { Dimension, EventHelper, trackFocus, $, addDisposableListener, EventType, prepend, getWindow, scheduleAtNextAnimationFrame } from '../../../base/browser/dom.js';
+import { Dimension, EventHelper, trackFocus, $, addDisposableListener, EventType, prepend, getWindow, scheduleAtNextAnimationFrame, clearNode } from '../../../base/browser/dom.js';
 import { Registry } from '../../../platform/registry/common/platform.js';
 import { INotificationService } from '../../../platform/notification/common/notification.js';
 import { IStorageService } from '../../../platform/storage/common/storage.js';
@@ -197,7 +197,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 				if (this.getActiveComposite()?.getId() === viewletDescriptor.id) {
 					const defaultViewletId = this.viewDescriptorService.getDefaultViewContainer(this.location)?.id;
 					const containerToOpen = activeContainers.filter(c => c.id === defaultViewletId)[0] || activeContainers[0];
-					this.doOpenPaneComposite(containerToOpen.id).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.doOpenPaneComposite(containerToOpen.id).catch(onUnexpectedError);
 				}
 			} else {
 				this.layoutService.setPartHidden(true, this.partId);
@@ -314,7 +314,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 						if (dragData.type === 'composite') {
 							const currentContainer = this.viewDescriptorService.getViewContainerById(dragData.id)!;
 							this.viewDescriptorService.moveViewContainerToLocation(currentContainer, this.location, undefined, 'dnd');
-							this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
+							this.openPaneComposite(currentContainer.id, true).catch(onUnexpectedError);
 						}
 
 						else if (dragData.type === 'view') {
@@ -326,7 +326,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 
 								this.openPaneComposite(newContainer.id, true).then(composite => {
 									composite?.openView(viewToMove.id, true);
-								}).catch(onUnexpectedError).catch(onUnexpectedError);
+								}).catch(onUnexpectedError);
 							}
 						}
 					}
@@ -504,6 +504,10 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 	}
 
 	async openPaneComposite(id?: string, focus?: boolean): Promise<PaneComposite | undefined> {
+		if (this._store.isDisposed) {
+			return undefined;
+		}
+
 		const generation = ++this.paneOpenGeneration;
 
 		if (typeof id === 'string' && this.getPaneComposite(id)) {
@@ -512,7 +516,7 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 
 		await this.extensionService.whenInstalledExtensionsRegistered();
 
-		if (generation !== this.paneOpenGeneration) {
+		if (this._store.isDisposed || generation !== this.paneOpenGeneration) {
 			return undefined;
 		}
 
@@ -524,6 +528,10 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 	}
 
 	private async doOpenPaneComposite(id: string, focus?: boolean): Promise<PaneComposite | undefined> {
+		if (this._store.isDisposed) {
+			return undefined;
+		}
+
 		++this.paneOpenGeneration;
 
 		if (this.blockOpening) {
@@ -542,6 +550,10 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 			} finally {
 				this.blockOpening = undefined;
 			}
+		}
+
+		if (this._store.isDisposed) {
+			return undefined;
 		}
 
 		try {
@@ -782,4 +794,35 @@ export abstract class AbstractPaneCompositePart extends CompositePart<PaneCompos
 	protected abstract shouldShowCompositeBar(): boolean;
 	protected abstract getCompositeBarOptions(): IPaneCompositeBarOptions;
 	protected abstract getCompositeBarPosition(): CompositeBarPosition;
+
+	override dispose(): void {
+		if (this.emptyPaneMessageElement) {
+			clearNode(this.emptyPaneMessageElement);
+			this.emptyPaneMessageElement.remove();
+			this.emptyPaneMessageElement = undefined;
+		}
+
+		if (this.paneCompositeBarContainer) {
+			clearNode(this.paneCompositeBarContainer);
+			this.paneCompositeBarContainer.remove();
+			this.paneCompositeBarContainer = undefined;
+		}
+
+		if (this.headerFooterCompositeBarContainer) {
+			clearNode(this.headerFooterCompositeBarContainer);
+			this.headerFooterCompositeBarContainer.remove();
+			this.headerFooterCompositeBarContainer = undefined;
+		}
+
+		if (this.contentArea) {
+			clearNode(this.contentArea);
+		}
+
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+		}
+
+		super.dispose();
+	}
 }

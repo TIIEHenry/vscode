@@ -9,7 +9,7 @@ import { IActivity } from '../../services/activity/common/activity.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
 import { ActionBar, ActionsOrientation } from '../../../base/browser/ui/actionbar/actionbar.js';
 import { CompositeActionViewItem, CompositeOverflowActivityAction, CompositeOverflowActivityActionViewItem, CompositeBarAction, ICompositeBar, ICompositeBarColors, IActivityHoverOptions } from './compositeBarActions.js';
-import { Dimension, $, addDisposableListener, EventType, EventHelper, isAncestor, getWindow } from '../../../base/browser/dom.js';
+import { Dimension, $, addDisposableListener, EventType, EventHelper, isAncestor, getWindow, clearNode } from '../../../base/browser/dom.js';
 import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { IContextMenuService } from '../../../platform/contextview/browser/contextView.js';
 import { Widget } from '../../../base/browser/ui/widget.js';
@@ -67,7 +67,7 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
 			}
 
 			if (moved) {
-				this.openComposite(currentContainer.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.openComposite(currentContainer.id, true).catch(onUnexpectedError);
 			}
 		}
 
@@ -84,7 +84,7 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
 
 				this.openComposite(newContainer.id, true).then(composite => {
 					composite?.openView(viewToMove.id, true);
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -241,6 +241,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 	private dimension: Dimension | undefined;
 
 	private compositeSwitcherBar: ActionBar | undefined;
+	private actionBarDiv: HTMLElement | undefined;
 	private compositeOverflowAction = this._register(new MutableDisposable<CompositeOverflowActivityAction>());
 	private compositeOverflowActionViewItem = this._register(new MutableDisposable<CompositeOverflowActivityActionViewItem>());
 
@@ -286,6 +287,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 
 	create(parent: HTMLElement): HTMLElement {
 		const actionBarDiv = parent.appendChild($('.composite-bar'));
+		this.actionBarDiv = actionBarDiv;
 		this.compositeSwitcherBar = this._register(new ActionBar(actionBarDiv, {
 			actionViewItemProvider: (action, options) => {
 				if (action instanceof CompositeOverflowActivityAction) {
@@ -397,11 +399,18 @@ export class CompositeBar extends Widget implements ICompositeBar {
 	}
 
 	async pin(compositeId: string, open?: boolean): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (this.model.setPinned(compositeId, true)) {
 			this.updateCompositeSwitcher();
 
 			if (open) {
 				const result = await this.options.openComposite(compositeId);
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (result && result.getId() === compositeId) {
 					this.activateComposite(compositeId); // Activate after opening
 				}
@@ -448,7 +457,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		// Case: composite is not the default composite and default composite is still showing
 		// Solv: we open the default composite
 		if (defaultCompositeId && defaultCompositeId !== compositeId && this.isPinned(defaultCompositeId)) {
-			this.options.openComposite(defaultCompositeId, true).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.options.openComposite(defaultCompositeId, true).catch(onUnexpectedError);
 		}
 
 		// Case: we closed the default composite
@@ -456,7 +465,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		else {
 			const visibleComposite = this.visibleComposites.find(cid => cid !== compositeId);
 			if (visibleComposite) {
-				this.options.openComposite(visibleComposite).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.options.openComposite(visibleComposite).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -677,7 +686,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
 						if (this.isPinned(id)) {
 							this.unpin(id);
 						} else {
-							this.pin(id, true).catch(onUnexpectedError).catch(onUnexpectedError);
+							this.pin(id, true).catch(onUnexpectedError);
 						}
 					}
 				});
@@ -686,6 +695,19 @@ export class CompositeBar extends Widget implements ICompositeBar {
 		this.options.fillExtraContextMenuActions(actions, e);
 
 		return actions;
+	}
+
+	override dispose(): void {
+		this.visibleComposites.length = 0;
+		this.compositeSizeInBar.clear();
+
+		if (this.actionBarDiv) {
+			clearNode(this.actionBarDiv);
+			this.actionBarDiv.remove();
+			this.actionBarDiv = undefined;
+		}
+
+		super.dispose();
 	}
 }
 

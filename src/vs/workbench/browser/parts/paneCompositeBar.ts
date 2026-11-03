@@ -11,7 +11,7 @@ import { IInstantiationService } from '../../../platform/instantiation/common/in
 import { IDisposable, DisposableStore, Disposable, DisposableMap, combinedDisposable } from '../../../base/common/lifecycle.js';
 import { IColorTheme } from '../../../platform/theme/common/themeService.js';
 import { CompositeBar, ICompositeBarItem, CompositeDragAndDrop } from './compositeBar.js';
-import { Dimension, isMouseEvent } from '../../../base/browser/dom.js';
+import { Dimension, isMouseEvent, clearNode } from '../../../base/browser/dom.js';
 import { createCSSRule } from '../../../base/browser/domStylesheets.js';
 import { asCSSUrl } from '../../../base/browser/cssValue.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../platform/storage/common/storage.js';
@@ -91,6 +91,7 @@ export class PaneCompositeBar extends Disposable {
 	private readonly viewContainerDisposables = this._register(new DisposableMap<string, IDisposable>());
 
 	private readonly compositeBar: CompositeBar;
+	private container: HTMLElement | undefined;
 	readonly dndHandler: ICompositeDragAndDrop;
 	private readonly compositeActions = this._register(new DisposableMap<string, { activityAction: ViewContainerActivityAction; pinnedAction: ToggleCompositePinnedAction; badgeAction: ToggleCompositeBadgeAction; dispose: () => void }>());
 
@@ -113,7 +114,12 @@ export class PaneCompositeBar extends Disposable {
 		super();
 
 		this.dndHandler = new CompositeDragAndDrop(this.viewDescriptorService, this.location, this.options.orientation,
-			async (id: string, focus?: boolean) => { return await this.paneCompositePart.openPaneComposite(id, focus) ?? null; },
+			async (id: string, focus?: boolean) => {
+				if (this._store.isDisposed) {
+					return null;
+				}
+				return await this.paneCompositePart.openPaneComposite(id, focus) ?? null;
+			},
 			(from: string, to: string, before?: Before2D) => this.compositeBar.move(from, to, this.options.orientation === ActionsOrientation.VERTICAL ? before?.verticallyBefore : before?.horizontallyBefore),
 			() => this.compositeBar.getCompositeBarItems(),
 		);
@@ -139,6 +145,9 @@ export class PaneCompositeBar extends Disposable {
 			activityHoverOptions: this.options.activityHoverOptions,
 			preventLoopNavigation: this.options.preventLoopNavigation,
 			openComposite: async (compositeId, preserveFocus) => {
+				if (this._store.isDisposed) {
+					return null;
+				}
 				return (await this.paneCompositePart.openPaneComposite(compositeId, !preserveFocus)) ?? null;
 			},
 			getActivityAction: compositeId => this.getCompositeActions(compositeId).activityAction,
@@ -237,7 +246,7 @@ export class PaneCompositeBar extends Disposable {
 				this.saveCachedViewContainers();
 			}));
 			this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, this.options.pinnedViewContainersKey, this._store)(() => this.updateCompositeBarItemsFromStorage(false)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private onDidChangeViewContainers(added: readonly { container: ViewContainer; location: ViewContainerLocation }[], removed: readonly { container: ViewContainer; location: ViewContainerLocation }[]) {
@@ -304,7 +313,8 @@ export class PaneCompositeBar extends Disposable {
 	}
 
 	create(parent: HTMLElement): HTMLElement {
-		return this.compositeBar.create(parent);
+		this.container = this.compositeBar.create(parent);
+		return this.container;
 	}
 
 	private getCompositeActions(compositeId: string): { activityAction: ViewContainerActivityAction; pinnedAction: ToggleCompositePinnedAction; badgeAction: ToggleCompositeBadgeAction } {
@@ -761,6 +771,16 @@ export class PaneCompositeBar extends Disposable {
 	private setStoredViewContainersWorkspaceStateValue(value: string): void {
 		this.storageService.store(this.options.viewContainersWorkspaceStateKey, value, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 	}
+
+	override dispose(): void {
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+			this.container = undefined;
+		}
+
+		super.dispose();
+	}
 }
 
 class ViewContainerActivityAction extends CompositeBarAction {
@@ -816,7 +836,7 @@ class ViewContainerActivityAction extends CompositeBarAction {
 			if (sideBarVisible && activeViewlet?.getId() === this.compositeBarActionItem.id) {
 				switch (focusBehavior) {
 					case 'focus':
-						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus).catch(onUnexpectedError);
 						break;
 					case 'toggle':
 					default:
@@ -829,7 +849,14 @@ class ViewContainerActivityAction extends CompositeBarAction {
 			}
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		await this.paneCompositePart.openPaneComposite(this.compositeBarActionItem.id, focus);
+		if (this._store.isDisposed) {
+			return;
+		}
 		return this.activate();
 	}
 }

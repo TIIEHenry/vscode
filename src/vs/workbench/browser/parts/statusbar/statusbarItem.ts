@@ -14,7 +14,7 @@ import { WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification } f
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { ThemeColor } from '../../../../base/common/themables.js';
 import { isThemeColor } from '../../../../editor/common/editorCommon.js';
-import { addDisposableListener, EventType, hide, show, append, EventHelper, $ } from '../../../../base/browser/dom.js';
+import { addDisposableListener, EventType, hide, show, append, EventHelper, $, clearNode } from '../../../../base/browser/dom.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { Command } from '../../../../editor/common/languages.js';
@@ -133,7 +133,7 @@ export class StatusbarEntryItem extends Disposable {
 					actions: entry.tooltip.commands.map(command => ({
 						commandId: command.id,
 						label: command.title,
-						run: () => this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError)
+						run: () => this.executeCommand(command).catch(onUnexpectedError)
 					}))
 				};
 			} else {
@@ -156,14 +156,14 @@ export class StatusbarEntryItem extends Disposable {
 
 			const command = entry.command;
 			if (command && (command !== ShowTooltipCommand || this.hover) /* "Show Hover" is only valid when we have a hover */) {
-				this.commandMouseListener.value = addDisposableListener(this.labelContainer, EventType.CLICK, () => this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError));
-				this.commandTouchListener.value = addDisposableListener(this.labelContainer, TouchEventType.Tap, () => this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError));
+				this.commandMouseListener.value = addDisposableListener(this.labelContainer, EventType.CLICK, () => this.executeCommand(command).catch(onUnexpectedError));
+				this.commandTouchListener.value = addDisposableListener(this.labelContainer, TouchEventType.Tap, () => this.executeCommand(command).catch(onUnexpectedError));
 				this.commandKeyboardListener.value = addDisposableListener(this.labelContainer, EventType.KEY_DOWN, e => {
 					const event = new StandardKeyboardEvent(e);
 					if (event.equals(KeyCode.Space) || event.equals(KeyCode.Enter)) {
 						EventHelper.stop(e);
 
-						this.executeCommand(command).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.executeCommand(command).catch(onUnexpectedError);
 					} else if (event.equals(KeyCode.Escape) || event.equals(KeyCode.LeftArrow) || event.equals(KeyCode.RightArrow)) {
 						EventHelper.stop(e);
 
@@ -231,6 +231,9 @@ export class StatusbarEntryItem extends Disposable {
 	}
 
 	private async executeCommand(command: string | Command): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Custom command from us: Show tooltip
 		if (command === ShowTooltipCommand) {
@@ -246,7 +249,9 @@ export class StatusbarEntryItem extends Disposable {
 			try {
 				await this.commandService.executeCommand(id, ...args);
 			} catch (error) {
-				this.notificationService.error(toErrorMessage(error));
+				if (!this._store.isDisposed) {
+					this.notificationService.error(toErrorMessage(error));
+				}
 			}
 		}
 	}
@@ -289,6 +294,30 @@ export class StatusbarEntryItem extends Disposable {
 		} else {
 			container.style.color = colorResult ?? '';
 		}
+	}
+
+	override dispose(): void {
+		this.commandMouseListener.dispose();
+		this.commandTouchListener.dispose();
+		this.commandKeyboardListener.dispose();
+		this.foregroundListener.dispose();
+		this.backgroundListener.dispose();
+
+		if (this.labelContainer) {
+			clearNode(this.labelContainer);
+			this.labelContainer.remove();
+		}
+
+		if (this.beakContainer) {
+			clearNode(this.beakContainer);
+			this.beakContainer.remove();
+		}
+
+		if (this.entry?.content) {
+			this.entry.content.remove();
+		}
+
+		super.dispose();
 	}
 }
 

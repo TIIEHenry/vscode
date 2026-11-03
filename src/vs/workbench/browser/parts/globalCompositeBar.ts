@@ -123,7 +123,7 @@ export class GlobalCompositeBar extends Disposable {
 			if (!this._store.isDisposed) {
 				this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, AccountsActivityActionViewItem.ACCOUNTS_VISIBILITY_PREFERENCE_KEY, this._store)(() => this.toggleAccountsActivity()));
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	create(parent: HTMLElement): void {
@@ -155,6 +155,12 @@ export class GlobalCompositeBar extends Disposable {
 
 	private set accountsVisibilityPreference(value: boolean) {
 		setAccountsActionVisible(this.storageService, value);
+	}
+
+	override dispose(): void {
+		clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 }
 
@@ -197,7 +203,7 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			const isLeftClick = e?.button !== 2;
 			// Left-click run
 			if (isLeftClick) {
-				this.run().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.run().catch(onUnexpectedError);
 			}
 		}));
 
@@ -224,13 +230,13 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			const event = new StandardKeyboardEvent(e);
 			if (event.equals(KeyCode.Enter) || event.equals(KeyCode.Space)) {
 				EventHelper.stop(e, true);
-				this.run().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.run().catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(addDisposableListener(this.container, TouchEventType.Tap, (e: GestureEvent) => {
 			EventHelper.stop(e, true);
-			this.run().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.run().catch(onUnexpectedError);
 		}));
 	}
 
@@ -239,9 +245,18 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 	}
 
 	private async run(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const disposables = new DisposableStore();
 		const menu = disposables.add(this.menuService.createMenu(this.menuId, this.contextKeyService));
 		const actions = await this.resolveMainMenuActions(menu, disposables);
+		if (this._store.isDisposed) {
+			disposables.dispose();
+			return;
+		}
+
 		const { anchorAlignment, anchorAxisAlignment } = this.contextMenuAlignmentOptions() ?? { anchorAlignment: undefined, anchorAxisAlignment: undefined };
 
 		this.contextMenuService.showContextMenu({
@@ -254,7 +269,6 @@ abstract class AbstractGlobalActivityActionViewItem extends CompositeBarActionVi
 			menuActionOptions: { renderShortTitle: true },
 			closeAnimation: workbenchMenuCloseAnimation
 		});
-
 	}
 
 	protected async resolveMainMenuActions(menu: IMenu, _disposable: DisposableStore): Promise<IAction[]> {
@@ -305,7 +319,7 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 		super(MenuId.AccountsContext, action, options, contextMenuActionsProvider, contextMenuAlignmentOptions, themeService, hoverService, menuService, contextMenuService, contextKeyService, configurationService, keybindingService, activityService);
 		this._register(action);
 		this.registerListeners();
-		this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initialize().catch(onUnexpectedError);
 	}
 
 	private registerListeners(): void {
@@ -363,8 +377,15 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 	}
 
 	private async doInitialize(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const providerIds = this.authenticationService.getProviderIds();
 		const results = await Promise.allSettled(providerIds.map(providerId => this.addAccountsFromProvider(providerId)));
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Log any errors that occurred while initializing. We try to be best effort here to show the most amount of accounts
 		for (const result of results) {
@@ -676,6 +697,15 @@ export class AccountsActivityActionViewItem extends AbstractGlobalActivityAction
 		}
 	}
 
+	override dispose(): void {
+		if (this.avatarImg) {
+			this.avatarImg.remove();
+			this.avatarImg = undefined;
+		}
+
+		super.dispose();
+	}
+
 	//#endregion
 }
 
@@ -755,6 +785,21 @@ export class GlobalActivityActionViewItem extends AbstractGlobalActivityActionVi
 
 	protected override computeTitle(): string {
 		return this.userDataProfileService.currentProfile.isDefault ? super.computeTitle() : localize('manage profile', "Manage {0} (Profile)", this.userDataProfileService.currentProfile.name);
+	}
+
+	override dispose(): void {
+		if (this.profileBadgeContent) {
+			clearNode(this.profileBadgeContent);
+			this.profileBadgeContent.remove();
+			this.profileBadgeContent = undefined;
+		}
+
+		if (this.profileBadge) {
+			this.profileBadge.remove();
+			this.profileBadge = undefined;
+		}
+
+		super.dispose();
 	}
 }
 
