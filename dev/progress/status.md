@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 D1473（Sources 三态 ARIA 与就地复选状态同步，槽 F）与 D1395（工具与技能列表项呈现生命周期同步与 RPC 序列保全，槽 A）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，定向测试 74+138 passing 0 failing。已有代码缺陷（上游 fixture 缺 stage 权限、WorkbenchList.splice 触发选择事件与 RPC 反转）已准确隔离与修复。"
+summary: "多槽并行编排完成 Slot B（Sources 暂存能力与测试桩）、Slot D（窄屏响应式布局与动作栏停靠适配）及 Slot E（五域严格 skipped 测试报告汇总与基线校验）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，Python 测试套件 49 项全过，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次三）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 B (Sources Changes List 暂存能力与测试桩修复)**：在 `sourcesChangesList.test.ts` 补充 `writeGitStagePaths` 钩子及 `gitWriteCapability: { writeGitStagePaths: 'SUPPORTED' }` 声明，彻底修复上游 pre-existing 缺陷（只读测试桩缺乏 stage 写权限导致 IDEA 风格文件夹测试中 `stageSelectedButton` 维持 disabled 导致断言失败）。测试 156 passing 0 failing。槽提交 `fdb69e1b2c7`。
+  - **槽位 D (UI 响应式窄屏布局与动作栏停靠适配)**：在 `conversationNarrowLayout.ts` 实现四档宽度断点（`CONVERSATION_LEAF_FULL_WIDTH = 900`, `TIGHT = 600`, `NARROW = 450`, `COMPACT = 300`）及输入框 40% 高度上限动态计算（48px~336px）；在 `sourcesTabsHost.ts`、`sourcesFilesExplorer.ts` 及 `sourcesFilesListMode.ts` 实现当宽度低于 `SOURCES_ACTIONS_BAR_MIN_WIDTH = 360` 时，Explorer 动作栏下沉至面板行内 `.sources-files-actions-row` 停靠，保证紧凑空间下操作可达。4 个定向测试套件（23+ 项）全部通过，类型检查 0 错误。槽提交 `414ab85353b`。
+  - **槽位 E (五域严格 skipped 测试报告汇总与基线对齐)**：在 `scripts/check-test-baseline.sh` 统一五域测试报告严格 skipped 汇总解析，结合 `<testsuite skipped="...">` 与用例级跳过，支持 `max(skipped_count, int(root_skipped))` 阈值判定；在 `scripts/tests/test_unit_custom_sources.py` 补充 49 项 Python 自定义测试套件与 AST 验证。槽提交 `2be926f35f3`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`。全量客户端编译 `npm run compile-client` 0 错误（24s），分层校验 `npm run valid-layers-check` 0 错误，Python 测试套件 49 项通过（38s），文档健康检查 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 确认并解决 Slot B 中 `sourcesChangesList.test.ts` 的 `createGitReadConnection` 缺少 `writeGitStagePaths` 声明与方法实现的基线缺陷，通过可配置 capability 选项与默认 accepted 结果完成安全支持。
+    2) 确认 Slot D 窄屏状态下动作按钮标签文字截断问题，通过在 tab 元素上挂载完整 `descriptor.label` 的 `title` 属性，保证视口紧凑时仍可获取完整动作语义提示。
+    3) 统一五域测试基准跳过数阈值计算，杜绝用例级跳过与 suite 级跳过不一致带来的漏报。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次二）**：按调度工作流完成两项跨模块任务并行开发与安全集成，严格实施单流水线编译约束。
   - **槽位 F (D1473 Sources 列表三态 ARIA 与就地复选状态同步)**：在 `TriStateCheckbox` (`toggle.ts`) 统一布尔与 mixed 状态同步并投影 `aria-checked="true" | "false" | "mixed"`；在 `SourcesChangesList` (`sourcesChangesList.ts`) 提供 `onDidChangeCheckedState: Event<void>` 并在 `SourcesChangesRenderer` 绑定行复选框与文件夹/组态，实现就地复选状态同步而无须打散重排。槽提交 `b76647dcf98`，集成提交 `fc1b1bf3673`。
