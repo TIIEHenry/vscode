@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getWindow, getWindowById } from '../../../../base/browser/dom.js';
+import { clearNode, getWindow, getWindowById } from '../../../../base/browser/dom.js';
 import { IMouseWheelEvent } from '../../../../base/browser/mouseEvent.js';
 import { OverlayLayoutElement } from '../../../../base/browser/overlayLayoutElement.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
@@ -84,15 +84,25 @@ export class OverlayWebview extends Disposable implements IOverlayWebview {
 	}
 
 	private _isDisposed = false;
+	protected get isDisposed(): boolean { return this._isDisposed || this._store.isDisposed; }
 
 	private readonly _onDidDispose = this._register(new Emitter<void>());
 	public readonly onDidDispose = this._onDidDispose.event;
 
 	override dispose() {
+		if (this.isDisposed || this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		this._isDisposed = true;
 
-		this._overlayLayout?.dispose();
-		this._overlayLayout = undefined;
+		if (this._overlayLayout) {
+			clearNode(this._overlayLayout.content);
+			this._overlayLayout.content.remove();
+			clearNode(this._overlayLayout.root);
+			this._overlayLayout.root.remove();
+			this._overlayLayout.dispose();
+			this._overlayLayout = undefined;
+		}
 
 		for (const msg of this._firstLoadPendingMessages) {
 			msg.resolve(false);
@@ -264,23 +274,26 @@ export class OverlayWebview extends Disposable implements IOverlayWebview {
 
 			// Forward events from inner webview to outer listeners
 			this._webviewEvents.clear();
-			this._webviewEvents.add(webview.onDidFocus(() => { this._onDidFocus.fire(); }));
-			this._webviewEvents.add(webview.onDidBlur(() => { this._onDidBlur.fire(); }));
-			this._webviewEvents.add(webview.onDidClickLink(x => { this._onDidClickLink.fire(x); }));
-			this._webviewEvents.add(webview.onMessage(x => { this._onMessage.fire(x); }));
-			this._webviewEvents.add(webview.onMissingCsp(x => { this._onMissingCsp.fire(x); }));
-			this._webviewEvents.add(webview.onDidWheel(x => { this._onDidWheel.fire(x); }));
-			this._webviewEvents.add(webview.onFatalError(x => { this._onFatalError.fire(x); }));
+			this._webviewEvents.add(webview.onDidFocus(() => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onDidFocus.fire(); }));
+			this._webviewEvents.add(webview.onDidBlur(() => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onDidBlur.fire(); }));
+			this._webviewEvents.add(webview.onDidClickLink(x => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onDidClickLink.fire(x); }));
+			this._webviewEvents.add(webview.onMessage(x => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onMessage.fire(x); }));
+			this._webviewEvents.add(webview.onMissingCsp(x => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onMissingCsp.fire(x); }));
+			this._webviewEvents.add(webview.onDidWheel(x => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onDidWheel.fire(x); }));
+			this._webviewEvents.add(webview.onFatalError(x => { if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; } this._onFatalError.fire(x); }));
 			this._webviewEvents.add(autorun(reader => {
+				if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; }
 				this.intrinsicContentSize.set(reader.readObservable(webview.intrinsicContentSize), undefined, undefined);
 			}));
 
 			this._webviewEvents.add(webview.onDidScroll(x => {
+				if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; }
 				this._initialScrollProgress = x.scrollYPercentage;
 				this._onDidScroll.fire(x);
 			}));
 
 			this._webviewEvents.add(webview.onDidUpdateState(state => {
+				if (this.isDisposed || this._store.isDisposed || this._isDisposed) { return; }
 				this._state = state;
 				this._onDidUpdateState.fire(state);
 			}));
@@ -288,8 +301,11 @@ export class OverlayWebview extends Disposable implements IOverlayWebview {
 			if (this._isFirstLoad) {
 				this._firstLoadPendingMessages.forEach(msg => {
 					webview.postMessage(msg.message, msg.transfer).then(posted => {
+						if (this.isDisposed || this._store.isDisposed) {
+							return;
+						}
 						msg.resolve(posted);
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				});
 			}
 			this._isFirstLoad = false;

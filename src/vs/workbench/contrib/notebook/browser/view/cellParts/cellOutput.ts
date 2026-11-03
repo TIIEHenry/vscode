@@ -466,13 +466,17 @@ class CellOutputElement extends Disposable {
 	}
 
 	private _relayoutCell() {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError);
 	}
 
 	override dispose() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this._outputHeightTimer) {
 			this.viewCell.unlockOutputHeight();
 			clearTimeout(this._outputHeightTimer);
+			this._outputHeightTimer = null;
 		}
 
 		super.dispose();
@@ -790,19 +794,24 @@ export class CellOutputContainer extends CellContentPart {
 	}
 
 	private _relayoutCell() {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError);
 	}
 
 	override dispose() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.viewCell.updateOutputMinHeight(0);
 
 		if (this._outputHeightTimer) {
 			clearTimeout(this._outputHeightTimer);
+			this._outputHeightTimer = null;
 		}
 
 		this._outputEntries.forEach(entry => {
 			entry.element.dispose();
 		});
+		this._outputEntries = [];
 
 		super.dispose();
 	}

@@ -58,7 +58,10 @@ export class NotebookGettingStarted extends Disposable implements IWorkbenchCont
 				storedValue[hasOpenedNotebookKey] = true;
 
 				if (needToShowGettingStarted) {
-					_commandService.executeCommand('workbench.action.openWalkthrough', { category: 'notebooks', step: 'notebookProfile' }, true).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					_commandService.executeCommand('workbench.action.openWalkthrough', { category: 'notebooks', step: 'notebookProfile' }, true).catch(onUnexpectedError);
 					storedValue[hasShownGettingStartedKey] = true;
 				}
 

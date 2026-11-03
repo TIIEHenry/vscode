@@ -199,15 +199,15 @@ export class MarkupCell extends Disposable {
 						insertSpaces: this.cellEditorOptions.insertSpaces,
 					});
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
 	private updateCollapsedState() {
 		if (this.viewCell.isInputCollapsed) {
-			this.notebookEditor.hideMarkupPreviews([this.viewCell]).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.notebookEditor.hideMarkupPreviews([this.viewCell]).catch(onUnexpectedError);
 		} else {
-			this.notebookEditor.unhideMarkupPreviews([this.viewCell]).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.notebookEditor.unhideMarkupPreviews([this.viewCell]).catch(onUnexpectedError);
 		}
 	}
 
@@ -224,6 +224,9 @@ export class MarkupCell extends Disposable {
 	}
 
 	override dispose() {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		this._isDisposed = true;
 
 		// move focus back to the cell list otherwise the focus goes to body
@@ -232,6 +235,11 @@ export class MarkupCell extends Disposable {
 		}
 
 		this.viewCell.detachTextEditor();
+		this.renderedEditors.delete(this.viewCell);
+		this.editorDisposables.dispose();
+		if (this.markdownAccessibilityContainer) {
+			DOM.clearNode(this.markdownAccessibilityContainer);
+		}
 		super.dispose();
 	}
 
@@ -295,7 +303,7 @@ export class MarkupCell extends Disposable {
 		this.markdownAccessibilityContainer.ariaHidden = 'true';
 		DOM.hide(this.templateData.cellInputCollapsedContainer);
 
-		this.notebookEditor.hideMarkupPreviews([this.viewCell]).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.notebookEditor.hideMarkupPreviews([this.viewCell]).catch(onUnexpectedError);
 
 		this.templateData.container.classList.toggle('input-collapsed', false);
 		this.templateData.container.classList.toggle('markdown-cell-edit-mode', true);
@@ -386,7 +394,7 @@ export class MarkupCell extends Disposable {
 				this.bindEditorListeners(this.editor!);
 
 				this.viewCell.editorHeight = editorHeight;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		this.viewCell.editorHeight = editorHeight;
@@ -413,7 +421,7 @@ export class MarkupCell extends Disposable {
 			}
 		}
 
-		this.notebookEditor.createMarkupPreview(this.viewCell).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.notebookEditor.createMarkupPreview(this.viewCell).catch(onUnexpectedError);
 	}
 
 	private focusEditorIfNeeded() {
@@ -454,7 +462,7 @@ export class MarkupCell extends Disposable {
 	}
 
 	relayoutCell(): void {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError);
 		this.layoutFoldingIndicator();
 	}
 

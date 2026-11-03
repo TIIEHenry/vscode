@@ -27,15 +27,15 @@ suite('NotebookEditorInput leftover fire-and-forget catch scan (D660)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('side-loaded this.resolve() leftover site double-catch onUnexpectedError (D660)', () => {
-		// this.resolve() returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('side-loaded this.resolve() leftover site single-catch onUnexpectedError (D660)', () => {
 		const source = fs.readFileSync(notebookEditorInputSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'this.resolve()';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.resolve\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

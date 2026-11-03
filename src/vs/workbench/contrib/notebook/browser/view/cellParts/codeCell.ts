@@ -173,7 +173,7 @@ export class CodeCell extends Disposable {
 					insertSpaces: this._cellEditorOptions.insertSpaces,
 				});
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _pendingLayout: IDisposable | undefined;
@@ -255,7 +255,7 @@ export class CodeCell extends Disposable {
 			}
 
 			this._register(this._cellEditorOptions.onDidChange(() => this.updateCodeCellOptions(this.templateData)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private updateForOutputs(): void {
@@ -617,6 +617,7 @@ export class CodeCell extends Disposable {
 		}
 
 		elements.forEach(element => {
+			DOM.clearNode(element as HTMLElement);
 			element.remove();
 		});
 	}
@@ -709,10 +710,13 @@ export class CodeCell extends Disposable {
 	}
 
 	relayoutCell() {
-		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.notebookEditor.layoutNotebookCell(this.viewCell, this.viewCell.layoutInfo.totalHeight).catch(onUnexpectedError);
 	}
 
 	override dispose() {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		this._isDisposed = true;
 
 		// move focus back to the cell list otherwise the focus goes to body

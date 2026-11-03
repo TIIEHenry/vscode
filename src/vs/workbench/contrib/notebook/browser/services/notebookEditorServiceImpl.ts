@@ -91,7 +91,12 @@ export class NotebookEditorWidgetService implements INotebookEditorService {
 			this.groupListener.set(id, listeners);
 		};
 		this._disposables.add(editorGroupService.onDidAddGroup(onNewGroup));
-		editorGroupService.whenReady.then(() => editorGroupService.groups.forEach(onNewGroup)).catch(onUnexpectedError).catch(onUnexpectedError);
+		editorGroupService.whenReady.then(() => {
+			if (this._disposables.isDisposed) {
+				return;
+			}
+			editorGroupService.groups.forEach(onNewGroup);
+		}).catch(onUnexpectedError);
 
 		// group removed -> clean up listeners, clean up widgets
 		this._disposables.add(editorGroupService.onDidRemoveGroup(group => {
@@ -129,6 +134,9 @@ export class NotebookEditorWidgetService implements INotebookEditorService {
 	}
 
 	dispose() {
+		if (this._disposables.isDisposed) {
+			return;
+		}
 		this._disposables.dispose();
 		this._onNotebookEditorAdd.dispose();
 		this._onNotebookEditorsRemove.dispose();
@@ -138,9 +146,13 @@ export class NotebookEditorWidgetService implements INotebookEditorService {
 		this.groupListener.clear();
 		this._borrowableEditors.forEach(widgetMap => {
 			widgetMap.forEach(widgets => {
-				widgets.forEach(widget => widget.disposableStore.dispose());
+				widgets.forEach(widget => {
+					this._disposeWidget(widget.widget);
+					widget.disposableStore.dispose();
+				});
 			});
 		});
+		this._borrowableEditors.clear();
 	}
 
 	// --- group-based editor borrowing...

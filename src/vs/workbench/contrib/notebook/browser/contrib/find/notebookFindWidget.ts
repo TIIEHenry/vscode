@@ -237,8 +237,11 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 
 			const viewModel = this._notebookEditor.getViewModel();
 			viewModel.replaceOne(cell, match.range, replaceString).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._progressBar.stop();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		} else {
 			// this should not work
 			console.error('Replace does not work for output match');
@@ -265,8 +268,11 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 
 		const viewModel = this._notebookEditor.getViewModel();
 		viewModel.replaceAll(this._findModel.findMatches, replaceStrings).then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._progressBar.stop();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	protected findFirst(): void { }
@@ -435,9 +441,17 @@ class NotebookFindWidget extends SimpleFindReplaceWidget implements INotebookEdi
 		return localize('ariaSearchNoResultWithLineNumNoCurrentMatch', "{0} found for '{1}'", label, searchString);
 	}
 	override dispose() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._notebookEditor?.removeClassName(FIND_SHOW_TRANSITION);
 		this._notebookEditor?.removeClassName(FIND_HIDE_TRANSITION);
 		this._findModel.dispose();
+		const domNode = this.getDomNode();
+		if (domNode) {
+			DOM.clearNode(domNode);
+			domNode.remove();
+		}
 		super.dispose();
 	}
 }

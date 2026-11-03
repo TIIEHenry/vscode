@@ -38,6 +38,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -46,19 +47,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 }
 
 const loadResourceCall = 'this.loadResource(entry.id, uri, { ifNoneMatch: entry.ifNoneMatch, range: entry.range }, this._resourceLoadingCts.token)';
 const localLocalhostCall = 'this.localLocalhost(entry.id, entry.origin)';
 const focusDelayerCall = `this._focusDelayer.trigger(async () => {
-			if (!this.isFocused || !this.element) {
+			if (this.isDisposed || this._store.isDisposed || this._disposed || !this.isFocused || !this.element) {
 				return;
 			}
 
@@ -75,14 +76,20 @@ const focusDelayerCall = `this._focusDelayer.trigger(async () => {
 		})`;
 const findInFrameCall = 'this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options)';
 const iframeDelayerCall = `this._iframeDelayer.trigger(() => {
+			if (this.isDisposed || this._disposed) {
+				return;
+			}
 			this._findStarted = true;
-			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._webviewMainService.findInFrame({ windowId: this._nativeHostService.windowId }, this.id, value, options).catch(onUnexpectedError);
 		})`;
 const stopFindCall = `this._webviewMainService.stopFindInFrame({ windowId: this._nativeHostService.windowId }, this.id, {
 			keepSelection
 		})`;
 const ignoreShortcutsCall = 'this._webviewMainService.setIgnoreMenuShortcuts({ windowId: this._nativeHostService.windowId }, value)';
 const overlayThenCall = `webview.postMessage(msg.message, msg.transfer).then(posted => {
+						if (this.isDisposed || this._store.isDisposed) {
+							return;
+						}
 						msg.resolve(posted);
 					})`;
 
@@ -125,7 +132,7 @@ suite('url leftover remaining overflowed to webview leftover Promise fire-and-fo
 		assert.ok(urlLegalLeftover < 4);
 	});
 
-	test('this knife covers nine leftover Promise double-chain sites after url leftover remaining overflow', () => {
+	test('this knife covers nine leftover Promise single-chain sites after url leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d763Calls) {
@@ -138,9 +145,12 @@ suite('url leftover remaining overflowed to webview leftover Promise fire-and-fo
 		}
 		assert.strictEqual(sites, 9);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 	});
 
-	test('webview leftover loadResource / localLocalhost / focusDelayer.trigger are Promise double-chain; already-double origin then stays', () => {
+	test('webview leftover loadResource / localLocalhost / focusDelayer.trigger are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(WEBVIEW_REL), 'utf8');
 		const asyncSource = fs.readFileSync(resolveSource(ASYNC_REL), 'utf8');
 		const iframe = fs.readFileSync(resolveSource(IFRAME_REL), 'utf8');
@@ -155,16 +165,17 @@ suite('url leftover remaining overflowed to webview leftover Promise fire-and-fo
 		assert.ok(!source.includes(`${loadResourceCall};`));
 		assert.ok(!source.includes(`${localLocalhostCall};`));
 		const originThen = `this._encodedWebviewOriginPromise.then(encodedWebviewOrigin => {
-			if (!this._disposed) {
-				this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
 			}
+			this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
 		})`;
-		assert.ok(source.includes(`${originThen}${doubleCatch};`));
-		assert.ok(source.includes('this._encodedWebviewOriginPromise = parentOriginHash(targetWindow.origin, this.origin).then(id => this._encodedWebviewOrigin = id);'));
-		assert.ok(!source.includes(`this._encodedWebviewOriginPromise = parentOriginHash(targetWindow.origin, this.origin).then(id => this._encodedWebviewOrigin = id)${doubleCatch}`));
+		assert.ok(source.includes(`${originThen}${singleCatch};`));
+		assert.ok(source.includes('const originPromise = parentOriginHash(targetWindow.origin, this.origin).then(id => {'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('electron leftover findInFrame / stopFindInFrame / iframeDelayer.trigger / setIgnoreMenuShortcuts are Promise double-chain', () => {
+	test('electron leftover findInFrame / stopFindInFrame / iframeDelayer.trigger / setIgnoreMenuShortcuts are Promise single-chain', () => {
 		const electron = fs.readFileSync(resolveSource(ELECTRON_REL), 'utf8');
 		const shortcuts = fs.readFileSync(resolveSource(SHORTCUTS_REL), 'utf8');
 		const manager = fs.readFileSync(resolveSource(WEBVIEW_MANAGER_REL), 'utf8');
@@ -178,9 +189,11 @@ suite('url leftover remaining overflowed to webview leftover Promise fire-and-fo
 		assertWrapped(electron, iframeDelayerCall);
 		assertWrapped(electron, stopFindCall);
 		assertWrapped(shortcuts, ignoreShortcutsCall);
+		assert.ok(!electron.includes(doubleCatch));
+		assert.ok(!shortcuts.includes(doubleCatch));
 	});
 
-	test('overlay leftover first-load postMessage then is Promise double-chain', () => {
+	test('overlay leftover first-load postMessage then is Promise single-chain', () => {
 		const overlay = fs.readFileSync(resolveSource(OVERLAY_REL), 'utf8');
 		const iface = fs.readFileSync(resolveSource(WEBVIEW_IFACE_REL), 'utf8');
 		assertPromiseSignature(iface, 'postMessage(message: any, transfer?: readonly ArrayBuffer[]): Promise<boolean>;');
@@ -188,6 +201,7 @@ suite('url leftover remaining overflowed to webview leftover Promise fire-and-fo
 		assertWrapped(overlay, overlayThenCall);
 		assert.ok(!overlay.includes('this._firstLoadPendingMessages.forEach(async msg => {'));
 		assert.ok(!overlay.includes('msg.resolve(await webview.postMessage(msg.message, msg.transfer));'));
+		assert.ok(!overlay.includes(doubleCatch));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / Watch / Resolve / Pty / Connect / D145 stay skipped', () => {

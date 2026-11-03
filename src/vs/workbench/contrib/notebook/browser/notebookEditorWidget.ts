@@ -365,7 +365,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		this._register(notebookKernelService.onDidChangeSelectedNotebooks(e => {
 			if (isEqual(e.notebook, this.viewModel?.uri)) {
-				this._loadKernelPreloads().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._loadKernelPreloads().catch(onUnexpectedError);
 				this._onDidChangeActiveKernel.fire();
 			}
 		}));
@@ -1209,7 +1209,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		this._restoreSelectedKernel(viewState);
 
 		// load preloads for matching kernel
-		this._loadKernelPreloads().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._loadKernelPreloads().catch(onUnexpectedError);
 
 		// clear state
 		this._dndController?.clearGlobalDragState();
@@ -1254,7 +1254,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 					return;
 				}
 
-				this.createMarkupPreview(firstMarkupCell).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.createMarkupPreview(firstMarkupCell).catch(onUnexpectedError);
 			} finally {
 				this._backgroundMarkdownRenderRunning = false;
 			}
@@ -1342,7 +1342,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 					focus: { start: focusCellIndex, end: focusCellIndex + 1 },
 					selections: options.cellSelections
 				});
-				this.revealInCenterIfOutsideViewport(focusedCell).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.revealInCenterIfOutsideViewport(focusedCell).catch(onUnexpectedError);
 			}
 		}
 
@@ -1510,7 +1510,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		this._localStore.add(this.viewModel.onDidChangeSelection(() => {
 			this._onDidChangeSelection.fire();
-			this.updateSelectedMarkdownPreviews().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateSelectedMarkdownPreviews().catch(onUnexpectedError);
 		}));
 
 		this._localStore.add(this._list.onWillScroll(e => {
@@ -1556,8 +1556,8 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 				}
 			}
 
-			this.hideMarkupPreviews(hiddenCells).catch(onUnexpectedError).catch(onUnexpectedError);
-			this.deleteMarkupPreviews(deletedCells).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.hideMarkupPreviews(hiddenCells).catch(onUnexpectedError);
+			this.deleteMarkupPreviews(deletedCells).catch(onUnexpectedError);
 		}));
 
 		// init rendering
@@ -1610,7 +1610,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 		store.add(cell.onDidChangeLayout(e => {
 			// e.totalHeight will be false it's not changed
 			if (e.totalHeight || e.outerWidth) {
-				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight, e.context).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight, e.context).catch(onUnexpectedError);
 			}
 		}));
 
@@ -1622,7 +1622,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		store.add((cell as CellViewModel).onDidChangeState(e => {
 			if (e.inputCollapsedChanged && cell.isInputCollapsed && cell.cellKind === CellKind.Markup) {
-				this.hideMarkupPreviews([(cell as MarkupCellViewModel)]).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.hideMarkupPreviews([(cell as MarkupCellViewModel)]).catch(onUnexpectedError);
 			}
 
 			if (e.outputCollapsedChanged && cell.isOutputCollapsed && cell.cellKind === CellKind.Code) {
@@ -1916,7 +1916,12 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			// In floating windows, we need to ensure that the
 			// container is ready for us to compute certain
 			// layout related properties.
-			whenContainerStylesLoaded.then(() => this.layoutNotebook(dimension, shadowElement)).catch(onUnexpectedError).catch(onUnexpectedError);
+			whenContainerStylesLoaded.then(() => {
+				if (this._isDisposed) {
+					return;
+				}
+				this.layoutNotebook(dimension, shadowElement);
+			}).catch(onUnexpectedError);
 		} else {
 			this.layoutNotebook(dimension, shadowElement);
 		}
@@ -2462,7 +2467,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			cell.focusedOutputId = options?.outputId;
 			this._outputFocus.set(true);
 			if (!options?.skipReveal) {
-				this.revealInCenterIfOutsideViewport(cell).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.revealInCenterIfOutsideViewport(cell).catch(onUnexpectedError);
 			}
 		} else {
 			// focus container
@@ -3097,7 +3102,7 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			if (outputIndex > -1) {
 				this._debug('update cell output', cell.handle, outputHeight);
 				cell.updateOutputHeight(outputIndex, outputHeight, source);
-				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.layoutNotebookCell(cell, cell.layoutInfo.totalHeight).catch(onUnexpectedError);
 
 				if (isInit) {
 					this._onDidRenderOutput.fire(output);
@@ -3221,6 +3226,9 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 	//#endregion
 
 	override dispose() {
+		if (this._isDisposed) {
+			return;
+		}
 		this._isDisposed = true;
 		this._setModelGeneration++;
 		// dispose webview first
@@ -3233,18 +3241,30 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 
 		this._localStore.clear();
 		dispose(this._localCellStateListeners);
+		this._localCellStateListeners = [];
 		this._list.dispose();
 		this._cellLayoutManager?.dispose();
 		this._listTopCellToolbar?.dispose();
 
-		this._overlayContainer.remove();
+		this._pendingOutputHeightAcks.clear();
+
+		if (this._overlayContainer) {
+			DOM.clearNode(this._overlayContainer);
+			this._overlayContainer.remove();
+		}
+		if (this._notebookOverviewRulerContainer) {
+			DOM.clearNode(this._notebookOverviewRulerContainer);
+			this._notebookOverviewRulerContainer.remove();
+		}
+		if (this._body) {
+			DOM.clearNode(this._body);
+			this._body.remove();
+		}
 		this.viewModel?.dispose();
 
 		this._renderedEditors.clear();
 		this._baseCellEditorOptions.forEach(v => v.dispose());
 		this._baseCellEditorOptions.clear();
-
-		this._notebookOverviewRulerContainer.remove();
 
 		super.dispose();
 

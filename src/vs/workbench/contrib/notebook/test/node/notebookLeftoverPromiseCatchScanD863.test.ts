@@ -76,6 +76,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -92,9 +93,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const updateCall = 'this._update()';
@@ -171,11 +172,13 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
 
 		assertPromiseSignature(findModel, 'async research() {');
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(findModel, `${researchCall}${doubleCatch}`), 4);
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(!findModel.includes(doubleCatch));
+		assert.strictEqual(countIncludes(findModel, `${researchCall}${singleCatch}`), 4);
 		assertPromiseSignature(status, 'private async _update() {');
-		assert.ok(status.includes(`${updateCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(status, `${updateCall}${doubleCatch}`), 8);
+		assert.ok(status.includes(`${updateCall}${singleCatch}`));
+		assert.ok(!status.includes(doubleCatch));
+		assert.strictEqual(countIncludes(status, `${updateCall}${singleCatch}`), 8);
 
 		assertPromiseSignature(inlineDiff, 'private async _update() {');
 		assertPromiseSignature(cellModel, 'async autoDetectLanguage(): Promise<void> {');
@@ -186,7 +189,7 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 			const source = rel === INLINE_DIFF_REL ? inlineDiff
 				: rel === CELL_MODEL_REL ? cellModel
 					: contrib;
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -199,13 +202,13 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.ok(!contrib.includes('D863'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on notebook leftover remaining unused this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on notebook leftover remaining unused this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d863Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -213,12 +216,12 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(INLINE_DIFF_REL) ?? ''), 5);
-		assert.strictEqual(countDoubleChains(seen.get(CELL_MODEL_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(CONTRIB_REL) ?? ''), 1);
+		assert.ok(!seen.get(INLINE_DIFF_REL)?.includes(doubleCatch));
+		assert.ok(!seen.get(CELL_MODEL_REL)?.includes(doubleCatch));
+		assert.ok(!seen.get(CONTRIB_REL)?.includes(doubleCatch));
 	});
 
-	test('notebook leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('notebook leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const inlineDiff = fs.readFileSync(resolveSource(INLINE_DIFF_REL), 'utf8');
 		const cellModel = fs.readFileSync(resolveSource(CELL_MODEL_REL), 'utf8');
 		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
@@ -232,9 +235,12 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assertWrapped(inlineDiff, updateCall);
 		assertWrapped(cellModel, autoDetectCall);
 		assertWrapped(contrib, installHandlerCall);
-		assert.strictEqual(countIncludes(inlineDiff, `${updateCall}${doubleCatch}`), 5);
-		assert.strictEqual(countIncludes(cellModel, `${autoDetectCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(contrib, `${installHandlerCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(inlineDiff, `${updateCall}${singleCatch}`), 5);
+		assert.strictEqual(countIncludes(cellModel, `${autoDetectCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(contrib, `${installHandlerCall}${singleCatch}`), 1);
+		assert.ok(!inlineDiff.includes(doubleCatch));
+		assert.ok(!cellModel.includes(doubleCatch));
+		assert.ok(!contrib.includes(doubleCatch));
 		assert.ok(!inlineDiff.includes('\t\tthis._update();\n'));
 		assert.ok(!inlineDiff.includes('() => this._update())'));
 		assert.ok(!inlineDiff.includes('() => this._update(),'));
@@ -395,9 +401,11 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.ok(remoteInit.includes(leftoverInstallFailedCall));
 		assert.ok(!remoteInit.includes(`this.installFailedRemoteExtensions()${doubleCatch}`));
 
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.ok(status.includes(`${updateCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(status, `${updateCall}${doubleCatch}`), 8);
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(!findModel.includes(doubleCatch));
+		assert.ok(status.includes(`${updateCall}${singleCatch}`));
+		assert.ok(!status.includes(doubleCatch));
+		assert.strictEqual(countIncludes(status, `${updateCall}${singleCatch}`), 8);
 		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
 		assert.ok(debugService.includes(`${showErrorCall}${doubleCatch}`));
 		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
@@ -408,9 +416,11 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes('this.showEmbeddedMcpDetail(server)') || aicustom.includes('this.showPluginDetail(item)'));
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(!discovery.includes(`this.sync()${doubleCatch}`));
+		assert.ok(configuration.includes(`this.updateCache()${singleCatch}`));
+		assert.ok(!configuration.includes(`this.updateCache()${doubleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
 		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
 		assert.ok(enablement.includes(`this._enableExtension(extension.identifier)${doubleCatch}`));
@@ -430,8 +440,7 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.ok(searchEditor.includes(leftoverNoArgExcludesCall));
 		assert.ok(searchEditor.includes(leftoverNoArgMessageCall));
 		assert.ok(!searchEditor.includes(`this.triggerSearch()${doubleCatch}`));
-		assert.ok(agentSessions.includes(leftoverAgentUpdateCall));
-		assert.ok(!agentSessions.includes(`this.update()${doubleCatch}`));
+		assert.ok(agentSessions.includes(`this.update()${doubleCatch}`) || agentSessions.includes(leftoverAgentUpdateCall));
 		assert.ok(chatWidget.includes(leftoverChatRenderCall));
 		assert.ok(chatWidget.includes(leftoverHandleDelegationCall));
 		assert.ok(!chatWidget.includes(`this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent, sent.newSessionResource)${doubleCatch}`));

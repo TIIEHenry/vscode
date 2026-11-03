@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isFirefox } from '../../../../base/browser/browser.js';
-import { addDisposableListener, EventType, getWindow, getWindowById } from '../../../../base/browser/dom.js';
+import { addDisposableListener, clearNode, EventType, getWindow, getWindowById } from '../../../../base/browser/dom.js';
 import { parentOriginHash } from '../../../../base/browser/iframe.js';
 import { IMouseWheelEvent } from '../../../../base/browser/mouseEvent.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
@@ -159,8 +159,8 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 
 	public readonly intrinsicContentSize = observableValue<{ readonly width: number; readonly height: number } | undefined>('WebviewIntrinsicContentSize', undefined);
 
-	private _disposed = false;
-
+	protected _disposed = false;
+	protected get isDisposed(): boolean { return this._disposed || this._store.isDisposed; }
 
 	public extension: WebviewExtensionDescription | undefined;
 	private readonly _options: WebviewOptions;
@@ -251,14 +251,23 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		}));
 
 		this._register(this.on('did-keydown', (data) => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			this.handleKeyEvent('keydown', data);
 		}));
 
 		this._register(this.on('did-keyup', (data) => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			this.handleKeyEvent('keyup', data);
 		}));
 
 		this._register(this.on('did-context-menu', (data) => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			if (!this.element) {
 				return;
 			}
@@ -280,10 +289,13 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 					y: elementBox.y + data.clientY
 				})
 			});
-			this._send('set-context-menu-visible', { visible: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._send('set-context-menu-visible', { visible: true }).catch(onUnexpectedError);
 		}));
 
 		this._register(this.on('load-resource', async (entry) => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			try {
 				// Restore the authority we previously encoded
 				const authority = decodeAuthority(entry.authority);
@@ -293,43 +305,55 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 					path: decodeURIComponent(entry.path), // This gets re-encoded
 					query: entry.query ? decodeURIComponent(entry.query) : entry.query,
 				});
-				this.loadResource(entry.id, uri, { ifNoneMatch: entry.ifNoneMatch, range: entry.range }, this._resourceLoadingCts.token).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.loadResource(entry.id, uri, { ifNoneMatch: entry.ifNoneMatch, range: entry.range }, this._resourceLoadingCts.token).catch(onUnexpectedError);
 			} catch (e) {
 				this._send('did-load-resource', {
 					id: entry.id,
 					status: 404,
 					path: entry.path,
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this.on('load-localhost', (entry) => {
-			this.localLocalhost(entry.id, entry.origin).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
+			this.localLocalhost(entry.id, entry.origin).catch(onUnexpectedError);
 		}));
 
 		this._register(Event.runAndSubscribe(webviewThemeDataProvider.onThemeDataChanged, () => this.style()));
 		this._register(_accessibilityService.onDidChangeReducedMotion(() => this.style()));
 		this._register(_accessibilityService.onDidChangeScreenReaderOptimized(() => this.style()));
-		this._register(contextMenuService.onDidHideContextMenu(() => this._send('set-context-menu-visible', { visible: false }).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(contextMenuService.onDidHideContextMenu(() => this._send('set-context-menu-visible', { visible: false }).catch(onUnexpectedError)));
 
 		this._confirmBeforeClose = configurationService.getValue<string>('window.confirmBeforeClose');
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('window.confirmBeforeClose')) {
 				this._confirmBeforeClose = configurationService.getValue('window.confirmBeforeClose');
-				this._send('set-confirm-before-close', this._confirmBeforeClose).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._send('set-confirm-before-close', this._confirmBeforeClose).catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this.on('drag-start', () => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			this._startBlockingIframeDragEvents();
 		}));
 
 		this._register(this.on('drag', (event) => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			this.handleDragEvent('drag', event);
 		}));
 
 		this._register(this.on('updated-intrinsic-content-size', (event) => {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
+			}
 			this.intrinsicContentSize.set({ width: event.width, height: event.height }, undefined, undefined);
 		}));
 
@@ -339,9 +363,17 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 	}
 
 	override dispose(): void {
+		if (this.isDisposed || this._store.isDisposed || this._disposed) {
+			return;
+		}
 		this._disposed = true;
 
-		this.element?.remove();
+		this._focusDelayer.cancel();
+
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+		}
 		this._element = undefined;
 
 		this._messagePort = undefined;
@@ -490,10 +522,11 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		});
 		this._encodedWebviewOriginPromise = originPromise;
 		this._encodedWebviewOriginPromise.then(encodedWebviewOrigin => {
-			if (!this._disposed) {
-				this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
+		}).catch(onUnexpectedError);
 		this._registerMessageHandler(targetWindow);
 
 		if (this._webviewFindWidget) {
@@ -652,7 +685,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 
 	public setTitle(title: string) {
 		this._content = { ...this._content, title };
-		this._send('set-title', title).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._send('set-title', title).catch(onUnexpectedError);
 	}
 
 	public set contentOptions(options: WebviewContentOptions) {
@@ -678,7 +711,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 	}
 
 	public set initialScrollProgress(value: number) {
-		this._send('initial-scroll-position', value).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._send('initial-scroll-position', value).catch(onUnexpectedError);
 	}
 
 	private doUpdateContent(newContent: WebviewContent) {
@@ -699,7 +732,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			state: this._content.state,
 			cspSource: webviewGenericCspSource,
 			confirmBeforeClose: this._confirmBeforeClose,
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	protected style(): void {
@@ -798,12 +831,12 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 
 	private execCommand(command: string) {
 		if (this.element) {
-			this._send('execCommand', command).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._send('execCommand', command).catch(onUnexpectedError);
 		}
 	}
 
 	private async loadResource(id: number, uri: URI, options: { ifNoneMatch: string | undefined; range?: { readonly start: number; readonly end?: number } }, token: CancellationToken) {
-		if (this._disposed) {
+		if (this.isDisposed || this._store.isDisposed || this._disposed) {
 			return;
 		}
 
@@ -814,7 +847,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 				range: options.range,
 			}, token);
 
-			if (this._disposed) {
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
 				return;
 			}
 
@@ -887,7 +920,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 							mtime: result.mtime,
 							range: rangeHeader,
 							stream,
-						}, [stream]).catch(onUnexpectedError).catch(onUnexpectedError);
+						}, [stream]).catch(onUnexpectedError);
 					} else {
 						// Safari: transferable streams not supported, fall back to chunk messages
 						this._send('did-load-resource', {
@@ -898,7 +931,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 							etag: result.etag,
 							mtime: result.mtime,
 							range: rangeHeader,
-						}).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).catch(onUnexpectedError);
 						listenStream(result.stream, {
 							onData: (chunk) => {
 								// Copy into a freshly-owned ArrayBuffer before transferring. `chunk`
@@ -988,7 +1021,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		// Workaround this by debouncing the focus and making sure we are not focused on an input
 		// when we try to re-focus.
 		this._focusDelayer.trigger(async () => {
-			if (!this.isFocused || !this.element) {
+			if (this.isDisposed || this._store.isDisposed || this._disposed || !this.isFocused || !this.element) {
 				return;
 			}
 
@@ -1002,7 +1035,7 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			this.window?.document.body?.focus();
 
 			this._send('focus', undefined);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	protected readonly _hasFindResult = this._register(new Emitter<boolean>());
@@ -1023,14 +1056,14 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 			return;
 		}
 
-		this._send('find', { value, previous }).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._send('find', { value, previous }).catch(onUnexpectedError);
 	}
 
 	public updateFind(value: string) {
 		if (!value || !this.element) {
 			return;
 		}
-		this._send('find', { value }).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._send('find', { value }).catch(onUnexpectedError);
 	}
 
 	public stopFind(keepSelection?: boolean): void {

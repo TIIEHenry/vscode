@@ -113,16 +113,27 @@ class ExecutionStateCellStatusBarItem extends Disposable {
 	) {
 		super();
 
-		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._update().catch(onUnexpectedError);
 		this._register(this._executionStateService.onDidChangeExecution(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.type === NotebookExecutionType.cell && e.affectsCell(this._cell.uri)) {
-				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._update().catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._cell.model.onDidChangeInternalMetadata(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._cell.model.onDidChangeInternalMetadata(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._update().catch(onUnexpectedError);
+		}));
 	}
 
 	private async _update() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const items = this._getItemsForCell();
 		if (Array.isArray(items)) {
 			this._currentItemIds = this._notebookViewModel.deltaCellStatusBarItems(this._currentItemIds, [{ handle: this._cell.handle, items }]);
@@ -143,9 +154,12 @@ class ExecutionStateCellStatusBarItem extends Disposable {
 			if (timeUntilMin > 0) {
 				if (!this._clearExecutingStateTimer.value) {
 					this._clearExecutingStateTimer.value = disposableTimeout(() => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						this._showedExecutingStateTime = undefined;
 						this._clearExecutingStateTimer.clear();
-						this._update().catch(onUnexpectedError).catch(onUnexpectedError);
+						this._update().catch(onUnexpectedError);
 					}, timeUntilMin);
 				}
 
@@ -201,6 +215,7 @@ class ExecutionStateCellStatusBarItem extends Disposable {
 	}
 
 	override dispose() {
+		this._clearExecutingStateTimer.dispose();
 		super.dispose();
 
 		this._notebookViewModel.deltaCellStatusBarItems(this._currentItemIds, [{ handle: this._cell.handle, items: [] }]);
@@ -241,19 +256,35 @@ class TimerCellStatusBarItem extends Disposable {
 		super();
 		this._isVerbose = this._configurationService.getValue(NotebookSetting.cellExecutionTimeVerbosity) === 'verbose';
 
-		this._scheduler = this._register(new RunOnceScheduler(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError), TimerCellStatusBarItem.UPDATE_INTERVAL));
-		this._update().catch(onUnexpectedError).catch(onUnexpectedError);
-		this._register(this._cell.model.onDidChangeInternalMetadata(() => this._update().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._scheduler = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._update().catch(onUnexpectedError);
+		}, TimerCellStatusBarItem.UPDATE_INTERVAL));
+		this._update().catch(onUnexpectedError);
+		this._register(this._cell.model.onDidChangeInternalMetadata(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._update().catch(onUnexpectedError);
+		}));
 
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.affectsConfiguration(NotebookSetting.cellExecutionTimeVerbosity)) {
 				this._isVerbose = this._configurationService.getValue(NotebookSetting.cellExecutionTimeVerbosity) === 'verbose';
-				this._update().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._update().catch(onUnexpectedError);
 			}
 		}));
 	}
 
 	private async _update() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		let timerItem: INotebookCellStatusBarItem | undefined;
 		const runState = this._executionStateService.getCellExecution(this._cell.uri);
 		const state = runState?.state;
@@ -350,9 +381,11 @@ class TimerCellStatusBarItem extends Disposable {
 	}
 
 	override dispose() {
+		this._scheduler.dispose();
+		this._deferredUpdate?.dispose();
+		this._deferredUpdate = undefined;
 		super.dispose();
 
-		this._deferredUpdate?.dispose();
 		this._notebookViewModel.deltaCellStatusBarItems(this._currentItemIds, [{ handle: this._cell.handle, items: [] }]);
 	}
 }

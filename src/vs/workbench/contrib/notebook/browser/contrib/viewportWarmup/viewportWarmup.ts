@@ -45,7 +45,16 @@ class NotebookViewportContribution extends Disposable implements INotebookEditor
 		}
 	}
 
+	override dispose() {
+		this._warmupViewport.dispose();
+		this._warmupDocument?.dispose();
+		super.dispose();
+	}
+
 	private _warmupDocumentNow() {
+		if (this._store.isDisposed || this._notebookEditor.isDisposed) {
+			return;
+		}
 		if (this._notebookEditor.hasModel()) {
 			for (let i = 0; i < this._notebookEditor.getLength(); i++) {
 				const cell = this._notebookEditor.cellAt(i);
@@ -61,7 +70,7 @@ class NotebookViewportContribution extends Disposable implements INotebookEditor
 	}
 
 	private _warmupViewportNow() {
-		if (this._notebookEditor.isDisposed) {
+		if (this._store.isDisposed || this._notebookEditor.isDisposed) {
 			return;
 		}
 
@@ -74,7 +83,7 @@ class NotebookViewportContribution extends Disposable implements INotebookEditor
 			const cell = this._notebookEditor.cellAt(index);
 
 			if (cell?.cellKind === CellKind.Markup && cell?.getEditState() === CellEditState.Preview && !cell.isInputCollapsed) {
-				(this._notebookEditor as INotebookEditorDelegate).createMarkupPreview(cell).catch(onUnexpectedError).catch(onUnexpectedError);
+				(this._notebookEditor as INotebookEditorDelegate).createMarkupPreview(cell).catch(onUnexpectedError);
 			} else if (cell?.cellKind === CellKind.Code) {
 				this._warmupCodeCell((cell as CodeCellViewModel));
 			}

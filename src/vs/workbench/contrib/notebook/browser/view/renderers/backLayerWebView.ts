@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getWindow } from '../../../../../../base/browser/dom.js';
+import { clearNode, getWindow } from '../../../../../../base/browser/dom.js';
 import { IMouseWheelEvent } from '../../../../../../base/browser/mouseEvent.js';
 import { CodeWindow } from '../../../../../../base/browser/window.js';
 import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../../base/common/actions.js';
@@ -1170,21 +1170,24 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 			let chain = this._highlightCodeBlockChains.get(id) ?? Promise.resolve();
 			const run = chain.then(() => {
 				return tokenizeToString(this.languageService, value, languageId).then((html) => {
-				if (this._disposed) {
-					return;
-				}
-				this._sendMessageToWebview({
-					type: 'tokenizedCodeBlock',
-					html,
-					codeBlockId: id
-				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._disposed) {
+						return;
+					}
+					this._sendMessageToWebview({
+						type: 'tokenizedCodeBlock',
+						html,
+						codeBlockId: id
+					});
+				}).catch(onUnexpectedError);
 			});
 			chain = run.then(() => undefined, () => undefined);
 			this._highlightCodeBlockChains.set(id, chain);
 		}
 	}
 	private async _onDidClickDataLink(event: IClickedDataUrlMessage): Promise<void> {
+		if (this._disposed) {
+			return;
+		}
 		if (typeof event.data !== 'string') {
 			return;
 		}
@@ -1210,12 +1213,15 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 		const newFileUri = await this.fileDialogService.showSaveDialog({
 			defaultUri
 		});
-		if (!newFileUri) {
+		if (!newFileUri || this._disposed) {
 			return;
 		}
 
 		const buff = decodeBase64(splitData);
 		await this.fileService.writeFile(newFileUri, buff);
+		if (this._disposed) {
+			return;
+		}
 		await this.openerService.open(newFileUri);
 	}
 
@@ -2006,7 +2012,18 @@ export class BackLayerWebView<T extends ICommonCellInfo> extends Themable {
 		this.webview = undefined;
 		this.notebookEditor = null!;
 		this.insetMapping.clear();
+		this.pendingWebviewIdleCreationRequest.forEach(r => r.dispose());
 		this.pendingWebviewIdleCreationRequest.clear();
+		this.pendingWebviewIdleInsetMapping.clear();
+		this.reversedPendingWebviewIdleInsetMapping.clear();
+		this.markupPreviewMapping.clear();
+		this.hiddenInsetMapping.clear();
+		this.reversedInsetMapping.clear();
+		this._highlightCodeBlockChains.clear();
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+		}
 		super.dispose();
 	}
 }

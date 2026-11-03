@@ -44,6 +44,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -51,29 +52,43 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async ') || signature.includes('CancelablePromise'));
 }
 
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+function countSingleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const d758Calls: Array<[string, string, number]> = [
 	[RENDERER_REL, `this.extensionService.activateByEvent(\`onRenderer:\${rendererId}\`).then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			for (const message of queue) {
+				if (!this.scopedMessaging.has(message.editorId)) {
+					continue;
+				}
 				this.postMessageEmitter.fire(message);
 			}
 
 			this.activations.set(rendererId, undefined);
 		})`, 1],
 	[NOTEBOOK_EDITOR_REL, `fileOpenMonitor.then(() => {
+				if (this._store.isDisposed || perfMarksCaptured) {
+					return;
+				}
 				perfMarksCaptured = true;
 				this._handlePerfMark(perf, input);
 			})`, 1],
-	[WIDGET_REL, 'whenContainerStylesLoaded.then(() => this.layoutNotebook(dimension, shadowElement))', 1],
+	[WIDGET_REL, `whenContainerStylesLoaded.then(() => {
+				if (this._isDisposed) {
+					return;
+				}
+				this.layoutNotebook(dimension, shadowElement);
+			})`, 1],
 	[SERVICE_REL, 'this._extensionService.activateByEvent(`onNotebook:${viewType}`)', 1],
 	[SERVICE_REL, 'this._extensionService.activateByEvent(`onNotebook:*`)', 1],
 	[GETTING_STARTED_REL, "_commandService.executeCommand('workbench.action.openWalkthrough', { category: 'notebooks', step: 'notebookProfile' }, true)", 1],
@@ -103,30 +118,35 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers twenty-three leftover Promise double-chain sites after D750', () => {
+	test('this knife covers twenty-three leftover Promise single-chain sites after D750 and zero double catches', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d758Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+			const wrapped = (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 23);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.ok(!source.includes(doubleCatch));
+		}
 	});
 
-	test('leftover activateByEvent then / dropped activateByEvent are Promise double-chain', () => {
+	test('leftover activateByEvent then / dropped activateByEvent are Promise single-chain', () => {
 		const renderer = fs.readFileSync(resolveSource(RENDERER_REL), 'utf8');
 		const service = fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
 		assertPromiseSignature(extensions, 'activateByEvent(activationEvent: string, activationKind?: ActivationKind): Promise<void>;');
 		assert.ok(renderer.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(service.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.strictEqual(countDoubleChains(renderer), 1);
-		assert.strictEqual(countDoubleChains(service), 2);
+		assert.strictEqual(countSingleChains(renderer), 1);
+		assert.strictEqual(countSingleChains(service), 2);
+		assert.ok(!renderer.includes(doubleCatch));
+		assert.ok(!service.includes(doubleCatch));
 		assert.ok(!renderer.includes(`this.extensionService.activateByEvent(\`onRenderer:\${rendererId}\`).then(() => {
 			for (const message of queue) {
 				this.postMessageEmitter.fire(message);
@@ -138,7 +158,7 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assert.ok(!service.includes('this._extensionService.activateByEvent(`onNotebook:*`);'));
 	});
 
-	test('leftover fileOpenMonitor then / whenContainerStylesLoaded then are Promise double-chain', () => {
+	test('leftover fileOpenMonitor then / whenContainerStylesLoaded then are Promise single-chain', () => {
 		const notebookEditor = fs.readFileSync(resolveSource(NOTEBOOK_EDITOR_REL), 'utf8');
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const asyncSource = fs.readFileSync(resolveSource(ASYNC_REL), 'utf8');
@@ -148,19 +168,11 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assertPromiseSignature(layout, 'whenContainerStylesLoaded(window: Window): Promise<void> | undefined;');
 		assert.ok(notebookEditor.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(widget.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(notebookEditor.includes(`fileOpenMonitor.then(() => {
-				perfMarksCaptured = true;
-				this._handlePerfMark(perf, input);
-			})${doubleCatch};`));
-		assert.ok(!notebookEditor.includes(`fileOpenMonitor.then(() => {
-				perfMarksCaptured = true;
-				this._handlePerfMark(perf, input);
-			});`));
-		assert.ok(widget.includes(`whenContainerStylesLoaded.then(() => this.layoutNotebook(dimension, shadowElement))${doubleCatch};`));
-		assert.ok(!widget.includes('whenContainerStylesLoaded.then(() => this.layoutNotebook(dimension, shadowElement));'));
+		assert.ok(!notebookEditor.includes(doubleCatch));
+		assert.ok(!widget.includes(doubleCatch));
 	});
 
-	test('leftover executeCommand fire-and-forgets are Promise double-chain', () => {
+	test('leftover executeCommand fire-and-forgets are Promise single-chain', () => {
 		const gettingStarted = fs.readFileSync(resolveSource(GETTING_STARTED_REL), 'utf8');
 		const status = fs.readFileSync(resolveSource(STATUS_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
@@ -168,13 +180,13 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assertPromiseSignature(status, 'private async executeCommand(): Promise<void> {');
 		assert.ok(gettingStarted.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(status.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
-		assert.strictEqual(countDoubleChains(gettingStarted), 1);
-		assert.strictEqual(countDoubleChains(status), 2);
+		assert.ok(!gettingStarted.includes(doubleCatch));
+		assert.ok(!status.includes(doubleCatch));
 		assert.ok(!gettingStarted.includes("_commandService.executeCommand('workbench.action.openWalkthrough', { category: 'notebooks', step: 'notebookProfile' }, true);"));
 		assert.ok(!status.includes('\t\t\t\tthis.executeCommand();'));
 	});
 
-	test('leftover hide/unhide/create/delete markup preview and layoutNotebookCell FOF are Promise double-chain', () => {
+	test('leftover hide/unhide/create/delete markup preview and layoutNotebookCell FOF are Promise single-chain', () => {
 		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const markup = fs.readFileSync(resolveSource(MARKUP_REL), 'utf8');
 		const code = fs.readFileSync(resolveSource(CODE_REL), 'utf8');
@@ -186,9 +198,11 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assertPromiseSignature(browser, 'hideMarkupPreviews(cells: readonly ICellViewModel[]): Promise<void>;');
 		assertPromiseSignature(browser, 'layoutNotebookCell(cell: ICellViewModel, height: number): Promise<void>;');
 		assertPromiseSignature(widget, 'async deleteMarkupPreviews(cells: readonly MarkupCellViewModel[]) {');
-		assert.strictEqual(countDoubleChains(widget), 12);
-		assert.strictEqual(countDoubleChains(output), 2);
-		assert.strictEqual(countDoubleChains(viewport), 1);
+		assert.ok(!widget.includes(doubleCatch));
+		assert.ok(!markup.includes(doubleCatch));
+		assert.ok(!code.includes(doubleCatch));
+		assert.ok(!output.includes(doubleCatch));
+		assert.ok(!viewport.includes(doubleCatch));
 		assert.ok(markup.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(code.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.ok(output.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
@@ -197,7 +211,7 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assert.ok(!widget.includes(`requests.push(this.createMarkupPreview(cells[i]))${doubleCatch}`));
 	});
 
-	test('opener / Action2.run / two-arg / assigned then / returned Promise / already-double / custom catch stay skipped', () => {
+	test('opener / Action2.run / two-arg / assigned then / returned Promise / zero double catches / custom catch stay skipped', () => {
 		const indent = fs.readFileSync(resolveSource(INDENT_REL), 'utf8');
 		const preloads = fs.readFileSync(resolveSource(PRELOADS_REL), 'utf8');
 		const outline = fs.readFileSync(resolveSource(OUTLINE_REL), 'utf8');
@@ -214,8 +228,8 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assert.ok(preloads.includes('record.queue = record.queue.then(async r => {'));
 		assert.ok(preloads.includes(', () => reject());'));
 		assert.ok(!preloads.includes(doubleCatch));
-		assert.ok(outline.includes(`void this.doComputeSymbols(cancelToken)${doubleCatch};`));
-		assert.ok(input.includes(`this.resolve()${doubleCatch};`));
+		assert.ok(!outline.includes(doubleCatch));
+		assert.ok(!input.includes(doubleCatch));
 		assert.ok(kernel.includes('void this._openerService.open(uri, { openExternal: true });'));
 		assert.ok(!kernel.includes('void this._openerService.open(uri, { openExternal: true }).catch'));
 		assert.ok(output.includes('this.openerService.open(CellUri.generateCellOutputUriWithId(this.notebookEditor.textModel!.uri));'));
@@ -227,7 +241,8 @@ suite('Notebook leftover Promise fire-and-forget catch scan (D758)', () => {
 		assert.ok(!editorModel.includes(`this.setSaveDelegate()${doubleCatch}`));
 		assert.ok(sticky.includes('this.init().catch(console.error);'));
 		assert.ok(!sticky.includes(`this.init()${doubleCatch}`));
-		for (const source of [indent, preloads, outline, input, kernel, editorModel, sticky]) {
+		for (const source of [indent, preloads, outline, input, kernel, editorModel, sticky, widget, notebookEditor]) {
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
