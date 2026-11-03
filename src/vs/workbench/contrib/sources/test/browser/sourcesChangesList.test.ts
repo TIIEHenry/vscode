@@ -25,6 +25,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import type {
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentGitWriteCapability,
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
@@ -1836,11 +1837,38 @@ suite('Sources - Changes list leftover honesty', () => {
 			path: string;
 			unifiedDiff: string;
 		}>;
+		readonly supportStage?: boolean;
+		readonly writeGitStagePaths?: (request: UniverseAgentWriteGitStagePathsRequest) => Promise<UniverseAgentWriteGitWriteResult>;
+		readonly gitWriteCapability?: Partial<UniverseAgentGitWriteCapability>;
 	}): IUniverseAgentConnection {
+		const supportStage = options.supportStage ?? (options.writeGitStagePaths !== undefined ? true : undefined);
+		const stageSupport = options.gitWriteCapability?.writeGitStagePaths ?? (supportStage !== undefined ? (supportStage ? 'SUPPORTED' : 'UNSUPPORTED') : undefined);
+		const gitWriteCapability: UniverseAgentGitWriteCapability | undefined = (options.gitWriteCapability || stageSupport !== undefined)
+			? {
+				writeGitStagePaths: stageSupport ?? 'UNKNOWN',
+				writeGitCommit: options.gitWriteCapability?.writeGitCommit ?? 'UNKNOWN',
+				writeGitApplyHunks: options.gitWriteCapability?.writeGitApplyHunks ?? 'UNKNOWN',
+			}
+			: undefined;
+
+		const defaultWriteGitStagePaths = async (_request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult> => ({
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		});
+
+		const writeGitStagePaths = options.writeGitStagePaths ?? (stageSupport === 'SUPPORTED' ? defaultWriteGitStagePaths : undefined);
+
 		return {
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected' as const }),
-			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionSnapshot: () => ({
+				pairingPending: false,
+				...(gitWriteCapability ? { gitWriteCapability } : {}),
+			}),
 			onDidChangeConnection: options.onDidChangeConnection ?? Event.None,
 			readGitChanges: options.readGitChanges,
 			readGitSummary: async () => ({
@@ -1850,6 +1878,7 @@ suite('Sources - Changes list leftover honesty', () => {
 				changeCount: 1,
 			}),
 			readGitFileDiff: options.readGitFileDiff,
+			...(writeGitStagePaths ? { writeGitStagePaths } : {}),
 		} as unknown as IUniverseAgentConnection;
 	}
 
@@ -4984,6 +5013,7 @@ suite('Sources - Changes list leftover honesty', () => {
 
 	test('renders IDEA-style folder rows with counts, checkboxes, and collapse behavior', async function () {
 		const connection = createGitReadConnection({
+			supportStage: true,
 			readGitChanges: async () => ({
 				supported: true,
 				reason: '',
