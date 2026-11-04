@@ -50,7 +50,7 @@ export class UniversalWatcherClient extends AbstractUniversalWatcherClient {
 				} else {
 					this.onError(`terminated by itself unexpectedly with code ${reason?.code}, signal: ${reason?.signal} (ETERM)`);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 			return client.getChannel('watcher');
 		})()));

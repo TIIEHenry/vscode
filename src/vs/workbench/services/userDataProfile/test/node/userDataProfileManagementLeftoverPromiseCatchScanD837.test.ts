@@ -42,6 +42,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -58,9 +59,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const switchProfileCall = 'this.switchProfile(profileToUse)';
@@ -98,7 +99,7 @@ suite('leftover remaining unused after D828 collision overflow moved to leftover
 		assert.ok(!source.includes(`this.onDidChangeCurrentProfile(e)${doubleCatch}`));
 		let sites = 0;
 		for (const [, call, count] of d837Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -113,7 +114,7 @@ suite('leftover remaining unused after D828 collision overflow moved to leftover
 		for (const [rel, call, count] of d837Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -121,7 +122,7 @@ suite('leftover remaining unused after D828 collision overflow moved to leftover
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(MGMT_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(MGMT_REL) ?? ''), 0);
 	});
 
 	test('userDataProfileManagement leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -133,10 +134,10 @@ suite('leftover remaining unused after D828 collision overflow moved to leftover
 		assertWrapped(source, changeRemovedCall);
 		assertWrapped(source, changeSwitchedCall);
 		assertWrapped(source, changeUpdatedCall);
-		assert.strictEqual(countIncludes(source, `${switchProfileCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(source, `${changeRemovedCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${changeSwitchedCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${changeUpdatedCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${switchProfileCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${changeRemovedCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${changeSwitchedCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${changeUpdatedCall}${singleCatch}`), 1);
 		assert.ok(!source.includes('\t\t\t\tthis.switchProfile(profileToUse);\n'));
 		assert.ok(!source.includes('\t\t\t\t\tthis.switchProfile(profileToUse);\n'));
 		assert.ok(source.includes('await this.changeCurrentProfile(profile);'));
@@ -205,14 +206,14 @@ suite('leftover remaining unused after D828 collision overflow moved to leftover
 		assert.ok(settings.includes(`${d794LockedCall};`));
 		assert.ok(!settings.includes(`${d794LockedCall}${doubleCatch}`));
 
-		assert.ok(remote.includes(`this.cleanUp()${doubleCatch}`) || remote.includes(`this.cleanUp()${doubleCatch};`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(remote.includes(`this.cleanUp()${singleCatch}`) || remote.includes(`this.cleanUp()${singleCatch};`));
+		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${singleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${singleCatch}`));
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(configuration.includes(`this.updateCache()${singleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
-		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
-		assert.ok(enablement.includes(`this._enableExtension(extension.identifier)${doubleCatch}`));
+		assert.ok(entitlement.includes(`this.update(cts.value.token)${singleCatch}`));
+		assert.ok(enablement.includes(`this._enableExtension(extension.identifier)${singleCatch}`));
 		assert.ok(gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch}`) || gettingStarted.includes(`this.scrollToCategory(categoryID, stepId)${doubleCatch};`));
 
 		for (const [rel, file] of [

@@ -24,6 +24,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -32,9 +33,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${doubleCatch})`) || source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch})`) || source.includes(`${call}${singleCatch}`), `missing catch handler: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`));
 }
 
 const layoutchangeThen = `this._getBrowserKeyMapping().then((mapping: IKeyboardMapping | null) => {
@@ -108,7 +109,9 @@ suite('workbench/services/keybinding keyboard-layout leftover Promise fire-and-f
 			if (this.userKeybindings.keybindings.length) {
 				this.updateResolver();
 			}
-		})${doubleCatch};`));
+		})${singleCatch};`));
+		assert.ok(!keybinding.includes(doubleCatch));
+		assert.ok(!layout.includes(doubleCatch));
 	});
 
 	test('leftover _getBrowserKeyMapping layoutchange / update / validate thens are Promise double-chain', () => {

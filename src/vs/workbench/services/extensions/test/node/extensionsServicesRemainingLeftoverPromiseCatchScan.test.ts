@@ -43,8 +43,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch handler: ${call}`);
-	assert.ok(!source.includes(`${call};`));
+	assert.ok(source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch}`), `missing catch handler: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`));
 }
 
 suite('workbench/services/extensions remaining leftover Promise fire-and-forget catch scan (D707)', () => {
@@ -152,7 +153,7 @@ suite('workbench/services/extensions remaining leftover Promise fire-and-forget 
 			[manager, `this._proxy.then(() => {
 			this._hasStarted = true;
 			initialActivationEvents.forEach((activationEvent) => {
-				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError);
 			});
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()

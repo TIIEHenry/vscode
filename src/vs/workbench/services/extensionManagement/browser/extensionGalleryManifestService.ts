@@ -23,7 +23,7 @@ class WebExtensionGalleryManifestService extends ExtensionGalleryManifestService
 			this.getExtensionGalleryManifest().then(manifest => {
 				channel.call('setExtensionGalleryManifest', [manifest]);
 				this._register(this.onDidChangeExtensionGalleryManifest(manifest => channel.call('setExtensionGalleryManifest', [manifest])));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 

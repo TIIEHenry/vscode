@@ -166,7 +166,7 @@ export class LabelService extends Disposable implements ILabelService {
 		this.formatters = this.storedFormatters?.formatters?.slice() || [];
 
 		// Remote environment is potentially long running
-		this.resolveRemoteEnvironment().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.resolveRemoteEnvironment().catch(onUnexpectedError);
 	}
 
 	private async resolveRemoteEnvironment(): Promise<void> {

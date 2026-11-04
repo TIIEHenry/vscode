@@ -46,7 +46,7 @@ export class DynamicAuthenticationProviderStorageService extends Disposable impl
 						clientId: payload.clientId,
 						tokens
 					});
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}));
 	}

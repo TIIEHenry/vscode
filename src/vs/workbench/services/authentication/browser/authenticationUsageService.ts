@@ -87,7 +87,7 @@ export class AuthenticationUsageService extends Disposable implements IAuthentic
 		this._register(this._authenticationService.onDidRegisterAuthenticationProvider(
 			provider => this._queue.queue(
 				() => this._addExtensionsToCache(provider.id)
-			).catch(onUnexpectedError).catch(onUnexpectedError)
+			).catch(onUnexpectedError)
 		));
 	}
 

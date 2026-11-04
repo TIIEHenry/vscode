@@ -63,7 +63,7 @@ export function checkActivateWorkspaceContainsExtension(host: IExtensionActivati
 	Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 
 	return promise;
 }

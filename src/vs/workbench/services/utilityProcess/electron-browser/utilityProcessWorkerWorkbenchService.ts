@@ -124,7 +124,7 @@ export class UtilityProcessWorkerWorkbenchService extends Disposable implements 
 			this.utilityProcessWorkerService.disposeWorker({
 				process,
 				reply: { windowId: this.windowId }
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 
 		const port = await portPromise;
@@ -137,7 +137,7 @@ export class UtilityProcessWorkerWorkbenchService extends Disposable implements 
 			} else {
 				this.logService.error(`[UtilityProcessWorker]: terminated unexpectedly with code ${reason?.code}, signal: ${reason?.signal}`);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		return { client, onDidTerminate, dispose: () => disposables.dispose() };
 	}

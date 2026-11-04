@@ -255,7 +255,7 @@ export class FileDialogService extends AbstractFileDialogService implements IFil
 									contents: fileData.contents?.toString(),
 									options: { pinned: true }
 								};
-							})).catch(onUnexpectedError).catch(onUnexpectedError);
+							})).catch(onUnexpectedError);
 						}
 					}
 				}

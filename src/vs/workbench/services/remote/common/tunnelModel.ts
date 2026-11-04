@@ -481,7 +481,7 @@ export class TunnelModel extends Disposable {
 					}
 				}
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this.detected = new Map();
 		this._register(this.tunnelService.onTunnelOpened(async (tunnel) => {

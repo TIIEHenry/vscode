@@ -32,6 +32,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -40,21 +41,21 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${doubleCatch})`) || source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch})`) || source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`));
 }
 
-function countDouble(source: string, call: string): number {
-	const escaped = `${call}${doubleCatch}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function countSingle(source: string, call: string): number {
+	const escaped = `${call}${singleCatch}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	return (source.match(new RegExp(escaped, 'g')) ?? []).length;
 }
 
 const extensionsRegisteredThen = `extensionService.whenInstalledExtensionsRegistered().then(_ => {
 			this.installConfigurationListener();
 			this.installPreferredSchemeListener();
-			this.installRegistryListeners().catch(onUnexpectedError).catch(onUnexpectedError);
-			this.initialize(previousColorThemeSetting).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.installRegistryListeners().catch(onUnexpectedError);
+			this.initialize(previousColorThemeSetting).catch(onUnexpectedError);
 		})`;
 const osColorSchemeThen = `this.nativeHostService.getOSColorScheme().then(scheme => this.update(scheme))`;
 const initializeCall = `this.initialize(previousColorThemeSetting)`;
@@ -100,9 +101,9 @@ suite('workbench/services/themes leftover Promise fire-and-forget catch scan (D7
 		for (const [source, call] of d751) {
 			assertDoubleThen(source, call);
 		}
-		assert.strictEqual(countDouble(theme, restoreColorThemeCall), 2);
+		assert.strictEqual(countSingle(theme, restoreColorThemeCall), 2);
 		assert.ok(!theme.includes(`${restoreColorThemeCall};`));
-		assert.ok(!theme.includes(`${restoreColorThemeCall}.catch(onUnexpectedError);`));
+		assert.ok(!theme.includes(`${restoreColorThemeCall}${doubleCatch};`));
 	});
 
 	test('leftover whenInstalledExtensionsRegistered then and initialize single-catch are Promise double-chain', () => {
@@ -140,7 +141,8 @@ suite('workbench/services/themes leftover Promise fire-and-forget catch scan (D7
 		assertPromiseSignature(source, 'public async restoreColorTheme(): Promise<boolean> {');
 		assertPromiseSignature(source, 'public async restoreFileIconTheme(): Promise<boolean> {');
 		assertPromiseSignature(source, 'public async restoreProductIconTheme(): Promise<boolean> {');
-		assert.strictEqual(countDouble(source, restoreColorThemeCall), 2);
+		assert.strictEqual(countSingle(source, restoreColorThemeCall), 2);
+		assert.ok(!source.includes(`${restoreColorThemeCall}${doubleCatch}`));
 		assertDoubleThen(source, restoreFileIconThemeCall);
 		assertDoubleThen(source, restoreProductIconThemeCall);
 	});

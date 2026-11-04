@@ -224,7 +224,7 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 			// asynchronously. The initial account load resolves the readiness barrier without
 			// firing onDidChangeDefaultAccount, so proactively re-check once it is ready, and
 			// again whenever the account changes later.
-			this.defaultAccountService.getDefaultAccount().then(() => this.recreateTasClientIfEndpointChanged()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.defaultAccountService.getDefaultAccount().then(() => this.recreateTasClientIfEndpointChanged()).catch(onUnexpectedError);
 			this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => this.recreateTasClientIfEndpointChanged()));
 
 			// Stop the final client's auto-polling and revoke its wrappers when the service is disposed.
@@ -414,7 +414,7 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 
 		const extensionsFilterProvider = this.instantiationService.createInstance(CopilotAssignmentFilterProvider);
 		this.tasSetupDisposables.add(extensionsFilterProvider);
-		this.tasSetupDisposables.add(extensionsFilterProvider.onDidChangeFilters(() => this.refetchAssignments().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.tasSetupDisposables.add(extensionsFilterProvider.onDidChangeFilters(() => this.refetchAssignments().catch(onUnexpectedError)));
 
 		// New TAS assignments API. Its endpoint is sourced from account entitlements and it
 		// uses dedicated providers that emit the new userParam key names, so the legacy filter
@@ -433,7 +433,7 @@ export class WorkbenchAssignmentService extends Disposable implements IAssignmen
 			);
 			const githubAssignmentsFilterProvider = this.instantiationService.createInstance(GitHubCoreAssignmentsFilterProvider);
 			this.tasSetupDisposables.add(githubAssignmentsFilterProvider);
-			this.tasSetupDisposables.add(githubAssignmentsFilterProvider.onDidChangeFilters(() => this.refetchAssignments().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this.tasSetupDisposables.add(githubAssignmentsFilterProvider.onDidChangeFilters(() => this.refetchAssignments().catch(onUnexpectedError)));
 			assignmentsFilterProviders = [coreAssignmentsFilterProvider, githubAssignmentsFilterProvider];
 		}
 

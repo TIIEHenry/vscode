@@ -77,7 +77,7 @@ export class IntegrityService implements IIntegrityService {
 		this.storage = new IntegrityStorage(storageService);
 		this.isPurePromise = this._isPure();
 
-		this._compute().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._compute().catch(onUnexpectedError);
 	}
 
 	private async _compute(): Promise<void> {

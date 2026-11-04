@@ -68,7 +68,7 @@ class InitializeOtherResourcesContribution implements IWorkbenchContribution {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IExtensionService extensionService: IExtensionService
 	) {
-		extensionService.whenInstalledExtensionsRegistered().then(() => this.initializeOtherResource(userDataInitializeService, instantiationService)).catch(onUnexpectedError).catch(onUnexpectedError);
+		extensionService.whenInstalledExtensionsRegistered().then(() => this.initializeOtherResource(userDataInitializeService, instantiationService)).catch(onUnexpectedError);
 	}
 
 	private async initializeOtherResource(userDataInitializeService: IUserDataInitializationService, instantiationService: IInstantiationService): Promise<void> {

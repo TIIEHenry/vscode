@@ -588,7 +588,7 @@ export class ProgressService extends Disposable implements IProgressService {
 					onDidCancel?.(dialogResult.button);
 				}
 				dispose(dialog);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 			return dialog;
 		};

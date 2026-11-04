@@ -63,7 +63,7 @@ class WorkbenchHostService extends Disposable implements IHostService {
 		// Make sure to hide all OS toasts when the window gains focus
 		this._register(this.onDidChangeFocus(focus => {
 			if (focus) {
-				this.clearToasts().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.clearToasts().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -250,7 +250,7 @@ class WorkbenchHostService extends Disposable implements IHostService {
 
 	async showToast(options: IToastOptions, token: CancellationToken): Promise<IToastResult> {
 		const id = generateUuid();
-		const listener = token.onCancellationRequested(() => this.nativeHostService.clearToast(id).catch(onUnexpectedError).catch(onUnexpectedError));
+		const listener = token.onCancellationRequested(() => this.nativeHostService.clearToast(id).catch(onUnexpectedError));
 
 		try {
 			// Try native OS notifications first

@@ -109,7 +109,7 @@ export class NativeLifecycleService extends AbstractLifecycleService {
 						if (veto === true) {
 							logService.info(`[lifecycle]: Shutdown was prevented (id: ${id})`);
 						}
-					}).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => pendingVetos.delete(id));
+					}).catch(onUnexpectedError).finally(() => pendingVetos.delete(id));
 				}
 			},
 			finalVeto(value, id) {

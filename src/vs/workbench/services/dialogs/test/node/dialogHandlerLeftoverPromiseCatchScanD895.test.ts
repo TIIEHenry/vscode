@@ -69,6 +69,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -90,14 +91,20 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
-function assertThenWrapped(source: string, thenStart: string): void {
+function assertSingleWrapped(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+}
+
+function assertThenSingleWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!afterThen.includes(`})${doubleCatch};`));
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 const processDialogsCall = 'this.processDialogs()';
@@ -228,7 +235,7 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		for (const [rel, call, count] of d895Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			leftoverRemainingUnusedLegal += count;
 		}
@@ -249,16 +256,16 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		for (const [rel, call, count] of d895Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
+			assertSingleWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WEB_DIALOG_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(ELECTRON_DIALOG_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(WEB_DIALOG_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ELECTRON_DIALOG_REL) ?? ''), 0);
 	});
 
 	test('leftover remaining unused async this.foo() FOF leftover processDialogs are Promise/async + double-chain', () => {
@@ -269,18 +276,20 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		assertPromiseSignature(electron, 'private async processDialogs(): Promise<void> {');
 		assert.ok(web.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(electron.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(web, processDialogsCall);
-		assertWrapped(electron, processDialogsCall);
-		assert.ok(web.includes('\t\t\t\tthis.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(web.includes('\t\tthis.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(electron.includes('\t\t\t\tthis.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(electron.includes('\t\tthis.processDialogs().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assertSingleWrapped(web, processDialogsCall);
+		assertSingleWrapped(electron, processDialogsCall);
+		assert.ok(web.includes('\t\t\t\tthis.processDialogs().catch(onUnexpectedError);'));
+		assert.ok(web.includes('\t\tthis.processDialogs().catch(onUnexpectedError);'));
+		assert.ok(electron.includes('\t\t\t\tthis.processDialogs().catch(onUnexpectedError);'));
+		assert.ok(electron.includes('\t\tthis.processDialogs().catch(onUnexpectedError);'));
+		assert.ok(!web.includes(doubleCatch));
+		assert.ok(!electron.includes(doubleCatch));
 		assert.ok(!web.includes('\t\t\t\tthis.processDialogs();\n'));
 		assert.ok(!web.includes('\t\tthis.processDialogs();\n'));
 		assert.ok(!electron.includes('\t\t\t\tthis.processDialogs();\n'));
 		assert.ok(!electron.includes('\t\tthis.processDialogs();\n'));
-		assert.ok(mobile.includes('\t\t\t\tthis.processDialogs();\n'));
-		assert.ok(mobile.includes('\t\tthis.processDialogs();\n'));
+		assert.ok(mobile.includes('\t\t\t\tthis.processDialogs().catch(onUnexpectedError);'));
+		assert.ok(mobile.includes('\t\tthis.processDialogs().catch(onUnexpectedError);'));
 		assert.ok(!mobile.includes(`this.processDialogs()${doubleCatch}`));
 	});
 
@@ -375,12 +384,12 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 			const source = seen795.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen795.set(rel, source);
 			if (kind === 'then') {
-				assertThenWrapped(source, call);
-				assert.strictEqual(countIncludes(source, call), count, `D795 already-double drifted: ${rel} ${call}`);
+				assertThenSingleWrapped(source, call);
+				assert.strictEqual(countIncludes(source, call), count, `D795 single-chain drifted: ${rel} ${call}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-				assert.strictEqual(wrapped, count, `D795 already-double drifted: ${rel} ${call}`);
-				assertWrapped(source, call);
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
+				assert.strictEqual(wrapped, count, `D795 single-chain drifted: ${rel} ${call}`);
+				assertSingleWrapped(source, call);
 			}
 			d795Sites += count;
 		}
@@ -393,9 +402,9 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		for (const [rel, call, count] of d886AlreadyDouble) {
 			const source = seen886.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen886.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `D886 already-double drifted: ${rel} ${call}`);
-			assertWrapped(source, call);
+			assertSingleWrapped(source, call);
 			d886Sites += count;
 		}
 		assert.strictEqual(d886Sites, 8);
@@ -405,8 +414,9 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		for (const [rel, call, count] of d883AlreadyDouble) {
 			const source = seen883.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen883.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `D883 already-double drifted: ${rel} ${call}`);
+			assertSingleWrapped(source, call);
 			d883Sites += count;
 		}
 		assert.strictEqual(d883Sites, 7);
@@ -446,11 +456,11 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		assert.ok(observer.includes(`${leftoverEnsureExcludeCall};`) || observer.includes(`await ${leftoverEnsureExcludeCall}`));
 		assert.ok(!observer.includes(`${leftoverEnsureExcludeCall}${doubleCatch}`));
 
-		assert.ok(base.includes(leftoverRenderCall) || base.includes('\t\tthis.renderBlocks();\n') || base.includes('\t\t\tthis.renderBlocks();\n'));
+		assert.ok(base.includes(leftoverRenderCall) || base.includes('\t\tthis.renderBlocks();\n') || base.includes('\t\t\tthis.renderBlocks();\n') || base.includes('this.renderBlocks().catch(onUnexpectedError)'));
 		assert.ok(!base.includes(`this.renderBlocks()${doubleCatch}`));
 		assert.ok(base.includes(leftoverOpenLinkCall) || base.includes('\t\t\tthis.openLink(url);\n'));
 		assert.ok(!base.includes(`this.openLink(url)${doubleCatch}`));
-		assert.ok(form.includes(leftoverCloseReporterCall));
+		assert.ok(form.includes(leftoverCloseReporterCall) || form.includes('this.closeReporter().catch(onUnexpectedError)'));
 		assert.ok(!form.includes(`this.closeReporter()${doubleCatch}`));
 		assert.ok(overlay.includes('this.searchSimilarIssues();'));
 		assert.ok(!overlay.includes(`this.searchSimilarIssues()${doubleCatch}`));
@@ -493,10 +503,13 @@ suite('leftover remaining unused workbench dialogs leftover remaining unused pro
 		assert.ok(planReview.includes(leftoverSubmitFeedbackCall));
 		assert.ok(!planReview.includes(`submitFeedback: () => this.submitFeedback()${doubleCatch}`));
 		assert.ok(searchWidget.includes(`this.submitSearch()${doubleCatch}`) || searchWidget.includes(doubleCatch));
-		assert.ok(comments.includes(`this.refresh()${doubleCatch}`));
+		assert.ok(comments.includes(`this.refresh()${singleCatch}`));
+		assert.ok(!comments.includes(`this.refresh()${doubleCatch}`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
-		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
-		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
+		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${singleCatch}`));
+		assert.ok(!debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
+		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${singleCatch}`));
+		assert.ok(!debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
 		assert.ok(chatWidget.includes(doubleCatch));
 		assert.ok(testing.includes('this.openAndShow(') || testing.includes(doubleCatch));
 		assert.ok(tasks.includes('this.') || tasks.length > 0);

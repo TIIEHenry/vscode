@@ -30,7 +30,7 @@ export class McpGalleryManifestService extends WorkbenchMcpGalleryManifestServic
 		this.getMcpGalleryManifest().then(manifest => {
 			channel.call('setMcpGalleryManifest', [manifest]);
 			this._register(this.onDidChangeMcpGalleryManifest(manifest => channel.call('setMcpGalleryManifest', [manifest])));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 }

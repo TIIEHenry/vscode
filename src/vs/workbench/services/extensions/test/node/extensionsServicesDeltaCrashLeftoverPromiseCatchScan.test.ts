@@ -89,36 +89,38 @@ suite('workbench/services/extensions delta/crash leftover Promise fire-and-forge
 				}
 				this._initializeIfNeeded()?.catch(onUnexpectedError);
 			}, 50 /*max delay*/);
-		})${singleCatch};`) || native.includes(`lifecycleService.when(LifecyclePhase.Ready).then(() => {
-			// reschedule to ensure this runs after restoring viewlets, panels, and editors
-			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded()?.catch(onUnexpectedError).catch(onUnexpectedError);
-			}, 50 /*max delay*/);
-		})${doubleCatch};`));
+		})${singleCatch};`));
+		assert.ok(!native.includes(doubleCatch));
 		assert.ok(browser.includes(`lifecycleService.when(LifecyclePhase.Ready).then(async () => {
 			if (this._store.isDisposed) {
 				return;
 			}
 			await this._initializeIfNeeded();
-		})${singleCatch};`) || browser.includes(`lifecycleService.when(LifecyclePhase.Ready).then(async () => {
-			await this._initializeIfNeeded();
-		})${doubleCatch};`));
-		assert.ok(abstract.includes(`void this._initializeIfNeeded()?${singleCatch};`) || abstract.includes(`void this._initializeIfNeeded()?${doubleCatch};`));
-		assert.ok(abstract.includes(`this._activateDeferredRemoteEvents()${singleCatch};`) || abstract.includes(`this._activateDeferredRemoteEvents()${doubleCatch};`));
-		assert.ok(abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${singleCatch};`) || abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${doubleCatch};`));
+		})${singleCatch};`));
+		assert.ok(!browser.includes(doubleCatch));
+		assert.ok(abstract.includes(`void this._initializeIfNeeded()?${singleCatch};`));
+		assert.ok(!abstract.includes(`void this._initializeIfNeeded()?${doubleCatch};`));
+		assert.ok(abstract.includes(`this._activateDeferredRemoteEvents()${singleCatch};`));
+		assert.ok(!abstract.includes(`this._activateDeferredRemoteEvents()${doubleCatch};`));
+		assert.ok(abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${singleCatch};`));
+		assert.ok(!abstract.includes(`this._activateAddedExtensionIfNeeded(toAdd[i])${doubleCatch};`));
 		assert.ok(abstract.includes(`if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
-			this._doStopExtensionHosts()${singleCatch};`) || abstract.includes(`if (extensionHost.kind === ExtensionHostKind.LocalProcess) {
-			this._doStopExtensionHosts()${doubleCatch};`));
+			this._doStopExtensionHosts()${singleCatch};`));
+		assert.ok(!abstract.includes(doubleCatch));
 		assert.ok(local.includes(`portPromise.then((port) => {`));
-		assert.ok(local.includes(`${singleCatch};`) || local.includes(`${doubleCatch};`));
+		assert.ok(local.includes(`${singleCatch};`));
+		assert.ok(!local.includes(doubleCatch));
 		assert.ok(contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);
-	})${doubleCatch};`));
-		assert.ok(manager.includes(`this.activateByEvent(activationEvent, ActivationKind.Normal)${doubleCatch};`));
+	})${singleCatch};`));
+		assert.ok(!contains.includes(doubleCatch));
+		assert.ok(manager.includes(`this.activateByEvent(activationEvent, ActivationKind.Normal)${singleCatch};`));
+		assert.ok(!manager.includes(`this.activateByEvent(activationEvent, ActivationKind.Normal)${doubleCatch};`));
 		assert.ok(remote.includes(`this._createExtHostInitData(isExtensionDevelopmentDebug).then(data => {
 								protocol.send(VSBuffer.fromString(JSON.stringify(data)));
-							})${doubleCatch};`));
+							})${singleCatch};`));
+		assert.ok(!remote.includes(doubleCatch));
 	});
 
 	test('leftover _handleDeltaExtensions event leftovers are Promise double-chain; await startExtensionHosts stays', () => {

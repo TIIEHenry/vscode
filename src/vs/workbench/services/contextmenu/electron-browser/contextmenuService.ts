@@ -259,7 +259,7 @@ class NativeContextMenuService extends Disposable implements IContextMenuService
 					onHide();
 
 					// Run action which will close the menu
-					this.runAction(entry, delegate, event).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.runAction(entry, delegate, event).catch(onUnexpectedError);
 				}
 			};
 

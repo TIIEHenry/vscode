@@ -52,6 +52,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -68,9 +69,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const secretsQueueCall = `		this._sequencer.queue(key, async () => {
@@ -134,7 +135,7 @@ suite('userActivity leftover remaining overflowed to secrets/integrity/label/not
 		for (const [rel, call, count] of d808Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -142,13 +143,13 @@ suite('userActivity leftover remaining overflowed to secrets/integrity/label/not
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SECRETS_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(INTEGRITY_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(LABEL_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(NOTEBOOK_WIDGET_REL) ?? ''), 12);
+		assert.strictEqual(countDoubleChains(seen.get(SECRETS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(INTEGRITY_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(LABEL_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(NOTEBOOK_WIDGET_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(SECRETS_BROWSER_REL), 'utf8')), 0);
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(INTEGRITY_BROWSER_REL), 'utf8')), 0);
-		assert.ok(countDoubleChains(fs.readFileSync(resolveSource(VIEWS_REL), 'utf8')) >= 1, 'D813 already-double views leftover remaining');
+		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(VIEWS_REL), 'utf8')), 0);
 	});
 
 	test('secrets leftover sequencer queue / integrity leftover _compute / label leftover resolveRemoteEnvironment / notebook leftover remaining this.foo() FOF are Promise double-chain', () => {
@@ -223,10 +224,12 @@ suite('userActivity leftover remaining overflowed to secrets/integrity/label/not
 		assert.ok(integrity.includes('run: () => this.openerService.open(URI.parse(checksumFailMoreInfoUrl))'));
 		assert.ok(!integrity.includes(`this.openerService.open(URI.parse(checksumFailMoreInfoUrl))${doubleCatch}`));
 
-		assert.ok(views.includes(`${viewsThenCall}${doubleCatch}`));
-		assert.ok(!views.includes(`${viewsThenCall};`) || views.includes(`${viewsThenCall}${doubleCatch};`));
+		assert.ok(views.includes(`${viewsThenCall}${singleCatch}`));
+		assert.ok(!views.includes(`${viewsThenCall}${doubleCatch}`));
+		assert.ok(!views.includes(`${viewsThenCall};`) || views.includes(`${viewsThenCall}${singleCatch};`));
 		assert.ok(views.includes('return registerAction2(class ResetViewLocationAction extends Action2 {'));
-		assert.ok(views.includes(`accessor.get(IViewsService).openViewContainer(viewContainer.id, true)${doubleCatch}`));
+		assert.ok(views.includes(`accessor.get(IViewsService).openViewContainer(viewContainer.id, true)${singleCatch}`));
+		assert.ok(!views.includes(`accessor.get(IViewsService).openViewContainer(viewContainer.id, true)${doubleCatch}`));
 
 		assert.ok(secrets.includes('return super.set(key, value);'));
 		assert.ok(!secrets.includes(`return super.set(key, value)${doubleCatch}`));
@@ -252,11 +255,13 @@ suite('userActivity leftover remaining overflowed to secrets/integrity/label/not
 
 		assert.ok(auth.includes('void queue.queue(async () => {'));
 		assert.ok(!auth.includes(`void queue.queue(async () => {${doubleCatch}`));
-		assert.ok(dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${doubleCatch}`));
-		assert.ok(policies.includes('this._updatePolicyDefinitions(this.policyDefinitions);'));
+		assert.ok(dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${singleCatch}`));
+		assert.ok(!dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${doubleCatch}`));
+		assert.ok(policies.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${singleCatch}`));
 		assert.ok(!policies.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
 
-		assert.ok(countDoubleChains(workingCopy) >= 1, 'D807 already-double workingCopy leftover remaining');
+		assert.strictEqual(countDoubleChains(workingCopy), 0);
+		assert.ok(!workingCopy.includes(doubleCatch));
 		assert.ok(!textfile.includes(doubleCatch));
 
 		for (const source of [secrets, integrity, label, widget]) {

@@ -49,6 +49,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -65,9 +66,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const updateCacheCall = 'this.updateCache()';
@@ -79,10 +80,28 @@ const affectedKeysCall = 'this.onConfigUpdate(e.affectedKeys)';
 const autoUpdateCall = 'this.autoUpdateBuiltinExtensions()';
 const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
 const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
-const applicationSchedulerThen = `this.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel))`;
-const userSchedulerThen = `this.userConfiguration.value!.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel))`;
-const remoteReloadSchedulerThen = `this.reload().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel))`;
+const applicationSchedulerThen = `this.loadConfiguration().then(configurationModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._onDidChangeConfiguration.fire(configurationModel);
+		})`;
+const userSchedulerThen = `this.userConfiguration.value.loadConfiguration().then(configurationModel => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._onDidChangeConfiguration.fire(configurationModel);
+			})`;
+const remoteReloadSchedulerThen = `this.reload().then(configurationModel => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._onDidChangeConfiguration.fire(configurationModel);
+		})`;
 const workspaceChangedThen = `this.onWorkspaceConfigurationChanged(fromCache).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.workspace.initialized = this.workspaceConfiguration.initialized;
 				this.checkAndMarkWorkspaceComplete(fromCache);
 			})`;
@@ -124,11 +143,12 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assert.strictEqual(countDoubleChains(languageStatus), 0);
 		assert.ok(suggest.includes('this._currentSuggestionDetails.then(() => {'));
 		assert.ok(!suggest.includes(`this._currentSuggestionDetails.then(() => {${doubleCatch}`));
-		assert.ok(settings.includes(`${affectedKeysCall}${doubleCatch}`));
+		assert.ok(settings.includes(`${affectedKeysCall}${singleCatch}`));
 		assert.ok(policy.includes(doubleCatch));
 		assert.ok(emergency.includes(`this.fetchAlerts(emergencyAlertUrl)${doubleCatch}`));
 		assert.ok(implicit.includes(`${updateImplicitCall}${doubleCatch}`));
-		assert.ok(account.includes(`${updatePolicyCall}${doubleCatch}`));
+		assert.ok(account.includes(`${updatePolicyCall}${singleCatch}`));
+		assert.ok(!account.includes(`${updatePolicyCall}${doubleCatch}`));
 		const leftoverRemainingUnusedLegal = 0;
 		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused after D821 legal leftover <4, got ${leftoverRemainingUnusedLegal}`);
 		assert.ok(!folding.includes('D827'));
@@ -137,13 +157,13 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assert.ok(!settings.includes('D827'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites after leftover remaining unused after D821 moved', () => {
+	test('this knife covers seven leftover Promise single-chain sites after leftover remaining unused after D821 moved', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d827Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -151,7 +171,7 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CONFIG_REL) ?? ''), 12);
+		assert.strictEqual(countDoubleChains(seen.get(CONFIG_REL) ?? ''), 0);
 	});
 
 	test('configuration leftover remaining updateCache / updateCachedConfigurationDefaultsOverrides / waitAndInitialize leftover void promises are Promise/async + double-chain', () => {
@@ -163,9 +183,9 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assertWrapped(configuration, updateCachedDefaultsCall);
 		assertWrapped(configuration, updateCacheCall);
 		assertWrapped(configuration, waitAndInitializeCall);
-		assert.strictEqual(countIncludes(configuration, `${updateCachedDefaultsCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(configuration, `${updateCacheCall}${doubleCatch}`), 4);
-		assert.strictEqual(countIncludes(configuration, `${waitAndInitializeCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(configuration, `${updateCachedDefaultsCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(configuration, `${updateCacheCall}${singleCatch}`), 4);
+		assert.strictEqual(countIncludes(configuration, `${waitAndInitializeCall}${singleCatch}`), 1);
 		assert.ok(!configuration.includes('\t\tthis.updateCachedConfigurationDefaultsOverrides();\n'));
 		assert.ok(!configuration.includes('\t\t\tthis.updateCachedConfigurationDefaultsOverrides();\n'));
 		assert.ok(!configuration.includes('\t\tthis.updateCache();\n'));
@@ -195,10 +215,12 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assert.ok(!service.includes('reload().then(() => this.onWorkspaceConfigurationChanged(false)).catch(onUnexpectedError)'));
 		assert.ok(service.includes('return this.reloadRemoteUserConfiguration().then(() => undefined);'));
 		assert.ok(!service.includes('reloadRemoteUserConfiguration().then(() => undefined).catch(onUnexpectedError)'));
-		assert.ok(configuration.includes(`${applicationSchedulerThen}${doubleCatch}`));
-		assert.ok(configuration.includes(`${userSchedulerThen}${doubleCatch}`));
-		assert.ok(configuration.includes(`${remoteReloadSchedulerThen}${doubleCatch}`));
-		assert.ok(service.includes(`${workspaceChangedThen}${doubleCatch}`));
+		assert.ok(configuration.includes(`${applicationSchedulerThen}${singleCatch}`));
+		assert.ok(configuration.includes(`${userSchedulerThen}${singleCatch}`));
+		assert.ok(configuration.includes(`${remoteReloadSchedulerThen}${singleCatch}`));
+		assert.ok(service.includes(`${workspaceChangedThen}${singleCatch}`));
+		assert.ok(!configuration.includes(doubleCatch));
+		assert.ok(!service.includes(doubleCatch));
 		assert.ok(!configuration.includes(`${doubleCatch}.catch(onUnexpectedError)`));
 
 		for (const source of [configuration, service]) {
@@ -235,11 +257,13 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		const welcome = fs.readFileSync(resolveSource(WELCOME_REL), 'utf8');
 		const notification = fs.readFileSync(resolveSource(NOTIFICATION_REL), 'utf8');
 
-		assert.strictEqual(countIncludes(account, `${updatePolicyCall}${doubleCatch}`), 8);
+		assert.strictEqual(countIncludes(account, `${updatePolicyCall}${singleCatch}`), 8);
+		assert.strictEqual(countIncludes(account, `${updatePolicyCall}${doubleCatch}`), 0);
 		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(implicit.includes(`${updateImplicitCall}${doubleCatch}`));
-		assert.ok(settings.includes(`${affectedKeysCall}${doubleCatch}`));
-		assert.ok(workbench.includes(`${autoUpdateCall}${doubleCatch}`));
+		assert.ok(settings.includes(`${affectedKeysCall}${singleCatch}`));
+		assert.ok(workbench.includes(`${autoUpdateCall}${singleCatch}`));
+		assert.ok(!workbench.includes(`${autoUpdateCall}${doubleCatch}`));
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
 		assert.ok(widgets.includes(`${openViewThenCall};`));

@@ -46,6 +46,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -65,6 +66,12 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+}
+
+function assertSingleWrapped(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const updateCall = 'this._update()';
@@ -119,24 +126,25 @@ suite('leftover remaining unused after D829 moved to inlineCompletions leftover 
 		for (const [rel, call, count] of d830Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
+			assertSingleWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(UNIFICATION_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(UNIFICATION_REL) ?? ''), 0);
 	});
 
 	test('inlineCompletions leftover remaining unused async this.foo() FOF (_update) are Promise double-chain', () => {
 		const unification = fs.readFileSync(resolveSource(UNIFICATION_REL), 'utf8');
 		assertPromiseSignature(unification, 'private async _update(): Promise<void> {');
 		assert.ok(unification.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(unification, updateCall);
-		assert.strictEqual(countIncludes(unification, `${updateCall}${doubleCatch}`), 5);
-		assert.ok(unification.includes(`${refetchThenCall}${doubleCatch}`));
+		assertSingleWrapped(unification, updateCall);
+		assert.strictEqual(countIncludes(unification, `${updateCall}${singleCatch}`), 5);
+		assert.ok(unification.includes(`${refetchThenCall}${singleCatch}`));
+		assert.ok(!unification.includes(`${updateCall}${doubleCatch}`));
 		assert.ok(!unification.includes('\t\t\t\tthis._update();\n'));
 		assert.ok(!unification.includes('\t\tthis._update();\n'));
 		assert.ok(!unification.includes('() => this._update())'));
@@ -196,7 +204,8 @@ suite('leftover remaining unused after D829 moved to inlineCompletions leftover 
 		assert.ok(textModel.includes(`${updateDiffSeqCall};`) || textModel.includes(`\t\t\tthis._updateDiffInfoSeq();\n`));
 		assert.ok(!textModel.includes(`${updateDiffSeqCall}${doubleCatch}`));
 		assert.ok(implicit.includes(`${updateImplicitCall}${doubleCatch}`));
-		assert.ok(workbench.includes(`${autoUpdateCall}${doubleCatch}`));
+		assert.ok(workbench.includes(`${autoUpdateCall}${singleCatch}`));
+		assert.ok(!workbench.includes(`${autoUpdateCall}${doubleCatch}`));
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
 		assert.ok(widgets.includes(`${openViewThenCall};`));

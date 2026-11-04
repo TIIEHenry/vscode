@@ -41,7 +41,7 @@ export class ExtensionIgnoredRecommendationsService extends Disposable implement
 		this._globalIgnoredRecommendations = this.getCachedIgnoredRecommendations();
 		this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, ignoredRecommendationsStorageKey, this._store)(() => this.onDidStorageChange()));
 
-		this.initIgnoredWorkspaceRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initIgnoredWorkspaceRecommendations().catch(onUnexpectedError);
 	}
 
 	private enqueueRefreshIgnoredWorkspaceRecommendations(): Promise<void> {

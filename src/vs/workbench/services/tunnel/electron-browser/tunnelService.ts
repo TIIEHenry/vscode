@@ -49,7 +49,7 @@ class SharedProcessTunnel extends Disposable implements RemoteTunnel {
 				return;
 			}
 			this._sharedProcessTunnelService.setAddress(this._id, address);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	public override async dispose(): Promise<void> {
@@ -77,7 +77,7 @@ export class TunnelService extends AbstractTunnelService {
 		// Destroy any shared process tunnels that might still be active
 		this._register(lifecycleService.onDidShutdown(() => {
 			this._activeSharedProcessTunnels.forEach((id) => {
-				this._sharedProcessTunnelService.destroyTunnel(id).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._sharedProcessTunnelService.destroyTunnel(id).catch(onUnexpectedError);
 			});
 		}));
 	}

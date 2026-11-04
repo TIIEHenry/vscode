@@ -207,7 +207,7 @@ export class DefaultAccountService extends Disposable implements IDefaultAccount
 			this._register(provider.onDidChangeDefaultAccount(account => this.setDefaultAccount(account)));
 			this._register(provider.onDidChangePolicyData(policyData => this._onDidChangePolicyData.fire(policyData)));
 			this._register(provider.onDidChangeCopilotTokenInfo(tokenInfo => this._onDidChangeCopilotTokenInfo.fire(tokenInfo)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	async refresh(options?: IDefaultAccountRefreshOptions): Promise<IDefaultAccount | null> {
@@ -357,7 +357,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 	private initialized = false;
 	private readonly initPromise: Promise<void>;
 	private readonly updateThrottler = this._register(new ThrottledDelayer(100));
-	private readonly accountDataPollScheduler = this._register(new RunOnceScheduler(() => this.refetchDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError), ACCOUNT_DATA_POLL_INTERVAL_MS));
+	private readonly accountDataPollScheduler = this._register(new RunOnceScheduler(() => this.refetchDefaultAccount().catch(onUnexpectedError), ACCOUNT_DATA_POLL_INTERVAL_MS));
 	private readonly managedSettingsFetchAttemptedAccounts = new Set<string>();
 	private readonly failedManagedSettingsFreshness = new Map<string, ManagedSettingsBlockedFreshness>();
 
@@ -465,7 +465,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				this.setDefaultAccount(null);
 			} else {
 				this.logService.debug('[DefaultAccount] Sessions changed for default account provider, updating default account');
-				this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateDefaultAccount().catch(onUnexpectedError);
 			}
 		}));
 
@@ -475,7 +475,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			this.logService.debug('[DefaultAccount] Account preference changed for default account provider, updating default account');
-			this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateDefaultAccount().catch(onUnexpectedError);
 		}));
 
 		this._register(this.authenticationService.onDidRegisterAuthenticationProvider(e => {
@@ -484,7 +484,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			this.logService.debug('[DefaultAccount] Default account provider registered, updating default account');
-			this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateDefaultAccount().catch(onUnexpectedError);
 		}));
 
 		this._register(this.authenticationService.onDidUnregisterAuthenticationProvider(e => {
@@ -493,12 +493,12 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				return;
 			}
 			this.logService.debug('[DefaultAccount] Default account provider unregistered, updating default account');
-			this.updateDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateDefaultAccount().catch(onUnexpectedError);
 		}));
 
 		this._register(this.hostService.onDidChangeFocus(focused => {
 			if (focused) {
-				this.refetchDefaultAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.refetchDefaultAccount().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -532,7 +532,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 				// registered after the connection is established, so without this the provider
 				// would never become available.
 				if (this.environmentService.remoteAuthority) {
-					void this.authenticationService.getSessions(provider.id, undefined, {}, true).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.authenticationService.getSessions(provider.id, undefined, {}, true).catch(onUnexpectedError);
 				}
 
 				this.extensionService.whenInstalledExtensionsRegistered().then(() => {
@@ -565,7 +565,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 		if (this.accountDataPollScheduler.isScheduled()) {
 			this.accountDataPollScheduler.cancel();
 		}
-		if (!this.hostService.hasFocus || !this._defaultAccount) {
+		if (this._store.isDisposed || !this.hostService.hasFocus || !this._defaultAccount) {
 			this.scheduleAccountDataPoll();
 			this.logService.debug('[DefaultAccount] Skipping refetching default account. Host is not focused or default account is not set');
 			return;
@@ -582,13 +582,13 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 		const generation = ++this.defaultAccountGeneration;
 		try {
 			const defaultAccount = await this.fetchDefaultAccount(options);
-			if (generation !== this.defaultAccountGeneration) {
+			if (this._store.isDisposed || generation !== this.defaultAccountGeneration) {
 				return;
 			}
 			this.setDefaultAccount(defaultAccount);
 			this.scheduleAccountDataPoll();
 		} catch (error) {
-			if (generation !== this.defaultAccountGeneration) {
+			if (this._store.isDisposed || generation !== this.defaultAccountGeneration) {
 				return;
 			}
 			this.logService.error('[DefaultAccount] Error while updating default account', getErrorMessage(error));
@@ -704,7 +704,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 
 	private onManagedSettingsSourceChanged(): void {
 		if (this.initialized) {
-			void this.updateDefaultAccount({ forceRefresh: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.updateDefaultAccount({ forceRefresh: true }).catch(onUnexpectedError);
 		}
 	}
 
@@ -776,7 +776,7 @@ export class DefaultAccountProvider extends Disposable implements IDefaultAccoun
 	}
 
 	private scheduleAccountDataPoll(): void {
-		if (!this._defaultAccount) {
+		if (this._store.isDisposed || !this._defaultAccount) {
 			return;
 		}
 		this.accountDataPollScheduler.schedule(ACCOUNT_DATA_POLL_INTERVAL_MS);

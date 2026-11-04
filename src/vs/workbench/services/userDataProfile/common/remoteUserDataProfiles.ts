@@ -108,7 +108,7 @@ export class RemoteUserDataProfilesService extends Disposable implements IRemote
 			this.setAssociatedRemoteProfiles([...this.getAssociatedRemoteProfiles(), remoteProfile.id]);
 		}
 
-		this.cleanUp().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.cleanUp().catch(onUnexpectedError);
 		return false;
 	}
 

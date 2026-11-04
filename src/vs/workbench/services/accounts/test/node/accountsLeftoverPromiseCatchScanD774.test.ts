@@ -34,6 +34,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -46,9 +47,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const executeCommandCall = 'void this._commandService.executeCommand(CHAT_SETUP_COMMAND_ID)';
@@ -124,16 +125,17 @@ suite('agentHost leftover remaining overflowed to accounts leftover Promise fire
 		assert.ok(codex.includes('void openCodexAuthUrl(this._openerService, account.authUrl).catch(onUnexpectedError);'));
 		assert.ok(!codex.includes('void openCodexAuthUrl(this._openerService, account.authUrl).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(codex.includes('void readCodexProfileImageDataUri(this._agentHostService, reference).then(profileImageDataUri => {'));
-		assert.ok(codex.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(codex.includes(`}).catch(onUnexpectedError);`));
+		assert.ok(!codex.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
 	});
 
-	test('this knife covers nine leftover Promise double-chain sites after agentHost leftover remaining overflow', () => {
+	test('this knife covers nine leftover Promise single-chain sites after agentHost leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d774Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -142,7 +144,7 @@ suite('agentHost leftover remaining overflowed to accounts leftover Promise fire
 		assert.ok(sites >= 4);
 	});
 
-	test('accounts leftover refresh then / getSessions / updateDefaultAccount / refetchDefaultAccount are Promise double-chain', () => {
+	test('accounts leftover refresh then / getSessions / updateDefaultAccount / refetchDefaultAccount are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(ACCOUNT_REL), 'utf8');
 		const auth = fs.readFileSync(resolveSource(AUTH_REL), 'utf8');
 		const provider = fs.readFileSync(resolveSource(PROVIDER_REL), 'utf8');
@@ -203,6 +205,8 @@ suite('agentHost leftover remaining overflowed to accounts leftover Promise fire
 		assert.ok(!codex.includes(`void openCodexAuthUrl(this._openerService, account.authUrl)${doubleCatch}`));
 		assert.ok(remote.includes('this._connect().catch(err => this._logService.warn(`${LOG_PREFIX} Connect failed`, err));'));
 		assert.ok(!remote.includes(`this._connect()${doubleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.ok(!codex.includes(doubleCatch));
 		assert.ok(!managed.includes('.then('));
 		assert.ok(!managed.includes(doubleCatch));
 		assert.ok(!fsSource.includes(doubleCatch));

@@ -102,7 +102,7 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 
 		// Editor & group changes
 		if (this.editorGroupsContainer === this.editorGroupService.mainPart || this.editorGroupsContainer === this.editorGroupService) {
-			this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady()).catch(onUnexpectedError);
 		} else {
 			this.onEditorGroupsReady();
 		}

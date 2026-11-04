@@ -54,7 +54,7 @@ export class NativeHostColorSchemeService extends Disposable implements IHostCol
 
 		// fetch the actual value from the OS
 		this._fetchEpoch = ++this._schemeEpoch;
-		this.nativeHostService.getOSColorScheme().then(scheme => this.update(scheme)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.nativeHostService.getOSColorScheme().then(scheme => this.update(scheme)).catch(onUnexpectedError);
 	}
 
 	private getStoredValue(dftl: IColorScheme): IColorScheme {

@@ -42,7 +42,7 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 			this.getMcpGalleryManifest().then(manifest => {
 				channel.call('setMcpGalleryManifest', [manifest]);
 				this._register(this.onDidChangeMcpGalleryManifest(manifest => channel.call('setMcpGalleryManifest', [manifest])));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -82,7 +82,7 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 			this.configurationListenerRegistered = true;
 			this._register(this.configurationService.onDidChangeConfiguration(e => {
 				if (e.affectsConfiguration(mcpGalleryServiceUrlConfig) || e.affectsConfiguration('chat.mcp.gallery.version')) {
-					this.getAndUpdateMcpGalleryManifest().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.getAndUpdateMcpGalleryManifest().catch(onUnexpectedError);
 				}
 			}));
 		}

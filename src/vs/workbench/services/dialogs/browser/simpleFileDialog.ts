@@ -237,7 +237,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 		return new Promise<URI | undefined>((resolve) => {
 			this.pickResource(true).then(result => {
 				resolve(Array.isArray(result) ? result[0] : result);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		});
 	}
 
@@ -463,7 +463,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 						isResolving--;
 						isAcceptHandled = false;
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			};
 
 			this._register(this.filePickBox.onDidAccept(_ => {
@@ -503,7 +503,7 @@ export class SimpleFileDialog extends Disposable implements ISimpleFileDialog {
 					this.filePickBox.valueSelection = [this.filePickBox.value.length, this.filePickBox.value.length];
 				}
 				this.busy = false;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		});
 	}
 

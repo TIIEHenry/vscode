@@ -56,6 +56,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -72,19 +73,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!afterThen.includes(`})${doubleCatch};`));
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 const runActionCall = 'this.runAction(entry, delegate, event)';
@@ -149,7 +150,7 @@ suite('decorations leftover remaining overflowed to contextmenu leftover Promise
 		assert.ok(!checksum.includes('D810'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites after decorations leftover remaining overflow', () => {
+	test('this knife covers seven leftover Promise single-chain sites after decorations leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count, kind] of d810Calls) {
@@ -159,7 +160,7 @@ suite('decorations leftover remaining overflowed to contextmenu leftover Promise
 				assertThenWrapped(source, call);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 				assertWrapped(source, call);
 			}
@@ -168,11 +169,11 @@ suite('decorations leftover remaining overflowed to contextmenu leftover Promise
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CONTEXTMENU_REL)!), 1);
-		assert.strictEqual(countDoubleChains(seen.get(WATCHER_REL)!), 1);
-		assert.strictEqual(countDoubleChains(seen.get(UTILITY_REL)!), 2);
-		assert.strictEqual(countDoubleChains(seen.get(TUNNEL_REL)!), 2);
-		assert.strictEqual(countDoubleChains(seen.get(TUNNEL_MODEL_REL)!), 1);
+		assert.strictEqual(countDoubleChains(seen.get(CONTEXTMENU_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(WATCHER_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(UTILITY_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(TUNNEL_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(TUNNEL_MODEL_REL)!), 0);
 	});
 
 	test('contextmenu leftover runAction and files/utilityProcess leftover onDidTerminate then / disposeWorker are Promise double-chain', () => {
@@ -276,18 +277,21 @@ suite('decorations leftover remaining overflowed to contextmenu leftover Promise
 		assert.ok(!tunnel.includes(`this._sharedProcessTunnelService.setAddress(this._id, address)${doubleCatch}`));
 		assert.ok(tunnel.includes('await this._sharedProcessTunnelService.destroyTunnel(this._id);'));
 
-		assert.ok(remoteAbs.includes(`this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel))${doubleCatch}`));
+		assert.ok(remoteAbs.includes(`this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel))${singleCatch}`));
+		assert.ok(!remoteAbs.includes(`this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel))${doubleCatch}`));
 		assert.ok(!remoteAbs.includes('this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel));'));
 		assert.ok(remoteAbs.includes('return this.getRawEnvironment().then(undefined, () => null);'));
 		assert.ok(!remoteAbs.includes(`return this.getRawEnvironment().then(undefined, () => null)${doubleCatch}`));
 
-		assert.ok(dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${doubleCatch}`));
+		assert.ok(dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${singleCatch}`));
+		assert.ok(!dataChannel.includes(`void this._activateExtensionProvider(entry, provider, generation)${doubleCatch}`));
 		assert.ok(!dataChannel.includes('void this._activateExtensionProvider(entry, provider, generation);'));
 
 		assert.ok(mcp.includes("channel.call('setMcpGalleryManifest', [manifest]);"));
 		assert.ok(!mcp.includes(`channel.call('setMcpGalleryManifest', [manifest])${doubleCatch}`));
 
 		for (const source of [decorations, clipboard, contextmenu, watcher, utility, tunnel, tunnelModel]) {
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('SaveSkillContent'));

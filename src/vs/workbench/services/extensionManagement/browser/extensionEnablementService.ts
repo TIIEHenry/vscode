@@ -105,7 +105,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 				this._register(this.extensionsManager.onDidChangeExtensions(({ added, removed, isProfileSwitch }) => this._onDidChangeExtensions(added, removed, isProfileSwitch)));
 				this.loopCheckForMaliciousExtensions();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this.globalExtensionEnablementService.onDidChangeEnablement(({ extensions, source }) => this._onDidChangeGloballyDisabledExtensions(extensions, source)));
 		this._register(allowedExtensionsService.onDidChangeAllowedExtensionsConfigValue(() => this._onDidChangeExtensions([], [], false)));
@@ -147,7 +147,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 					sticky: true,
 					priority: NotificationPriority.URGENT
 				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		this.ensureChatExtensionInitialDisabledState();
@@ -183,7 +183,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 				try {
 					// User has not used chat features before so avoid activating the chat extension by disabling it
 					this.logService.debug('Disabling builtin chat extension as chat set up is not completed');
-					this._disableExtension({ id: this._chatExtensionId }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._disableExtension({ id: this._chatExtensionId }).catch(onUnexpectedError);
 				} catch (error) {
 					this.logService.error('Failed to disable builtin chat extension during enablement migration', error);
 				}
@@ -416,10 +416,10 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 
 		switch (newState) {
 			case EnablementState.EnabledGlobally:
-				this._enableExtension(extension.identifier).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._enableExtension(extension.identifier).catch(onUnexpectedError);
 				break;
 			case EnablementState.DisabledGlobally:
-				this._disableExtension(extension.identifier).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._disableExtension(extension.identifier).catch(onUnexpectedError);
 				break;
 			case EnablementState.EnabledWorkspace:
 				this._enableExtensionInWorkspace(extension.identifier);
@@ -693,24 +693,24 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 	}
 
 	private _enableExtension(identifier: IExtensionIdentifier): Promise<boolean> {
-		this._removeFromWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._removeFromWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError);
 		this._removeFromWorkspaceEnabledExtensions(identifier);
 		return this.globalExtensionEnablementService.enableExtension(identifier, SOURCE);
 	}
 
 	private _disableExtension(identifier: IExtensionIdentifier): Promise<boolean> {
-		this._removeFromWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._removeFromWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError);
 		this._removeFromWorkspaceEnabledExtensions(identifier);
 		return this.globalExtensionEnablementService.disableExtension(identifier, SOURCE);
 	}
 
 	private _enableExtensionInWorkspace(identifier: IExtensionIdentifier): void {
-		this._removeFromWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._removeFromWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError);
 		this._addToWorkspaceEnabledExtensions(identifier);
 	}
 
 	private _disableExtensionInWorkspace(identifier: IExtensionIdentifier): void {
-		this._addToWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._addToWorkspaceDisabledExtensions(identifier).catch(onUnexpectedError);
 		this._removeFromWorkspaceEnabledExtensions(identifier);
 	}
 
@@ -855,20 +855,27 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 	}
 
 	private _reset(extension: IExtensionIdentifier) {
-		this._removeFromWorkspaceDisabledExtensions(extension).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._removeFromWorkspaceDisabledExtensions(extension).catch(onUnexpectedError);
 		this._removeFromWorkspaceEnabledExtensions(extension);
 		this.globalExtensionEnablementService.enableExtension(extension);
 	}
 
 	private loopCheckForMaliciousExtensions(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.checkForMaliciousExtensions()
 			.then(() => this.delayer.trigger(() => { }, 1000 * 60 * 5)) // every five minutes
-			.then(() => this.loopCheckForMaliciousExtensions());
+			.then(() => this.loopCheckForMaliciousExtensions())
+			.catch(onUnexpectedError);
 	}
 
 	private async checkForMaliciousExtensions(): Promise<void> {
 		try {
 			const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
+			if (this._store.isDisposed) {
+				return;
+			}
 			const changed = this.storeMaliciousExtensions(extensionsControlManifest.malicious.map(({ extensionOrPublisher }) => extensionOrPublisher));
 			if (changed) {
 				this._onDidChangeExtensions([], [], false);

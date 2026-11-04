@@ -97,7 +97,7 @@ export class BrowserKeyboardMapperFactoryBase extends Disposable {
 					}
 
 					this.setLayoutFromBrowserAPI();
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			});
 		}
 
@@ -284,7 +284,7 @@ export class BrowserKeyboardMapperFactoryBase extends Disposable {
 				return;
 			}
 			this.setActiveKeyMapping(keyMap);
-		}).catch(onUnexpectedError).catch(onUnexpectedError));
+		}).catch(onUnexpectedError));
 		this._layoutChain = run.then(() => undefined, () => undefined);
 	}
 
@@ -375,7 +375,7 @@ export class BrowserKeyboardMapperFactoryBase extends Disposable {
 						}
 
 						this.setLayoutFromBrowserAPI();
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}, 350);
 			}
 			return true;
@@ -469,7 +469,7 @@ export class BrowserKeyboardMapperFactory extends BrowserKeyboardMapperFactoryBa
 			this._mru = this._keymapInfos;
 			this._initialized = true;
 			this.setLayoutFromBrowserAPI();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 
@@ -495,7 +495,7 @@ class UserKeyboardLayout extends Disposable {
 			if (changed) {
 				this._onDidChange.fire();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError), 50));
+		}).catch(onUnexpectedError), 50));
 
 		this._register(Event.filter(this.fileService.onDidFilesChange, e => e.contains(this.keyboardLayoutResource))(() => this.reloadConfigurationScheduler.schedule()));
 	}
@@ -586,7 +586,7 @@ export class BrowserKeyboardLayoutService extends Disposable implements IKeyboar
 
 				this.setUserKeyboardLayoutIfMatched();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this._userKeyboardLayout.onDidChange(() => {
 			const userKeyboardLayouts = this._factory.keymapInfos.filter(layout => layout.isUserKeyboardLayout);

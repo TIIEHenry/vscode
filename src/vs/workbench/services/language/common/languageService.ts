@@ -283,7 +283,7 @@ export class WorkbenchLanguageService extends LanguageService {
 		}));
 		this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 			this.updateMime();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this.onDidRequestRichLanguageFeatures((languageId) => {
 			// extension activation
