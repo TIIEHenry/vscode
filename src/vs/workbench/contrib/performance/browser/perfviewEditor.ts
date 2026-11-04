@@ -165,7 +165,7 @@ export class PerfModelContentProvider implements ITextModelContentProvider {
 
 				this._model.setValue(md.value);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 	}
 

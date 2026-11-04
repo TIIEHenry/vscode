@@ -39,13 +39,13 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 function countWrapped(source: string, call: string): number {
-	const needle = `${call}${doubleCatch}`;
+	const needle = `${call}.catch(onUnexpectedError)`;
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
@@ -88,7 +88,7 @@ suite('Snippets leftover remaining Promise fire-and-forget catch scan (D765)', (
 		}
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
-		assert.strictEqual(countDoubleChains(seen.get(SERVICE_REL)!), 6);
+		assert.strictEqual(countDoubleChains(seen.get(SERVICE_REL)!), 0);
 	});
 
 	test('leftover _initUserSnippets / _initFolderSnippets fire-and-forgets are Promise double-chain; tracked Restored then stays skipped', () => {
@@ -100,7 +100,7 @@ suite('Snippets leftover remaining Promise fire-and-forget catch scan (D765)', (
 		assert.ok(service.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(service.includes(`this._trackPendingWork(Promise.resolve(lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this._initExtensionSnippets();
-			${initUser}${doubleCatch};
+			${initUser}.catch(onUnexpectedError);
 			this._initWorkspaceSnippets();
 		})));`));
 		assert.ok(!service.includes(`this._initExtensionSnippets();
@@ -113,10 +113,10 @@ suite('Snippets leftover remaining Promise fire-and-forget catch scan (D765)', (
 		})${doubleCatch}`));
 		assert.strictEqual(countWrapped(service, initFolder), 2);
 		assert.ok(service.includes(`if (value) {
-				${initFolder}${doubleCatch};
+				${initFolder}.catch(onUnexpectedError);
 			}`));
 		assert.ok(service.includes(`if (e.contains(snippetFolder, FileChangeType.ADDED)) {
-						${initFolder}${doubleCatch};
+						${initFolder}.catch(onUnexpectedError);
 					}`));
 		assert.ok(!service.includes(`${initFolder};`));
 	});
@@ -127,15 +127,15 @@ suite('Snippets leftover remaining Promise fire-and-forget catch scan (D765)', (
 		assertPromiseSignature(snippetFile, 'load(): Promise<this> {');
 		assertPromiseSignature(service, 'const addFolderSnippets = async () => {');
 		assert.ok(service.includes(`if (resources.isEqualOrParent(e.model.resource, folder)) {
-				${addFolder}${doubleCatch};
+				${addFolder}.catch(onUnexpectedError);
 			}`));
 		assert.ok(service.includes(`bucket.add(watch(this._fileService, folder, () => {
-			${addFolder}${doubleCatch};
+			${addFolder}.catch(onUnexpectedError);
 		}));`));
 		assert.strictEqual(countWrapped(service, addFolder), 2);
 		assert.ok(service.includes(`return ${addFolder};`));
 		assert.ok(!service.includes(`return ${addFolder}${doubleCatch}`));
-		assert.ok(service.includes(`${loadIgnore}${doubleCatch};`));
+		assert.ok(service.includes(`${loadIgnore}.catch(onUnexpectedError);`));
 		assert.ok(!service.includes(`${loadIgnore};`));
 	});
 

@@ -21,6 +21,7 @@ import { ITimerService } from '../../../services/timer/browser/timerService.js';
 export class RendererProfiling {
 
 	private _observer?: PerformanceObserver;
+	private _isDisposed = false;
 
 	constructor(
 		@INativeWorkbenchEnvironmentService private readonly _environmentService: INativeWorkbenchEnvironmentService,
@@ -39,6 +40,9 @@ export class RendererProfiling {
 		}
 
 		timerService.perfBaseline.then(perfBaseline => {
+			if (this._isDisposed) {
+				return;
+			}
 			(_environmentService.isBuilt ? _logService.info : _logService.trace).apply(_logService, [`[perf] Render performance baseline is ${perfBaseline}ms`]);
 
 			if (perfBaseline < 0) {
@@ -50,6 +54,9 @@ export class RendererProfiling {
 			const slowThreshold = perfBaseline * 10; // ~10 frames at 64fps on MY machine
 
 			const obs = new PerformanceObserver(async list => {
+				if (this._isDisposed) {
+					return;
+				}
 
 				obs.takeRecords();
 				const maxDuration = list.getEntries()
@@ -74,21 +81,28 @@ export class RendererProfiling {
 
 				// profile renderer for 5secs, analyse, and take action depending on the result
 				for (let i = 0; i < 3; i++) {
+					if (this._isDisposed) {
+						break;
+					}
 
 					try {
 						const profile = await nativeHostService.profileRenderer(sessionId, 5000);
 						const output = await profileAnalysisService.analyseBottomUp(profile, _url => '<<renderer>>', perfBaseline, true);
 						if (output === ProfilingOutput.Interesting) {
-							this._store(profile, sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+							this._store(profile, sessionId).catch(onUnexpectedError);
 							break;
 						}
 
-						timeout(15000).catch(onUnexpectedError).catch(onUnexpectedError); // wait 15s
+						timeout(15000).catch(onUnexpectedError); // wait 15s
 
 					} catch (err) {
 						_logService.error(err);
 						break;
 					}
+				}
+
+				if (this._isDisposed) {
+					return;
 				}
 
 				// reconnect the observer
@@ -98,17 +112,24 @@ export class RendererProfiling {
 			obs.observe({ entryTypes: ['longtask'] });
 			this._observer = obs;
 
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		this._observer?.disconnect();
 	}
 
 
 	private async _store(profile: IV8Profile, sessionId: string): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		const path = joinPath(this._environmentService.tmpDir, `renderer-${Math.random().toString(16).slice(2, 8)}.cpuprofile.json`);
 		await this._fileService.writeFile(path, VSBuffer.fromString(JSON.stringify(profile)));
+		if (this._isDisposed) {
+			return;
+		}
 		this._logService.info(`[perf] stored profile to DISK '${path}'`, sessionId);
 	}
 }

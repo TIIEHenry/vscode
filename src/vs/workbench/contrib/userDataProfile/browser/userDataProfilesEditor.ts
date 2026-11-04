@@ -281,7 +281,7 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 			}));
 			this._register(this.profilesList.onMouseDblClick(e => {
 				if (!e.element) {
-					this.createNewProfile().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.createNewProfile().catch(onUnexpectedError);
 				}
 			}));
 		}
@@ -335,7 +335,7 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 			}
 			const url = selectedItem.label === quickPick.value ? URI.parse(quickPick.value) : await this.getProfileUriFromFileSystem();
 			if (url) {
-				this.createNewProfile(url).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.createNewProfile(url).catch(onUnexpectedError);
 			}
 		}));
 		disposables.add(quickPick.onDidHide(() => disposables.dispose()));
@@ -343,6 +343,9 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 	}
 
 	async createNewProfile(copyFrom?: URI | IUserDataProfile): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this.model?.createNewProfile(copyFrom);
 	}
 
@@ -381,11 +384,14 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 
 		this.model = model;
 		this.model.getTemplates().then(templates => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.templates = templates;
 			if (this.profileWidget) {
 				this.profileWidget.templates = templates;
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this.updateProfilesList();
 		this._register(this.model.onDidChange(element =>
 			this.updateProfilesList(element)));
@@ -398,6 +404,9 @@ export class UserDataProfilesEditor extends EditorPane implements IUserDataProfi
 
 	override dispose(): void {
 		this.profilesInputGeneration++;
+		if (this.container) {
+			clearNode(this.container);
+		}
 		super.dispose();
 	}
 
@@ -641,6 +650,11 @@ class ProfileWidget extends Disposable {
 		this.buttonContainer = append(body, $('.profile-row-container.profile-button-container'));
 	}
 
+	override dispose(): void {
+		clearNode(this.profileTreeContainer);
+		super.dispose();
+	}
+
 	private dimension: Dimension | undefined;
 	layout(dimension: Dimension): void {
 		this.dimension = dimension;
@@ -654,6 +668,10 @@ class ProfileWidget extends Disposable {
 	}
 
 	render(profileElement: AbstractUserDataProfileElement): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (this._profileElement.value?.element === profileElement) {
 			return;
 		}
@@ -661,7 +679,7 @@ class ProfileWidget extends Disposable {
 		if (this._profileElement.value?.element instanceof UserDataProfileElement) {
 			this._profileElement.value.element.reset();
 		}
-		this.profileTree.setInput(profileElement).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.profileTree.setInput(profileElement).catch(onUnexpectedError);
 
 		const disposables = new DisposableStore();
 		this._profileElement.value = { element: profileElement, dispose: () => disposables.dispose() };
@@ -1524,10 +1542,10 @@ class ContentsProfileRenderer extends ProfilePropertyRenderer {
 				} else if (element.root instanceof UserDataProfileElement) {
 					contentsTreeHeader.classList.toggle('default-profile', element.root.profile.isDefault);
 				}
-				profilesContentTree.setInput(profileElement.root).catch(onUnexpectedError).catch(onUnexpectedError);
+				profilesContentTree.setInput(profileElement.root).catch(onUnexpectedError);
 				elementDisposables.add(profileElement.root.onDidChange(e => {
 					if (e.copyFrom || e.copyFlags || e.flags || e.extensions || e.snippets || e.preview) {
-						profilesContentTree.updateChildren(element.root).catch(onUnexpectedError).catch(onUnexpectedError);
+						profilesContentTree.updateChildren(element.root).catch(onUnexpectedError);
 					}
 					if (e.copyFromInfo) {
 						updateDescription(element);

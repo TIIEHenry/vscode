@@ -211,7 +211,7 @@ export class ProductContribution implements IWorkbenchContribution {
 			}
 
 			storageService.store(ProductContribution.KEY, productService.version, StorageScope.APPLICATION, StorageTarget.MACHINE);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 
@@ -247,7 +247,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 			}
 		}));
 
-		this.onUpdateStateChange(this.updateService.state).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.onUpdateStateChange(this.updateService.state).catch(onUnexpectedError);
 
 		/*
 		The `update/lastKnownVersion` and `update/updateNotificationTime` storage keys are used in
@@ -271,6 +271,9 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 
 	private async onUpdateStateChange(state: UpdateState): Promise<void> {
 		const seq = ++this._stateSeq;
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.updateStateContextKey.set(state.type);
 
 		switch (state.type) {
@@ -278,11 +281,11 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 				// Themed dialog shown from the last focused window; the windowless macOS case is handled by the main process.
 				if (state.notAvailable && !state.error) {
 					const hadLastFocus = await this.hostService.hadLastFocus();
-					if (seq !== this._stateSeq) {
+					if (this._store.isDisposed || seq !== this._stateSeq) {
 						return;
 					}
 					if (hadLastFocus) {
-						this.dialogService.info(nls.localize('noUpdatesAvailable', "There are currently no updates available.")).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.dialogService.info(nls.localize('noUpdatesAvailable', "There are currently no updates available.")).catch(onUnexpectedError);
 					}
 				}
 				break;
@@ -353,7 +356,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 
 				const productVersion = this.updateService.state.update.productVersion;
 				if (productVersion) {
-					this.instantiationService.invokeFunction(accessor => showReleaseNotes(accessor, productVersion)).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.instantiationService.invokeFunction(accessor => showReleaseNotes(accessor, productVersion)).catch(onUnexpectedError);
 				}
 
 			});
@@ -506,7 +509,7 @@ export class DefaultAccountUpdateContribution extends Disposable implements IWor
 		}
 
 		this.#internalOrg = this.storageService.get(DefaultAccountUpdateContribution.STORAGE_KEY, StorageScope.APPLICATION, undefined);
-		this.throttler.queue(() => this.updateService.setInternalOrg(this.#internalOrg)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.throttler.queue(() => this.updateService.setInternalOrg(this.#internalOrg)).catch(onUnexpectedError);
 
 		// Check on startup
 		this.refresh();
@@ -516,10 +519,13 @@ export class DefaultAccountUpdateContribution extends Disposable implements IWor
 	}
 
 	private refresh(): void {
-		this.throttler.queue(() => this.doRefresh()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.throttler.queue(() => this.doRefresh()).catch(onUnexpectedError);
 	}
 
 	private async doRefresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			const defaultAccount = await this.defaultAccountService.getDefaultAccount();
 			const internalOrg = getInternalOrg(defaultAccount?.entitlementsData?.organization_login_list);

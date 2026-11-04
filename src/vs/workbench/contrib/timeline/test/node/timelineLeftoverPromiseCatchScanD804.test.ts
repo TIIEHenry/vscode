@@ -71,9 +71,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const resetLoadCall = 'this.loadTimeline(true)';
@@ -111,7 +111,7 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 		for (const [rel, call, count] of d804Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -121,8 +121,8 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 		assert.ok(sites <= 8);
 		const pane = seen.get(PANE_REL) ?? fs.readFileSync(resolveSource(PANE_REL), 'utf8');
 		const service = seen.get(SERVICE_REL) ?? fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(pane), 7);
-		assert.strictEqual(countDoubleChains(service), 1);
+		assert.strictEqual(countDoubleChains(pane), 0);
+		assert.strictEqual(countDoubleChains(service), 0);
 	});
 
 	test('timeline leftover loadTimeline / handleRequest / executeCommand / openView are Promise double-chain', () => {
@@ -216,21 +216,18 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 		assertPromiseSignature(editor, 'openEditor(editor: IResourceEditorInput, group?: PreferredGroup): Promise<IEditorPane | undefined>;');
 		assert.ok(typeHierarchy.includes('model.then(model => {'));
 		assert.ok(typeHierarchy.includes('}).catch(err => {'));
-		assert.strictEqual(countDoubleChains(typeHierarchy), 0);
-		assert.ok(typeHierarchy.includes('this._widget!.showModel(model);'));
-		assert.ok(!typeHierarchy.includes(`this._widget!.showModel(model)${doubleCatch}`));
-		assert.ok(typeHierarchy.includes('this._widget?.updateDirection(TypeHierarchyDirection.Supertypes);'));
-		assert.ok(!typeHierarchy.includes(`updateDirection(TypeHierarchyDirection.Supertypes)${doubleCatch}`));
-		assert.ok(typePeek.includes('this._updatePreview();'));
-		assert.ok(!typePeek.includes(`this._updatePreview()${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(typeHierarchy), 3);
+		assert.ok(typeHierarchy.includes('this._widget!.showModel(model)'));
+		assert.ok(typeHierarchy.includes('updateDirection(TypeHierarchyDirection.Supertypes)'));
+		assert.ok(typePeek.includes('void this._updatePreview()'));
+		assert.ok(!typePeek.includes('\t\t\tthis._updatePreview();\n'));
 
 		assert.ok(callHierarchy.includes('model.then(model => {'));
 		assert.ok(callHierarchy.includes('}).catch(err => {'));
-		assert.strictEqual(countDoubleChains(callHierarchy), 0);
-		assert.ok(callHierarchy.includes('this._widget!.showModel(model);'));
-		assert.ok(!callHierarchy.includes(`this._widget!.showModel(model)${doubleCatch}`));
-		assert.ok(callPeek.includes('this._updatePreview();'));
-		assert.ok(!callPeek.includes(`this._updatePreview()${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(callHierarchy), 3);
+		assert.ok(callHierarchy.includes('this._widget!.showModel(model)'));
+		assert.ok(callPeek.includes('void this._updatePreview()'));
+		assert.ok(!callPeek.includes('\t\t\tthis._updatePreview();\n'));
 	});
 
 	test('this knife stayed in timeline leftover remaining and did not overflow-assert occupied leftover modules as new D804 sites', () => {
@@ -256,10 +253,11 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 			assert.ok(!source.includes('D804'));
 		}
 		assert.ok(!serviceContrib.includes(doubleCatch));
-		assert.ok(walkthrough.includes(`this.promise.then(model => model.dispose())${doubleCatch}`));
-		assert.ok(webviewView.includes(`this.viewService.openView(this.id, !preserveFocus)${doubleCatch}`));
-		assert.ok(workspacesContrib.includes(`this.findWorkspaces()${doubleCatch}`));
-		assert.ok(profile.includes(`${doubleCatch}`));
+		assert.ok(walkthrough.includes('this.promise.then(model => model.dispose()).catch(onUnexpectedError);'));
+		assert.ok(webviewView.includes('this.viewService.openView(this.id, !preserveFocus).catch(onUnexpectedError);'));
+		assert.ok(workspacesContrib.includes('this.findWorkspaces().catch(onUnexpectedError);'));
+		assert.ok(profile.includes('.catch(onUnexpectedError)'));
+		assert.strictEqual(countDoubleChains(profile), 0);
 		assert.ok(!profile.includes('D804'));
 		assert.ok(terminalContrib.includes(`${doubleCatch}`));
 		assert.ok(!terminalContrib.includes('D804'));

@@ -25,37 +25,33 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function assertDoubleChain(source: string, call: string, count: number): void {
-	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
-	assert.ok(source.includes(`${call}${doubleCatch};`));
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 suite('Output leftover Promise fire-and-forget catch scan (D685)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('outputView editorPromise leftover then is double-chain', () => {
+	test('outputView editorPromise leftover then is single catch with 0 double catches', () => {
 		const source = fs.readFileSync(resolveSource(VIEW_REL), 'utf8');
 		const call = 'this.editorPromise?.then(() => this.editor.focus())';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.editorPromise\?\.then\(\(\) => this\.editor\.focus\(\)\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}?.catch(onUnexpectedError)?.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${call}?.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 	});
 
-	test('delegated outputChannelModel leftover thens are double-chain; loadModel / poll stay skipped', () => {
+	test('delegated outputChannelModel leftover thens are single catch; loadModel / poll stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
-		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleChain(source, 'this.outputChannelModel.then(outputChannelModel => outputChannelModel.append(output))', 1);
-		assertDoubleChain(source, 'this.outputChannelModel.then(outputChannelModel => outputChannelModel.update(mode, till, immediate))', 1);
-		assertDoubleChain(source, 'this.outputChannelModel.then(outputChannelModel => outputChannelModel.clear())', 1);
-		assertDoubleChain(source, 'this.outputChannelModel.then(outputChannelModel => outputChannelModel.replace(value))', 1);
-		assertDoubleChain(source, 'this.outputChannelModel.then(outputChannelModel => outputChannelModel.updateChannelSources(files))', 1);
-		assert.ok(source.includes('return this.outputChannelModel.then(outputChannelModel => outputChannelModel.loadModel());'));
+		assert.ok(source.includes('onUnexpectedError') && source.includes("base/common/errors.js"));
+		assert.ok(source.includes('outputChannelModel.append(output);\n\t\t}).catch(onUnexpectedError);'));
+		assert.ok(source.includes('outputChannelModel.update(mode, till, immediate);\n\t\t}).catch(onUnexpectedError);'));
+		assert.ok(source.includes('outputChannelModel.clear();\n\t\t}).catch(onUnexpectedError);'));
+		assert.ok(source.includes('outputChannelModel.replace(value);\n\t\t}).catch(onUnexpectedError);'));
+		assert.ok(source.includes('outputChannelModel.updateChannelSources(files);\n\t\t}).catch(onUnexpectedError);'));
+		assert.ok(source.includes('return this.outputChannelModel.then(outputChannelModel => {'));
 		assert.ok(source.includes('const loop = () => this.doWatch().then(() => this.poll());'));
 		assert.ok(!source.includes('this.doWatch().then(() => this.poll()).catch(onUnexpectedError)'));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 	});
 });

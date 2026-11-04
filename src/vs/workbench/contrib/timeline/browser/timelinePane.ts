@@ -335,7 +335,10 @@ export class TimelinePane extends ViewPane {
 	}
 
 	reset() {
-		this.loadTimeline(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.loadTimeline(true).catch(onUnexpectedError);
 	}
 
 	setUri(uri: URI) {
@@ -343,6 +346,9 @@ export class TimelinePane extends ViewPane {
 	}
 
 	private setUriCore(uri: URI | undefined, disableFollowing: boolean) {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (disableFollowing) {
 			this.followActiveEditor = false;
 		}
@@ -350,10 +356,13 @@ export class TimelinePane extends ViewPane {
 		this.uri = uri;
 		this.updateFilename(uri ? this.labelService.getUriBasenameLabel(uri) : undefined);
 		this.treeRenderer?.setUri(uri);
-		this.loadTimeline(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.loadTimeline(true).catch(onUnexpectedError);
 	}
 
 	private onStorageServiceChanged() {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const excludedSourcesString = this.storageService.get('timeline.excludeSources', StorageScope.PROFILE, '[]');
 		this.timelineExcludeSourcesContext.set(excludedSourcesString);
 		this.excludedSources = new Set(JSON.parse(excludedSourcesString));
@@ -361,7 +370,7 @@ export class TimelinePane extends ViewPane {
 		const missing = this.timelineService.getSources()
 			.filter(({ id }) => !this.excludedSources.has(id) && !this.timelinesBySource.has(id));
 		if (missing.length !== 0) {
-			this.loadTimeline(true, missing.map(({ id }) => id)).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.loadTimeline(true, missing.map(({ id }) => id)).catch(onUnexpectedError);
 		} else {
 			this.refresh();
 		}
@@ -409,6 +418,9 @@ export class TimelinePane extends ViewPane {
 	}
 
 	private onProvidersChanged(e: TimelineProvidersChangeEvent) {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (e.removed) {
 			for (const source of e.removed) {
 				this.timelinesBySource.delete(source);
@@ -418,7 +430,7 @@ export class TimelinePane extends ViewPane {
 		}
 
 		if (e.added) {
-			this.loadTimeline(true, e.added).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.loadTimeline(true, e.added).catch(onUnexpectedError);
 		}
 	}
 
@@ -623,7 +635,7 @@ export class TimelinePane extends ViewPane {
 		disposables.add(tokenSource);
 		disposables.add(tokenSource.token.onCancellationRequested(() => this.pendingRequests.delete(source)));
 
-		this.handleRequest(newRequest).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.handleRequest(newRequest).catch(onUnexpectedError);
 
 		return true;
 	}
@@ -993,7 +1005,10 @@ export class TimelinePane extends ViewPane {
 						args = [...args, e];
 					}
 
-					this.commandService.executeCommand(item.command.id, ...args).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.commandService.executeCommand(item.command.id, ...args).catch(onUnexpectedError);
 				}
 			}
 			else if (isLoadMoreCommand(item)) {
@@ -1015,7 +1030,7 @@ export class TimelinePane extends ViewPane {
 		}
 
 		this._maxItemCount = this._visibleItemCount + this.pageSize;
-		this.loadTimeline(false).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.loadTimeline(false).catch(onUnexpectedError);
 	}
 
 	ensureValidItems() {
@@ -1076,6 +1091,24 @@ export class TimelinePane extends ViewPane {
 			getActionsContext: (): TimelineActionContext => ({ uri: this.uri, item }),
 			actionRunner: new TimelineActionRunner()
 		});
+	}
+
+	override dispose(): void {
+		for (const pending of this.pendingRequests.values()) {
+			pending.dispose();
+		}
+		this.pendingRequests.clear();
+		this.visibilityDisposables?.dispose();
+		this.tree?.dispose();
+		if (this.$tree) {
+			DOM.clearNode(this.$tree);
+			this.$tree.remove();
+		}
+		if (this.$message) {
+			DOM.clearNode(this.$message);
+			this.$message.remove();
+		}
+		super.dispose();
 	}
 }
 

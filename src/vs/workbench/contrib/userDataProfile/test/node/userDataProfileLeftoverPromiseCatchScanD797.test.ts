@@ -61,19 +61,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-function assertThenWrapped(source: string, thenStart: string): void {
-	const idx = source.indexOf(thenStart);
-	assert.ok(idx >= 0, `missing then: ${thenStart}`);
-	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
-	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const reportCall = 'this.reportWorkspaceProfileInfo()';
@@ -115,7 +105,7 @@ suite('userDataProfile leftover Promise fire-and-forget catch scan (D797)', () =
 		for (const [rel, call, count] of d797Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -123,6 +113,8 @@ suite('userDataProfile leftover Promise fire-and-forget catch scan (D797)', () =
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
+		assert.strictEqual(countDoubleChains(seen.get(PROFILE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(EDITOR_REL) ?? ''), 0);
 	});
 
 	test('userDataProfile leftover reportWorkspaceProfileInfo / createNewProfile / openEditor / tree setInput / updateChildren are Promise double-chain', () => {
@@ -160,11 +152,11 @@ suite('userDataProfile leftover Promise fire-and-forget catch scan (D797)', () =
 	test('D693 already-double when / getTemplates thens stay double-chain and are not this knife\'s new leftover sites', () => {
 		const profile = fs.readFileSync(resolveSource(PROFILE_REL), 'utf8');
 		const editor = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
-		assert.ok(profile.includes(`${eventuallyThen}${doubleCatch};`));
-		assert.ok(profile.includes(`${restoredThen}${doubleCatch};`));
-		assertThenWrapped(editor, templatesThen);
-		assert.strictEqual(countDoubleChains(profile), 5);
-		assert.strictEqual(countDoubleChains(editor), 6);
+		assert.ok(profile.includes(`${eventuallyThen}.catch(onUnexpectedError);`));
+		assert.ok(profile.includes(`${restoredThen}.catch(onUnexpectedError);`));
+		assert.ok(editor.includes(templatesThen));
+		assert.strictEqual(countDoubleChains(profile), 0);
+		assert.strictEqual(countDoubleChains(editor), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -248,14 +240,14 @@ suite('userDataProfile leftover Promise fire-and-forget catch scan (D797)', () =
 		for (const source of [splash, preferences, tasks, interactive, speech, search, searchEditor, surveys, remote]) {
 			assert.ok(!source.includes('D797'));
 		}
-		assert.ok(walkthrough.includes('this.promise.then(model => model.dispose());'));
+		assert.ok(walkthrough.includes('this.promise.then(model => model.dispose()).catch(onUnexpectedError);'));
 		assert.ok(!walkthrough.includes(`this.promise.then(model => model.dispose())${doubleCatch}`));
 		assert.ok(!walkthrough.includes(doubleCatch));
 		assert.ok(url.includes('this._clipboardService.writeText(typeof originalResource === \'string\' ? originalResource : resourceUri.toString(true)).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(!url.includes('D797'));
-		assert.ok(webviewView.includes('this.viewService.openView(this.id, !preserveFocus);'));
+		assert.ok(webviewView.includes('this.viewService.openView(this.id, !preserveFocus).catch(onUnexpectedError);'));
 		assert.ok(!webviewView.includes(`openView(this.id, !preserveFocus)${doubleCatch}`));
-		assert.ok(workspaces.includes('this.findWorkspaces();'));
+		assert.ok(workspaces.includes('this.findWorkspaces().catch(onUnexpectedError);'));
 		assert.ok(!workspaces.includes(`this.findWorkspaces()${doubleCatch}`));
 		assert.ok(!speech.includes('D797'));
 		assert.ok(!search.includes('D797'));

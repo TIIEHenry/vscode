@@ -85,9 +85,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const sidebarCall = 'this.openViewContainer(ViewContainerLocation.Sidebar, viewletToOpen)';
@@ -155,8 +155,10 @@ suite('leftover remaining unused after timeline leftover remaining unused after 
 		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
 		assertPromiseSignature(pane, 'private async loadTimeline(reset: boolean, sources?: string[]) {');
 		assertPromiseSignature(pane, 'private async handleRequest(request: TimelineRequest) {');
-		assert.ok(pane.includes(`${resetLoadCall}${doubleCatch}`));
-		assert.ok(service.includes(`this.viewsService.openView(TimelinePaneId, true)${doubleCatch}`));
+		assert.ok(pane.includes(`${resetLoadCall}.catch(onUnexpectedError)`));
+		assert.ok(service.includes(`this.viewsService.openView(TimelinePaneId, true).catch(onUnexpectedError)`));
+		assert.strictEqual(countDoubleChains(pane), 0);
+		assert.strictEqual(countDoubleChains(service), 0);
 		assert.ok(pane.includes(`${leftoverLoadForSourceCall};`));
 		assert.ok(!pane.includes(`${leftoverLoadForSourceCall}${doubleCatch}`));
 		assert.ok(pane.includes('\tprivate loadTimelineForSource(source: string, uri: URI, reset: boolean, options?: TimelineOptions) {'));
@@ -181,7 +183,7 @@ suite('leftover remaining unused after timeline leftover remaining unused after 
 		for (const [rel, call, count] of d871Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -189,13 +191,13 @@ suite('leftover remaining unused after timeline leftover remaining unused after 
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countIncludes(seen.get(LAYOUT_REL) ?? '', `${sidebarCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(LAYOUT_REL) ?? '', `${panelCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(LAYOUT_REL) ?? '', `${auxCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(ACCOUNTS_BAR_REL) ?? '', `${runCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(seen.get(ACCOUNTS_BAR_REL) ?? '', `${initializeCall}${doubleCatch}`), 1);
-		assert.strictEqual(countDoubleChains(seen.get(LAYOUT_REL) ?? ''), 6);
-		assert.strictEqual(countDoubleChains(seen.get(ACCOUNTS_BAR_REL) ?? ''), 5);
+		assert.strictEqual(countIncludes(seen.get(LAYOUT_REL) ?? '', `${sidebarCall}.catch(onUnexpectedError)`), 1);
+		assert.strictEqual(countIncludes(seen.get(LAYOUT_REL) ?? '', `${panelCall}.catch(onUnexpectedError)`), 1);
+		assert.strictEqual(countIncludes(seen.get(LAYOUT_REL) ?? '', `${auxCall}.catch(onUnexpectedError)`), 1);
+		assert.strictEqual(countIncludes(seen.get(ACCOUNTS_BAR_REL) ?? '', `${runCall}.catch(onUnexpectedError)`), 3);
+		assert.strictEqual(countIncludes(seen.get(ACCOUNTS_BAR_REL) ?? '', `${initializeCall}.catch(onUnexpectedError)`), 1);
+		assert.strictEqual(countDoubleChains(seen.get(LAYOUT_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ACCOUNTS_BAR_REL) ?? ''), 0);
 	});
 
 	test('unused leftover remaining unused workbench leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -367,23 +369,23 @@ suite('leftover remaining unused after timeline leftover remaining unused after 
 		assert.ok(!configuration.includes(`${leftoverReloadThenCall}${doubleCatch}`));
 		assert.ok(fs.readFileSync(resolveSource('src/vs/workbench/contrib/folding/browser/folding.contribution.ts'), 'utf8').includes(leftoverConfigValuesCall));
 
-		assert.ok(preferencesContrib.includes(`${createRendererCall}${doubleCatch}`));
-		assert.ok(assign.includes(`${refetchCall}${doubleCatch}`));
-		assert.ok(filters.includes(`${updateExtCall}${doubleCatch}`));
-		assert.ok(statusbar.includes(`${executeCommandCall}${doubleCatch}`));
-		assert.ok(status.includes(`this._update()${doubleCatch}`));
-		assert.ok(findModel.includes(`this.research()${doubleCatch}`));
-		assert.ok(inlineDiff.includes(`this._update()${doubleCatch}`) || inlineDiff.includes(doubleCatch));
+		assert.ok(preferencesContrib.includes(`${createRendererCall}.catch(onUnexpectedError)`));
+		assert.ok(assign.includes(`${refetchCall}.catch(onUnexpectedError)`));
+		assert.ok(filters.includes(`${updateExtCall}.catch(onUnexpectedError)`));
+		assert.ok(statusbar.includes(`${executeCommandCall}.catch(onUnexpectedError)`));
+		assert.ok(status.includes(`this._update().catch(onUnexpectedError)`));
+		assert.ok(findModel.includes(`this.research().catch(onUnexpectedError)`));
+		assert.ok(inlineDiff.includes('this._update().catch(onUnexpectedError)') || inlineDiff.includes('.catch(onUnexpectedError)'));
 		assert.ok(chatWidget.includes(doubleCatch));
 		assert.ok(agentSessions.includes(`this.update()${doubleCatch}`));
 		assert.ok(terminalBrowser.includes('this.') || terminalBrowser.length > 0);
-		assert.ok(textMate.includes(`this._tokenize()${doubleCatch}`));
+		assert.ok(textMate.includes(`this._tokenize().catch(onUnexpectedError)`));
 		assert.ok(searchWidget.includes(`this.submitSearch()${doubleCatch}`));
-		assert.ok(comments.includes(`this.refresh()${doubleCatch}`));
+		assert.ok(comments.includes(`this.refresh().catch(onUnexpectedError)`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
-		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
-		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
-		assert.ok(debugEditor.includes(`this.toggleExceptionWidget()${doubleCatch}`));
+		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined).catch(onUnexpectedError)`));
+		assert.ok(debugService.includes(`this.launchOrAttachToSession(session).catch(onUnexpectedError)`));
+		assert.ok(debugEditor.includes(`this.toggleExceptionWidget().catch(onUnexpectedError)`));
 		assert.ok(files.includes(doubleCatch) || files.includes('this.resolveEditorModel('));
 		assert.ok(scmHistory.includes(doubleCatch) || scmHistory.includes('this._loadMore()'));
 		assert.ok(explorer.includes(doubleCatch) || explorer.includes('this.updateActivityBadge()'));

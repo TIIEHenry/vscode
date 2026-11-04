@@ -59,12 +59,12 @@ export class NativeStartupTimings extends StartupTimings implements IWorkbenchCo
 	) {
 		super(editorService, paneCompositeService, lifecycleService, updateService, workspaceTrustService);
 
-		this._report().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._report().catch(onUnexpectedError);
 	}
 
 	private async _report() {
 		const standardStartupError = await this._isStandardStartup();
-		this._appendStartupTimes(standardStartupError).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._appendStartupTimes(standardStartupError).catch(onUnexpectedError);
 	}
 
 	private async _appendStartupTimes(standardStartupError: string | undefined) {
@@ -140,7 +140,7 @@ export class NativeStartupTimings extends StartupTimings implements IWorkbenchCo
 				exitCode = 1;
 				console.error(error);
 			} finally {
-				this._nativeHostService.exit(exitCode).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._nativeHostService.exit(exitCode).catch(onUnexpectedError);
 			}
 		}
 	}

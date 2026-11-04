@@ -133,7 +133,10 @@ export class TimelineService extends Disposable implements ITimelineService {
 	}
 
 	setUri(uri: URI) {
-		this.viewsService.openView(TimelinePaneId, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.viewsService.openView(TimelinePaneId, true).catch(onUnexpectedError);
 		this._onDidChangeUri.fire(uri);
 	}
 

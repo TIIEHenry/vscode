@@ -85,7 +85,7 @@ export class BrowserStartupTimings extends StartupTimings implements IWorkbenchC
 	) {
 		super(editorService, paneCompositeService, lifecycleService, updateService, workspaceTrustService);
 
-		this.logPerfMarks().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.logPerfMarks().catch(onUnexpectedError);
 	}
 
 	private async logPerfMarks(): Promise<void> {

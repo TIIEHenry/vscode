@@ -27,8 +27,7 @@ suite('NativeStartupTimings leftover fire-and-forget catch scan (D661)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_report and _appendStartupTimes leftover sites are each one double-chain; bare/single gone in this file only', () => {
-		// Both return Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_report and _appendStartupTimes leftover sites are single catch with 0 double catches; bare/double gone in this file only', () => {
 		const source = fs.readFileSync(startupTimingsSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const reportCall = 'this._report()';
@@ -36,11 +35,12 @@ suite('NativeStartupTimings leftover fire-and-forget catch scan (D661)', () => {
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\._report\(\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/this\._appendStartupTimes\(standardStartupError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${reportCall}${doubleCatch};`));
-		assert.ok(source.includes(`${appendCall}${doubleCatch};`));
+		assert.ok(source.includes(`${reportCall}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${appendCall}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${reportCall};`));
 		assert.ok(!source.includes(`${appendCall};`));
-		assert.ok(!source.includes(`${reportCall}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${appendCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${reportCall}${doubleCatch};`));
+		assert.ok(!source.includes(`${appendCall}${doubleCatch};`));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 	});
 });

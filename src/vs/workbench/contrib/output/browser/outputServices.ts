@@ -357,9 +357,9 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		// Create output channels for already registered channels
 		const registry = Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels);
 		for (const channelIdentifier of registry.getChannels()) {
-			this.onDidRegisterChannel(channelIdentifier.id).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.onDidRegisterChannel(channelIdentifier.id).catch(onUnexpectedError);
 		}
-		this._register(registry.onDidRegisterChannel(id => this.onDidRegisterChannel(id).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(registry.onDidRegisterChannel(id => this.onDidRegisterChannel(id).catch(onUnexpectedError)));
 		this._register(registry.onDidUpdateChannelSources(channel => this.onDidUpdateChannelSources(channel)));
 		this._register(registry.onDidRemoveChannel(channel => this.onDidRemoveChannel(channel)));
 
@@ -377,10 +377,10 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 
 		this._register(this.loggerService.onDidChangeLogLevel(() => {
 			this.setLevelContext();
-			this.setLevelIsDefaultContext().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.setLevelIsDefaultContext().catch(onUnexpectedError);
 		}));
 		this._register(this.defaultLogLevelsService.onDidChangeDefaultLogLevels(() => {
-			this.setLevelIsDefaultContext().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.setLevelIsDefaultContext().catch(onUnexpectedError);
 		}));
 
 		this._register(this.lifecycleService.onDidShutdown(() => this.dispose()));
@@ -541,6 +541,9 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 	}
 
 	private async onDidRegisterChannel(channelId: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const channel = this.createChannel(channelId);
 		this.channels.set(channelId, channel);
 		if (!this.activeChannel || this.activeChannelIdInStorage === channelId) {
@@ -562,7 +565,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		if (this.activeChannel?.id === channel.id) {
 			const channels = this.getChannelDescriptors();
 			if (channels[0]) {
-				this.showChannel(channels[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.showChannel(channels[0].id).catch(onUnexpectedError);
 			}
 		}
 		this.channels.deleteAndDispose(channel.id);
@@ -575,7 +578,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 				const channels = this.getChannelDescriptors();
 				const channel = channels.length ? this.getChannel(channels[0].id) : undefined;
 				if (channel && this.viewsService.isViewVisible(OUTPUT_VIEW_ID)) {
-					this.showChannel(channel.id).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.showChannel(channel.id).catch(onUnexpectedError);
 				} else {
 					this.setActiveChannel(undefined);
 				}
@@ -613,6 +616,9 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 	}
 
 	private async setLevelIsDefaultContext(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const descriptor = this.activeChannel?.outputChannelDescriptor;
 		const channelLogLevel = descriptor ? this.getLogLevel(descriptor) : undefined;
 		if (channelLogLevel !== undefined) {
@@ -629,7 +635,7 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		this.activeFileOutputChannelContext.set(!!descriptor && isSingleSourceOutputChannelDescriptor(descriptor));
 		this.activeLogOutputChannelContext.set(!!descriptor?.log);
 		this.activeOutputChannelLevelSettableContext.set(descriptor !== undefined && this.canSetLogLevel(descriptor));
-		this.setLevelIsDefaultContext().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.setLevelIsDefaultContext().catch(onUnexpectedError);
 		this.setLevelContext();
 
 		if (this.activeChannel) {

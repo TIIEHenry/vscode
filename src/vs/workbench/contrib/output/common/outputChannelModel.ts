@@ -735,7 +735,7 @@ export class FileOutputChannelModel extends AbstractFileOutputChannelModel imple
 				}
 			}
 			this.doUpdate(mode, immediate);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	override updateChannelSources(files: IOutputContentSource[]): void { throw new Error('Not supported'); }
@@ -778,7 +778,7 @@ export class MultiFileOutputChannelModel extends AbstractFileOutputChannelModel 
 			}
 			this.multifileOutput.resetToEnd();
 			this.doUpdate(OutputChannelUpdateMode.Clear, true);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	override update(mode: OutputChannelUpdateMode, till: number | undefined, immediate: boolean): void { throw new Error('Not supported'); }
@@ -882,7 +882,7 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 				return;
 			}
 			outputChannelModel.append(output);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	update(mode: OutputChannelUpdateMode, till: number | undefined, immediate: boolean): void {
@@ -891,7 +891,7 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 				return;
 			}
 			outputChannelModel.update(mode, till, immediate);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	loadModel(): Promise<ITextModel> {
@@ -909,7 +909,7 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 				return;
 			}
 			outputChannelModel.clear();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	replace(value: string): void {
@@ -918,7 +918,7 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 				return;
 			}
 			outputChannelModel.replace(value);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	updateChannelSources(files: IOutputContentSource[]): void {
@@ -927,6 +927,6 @@ export class DelegatedOutputChannelModel extends Disposable implements IOutputCh
 				return;
 			}
 			outputChannelModel.updateChannelSources(files);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }

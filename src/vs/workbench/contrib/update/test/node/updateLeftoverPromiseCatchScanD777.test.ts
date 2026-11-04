@@ -49,13 +49,12 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`), `bare leftover remains: ${call}`);
 }
 
 function countWrapped(source: string, call: string): number {
-	const needle = `${call}${doubleCatch}`;
+	const needle = `${call}.catch(onUnexpectedError)`;
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
@@ -152,6 +151,11 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		}
 		assert.strictEqual(sites, 15);
 		assert.ok(sites >= 4);
+		assert.strictEqual(countDoubleChains(seen.get(UPDATE_TITLE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(UPDATE_POST_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(UPDATE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(UPDATE_NOTES_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(UPDATE_TOOLTIP_REL) ?? ''), 0);
 	});
 
 	test('outline leftover onDidOpen PromiseLike reveal is Promise double-chain; assigned handleEditor / already-double focus stay skipped', () => {
@@ -187,6 +191,8 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		assert.ok(title.includes('private onStateChange(state: State) {'));
 		assert.ok(title.includes('this.onStateChange(this.updateService.state);'));
 		assert.ok(!title.includes(`this.onStateChange(this.updateService.state)${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(title), 0);
+		assert.strictEqual(countDoubleChains(post), 0);
 	});
 
 	test('update leftover onUpdateStateChange / dialog info / invokeFunction / throttler queue are Promise double-chain', () => {
@@ -205,6 +211,7 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		assertWrapped(update, queueRefreshCall);
 		assert.ok(!update.includes('this.onUpdateStateChange(this.updateService.state);'));
 		assert.ok(!update.includes('this.throttler.queue(() => this.doRefresh());'));
+		assert.strictEqual(countDoubleChains(update), 0);
 	});
 
 	test('update leftover updateValue / updateSetting / writeText / executeCommand voids are Promise double-chain', () => {
@@ -230,6 +237,9 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		assert.ok(!tooltip.includes('this.clipboardService.writeText(copyValue.value);'));
 		assert.ok(!tooltip.includes('this.commandService.executeCommand(command, ...args);'));
 		assert.ok(!post.includes('void this.commandService.executeCommand(commandId, ...(args ?? []));'));
+		assert.strictEqual(countDoubleChains(notes), 0);
+		assert.strictEqual(countDoubleChains(tooltip), 0);
+		assert.strictEqual(countDoubleChains(post), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Watch / Resolve / Pty / Connect / D145 stay skipped', () => {
@@ -245,7 +255,7 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
 
 		assert.ok(update.includes(`hostService.hadLastFocus().then(async hadLastFocus => {`));
-		assert.ok(update.includes(`		})${doubleCatch};`));
+		assert.ok(update.includes('\t\t}).catch(onUnexpectedError);'));
 		assert.ok(update.includes('showReleaseNotesInEditor(instantiationService, productService.version, false)\n\t\t\t\t\t.then(undefined, () => {'));
 		assert.ok(!update.includes(`showReleaseNotesInEditor(instantiationService, productService.version, false)${doubleCatch}`));
 		assert.ok(update.includes('openerService.open(uri);'));

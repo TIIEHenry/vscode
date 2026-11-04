@@ -443,8 +443,11 @@ export class UpdateTooltip extends Disposable {
 		this._register(dom.addDisposableListener(copyButton, 'click', e => {
 			e.preventDefault();
 			e.stopPropagation();
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (copyValue.value) {
-				this.clipboardService.writeText(copyValue.value).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.clipboardService.writeText(copyValue.value).catch(onUnexpectedError);
 			}
 		}));
 
@@ -452,7 +455,16 @@ export class UpdateTooltip extends Disposable {
 	}
 
 	private runCommandAndClose(command: string, ...args: unknown[]) {
-		this.commandService.executeCommand(command, ...args).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.commandService.executeCommand(command, ...args).catch(onUnexpectedError);
 		this.hoverService.hideHover(true);
+	}
+
+	override dispose(): void {
+		dom.clearNode(this.domNode);
+		this.domNode.remove();
+		super.dispose();
 	}
 }
