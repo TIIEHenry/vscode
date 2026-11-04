@@ -33,7 +33,7 @@
 }
 
 .monaco-workbench .conversation-agent-breadcrumb-item:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .conversation-agent-breadcrumb-item-label {

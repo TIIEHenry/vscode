@@ -320,7 +320,7 @@ suite('ConversationTimeline inline diagram wheel', () => {
 		assert.ok(!chrome.classList.contains('conversation-timeline-scroll-down-visible'));
 		const scrollDown = host.domNode.querySelector('.conversation-timeline-scroll-down') as HTMLElement | null;
 		assert.ok(scrollDown);
-		assert.strictEqual(scrollDown.style.display, 'flex');
+		assert.strictEqual(scrollDown.hidden, false);
 	});
 });
 

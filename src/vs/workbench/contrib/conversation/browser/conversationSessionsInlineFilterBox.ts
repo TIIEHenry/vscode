@@ -71,7 +71,7 @@ export class ConversationSessionsInlineFilterBox extends Disposable {
 	}
 
 	setVisible(visible: boolean): void {
-		this.element.style.display = visible ? '' : 'none';
+		this.element.hidden = !visible;
 	}
 
 	focus(): void {

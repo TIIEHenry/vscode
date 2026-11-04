@@ -1,14 +1,15 @@
 ---
 title: "方案 r07：workbench-shell"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "hold 1，drop 0，weaken 3。createOnly 在无提供者时仍覆盖已打开文本；权限回调、会话网格恢复和网页存储初始化只成立一部分。"
+updated: 2026-11-01
+summary: "hold 1，drop 0，weaken 3。r07-1 由 9cc4219228c、r07-4 由 6f000e37a13 落地，r07-3 已被 2026-10-24 r13-1 的会话键方案取代。2026-11-01 agent:kiro 受用户委托签收剩下的 r07-2。未实施，不升 PRD。"
 ---
 # 方案 r07：workbench-shell
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。只签 r07-2，范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -91,3 +92,14 @@ hold 1，drop 0，weaken 3。
 
 ### 本地验证
 `src/vs/workbench/services/storage/test/browser/storageService.test.ts` 没有初始化失败用例。新增断言：默认配置档下应用存储 `init()` 拒绝时，`doInitialize` / `initialize()` 拒绝，而不是停在 `applicationStoragePromise.p`；`applicationStoragePromise.p` 以同一错误拒绝。`createStorageService` 在 `initialize()` 拒绝时拒绝，且该实例已 `close()`，调用方拿不到它。应用存储 `init()` 成功时，`complete` 的库和存储对象仍可被默认配置档await 到。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r07-1 | 已落地 | `9cc4219228c`：`createOnly` 在没有文件提供者时直接抛错，不进 `_writeVirtual`。 |
+| r07-2 | 签 | 缺陷仍在：`agentHostResourceService.ts` 的 `_resolve` 没有已结算守卫，`deny` 之后同一对象再 `allow` / `allowAlways` 仍会授权。改法只加一行守卫，后两轮审查没有重复条目。 |
+| r07-3 | 已被取代，不签 | 2026-10-24 r13-1 已由 `279f2c18f08` 实施：`conversationEditorPart.ts` 的部件 id 改为带 `sessionKey`。本条的 `restorePreviousState: false` 加空 `saveState` 与已选路线相反，签了会冲突。 |
+| r07-4 | 已落地 | `6f000e37a13`：应用存储初始化失败时以同一错误结束等待并继续抛出。 |

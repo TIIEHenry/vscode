@@ -10,6 +10,7 @@ import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/
 import { ProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
+import type { ConversationDisplayMode } from './conversationLivePhase.js';
 
 export type ConversationTimelineItemVariant = 'turn' | 'process-fold';
 
@@ -35,6 +36,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly contentAdapter?: IConversationTurnContentAdapter;
 	readonly paddingBottom?: number;
 	readonly showLiveChrome?: () => boolean;
+	readonly displayMode?: () => ConversationDisplayMode;
 	/** Pairing-hold leftover stays readable; write CTAs stay painted but disabled (D297). */
 	readonly writesEnabled?: () => boolean;
 	readonly getResponseProjection?: () => ConversationResponseProjection | undefined;

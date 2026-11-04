@@ -1,14 +1,14 @@
 ---
 title: "方案 r13：contrib-rest"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-23
-summary: "hold 5，drop 0，weaken 0。r13-5 加密测试已落；其余四条引用行为仍在原位置。"
+updated: 2026-11-01
+summary: "hold 5，drop 0，weaken 0。五条均已落地：r13-1 由 61d41c66e3b，r13-2 由 eed430010dd，r13-3 至 r13-5 由 404799773e7（r13-5 测试后来在 281589a56b1 改写）。2026-11-01 agent:kiro 只读核对，无待签条目，未重跑测试。不升 PRD。"
 ---
 # 方案 r13：contrib-rest
 
-状态：草案。
+状态：已完成。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -122,3 +122,15 @@ argv 需要迁移时，只有 `jsonEditingService.write` 成功返回之后，�
 
 ### 本地验证
 仓库没有 encryption 贡献测试。`EncryptionContribution` 目前未导出；导出该类供测试构造，注册行保持不动。新增断言：Linux 且 argv 的 `password-store` 为 `gnome` 或 `gnome-keyring` 时，write 拒绝则 `encryption.migratedToGnomeLibsecret` 不为 true，再次调用会再次 write；write 成功后标记为 true，再次调用直接返回且不再 write。非 Linux，或标记已为 true 时，不读 argv。
+
+## 签收核对（2026-11-01）
+
+agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`，没有重跑测试。五条都已落地，本稿没有待签条目。`dev/plans/INDEX.md` 本行原先的摘要（「临时断点、取消后重启 / 建会话、合并确认与 preserveFocus 保存已修。46 passing」）是 `279f2c18f08` 误贴的 2026-10-24 r11 落地内容，已更正。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r13-1 | 已落地 | `61d41c66e3b`：`_getDefaultAllowWrite` 每次返回新数组，设置文件名带 `generateUuid()`。2026-10-24 r12-2 改的是 `applySandboxConfigSuggestion`，不重复。 |
+| r13-2 | 已落地 | `eed430010dd`：已有密钥解析或导入失败时直接拒绝，不再 `generateKey`，拒绝后丢掉缓存的 promise；解封失败时重新抛出，不清 `secrets`。 |
+| r13-3 | 已落地 | `404799773e7`：非 create 且读不到修改前内容时抛错，不写 `''`。 |
+| r13-4 | 已落地 | `404799773e7`：`delete` 出错重新抛出；同一 ref 再次恢复时跳过本地 `del`，云端删除成功后才清记录并上报成功。 |
+| r13-5 | 已落地 | `404799773e7`：`store` 放在 `jsonEditingService.write` 之后，测试在 `281589a56b1` 改写。 |

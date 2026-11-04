@@ -71,7 +71,13 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.chat-goal-banner .chat-goal-banner-dismiss:focus {
+.chat-goal-banner .chat-goal-banner-dismiss:focus:not(:focus-visible) {
 	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-goal-banner .chat-goal-banner-dismiss:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 }

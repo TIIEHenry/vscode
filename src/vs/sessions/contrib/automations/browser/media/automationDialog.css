@@ -214,15 +214,15 @@
  * marks the active container as automation-dialog-open.
  */
 .automation-dialog-open .context-view.monaco-component {
-	z-index: 2600 !important;
+	z-index: var(--sessions-z-dialog, 2600) !important;
 }
 
 .automation-dialog-open .quick-input-widget {
-	z-index: 2600 !important;
+	z-index: var(--sessions-z-dialog, 2600) !important;
 }
 
 .automation-dialog-open .monaco-menu-container {
-	z-index: 2600 !important;
+	z-index: var(--sessions-z-dialog, 2600) !important;
 }
 
 .automation-form {

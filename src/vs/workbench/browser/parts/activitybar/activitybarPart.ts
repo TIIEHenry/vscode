@@ -44,15 +44,15 @@ import { IHostService } from '../../../services/host/browser/host.js';
 
 export class ActivitybarPart extends Part {
 
-	static readonly ACTION_HEIGHT = 48;
+	static readonly ACTION_HEIGHT = 44;
 	static readonly COMPACT_ACTION_HEIGHT = 28;
 
 	static readonly ACTIVITYBAR_WIDTH = 48;
 	static readonly COMPACT_ACTIVITYBAR_WIDTH = 36;
 
-	/** Narrower dimensions used when the floating panels (Modern UI) experiment is enabled. */
-	static readonly FLOATING_ACTION_HEIGHT = 36;
-	static readonly FLOATING_ACTIVITYBAR_WIDTH = 36;
+	/** Comfortable dimensions used when the floating panels (Modern UI) experiment is enabled. */
+	static readonly FLOATING_ACTION_HEIGHT = 44;
+	static readonly FLOATING_ACTIVITYBAR_WIDTH = 48;
 	static readonly FLOATING_COMPACT_ACTIVITYBAR_WIDTH = 28;
 
 	/**
@@ -60,14 +60,14 @@ export class ActivitybarPart extends Part {
 	 * panels experiment. Published to CSS as `--activity-bar-action-gap` so that the
 	 * stylesheet and the overflow computation cannot drift apart.
 	 */
-	static readonly FLOATING_ACTION_GAP = 8;
+	static readonly FLOATING_ACTION_GAP = 0;
 
 	/**
 	 * The compact Modern UI density tightens that gap to match its denser rhythm.
 	 */
 	static readonly FLOATING_COMPACT_ACTION_GAP = 4;
 
-	static readonly ICON_SIZE = 24;
+	static readonly ICON_SIZE = 20;
 	static readonly COMPACT_ICON_SIZE = 16;
 
 	/**

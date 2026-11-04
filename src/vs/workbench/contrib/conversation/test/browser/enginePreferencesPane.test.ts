@@ -34,6 +34,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
+import { asCssVariableName, getSizeRegistry, isSizeDefaults, sizeValueToCss } from '../../../../../platform/theme/common/sizeRegistry.js';
 
 const ENGINE_DISCONNECTED_COPY = getConnectionPhaseStatusBarText({ kind: 'disconnected' });
 const FAKE_ENGINE_LABELS = ['Local Engine', '127.0.0.1:8080'];
@@ -293,6 +294,25 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('narrow navigation uses the available height instead of a width cap as its flex height', async () => {
+		const pane = mountPane(false);
+		const host = document.createElement('div');
+		host.className = 'monaco-workbench';
+		host.style.width = '440px';
+		document.body.appendChild(host);
+		host.appendChild(pane.getDomNode());
+		try {
+			pane.layout(new Dimension(440, 900));
+			(pane.getDomNode().querySelector('.engine-preferences-back') as HTMLButtonElement).click();
+			await timeout(30);
+			const nav = pane.getDomNode().querySelector('.engine-preferences-nav') as HTMLElement;
+			assert.ok(nav.clientHeight > 480, 'all fifteen navigation rows should fit when there is enough vertical room');
+			assert.ok(nav.clientWidth <= 280, 'the narrow navigation width cap should still apply');
+		} finally {
+			host.remove();
+		}
+	});
+
 	test('disconnected pane keeps fifteen-section navigation with zero catalog rows and zero write buttons', async () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
@@ -385,7 +405,7 @@ suite('EnginePreferencesPane', () => {
 		assert.notStrictEqual(badge.style.display, 'none');
 		const listRow = agentsRow.closest('.monaco-list-row') as HTMLElement | null;
 		assert.ok(listRow);
-		assert.strictEqual(listRow!.style.height, '22px');
+		assert.strictEqual(listRow!.style.height, '32px');
 
 		container.remove();
 	});
@@ -458,6 +478,63 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(cleared.style.display, 'none');
 
 		container.remove();
+	});
+
+	test('Tools viewport keeps profile controls outside the virtual list at wide and narrow widths', async () => {
+		const empty = createEmptyCapabilitySnapshot();
+		const capabilities: UniverseAgentCapabilitySnapshot = {
+			...empty,
+			tools: { ...empty.tools, support: 'SUPPORTED' },
+			agentProfiles: { ...empty.agentProfiles, support: 'SUPPORTED' },
+		};
+		const pane = mountPane(true, {
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({ transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false, capabilities }),
+			listTools: async () => ({ tools: Array.from({ length: 174 }, (_, index) => ({ name: `tool_${index}`, description: 'A long technical description. '.repeat(12) })) }),
+			listAgentProfiles: async () => ({ profiles: [{ id: 'long-profile', name: 'tools-lifecycle-20261102-with-a-long-profile-name', source: 'user' }] }),
+		});
+		const host = document.createElement('div');
+		host.className = 'monaco-workbench';
+		for (const contribution of getSizeRegistry().getSizes()) {
+			const value = contribution.defaults && isSizeDefaults(contribution.defaults) ? contribution.defaults.light : contribution.defaults;
+			if (value) {
+				host.style.setProperty(asCssVariableName(contribution.id), sizeValueToCss(value));
+			}
+		}
+		document.body.appendChild(host);
+		host.appendChild(pane.getDomNode());
+		try {
+			for (const width of [1200, 440]) {
+				host.style.width = `${width}px`;
+				pane.layout(new Dimension(width, 760));
+				pane.selectSection('tools');
+				await timeout(50);
+				const container = pane.getDomNode();
+				const body = container.querySelector('.engine-preferences-detail-body') as HTMLElement;
+				const section = container.querySelector('.engine-tools-section') as HTMLElement;
+				const list = section.querySelector('.engine-catalog-list') as HTMLElement;
+				const profile = section.querySelector('.engine-tools-profile-card') as HTMLElement;
+				const name = section.querySelector('.engine-catalog-name') as HTMLElement;
+				const description = section.querySelector('.engine-catalog-description') as HTMLElement;
+				const control = section.querySelector('[role="switch"]') as HTMLElement;
+				assert.ok(list.clientHeight > 100 && list.clientHeight < body.clientHeight - profile.clientHeight);
+				assert.ok(body.scrollHeight <= body.clientHeight + 1, 'outer body must not scroll the same tools');
+				assert.ok(description.getBoundingClientRect().top >= name.getBoundingClientRect().bottom - 1, 'subtitle must have its own line');
+				assert.ok(control.getBoundingClientRect().left >= name.getBoundingClientRect().right, 'control must stay after the text');
+				assert.ok(control.getBoundingClientRect().width > control.getBoundingClientRect().height, 'switch must retain a track, not collapse to a circle');
+				assert.ok(section.scrollWidth <= section.clientWidth, 'long descriptions and profiles must fit');
+				control.focus();
+				control.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32, bubbles: true }));
+				const focused = document.activeElement as HTMLElement;
+				assert.deepStrictEqual({ tool: focused.dataset.toolName, checked: focused.getAttribute('aria-checked') }, { tool: 'tool_0', checked: width === 1200 ? 'false' : 'true' });
+			}
+			pane.layout(new Dimension(440, 300));
+			await timeout(50);
+			const body = pane.getDomNode().querySelector('.engine-preferences-detail-body') as HTMLElement;
+			assert.ok(body.classList.contains('has-short-tools') && body.scrollHeight > body.clientHeight, 'short panes must allow access to all controls');
+		} finally {
+			host.remove();
+		}
 	});
 
 	test('Tools nav badge tracks listed tools and drops when the catalog is cleared', async () => {

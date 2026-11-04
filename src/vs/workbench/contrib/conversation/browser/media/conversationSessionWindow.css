@@ -28,6 +28,12 @@
 	border-inline-start: 1px solid color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
 }
 
+/* Split leaves and their session bars need a structural edge in high contrast.
+ * The low-opacity foreground mix is intentionally too quiet for hc-black/hc-light. */
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-session-leaf.conversation-session-leaf-secondary {
+	border-inline-start-color: var(--vscode-contrastBorder);
+}
+
 .monaco-workbench .part.conversation .conversation-session-leaf-chrome {
 	flex-shrink: 0;
 	display: flex;
@@ -42,7 +48,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: 11px;
+	font-size: var(--vscode-fontSize-label2, 11px);
 	color: var(--vscode-descriptionForeground);
 }
 
@@ -63,6 +69,19 @@
 	   Reserve its slot here so window-nav (a sibling after the lens bar) is not covered. */
 	padding-inline-end: 30px;
 	overflow: hidden;
+}
+
+/* Keep the active split legible while focus moves between its editor and chrome. */
+.monaco-workbench .part.conversation .conversation-session-leaf:focus-within > .conversation-session-leaf-session-bar > .conversation-lens-session-bar {
+	box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vscode-focusBorder) 55%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-session-leaf:focus-within > .conversation-session-leaf-session-bar > .conversation-lens-session-bar {
+	box-shadow: inset 0 1px 0 var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-session-leaf-session-bar {
+	border-bottom-color: var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-session-bar > .conversation-lens-session-bar {

@@ -37,9 +37,8 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
-import { captureEnginePublishedLinkOwner, isSameEnginePublishedLinkOwner, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
-import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { captureEnginePublishedLinkOwner, captureEngineWriteLink, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
@@ -70,8 +69,6 @@ const $ = DOM.$;
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
-
-type EngineWriteLink = UniverseAgentPublishedLinkOwner;
 
 export const ENGINE_AGENTS_CREATE_SUCCESS_COPY = localize('ua.engineAgentsCreateSuccess', "Created.");
 export const ENGINE_AGENTS_DELETE_SUCCESS_COPY = localize('ua.engineAgentsDeleteSuccess', "Deleted.");
@@ -628,12 +625,16 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		const detailOpen = this.detailHost.style.display !== 'none';
-		const split = detailOpen && width >= AGENT_SPLIT_MIN_WIDTH;
+		const split = detailOpen && width >= AGENT_SPLIT_MIN_WIDTH && viewportHeight >= 360;
 		this.container.classList.toggle('is-split', split);
-		this.container.style.height = `${viewportHeight}px`;
-		this.container.style.overflow = 'hidden';
+		// Stacked editors belong to the outer settings scroller. A fixed-height
+		// stack can shrink the body and Save into an inaccessible inner viewport.
+		this.container.style.height = !detailOpen || split ? `${viewportHeight}px` : '';
+		this.container.style.overflow = !detailOpen || split ? 'hidden' : '';
 
-		const bodyHeight = this.measureBodyHeight(viewportHeight);
+		const bodyHeight = !detailOpen || split
+			? this.measureBodyHeight(viewportHeight)
+			: Math.max(0, viewportHeight - this.chromeAboveListHeight());
 		if (split) {
 			const listWidth = agentListColumnWidth(width);
 			const listHeight = this.listViewportHeight(contentHeight, bodyHeight, false);
@@ -780,7 +781,12 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private publishedWriteLink(): EngineWriteLink | undefined {
-		return captureEnginePublishedLinkOwner(this.connection);
+		const link = captureEngineWriteLink(this.connection);
+		const owner = captureEnginePublishedLinkOwner(this.connection);
+		if (!link || !owner || !isSameEnginePublishedLinkOwner(this.connection, link) || !isSameEngineWriteLink(this.connection, link)) {
+			return undefined;
+		}
+		return link;
 	}
 
 	/** Published identity and link. Disconnect and pairing-hold still drop the result; catalog mode does not. */
@@ -788,11 +794,7 @@ export class EngineAgentsSection extends Disposable {
 		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
 			return false;
 		}
-		if (!isSameEnginePublishedLinkOwner(this.connection, link)) {
-			return false;
-		}
-		const current = this.publishedWriteLink();
-		return current !== undefined && current.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+		return isSameEnginePublishedLinkOwner(this.connection, link) && isSameEngineWriteLink(this.connection, link);
 	}
 
 	private sameSelectedProfile(profileId: string, selectionGeneration: number): boolean {
@@ -1326,7 +1328,7 @@ export class EngineAgentsSection extends Disposable {
 			this.connection.isEngineConnected()
 			&& (this.mode === 'failed' || this.mode === 'loading')
 			&& this.hasLeftoverAgentDetail()
-		) || this.keepLeftoverCatalogForPairingHold(this.hasLeftoverAgentDetail());
+		) || keepLeftoverCatalogForPairingHold(this.hasLeftoverAgentDetail(), this.connection);
 		const show = (canShowCatalogRows(this.mode) && !!this.selectedProfile) || keepLeftoverDetail;
 		this.detailHost.style.display = show ? '' : 'none';
 		if (show) {
@@ -1638,7 +1640,7 @@ export class EngineAgentsSection extends Disposable {
 			if (this.agentTools.length === 0) {
 				return;
 			}
-		} else if (this.keepLeftoverCatalogForPairingHold(this.agentTools.length > 0)) {
+		} else if (keepLeftoverCatalogForPairingHold(this.agentTools.length > 0, this.connection)) {
 			this.toolsStatus.render({
 				mode: 'disconnected',
 				featureLabel: AGENT_TOOLS_FEATURE,
@@ -1743,10 +1745,6 @@ export class EngineAgentsSection extends Disposable {
 		return ok && !this._store.isDisposed;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private closeLeftoverAgentsEditorChrome(): void {
 		// D433: UNKNOWN leftover / list-fail leftover must close leftover
 		// user AGENTS.md Save chrome on refresh; do not wait for another
@@ -1776,7 +1774,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();
@@ -1987,14 +1985,14 @@ export class EngineAgentsSection extends Disposable {
 					this.connection.isEngineConnected()
 					&& (this.mode === 'failed' || this.mode === 'loading')
 					&& hasLeftoverMarkdown
-				) || this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown);
+				) || keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown, this.connection);
 				if (!keepLeftoverMarkdown) {
 					this.retireAgentsEditorContext();
 					this.agentsEditorContainer.style.display = 'none';
 					this.agentsEditorInput.value = '';
 					this.agentsEditorInput.inputElement.readOnly = true;
 					this.agentsEditorSaveButton.enabled = false;
-				} else if (this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown)) {
+				} else if (keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown, this.connection)) {
 					this.updateAgentsEditorChrome();
 					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy(), 'error');
 				}

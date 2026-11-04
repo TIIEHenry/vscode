@@ -42,8 +42,10 @@ import {
 	formatEngineClipboardWriteLabel,
 } from './engineClipboardList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
+
+import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
 
 const $ = DOM.$;
 const dom = DOM;
@@ -321,10 +323,6 @@ export class EngineClipboardSection extends Disposable {
 		}
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private isClipboardWritePairingHold(): boolean {
 		return isConversationPairingHold(this.connection);
 	}
@@ -344,7 +342,7 @@ export class EngineClipboardSection extends Disposable {
 		this.updateWriteAction();
 		this.updateReadAction();
 		this.updateClearAction();
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
@@ -407,7 +405,11 @@ export class EngineClipboardSection extends Disposable {
 			row.setAttribute('role', 'listitem');
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
-			row.textContent = formatEngineClipboardListLabel(entry);
+			appendCatalogSettingFields(row, [
+				{ role: 'name', value: entry.label },
+				{ role: 'kind', value: entry.type },
+				{ role: 'identity', value: entry.clipId },
+			], formatEngineClipboardListLabel(entry));
 			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => {
 				if (this._store.isDisposed) {
 					return;

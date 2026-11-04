@@ -12,6 +12,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import {
@@ -26,6 +27,15 @@ import { ENGINE_BIND_FAILED_SESSION_ID } from './conversationEngineRosterService
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const IConversationSessionWindowService = createDecorator<IConversationSessionWindowService>('conversationSessionWindowService');
+
+/** Visible session leaves for this workspace. Machine-local, same scope as the roster. */
+export const CONVERSATION_SESSION_WINDOW_LAYOUT_KEY = 'conversation.sessionWindows.v1';
+
+export interface ConversationSessionWindowLayoutV1 {
+	readonly version: 1;
+	readonly primarySessionKey?: string;
+	readonly visibleSessionKeys: readonly string[];
+}
 
 export interface IConversationSessionLeafSlots {
 	readonly sessionKey: string;
@@ -90,8 +100,13 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	private primaryBootstrapGeneration = 0;
 	private pendingReveal: { sessionKey: string; options?: { replace?: string } } | undefined;
 	private revealInFlight: IRevealInFlight | undefined;
+	private readonly storageService: IStorageService | undefined;
 	private readonly leaves = new Map<string, IConversationSessionLeaf>();
 	private readonly leafOrder: string[] = [];
+	private layoutRestoreFinished = false;
+	private restoringLayout = false;
+	private pendingLayoutRestore = false;
+	private restoreInFlight: Promise<void> | undefined;
 
 	private readonly _onDidChangeVisibleWindows = this._register(new Emitter<void>());
 	readonly onDidChangeVisibleWindows = this._onDidChangeVisibleWindows.event;
@@ -105,8 +120,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
 		@ILogService private readonly logService: ILogService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IStorageService storageService: IStorageService,
 	) {
 		super();
+		this.storageService = storageService;
 
 		const slots = this.conversationPartService.getSlots();
 		if (slots) {
@@ -135,7 +152,18 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (this.isFocusedSessionAlreadyGone()) {
 				return;
 			}
+			// Leaf restore focuses the saved session itself. Ignore the echo.
+			if (this._store.isDisposed || this.restoringLayout) {
+				return;
+			}
+			if (this.queuePersistedLeafRestore()) {
+				return;
+			}
 			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError);
+		}));
+
+		this._register(this.rosterService.onDidChangeSession(() => {
+			this.queuePersistedLeafRestore();
 		}));
 
 		if (this.rosterService.onDidDeleteSession) {
@@ -523,11 +551,19 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 				return;
 			}
 			const pending = this.pendingReveal;
-			this.pendingReveal = undefined;
-			if (pending) {
+			// An explicit replace, or a reveal queued before any saved-leaf restore, still wins.
+			if (pending?.options?.replace || (pending && !this.pendingLayoutRestore)) {
+				this.pendingReveal = undefined;
 				void this.revealSessionWindow(pending.sessionKey, pending.options).catch(onUnexpectedError);
 				return;
 			}
+			if (this.pendingLayoutRestore || this.savedLeavesMatchRoster()) {
+				this.pendingLayoutRestore = false;
+				this.pendingReveal = undefined;
+				void this.restorePersistedLeaves().catch(onUnexpectedError).catch(onUnexpectedError);
+				return;
+			}
+			this.pendingReveal = undefined;
 			// First list is still in flight: active id is "" and getSessions() is empty.
 			// Bootstrapping that id leaves a primary leaf stuck on "Session unavailable".
 			const sessionKey = this.rosterService.getActiveSessionId();
@@ -825,7 +861,141 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	private fireVisibleWindowsChange(): void {
 		this.layoutVisibleLeaves();
+		this.persistVisibleLeaves();
 		this._onDidChangeVisibleWindows.fire();
+	}
+
+	/**
+	 * No primary yet, and the saved visible leaves are still on the roster.
+	 * Restore that pair instead of opening only the active session.
+	 * Returns true when this call owned the restore (including "wait for the grid").
+	 */
+	private queuePersistedLeafRestore(): boolean {
+		if (this.primarySessionKey || this.layoutRestoreFinished || !this.savedLeavesMatchRoster()) {
+			return false;
+		}
+		if (!this.gridHost) {
+			this.pendingLayoutRestore = true;
+			return true;
+		}
+		void this.restorePersistedLeaves().catch(onUnexpectedError).catch(onUnexpectedError);
+		return true;
+	}
+
+	private savedLeavesMatchRoster(): boolean {
+		const layout = this.readPersistedLayout();
+		if (!layout) {
+			return false;
+		}
+		const known = new Set(this.rosterService.getSessions().map(session => session.id));
+		return layout.visibleSessionKeys.some(sessionKey => known.has(sessionKey));
+	}
+
+	private restorePersistedLeaves(): Promise<void> {
+		if (!this.restoreInFlight) {
+			const task = this.doRestorePersistedLeaves().finally(() => {
+				if (this.restoreInFlight === task) {
+					this.restoreInFlight = undefined;
+				}
+			});
+			this.restoreInFlight = task;
+		}
+		return this.restoreInFlight;
+	}
+
+	private async doRestorePersistedLeaves(): Promise<void> {
+		if (!this.gridHost || this.primarySessionKey || this.layoutRestoreFinished) {
+			return;
+		}
+		const layout = this.readPersistedLayout();
+		const known = new Set(this.rosterService.getSessions().map(session => session.id));
+		const visible = (layout?.visibleSessionKeys ?? [])
+			.filter(sessionKey => known.has(sessionKey))
+			.slice(0, CONVERSATION_SESSION_WINDOW_MAX_LEAVES);
+		const primary = layout?.primarySessionKey && visible.includes(layout.primarySessionKey)
+			? layout.primarySessionKey
+			: visible[0];
+		if (!primary) {
+			return;
+		}
+		const focusTarget = this.rosterService.getActiveSessionId();
+		this.layoutRestoreFinished = true;
+		this.restoringLayout = true;
+		try {
+			await this.ensurePrimaryWindow(primary);
+			const beside = visible.find(sessionKey => sessionKey !== primary);
+			if (beside && this.getPrimarySessionKey()) {
+				await this.openSessionBeside(beside);
+			}
+			if (focusTarget && this.isSessionWindowVisible(focusTarget)) {
+				this.focusLeaf(focusTarget);
+			} else if (
+				focusTarget
+				&& focusTarget !== ENGINE_BIND_FAILED_SESSION_ID
+				&& this.rosterService.getSessions().some(session => session.id === focusTarget)
+				&& !this.isSessionWindowVisible(focusTarget)
+			) {
+				await this.revealSessionWindow(focusTarget);
+			}
+		} finally {
+			this.restoringLayout = false;
+			this.persistVisibleLeaves();
+		}
+	}
+
+	private readPersistedLayout(): ConversationSessionWindowLayoutV1 | undefined {
+		if (!this.storageService) {
+			return undefined;
+		}
+		const raw = this.storageService.get(CONVERSATION_SESSION_WINDOW_LAYOUT_KEY, StorageScope.WORKSPACE);
+		if (!raw) {
+			return undefined;
+		}
+		try {
+			const parsed = JSON.parse(raw) as Partial<ConversationSessionWindowLayoutV1> | null;
+			if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.visibleSessionKeys)) {
+				return undefined;
+			}
+			const visibleSessionKeys = parsed.visibleSessionKeys.filter((sessionKey): sessionKey is string =>
+				typeof sessionKey === 'string' && sessionKey.trim().length > 0 && sessionKey !== ENGINE_BIND_FAILED_SESSION_ID
+			);
+			if (visibleSessionKeys.length === 0) {
+				return undefined;
+			}
+			const primarySessionKey = typeof parsed.primarySessionKey === 'string' && visibleSessionKeys.includes(parsed.primarySessionKey)
+				? parsed.primarySessionKey
+				: visibleSessionKeys[0];
+			return { version: 1, primarySessionKey, visibleSessionKeys };
+		} catch {
+			return undefined;
+		}
+	}
+
+	private persistVisibleLeaves(): void {
+		if (!this.storageService || this.restoringLayout) {
+			return;
+		}
+		const visible = this.getVisibleSessionKeys().filter(sessionKey => sessionKey !== ENGINE_BIND_FAILED_SESSION_ID);
+		if (visible.length === 0) {
+			return;
+		}
+		const primary = this.primarySessionKey && visible.includes(this.primarySessionKey)
+			? this.primarySessionKey
+			: visible[0];
+		if (!primary) {
+			return;
+		}
+		const layout: ConversationSessionWindowLayoutV1 = {
+			version: 1,
+			primarySessionKey: primary,
+			visibleSessionKeys: [primary, ...visible.filter(sessionKey => sessionKey !== primary)].slice(0, CONVERSATION_SESSION_WINDOW_MAX_LEAVES),
+		};
+		this.storageService.store(
+			CONVERSATION_SESSION_WINDOW_LAYOUT_KEY,
+			JSON.stringify(layout),
+			StorageScope.WORKSPACE,
+			StorageTarget.MACHINE,
+		);
 	}
 
 	override dispose(): void {

@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r01：base 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 2，weaken 3。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 2，weaken 3。r01-3 实施前补两条：模型自持的取消源在 dispose 时取消，调用方 token 只拒绝它自己的等待。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r01：base 方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 只改发现稿里仍然成立的行为。不改发现稿，不改生产代码。
@@ -67,3 +68,15 @@ summary: "hold 2，weaken 3。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿，Critical 无。Important 已改：r01-3 不再要求同一次共享加载既因调用方取消而拒绝、又在稍后成功；r01-5 的验证改为 `activeSession` 已经为真，并接住 `super.dispose()` 再次入队后 `ThrottledDelayer.dispose` 的 `CancellationError`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`：2026-10-30 之后没有提交改到所引文件，工作区的未提交改动也不涉及 `src/vs/base`。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r01-1 | 签 | `IndexedDB.getKeyValues` 出错仍 `resolve(items)`。只影响 web 版，`web.main.ts` 的 try/catch 接住 `init()` 的拒绝，启动不会崩。 |
+| r01-2 | 签 | `Throttler.queue` 外层 Promise 仍只有 `resolve`。 |
+| r01-3 | 签（收窄） | 实施前照同文件 `PageIteratorPager` 补两条：`IterativePagedModel` 自持的 `CancellationTokenSource` 在 `dispose()` 里取消；调用方 token 在加载途中取消时只拒绝它自己的等待。缺这两条，已取消的调用方仍拿到成功结果，`listPaging.ts` 不看 token 就把内容画进已复用的行模板。 |
+| r01-4 | 签 | 验证要覆盖开始收到拒绝的两个调用方：`htmlFileSystemProvider.ts` 与 `fileImportExport.ts` 的 `await write`。 |
+| r01-5 | 签 | 先 `super.dispose()`、再取消 token、最后 `taskQueue.dispose` 的顺序成立。 |

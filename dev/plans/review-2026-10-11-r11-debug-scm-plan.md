@@ -1,14 +1,14 @@
 ---
 title: "方案 r11：debug-scm"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-23
-summary: "hold 5，drop 0，weaken 0。r11-2 冷启动 Run to Line、r11-3 输出消费失败已落；评论合并、保存失败启动调试、数据断点转换仍开。"
+updated: 2026-11-01
+summary: "hold 5，drop 0，weaken 0。五条均已落地：r11-1、r11-4、r11-5 由 07bb54d68b3，r11-2、r11-3 由 281589a56b1。2026-11-01 agent:kiro 只读核对，无待签条目，未重跑测试。不升 PRD。"
 ---
 # 方案 r11：debug-scm
 
-状态：草案。
+状态：已完成。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -120,3 +120,15 @@ hold 5，drop 0，weaken 0。
 
 ### 本地验证
 `debugSession.test.ts` 与 `debugModel.test.ts` 都没有 `sendDataBreakpoints` 在 `toDAP` 抛错时的用例。新增断言：`toDAP` 拒绝时，交给 `setBreakpointSessionData` 的值是 `verified === false` 且 `message` 为该错误文本的对象；`DataBreakpoint.message` 返回这段文本，`verified` 为 false。
+
+## 签收核对（2026-11-01）
+
+agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`，没有重跑测试。五条都已落地，本稿没有待签条目；上面 summary 里「评论合并、保存失败启动调试、数据断点转换仍开」已过时。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r11-1 | 已落地 | `07bb54d68b3`：待发评论合并时用正文拼接，新增 `commentsControllerResumePending.test.ts`。2026-10-30 r14-1 写明不改 `resumePendingComment`，不重复。 |
+| r11-2 | 已落地 | `281589a56b1`：冷启动只在 Inactive 时删临时断点，启动返回后已停在目标行就删断点并返回。2026-10-24 r11-1 在同一函数里接着改了会话 Running 时的清理，两者互补。 |
+| r11-3 | 已落地 | `281589a56b1`：`consume` 返回布尔，三个写入点先判断再写。 |
+| r11-4 | 已落地 | `07bb54d68b3`：`saveAllBeforeDebugStart` 返回布尔，保存失败不启动调试。2026-10-24 r11-2 管配置替换失败，不重复。 |
+| r11-5 | 已落地 | `07bb54d68b3`：数据断点错误写成 `{ verified: false, message }`，新增 `debugSessionDataBreakpoints.test.ts`。 |

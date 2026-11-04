@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r13：终端笔记调试方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "保留 4 条，降级 0 条。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。保留 4 条。r13-4 不做每次 persist 的读回校验。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r13：终端笔记调试方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -119,3 +120,14 @@ summary: "保留 4 条，降级 0 条。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r13-2 的 store 必须跟着 `resort` 和 `clear` 走，不能只改 `push` 的下标。Important 已改：r13-3 的过期要让 `doRestart` 和 `doCreateSession` 认出来，不能只从 `Promise<void>` 里返回；r13-4 对抛错和空读都重写，磁盘实现缺文件时抛的是 `FileOperationError`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r13-1 | 签 | 会话自动批准时只把放开网络加回确认，脱离沙箱仍被放行。 |
+| r13-2 | 签 | `clear` 时 dispose 被清掉结果的 store 是新行为，实施时补一条断言。 |
+| r13-3 | 签 | 签名扫描在 `debug/test/node/debugLeftoverPromiseCatchScanD847.test.ts`，方案没写路径。`debugService.ts` 构造里还有一处 `.catch(onUnexpectedError)` 调用方（扩展宿主 attach），方案没列，过期拒绝在那里也要认出来。 |
+| r13-4 | 签（收窄） | 排除「每次 persist 都读回已存文件做校验」：先写完再提交索引、写失败保留旧索引、两次 persist 串行，坏索引就不会再产生；启动时 `read()` 会清掉缺文件的条目，而 `persistImmediately` 先 `await loadResults()`。读回校验每 500ms 最多要读 128 个文件，超出最小范围。 |

@@ -1,14 +1,14 @@
 ---
 title: "方案 r09：conversation"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-11
-summary: "hold 4，drop 0，weaken 0。重叠的权限与模型切换按会话丢掉过期结果，删除事件和空名册缓存等删除生效后再落定。"
+updated: 2026-11-01
+summary: "hold 4，drop 0，weaken 0。四条已由 fb38b39d40d、5cbba3b78d3 落地，之后 2026-10-24 r07（ADR-012）改写了 leftover 语义。模型回滚点残留由 2026-10-30 r11-3 承接。2026-11-01 agent:kiro 只读核对，无待签条目，未重跑测试。不升 PRD。"
 ---
 # 方案 r09：conversation
 
-状态：草案。
+状态：已完成。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -110,3 +110,14 @@ hold 4，drop 0，weaken 0。
 保留：`connected deleteSession last entry remote throw rolls back roster and bind-failed empty-state`。throw 之后该会话仍在名册里，存储里的该引擎桶仍含该会话。
 
 新增：连上引擎且只剩一条会话时，`deleteSession` resolve 之后，`CONVERSATION_ROSTER_STORAGE_KEY` 里该引擎桶的 `sessions` 为空。用这份 storage 再构造一个 roster，`getSessions` 不含被删 id，也不含它的 turns。`adoptSnapshotEngineIdentity` 换桶再换回时同样不装回。
+
+## 签收核对（2026-11-01）
+
+agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`，没有重跑测试。四条都已落地，本稿没有待签条目。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r09-1 | 已落地 | `5cbba3b78d3`：权限切换按会话代次串行，过期结果继续发最新目标，回滚用 `confirmedIndex`。之后 2026-10-24 r07（ADR-012）改为 leftover 保留引擎已接受的值；本条步骤 4「不可写就回滚」与 ADR-012 不一致，以 ADR-012 为准。 |
+| r09-2 | 已落地，残留另行承接 | `5cbba3b78d3`。切换在飞时 `applySessionModelIndex` 仍把回滚点改成被盖掉的乐观值，由 [2026-10-30 r11-3](review-2026-10-30-r11-conversation-plan.md) 承接。 |
+| r09-3 | 已落地 | `fb38b39d40d`：远程删除成功后才 fire 删除事件，拒绝时不 fire。 |
+| r09-4 | 已落地 | `5cbba3b78d3`：远程删空时不做乐观持久化，成功且名册为空时写空桶。 |

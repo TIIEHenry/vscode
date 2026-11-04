@@ -49,11 +49,13 @@ suite('SettingsEditor2', () => {
 			const control = DOM.append(DOM.append(contents, DOM.$('.setting-item-value')), DOM.$('.setting-item-control'));
 			const select = DOM.append(control, DOM.$('select'));
 			DOM.append(select, DOM.$('option')).textContent = 'Comfortable';
+			const upstreamRowHeight = contents.getBoundingClientRect().height;
 			for (const client of [true, false, true]) {
 				root.classList.toggle('ua-client-settings', client);
 				await timeout(0);
 				const rootBounds = root.getBoundingClientRect();
 				const selectBounds = select.getBoundingClientRect();
+				assert.deepStrictEqual({ rowHeight: contents.getBoundingClientRect().height, groupHeight: groupRow.getBoundingClientRect().height }, { rowHeight: upstreamRowHeight, groupHeight: 42 }, 'visual styling must preserve the measured virtual row geometry');
 				assert.deepStrictEqual({
 					searchVisible: search.getBoundingClientRect().width > 0,
 					titleVisible: title.getBoundingClientRect().height > 0,

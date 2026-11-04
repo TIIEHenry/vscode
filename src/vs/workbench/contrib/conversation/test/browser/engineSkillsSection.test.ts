@@ -274,7 +274,29 @@ suite('EngineSkillsSection (E1)', () => {
 		}
 	}
 
-	test('Skills: description stays beside the checkbox and the editor stays closed until a skill is selected', async () => {
+	test('Skills: measured editor height reduces the list budget without discarding its draft', async () => {
+		const section = mountSection(createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: Array.from({ length: 30 }, (_, index) => ({ name: `skill-${index}`, source: 'user' as const, enabled: true, description: 'Skill description' })) }),
+			getSkillInfo: async () => ({ name: 'skill-0', source: 'user', enabled: true, content: '# Original' }),
+		}));
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.selectSkillForTest('skill-0');
+		await flushMicrotasks();
+		section.setSelectedSkillBody('# Unsaved draft');
+		const editor = section.getDomNode().querySelector('.engine-skill-body-editor') as HTMLElement;
+		editor.style.height = '200px';
+		section.layout(640, 400);
+		const list = section.getDomNode().querySelector('.engine-skills-list') as HTMLElement;
+		const height = Number.parseFloat(list.style.height);
+		assert.ok(height >= 80 && height <= 200, `list consumed the editor budget: ${height}`);
+		section.layout(320, 240);
+		assert.deepStrictEqual({ body: section.getSelectedSkillBody(), dirty: section.isSkillBodyDirty() }, { body: '# Unsaved draft', dirty: true });
+	});
+
+	test('Skills: description has its own line and the editor stays closed until a skill is selected', async () => {
 		const connection = createConnectionStub({
 			connected: true,
 			skillsSupport: 'SUPPORTED',
@@ -292,7 +314,7 @@ suite('EngineSkillsSection (E1)', () => {
 
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
 		const heights = rows.map(row => row.style.height);
-		assert.ok(heights.every(height => height === '24px'));
+		assert.deepStrictEqual(heights, ['28px', '44px', '28px', '32px']);
 		for (const row of rows) {
 			assert.notStrictEqual(row.style.lineHeight, '48px');
 		}
@@ -335,8 +357,8 @@ suite('EngineSkillsSection (E1)', () => {
 
 		section.layout(640, 400);
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')];
-		const enabledToggle = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'enabled-skill')?.querySelector('[role=checkbox]');
-		const disabledToggle = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'disabled-skill')?.querySelector('[role=checkbox]');
+		const enabledToggle = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'enabled-skill')?.querySelector('[role=switch]');
+		const disabledToggle = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'disabled-skill')?.querySelector('[role=switch]');
 		assert.ok(enabledToggle);
 		assert.ok(disabledToggle);
 		assert.strictEqual(enabledToggle?.getAttribute('aria-label'), 'Disable enabled-skill');

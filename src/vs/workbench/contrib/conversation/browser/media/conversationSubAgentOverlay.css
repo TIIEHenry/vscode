@@ -12,17 +12,30 @@
 .monaco-workbench .conversation-subagent-overlay {
 	position: absolute;
 	inset: 0;
+	/* Covers in-part timeline chrome, including the scroll-down button at z-index 2. Part popovers stay at 20; the visualize lightbox is 2600. */
 	z-index: 5;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: transparent;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay:focus:not(:focus-visible),
+.monaco-workbench .conversation-subagent-overlay:focus:not(:focus-visible) {
 	outline: none;
 }
 
-.monaco-workbench .part.conversation .conversation-subagent-overlay:focus,
-.monaco-workbench .conversation-subagent-overlay:focus {
-	outline: none;
+.monaco-workbench .part.conversation .conversation-subagent-overlay:focus-visible,
+.monaco-workbench .conversation-subagent-overlay:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-subagent-overlay:focus-visible,
+.monaco-workbench.hc-light .part.conversation .conversation-subagent-overlay:focus-visible,
+.monaco-workbench.hc-black .conversation-subagent-overlay:focus-visible,
+.monaco-workbench.hc-light .conversation-subagent-overlay:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder);
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay[hidden] {
@@ -56,9 +69,7 @@
 	border-radius: var(--vscode-cornerRadius-large, 8px);
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
 	background: var(--vscode-editor-background);
-	box-shadow:
-		0 16px 40px color-mix(in srgb, #000 12%, transparent),
-		0 2px 8px color-mix(in srgb, #000 6%, transparent);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow);
 }
 
 :is(.hc-black, .hc-light) .monaco-workbench .part.conversation .conversation-subagent-overlay-card {

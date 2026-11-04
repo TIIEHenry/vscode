@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-11-02
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；HEAD Engine 左栏 15 节，Rules 桌面可写，Hooks 仍只读；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -14,6 +14,14 @@ summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成�
 对照外仓：[IA](../../../../UniverseAgentDesktop/docs/product/information-architecture.md) Overlay 行、[ui-interaction-spec](../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md)、[Singularity Settings UI](../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/state/settings-ui-components-design.md)、[ADR-037](../../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md)。本仓壳事实：[映射](desktop-shell-mapping.md)、[缺口](gap-vs-desktop-shell.md)、[agent-ui](../../systems/chat/agent-ui.md)、[companion](../../systems/workbench/companion-contribs.md)。
 
 本页写 **怎么接**，不是实施切片。**选定（已签收）** 见父方案；**已拍板** 不在此重开。
+
+## 视觉适配边界
+
+2026-11-02 用户 ChatGPT 设置参考图适配沿用上述混合宿主：Connection/Engine浅灰导航、居中最大760px内容列与白底弱描边分组。Connection导航及profile/device行32px，短表单左标签右控件，长地址/凭据独占行；私网许可为32×20开关。程序切换分区同步导航选择与标题，列表预算取实际DOM盒。Engine各目录与编辑区详见[engine-catalog](../../systems/workbench/engine-catalog.md#设置页视觉与滚动)。
+
+UA宿主的ActionBar与actions-container使用自然宽高及border-box，避免继承100%尺寸再叠padding导致分段内缩不对称。header与Engine断连条共用宽屏24px、窄屏16px安全边距；compact计入pane已有内衬。外层状态条与顶部同样属于视觉验证范围。
+
+Client仅在 `.settings-editor.ua-client-settings` 内调整背景、文字层级、圆角、描边与底部分隔线；不改变上游虚拟行高度、定位/transform、TOC delegate、表单结构或搜索布局。保持主题token、高对比边界及1px键盘focusBorder。所有连接、能力、保存和权限协议沿用。[验证证据](../../../dev/progress/preferences-visual-alignment-evidence/verification.md)不代表真实引擎产品验收。
 
 ## 1. 问题
 

@@ -97,11 +97,26 @@
 
 .monaco-workbench .navigator-team-list .monaco-list-row,
 .monaco-workbench .navigator-team-tasks-list .monaco-list-row {
-	border-radius: var(--vscode-cornerRadius-small, 4px);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
 	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row:hover,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list-row:hover {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list-row.selected {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 9%, transparent);
 }
 
 .monaco-workbench .navigator-team-list .monaco-list-row:active,
 .monaco-workbench .navigator-team-tasks-list .monaco-list-row:active {
 	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row:active,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list-row:active {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }

@@ -369,13 +369,13 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 			return bodyIncludes === undefined || candidate.body.includes(bodyIncludes);
 		});
 
-		// 1. Composer card: 20px radius, 10% hairline, input fill, faint widget shadow
+		// 1. Composer card: 24px radius, 8% hairline, input fill, faint widget shadow
 		const composer = rules.find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.match(composer!.body, /border:\s*1px solid color-mix\(in srgb, var\(--vscode-foreground\) 10%, transparent\)/);
+		assert.match(composer!.body, /border:\s*1px solid color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
 		assert.match(composer!.body, /input-background/);
-		assert.match(composer!.body, /--conversation-composer-radius:\s*20px/);
-		assert.match(composer!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*20px\)/);
+		assert.match(composer!.body, /--conversation-composer-radius:\s*24px/);
+		assert.match(composer!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*24px\)/);
 		assert.match(composer!.body, /var\(--vscode-widget-shadow\)/);
 		assert.ok(!/rgba\(/.test(composer!.body), 'composer card must not use hardcoded rgba in border or shadow');
 		assert.ok(!/#[0-9a-fA-F]{3,8}\b/.test(composer!.body), 'composer card must not hardcode a hex color');
@@ -384,7 +384,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		const focus = rule('.conversation-lens-composer:has(.conversation-lens-dock-input:focus-visible)');
 		assert.ok(focus);
 		assert.ok(focus!.selector.includes('.conversation-lens-composer:focus-within'));
-		assert.match(focus!.body, /border-color:\s*color-mix\(in srgb, var\(--vscode-foreground\) 20%, transparent\)/);
+		assert.match(focus!.body, /border-color:\s*color-mix\(in srgb, var\(--vscode-foreground\) 10%, transparent\)/);
 		assert.match(focus!.body, /var\(--vscode-widget-shadow\)/);
 		assert.ok(!/0\s+0\s+0\s+3px/.test(focus!.body));
 		assert.ok(!/rgba\(/.test(focus!.body), 'composer focus state must not use hardcoded rgba');
@@ -407,19 +407,19 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		const singleLine = rule('.conversation-lens-composer.is-single-line', 'flex-direction: column');
 		assert.ok(singleLine, 'missing .conversation-lens-composer.is-single-line rule');
 		assert.match(singleLine!.body, /align-items:\s*stretch/);
-		assert.match(singleLine!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*20px\)/);
+		assert.match(singleLine!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*24px\)/);
 		assert.ok(!/display:\s*contents/.test(singleLine!.body));
 
 		const input = rules.find(candidate => candidate.selector.includes('.conversation-lens-composer.is-single-line .conversation-lens-dock-input') && !candidate.selector.includes('.conversation-lens-dock-input-row'));
 		assert.ok(input);
-		assert.match(input!.body, /min-height:\s*32px/);
-		assert.match(input!.body, /max-height:\s*32px/);
-		assert.match(input!.body, /line-height:\s*32px/);
-		assert.ok(!/height:\s*24px/.test(input!.body));
+		assert.match(input!.body, /min-height:\s*48px/);
+		assert.match(input!.body, /max-height:\s*48px/);
+		assert.match(input!.body, /line-height:\s*24px/);
+		assert.ok(!/(?:^|;)\s*height:\s*24px/.test(input!.body));
 		assert.ok(!/display:\s*contents/.test(css), 'single-line no longer flattens the toolbar onto the field');
 	});
 
-	test('composer card uses a 20px shell and a 24px neutral send control', () => {
+	test('composer card uses a 24px shell and a 28px neutral send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
 		const rule = (selectorIncludes: string, bodyIncludes?: string) => collectCssRules(css).find(candidate => {
@@ -431,16 +431,16 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const cluster = rule('.conversation-lens-composer-cluster', 'padding:');
 		assert.ok(cluster);
-		assert.match(cluster!.body, /padding:\s*6px 12px 8px\s*;/);
+		assert.match(cluster!.body, /padding:\s*8px 16px 16px\s*;/);
 		assert.ok(!/42px/.test(cluster!.body));
 
 		const composer = collectCssRules(css).find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.match(composer!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*20px\)/);
-		assert.match(composer!.body, /box-shadow:\s*0 1px 2px/);
+		assert.match(composer!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*24px\)/);
+		assert.match(composer!.body, /box-shadow:\s*0 2px 4px/);
 		assert.match(composer!.body, /input-background/);
 
-		const field = rule('.conversation-lens-dock-input', 'padding: 4px 32px 0 16px');
+		const field = rule('.conversation-lens-dock-input', 'padding: 8px 36px 8px 12px');
 		assert.ok(field);
 
 		const focus = rule('.conversation-lens-composer:has(.conversation-lens-dock-input:focus-visible)');
@@ -462,16 +462,16 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(css.includes('.conversation-lens-composer-cluster:not(:has(.conversation-lens-composer))'));
 		assert.ok(css.includes('.conversation-lens-turn-edit-host'));
 
-		const bar = rule('.conversation-lens-dock-bottom-bar', 'min-height: 28px');
+		const bar = rule('.conversation-lens-dock-bottom-bar', 'min-height: 40px');
 		assert.ok(bar);
-		assert.match(bar!.body, /padding:\s*2px 12px 6px\s*;/);
+		assert.match(bar!.body, /padding:\s*4px 8px 8px\s*;/);
 		assert.match(bar!.body, /gap:\s*8px/);
 
-		const send = rule('.conversation-lens-dock-send-button.monaco-button', 'width: 24px');
+		const send = rule('.conversation-lens-dock-send-button.monaco-button', 'width: 28px');
 		assert.ok(send);
-		assert.match(send!.body, /height:\s*24px/);
-		assert.match(send!.body, /min-width:\s*24px/);
-		assert.match(send!.body, /min-height:\s*24px/);
+		assert.match(send!.body, /height:\s*28px/);
+		assert.match(send!.body, /min-width:\s*28px/);
+		assert.match(send!.body, /min-height:\s*28px/);
 		assert.match(send!.body, /background-color:\s*var\(--vscode-foreground\)/);
 		assert.ok(!/button-background/.test(send!.body));
 		assert.ok(!/rgb\(/.test(send!.body) && !/#fff/.test(send!.body));
@@ -849,8 +849,8 @@ suite('Conversation lens keyboard focus ring', () => {
 		const devListCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/connectionDeviceList.css'), 'utf8');
 
 		// 1. Lens tabs: 24px height, line-height 24px, unbolded selected state with toolbar-hoverBackground
-		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*height:\s*24px/s);
-		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*line-height:\s*24px/s);
+		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*height:\s*32px/s);
+		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*line-height:\s*32px/s);
 		assert.match(lensCss, /\.conversation-lens-lens-tab\[aria-selected="true"\]\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground\)/s);
 		assert.match(lensCss, /\.conversation-lens-lens-tab\[aria-selected="true"\]\s*\{[^}]*font-weight:\s*400/s);
 

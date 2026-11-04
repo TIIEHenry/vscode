@@ -13,6 +13,7 @@ import { Disposable, DisposableStore, toDisposable } from '../../../../../base/c
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
+import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -115,22 +116,22 @@ class RevealEngineSessionView extends Disposable implements IUniverseAgentSessio
 		return this.acquired.some(lease => lease.sessionId === sessionId && this.listening.has(lease.leaseId) && !this.released.has(lease.leaseId));
 	}
 
-	emitSession(sessionId: string, text: string): void {
+	emitSession(sessionId: string, text: string, agentId?: string): void {
 		for (const lease of this.acquired) {
 			if (lease.sessionId === sessionId) {
-				this.emitLease(lease.leaseId, text);
+				this.emitLease(lease.leaseId, text, agentId);
 			}
 		}
 	}
 
-	private emitLease(leaseId: string, text?: string): void {
+	private emitLease(leaseId: string, text?: string, agentId?: string): void {
 		const lease = this.acquired.find(candidate => candidate.leaseId === leaseId);
 		if (!lease || this.released.has(leaseId)) {
 			return;
 		}
 		const projection = stubTurnsToSnapshot(lease.sessionId, text === undefined ? [] : [
-			{ id: `${lease.sessionId}-body`, kind: 'user', text },
-			{ id: `${lease.sessionId}-permission`, kind: 'confirmation', text: `Permission for ${lease.sessionId}`, status: 'pending' },
+			{ id: `${lease.sessionId}-body`, kind: 'user', text, ...(agentId ? { agentId } : {}) },
+			{ id: `${lease.sessionId}-permission`, kind: 'confirmation', text: `Permission for ${lease.sessionId}`, status: 'pending', ...(agentId ? { agentId } : {}) },
 		]);
 		const version = (this.versions.get(leaseId) ?? 0) + 1;
 		this.versions.set(leaseId, version);
@@ -293,6 +294,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 					onNotifyError?.(message);
 				},
 			} as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		return {
@@ -602,7 +604,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return () => calls;
 	}
 
-	async function assertEngineFramePaints(harness: EngineRevealHarness, pane: ConversationEditorPane, sessionId: string, text: string): Promise<void> {
+	async function assertEngineFramePaints(harness: EngineRevealHarness, pane: ConversationEditorPane, sessionId: string, text: string, agentId?: string): Promise<void> {
 		const lens = pane.activeConversationLens;
 		assert.ok(lens);
 		const lease = lens.sessionViewLease;
@@ -630,7 +632,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		observer.observe(column, { childList: true, characterData: true, subtree: true });
 		const admitted = Event.toPromise(lease.onDidApplyFrame);
 		try {
-			harness.sessionView.emitSession(sessionId, text);
+			harness.sessionView.emitSession(sessionId, text, agentId);
 			await bounded(admitted, 'frame must be admitted by the actual Pane lease');
 			pane.layout({ width: 800, height: 600 });
 			check();
@@ -958,6 +960,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 					assert.strictEqual(oldBinds() - beforeReady, 0, 'late catalog/session notices cannot bind the retired owner');
 					assert.strictEqual(successorBinds() - successorBeforeReady, 1, 'only the current input listener may reconcile');
 					assert.strictEqual(harness.pane.activeConversationLens?.sessionViewLease?.sessionId, harness.primaryId);
+					await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L5 successor frame', 'successor');
 				} else {
 					assert.strictEqual(harness.pane.activeConversationLens, undefined);
 					assert.strictEqual(oldLens.isDisposed, true);
@@ -1457,6 +1460,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
 				},
 			} as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		await timeout(0);

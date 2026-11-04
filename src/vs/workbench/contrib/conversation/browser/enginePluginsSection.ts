@@ -27,7 +27,7 @@ import type {
 	UniverseAgentPluginSummary,
 	UniverseAgentScanNewPluginsResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import {
 	type EngineCatalogPaneMode,
@@ -260,9 +260,9 @@ export class EnginePluginsSection extends Disposable {
 		this.hooksTable.style.width = '100%';
 		const head = DOM.append(this.hooksTable, $('thead'));
 		const headRow = DOM.append(head, $('tr'));
-		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookType', "hook_type");
-		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookPriority', "priority");
-		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "class_name");
+		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookType', "Hook Type");
+		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookPriority', "Priority");
+		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "Class Name");
 		this.hooksBody = DOM.append(this.hooksTable, $('tbody'));
 
 		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError)));
@@ -456,7 +456,7 @@ export class EnginePluginsSection extends Disposable {
 					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
-				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
+				} else if (keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks(), this.connection)) {
 					this.keepLeftoverHooksDisconnected();
 				} else {
 					this.clearInfoPresentation();
@@ -466,12 +466,8 @@ export class EnginePluginsSection extends Disposable {
 		return this.list;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);

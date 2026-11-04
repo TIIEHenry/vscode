@@ -1,0 +1,227 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Editor-style settings keep their navigation/list separate from the document being edited. */
+.monaco-workbench .engine-preferences-detail-body > :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) {
+	padding: 0;
+	border: none;
+	background: transparent;
+}
+
+.monaco-workbench .engine-skills-section .engine-skills-list,
+.monaco-workbench .engine-skills-section .engine-skill-body-editor,
+.monaco-workbench .engine-agents-section .engine-agents-profile-list,
+.monaco-workbench .engine-agents-section .engine-agents-detail,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel > .engine-catalog-list,
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-list,
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-tools {
+	box-sizing: border-box;
+	min-height: 0;
+	border: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-xLarge);
+	background: var(--vscode-editor-background);
+}
+
+.monaco-workbench .engine-skills-section .engine-skills-list,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel > .engine-catalog-list,
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-list {
+	overflow: hidden;
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-body-editor,
+.monaco-workbench .engine-agents-section .engine-agents-detail {
+	padding: var(--vscode-spacing-size160);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row {
+	height: 100%;
+	gap: var(--vscode-spacing-size120);
+	padding: 0 var(--vscode-spacing-size160);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .engine-skills-section .monaco-list-row .engine-skill-text {
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: center;
+	gap: 0;
+}
+
+.monaco-workbench .engine-skills-section .monaco-list-row .engine-skill-name,
+.monaco-workbench .engine-skills-section .monaco-list-row .engine-skill-description {
+	flex: 0 1 auto;
+	min-width: 0;
+	line-height: 18px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-group {
+	height: 100%;
+	padding-inline: var(--vscode-spacing-size120);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-group-label {
+	line-height: 28px;
+	font-size: var(--vscode-fontSize-label1);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-body-toolbar {
+	justify-content: flex-end;
+	margin-bottom: var(--vscode-spacing-size120);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-body-input {
+	margin: 0;
+}
+
+.monaco-workbench .engine-agents-section .engine-agents-body {
+	gap: var(--vscode-spacing-size160);
+}
+
+.monaco-workbench .engine-agents-section:not(.is-split) .engine-agents-detail,
+.monaco-workbench .engine-agents-section.is-split .engine-agents-detail {
+	margin-top: 0;
+	padding: var(--vscode-spacing-size160);
+	border: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+}
+
+/* A stacked editor grows naturally; only the profile list owns an internal viewport. */
+.monaco-workbench .engine-agents-section:not(.is-split) .engine-agents-detail {
+	flex: 0 0 auto;
+	overflow: visible;
+}
+
+.monaco-workbench :is(.engine-agents-section, .engine-mcp-section) .engine-mcp-tab-bar {
+	width: fit-content;
+	max-width: 100%;
+	gap: var(--vscode-spacing-size20);
+	padding: var(--vscode-spacing-size20);
+	margin-bottom: var(--vscode-spacing-size160);
+	border-radius: var(--vscode-cornerRadius-large);
+	background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+}
+
+.monaco-workbench :is(.engine-agents-section, .engine-mcp-section) .engine-mcp-tab-bar .monaco-button {
+	min-height: var(--vscode-spacing-size280);
+	border: none;
+	border-radius: var(--vscode-cornerRadius-medium);
+	color: var(--vscode-descriptionForeground);
+	background: transparent;
+}
+
+.monaco-workbench :is(.engine-agents-section, .engine-mcp-section) .engine-mcp-tab-bar .monaco-button[aria-selected="true"] {
+	color: var(--vscode-foreground);
+	background: var(--vscode-editor-background);
+}
+
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-tools {
+	max-height: 260px;
+	overflow: auto;
+	padding: var(--vscode-spacing-size80);
+}
+
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-panel .engine-catalog-text {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0;
+}
+
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-panel .engine-catalog-name,
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-panel .engine-catalog-description {
+	min-width: 0;
+	line-height: 20px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) :is(.engine-skills-list, .engine-skill-body-editor, .engine-agents-profile-list, .engine-agents-detail, .engine-catalog-list) {
+	border-color: var(--vscode-contrastBorder);
+}
+
+.monaco-workbench :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) :is(input, textarea, select, .monaco-button):focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench .engine-mcp-section .engine-mcp-runtime-panel .engine-catalog-row {
+	height: 100%;
+	padding-inline: var(--vscode-spacing-size160);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .engine-agents-section :is(.engine-agents-editor-toolbar, .engine-catalog-write-toolbar) {
+	justify-content: flex-end;
+}
+
+.monaco-workbench .engine-agents-section .engine-agents-model-field {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(120px, 50%);
+	align-items: center;
+	gap: var(--vscode-spacing-size120);
+	padding-block: var(--vscode-spacing-size120);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+@container engine-settings (max-width: 440px) {
+	.monaco-workbench .engine-agents-section .engine-agents-model-field {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.monaco-workbench .engine-skills-section .monaco-list-row .engine-skill-description {
+	font-size: var(--vscode-fontSize-label1);
+}
+
+/* The shared Toggle widget owns keyboard/disabled state; these tracks mirror Tools. */
+.monaco-workbench .engine-skills-section .engine-skill-row > .monaco-custom-toggle,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle {
+	--ua-editor-setting-switch-track: color-mix(in srgb, var(--vscode-foreground) 12%, var(--vscode-editor-background));
+	position: relative;
+	flex: 0 0 auto;
+	float: none;
+	width: var(--vscode-spacing-size320);
+	height: var(--vscode-spacing-size200);
+	margin: 0;
+	padding: 0;
+	border-radius: var(--vscode-cornerRadius-circle);
+	background-color: var(--ua-editor-setting-switch-track);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row > .monaco-custom-toggle.checked,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle.checked {
+	--ua-editor-setting-switch-track: var(--vscode-textLink-foreground);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row > .monaco-custom-toggle::before,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle::before {
+	content: '';
+	position: absolute;
+	top: var(--vscode-spacing-size20);
+	left: var(--vscode-spacing-size20);
+	width: calc(var(--vscode-spacing-size160) - 2px);
+	height: calc(var(--vscode-spacing-size160) - 2px);
+	border-radius: var(--vscode-cornerRadius-circle);
+	background: var(--vscode-editor-background);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row > .monaco-custom-toggle.checked::before,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle.checked::before {
+	left: auto;
+	right: var(--vscode-spacing-size20);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row > .monaco-custom-toggle:focus-visible,
+.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: 2px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-skills-section .engine-skill-row > .monaco-custom-toggle,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle {
+	box-shadow: inset 0 0 0 var(--vscode-strokeThickness) var(--vscode-contrastBorder);
+}

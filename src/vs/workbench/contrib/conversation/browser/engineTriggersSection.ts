@@ -45,9 +45,11 @@ import {
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import type { ConnectionStatusTone } from './connectionPreferencesPaneLabels.js';
+
+import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
 
 const $ = DOM.$;
 const dom = DOM;
@@ -424,10 +426,6 @@ export class EngineTriggersSection extends Disposable {
 		writeStatus(this.upsertStatus, '');
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private isTriggerWritePairingHold(): boolean {
 		return isConversationPairingHold(this.connection);
 	}
@@ -459,7 +457,7 @@ export class EngineTriggersSection extends Disposable {
 		++this._deleteGeneration;
 		++this._upsertGeneration;
 		this.updateWriteActions();
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
@@ -521,9 +519,23 @@ export class EngineTriggersSection extends Disposable {
 			row.setAttribute('role', 'listitem');
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
-			row.textContent = formatEngineTriggerListLabel(trigger);
-			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => this.selectTrigger(trigger)));
-			this.listDisposables.add(dom.addDisposableListener(row, 'keydown', event => this.onTriggerRowKeyDown(event, trigger)));
+			appendCatalogSettingFields(row, [
+				{ role: 'name', value: trigger.name },
+				{ role: 'kind', value: trigger.type },
+				{ role: 'identity', value: trigger.triggerId },
+			], formatEngineTriggerListLabel(trigger));
+			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.selectTrigger(trigger);
+			}));
+			this.listDisposables.add(dom.addDisposableListener(row, 'keydown', event => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.onTriggerRowKeyDown(event, trigger);
+			}));
 		}
 	}
 

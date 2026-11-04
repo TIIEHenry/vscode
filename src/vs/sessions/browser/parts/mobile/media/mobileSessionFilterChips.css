@@ -26,6 +26,10 @@
 	overflow-y: hidden;
 	-webkit-overflow-scrolling: touch;
 	scrollbar-width: none;
+	/* Chip ::before pads 8px past the 28px chip. overflow-y:hidden clips that
+	 * pad, so it sits in this padding. The negative margin keeps the row height. */
+	padding-block: 8px;
+	margin-block: -8px;
 	/* Mask-based fade on the trailing edge so chips that scroll under the
 	 * pinned Find chip get visually softened instead of clipped abruptly. */
 	-webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
@@ -49,12 +53,19 @@
 	-webkit-user-select: none;
 	user-select: none;
 	touch-action: manipulation;
+	position: relative;
 	min-height: 28px;
 	border: 1px solid var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 15%, transparent));
 	background-color: transparent;
 	color: var(--vscode-foreground);
 	transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
 	flex-shrink: 0;
+}
+
+.mobile-session-filter-chip::before {
+	content: '';
+	position: absolute;
+	inset: -8px 0;
 }
 
 .mobile-session-filter-chip:active {

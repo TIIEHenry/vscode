@@ -16,6 +16,9 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 |------|------|
 | [tools-wiki-wave-2026-11-02](active/tools-wiki-wave-2026-11-02.md) | A/B旧波未闭；D1398 A1源码与同主题文档已在 merge HEAD 本地合入（`cca88013437`，`compile-client`/`valid-layers-check` 0 错误），真实默认窗口/钉死引擎门仍待。D1398 global hold、D1395 open，B 只读 F；C/E/F/main 与外部 WIP 保留，不宣称产品发布。 |
 | [session-owner-wave-2026-11-02](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md) | 已发布并归档；完整compile及D1393全链验收通过，外部提交保全，主工位WIP快进拒绝已原样记录 |
+| [其余设置页视觉并行实施](active/preferences-visual-alignment.md) | 三路组合完成；1101过/4pending，真实引擎窗口未验 |
+| [会话导航 GPT 参考图视觉](active/conversation-list-comfort.md) | 实施与本地验证中 |
+| [Engine 设置参考图视觉](active/engine-settings-visual.md) | 代码与组件验证完成；48项通过，真实窗口未验，仅视觉 |
 | [Sources local Git完成反馈（accepted/runtime pending）](../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档) | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；无实际checker结果，114仅静态，组件与运行准备全待。纯docs签收，四Sources完成与lease accepted/全部pending/运行最高优先/独立after保持。 |
 | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |
 | [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **A静态源码已peer并三路接入，整体accepted**：ed565双亲5e315/4f264、src3dc120，仅Reveal两新增，其余src ours；B准备/运行待另授。3a14实际official1/全.build FAILED及旧业务门禁不改。[源码接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |

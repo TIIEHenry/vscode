@@ -1,15 +1,16 @@
 ---
 title: "十六路审查 r10：chat 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 4，weaken 1。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收。hold 4，weaken 1，五条照签。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r10：chat 方案
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。说明见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 范围只含发现稿里仍对得上活码、且引用落在 `src/vs/workbench/contrib/chat` 的条目。方案只写改法。
@@ -67,3 +68,15 @@ summary: "hold 4，weaken 1。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r10-3 不再要求在 `acquireOrCreate` 成功之后清理转移副本，也不再让 `ChatService` 调用 private 的 `cleanupTransferredSession`。成功读取仍在 `readTransferredSession` 返回前清理，以保住 `readTransferredSession cleans up after reading`。Important 已改：r10-1 的关机断言改为先放开第一次 `writeFile`，等第一次 `finally` 跑完且第二次写入仍停住，再 `fireShutdown`。Minor 已并入：坏索引只跳过条目，`version !== 1` 和 `JSON.parse` 失败仍整表替换；转移路径还会追加工作区记录，但不删源会话。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引的 chat 文件 2026-10-30 之后没有提交，也没有未提交改动。五条都是上游 chat 的缺陷修复，不涉及 Agents Window 产品功能，不需要产品决定。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r10-1 | 签 | `storeSessions` / `storeSessionsMetadataOnly` 的 `finally` 仍无条件清 `storeTask`。 |
+| r10-2 | 签 | `isChatSessionIndex` 遇到一条坏条目仍整表判失败；`version`、`JSON.parse` 失败整表替换的分支保留。 |
+| r10-3 | 签 | 转移读取无论读没读到都清理；保留的转移项仍按 5 分钟期限过期。 |
+| r10-4 | 签 | `editFileTool.ts` 的等待仍不听 `token`。 |
+| r10-5 | 签 | `_deserializePendingRequests` 仍只有一个 try，任一条失败返回空队列。 |

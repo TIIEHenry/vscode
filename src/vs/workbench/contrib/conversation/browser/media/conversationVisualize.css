@@ -57,7 +57,7 @@
 
 .monaco-workbench .conversation-visualize-header:active,
 .monaco-workbench .part.conversation .conversation-visualize-header:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .conversation-visualize-header:focus,
@@ -144,7 +144,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-expand:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-expand:hover {
@@ -161,6 +161,7 @@
 	height: 100%;
 }
 
+/* Viewport lightbox. 2600 is workbench ZIndex.ModalDialog; that enum is not a CSS variable, so the value stays literal. */
 .monaco-workbench .conversation-visualize-overlay {
 	position: fixed;
 	inset: 0;
@@ -183,6 +184,7 @@
 	box-shadow: inset 0 0 0 2px var(--vscode-contrastBorder);
 }
 
+/* In-part copy of the same overlay, stacked with history and snapshot panels. */
 .monaco-workbench .part.conversation .conversation-visualize-overlay {
 	position: absolute;
 	inset: 0;
@@ -227,7 +229,7 @@
 }
 
 .monaco-workbench .conversation-visualize-overlay-header .monaco-button:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .conversation-visualize-overlay-title {
@@ -300,7 +302,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option:hover {

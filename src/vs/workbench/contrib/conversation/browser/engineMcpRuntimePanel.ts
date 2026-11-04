@@ -23,7 +23,7 @@ import type {
 	UniverseAgentMcpServerStatus,
 	UniverseAgentMcpToolDefinition,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import {
 	type EngineCatalogPaneMode,
@@ -141,6 +141,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	private readonly toolsMeta: HTMLElement;
 	private readonly toolsList: HTMLElement;
 	private list: WorkbenchList<EngineMcpRuntimeListEntry> | undefined;
+	private lastLayout: { readonly width: number; readonly height: number } | undefined;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpRuntimeListEntry[] = [];
@@ -186,7 +187,22 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.toolsList.setAttribute('aria-label', MCP_RUNTIME_TOOLS_FEATURE);
 		this.toolsList.style.display = 'none';
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError)));
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver(
+			'EngineMcpRuntimePanel.viewport', () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.layoutListViewport();
+			}, DOM.getWindow(this.container),
+		));
+		this._register(resizeObserver.observe(this.container));
+
+		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
+		}));
 		void this.refresh().catch(onUnexpectedError);
 	}
 
@@ -244,7 +260,19 @@ export class EngineMcpRuntimePanel extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.list?.layout(Math.max(80, Math.floor(height * 0.45)), width);
+		this.lastLayout = { width, height };
+		this.layoutListViewport();
+	}
+
+	private layoutListViewport(): void {
+		if (this._store.isDisposed || !this.list || !this.lastLayout) {
+			return;
+		}
+		const chrome = Math.max(0, DOM.getTotalHeight(this.container) - DOM.getTotalHeight(this.listContainer));
+		const budget = Math.max(104, this.lastLayout.height - chrome);
+		const height = Math.min(Math.max(104, this.listEntries.length * 52), budget);
+		this.listContainer.style.height = `${height}px`;
+		this.list.layout(height, DOM.getContentWidth(this.container) || this.lastLayout.width);
 	}
 
 	render(): void {
@@ -285,7 +313,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				if ((this.mode === 'failed' || this.mode === 'loading') && hadLivePaint) {
 					return;
 				}
-				if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverRuntimeTools() || hadLivePaint)) {
+				if (keepLeftoverCatalogForPairingHold(this.hasLeftoverRuntimeTools() || hadLivePaint, this.connection)) {
 					this.toolsStatus.render({
 						mode: 'disconnected',
 						featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
@@ -299,12 +327,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 		return this.list;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.refreshButton.enabled = false;
@@ -668,6 +692,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			}
 			const list = this.ensureList();
 			list.splice(0, list.length, this.listEntries);
+			this.layoutListViewport();
 			if (this.selectedServerId) {
 				const index = this.listEntries.findIndex(entry => entry.status.serverId === this.selectedServerId);
 				if (index >= 0) {

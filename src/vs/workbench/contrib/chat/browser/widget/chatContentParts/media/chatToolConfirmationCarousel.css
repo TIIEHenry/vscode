@@ -16,16 +16,28 @@
 	color: var(--vscode-foreground);
 	max-height: min(300px, 45vh);
 
-	&:focus {
+	&:focus:not(:focus-visible) {
 		outline: none !important;
 	}
 
 	&:focus-visible {
+		outline: 1px solid var(--vscode-focusBorder) !important;
+		outline-offset: -1px;
 		border-color: var(--vscode-focusBorder);
 	}
 
-	.chat-tool-carousel-content .chat-confirmation-widget-container:focus {
+	.hc-black &:focus-visible,
+	.hc-light &:focus-visible {
+		outline-color: var(--vscode-contrastActiveBorder) !important;
+	}
+
+	.chat-tool-carousel-content .chat-confirmation-widget-container:focus:not(:focus-visible) {
 		outline: none;
+	}
+
+	.chat-tool-carousel-content .chat-confirmation-widget-container:focus-visible {
+		outline: 1px solid var(--vscode-focusBorder);
+		outline-offset: -1px;
 	}
 
 	a {
@@ -95,10 +107,16 @@
 		margin-left: auto;
 	}
 
-	button:focus,
-	.monaco-button:focus {
+	button:focus:not(:focus-visible),
+	.monaco-button:focus:not(:focus-visible) {
 		outline: none !important;
 		box-shadow: none !important;
+	}
+
+	button:focus-visible,
+	.monaco-button:focus-visible {
+		outline: 1px solid var(--vscode-focusBorder);
+		outline-offset: -1px;
 	}
 
 	.chat-tool-carousel-nav-arrows {
@@ -119,8 +137,13 @@
 		max-height: min(650px, 70vh);
 	}
 
-	.monaco-list:focus {
+	.monaco-list:focus:not(:focus-visible) {
 		outline: none !important;
+	}
+
+	.monaco-workbench & .monaco-list:focus-visible {
+		outline: 1px solid var(--vscode-focusBorder) !important;
+		outline-offset: -1px;
 	}
 
 	.chat-tool-carousel-content {

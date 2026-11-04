@@ -7,7 +7,7 @@ import { getAgentProfileContentIssue } from '../../../../platform/universeAgent/
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
+import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -24,8 +24,8 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentAgentProfileSummary, UniverseAgentCapabilitySupport, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -72,7 +72,7 @@ type EngineToolListEntry =
 	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string; readonly count?: number }
 	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
 
-const TOOL_ROW_HEIGHT = 24;
+const TOOL_ROW_HEIGHT = 44;
 
 interface IToolWriteOperation {
 	readonly key: string;
@@ -120,8 +120,8 @@ function toolSubtitle(tool: UniverseAgentToolSummary): string {
 	return parts.join(' — ');
 }
 
-function toolEntryHeight(_entry: EngineToolListEntry): number {
-	return TOOL_ROW_HEIGHT;
+function toolEntryHeight(entry: EngineToolListEntry): number {
+	return entry.kind === 'group' ? 28 : toolSubtitle(entry.tool) ? TOOL_ROW_HEIGHT : 32;
 }
 
 class EngineToolListDelegate implements IListVirtualDelegate<EngineToolListEntry> {
@@ -165,7 +165,7 @@ class EngineToolGroupRenderer implements IListRenderer<EngineToolListEntry, IToo
 
 interface IToolRowTemplateData {
 	readonly row: HTMLElement;
-	readonly checkbox: Checkbox;
+	readonly checkbox: Toggle;
 	readonly name: HTMLElement;
 	readonly description: HTMLElement;
 	tool: UniverseAgentToolSummary | undefined;
@@ -185,7 +185,14 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 
 	renderTemplate(container: HTMLElement): IToolRowTemplateData {
 		const row = DOM.append(container, $('.engine-catalog-row.tool-item'));
-		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
+		const checkbox = new Toggle({
+			title: '',
+			isChecked: false,
+			inputActiveOptionBackground: 'var(--ua-tool-switch-track)',
+			inputActiveOptionForeground: 'var(--vscode-inputOption-activeForeground)',
+			inputActiveOptionBorder: 'transparent',
+		});
+		checkbox.domNode.setAttribute('role', 'switch');
 		const checkboxDisposable = checkbox.onChange(() => {
 			const tool = (row as unknown as { __tool?: UniverseAgentToolSummary }).__tool;
 			if (tool && this.canToggle()) {
@@ -194,8 +201,8 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 				checkbox.checked = this.isEnabled(tool.name);
 			}
 		});
-		row.appendChild(checkbox.domNode);
 		const text = DOM.append(row, $('.engine-catalog-text'));
+		row.appendChild(checkbox.domNode);
 		const templateData: IToolRowTemplateData = {
 			row,
 			checkbox,
@@ -215,10 +222,13 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 		templateData.tool = entry.tool;
 		(templateData.row as unknown as { __tool?: UniverseAgentToolSummary }).__tool = entry.tool;
 		templateData.name.textContent = entry.tool.name;
+		templateData.name.title = entry.tool.name;
 		const subtitle = toolSubtitle(entry.tool);
 		templateData.description.textContent = subtitle;
+		templateData.description.title = subtitle;
 		templateData.description.style.display = subtitle ? '' : 'none';
 		templateData.checkbox.setTitle(localize('ua.engineToolsRowToggle', "Enable {0}", entry.tool.name));
+		templateData.checkbox.domNode.dataset.toolName = entry.tool.name;
 		templateData.checkbox.checked = this.isEnabled(entry.tool.name);
 		this.updateTemplateChrome(templateData);
 	}
@@ -252,6 +262,15 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 		this.templates.delete(templateData);
 		templateData.checkboxDisposable.dispose();
 		templateData.checkbox.dispose();
+	}
+
+	focusTool(name: string): void {
+		for (const template of this.templates) {
+			if (template.tool?.name === name && template.checkbox.domNode.isConnected) {
+				template.checkbox.focus();
+				return;
+			}
+		}
 	}
 }
 
@@ -329,17 +348,19 @@ export class EngineToolsSection extends Disposable {
 		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
 		this.heading.textContent = localize('ua.engineToolsSectionTitle', "Tools");
 		this.heading.style.display = 'none';
-		appendCatalogScopeNote(this.container, localize('ua.engineToolsScope', "These checkboxes enable tools on the selected agent profile. They do not change the open session."));
+		appendCatalogScopeNote(this.container, localize('ua.engineToolsScope', "Choose tools for this agent profile. Save to apply changes; the open session is unchanged."));
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
-		const profileRow = DOM.append(this.container, $('.engine-tools-profile-row'));
+		const profileCard = DOM.append(this.container, $('.engine-tools-profile-card'));
+		const profileRow = DOM.append(profileCard, $('.engine-tools-profile-row'));
 		const profileLabel = localize('ua.engineToolsProfileLabel', "Agent profile");
 		DOM.append(profileRow, $('label')).textContent = profileLabel;
 		this.profileSelectHost = DOM.append(profileRow, $('.engine-tools-profile-select'));
 		this.profileSelectHost.style.display = 'none';
 		this.profileSelect = this._register(new SelectBox([], 0, contextViewService, defaultSelectBoxStyles, {
 			ariaLabel: profileLabel,
+			useCustomDrawn: true,
 		}));
 		this.profileSelect.render(this.profileSelectHost);
 		this._register(this.profileSelect.onDidSelect(event => {
@@ -352,7 +373,7 @@ export class EngineToolsSection extends Disposable {
 			this.repaintRows();
 		}));
 
-		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar = DOM.append(profileCard, $('.engine-catalog-write-toolbar'));
 		this.writeToolbar.style.display = 'none';
 		this.saveButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.saveButton.label = localize('ua.engineToolsSave', "Save");
@@ -373,6 +394,10 @@ export class EngineToolsSection extends Disposable {
 		this.infoHost.setAttribute('role', 'status');
 		this.infoHost.setAttribute('aria-live', 'polite');
 		this.infoHost.setAttribute('aria-label', localize('ua.engineToolsInfoRegion', "Tool details"));
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver(
+			'EngineToolsSection.list', () => this.layoutList(), DOM.getWindow(this.container),
+		));
+		this._register(resizeObserver.observe(this.listContainer));
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this._store.isDisposed) {
@@ -403,7 +428,18 @@ export class EngineToolsSection extends Disposable {
 
 	layout(width: number, listHeight: number): void {
 		this.lastLayout = { width, listHeight };
-		this.list?.layout(Math.max(80, listHeight), width);
+		this.container.classList.toggle('is-short', listHeight < 320);
+		this.container.parentElement?.classList.toggle('has-short-tools', this.sectionActive && listHeight < 320);
+		this.layoutList();
+	}
+
+	private layoutList(): void {
+		if (!this.list || !this.lastLayout) {
+			return;
+		}
+		const width = this.listContainer.clientWidth || this.lastLayout.width;
+		const height = this.listContainer.clientHeight || Math.max(80, this.lastLayout.listHeight - 160);
+		this.list.layout(height, width);
 	}
 
 	override dispose(): void {
@@ -425,6 +461,8 @@ export class EngineToolsSection extends Disposable {
 			return;
 		}
 		this.sectionActive = active;
+		this.container.parentElement?.classList.toggle('has-tools', active);
+		this.container.parentElement?.classList.toggle('has-short-tools', active && (this.lastLayout?.listHeight ?? 480) < 320);
 		this.updateContainerVisibility();
 	}
 
@@ -587,7 +625,9 @@ export class EngineToolsSection extends Disposable {
 				whitelistMode: result.profile.whitelistMode,
 			};
 			const index = this.profiles.findIndex(entry => entry.id === operation.profileId);
-			this.profiles[index] = this.activeProfile;
+			if (index >= 0) {
+				this.profiles[index] = this.activeProfile;
+			}
 			for (const [key, enabled] of operation.submitted) {
 				if (this.pendingEnablement.get(key) === enabled) {
 					this.pendingEnablement.delete(key);
@@ -601,6 +641,8 @@ export class EngineToolsSection extends Disposable {
 			this.listContainer.style.display = this.listEntries.length > 0 ? '' : 'none';
 			this.hideCatalogWriteStatus();
 			this.renderStatus();
+			this.updateSaveChrome();
+			this.repaintRows();
 			return true;
 		} catch (error) {
 			if (this.isWriteCurrent(operation)) {
@@ -755,11 +797,12 @@ export class EngineToolsSection extends Disposable {
 
 	private ensureList(): WorkbenchList<EngineToolListEntry> {
 		if (!this.list) {
-			this.rowRenderer = new EngineToolRowRenderer(
+			const rowRenderer = new EngineToolRowRenderer(
 				() => this.canWrite(),
 				toolName => this.isToolEnabled(toolName),
 				(tool, enabled) => this.setPendingEnablement(tool, enabled),
 			);
+			this.rowRenderer = rowRenderer;
 			this.list = this._register(this.instantiationService.createInstance(
 				WorkbenchList,
 				'EngineTools',
@@ -767,7 +810,7 @@ export class EngineToolsSection extends Disposable {
 				new EngineToolListDelegate(),
 				[
 					new EngineToolGroupRenderer(),
-					this.rowRenderer,
+					rowRenderer,
 				],
 				{
 					identityProvider: {
@@ -789,7 +832,7 @@ export class EngineToolsSection extends Disposable {
 						void this.loadToolInfo(entry.tool.name).catch(onUnexpectedError);
 					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
 						this.infoHost.style.display = '';
-					} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
+					} else if (keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo(), this.connection)) {
 						this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 					} else {
 						this.clearToolInfo();
@@ -805,33 +848,32 @@ export class EngineToolsSection extends Disposable {
 		return this.list;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private relayoutLeftoverList(): void {
-		if (this.lastLayout && this.list) {
-			this.list.layout(Math.max(80, this.lastLayout.listHeight), this.lastLayout.width);
-		}
+		this.layoutList();
 	}
 
 	private repaintToolRow(toolName: string): void {
 		this.rowRenderer?.updateTool(toolName);
 	}
 
-	/** Fixed-height Lists do not implement rerender; preserve their existing traits. */
+	/** Fixed-height Lists do not implement rerender; preserve scroll and the focused switch. */
 	private repaintRows(): void {
 		this.rowRenderer?.updateToggleChrome();
 		if (!this.list) {
 			return;
 		}
 		const scrollTop = this.list.scrollTop;
+		const active = this.container.ownerDocument.activeElement;
+		const focusedTool = DOM.isHTMLElement(active) && this.listContainer.contains(active) ? active.dataset.toolName : undefined;
 		this.repaintingRows = true;
 		try {
 			this.list.splice(0, this.list.length, this.listEntries);
 			this.list.scrollTop = scrollTop;
 		} finally {
 			this.repaintingRows = false;
+		}
+		if (focusedTool) {
+			this.rowRenderer?.focusTool(focusedTool);
 		}
 	}
 
@@ -846,7 +888,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);

@@ -49,6 +49,7 @@ import {
 } from './conversationMessageQueueModel.js';
 import { isPendingAttentionAction } from './conversationPendingSeat.js';
 import { projectSnapshotToEntries } from './conversationSessionView.js';
+import { isConversationRowActive } from './conversationLivePhase.js';
 import { allocateConversationStubSessionId, ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
 
@@ -1643,7 +1644,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
 			for (let i = entries.length - 1; i >= 0; i--) {
 				const entry = entries[i];
-				if (entry?.streaming === true) {
+				if (entry && isConversationRowActive(entry, 'live')) {
 					const id = entry.agentId?.trim();
 					if (id) {
 						return id;
@@ -1654,7 +1655,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const turns = this.getTurns(sessionId);
 		for (let i = turns.length - 1; i >= 0; i--) {
 			const turn = turns[i];
-			if (turn?.streaming) {
+			if (turn && isConversationRowActive(turn, 'live')) {
 				const id = turn.agentId?.trim();
 				if (id) {
 					return id;

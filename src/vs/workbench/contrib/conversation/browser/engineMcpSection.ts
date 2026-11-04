@@ -7,7 +7,7 @@ import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/unive
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
+import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { equals as arraysEqual } from '../../../../base/common/arrays.js';
@@ -25,8 +25,8 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { captureEnginePublishedLinkOwner, EngineRefreshGate, evaluateEnginePublishedWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, engineWriteSelectionNotSentCopy, engineWriteSelectionUnconfirmedCopy } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -222,7 +222,7 @@ interface IMcpGroupTemplateData {
 
 interface IMcpRowTemplateData {
 	readonly row: HTMLElement;
-	readonly checkbox: Checkbox;
+	readonly checkbox: Toggle;
 	readonly name: HTMLElement;
 	readonly transport: HTMLElement;
 	server: UniverseAgentMcpServerSummary | undefined;
@@ -264,15 +264,22 @@ class EngineMcpRowRenderer implements IListRenderer<EngineMcpListEntry, IMcpRowT
 
 	renderTemplate(container: HTMLElement): IMcpRowTemplateData {
 		const row = DOM.append(container, $('.engine-catalog-row'));
-		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
+		const checkbox = new Toggle({
+			title: '',
+			isChecked: false,
+			inputActiveOptionBackground: 'var(--ua-editor-setting-switch-track)',
+			inputActiveOptionForeground: 'var(--vscode-inputOption-activeForeground)',
+			inputActiveOptionBorder: 'transparent',
+		});
+		checkbox.domNode.setAttribute('role', 'switch');
 		const checkboxDisposable = checkbox.onChange(() => {
 			const server = (row as unknown as { __server?: UniverseAgentMcpServerSummary }).__server;
 			if (server && this.canToggle()) {
 				this.onToggle(server, checkbox.checked);
 			}
 		});
-		row.appendChild(checkbox.domNode);
 		const text = DOM.append(row, $('.engine-catalog-text'));
+		row.appendChild(checkbox.domNode);
 		return {
 			row,
 			checkbox,
@@ -505,6 +512,11 @@ export class EngineMcpSection extends Disposable {
 			}));
 		}
 
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver(
+			'EngineMcpSection.viewport', () => this.layoutPanels(), DOM.getWindow(this.container),
+		));
+		this._register(resizeObserver.observe(this.container));
+
 		this.setActiveTab('definitions');
 		void this.refresh().catch(onUnexpectedError);
 	}
@@ -529,8 +541,30 @@ export class EngineMcpSection extends Disposable {
 			return;
 		}
 		this.lastLayout = { width, listHeight };
-		this.list?.layout(Math.max(80, listHeight), width);
-		this.runtimePanel.layout(width, listHeight);
+		this.layoutPanels();
+	}
+
+	private layoutPanels(): void {
+		if (!this.lastLayout) {
+			return;
+		}
+		const width = DOM.getContentWidth(this.container) || this.lastLayout.width;
+		const style = DOM.getComputedStyle(this.container);
+		let chrome = (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0);
+		for (const child of this.container.children) {
+			if (child !== this.definitionsPanel && child !== this.runtimePanelHost && DOM.isHTMLElement(child) && DOM.getComputedStyle(child).display !== 'none') {
+				chrome += DOM.getTotalHeight(child);
+			}
+		}
+		const available = Math.max(80, this.lastLayout.listHeight - chrome);
+		if (this.list) {
+			const definitionChrome = Math.max(0, DOM.getTotalHeight(this.definitionsPanel) - DOM.getTotalHeight(this.listContainer));
+			const budget = Math.max(80, available - definitionChrome);
+			const height = Math.min(Math.max(80, this.listEntries.length * 24), budget);
+			this.listContainer.style.height = `${height}px`;
+			this.list.layout(height, width);
+		}
+		this.runtimePanel.layout(width, available);
 	}
 
 	override dispose(): void {
@@ -1153,13 +1187,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private relayoutLeftoverList(): void {
-		if (this.lastLayout && this.list) {
-			this.list.layout(Math.max(80, this.lastLayout.listHeight), this.lastLayout.width);
-		}
-	}
-
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
+		this.layoutPanels();
 	}
 
 	private closeLeftoverRowToggleChrome(): void {
@@ -1176,7 +1204,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.listContainer.style.display = '';
@@ -1257,11 +1285,11 @@ export class EngineMcpSection extends Disposable {
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
-			this.setServers(result.servers);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: result.servers.length,
 			});
+			this.setServers(result.servers);
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.writeToolbar.style.display = this.canWrite() ? '' : 'none';
 			this.renderStatus();
@@ -1342,6 +1370,7 @@ export class EngineMcpSection extends Disposable {
 		}
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+		this.layoutPanels();
 		this.restoreServerSelection();
 	}
 

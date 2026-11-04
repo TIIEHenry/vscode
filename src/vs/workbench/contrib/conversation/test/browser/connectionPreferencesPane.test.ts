@@ -371,7 +371,7 @@ suite('ConnectionPreferencesPane', () => {
 		return body.clientWidth - padding;
 	}
 
-	test('Direct Address input rows respond to the detail width while checkbox keeps its row', async () => {
+	async function loadConnectionStyles(): Promise<void> {
 		const stylesheet = document.createElement('link');
 		stylesheet.rel = 'stylesheet';
 		stylesheet.href = new URL('../../browser/media/connectionPreferencesPane.css', import.meta.url).href;
@@ -381,6 +381,10 @@ suite('ConnectionPreferencesPane', () => {
 			stylesheet.onerror = () => reject(new Error('Connection Preferences stylesheet failed to load'));
 			document.head.appendChild(stylesheet);
 		});
+	}
+
+	test('Direct Address input rows respond to the detail width while checkbox keeps its row', async () => {
+		await loadConnectionStyles();
 		const { pane, workbench } = mountPaneInWorkbench();
 		store.add(toDisposable(() => workbench.remove()));
 		workbench.style.width = '1000px';
@@ -428,6 +432,83 @@ suite('ConnectionPreferencesPane', () => {
 			assert.strictEqual(host.value, 'long-engine-hostname.example.internal');
 		}
 		assert.ok(sawStacked && sawSideBySide, 'detail body inline size must cover both sides of the 480px container threshold');
+	});
+
+	test('Connection content is centered and profile rows stay inside their measured viewport', async () => {
+		await loadConnectionStyles();
+		const { pane, workbench } = mountPaneInWorkbench({
+			listConnectionProfiles: () => Array.from({ length: 20 }, (_, index) => ({
+				profileId: `profile-${index}`,
+				displayName: `Long engine connection profile ${index} in a workspace`,
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			})),
+		});
+		store.add(toDisposable(() => workbench.remove()));
+		for (const [width, height] of [[1440, 800], [900, 600], [440, 340]]) {
+			workbench.style.width = `${width}px`;
+			pane.layout(new Dimension(width, height));
+			pane.selectZone('profiles');
+			await timeout(50);
+			const container = pane.getDomNode();
+			const body = container.querySelector<HTMLElement>('.connection-preferences-detail-body')!;
+			const header = container.querySelector<HTMLElement>('.connection-preferences-detail-header')!;
+			const list = container.querySelector<HTMLElement>('.connection-list')!;
+			const viewport = list.querySelector<HTMLElement>('.monaco-list')!;
+			const bodyBox = body.getBoundingClientRect();
+			const headerBox = header.getBoundingClientRect();
+			assert.ok(bodyBox.width <= 760 && Math.abs(bodyBox.left - headerBox.left) <= 1, 'heading and card share the same content column');
+			assert.ok(viewport.getBoundingClientRect().width <= list.clientWidth + 1, 'virtual rows use the actual card width');
+			assert.ok(list.clientHeight <= body.clientHeight, 'list budget leaves the outer body able to scroll actions into view');
+			assert.ok(container.scrollWidth <= container.clientWidth, 'long profiles do not create horizontal overflow');
+		}
+	});
+
+	test('programmatic Connection zone selection keeps navigation and title in sync', () => {
+		const pane = mountPane();
+		pane.layout(new Dimension(1000, 800));
+		const container = pane.getDomNode();
+		for (const [zone, label] of [['direct', 'Direct Address'], ['profiles', 'Connection profiles'], ['hub', 'Hub account'], ['test', 'Test Connection']] as const) {
+			pane.selectZone(zone);
+			assert.deepStrictEqual({
+				title: container.querySelector('.connection-preferences-detail-title')?.textContent,
+				selected: container.querySelector('.connection-preferences-nav .monaco-list-row.selected .connection-preferences-nav-label')?.textContent,
+				focused: container.querySelector('.connection-preferences-nav .monaco-list-row.focused .connection-preferences-nav-label')?.textContent,
+			}, { title: label, selected: label, focused: label });
+		}
+		container.remove();
+	});
+
+	test('Connection narrow navigation fills its height and private-network switch keeps keyboard focus', async () => {
+		await loadConnectionStyles();
+		const { pane, workbench } = mountPaneInWorkbench();
+		store.add(toDisposable(() => workbench.remove()));
+		workbench.style.width = '440px';
+		pane.layout(new Dimension(440, 760));
+		pane.selectZone('direct');
+		const container = pane.getDomNode();
+		(container.querySelector('.connection-preferences-back') as HTMLButtonElement).click();
+		await timeout(50);
+		const nav = container.querySelector<HTMLElement>('.connection-preferences-nav')!;
+		assert.ok(nav.clientHeight > 280, 'a width cap must not become a vertical flex budget');
+		const rows = [...nav.querySelectorAll<HTMLElement>('.monaco-list-row')];
+		assert.ok(rows.length > 0 && rows.every(row => row.style.height === '32px'));
+		pane.selectZone('direct');
+		const toggle = container.querySelector<HTMLElement>('#connection-allow-private-network')!;
+		toggle.focus();
+		toggle.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32, bubbles: true }));
+		assert.deepStrictEqual({
+			role: toggle.getAttribute('role'),
+			checked: toggle.getAttribute('aria-checked'),
+			focused: container.ownerDocument.activeElement === toggle,
+			label: toggle.getAttribute('aria-labelledby'),
+			description: toggle.getAttribute('aria-describedby'),
+		}, {
+			role: 'switch', checked: 'false', focused: true,
+			label: 'connection-allow-private-network-label',
+			description: 'connection-allow-private-network-description',
+		});
 	});
 
 	function assertNoInPanePairingDialog(container: ParentNode): void {
@@ -775,7 +856,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLElement;
 		assert.ok(checkbox);
-		assert.strictEqual(checkbox.getAttribute('role'), 'checkbox');
+		assert.strictEqual(checkbox.getAttribute('role'), 'switch');
 		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'true');
 
 		const hostInput = (pane as unknown as { directHostInput: HTMLInputElement }).directHostInput;

@@ -1,0 +1,382 @@
+---
+title: "设计审查 2026-11-04 p3：会话作用域与会话状态归属"
+type: plan
+status: draft
+phase: N/A
+updated: 2026-11-05
+summary: "叶子只认自己的会话 id；权限与模型选择收到按会话串行的一处；会话列表归属待拍板；共享接口留在 conversation/common，不改 roster token。"
+---
+
+# 设计审查 2026-11-04 p3：会话作用域与会话状态归属
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
+叶子里的读写用该叶的会话 id。全局活动会话只留给名单、状态条、启动恢复和命令面板这类没有叶子的入口。权限模式和模型选择按会话 id 收成一份，两套视图订阅同一份。不新 RPC，不新快照字段。
+
+本稿是方案，不是实施。行号对应当前工作区。这些路径上已有无关未提交改动；实施只改本切片符号，不把别人的 diff 卷进提交，也不为清工作区做 stash / restore / reset。
+
+编码约束：服务走构造注入，非服务参数在前；订阅和子对象放进 `DisposableStore` / `_register`；用户可见文案走 `nls`，不拼接。`workbench/browser` 可以依赖 `contrib/conversation/common`（`editorParts.ts` 已经在引 `conversationChatInput.ts`），不要从 `browser/parts` 去引 `contrib/conversation/browser`。
+
+## 冲突域
+
+| 切片 | 会碰的文件 |
+|:-----|:-----------|
+| p3-1 | `conversationLens.ts`、`conversationLensSessionBar.ts`、`conversationSessionWindowService.ts`（只删 `focusin` 里的第二笔 `switchSession`）；`.eslint-plugin-local` 与 `eslint.config.js`。不改 `editorParts.ts` 的 `mapPartToInstantiationService`。`conversationLeafSessionBar.ts` 保持「活动 id 已是目标则不调用」。History / Inbox / Snapshots 的未注入回退不改 |
+| p3-2 | `conversationLens.ts`、`conversationLensComposer.ts`、`conversationLensComposerChrome.ts`、`conversation.contribution.ts`；新增会话选择服务。与 [r11-3](review-2026-10-30-r11-conversation-plan.md) 同一套 epoch 符号 |
+| p3-3 | 待拍板。推荐路径会碰 `navigatorProjectsList.ts`、`conversationSessionsView.ts`、`conversationSessionsViewStrings.ts`。删除确认已在 `conversationDeleteSessionConfirm.ts`，不重写 |
+| p3-4 | `navigator` 生产文件里指向 `conversation/browser` 的 import；`navigatorStubView.ts`、`navigatorStub.css`、`navigator.contribution.ts`。roster 接口整份搬迁见该条，不进 `workbench/services` |
+| p3-5 | `services/agentSession/common/agentSessionContext.ts`；`contrib/conversation/browser/agentSessionContext.ts`；把该方法当可选的测试替身 |
+
+p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之后。p3-3 与 p3-4 都改 `navigatorProjectsList.ts`，p3-4 的 import 下沉先做，p3-3 再抽行。p3-5 与前几条不共用文件，可并行。
+
+## 切片顺序
+
+1. p3-1a 已绑定透镜不再用活动会话填 id；会话栏三条回退改走绑定 id。不新增 DI 作用域
+2. p3-1b 窗口服务获焦只留一笔写回。叶栏保持相等则不调用。History / Inbox / Snapshots 的未注入回退不改
+3. p3-1c eslint 规则，允许名单等于 1b 之后仍合法的调用方。files 排除 `*.test.ts`
+4. p3-2 会话选择服务（宿主见待定项 1）。2a 与 2b 同一次合入：两份透镜都订阅之前，不单独合入只持有 map 的 2a
+5. p3-5 会话上下文方法改为必填并补齐替身。attribution 类型见待定项 3，本片不动
+6. p3-4 共享符号下沉与 Navigator 的 Stub 改名。decorator id 不改
+7. p3-3 等待定项 2
+
+## 与已签收合同
+
+- [ADR-003](../decisions/003-engine-adapter-boundary.md) 决策 4：公开类型仍是 `IConversationRosterService`，decorator id 仍是 `'conversationStubService'`，`IConversationStubService` 仍是别名。决策 6：禁止把 roster 接口定义在 `workbench/services`。所以「共享接口下沉到 `services/agentSession`」不采纳。`IAgentSessionContext` 继续当 Sources / Navigator 用的薄门面。
+- [conversation-bound-session](conversation-bound-session.md)：已经绑定的表面用绑定 id，禁止再包一层 `getBoundSessionId()` 把空值退回 roster。本稿收的是它没改掉的回退和叶子里剩下的 `getActiveSessionId()`。
+- [conversation-timeline-session-pills](conversation-timeline-session-pills.md) 与 [session-windows](../../docs/systems/conversation/session-windows.md)：叶获焦仍 `switchSession`，让名单和命令面板的全局活动会话跟上焦点叶。本稿不删这笔写回。
+- [2026-10-26-leaf-session-root-identity](2026-10-26-leaf-session-root-identity.md)：已绑定身份条用该叶的工作根；真正未绑定的宿主才沿用活动根。本稿不删未绑定这条。
+- [r09 方案](review-2026-10-11-r09-conversation-plan.md) 的 r09-2 已落地，残留由 [r11-3](review-2026-10-30-r11-conversation-plan.md) 承接。r11-3 已签收、未实施。活码仍在进入在飞判断之前把 rollback 写成被盖掉的乐观值（`conversationLensComposerChrome.ts:1514-1515`，`inFlight` 在 `:1521`）。过期且仍可写的成功在 `:1340` 直接 `continue`，不把 `sentModelId` 写入 confirmed。本稿只搬存放处，不实现 r11-3 的目标代数。
+- [engine-write-gate-unification](engine-write-gate-unification.md) 的写闸不在本稿。
+
+## p3-1 叶子会话作用域
+
+问题类：同一套 UI 有时读叶子绑定的会话，有时读 roster 的全局活动会话；焦点叶再把全局活动会话写成自己，另一叶里没绑住的读就会跟着变。
+
+核实过的证据：
+
+`contrib/conversation` 下生产 `.ts`（不含 `test/`、不含 `*.test.ts`）里，`getActiveSessionId(` 79 处、24 个文件；`getBoundSessionId(` 110 处、12 个文件；单词 `boundSessionId` 25 处、5 个文件（`conversationLens.ts` 9，含 `:332` 注释；`conversationIdentityStrip.ts` 10；`conversationLensComposer.ts` 3；`conversationLensReadingColumn.ts` 2；`conversationEditorPane.ts` 1）。
+
+| 事实 | 位置 |
+|:-----|:-----|
+| 构造时 `boundSessionId = slots.sessionKey` | `conversationLens.ts:343` |
+| `getBoundSessionId` 在字段为空时返回 `stubService.getActiveSessionId()` | `conversationLens.ts:449-450` |
+| `listSessionId` 有字段时只返回字段 | `conversationLens.ts:458-462` |
+| 会话栏 host 上 `getSessionBarSelectId` 可选 | `conversationLensSessionBar.ts:79` |
+| 选择框、刷新选项、删除用 `getSessionBarSelectId?.() ?? getActiveSessionId()` | `conversationLensSessionBar.ts:407`、`:426`、`:705` |
+| `ConversationLens` 不实现 `getSessionBarSelectId` | `conversationLens.ts` 仅有 `:449` 的回退 |
+| 生产叶栏实现了该方法，返回叶的 `sessionKey` | `conversationLeafSessionBar.ts:163-165` |
+| 生产透镜两处创建都不把 `sessionBar` 槽交给透镜：编辑器页只给 tablist / timeline / dock | `conversationEditorPane.ts:152-157` |
+| `setInput` 从资源解析 `sessionKey`，再 `ensureLens` 与 `setBoundSessionId` | `conversationEditorPane.ts:115-117` |
+| 子代理 overlay 给的是 `lensTablist`，并带 `sessionKey` | `conversationSubAgentOverlay.ts:218-225` |
+| 因此生产两叶的栏 host 是叶栏，三条 `??` 在这条路径上不走到活动会话。回退留给「透镜自己当栏 host」和没实现该方法的调用 | 同上 |
+| 窗口服务读全局活动会话 7 处 | `conversationSessionWindowService.ts:255`、`:556`、`:560`、`:604`、`:688`、`:801`、`:899` |
+| `:602` 的 `focusin` 先 `setFocusedLeaf`，`:604` 再比一次活动 id 并 `switchSession`。`setFocusedLeaf` 末尾 `:688` 已经在活动 id 不同时写过。写回成功后第二笔因 id 已相等而走不到。会话不在目录里时引擎 `switchSession` 不改活动 id（`conversationEngineRosterService.ts:403-429` 落下），两笔都是空操作 | 同文件 `:602-607`、`:674-690` |
+| 叶栏在 reveal 之后只在活动 id 不是目标时 `switchSession(sessionId)`。`revealSessionWindow` 在没有 grid、或叶不可见时返回 `cancelled: false` 且不 `focusLeaf` | `conversationLeafSessionBar.ts:176-178`；`conversationSessionWindowService.ts:348-351`、`:401-402`、`:417-418` |
+| 已连接且会话在目录里时，活动 id 相同的 `switchSession` 仍 `requestAgentTreeRefresh` 并 `persistEngineAwareRoster`。`focusLeaf` 成功时 `setFocusedLeaf` 已经写过 | `conversationEngineRosterService.ts:415-424`；`conversationSessionWindowService.ts:688-690` |
+| 身份条只在 `boundSessionId` 为空时读活动 id | `conversationIdentityStrip.ts:244` |
+| 生产 Inbox、History、Snapshots 都传入 `() => host.listSessionId()` | `conversationLensDock.ts:187`；`conversationLensSessionBar.ts:156`、`:162` |
+| 未注入回调时 History、Snapshots、Inbox 才读活动 id。`mountList(connection)` 不传回调 | `conversationEngineHistoryList.ts:249-250`；`conversationEngineSnapshotsList.ts:353-354`；`conversationInboxOverlay.ts:218-222`；`test/browser/conversationEngineHistoryList.test.ts:526` |
+| 未绑定透镜的 `listSessionId` 仍读活动 id | `conversationLens.ts:462` |
+| live tree 只绑定活动会话；没有焦点 part 时 `resolveSessionKey` 退回活动 id | `conversationSessionChatService.ts:92-93`、`:818-828` |
+| `editorParts.ts:303-309` 的子服务在 `editorPart.create`（`:274`）之后才放进查找表。组在 `create` 里已经拿了 part 自己的 `scopedInstantiationService`（`editorPart.ts:200`、`:744`）。组在 `editorGroupView.ts:220` 再建自己的 `scopedInstantiationService`，编辑器页在 `:237` 由该服务创建。透镜从页的 `paneInstantiationService` 创建（`conversationEditorPane.ts:152`）。`:305` 注入不到透镜。该表只给 `getScopedInstantiationService` | `conversationSessionChatService.ts:831-832` |
+| 构造参数 `sessionKey` 已写入 `super()` 的 memento id。`this.sessionKey` 在 `super()` 返回后才赋值。`scopedInstantiationService` 是 `readonly`，`super()` 之后不能改写 | `conversationEditorPart.ts:45-61`；`editorPart.ts:175` |
+| overlay 由会话 chat 服务创建，用的是聊天服务自己的 `instantiationService` | `conversationSessionChatService.ts:135` |
+
+同类修补仍在加：`afbe92c5a46`（快照按发送时的活动会话）、`002b1a9f4f3`（Accessible View 按当前活动会话朗读）、`a12e2d6b907`（绑定会话已离开名单时不再显示活动会话标题）、`c46fcf75fe4`（lease 与绑定会话不一致时不投影）、`3a1a1d9ffc0`（阅读列跟绑定会话）。
+
+调用点要删掉的是 `conversationLensSessionBar.ts` 的 3 处 `?? getActiveSessionId()`。`conversationLeafSessionBar.ts:176` 的比较留下。`conversationInboxOverlay.ts`、`conversationEngineHistoryList.ts`、`conversationEngineSnapshotsList.ts` 的未注入回退留下。`conversationLensReadingColumn.ts` 里那一处是参数类型上的 `getActiveSessionId(): string`（`:206`），不是调用；会话 id 走 `resolveReadingColumnSessionId`。`conversationLens.ts` 的 2 处、`conversationIdentityStrip.ts` 的 1 处留给未绑定宿主，文件留在允许名单。「字段已设置时不读」靠 `getActiveSessionId` 的调用计数，返回值仍是 A 锁不住先读再返回。`conversationTurnContentAdapter.ts` 的 2 处保留：`:320` 在没有焦点 part 时退回活动 id，`:325-326` 用活动 id 判断要不要 `switchSession(hit.sessionKey)`。`conversationSessionChatService.ts` 的 2 处也留在允许名单：live tree，以及没有焦点 part 时的 `resolveSessionKey`。
+
+不变量：
+
+- 构造时带了 `sessionKey` 的透镜，`getBoundSessionId()` 等于该字段，不读 roster 活动 id。
+- 叶栏的选择、删除、标题使用叶的 `sessionKey`。共享栏函数不再写 `?? getActiveSessionId()`。
+- 叶获焦仍由 `setFocusedLeaf` 在活动 id 不同时 `switchSession` 一次。`focusin` 里不再写第二笔。
+- 叶栏在 reveal 得到 `cancelled: false` 之后，仅当活动 id 还不是参数 `sessionId` 时 `switchSession(参数)`。已经相同则不再调用，避免再打一笔 agent tree 刷新和 roster 持久化。没有 grid、叶不可见的那些返回仍靠这道比较写回。
+- 没有叶子的入口可以读全局活动会话：roster 自身、`AgentSessionContext` 门面、会话列表、状态条、启动恢复、命令面板上的快照 / Accessible View / Fork / Reveal / 通知。这些命令在真正发出时再读，避免把 await 之前的 id 用到发送之后（`afbe92c5a46`、`002b1a9f4f3` 的方向）。
+- 叶子里的控件在手势开始时钉住作用域 id，await 之后仍用这个 id，不用后来的活动会话。
+- 未绑定身份条仍可沿用活动根。绑定之后只认绑定 id。
+- live tree 仍只观察活动会话。不在本条改成每叶一条 lease。
+
+要动的符号与文件：
+
+- 不新增 `ISessionScope`，不改 `EditorPart` 构造函数。生产透镜的会话 id 继续来自构造参数 `slots.sessionKey`（编辑器页从 input 解析后传入，overlay 从 `state.sessionKey` 传入）。会话 part 的构造参数 `sessionKey` 在 `super()` 期间已经可用，并写进 memento id。
+- `ConversationLens.getBoundSessionId`：字段已设置时只返回字段，且该分支不调用 `getActiveSessionId`。未绑定仍可读活动 id，所以这个文件留在 eslint 允许名单。`ConversationLens` 补上 `getSessionBarSelectId`，有字段时返回字段，没有时不读 roster。
+- `createSessionSelectBox`、`refreshSessionSelectOptions`、`deleteActiveSession` 去掉 `?? getActiveSessionId()`。
+- `setFocusedLeaf` 保留写回；`focusin` 监听去掉自己的 `switchSession`。
+- `ConversationLeafSessionBar.switchLeafSession` 保持现有比较：活动 id 已经等于参数时不调用 `switchSession`。id 用参数。不把这笔写回挪进 `focusLeaf`，也不改成无条件调用。
+- History、Snapshots、Inbox 的 `resolveSessionId` 保持现状：已注入回调时只用回调；没注入时仍读活动 id。生产三条都传入 `() => host.listSessionId()`。未绑定透镜的这个回调在字段空时仍读活动 id。返回空只会影响 `getSessionId === undefined` 的夹具，例如 `test/browser/conversationEngineHistoryList.test.ts:526`。
+
+改法：
+
+1. **p3-1a。** 两处生产创建保持传入 `sessionKey`。`getBoundSessionId` 在字段已设置时返回字段，该分支不调用 `getActiveSessionId`。未绑定分支可以继续读活动 id，调用留在本文件。栏的三处 `?? getActiveSessionId()` 改为：host 提供 `getSessionBarSelectId` 就用它；否则在 `listSessionId()` 有绑定字段时用它；仍没有则不选中、不删除。`ConversationLens.getSessionBarSelectId` 只返回绑定字段，有字段与无字段都不读 roster。
+2. **p3-1b。** `focusin` 删除第二笔 `switchSession`。叶栏保持 `:176-178`：没有 grid 和叶不可见、`focusLeaf` 不会跑的那些 `cancelled: false` 返回上，活动 id 还不是目标时 `switchSession(参数)`；已经是目标 id 时不再调用。Inbox、History、Snapshots 不改 `resolveSessionId`。阅读列、身份条、时间线点击不改调用。
+3. **p3-1c。** 在 `.eslint-plugin-local` 增加规则。`index.ts:14-17` 注册同目录每个 `*.ts`，只跳过 `index.ts` 与 `utils.ts`；新文件避开这两个名字。`eslint.config.js` 若覆盖整个 `contrib/conversation/browser`，files 必须排除 `*.test.ts`。同目录的 `conversationSessionsView.test.ts` 含 `getActiveSessionId(`，`conversationEngineHistoryList.test.ts` 也在这个目录，两者都不在允许名单。规则只看 `getActiveSessionId` 的调用表达式，不看类型签名。允许名单：roster 接口与两处实现、`conversationStubModel.ts`、`browser/agentSessionContext.ts`、`conversationLens.ts`、`conversationIdentityStrip.ts`、`conversationTurnContentAdapter.ts`、`conversationSessionWindowService.ts`、`conversationSessionChatService.ts`、`conversationSessionsView.ts`、`conversationSessionStatusBar.ts`、`uaClientSettingsStartup.contribution.ts`、`conversationCreateSnapshotActions.contribution.ts`、`conversationAccessibleView.ts`、`conversationNotifications.contribution.ts`、`conversationOpenPendingOnFocus.contribution.ts`、`conversationRevealItem.contribution.ts`、`conversationForkEngine.ts`、`conversationLeafSessionBar.ts`、`conversationInboxOverlay.ts`、`conversationEngineHistoryList.ts`、`conversationEngineSnapshotsList.ts`。删掉三处调用之后的 `conversationLensSessionBar.ts` 不在名单里。不另写扫源码文本的测试。允许名单按文件放行，锁不住「绑定分支不再读」；那条靠 1a 的调用计数。
+
+明确不改什么：
+
+- 不删 `setFocusedLeaf` 的 `switchSession`。名单高亮和命令面板仍跟焦点叶。
+- 不把叶栏改成无条件 `switchSession`。活动 id 已经是目标时再调，会在已连接且会话在目录里时多打一笔 `requestAgentTreeRefresh` 与 `persistEngineAwareRoster`。
+- 不改 History、Snapshots、Inbox 在未注入回调时读活动 id。生产行为保持「回调里的 `listSessionId()`」。
+- 不改 `ensurePrimaryWindow` 不跟随 roster 的合同（`session-windows` 与 pills）。`:255`、`:556`、`:560`、`:801`、`:899` 仍是窗口服务在没有叶、恢复布局或删空之后决定开哪一扇，留在允许名单。
+- 不把 `bindLiveTreeLease` 改成每叶一条。
+- 不改 `getActiveConversationEditorPart`，不改 `part.sessionKey`。
+- 时间线点击若要切到另一会话，仍是显式 `switchSession(hit.sessionKey)`（`conversationTurnContentAdapter.ts:325-326`）。命中行提供 id。活动会话只用来判断要不要切，也用来在没有焦点 part 时解析来源（`:320`）。
+- 不改 `editorParts.ts`，不加 `ISessionScope`。
+
+本地验证：
+
+- `conversationLeafSessionBar.test.ts`、`conversationSessionWindowSideBySide.test.ts`：两叶时 A 的栏和透镜 id 仍是 A，roster 活动 id 可以是 B。这条只锁返回值。
+- 新增：字段已设置时，`getBoundSessionId`、`listSessionId`、`getSessionBarSelectId` 对 `getActiveSessionId` 的调用次数为 0。先读活动 id 再返回字段，这条失败。未绑定分支仍允许调用。
+- 新增：`focusin` 到另一叶只发生一次 `switchSession`。没有 grid、或叶不可见且活动 id 还不是目标时，叶栏选择仍 `switchSession` 到该参数。活动 id 已经是该参数时，`switchLeafSession` 不再调用 `switchSession`。
+- History / Inbox / Snapshots 的生产路径不变：已注入回调只用回调，未注入仍读活动 id。跑 `ConversationEngineHistoryList`、`ConversationEngineSnapshotsList`，以及 `conversationInboxOverlay.test.ts` 里标题以 `ConversationInboxOverlay` 开头的 suite。`scripts/test.sh --grep` 用这些 suite 名，不要只写「History」。
+- 保持 `conversationIdentityStrip.test.ts` 里未绑定宿主仍跟活动根、绑定叶不跟另一叶的用例，包括 `D1386 bound leaf does not borrow a window root when its root API is absent`。
+- `scripts/test.sh --grep "openSessionBeside creates two conversation editor parts|Conversation session window side-by-side|D1386 bound leaf|ConversationEngineHistoryList|ConversationEngineSnapshotsList|ConversationInboxOverlay"`，或 `scripts/test.sh --run` 指向上述文件。改动文件 `npx eslint`。
+
+风险与回退：允许名单里的 `conversationLens.ts` 仍能在新代码里直接读活动会话，eslint 不会响。绑定路径靠调用计数。回退是恢复栏上三条 `??` 和 `focusin` 的第二笔 `switchSession`。1a 可单独提交。没有 1b 时不要合 1c：`conversationLensSessionBar.ts` 的三处调用还在，它又不在允许名单里。叶栏与 History / Inbox / Snapshots 留在名单里，1c 不要求删它们的调用。
+
+## p3-2 权限与模型选择的归属
+
+问题类：每个 `ConversationLens` 各存一份会话权限和模型，子代理 overlay 与编辑器页各有一份透镜，同一会话的两次选择各发各的引擎调用，另一视图看不到。
+
+核实过的证据：
+
+| 事实 | 位置 |
+|:-----|:-----|
+| 实例字段 `sessionConfigBySessionId`、`modelProfileIdBySessionId` | `conversationLens.ts:292-293` |
+| 生产透镜两份：编辑器页、子代理 overlay | `conversationEditorPane.ts:152`；`conversationSubAgentOverlay.ts:218` |
+| epoch 用模块级 `WeakMap`，键是 host | `conversationLensComposerChrome.ts:1162-1163` |
+| `getSessionConfig` / `setSessionConfig` 读写 host 上的 map | `conversationLensComposerChrome.ts:999-1008` |
+| 注释写明每个会话最多一笔在飞的 `setPermissionMode` / `switchModel`，实际按 host 隔离 | `conversationLensComposerChrome.ts:1229`、`:1298` |
+| 选择类型只有 `agentIndex` 与 `permissionIndex` | `conversationLensComposerChrome.ts:115-118` |
+
+行为变化：同一 `sessionId` 只有一份配置和一套 epoch。编辑器页改了模型或权限，overlay 上同一会话的下拉跟着变；反过来也一样。两视图同时改同一会话时，后一次进入已经在飞的那一轮，不再各发一笔。视图关掉之后，已发出的结果仍写进这份状态；已 dispose 的视图不改 DOM。下一个打开的视图读到的是这份已有状态，不用自己的下标 0 去覆盖。不同 `sessionId` 仍并行。
+
+代数保持活码，不提前做 r11-3。`applySessionModelIndex` 仍在 `:1514-1515` 把 rollback 写成当时的 `previous`，然后才看 `inFlight`（`:1521`）。过期且可写的成功仍在 `:1340` `continue`。`conversationLensDisposeGate.test.ts` 里 `overlapping switchModel failure does not restore the dropdown to the earlier index` 与 `overlapping switchModel success does not keep the earlier modelId` 的预期保持今天的结果，只是断言改读共享状态里的该 `sessionId`。r09-2 不再另做一遍。r11-3 落地时再改代数，不跟本片绑在一次提交里。
+
+不变量：
+
+- 共享 epoch 的初值来自第一份已经接受的状态。新 host 不得用自己的 `modelSelectedIndex`（`conversationLensComposerChrome.ts:140`，`sessionModelEpoch` 在 `:1210-1211` 用它当 confirmed 初值，`applySessionModelIndex` 在 `:1486` 用它当 `previous`）去创建或覆盖共享 rollback。各视图的下标只是显示，由共享状态推下来。
+- 除此之外，连点、空槽、过期成功的走向与搬迁前的活码相同。
+- `submitDraft` 仍读已落下的 `catalogModelIds[modelSelectedIndex]`，发送公式不动。
+- 不把 `modelId` 加进 `ConversationSessionConfigSelection`（[conversation-bound-session](conversation-bound-session.md) 已禁止）。
+
+要动的符号与文件：`getSessionConfig`、`setSessionConfig`、`applySessionModelIndex`、`drainSessionModel`、`sessionPermissionEpoch`、`sessionModelEpoch`、两份 `WeakMap`。文件见冲突域。宿主是待定项 1。推荐新的 `IConversationSessionChoiceService`，按 `sessionId` 保存选择和 epoch，并提供 `onDidChangeSessionChoice`。透镜改为注入它，删掉两个实例字段。
+
+改法（按待定项 1 的推荐）：
+
+1. **p3-2a。** 服务持有现在 host 上的两张 map 和两套 epoch。`sessionModelEpoch` 在该 `sessionId` 已有记录时直接返回，不用后来的 host 的 `modelSelectedIndex` 当 confirmed 或 rollback。还没有记录时，用调用方当时的下标记一笔，之后只由 `applySessionModelIndex` / `drainSessionModel` 按活码更新。`drainSessionPermission` / `drainSessionModel` 的判断改读写服务，分支保持 `:1330` 与 `:1340` 的现状。host 只负责把事件画到自己的下拉；画之前看 host 未 dispose，且画的 `sessionId` 仍是该视图的绑定 id。
+2. **p3-2b。** 编辑器页透镜与 overlay 透镜都订阅同一服务。catalog 刷新回选时，以服务里该会话已接受的 id 为准；服务还没有时保持今天的回选（[conversation-bound-session](conversation-bound-session.md) S2：`setOptions` 前快照，不把成功刷新写成下标 0）。
+3. 两份透镜都接上服务之前，2a 与 2b 不分开合入。只合 2a 时两份透镜仍各写各的实例字段，上文「同一 `sessionId` 只有一份」不会出现。
+4. 订阅现有 `onDidChangeConnection`。载荷已是 `UniverseAgentConnectionSnapshot`（`universeAgentConnection.ts:439`），`linkId` 在 `universeAgentTypes.ts:1684`。与上一份已记下的 `linkId` 不同时（含从有到无）清空这两张 map，避免上一台引擎的 id 留在下拉里。同一事件也会因相位、`pairingPending`、`agentTreeFetchFailed` 发出，这些更新可以保持同一个 `linkId`（`universeAgentConnectionService.ts` 的 `_publishConnectionPhase`、`_setAgentTreeFetchFailed`，以及 pairing 在 `:1299-1302` 的 `_fireSnapshotChanged`）。`linkId` 未变时不清 map，避免 pairing 刷新清掉该会话的模型和权限。不新字段。
+
+明确不改什么：
+
+- 不改 `switchModel` / `setPermissionMode` 的参数形状。
+- 不把选择写入 `conversation.roster.v1`。
+- 不改 `:1514-1515` 与 `:1340`。r11-3 另片做。
+- 不改空槽、leftover、单次失败回滚用例的预期。
+- 不改写闸。
+
+本地验证：
+
+- 改 `conversationLensDisposeGate.test.ts` 中上述两条 overlapping 用例，以及该文件里已有的 leftover model 用例，断言改到服务上的同一 `sessionId`。
+- 新增：两个 host 绑定同一 `sessionId`。第一个已经接受非 0 下标，第二个以自己的下标 0 打开；共享 rollback 仍是第一个的 id，第二个下拉被画成这个 id。第一个 `switchModel` 挂起时第二个再选，只按最后一次目标再发，两套下拉停在同一 id。
+- 新增：第一个 host dispose 之后结果才回来，服务里的 id 已更新，第二个 host 的下拉是这个 id。
+- 新增：同一 `linkId` 上的相位或 pairing 刷新不清该会话的模型和权限；`linkId` 变化后这两张 map 为空。
+- `scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts`。若用 `--grep`，写该文件里的完整标题：`overlapping switchModel failure does not restore the dropdown to the earlier index`、`overlapping switchModel success does not keep the earlier modelId`、`leftover model keeps the accepted value and does not show an unsent newer target`、`leftover model with an empty resolved id rolls back and does not paint a failure notice`、`selecting the empty model does not send switchModel and a stale failure does not force index 0`。短词 `leftover model` 还会命中 engine overview 与 provider 的标题。改动文件 `npx eslint`。
+
+风险与回退：服务是单例，测试之间要在 teardown 清掉 session 状态，否则串用例。回退是把 map 和 `WeakMap` 移回 host，两视图恢复各写各的。2a 与 2b 一次回退。
+
+## p3-3 两份会话列表
+
+问题类：Projects 树里嵌了一份会话，Sessions 视图是会话列表本身；两边各自画行，删除确认已经共用。
+
+核实过的证据：
+
+| 事实 | 位置 |
+|:-----|:-----|
+| Projects 把 `getSessions()` 放进项目树，并传入活动 id 与副标题 | `navigatorProjectsList.ts:742-748` |
+| 行图标用 `sessionRosterGlyph` | `navigatorProjectsList.ts:247` |
+| 副标题、语气、图标来自会话列表字符串 | `navigatorProjectsList.ts:49` |
+| Projects 按行上的 `sessionId` 删除，确认函数与 Sessions 相同 | `navigatorProjectsList.ts:645-657`；`conversationDeleteSessionConfirm.ts` |
+| Sessions 视图 id | `conversationSessionsView.ts:46` |
+| 行渲染 | `conversationSessionsView.ts:116` 起的 `SessionsRenderer` |
+| Sessions 的删除取的是活动会话，不是列表焦点行 | `conversationSessionsView.ts:354` |
+| 规格已写明栏、Sessions 标题、Projects 行共用一个确认函数 | [session-windows](../../docs/systems/conversation/session-windows.md) |
+
+归属见待定项 2。在拍板前不抽组件、不合并视图。
+
+不变量（两条都保留的前提下）：
+
+- Projects 删的是该行的会话。Sessions 标题上的删除删的是活动会话。抽共享行时不得把这两个目标合成一个。
+- 确认文案仍走现有 `confirmDeleteConversationSession`。
+- 高亮仍是 `getActiveSessionId()`，与叶获焦写回的那一个 id 相同。
+
+要动的符号与文件：拍板后才定。推荐只抽「一行会话」的语气、图标、副标题和行内按钮的启用理由；树和列表各自留着。
+
+改法：待定项 2 选定之前没有切片。
+
+明确不改什么：不改 `getSessions()` 的数据源，不另存一份会话目录，不改删除确认文案。
+
+本地验证：拍板后补。锚点是 `navigatorProjectsList.test.ts` 的 suite `NavigatorProjectsView` 与 `conversationSessionsView.test.ts`。副标题没有单独的测试名，不要用「副标题」当 `--grep`。
+
+风险与回退：若把 Sessions 的删除改成「焦点行」，会改变今天「删活动会话」的行为。推荐路径不改这一点。
+
+## p3-4 跨 contrib 依赖与 Stub 命名
+
+问题类：Navigator 生产代码依赖 conversation 的 browser 模块；conversation 与 sources 双向依赖；roster 的生产接口写在 stub 文件里；Navigator 的容器注册还叫 Stub。
+
+核实过的证据：
+
+Navigator 生产代码（不含 test）从 `conversation/browser` 引出 18 条 import、23 个绑定名。其中 3 个绑定是类型：`SessionRosterTone` 是值 import 里的行内 `type`（`navigatorProjectsList.ts:49`），`ConversationStubSession`（`navigatorProjectsTree.ts:11`）与 `IConversationRosterService`（`navigatorSessionLeaseHolder.ts:8`）是整句 `import type`。值绑定 20 个。文件：`navigatorProjectsList.ts` 6 条、`navigatorAgentsView.ts` 4 条、`navigatorTeamList.ts` 3 条、`navigatorProjectsTree.ts` 1 条、`navigatorReveal.ts` 3 条、`navigatorSessionLeaseHolder.ts` 1 条。另外 `navigator/common/navigatorAgentHierarchy.ts` 从 `conversation/common` 引 `isEngineRootAgentId`，不在这 18 条里。
+
+conversation 生产代码引 sources：`conversationReviewEntry.ts:19-20`、`conversationLensReadingColumn.ts`（`SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND`）、`conversationReviewNavService.ts`（`getWorkspaceFolderRoots`）。sources 生产代码引 `conversation/common`：核查点名的 `sourcesChangesList.ts:34`、`sourcesChangesReadModel.ts:16`、`sourcesChangeEntryOpen.ts:25` 都在；同方向还有 `conversationDiffReviewPane.ts`、`sourcesDiffPanelView.ts`、`sourcesReviewList.ts`。没有文件级的互相 import 环。依赖是双向的：conversation/browser 指向 sources，sources 指向 conversation/common。
+
+| 事实 | 位置 |
+|:-----|:-----|
+| `IConversationRosterService` 接口 | `conversationStubService.ts:91` |
+| decorator id `'conversationStubService'` | `conversationStubService.ts:44` |
+| 同一文件还装着 stub 实现和夹具方法 | [stub-and-fixtures](../../docs/systems/conversation/stub-and-fixtures.md) |
+| `registerNavigatorStubContainer` | `navigator.contribution.ts:54` |
+| 视图 id 与样式文件名仍带 Stub | `navigatorStubView.ts`、`navigator.contribution.ts:6` 的 `navigatorStub.css` |
+
+`local/code-layering` 不把同层 contrib 互引当成错误。要收的是 browser UI 被 Navigator 当公共库用，以及接口和 stub 实现写在一个文件里。
+
+不变量：
+
+- decorator id 字符串保持 `'conversationStubService'`。不注册第二个 roster token。
+- 视图容器的 id、`storageId` 不改，避免已保存的侧栏布局对不上。
+- `IAgentSessionContext` 仍是 Sources 读会话事实的门面，不把 `IConversationRosterService` 搬进 `services/agentSession`。
+
+要动的符号与文件：`registerNavigatorStubContainer` 改名为容器注册（行为不变）；`navigatorStubView.ts`、`navigatorStub.css` 去掉 Stub 文件名，更新引用。import 下沉见改法。
+
+改法：
+
+1. **p3-4a。** Navigator 里已经有 common 对应物的符号改引 common。`getConversationSessionReadiness` / `isConversationSessionNotReady` 改从 `conversation/common/conversationSessionReadiness.ts` 引。`navigatorProjectsTree.ts` 已经是 `import type`，不用再改。这一片不搬 roster 接口。
+2. **p3-4b。** 写闸原因句和配对保持仍在 browser，因为它们带 dock 文案和连接相位。若待定项之外还要 Navigator 完全不引 browser，把这两段里没有 DOM 的判断和 nls 字符串挪到 `conversation/common`，browser 再导出原名。默认不做，除非 4a 之后仍要把 browser import 清零。清零不是本条的完成条件。
+3. **p3-4c。** 改名：函数、`navigatorStubView.ts`、`navigatorStub.css`。不改容器 id。
+4. **p3-4d。** roster 接口与 decorator 从 `conversationStubService.ts` 挪到 `conversation/common` 的新文件，id 字符串照旧。`ConversationStubService` 类留在 browser。这一片的前提是接口引用的回合、队列、轨迹类型里，被接口签名用到的那部分已经在 common，或先移到 common 且不带 DOM。移不动的类型留在 browser，接口就继续留在 browser，4d 不做。不把接口拆成第二份「给 Navigator 的子集」而让实现漂移。
+
+明确不改什么：
+
+- 不改 decorator id，不删 `IConversationStubService` 别名。
+- 不改 conversation 对 sources 的三条生产 import。审阅归因和打开路径的类型在 sources，conversation 继续引它们。
+- 不改 sources 对 `conversationChatInput` / 就绪度探针的依赖方向。
+
+本地验证：
+
+- `npx eslint` 覆盖改过 import 的 Navigator 与 conversation 文件。
+- `scripts/test.sh --grep "NavigatorProjectsView|navigatorReveal bound session|ConversationStubService"`。`Navigator projects row chrome` 是 CSS suite，不拿来当这条的选择器。
+- 4d 若做了，再跑 `conversationStubService.test.ts` 与 `conversationEngineRosterService.test.ts` 的目录用例（`scripts/test.sh --grep` 用文件内已有的会话列表 / `switchSession` 标题）。
+
+风险与回退：4d 会改大量 import 路径。做不动就停在 4a 和 4c，接口留在 stub 文件，在该文件头注明接口是生产契约、类是 stub 实现。回退按片 revert。
+
+## p3-5 会话上下文上的可选方法
+
+问题类：`IAgentSessionContext` 把就绪度和工作根做成可选方法，好让旧测试替身能编译；attribution 用 `unknown`，调用处再断言。
+
+核实过的证据：
+
+| 事实 | 位置 |
+|:-----|:-----|
+| type-only 引用 `SessionViewSnapshot` | `agentSessionContext.ts:8`。services 依赖 platform，方向符合分层 |
+| 注释说明 attribution 不类型化，以免依赖审阅 chip | `agentSessionContext.ts:11-14` |
+| `attribution: ReadonlyMap<string, unknown>` | `agentSessionContext.ts:18` |
+| `getEngineSessionReadiness?` 注释写明只为测试替身 | `agentSessionContext.ts:33-37` |
+| `getSessionWorkDir?`、`getWorkRoot?`、`getActiveWorkRoot?` 同样可选 | `agentSessionContext.ts:40-44` |
+| 生产实现四个方法都有 | `contrib/conversation/browser/agentSessionContext.ts:108`、`:113`、`:124`、`:190` |
+| 平台上已有 `ItemAttribution` | `platform/universeAgent/common/conversationViewFrame.ts:185` |
+| Sources 自己的审阅子集 `IReviewItemAttribution`，lease 处断言过去 | `sourcesReviewAttribution.ts:16-21`；`sourcesReviewAttributionService.ts:161` |
+| 身份条用可选调用读工作根 | `conversationIdentityStrip.ts:262-263` |
+| `D1386 bound leaf does not borrow a window root when its root API is absent` 构造的对象没有 `getWorkRoot` | `conversationIdentityStrip.test.ts:1319-1327` |
+| 部分测试把只含 `getActiveSessionId` 的对象断言成该接口 | 例如 `sourcesChangesList.test.ts` 里 `as IAgentSessionContext` |
+
+不变量：
+
+- 生产 `AgentSessionContext` 的方法体不改语义：就绪度仍走 `getConversationSessionReadiness(this.roster)`，工作根仍走 `resolveAgentWorkRoot`。
+- 不新 RPC，不给快照加字段。
+- `SessionViewSnapshot` 继续 type-only 从 platform 引入。
+- 工作根三个方法保持可选。绑定叶在方法不存在时不借窗口根；未绑定叶仍可以显示工作区文件夹名。
+
+要动的符号与文件：只把 `getEngineSessionReadiness` 改为必填。替身补上这个方法。没有连接信息时返回 `'ready'`，与 [stub-and-fixtures](../../docs/systems/conversation/stub-and-fixtures.md) 里「缺省视为就绪」一致。不要用 `'ready'` 去冒充「已连接但目录还在加载」的用例。
+
+改法：
+
+1. **p3-5a。** `getEngineSessionReadiness` 去掉 `?`。生产类已经实现，只改签名。`getSessionWorkDir`、`getWorkRoot`、`getActiveWorkRoot` 保持可选。核查方向里「四个方法都改必填」与已落地的身份条合同冲突，不采纳工作根这一半。
+2. **p3-5b。** 缺 `getEngineSessionReadiness` 的替身补上这个方法。能用 `AgentSessionContext` 的测试可以改用它。`conversationIdentityStrip.test.ts:1320` 是显式 `const legacy: IAgentSessionContext`，去掉 `?` 后这里会编译失败，必须补上 `getEngineSessionReadiness`，同时继续不提供 `getSessionWorkDir`、`getWorkRoot`、`getActiveWorkRoot`，以保住 `D1386 bound leaf does not borrow a window root when its root API is absent`。`as IAgentSessionContext` 不去掉缺失方法，例如 `sourcesChangesList.test.ts:1189`，去掉 `?` 后仍然编译通过。
+
+attribution 放哪见待定项 3。本片不改 `:18` 的类型。
+
+明确不改什么：不改 `IReviewItemAttribution`，不把 sources 的 chip 类型引进 services，不改 lease 的 `snapshot` 形状，不改身份条的 `?.()`。
+
+本地验证：在仓库里搜 `as IAgentSessionContext` 和显式标注的 `IAgentSessionContext` 对象，给缺 `getEngineSessionReadiness` 的替身补上。`sourcesChangesList.test.ts:1189` 这类断言编译失败覆盖不到。`npx eslint`，以及 `scripts/test.sh --grep "D1386 bound leaf does not borrow a window root"`。改过的 sources 替身用该文件里已有的 suite 名，而不是整份 `sourcesChangesList.test.ts` 的全部用例硬塞进一次 grep。显式标注缺方法会编译失败；`as` 断言要靠这次搜索补。
+
+风险与回退：替身若在「已连接、目录未完成」的用例里返回 `'ready'`，会把未就绪打绿。回退是恢复 `?`。
+
+## 待定项
+
+### 1. 会话选择放在哪
+
+- **A. 新的 `IConversationSessionChoiceService`（推荐）。** 选择和 epoch 是客户端串行状态，不是引擎目录，也不是 stub 夹具。roster 的两套实现不用各写一遍。与 ADR-003「catalog 不进 roster」一致。
+- **B. 放进 `IConversationRosterService`。** 调用方少一个服务。stub 与引擎 roster 都要实现，接口继续变宽，测试双倍。
+
+不变量和「两视图看到同一值」在 A、B 下相同。切片按 A 写；改选 B 时把同一组方法放到 roster 上。
+
+### 2. 两份会话列表
+
+- **A. 两处都留，抽出共享的行语气、图标、副标题和按钮启用理由（推荐）。** Projects 回答「这个工作根下有哪些会话」，Sessions 回答「全部会话」。删除目标保持现状：行删行上的 id，Sessions 标题删活动会话。
+- **B. 只留 Sessions。** Projects 树不再列会话。侧栏里看会话要换视图。
+- **C. 只留 Projects 树。** 去掉 Sessions 视图。今天 Sessions 的排序、过滤和「删活动会话」要改道或删掉。
+
+未拍板前不做 p3-3。
+
+### 3. `IAgentSessionViewLease.attribution` 的值类型
+
+- **A. 改成平台已有的 `ItemAttribution`（推荐）。** 类型在 `conversationViewFrame.ts`，services 依赖 platform 已经成立。Navigator 活动列表今天要的就是这个类型。Sources 仍可只读自己的子集字段，不必把 `IReviewItemAttribution` 放进 services。
+- **B. 维持 `ReadonlyMap<string, unknown>`。** 边界最窄，调用处继续断言。
+- **C. 在 `agentSessionContext.ts` 再定义一个只含 role / agentId / toolCallId 的类型。** 与 `ItemAttribution`、`IReviewItemAttribution` 并列第三份，不推荐。
+
+p3-5 不依赖这一项。选定之前不改 `:18`。
+
+## 审查
+
+2026-11-04 只读审查后改过本稿。Critical：不把 `ISessionScope` 登记在 `editorParts.ts:303`，那份子服务到不了编辑器页的透镜；p3-2 只搬存放处，不把 r11-3 尚未落地的代数写成现状。Important：eslint 允许名单留下仍含合法调用的文件；叶栏在 `focusLeaf` 不会跑的 reveal 返回上，活动 id 还不是目标时仍 `switchSession(参数)`，已经是目标 id 时不再调（2026-11-05 收窄，见「审查处理」）；共享 epoch 不用后打开视图的下标当 rollback；工作根方法保持可选，以保住 `D1386 bound leaf does not borrow a window root when its root API is absent`；Navigator 的值绑定按 20 个计，`navigatorProjectsTree.ts` 已是 `import type`。
+
+## 审查处理
+
+2026-11-05 对照活码处理上一轮意见。`status` 仍是 `draft`。上一节是 2026-11-04 的记录；叶栏写回以本节和 p3-1 正文为准。
+
+### 维持（Strengths，核验成立）
+
+- 生产计数维持：`getActiveSessionId(` 79 / 24，`getBoundSessionId(` 110 / 12，单词 `boundSessionId` 25 / 5。
+- 透镜与栏的行号维持：构造 `:343`，空字段回退 `:449-450`，`listSessionId` `:458-462`，栏上三处 `??` 在 `:407`、`:426`、`:705`，叶栏 `:163-165`。
+- 窗口服务 7 处活动 id 与 `focusin` / `setFocusedLeaf` 双写维持。引擎 `switchSession` 在会话不在目录里时不改活动 id，维持。
+- 「不要把 `ISessionScope` 登记在 `editorParts.ts:303-309`」维持。透镜仍从组的 `paneInstantiationService` 创建。
+- 权限 epoch 仍按 host 的 `WeakMap`；rollback 仍在 `inFlight` 之前；过期可写成功仍 `continue`。与 r11-3 分开，不新 RPC，不加 `modelId`。维持。
+- Navigator 18 条 import、值绑定 20、类型绑定 3。decorator id 仍是 `'conversationStubService'`。维持。类型绑定的写法见 Minor。
+- p3-3 在待定项 2 之前不抽组件；p3-5 不改工作根可选。切片按共享文件排序。维持。
+
+### Critical
+
+- **采纳。** `conversationEditorPart.ts:45-61` 已把构造参数 `sessionKey` 写进 `super()`。不可用的是 `this.sessionKey`。已删「`sessionKey` 在 `super()` 期间还不可用」，不再把「构造期拿不到会话 id」写成不改 `EditorPart` 的理由。留下的理由是 `scopedInstantiationService` 为 `readonly`，以及 `:303-309` 的晚注入到不了透镜。
+
+### Important
+
+- **采纳。** 叶栏保持 `:176-178` 的比较。无 grid / 叶不可见的 `cancelled: false` 仍在活动 id 不同时 `switchSession(参数)`。已经是目标 id 时不再调用，避免 `conversationEngineRosterService.ts:421-424` 在 id 相同时仍刷新 agent tree 并持久化。与「获焦只写一次」对齐。验证加上「已是目标 id 则零调用」。
+- **采纳。** History / Inbox / Snapshots 的未注入回退不改。生产都传入 `() => host.listSessionId()`；未绑定透镜的 `listSessionId` 仍读活动 id。返回空只打到夹具，例如 `test/browser/conversationEngineHistoryList.test.ts:526`。验证写上 `ConversationEngineHistoryList`、`ConversationEngineSnapshotsList`、`ConversationInboxOverlay`，并写明生产行为不变。
+- **采纳。** 允许名单仍整文件放过 `conversationLens.ts`。1a 增加调用计数：字段已设置时 `getBoundSessionId`、`listSessionId`、`getSessionBarSelectId` 对 `getActiveSessionId` 的次数为 0。两叶 id 仍是 A 只锁返回值。
+- **采纳。** 清 map 的条件改成前后 `linkId` 不同。相位、pairing、agent tree 失败发的是同一 `onDidChangeConnection`，`linkId` 可以不变。验证增加「同一 `linkId` 不清、`linkId` 变化才清」。
+- **采纳。** 切片顺序与改法写明 2a 与 2b 同一次合入。两份透镜接上服务之前，只持有 map 的 2a 不单独合入。
+- **采纳。** `conversationIdentityStrip.test.ts:1320` 的显式标注必须补 `getEngineSessionReadiness`，并继续不提供工作根方法。验证改为搜索 `as IAgentSessionContext`（`sourcesChangesList.test.ts:1189` 去掉 `?` 仍编译）和显式标注。D1386 的 `--grep` 保留，不再把它当成漏补清单。
+
+### Minor
+
+- **采纳。** 四个方法的行号改为 `:108`、`:113`、`:124`、`:190`。`:107` 是空行。
+- **采纳。** `SessionRosterTone` 改为值 import 里的行内 `type`。整句 `import type` 只留给 `ConversationStubSession` 与 `IConversationRosterService`。18 / 20 / 3 的计数不变。
+- **采纳。** 规则注册按 `.eslint-plugin-local/index.ts:14-17` 写成每个 `*.ts`，只排除 `index.ts` 与 `utils.ts`。files 覆盖 `contrib/conversation/browser` 时排除 `*.test.ts`。
+- **采纳。** p3-2 的选择器改为 `scripts/test.sh --run` 指向 `conversationLensDisposeGate.test.ts`；`--grep` 用该文件的完整用例名。短词 `leftover model` 会命中 engine overview 与 provider。`scripts/run-unit-custom.sh` 跑三域门禁、不接收单文件，所以不把它写成这个选择器。
+- **采纳。** 待定项 4 删去。非活动叶的 live tree 已在 p3-1 不变量和「明确不改什么」里写成默认不做。待定项 1–3 仍留给用户。
+- **采纳。** `editorGroupView.ts:220` 写成组的 `scopedInstantiationService`，编辑器页创建写在 `:237`，透镜仍落到 `conversationEditorPane.ts:152`。
+
+没有不采纳的意见。

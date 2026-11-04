@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r05：platform 其余方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "核对 5 条：hold 3，weaken 1，drop 1。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收。核对 5 条：hold 3，weaken 1，drop 1；r05-4 维持 drop，r05-2 先于 r05-1 合入。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r05：platform 其余方案
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。说明见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -81,3 +82,15 @@ summary: "核对 5 条：hold 3，weaken 1，drop 1。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 无。已按活码改入：依赖路径改为本仓 `node_modules/@vscode/sandbox-runtime`；不再把家目录拒绝读和 `~/` 允许项写成已经对上；r05-4 补上 drop 反证；r05-3 的验证改为第一次 `listen` 的 `error`，而不是起始端口被占用；r05-5 不再清 `readonly` 的 `_loggerCreationPromise`。Minor 已并入正文：`denyRead` 指配置 JSON，不指 `checkFileAccess` 的返回值；新测试标题必须含对应 `--grep` 片段。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r05-1 | 签 | 依赖 r05-2：`_userHome` 为空时 `_expandHomePath` 原样返回，r05-2 要先合。 |
+| r05-2 | 签 | `_runtimeResolved = true` 仍写在两次 await 之前。 |
+| r05-3 | 签 | `error` 监听仍是空函数，第一次 `listen` 出错会停在 `wait()`。 |
+| r05-4 | 同意 drop | 产品侧先 `await startTunnel` 再建 `SharedProcessTunnel`，`setAddress` 调用时 id 已入表。 |
+| r05-5 | 签 | `readonly` 字段与两条双 catch 不动，扫描测试仍锁住它们。 |

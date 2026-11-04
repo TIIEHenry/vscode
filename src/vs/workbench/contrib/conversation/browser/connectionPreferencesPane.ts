@@ -7,7 +7,7 @@ import './media/connectionPreferencesPane.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
+import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -17,7 +17,7 @@ import { IContextViewService } from '../../../../platform/contextview/browser/co
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { type ConnectionProfileProjection, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -107,7 +107,7 @@ const CONNECTION_ZONE_NAV_ENTRIES: ReadonlyArray<{ readonly id: ConnectionZoneId
 
 class ConnectionNavDelegate implements IListVirtualDelegate<typeof CONNECTION_ZONE_NAV_ENTRIES[number]> {
 	getHeight(): number {
-		return 22;
+		return 32;
 	}
 
 	getTemplateId(): string {
@@ -305,7 +305,7 @@ export function getConnectionRemoteIoHintCopy(): string {
 
 class ConnectionProfilesDelegate implements IListVirtualDelegate<IConnectionProfileEntry> {
 	getHeight(): number {
-		return 22;
+		return 32;
 	}
 
 	getTemplateId(): string {
@@ -315,6 +315,7 @@ class ConnectionProfilesDelegate implements IListVirtualDelegate<IConnectionProf
 
 interface IConnectionProfileTemplateData {
 	readonly label: HTMLElement;
+	readonly state: HTMLElement;
 }
 
 class ConnectionProfilesRenderer implements IListRenderer<IConnectionProfileEntry, IConnectionProfileTemplateData> {
@@ -323,11 +324,12 @@ class ConnectionProfilesRenderer implements IListRenderer<IConnectionProfileEntr
 	readonly templateId = ConnectionProfilesRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): IConnectionProfileTemplateData {
-		return { label: DOM.append(container, $('.connection-profile-label')) };
+		return { label: DOM.append(container, $('.connection-profile-label')), state: DOM.append(container, $('.connection-profile-state')) };
 	}
 
 	renderElement(entry: IConnectionProfileEntry, _index: number, templateData: IConnectionProfileTemplateData): void {
-		templateData.label.textContent = `${entry.label} — ${entry.stateLabel}`;
+		templateData.label.textContent = entry.label;
+		templateData.state.textContent = entry.stateLabel;
 	}
 
 	disposeTemplate(): void {
@@ -347,7 +349,7 @@ class ConnectionProfilesAccessibilityProvider implements IListAccessibilityProvi
 
 class HubDevicesDelegate implements IListVirtualDelegate<HubDeviceProjection> {
 	getHeight(): number {
-		return 24;
+		return 32;
 	}
 
 	getTemplateId(): string {
@@ -446,7 +448,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly directHostInput: InputBox;
 	private readonly directPortInput: InputBox;
 	private readonly directNameInput: InputBox;
-	private readonly directAllowPrivateCheckbox: Checkbox;
+	private readonly directAllowPrivateCheckbox: Toggle;
 	private readonly directAddressStatus: HTMLElement;
 	private readonly profilesSection: HTMLElement;
 	private readonly emptyWelcome: HTMLElement;
@@ -465,6 +467,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly navList: WorkbenchList<typeof CONNECTION_ZONE_NAV_ENTRIES[number]>;
 	private readonly detail: HTMLElement;
 	private readonly detailTitle: HTMLElement;
+	private readonly detailHeader: HTMLElement;
 	private readonly scrollBody: HTMLElement;
 	private lastLayoutWidth = 900;
 	private lastLayoutHeight = 480;
@@ -549,14 +552,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		)) as WorkbenchList<typeof CONNECTION_ZONE_NAV_ENTRIES[number]>;
 
 		this.detail = DOM.append(body, $('.connection-preferences-detail'));
-		const detailHeader = DOM.append(this.detail, $('.connection-preferences-detail-header'));
-		this.backButton = DOM.append(detailHeader, $('button.connection-preferences-back')) as HTMLButtonElement;
+		this.detailHeader = DOM.append(this.detail, $('.connection-preferences-detail-header'));
+		this.backButton = DOM.append(this.detailHeader, $('button.connection-preferences-back')) as HTMLButtonElement;
 		this.backButton.type = 'button';
 		this.backButton.textContent = localize('ua.connectionPreferencesBack', "Back");
 		this.backButton.setAttribute('aria-label', localize('ua.connectionPreferencesBackAria', "Back to Connection sections"));
 		this.backButton.hidden = true;
 		this._register(DOM.addDisposableListener(this.backButton, 'click', () => this.showNarrowNav()));
-		this.detailTitle = DOM.append(detailHeader, $('h3.connection-preferences-detail-title'));
+		this.detailTitle = DOM.append(this.detailHeader, $('h3.connection-preferences-detail-title'));
 
 		this.scrollBody = DOM.append(this.detail, $('.connection-preferences-detail-body'));
 
@@ -708,14 +711,25 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const toggleDetails = DOM.append(directAllowRow, DOM.$('.connection-toggle-details.ua-setting-copy'));
 		const allowLabel = DOM.append(toggleDetails, DOM.$('span.connection-toggle-label'));
 		allowLabel.textContent = allowPrivateLabelText;
+		allowLabel.id = 'connection-allow-private-network-label';
 		const allowDesc = DOM.append(toggleDetails, DOM.$('span.connection-toggle-description'));
+		allowDesc.id = 'connection-allow-private-network-description';
 		allowDesc.textContent = localize('ua.connectionAllowPrivateNetworkDescription', "Permit connections to private subnets, localhost, and loopback addresses.");
 		const toggleCheckbox = () => {
 			this.directAllowPrivateCheckbox.checked = !this.directAllowPrivateCheckbox.checked;
 			this.directAllowPrivateCheckbox.focus();
 		};
-		this.directAllowPrivateCheckbox = this._register(new Checkbox(allowPrivateLabelText, true, defaultCheckboxStyles));
+		this.directAllowPrivateCheckbox = this._register(new Toggle({
+			title: allowPrivateLabelText,
+			isChecked: true,
+			inputActiveOptionBackground: 'var(--ua-connection-switch-track)',
+			inputActiveOptionForeground: undefined,
+			inputActiveOptionBorder: 'transparent',
+		}));
+		this.directAllowPrivateCheckbox.domNode.setAttribute('role', 'switch');
 		this.directAllowPrivateCheckbox.domNode.id = 'connection-allow-private-network';
+		this.directAllowPrivateCheckbox.domNode.setAttribute('aria-labelledby', allowLabel.id);
+		this.directAllowPrivateCheckbox.domNode.setAttribute('aria-describedby', allowDesc.id);
 		DOM.append(directAllowRow, this.directAllowPrivateCheckbox.domNode);
 		this._register(DOM.addDisposableListener(allowLabel, DOM.EventType.CLICK, toggleCheckbox));
 		this._register(DOM.addDisposableListener(allowDesc, DOM.EventType.CLICK, toggleCheckbox));
@@ -856,6 +870,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.applyNarrowChrome();
 		this.selectZone(this.activeZoneId);
 		this._register(onDidRevealConnectionProfiles(() => this.revealProfilesZone()));
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver(
+			'ConnectionPreferencesPane.content', () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				if (!(this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH && this.narrowShowingDetail)) {
+					this.navList.layout(this.getNavHeight(this.lastLayoutHeight), this.getNavWidth(this.lastLayoutWidth));
+				}
+				this.layoutLists();
+			}, DOM.getWindow(this.container),
+		));
+		this._register(resizeObserver.observe(this.navHost));
+		this._register(resizeObserver.observe(this.scrollBody));
 		void this.initializeState().catch(onUnexpectedError);
 		void this.refreshEngineDeviceLists().catch(onUnexpectedError);
 	}
@@ -932,6 +959,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			&& !this.narrowShowingDetail
 			&& this.navHost.contains(this.navHost.ownerDocument.activeElement);
 		this.activeZoneId = id;
+		const index = this.getAvailableZoneEntries().findIndex(entry => entry.id === id);
+		if (index >= 0 && (this.navList.getSelection()[0] !== index || this.navList.getFocus()[0] !== index)) {
+			this.syncingNav = true;
+			try {
+				if (this.navList.getSelection()[0] !== index) {
+					this.navList.setSelection([index]);
+				}
+				if (this.navList.getFocus()[0] !== index) {
+					this.navList.setFocus([index]);
+				}
+			} finally {
+				this.syncingNav = false;
+			}
+		}
 		this.detailTitle.textContent = CONNECTION_ZONE_NAV_ENTRIES.find(entry => entry.id === id)?.label ?? '';
 		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
 			this.narrowShowingDetail = true;
@@ -1114,36 +1155,55 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private getNavWidth(paneWidth: number): number {
-		if (paneWidth >= PREFERENCES_PANE_NARROW_WIDTH) {
-			return 210;
+		const measured = DOM.getContentWidth(this.navHost);
+		if (measured > 0) {
+			return measured;
 		}
-		const stacked = Math.max(0, paneWidth - 40);
-		return paneWidth >= PREFERENCES_PANE_COMPACT_WIDTH ? Math.min(280, stacked) : stacked;
+		if (paneWidth >= PREFERENCES_PANE_NARROW_WIDTH) {
+			return 216; // 240px navigation column, with 12px inset on each side.
+		}
+		const stacked = Math.max(0, paneWidth - (paneWidth < PREFERENCES_PANE_COMPACT_WIDTH ? 20 : 0));
+		return paneWidth >= PREFERENCES_PANE_COMPACT_WIDTH ? Math.min(256, stacked) : stacked;
 	}
 
 	private getNavHeight(paneHeight: number): number {
+		const measured = DOM.getContentHeight(this.navHost);
+		if (measured > 0) {
+			return measured;
+		}
 		const sasReserve = this.pairingConfirmHost.parentElement === this.container && this.isPairingConfirmHostLive()
 			? this.pairingConfirmHost.offsetHeight
 			: 0;
-		return Math.max(80, paneHeight - 120 - sasReserve);
+		return Math.max(32, paneHeight - 32 - sasReserve);
 	}
 
 	private getDetailWidth(): number {
-		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
-			return Math.max(0, this.lastLayoutWidth - 48);
+		const measured = DOM.getContentWidth(this.scrollBody);
+		if (measured > 0) {
+			return measured;
 		}
-		return Math.max(240, this.lastLayoutWidth - 220 - 48);
+		const navigation = this.lastLayoutWidth >= PREFERENCES_PANE_NARROW_WIDTH ? 240 : 0;
+		return Math.max(0, Math.min(760, this.lastLayoutWidth - navigation - 32));
 	}
 
 	private getDetailHeight(): number {
-		return Math.max(160, this.lastLayoutHeight - 120);
+		const measured = DOM.getContentHeight(this.scrollBody);
+		if (measured > 0) {
+			return measured;
+		}
+		return Math.max(80, this.lastLayoutHeight - DOM.getTotalHeight(this.detailHeader) - 80);
 	}
 
 	private layoutLists(): void {
-		const listHeight = Math.max(80, Math.min(220, this.getDetailHeight() - 120));
-		const listWidth = this.getDetailWidth();
-		this.hubDevicesList.layout(listHeight, listWidth);
-		this.list.layout(listHeight, listWidth);
+		const budget = Math.max(32, Math.min(224, this.getDetailHeight() - 120));
+		const layoutList = <T>(list: WorkbenchList<T>, host: HTMLElement): void => {
+			const height = Math.min(budget, Math.max(32, list.length * 32));
+			const width = DOM.getContentWidth(host) || Math.max(0, this.getDetailWidth() - 34);
+			host.style.height = `${height}px`;
+			list.layout(height, width);
+		};
+		layoutList(this.hubDevicesList, this.hubDevicesListContainer);
+		layoutList(this.list, this.listContainer);
 		this.hubBaseUrlInput.layout();
 		this.hubEmailInput.layout();
 		this.hubPasswordInput.layout();
@@ -2596,6 +2656,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.updateDeviceActions();
 		this.syncHubDevicesSectionVisibility();
 		this.updateDeviceActions();
+		this.layoutLists();
 	}
 
 	private renderProfiles(): void {
@@ -2666,6 +2727,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.entries = entries;
 		this.list.splice(0, this.list.length, entries);
 		this.updateEmptyState();
+		this.layoutLists();
 	}
 
 	private updateEmptyState(): void {

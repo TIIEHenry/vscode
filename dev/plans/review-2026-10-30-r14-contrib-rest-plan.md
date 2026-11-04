@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r14：contrib 其余方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "保留 5 条：hold 4，weaken 1。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。保留 5 条：hold 4，weaken 1。r14-1 不做「卸模型之前的保存」。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r14：contrib 其余方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 核对范围是发现稿里的 5 条。引用都在 `src/vs/workbench/contrib` 的 comments、files、extensions、git、search，没有落在禁读目录，也没有越出 contrib。
@@ -171,3 +172,15 @@ summary: "保留 5 条：hold 4，weaken 1。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r14-1 的清空和覆盖都落在即将写回的那份地图上；待发缓存没有 uri 和 range，模型切换之后拼不出草稿；编辑器先卸模型再卸控制器。r14-2 保持 `Promises.settled` 的抛出，写回挂在现有 `!succeeded` 的 `finally` 上，字节按 `child.resource` 记录。Important 已改：r14-4 保持委托只能设一次；r14-5 在搜索结束之后再 dispose Emitter，不放进首屏 race 的 `finally`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r14-1 | 签（收窄） | 排除「编辑器卸模型之前的那次保存」：`CodeEditorWidget.dispose` 直接走 `_detachModel`，不发 `onWillChangeModel`，contribution 在 `super.dispose()` 里才卸，现在没有可挂的钩子，方案也没写落点。不做不会退化，今天关编辑器同样丢草稿。清空信号要扩 `IContinueOnCommentProvider`（现在只返回 `PendingCommentThread[]`），实施前写明接口改动。 |
+| r14-2 | 签 | 方案没限制备份大小，大文件会整份读进内存，实施时注意。 |
+| r14-3 | 签 | 改成 `finally` 不改变成功时的重入语义。 |
+| r14-4 | 签 | `contrib/git/test/` 目录今天不存在，要新建。 |
+| r14-5 | 签 | 首屏 race 的 `finally` 不能用来 dispose，方案已写明。 |

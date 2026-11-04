@@ -11,7 +11,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type {
@@ -228,15 +228,11 @@ export class EngineOverviewSection extends Disposable {
 		return { value: fallback };
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedOverview(hadLiveCatalog: boolean): void {
 		if (this._store.isDisposed) {
 			return;
 		}
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			const snapshot = this.connection.getConnectionSnapshot();
 			const phase = this.connection.getConnectionPhase();
 			const modelsEntry = snapshot.capabilities?.models;

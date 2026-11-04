@@ -110,7 +110,7 @@ suite('ConversationSessionsView', () => {
 
 	function isFilterVisible(view: ConversationSessionsView): boolean {
 		const filter = view.element.querySelector('.conversation-sessions-inline-filter') as HTMLElement | null;
-		return filter !== null && filter.style.display !== 'none';
+		return filter !== null && !filter.hidden;
 	}
 
 	async function setFilterQuery(view: ConversationSessionsView, query: string): Promise<void> {
@@ -235,23 +235,24 @@ suite('ConversationSessionsView', () => {
 		return stubService.getActiveSession();
 	}
 
-	test('seed session row shows title and No messages subtitle', () => {
+	test('empty session prioritizes title and keeps zero-message detail accessible', () => {
 		const { view, stubService } = mountView();
 		const session = activateEmptySession(stubService);
 		const row = view.element.querySelector('.conversation-sessions-item-active');
 		assert.ok(row);
 		assert.strictEqual(row?.querySelector('.conversation-sessions-item-label')?.textContent, session.title);
-		assert.strictEqual(row?.querySelector('.conversation-sessions-item-subtitle')?.textContent, 'No messages');
+		assert.strictEqual(row?.querySelector('.conversation-sessions-item-subtitle')?.textContent, '');
 		assert.ok(row?.querySelector('.conversation-sessions-item-icon.codicon-comment-discussion'));
 	});
 
-	test('appendUserTurn updates roster subtitle to 1 message', () => {
+	test('message count updates the accessible row without taking title space', () => {
 		const { view, stubService } = mountView();
 		const sessionId = activateEmptySession(stubService).id;
 		stubService.appendUserTurn(sessionId, 'Hello from roster test');
 
 		const subtitle = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-subtitle');
-		assert.strictEqual(subtitle?.textContent, '1 message');
+		assert.strictEqual(subtitle?.textContent, '');
+		assert.ok(subtitle?.closest('.monaco-list-row')?.getAttribute('aria-label')?.includes('1 message'));
 	});
 
 	test('engine roster subtitle counts projected turns, not the empty session.turns array', () => {
@@ -263,6 +264,7 @@ suite('ConversationSessionsView', () => {
 				{ id: 'u1', kind: 'user', text: 'hello' },
 				{ id: 'a1', kind: 'assistant', text: 'world' },
 			];
+			pending = 1;
 			private readonly detailEmitter = this._register(new Emitter<string>());
 			override readonly onDidChangeSessionRosterDetail = this.detailEmitter.event;
 			override getSessions(): readonly ConversationStubSession[] {
@@ -278,7 +280,7 @@ suite('ConversationSessionsView', () => {
 				return sessionId === 'live' ? this.turns : [];
 			}
 			override countPendingConfirmations(): number {
-				return 1;
+				return this.pending;
 			}
 			publishDetail(sessionId: string): void {
 				this.detailEmitter.fire(sessionId);
@@ -287,21 +289,36 @@ suite('ConversationSessionsView', () => {
 		const roster = store.add(new ProjectionRoster());
 		const { view } = mountView({ stubService: roster });
 		const subtitle = () => view.element.querySelector('.conversation-sessions-item-subtitle');
-		assert.strictEqual(subtitle()?.textContent, '2 messages · 1 confirmation pending');
+		assert.strictEqual(subtitle()?.textContent, '1');
+		assert.ok(subtitle()?.closest('.monaco-list-row')?.getAttribute('aria-label')?.includes('2 messages'));
 		roster.turns = [
 			...roster.turns,
 			{ id: 'u2', kind: 'user', text: 'again' },
 		];
 		roster.publishDetail('live');
-		assert.strictEqual(subtitle()?.textContent, '3 messages · 1 confirmation pending');
+		assert.strictEqual(subtitle()?.textContent, '1');
+		assert.ok(subtitle()?.closest('.monaco-list-row')?.getAttribute('aria-label')?.includes('3 messages'));
+		roster.pending = 0;
+		roster.turns = [{ id: 'run', kind: 'assistant', text: 'working', streaming: true }];
+		roster.publishDetail('live');
+		assert.ok(view.element.querySelector('.conversation-sessions-item-icon--running'));
+		assert.strictEqual(subtitle()?.textContent, '');
+		roster.turns = [{ id: 'fail', kind: 'assistant', text: 'failed', toolStatus: 'failed' }];
+		roster.publishDetail('live');
+		assert.ok(view.element.querySelector('.conversation-sessions-item-icon--failed'));
+		roster.turns = [];
+		roster.publishDetail('live');
+		assert.ok(view.element.querySelector('.conversation-sessions-item-icon--idle'));
+		assert.strictEqual(view.element.querySelector('.conversation-sessions-item-icon--failed'), null);
+		assert.strictEqual(subtitle()?.textContent, '');
 	});
 
-	test('session roster rows are a 22px single line with meta beside the title', () => {
-		assert.strictEqual(CONVERSATION_SESSION_ROW_HEIGHT, 22);
+	test('session roster rows are a 30px single line with meta beside the title', () => {
+		assert.strictEqual(CONVERSATION_SESSION_ROW_HEIGHT, 30);
 		const { view } = mountView();
 		const listRow = view.element.querySelector('.monaco-list-row') as HTMLElement | null;
 		assert.ok(listRow);
-		assert.strictEqual(listRow.style.height, '22px');
+		assert.strictEqual(listRow.style.height, '30px');
 		const itemRow = listRow.querySelector('.conversation-sessions-item-row');
 		const label = itemRow?.querySelector('.conversation-sessions-item-label');
 		const subtitle = itemRow?.querySelector('.conversation-sessions-item-subtitle');
@@ -311,18 +328,43 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(itemRow.querySelector('.conversation-sessions-item-text'), null);
 	});
 
-	test('compact layout uses 22px roster row height', () => {
-		assert.strictEqual(CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, 22);
+	test('compact layout uses 30px roster row height', () => {
+		assert.strictEqual(CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, 30);
 		const { view } = mountView();
 		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 280);
 		assert.ok(view.element.classList.contains('is-compact'));
 		const listRow = view.element.querySelector('.monaco-list-row') as HTMLElement | null;
 		assert.ok(listRow);
-		assert.strictEqual(listRow.style.height, '22px');
+		assert.strictEqual(listRow.style.height, '30px');
 		const subtitle = listRow.querySelector('.conversation-sessions-item-subtitle');
 		assert.ok(subtitle);
 		assert.ok(subtitle.textContent, 'compact rows keep distinguishing meta');
 		assert.ok(listRow.getAttribute('aria-label')?.includes(subtitle.textContent), 'accessible name keeps the meta');
+	});
+
+	test('date groups have 42px headers, 30px rows and the last session remains reachable', () => {
+		const now = Date.now();
+		class DatedRoster extends ConversationStubService {
+			override getSessions(): readonly ConversationStubSession[] {
+				return super.getSessions().map((session, index) => ({ ...session, lastAccessedAt: now - index * 86400000 }));
+			}
+		}
+		const roster = store.add(new DatedRoster());
+		const { view } = mountView({ stubService: roster });
+		const root = document.createElement('div');
+		root.className = 'monaco-workbench';
+		root.style.width = '300px';
+		root.appendChild(view.element);
+		document.body.appendChild(root);
+		store.add({ dispose: () => root.remove() });
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(300, 300);
+		const rows = [...view.element.querySelectorAll<HTMLElement>('.monaco-list-row')];
+		assert.deepStrictEqual(rows.map(row => row.style.height), ['42px', '30px', '42px', '30px']);
+		const top = rows[0].getBoundingClientRect().top;
+		assert.deepStrictEqual(rows.map(row => Math.round(row.getBoundingClientRect().top - top)), [0, 42, 72, 114]);
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(90, 300);
+		getViewList(view).reveal(3);
+		assert.ok(view.element.textContent?.includes(roster.getSessions()[1].title));
 	});
 
 	test('roster copy has no engine or Copilot placeholders', () => {
@@ -344,7 +386,7 @@ suite('ConversationSessionsView', () => {
 		const labels = [...view.element.querySelectorAll('.conversation-sessions-item-label')];
 		assert.strictEqual(labels.length, sessions.length);
 		assert.ok(labels.every((label, index) => label.textContent === sessions[index].title));
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-empty') as HTMLElement | null)?.hidden, true);
 
 		const activeIndex = sessions.findIndex(session => session.id === stubService.getActiveSessionId());
 		assert.ok(activeIndex >= 0);
@@ -404,7 +446,7 @@ suite('ConversationSessionsView', () => {
 		assert.ok(!empty.textContent?.match(/engine session/i));
 		assert.ok(!empty.textContent?.toLowerCase().includes('open chat'));
 		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-list') as HTMLElement | null)?.hidden, true);
 	});
 
 	test('New session action title matches SessionBar copy', () => {
@@ -602,7 +644,7 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(getVisibleSessionTitles(view)[0], 'Alpha roster item');
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
 		assert.ok(empty);
-		assert.strictEqual(empty.style.display, 'none');
+		assert.strictEqual(empty.hidden, true);
 	});
 
 	test('inline filter keeps the active session visible when its title does not match', async () => {
@@ -686,18 +728,18 @@ suite('ConversationSessionsView', () => {
 		const { view } = mountView({ stubService });
 		const stubRowCount = view.element.querySelectorAll('.conversation-sessions-item-label').length;
 		assert.ok(stubRowCount > 0);
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-empty') as HTMLElement | null)?.hidden, true);
 
 		stubService.setEngineConnected(true);
 
 		assert.strictEqual(stubService.getSessions().length, 0);
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
-		assert.strictEqual(empty?.getAttribute('style'), 'display: block;');
+		assert.strictEqual(empty?.hidden, false);
 		assert.strictEqual(empty?.textContent, conversationSessionsViewEmptyMessage);
 		assert.ok(!empty?.textContent?.match(/stub conversation/i));
 		assert.ok(!empty?.textContent?.match(/in-memory/i));
 		assert.ok(!empty?.textContent?.match(/engine session/i));
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-list') as HTMLElement | null)?.hidden, true);
 		assert.ok(!isFilterVisible(view));
 	});
 

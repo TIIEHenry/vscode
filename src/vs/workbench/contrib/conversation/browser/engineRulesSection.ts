@@ -33,7 +33,7 @@ import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import { captureEnginePublishedLinkOwner, classifyEnginePublishedWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, EngineRefreshGate } from './engineWriteGate.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -210,13 +210,9 @@ export class EngineRulesSection extends Disposable {
 		return mode;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
 		// D356 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.scopePanels.style.display = '';
 			this.listPhase = { kind: 'none' };
 			this.renderStatus(this.resolveMode(false, support));

@@ -21,7 +21,6 @@
 	height: 48px;
 	padding: 0;
 	border: 0;
-	outline: none;
 	background: transparent;
 	cursor: grab;
 	overflow: visible;
@@ -106,8 +105,13 @@
 	}
 }
 
-.monaco-workbench .chat-pet-overlay > .chat-pet-button:focus {
+.monaco-workbench .chat-pet-overlay > .chat-pet-button:focus:not(:focus-visible) {
 	outline: none;
+}
+
+.monaco-workbench .chat-pet-overlay > .chat-pet-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .chat-pet-visual {
@@ -331,6 +335,11 @@
 	background: #191a1b;
 }
 
+.hc-black .chat-pet-pupil,
+.hc-light .chat-pet-pupil {
+	background: var(--vscode-editor-foreground);
+}
+
 .chat-pet-button[data-state='idle'] .chat-pet-eye,
 .chat-pet-button[data-state='rendering'] .chat-pet-eye,
 .chat-pet-button[data-state='achievementUnlocked'] .chat-pet-eye,
@@ -388,6 +397,13 @@
 	width: 8px;
 	height: 2px;
 	background: #191a1b;
+}
+
+.hc-black .chat-pet-button.dragging .chat-pet-eye::before,
+.hc-black .chat-pet-button.dragging .chat-pet-eye::after,
+.hc-light .chat-pet-button.dragging .chat-pet-eye::before,
+.hc-light .chat-pet-button.dragging .chat-pet-eye::after {
+	background: var(--vscode-editor-foreground);
 }
 
 .chat-pet-button.dragging .chat-pet-eye::before {

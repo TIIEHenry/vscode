@@ -3,12 +3,13 @@ title: "方案 r03：agent-host-rest"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "2026-10-11 Sonnet 第 1 路审查后改稿。hold 4，drop 0，weaken 1。发布 ack 失败要写明与 github-ui 分叉，且不能把所有 success:false 当致命。隧道先关后连仍是待确认假设。"
+updated: 2026-11-01
+summary: "hold 4，drop 0，weaken 1。r03-1 至 r03-3 已由 970b6b82e6e 落地；r03-4 按审查待定项决定 D20 不实施（只服务 Agents Window 且要与 github-ui 分叉）；r03-5 缺并存证据，不签。"
 ---
 # 方案 r03：agent-host-rest
 
 状态：草案。
+签收：不签。签收人：agent:kiro（用户委托），日期：2026-11-01。原因见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -116,3 +117,22 @@ WebSocket 的 `storeWebSocketRemoteAgentHostEntries`（491–500 行）及其 `p
 
 ### 本地验证
 在 `src/vs/platform/agentHost/test/common/tunnelAgentHostConnector.test.ts` 增加断言：先成功 `connect` 一条中继，再让同 `tunnelId` 的第二次 `connect` 在 `getTunnel` 返回空、或转发端口 / socket 打开失败处抛错。第一次 socket 的 `close` 次数仍为 0，`onDidRelayClose` 不包含第一次的 `connectionId`，`relaySend` 仍打到第一次连接。第二次成功时，旧 socket 被关闭，新 `connectionId` 仍能 `relaySend`。现有 `times out a relay step and disposes the relay client` 与 `disposes the relay client when opening the legacy socket fails` 仍只释放本次新建的 relay。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r03-1 | 已落地 | `970b6b82e6e`：`storeSSHRemoteAgentHostEntries` 解析失败时不写，未识别元素原样保留。 |
+| r03-2 | 已落地 | `970b6b82e6e`：`ChangesetStateSubscription` 补了 pending 的清理、读取与按 clientSeq 丢弃，Manager 五处分支都加了 Changeset。 |
+| r03-3 | 已落地 | `970b6b82e6e`：变更集与批注的 `_reconcile` 改成三分支，带 `rejectionReason` 时不写确认态。 |
+| r03-4 | 不签，等用户决定 | `webPubSubRelayTransport.ts` 的 TODO 仍在，`send` 不登记 publish ack。方案自己要求先核对失败 ack 与 `Duplicate` 的形状，还没做，改法未定。唯一使用方是 `src/vs/sessions` 下的云沙箱路径（Agents Window）。要用户定：要不要为一条只在 Agents Window 用到的上游传输，与 github-ui 的 `wps-transport.ts` 分叉。 |
+| r03-5 | 不签，缺证据 | `tunnelAgentHostConnector.ts` 仍先关旧中继。方案写明「并存未确认之前，这一节不动代码」，缺的是同一隧道能否同时挂两条中继的事实，不是产品决定。 |
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+- r03-4：不实施（D20）。只服务 Agents Window 的云沙箱，且要与 github-ui `wps-transport.ts` 分叉。
+- r03-5：仍不签，缺的是事实，不是决定。

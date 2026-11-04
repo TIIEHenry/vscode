@@ -247,7 +247,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		}
 	}
 
-	test('tool name stays on the checkbox line', async () => {
+	test('tool rows reserve separate title and subtitle lines', async () => {
 		const connection = createConnectionStub({
 			connected: true,
 			listTools: async () => ({
@@ -267,7 +267,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
 		const heights = rows.map(row => row.style.height);
 		assert.ok(heights.length > 0);
-		assert.ok(heights.every(height => height === '24px'));
+		assert.deepStrictEqual(heights, ['28px', '44px', '44px', '44px', '32px', '32px']);
 		for (const row of rows) {
 			assert.notStrictEqual(row.style.lineHeight, '48px');
 		}
@@ -289,7 +289,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		for (const name of ['sys_tool_search', 'blank-desc']) {
 			const plain = rows.find(row => row.querySelector('.engine-catalog-name')?.textContent === name);
 			assert.ok(plain, name);
-			assert.strictEqual(plain!.style.height, '24px');
+			assert.strictEqual(plain!.style.height, '32px');
 			assert.strictEqual((plain!.querySelector('.engine-catalog-description') as HTMLElement).style.display, 'none');
 		}
 	});

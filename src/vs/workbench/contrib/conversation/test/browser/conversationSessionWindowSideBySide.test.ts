@@ -14,6 +14,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
@@ -23,9 +24,8 @@ import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/edi
 import { IEditorPaneRegistry } from '../../../../browser/editor.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
-import { ConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
-import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
@@ -250,6 +250,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
 				},
 			} as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		return {
@@ -561,6 +562,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 						throw paintBoom;
 					},
 				} as unknown as INotificationService,
+				undefined as unknown as IStorageService,
 			));
 		});
 	});

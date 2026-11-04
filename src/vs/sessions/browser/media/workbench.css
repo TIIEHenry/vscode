@@ -13,6 +13,29 @@
 	--modern-ui-notifications-inline-inset: var(--vscode-spacing-size80);
 	--modern-ui-notifications-block-end-inset: var(--vscode-spacing-size80);
 	--modern-ui-notifications-block-start-inset: var(--vscode-spacing-size400);
+
+	/*
+	 * Sessions overlay scale. Each value matches the literal it replaced,
+	 * so stacking does not change. Use the variable with the same literal
+	 * as a fallback so a rule still resolves if it is painted outside this root.
+	 *
+	 * --sessions-z-backdrop (39): compact desktop drawer scrim.
+	 * --sessions-z-compact-drawer (40): compact desktop sidebar drawer, above the scrim.
+	 * --sessions-z-compact-nav (50): compact desktop nav, above the drawer.
+	 * --sessions-z-sheet (2000): host picker sheet and mobile picker/sort sheets.
+	 * --sessions-z-quick-input-backdrop (2549): run-script scrim, just under quick input (2550).
+	 * --sessions-z-dialog (2600): popups above the dialog modal block (2575).
+	 * --sessions-z-drop-target (10000): session, chat-group, and feedback drop overlays.
+	 * --vscode-sessions-sheetBackdrop: shared 0.4 sheet scrim.
+	 */
+	--sessions-z-backdrop: 39;
+	--sessions-z-compact-drawer: 40;
+	--sessions-z-compact-nav: 50;
+	--sessions-z-sheet: 2000;
+	--sessions-z-quick-input-backdrop: 2549;
+	--sessions-z-dialog: 2600;
+	--sessions-z-drop-target: 10000;
+	--vscode-sessions-sheetBackdrop: rgba(0, 0, 0, 0.4);
 }
 
 /* ---- Workbench Shell ---- */

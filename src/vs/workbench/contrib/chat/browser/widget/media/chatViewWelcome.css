@@ -121,9 +121,15 @@ div.chat-welcome-view {
 		}
 
 		a:hover,
-		a:focus {
+		a:focus:not(:focus-visible) {
 			text-decoration: underline;
 			outline: none;
+		}
+
+		a:focus-visible {
+			text-decoration: underline;
+			outline: 1px solid var(--vscode-focusBorder);
+			outline-offset: -1px;
 		}
 
 		p {
@@ -151,9 +157,15 @@ div.chat-welcome-view {
 		}
 
 		a:hover,
-		a:focus {
+		a:focus:not(:focus-visible) {
 			text-decoration: underline;
 			outline: none;
+		}
+
+		a:focus-visible {
+			text-decoration: underline;
+			outline: 1px solid var(--vscode-focusBorder);
+			outline-offset: -1px;
 		}
 
 		.rendered-markdown {
@@ -191,9 +203,15 @@ div.chat-welcome-view {
 		}
 
 		a:hover,
-		a:focus {
+		a:focus:not(:focus-visible) {
 			text-decoration: underline;
 			outline: none;
+		}
+
+		a:focus-visible {
+			text-decoration: underline;
+			outline: 1px solid var(--vscode-focusBorder);
+			outline-offset: -1px;
 		}
 	}
 }

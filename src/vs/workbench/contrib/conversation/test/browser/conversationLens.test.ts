@@ -867,14 +867,14 @@ suite('ConversationLens', () => {
 		assert.ok(!inputRow.querySelector('.conversation-lens-dock-send'));
 	});
 
-	test('T2 composer chrome: 32px bottom bar with tune permission model more send codicons', () => {
+	test('T2 composer chrome: 40px bottom bar with tune permission model more send codicons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		const bottomBar = getComposerBottomBar(slots);
 
 		const bottomBarMinHeight = parseInt(getWindow(bottomBar).getComputedStyle(bottomBar).minHeight, 10);
 		if (bottomBarMinHeight > 0) {
-			assert.strictEqual(bottomBarMinHeight, 28);
+			assert.strictEqual(bottomBarMinHeight, 40);
 		}
 
 		const leading = bottomBar.querySelector('.conversation-lens-dock-bottom-leading')!;
@@ -900,7 +900,7 @@ suite('ConversationLens', () => {
 			if (controlElement.classList.contains('conversation-lens-dock-send-button')) {
 				const sendHeight = parseInt(getWindow(controlElement).getComputedStyle(controlElement).height, 10);
 				if (sendHeight > 0) {
-					assert.strictEqual(sendHeight, 24);
+					assert.strictEqual(sendHeight, 28);
 				}
 				continue;
 			}
@@ -926,6 +926,27 @@ suite('ConversationLens', () => {
 		textarea.value = 'hello';
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 		assert.strictEqual(sendButton.classList.contains('disabled'), false);
+	});
+
+	test('293px composer keeps long model and existing More/send controls inside the card', () => {
+		const { part } = mountLens({ layoutWidth: 293 });
+		const slots = getLensSlots(part);
+		const bar = getComposerBottomBar(slots);
+		const permission = getPermissionSelect(slots);
+		permission.selectedIndex = 2;
+		bar.querySelector('.conversation-lens-dock-permission')!.classList.add('is-permit');
+		const model = getModelSelect(slots);
+		model.options[0].textContent = 'provider / a deliberately long model name for narrow layout';
+		// Visual fixture only; engine capability and write gates remain untouched.
+		const card = bar.closest('.conversation-lens-composer')!.getBoundingClientRect();
+		for (const selector of ['.conversation-lens-dock-more .monaco-button', '.conversation-lens-dock-model select', '.conversation-lens-dock-send-button']) {
+			const element = bar.querySelector(selector) as HTMLElement;
+			const rect = element.getBoundingClientRect();
+			assert.ok(rect.width > 0 && rect.height > 0, selector);
+			assert.ok(rect.left >= card.left && rect.right <= card.right + 1, `${selector} stays inside the card`);
+		}
+		const leading = bar.querySelector('.conversation-lens-dock-bottom-leading') as HTMLElement;
+		assert.ok(leading.scrollWidth <= leading.clientWidth + 1, 'controls wrap instead of overflowing horizontally');
 	});
 
 	test('permission select is disabled until the engine can setPermissionMode', () => {
@@ -1756,12 +1777,14 @@ suite('ConversationLens', () => {
 		});
 		const { part, stubService } = mountLens({ connection });
 		const slots = getLensSlots(part);
+		// This checks an idle draft; the seeded session contains an active assistant step.
+		stubService.createSession();
 		stubService.setEngineConnected(true);
 		for (let i = 0; i < 8; i++) {
 			await Promise.resolve();
 		}
 
-		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		const gateRow = (slots.timeline.querySelector('.conversation-lens-dock-gate-row') ?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement;
 		assert.strictEqual(gateRow.hidden, true);
 		assert.strictEqual(gateRow.textContent, '');
 		assert.strictEqual(gateRow.getAttribute('aria-label'), null);

@@ -6,6 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { ConversationTrajectoryKind, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import { ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
+import type { ConversationDisplayMode } from './conversationLivePhase.js';
 
 export interface ProcessFoldSpan {
 	readonly id: string;
@@ -288,21 +289,21 @@ function summarizeFoldStatusCounts(failed: number, waiting: number, cancelled: n
 }
 
 /** Keeps status counts separate so the visual header only truncates step names. */
-export function summarizeProcessStepParts(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): { readonly steps: string; readonly statuses: readonly string[] } {
+export function summarizeProcessStepParts(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean; readonly displayMode?: ConversationDisplayMode }): { readonly steps: string; readonly statuses: readonly string[] } {
 	const counts = countProcessFoldToolStatuses(span);
 	return {
-		steps: formatFoldStepSummary(span.turnIds.length, formatStepNameCounts(collectTurnStepNames(span)), options?.showLiveChrome === true),
+		steps: formatFoldStepSummary(span.turnIds.length, formatStepNameCounts(collectTurnStepNames(span)), options?.showLiveChrome === true, options?.displayMode),
 		statuses: summarizeFoldStatusCounts(counts.failed, counts.waiting, counts.cancelled),
 	};
 }
 
 /** Outer process-fold header summary for conversation turns (must include Stub per PRD-013). */
-export function summarizeProcessSteps(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
+export function summarizeProcessSteps(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean; readonly displayMode?: ConversationDisplayMode }): string {
 	const parts = summarizeProcessStepParts(span, options);
 	return [parts.steps, ...parts.statuses].join(' · ');
 }
 
-function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveChrome: boolean): string {
+function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveChrome: boolean, displayMode?: ConversationDisplayMode): string {
 	const body = stepSummary.length > 0
 		? (stepCount === 1
 			? localize('conversationProcessFold.oneStepWithNames', "1 step · {0}", stepSummary)
@@ -310,7 +311,7 @@ function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveC
 		: (stepCount === 1
 			? localize('conversationProcessFold.oneStep', "1 step")
 			: localize('conversationProcessFold.manySteps', "{0} steps", stepCount));
-	return showLiveChrome ? body : `Stub · ${body}`;
+	return displayMode === 'cached' || showLiveChrome ? body : `Stub · ${body}`;
 }
 
 function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
@@ -329,6 +330,6 @@ function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
 }
 
 /** Outer process-fold header summary for trajectory records. Stub prefix only when no engine live chrome. */
-export function summarizeTrajectoryProcessSteps(span: TrajectoryProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
-	return formatFoldStepSummary(span.records.length, formatStepNameCounts(collectTrajectoryStepNames(span)), options?.showLiveChrome === true);
+export function summarizeTrajectoryProcessSteps(span: TrajectoryProcessFoldSpan, options?: { readonly showLiveChrome?: boolean; readonly displayMode?: ConversationDisplayMode }): string {
+	return formatFoldStepSummary(span.records.length, formatStepNameCounts(collectTrajectoryStepNames(span)), options?.showLiveChrome === true, options?.displayMode);
 }

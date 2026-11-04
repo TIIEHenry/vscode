@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSessions.css';
+import '../../../browser/media/uaRoundedIcons.css';
+import '../../../browser/media/uaRoundedMenus.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { IListContextMenuEvent, IListRenderer, IListVirtualDelegate, NotSelectableGroupId } from '../../../../base/browser/ui/list/list.js';
 import { Action } from '../../../../base/common/actions.js';
@@ -33,7 +35,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
-import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterStatus, formatSessionRosterSubtitle, groupSessionsForRoster, resolveSessionRosterTone, type SessionRosterEntry, type SessionRosterTone } from './conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterStatus, groupSessionsForRoster, resolveSessionRosterTone, sessionRosterGlyph, type SessionRosterEntry, type SessionRosterTone } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from './conversationDeleteSessionConfirm.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
@@ -48,16 +50,19 @@ export const CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID = 'workbench.action
 export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolean>('conversationSessions.deleteEnabled', false);
 
 /** Single-line roster row. Message count sits on the right, not a second line. */
-export const CONVERSATION_SESSION_ROW_HEIGHT = 22;
-/** Narrow sidebar keeps the same 22px row and the trailing meta so same-titled sessions stay distinguishable. */
-export const CONVERSATION_SESSION_COMPACT_ROW_HEIGHT = 22;
+export const CONVERSATION_SESSION_ROW_HEIGHT = 30;
+/** Narrow sidebar keeps the same comfortable row and the trailing meta so same-titled sessions stay distinguishable. */
+export const CONVERSATION_SESSION_COMPACT_ROW_HEIGHT = 30;
 
 const $ = dom.$;
 
 class SessionsDelegate implements IListVirtualDelegate<SessionRosterEntry> {
 	constructor(private readonly isCompact: () => boolean) { }
 
-	getHeight(): number {
+	getHeight(element: SessionRosterEntry): number {
+		if (element.kind === 'header') {
+			return 42;
+		}
 		return this.isCompact() ? CONVERSATION_SESSION_COMPACT_ROW_HEIGHT : CONVERSATION_SESSION_ROW_HEIGHT;
 	}
 
@@ -101,23 +106,11 @@ interface ISessionTemplateData {
 	session: ConversationStubSession | undefined;
 }
 
-function sessionRosterGlyph(tone: SessionRosterTone): ThemeIcon {
-	switch (tone) {
-		case 'waiting':
-			return Codicon.bell;
-		case 'running':
-			return Codicon.loading;
-		case 'failed':
-			return Codicon.error;
-		default:
-			return Codicon.commentDiscussion;
-	}
-}
-
 function applySessionRosterIcon(icon: HTMLElement, tone: SessionRosterTone): void {
 	icon.className = `conversation-sessions-item-icon conversation-sessions-item-icon--${tone}`;
 	icon.classList.add(...ThemeIcon.asClassNameArray(sessionRosterGlyph(tone)));
 	icon.classList.toggle('ua-motion', tone === 'running');
+	icon.classList.toggle('codicon-modifier-spin', tone === 'running');
 }
 
 class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemplateData> {
@@ -138,11 +131,14 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		const disposables = new DisposableStore();
 		container.classList.add('conversation-sessions-item');
 		const row = dom.append(container, $('.conversation-sessions-item-row'));
-		const icon = dom.append(row, $('span.conversation-sessions-item-icon'));
 		const label = dom.append(row, $('.conversation-sessions-item-label'));
+		const icon = dom.append(row, $('span.conversation-sessions-item-icon'));
+		icon.setAttribute('aria-hidden', 'true');
 		const subtitle = dom.append(row, $('.conversation-sessions-item-subtitle'));
+		subtitle.setAttribute('aria-hidden', 'true');
 		const more = dom.append(row, $('button.conversation-sessions-item-more')) as HTMLButtonElement;
 		more.type = 'button';
+		more.setAttribute('aria-haspopup', 'menu');
 		more.classList.add(...ThemeIcon.asClassNameArray(Codicon.ellipsis));
 		more.setAttribute('aria-label', localize('conversationSessionsView.moreActions', "More actions"));
 		const templateData: ISessionTemplateData = { container, icon, label, subtitle, more, disposables, session: undefined };
@@ -171,10 +167,12 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		templateData.session = session;
 		templateData.label.textContent = session.title;
 		const pending = this.countPendingConfirmations(session.id);
-		const turnCount = this.countRosterTurns(session.id);
 		const tone = resolveSessionRosterTone(this.getTurns(session.id), pending);
 		applySessionRosterIcon(templateData.icon, tone);
-		templateData.subtitle.textContent = formatSessionRosterSubtitle(session, pending, turnCount, tone);
+		templateData.container.dataset.tone = tone;
+		templateData.subtitle.textContent = pending > 0 ? String(pending)
+			: tone === 'idle' && typeof session.lastAccessedAt === 'number' ? formatSessionAccessedLabel(session.lastAccessedAt) : '';
+		templateData.subtitle.hidden = !templateData.subtitle.textContent;
 		templateData.container.classList.toggle('conversation-sessions-item-active', session.id === this.getActiveSessionId());
 	}
 
@@ -428,7 +426,7 @@ export class ConversationSessionsView extends ViewPane {
 		const compactChanged = wasCompact !== this.element.classList.contains('is-compact');
 		const hasSessions = this.stubService.getSessions().length > 0;
 		const filterHeight = hasSessions ? ConversationSessionsInlineFilterBox.HEIGHT : 0;
-		this.list?.layout(height - filterHeight, width);
+		this.list?.layout(height - filterHeight, Math.max(0, width - 16));
 		if (compactChanged) {
 			this.applyFilterToList();
 		}
@@ -484,8 +482,20 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private showSessionContextMenu(session: ConversationStubSession, anchor: HTMLElement | IListContextMenuEvent<SessionRosterEntry>['anchor']): void {
+		if (dom.isHTMLElement(anchor)) {
+			anchor.setAttribute('aria-expanded', 'true');
+		}
 		this.contextMenuService.showContextMenu({
+			getMenuClassName: () => 'ua-rounded-menu ua-session-menu',
 			getAnchor: () => anchor,
+			onHide: didCancel => {
+				if (dom.isHTMLElement(anchor)) {
+					anchor.removeAttribute('aria-expanded');
+				}
+				if (didCancel && this.isBodyVisible()) {
+					this.list?.domFocus();
+				}
+			},
 			getActions: () => [
 				new Action(
 					'workbench.action.conversationSessions.openBeside',
@@ -561,8 +571,8 @@ export class ConversationSessionsView extends ViewPane {
 		const filtered = hasSessions ? this.getFilteredSessions() : [];
 		const filterMiss = hasSessions && this.hasActiveFilter() && filtered.length === 0;
 		this.emptyMessage.textContent = filterMiss ? conversationSessionsViewNoMatches : conversationSessionsViewEmptyMessage;
-		this.emptyMessage.style.display = (!hasSessions || filterMiss) ? 'block' : 'none';
-		this.listContainer.style.display = (hasSessions && !filterMiss) ? 'block' : 'none';
+		this.emptyMessage.hidden = hasSessions && !filterMiss;
+		this.listContainer.hidden = !hasSessions || filterMiss;
 		this.filterBox?.setVisible(hasSessions);
 
 		if (!this.list) {
@@ -576,7 +586,7 @@ export class ConversationSessionsView extends ViewPane {
 
 		const entries = groupSessionsForRoster(filtered);
 		this.list.splice(0, this.list.length, entries);
-		this.layoutList(entries.length);
+		this.layoutList(entries);
 		this.updateActiveSession();
 	}
 
@@ -586,7 +596,7 @@ export class ConversationSessionsView extends ViewPane {
 			: CONVERSATION_SESSION_ROW_HEIGHT;
 	}
 
-	private layoutList(filteredCount: number): void {
+	private layoutList(entries: readonly SessionRosterEntry[]): void {
 		if (!this.list || !this.listContainer) {
 			return;
 		}
@@ -595,8 +605,9 @@ export class ConversationSessionsView extends ViewPane {
 		const height = this.listContainer.clientHeight;
 		if (width > 0 && height > 0) {
 			this.list.layout(height, width);
-		} else if (filteredCount > 0) {
-			this.list.layout(Math.max(filteredCount, 1) * this.getSessionRowHeight(), 300);
+		} else if (entries.length > 0) {
+			const contentHeight = entries.reduce((sum, entry) => sum + (entry.kind === 'header' ? 42 : this.getSessionRowHeight()), 0);
+			this.list.layout(contentHeight, 284);
 		}
 	}
 

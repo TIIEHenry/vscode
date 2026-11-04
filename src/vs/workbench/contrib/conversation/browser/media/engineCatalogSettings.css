@@ -1,0 +1,245 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Catalogs are settings content, with one title and a quieter description per row. */
+.monaco-workbench :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section) .engine-catalog-row {
+	min-height: 44px;
+	height: auto;
+	padding: var(--vscode-spacing-size80) var(--vscode-spacing-size120);
+	gap: var(--vscode-spacing-size120);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section, .engine-plugins-section) .engine-catalog-text {
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: center;
+	gap: 0;
+	min-width: 0;
+}
+
+.monaco-workbench :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section, .engine-plugins-section) .engine-catalog-name,
+.monaco-workbench :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section, .engine-plugins-section) .engine-catalog-description {
+	flex: 0 1 auto;
+	min-width: 0;
+	line-height: 18px;
+}
+
+.monaco-workbench .engine-preferences-pane :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section, .engine-plugins-section, .engine-providers-section) .engine-catalog-description {
+	font-size: var(--vscode-fontSize-label1);
+}
+
+.monaco-workbench :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section) .engine-catalog-description {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* A disabled model is still editable. Keep its available actions at full contrast. */
+.monaco-workbench .engine-models-section .engine-models-row--disabled {
+	opacity: 1;
+}
+
+.monaco-workbench .engine-models-section .engine-models-row--disabled .engine-catalog-text {
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .engine-models-section .engine-models-provider-group > .engine-catalog-group-label {
+	display: block;
+	padding: var(--vscode-spacing-size120) var(--vscode-spacing-size120) var(--vscode-spacing-size40);
+	font-size: var(--vscode-fontSize-body1);
+	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+/* Inventory and discovery are distinct sections of the provider page. */
+.monaco-workbench .engine-providers-section :is(.engine-provider-inventory-heading, .engine-provider-catalog-title) {
+	margin: 0 0 var(--vscode-spacing-size120);
+	font-size: var(--vscode-fontSize-body1);
+	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+.monaco-workbench .engine-providers-section .engine-provider-catalog {
+	padding-top: var(--vscode-spacing-size240);
+	margin-top: var(--vscode-spacing-size240);
+	border-top: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+}
+
+.monaco-workbench .engine-preferences-pane .engine-providers-section .engine-catalog-row.engine-provider-status-row {
+	min-height: var(--vscode-spacing-size400);
+	height: auto;
+	padding: var(--vscode-spacing-size80);
+	align-items: center;
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .engine-preferences-pane .engine-providers-section .engine-provider-preset-row {
+	min-height: var(--vscode-spacing-size400);
+	height: auto;
+	padding: var(--vscode-spacing-size80);
+}
+
+.monaco-workbench .engine-providers-section .engine-provider-catalog-filter {
+	height: var(--vscode-spacing-size320);
+	border-radius: var(--vscode-cornerRadius-circle);
+	margin-block: 0 var(--vscode-spacing-size160);
+}
+
+/* Scope columns respond to the content column, not the full preferences window. */
+.monaco-workbench .engine-rules-section .engine-rules-scopes {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--vscode-spacing-size240);
+}
+
+.monaco-workbench .engine-rules-section .engine-rules-scope {
+	min-width: 0;
+}
+
+.monaco-workbench .engine-rules-section .engine-rules-scope > h4,
+.monaco-workbench .engine-hooks-section .engine-hooks-column > h4 {
+	margin: 0 0 var(--vscode-spacing-size120);
+	font-size: var(--vscode-fontSize-body1);
+	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+.monaco-workbench .engine-hooks-section .engine-hooks-layout {
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--vscode-spacing-size240);
+}
+
+.monaco-workbench .engine-hooks-section .engine-hooks-column--definitions {
+	color: var(--vscode-descriptionForeground);
+	padding-bottom: var(--vscode-spacing-size160);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+@container engine-settings (max-width: 560px) {
+	.monaco-workbench .engine-rules-section .engine-rules-scopes {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* Numeric snapshots use a stable value column and tabular figures. */
+.monaco-workbench .engine-token-usage-section .engine-catalog-row {
+	min-height: var(--vscode-spacing-size400);
+	height: auto;
+	gap: var(--vscode-spacing-size160);
+	padding: var(--vscode-spacing-size80) var(--vscode-spacing-size120);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .engine-token-usage-section .engine-catalog-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: normal;
+}
+
+.monaco-workbench .engine-token-usage-section .engine-catalog-description {
+	flex: 0 1 auto;
+	text-align: end;
+	color: var(--vscode-foreground);
+	font-variant-numeric: tabular-nums;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-overview-section :is(.engine-overview-row, .engine-overview-capability-row) {
+	padding-block: var(--vscode-spacing-size120);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .engine-overview-section :is(.engine-overview-value, .engine-overview-capability-support) {
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+}
+
+.monaco-workbench .engine-overview-section .engine-overview-capabilities-heading {
+	margin-block: var(--vscode-spacing-size240) var(--vscode-spacing-size80);
+	font-size: var(--vscode-fontSize-body1);
+}
+
+.monaco-workbench .engine-overview-section--narrow :is(.engine-overview-value, .engine-overview-capability-support),
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-overview-section :is(.engine-overview-value, .engine-overview-capability-support) {
+	text-align: start;
+}
+
+/* The plugin delegate keeps its existing bounded row; text uses two aligned lines. */
+.monaco-workbench .engine-plugins-section .engine-catalog-row {
+	height: 100%;
+	padding-inline: var(--vscode-spacing-size120);
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .engine-plugins-section .engine-catalog-description {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.monaco-workbench .engine-plugins-section .engine-plugins-hooks-table {
+	display: table;
+	width: 100%;
+	table-layout: fixed;
+	margin-top: var(--vscode-spacing-size160);
+	border-collapse: collapse;
+	font-size: var(--vscode-fontSize-label1);
+}
+
+.monaco-workbench .engine-plugins-section .engine-plugins-hooks-table :is(th, td) {
+	padding: var(--vscode-spacing-size80) var(--vscode-spacing-size120);
+	text-align: start;
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	overflow-wrap: anywhere;
+}
+
+/* Record fields keep their exact text/ARIA values while becoming readable setting rows. */
+.monaco-workbench :is(.engine-triggers-section, .engine-clipboard-section, .engine-context-variable-section) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row) {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--vscode-spacing-size20) var(--vscode-spacing-size80);
+	min-height: 44px;
+	height: auto;
+	padding: var(--vscode-spacing-size80) var(--vscode-spacing-size120);
+	line-height: 18px;
+	white-space: normal;
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench :is(.engine-triggers-section, .engine-clipboard-section, .engine-context-variable-section) .engine-record-separator {
+	display: none;
+}
+
+.monaco-workbench :is(.engine-triggers-section, .engine-clipboard-section, .engine-context-variable-section) .engine-record-name {
+	order: 0;
+	flex: 1 1 100%;
+	min-width: 0;
+	font-size: var(--vscode-fontSize-body1);
+	color: var(--vscode-foreground);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench :is(.engine-triggers-section, .engine-clipboard-section, .engine-context-variable-section) :is(.engine-record-kind, .engine-record-source, .engine-record-scope, .engine-record-author, .engine-record-timestamp, .engine-record-identity) {
+	order: 1;
+	min-width: 0;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-context-variable-section .engine-record-preview {
+	order: 2;
+	flex: 1 1 100%;
+	min-width: 0;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) :is(.engine-models-section, .engine-memory-section, .engine-rules-section, .engine-hooks-section, .engine-plugins-section, .engine-token-usage-section) .engine-catalog-row,
+.monaco-workbench:is(.hc-black, .hc-light) :is(.engine-triggers-section, .engine-clipboard-section, .engine-context-variable-section) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row) {
+	border-bottom-color: var(--vscode-contrastBorder);
+}
+
+.monaco-workbench :is(.engine-triggers-section, .engine-clipboard-section, .engine-context-variable-section) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row).selected > span {
+	color: inherit;
+}

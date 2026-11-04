@@ -75,7 +75,6 @@
 		padding: 6px 12px 6px 24px;
 		background: none;
 		border: none;
-		outline: none;
 		color: var(--vscode-descriptionForeground);
 		cursor: pointer;
 		font-size: var(--vscode-chat-font-size-body-s);
@@ -98,8 +97,13 @@
 			color: var(--vscode-textLink-foreground);
 		}
 
-		&:focus-visible {
+		&:focus:not(:focus-visible) {
 			outline: none;
+		}
+
+		&:focus-visible {
+			outline: 1px solid var(--vscode-focusBorder);
+			outline-offset: -1px;
 			background-color: var(--vscode-toolbar-hoverBackground);
 		}
 	}

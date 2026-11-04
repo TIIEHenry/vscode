@@ -3,12 +3,13 @@ title: "方案 r16：extensions-entry"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "2026-10-11 Sonnet 第 4 路审查后改稿。hold 1，drop 1，weaken 2。静默换票是已写明的设计，不按稿删 restore。git IPC 不对不存在的对端 uid API。"
+updated: 2026-11-01
+summary: "hold 1，drop 1，weaken 2。r16-4 已由 6e105ae8abf 落地；r16-3 与 2026-10-30 r16-4 重复，按后者实施；r16-2 维持 drop。2026-11-01 agent:kiro 受用户委托核对：r16-1 缺可执行的验证路径，暂不签。"
 ---
 # 方案 r16：extensions-entry
 
 状态：草案。
+签收：不签。签收人：agent:kiro（用户委托），日期：2026-11-01。原因见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -66,3 +67,14 @@ git IPC 的套接字在 `listen` 之后没有再收紧模式。用对端 uid 拒
 `Keychain.getToken` 与 `deleteToken` 的失败处理。`createMicrosoftSession`（第 798–813 行）不写密钥链。`checkForUpdates`（第 575–606 行）的对比规则。
 ### 本地验证
 `extensions/github-authentication/src/test/github.test.ts` 的 `persists a new login alongside sessions added while authorization was in flight` 只覆盖 `setToken` 成功。应新增断言：`setToken` 拒绝时 `createSession` 抛出，不触发 `added`，`_persistedSessionsPromise` 仍是写入前的列表。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r16-1 | 不签，补验证后可签 | 缺陷仍在：`app.ts` 的 `setDisplayMediaRequestHandler` 找不到窗口时退回第一块屏，照样 `callback({ video })`，该文件 2026-10-11 之后没有提交。改法具体、范围小，不需要产品决定。缺的是能跑的验证：handler 是 `CodeApplication` 里的内联闭包，方案要求断言「回调是空对象、没有调用 `getSources`」，得先把判定抽成可测函数，而这不在「要动的符号」里。补上抽出哪个函数、测试放哪（或降为源码扫描），并列出 `getDisplayMedia` 的三个调用方（`nativeRecordingService.ts`、`issueReporterEditorPane.ts`、`browserHostService.ts`）确认都从窗口主 frame 发起。 |
+| r16-2 | 维持 drop | 「静默换票」写在 `github.ts` 的 `restore` 注释和 `common/accountLinks.ts` 注释里，由 `github.test.ts` 的 `rebuilds a remembered account in a window that never had the session` 锁住；docs 与 ADR 里没有这条合同，「已写明的设计」指的是代码注释加测试。 |
+| r16-3 | 重复，不签 | 与 [2026-10-30 r16-4](review-2026-10-30-r16-entry-extensions-plan.md) 同一缺陷（listen 后没有 chmod 0600）。那份在 `listening` 回调里 chmod 完再交出服务器，并带测试断言，按那份实施。 |
+| r16-4 | 已落地 | `6e105ae8abf`：`setToken` 去掉空 catch，写入成功后才换 `_persistedSessionsPromise`，登录与登出路径接住抛出。 |

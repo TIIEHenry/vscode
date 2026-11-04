@@ -38,11 +38,11 @@
 .conversation-timeline-stream {
 	box-sizing: border-box;
 	align-self: center;
-	width: min(100%, 720px);
-	max-width: 720px;
+	width: min(100%, var(--conversation-content-width, 800px));
+	max-width: var(--conversation-content-width, 800px);
 	min-width: 0;
 	margin: 0 auto;
-	padding-bottom: 48px;
+	padding: 0 var(--vscode-spacing-size160) 48px;
 	interpolate-size: allow-keywords;
 }
 
@@ -93,7 +93,7 @@
 	font-size: var(--vscode-fontSize-body1, 13px);
 	line-height: 1.5;
 	text-align: center;
-	opacity: 0.75;
+	color: var(--vscode-descriptionForeground);
 }
 
 .conversation-timeline-pinned {
@@ -109,7 +109,7 @@
 }
 
 .conversation-timeline-pinned .conversation-timeline-pinned-inner {
-	max-width: 720px;
+	max-width: var(--conversation-content-width, 800px);
 	margin: 0 auto;
 	pointer-events: auto;
 	background: linear-gradient(to bottom, var(--vscode-conversation-background, var(--vscode-editor-background)) 70%, transparent);
@@ -117,9 +117,14 @@
 
 .conversation-timeline-scroll-down {
 	position: absolute;
+	/* Above the timeline stream. The sub-agent overlay (z-index 5) covers this while open. */
 	z-index: 2;
 	right: 16px;
 	bottom: 12px;
+}
+
+.conversation-timeline-scroll-down[hidden] {
+	display: none;
 }
 
 .monaco-workbench .conversation-timeline-item[data-streaming] .conversation-timeline-caret::after {

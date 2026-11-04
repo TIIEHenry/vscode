@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/enginePreferencesPane.css';
+import './media/engineEditorSettings.css';
+import './media/engineCatalogSettings.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
@@ -56,17 +58,17 @@ import type { ConnectionPhase } from '../../../../platform/universeAgent/common/
 const $ = DOM.$;
 
 /** Product list row. The stylesheet row height must stay in lockstep. */
-const NAV_ROW_HEIGHT = 22;
+const NAV_ROW_HEIGHT = 32;
 
 /**
  * Mirrors `media/enginePreferencesPane.css`. Every measurement in this pane prefers the box the
  * browser actually gave the element; these values only stand in while the pane is still detached
  * and has no layout to read.
  */
-const NAV_COLUMN_WIDTH = 210;
-const BODY_COLUMN_GAP = 20;
-const PANE_PADDING_INLINE = 20;
-const PANE_PADDING_BLOCK = 16;
+const NAV_COLUMN_WIDTH = 240;
+const BODY_COLUMN_GAP = 0;
+const PANE_PADDING_INLINE = 0;
+const PANE_PADDING_BLOCK = 0;
 const COMPACT_PANE_PADDING_INLINE = 10;
 const COMPACT_PANE_PADDING_BLOCK = 8;
 

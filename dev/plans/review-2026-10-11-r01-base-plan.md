@@ -1,14 +1,15 @@
 ---
 title: "方案 r01：base"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "2026-10-11 Sonnet 第 1 路审查后改稿。hold 3，drop 0，weaken 2。语句失败改为拒绝事务 Promise，不要求对已入队的 END 做 ROLLBACK。压缩错误已会关连接，只清卡住的队列标志。"
+updated: 2026-11-01
+summary: "hold 3，drop 0，weaken 2。r01-1、r01-3、r01-4 已由 4a9b148e287 落地。2026-11-01 agent:kiro 受用户委托签收剩下两条：r01-2（收窄，补 Windows rename 桩）与 r01-5。未实施，不升 PRD。"
 ---
 # 方案 r01：base
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。只签 r01-2 与 r01-5，范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -135,3 +136,15 @@ hold 3，drop 0，weaken 2。2026-10-11 Sonnet 第 1 路只读审查后改过 r0
 `src/vs/base/parts/ipc/test/node/ipc.net.test.ts` 的 `A single-frame compressed text message` 只覆盖成功解压。应新增：deflate 或 inflate 发出 `error`，或处理函数在 `shift` 之后抛错时，对应的进行中标志回到 `false`，等待中的压缩 Promise reject，`drain` 或 `dispose` 不再停在结束事件上。
 
 反证：发现稿说连接看起来还在、后续帧不再转发。第 344–352 行已经在 zlib `error` 上关闭连接。剩下的是标志卡住对 `dispose`、`drain` 和 socket `onClose` 的等待。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，查了 2026-10-11 之后改到所引文件的提交，也对照了 2026-10-24、2026-10-30 两轮方案。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r01-1 | 已落地 | `4a9b148e287`：`preserveCandidateFallback` 改走 `openMainSeededFromRecoveryCandidate`，只读载入候选库再写进新主库，不再打开空 `:memory:`。 |
+| r01-2 | 签（收窄） | 缺陷仍在：`swapRecoveryDatabaseIntoPlace` 第一跳不先删旧旁路，且在 try 之外。收窄两点：① 验证照现稿写在 POSIX 上改动前就会通过（rename 会覆盖目标），测试要把 rename 桩成「目标存在时拒绝」，先红后绿；② 不变量补一句：旁路可能是 r01-1 留下的 `.recovery-replace` 候选，它的键已写进主库，删掉它与 POSIX 现在的覆盖行为一致。 |
+| r01-3 | 已落地 | `4a9b148e287`：`zip.ts` 搬回失败时抛出带 `bypassPath` 的错误并留下旁路目录。 |
+| r01-4 | 已落地 | `4a9b148e287`：`transaction` 加了 `statementFailed`，`END` 无错但有语句失败时照样拒绝。 |
+| r01-5 | 签 | `ipc.net.ts` 自 2026-10-11 起没有提交。`_processWriteQueue` / `_processReadQueue` 没有 `finally`，`_deflateMessage` / `_inflateFrame` 从不 reject。实施时写明：Promise 拒绝后队列里剩下的帧直接丢弃。验证接到 `ipc.net.test.ts`。 |

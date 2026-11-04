@@ -12,27 +12,17 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 export GITHUB_WORKSPACE="${GITHUB_WORKSPACE:-$REPO_ROOT}"
 
-# Electron ESM cannot load these 17 (D17). Basename match applies only under test/node/
-# so browser/universeAgentConnection.test.ts stays in the run.
-UA_NODE_UNLOADABLE=(
-	connectionIpcSecretBoundary
-	connectionProfileStore
-	connectionResolver
-	deviceAuthHandshake
-	deviceGrantCrypto
-	grpcClientSessionToken
-	grpcQueueSkillWire
-	grpcSessionWrites
-	hubControlPlane
-	hubDirectoryClient
-	hubSessionStore
-	localEngineDiscovery
-	observeCandidateLeaf
-	pairingOrchestrator
-	universeAgentChannel
-	universeAgentConnection
-	universeAgentHubService
-)
+# Electron ESM cannot load these universeAgent test/node basenames (D17).
+# Single source: test/unit/electron/d17-ua-node-unloadable.json
+# (renderer.js builds D17_UA_NODE_UNLOADABLE from the same file).
+# Basename match applies only under test/node/ so
+# browser/universeAgentConnection.test.ts stays in the run.
+if ! ua_node_unloadable_lines="$(node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).forEach(name => console.log(name))' "$REPO_ROOT/test/unit/electron/d17-ua-node-unloadable.json")"; then
+	echo "error: failed to read test/unit/electron/d17-ua-node-unloadable.json" >&2
+	exit 1
+fi
+mapfile -t UA_NODE_UNLOADABLE <<< "$ua_node_unloadable_lines"
+unset ua_node_unloadable_lines
 
 UA_FILES=()
 UA_NODE_FILES=()

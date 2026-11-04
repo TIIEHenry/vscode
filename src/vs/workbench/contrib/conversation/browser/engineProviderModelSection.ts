@@ -26,7 +26,7 @@ import type {
 	UniverseAgentProviderPreset,
 	UniverseAgentProviderStatus,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { isSameEngineWriteLink } from './engineWriteGate.js';
 import {
@@ -151,7 +151,7 @@ function presetHost(url: string): string {
 }
 
 function formatModelRowSummary(model: UniverseAgentModelEntry): string {
-	const parts: string[] = [model.type, model.modelId, String(model.level)];
+	const parts: string[] = [model.type, String(model.level)];
 	if (model.cost) {
 		parts.push(model.cost);
 	}
@@ -231,10 +231,13 @@ export class EngineProvidersSection extends Disposable {
 		this.providerActionMessage = DOM.append(this.container, $('.engine-catalog-action-message'));
 		this.providerActionMessage.setAttribute('role', 'status');
 		this.clearProviderActionMessage();
+		const configuredHeading = DOM.append(this.container, $('h4.engine-provider-inventory-heading'));
+		configuredHeading.textContent = localize('ua.engineProviderCredentialsHeading', "Provider Credentials");
 		this.providerList = DOM.append(this.container, $('.engine-provider-status-list.engine-catalog-list'));
 		this.providerList.style.display = 'none';
 
 		const catalog = DOM.append(this.container, $('.engine-provider-catalog'));
+		DOM.append(catalog, $('h4.engine-provider-catalog-title')).textContent = localize('ua.engineProviderAddHeading', "Add a Provider");
 		this.catalogFilter = DOM.append(catalog, $('input.engine-provider-catalog-filter')) as HTMLInputElement;
 		this.catalogFilter.type = 'search';
 		this.catalogFilter.placeholder = localize('ua.engineProviderCatalogFilter', "Filter providers");
@@ -1036,12 +1039,8 @@ export class EngineModelsSection extends Disposable {
 		void this.refreshModels().catch(onUnexpectedError);
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedModelsRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.sessionHint.style.display = 'none';
 			this.modelList.style.display = '';
 			this.modelListPhase = { kind: 'none' };

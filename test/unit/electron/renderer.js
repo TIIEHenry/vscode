@@ -118,28 +118,11 @@ function initLoadFn(opts) {
 	globalThis._VSCODE_FILE_ROOT = baseUrl.href;
 
 	// set loader
-	// D17: same Electron-unloadable universeAgent test/node basenames as
-	// scripts/run-unit-custom.sh. mocha pending would trip max_skipped=0, so
-	// allowlist skip only — any other *.test fetch miss still aborts.
-	const D17_UA_NODE_UNLOADABLE = new Set([
-		'connectionIpcSecretBoundary',
-		'connectionProfileStore',
-		'connectionResolver',
-		'deviceAuthHandshake',
-		'deviceGrantCrypto',
-		'grpcClientSessionToken',
-		'grpcQueueSkillWire',
-		'grpcSessionWrites',
-		'hubControlPlane',
-		'hubDirectoryClient',
-		'hubSessionStore',
-		'localEngineDiscovery',
-		'observeCandidateLeaf',
-		'pairingOrchestrator',
-		'universeAgentChannel',
-		'universeAgentConnection',
-		'universeAgentHubService'
-	]);
+	// D17: Electron-unloadable universeAgent test/node basenames.
+	// Single source: d17-ua-node-unloadable.json (also read by scripts/run-unit-custom.sh).
+	// mocha pending would trip max_skipped=0, so allowlist skip only —
+	// any other *.test fetch miss still aborts.
+	const D17_UA_NODE_UNLOADABLE = new Set(JSON.parse(fs.readFileSync(path.join(__dirname, 'd17-ua-node-unloadable.json'), 'utf8')));
 
 	function isD17UnloadableUniverseAgentNodeTest(mod, err) {
 		if (typeof mod !== 'string' || !mod.endsWith('.test')) {

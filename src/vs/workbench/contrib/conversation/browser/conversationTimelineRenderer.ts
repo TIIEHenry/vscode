@@ -30,6 +30,7 @@ import {
 	ConversationTimelineItem,
 	ITurnTemplateData,
 } from './conversationTimelineTypes.js';
+import type { ConversationDisplayMode } from './conversationLivePhase.js';
 import { renderConversationVisualizeCard } from './conversationVisualizeCard.js';
 import { IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
 import { getTrajectoryKindLabel } from './conversationTrajectory.js';
@@ -122,6 +123,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
 	private readonly processFoldToolExpanded = new Map<string, boolean>();
 	private readonly visualizeExpanded = new Map<string, boolean>();
+	private readonly displayMode: () => ConversationDisplayMode;
 	private turnEditComposer: HTMLElement | undefined;
 	/** Supersedes stale rAF height callbacks when a recycled row paints another item. */
 	private readonly rowHeightGeneration = new WeakMap<ITurnTemplateData, number>();
@@ -151,7 +153,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onRegenerateTurn?: (turn: ConversationStubTurn) => void,
 		private readonly onRespondClientTool?: (turn: ConversationStubTurn) => void,
 		private readonly onInlineDiagramWheel?: () => void,
-	) { }
+		displayMode?: () => ConversationDisplayMode,
+	) {
+		this.displayMode = displayMode ?? (() => this.showLiveChrome() ? 'live' : 'stub');
+	}
 
 	setTurnEditComposer(composer: HTMLElement | undefined): void {
 		this.turnEditComposer = composer;
@@ -175,6 +180,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			renderProcessFoldSpan(templateData.container, span, {
 				defaultOuterExpanded: false,
 				showLiveChrome: this.showLiveChrome(),
+				displayMode: this.displayMode(),
 				writesEnabled: this.writesEnabled(),
 				showToolInvocationDetails: this.showToolInvocationDetails(),
 				diffEditorPool: this.diffEditorPool,

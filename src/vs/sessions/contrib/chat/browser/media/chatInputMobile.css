@@ -38,12 +38,21 @@
  * the click target (the wrapper's `:has(...)` rules) align with the
  * button surface. */
 .agent-sessions-workbench.phone-layout .sessions-chat-send-button {
+	position: relative;
 	width: 36px;
 	height: 36px;
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
+.agent-sessions-workbench.phone-layout .sessions-chat-send-button::before,
+.agent-sessions-workbench.phone-layout .sessions-chat-send-button .monaco-button::after {
+	content: '';
+	position: absolute;
+	inset: -4px;
+}
+
 .agent-sessions-workbench.phone-layout .sessions-chat-send-button .monaco-button {
+	position: relative;
 	width: 36px;
 	height: 36px;
 	min-width: 36px;

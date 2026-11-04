@@ -43,13 +43,14 @@
 }
 
 .sessions-github-reference-list-entry:hover,
-.sessions-github-reference-list-entry:focus {
+.monaco-workbench .sessions-github-reference-list-entry:focus:not(:focus-visible) {
 	background-color: var(--vscode-list-hoverBackground);
 	outline: none;
 }
 
-.sessions-github-reference-list-entry:focus-visible {
-	outline: none;
+.monaco-workbench .sessions-github-reference-list-entry:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-list-hoverBackground);
 }
 

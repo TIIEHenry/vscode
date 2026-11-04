@@ -1,0 +1,786 @@
+{
+  "metrics": [
+    {
+      "section": "overview",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 549,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "providers",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 709,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "models",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 443,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "tokenUsage",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 392,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "skills",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 848,
+        "scrollWidth": 760,
+        "clientWidth": 760
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "agents",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 848,
+        "scrollWidth": 760,
+        "clientWidth": 760
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "rules",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 183,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "memory",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 259.5625,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "hooks",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 249,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "triggers",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 119,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "clipboard",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 196,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "contextVariables",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 122,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "mcpServers",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 412,
+        "scrollWidth": 760,
+        "clientWidth": 760
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "plugins",
+      "variant": "wide",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 912,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 912,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "overview",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 733,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 733,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "providers",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 731,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 731,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "models",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 449,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "tokenUsage",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 384,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "skills",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 624,
+        "scrollWidth": 416,
+        "clientWidth": 416
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "agents",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 780,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 780,
+        "scrollWidth": 416,
+        "clientWidth": 416
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "rules",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 340,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "memory",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 251.5625,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "hooks",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 241,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "triggers",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 111,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "clipboard",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 202,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "contextVariables",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 142,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "mcpServers",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 624,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 450,
+        "scrollWidth": 416,
+        "clientWidth": 416
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "plugins",
+      "variant": "narrow",
+      "body": {
+        "x": 12,
+        "y": 78,
+        "width": 416,
+        "height": 624,
+        "scrollHeight": 680,
+        "clientHeight": 624
+      },
+      "active": {
+        "width": 416,
+        "height": 680,
+        "scrollWidth": 414,
+        "clientWidth": 414
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "skills",
+      "variant": "short",
+      "body": {
+        "x": 280.953125,
+        "y": 94,
+        "width": 702.09375,
+        "height": 228,
+        "scrollHeight": 452,
+        "clientHeight": 228
+      },
+      "active": {
+        "width": 702.09375,
+        "height": 452,
+        "scrollWidth": 702,
+        "clientWidth": 702
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "agents",
+      "variant": "short",
+      "body": {
+        "x": 280.953125,
+        "y": 94,
+        "width": 702.09375,
+        "height": 228,
+        "scrollHeight": 438,
+        "clientHeight": 228
+      },
+      "active": {
+        "width": 702.09375,
+        "height": 438,
+        "scrollWidth": 702,
+        "clientWidth": 702
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "mcpServers",
+      "variant": "short",
+      "body": {
+        "x": 280.953125,
+        "y": 94,
+        "width": 702.09375,
+        "height": 228,
+        "scrollHeight": 228,
+        "clientHeight": 228
+      },
+      "active": {
+        "width": 702.09375,
+        "height": 228,
+        "scrollWidth": 702,
+        "clientWidth": 702
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "providers",
+      "variant": "dark",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 709,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "models",
+      "variant": "dark",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 443,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "rules",
+      "variant": "dark",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 183,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "contextVariables",
+      "variant": "dark",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 122,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "providers",
+      "variant": "hc",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 709,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "models",
+      "variant": "hc",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 443,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "rules",
+      "variant": "hc",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 183,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "contextVariables",
+      "variant": "hc",
+      "body": {
+        "x": 460,
+        "y": 94,
+        "width": 760,
+        "height": 848,
+        "scrollHeight": 848,
+        "clientHeight": 848
+      },
+      "active": {
+        "width": 760,
+        "height": 122,
+        "scrollWidth": 758,
+        "clientWidth": 758
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-direct",
+      "variant": "wide",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-profiles",
+      "variant": "wide",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-direct",
+      "variant": "narrow",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-profiles",
+      "variant": "narrow",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-direct",
+      "variant": "short",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-profiles",
+      "variant": "short",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-direct",
+      "variant": "hc",
+      "horizontalOverflow": false
+    },
+    {
+      "section": "connection-profiles",
+      "variant": "hc",
+      "horizontalOverflow": false
+    }
+  ],
+  "errors": []
+}

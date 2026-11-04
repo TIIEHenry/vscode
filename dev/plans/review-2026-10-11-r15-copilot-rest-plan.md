@@ -1,14 +1,14 @@
 ---
 title: "方案 r15：copilot-rest"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-23
-summary: "hold 2，drop 0，weaken 1。r15-1 gitfile / commondir 解析已落；回合索引与非对象 tool input 仍开。"
+updated: 2026-11-01
+summary: "hold 2，drop 0，weaken 1。三条均已落地：r15-1 由 281589a56b1，r15-2、r15-3 由 9379d3e72df。2026-11-01 agent:kiro 只读核对，无待签条目，未重跑测试。不升 PRD。"
 ---
 # 方案 r15：copilot-rest
 
-状态：草案。
+状态：已完成。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -88,3 +88,13 @@ hold 2，drop 0，weaken 1。
 `extensions/copilot/src/platform/endpoint/test/node/messagesApi.spec.ts` 的 `preserves unparsed tool arguments in tool_use.input when JSON.parse fails` 与 `parses valid JSON tool arguments into tool_use.input` 保持现有断言。
 
 应新增断言：`arguments` 为 `[]`、`null`、`42`、`"text"`、`true` 时，`tool_use.input` 等于 `{ [TOOL_USE_UNPARSED_ARGUMENTS_FIELD]: 原始字符串 }`；`{}` 与 `{"path":"/tmp/test.txt"}` 仍是解析后的普通对象。
+
+## 签收核对（2026-11-01）
+
+agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`，没有重跑测试。三条都已落地，本稿没有待签条目。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r15-1 | 已落地 | `281589a56b1`：解析 gitfile 的 `gitdir:` 与 `commondir`；已知仓库根但读不到 config 时返回空远程列表，新增 `gitServiceFetchUrls.spec.ts`。 |
+| r15-2 | 已落地 | `9379d3e72df`：upsert 之后按合并后的正文重建 `search_index`。 |
+| r15-3 | 已落地 | `9379d3e72df`：`null`、数组与非 object 的工具参数改存 `unparsedInput`。 |

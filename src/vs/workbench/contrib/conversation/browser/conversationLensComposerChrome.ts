@@ -76,6 +76,7 @@ import type { UniverseAgentSessionToolPermissionMode } from '../../../../platfor
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IComposerAddHost, toggleComposerAddContext } from './conversationComposerAt.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, conversationUserBodyText, turnEditLoadedPayload } from './conversationComposerRefs.js';
+import { isConversationRowActive, type ConversationDisplayMode } from './conversationLivePhase.js';
 
 const COMPOSER_PERMISSION_OPTIONS = [
 	conversationLensDockPermissionAsk,
@@ -121,6 +122,7 @@ export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	submitInFlight?: boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
+	displayMode?: () => ConversationDisplayMode;
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
 	/** Item whose Hold, Edit, or Release is still waiting for an explicit engine answer. */
@@ -792,6 +794,7 @@ export function isComposerStreaming(host: {
 	hasStreamingEntry?: () => boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	getBoundSessionId?: () => string;
+	displayMode?: () => ConversationDisplayMode;
 }): boolean {
 	if (isConversationPairingHold(host.uaConnection)) {
 		return false;
@@ -802,14 +805,15 @@ export function isComposerStreaming(host: {
 	if (isConversationSessionNotReady(host.stubService)) {
 		return false;
 	}
+	const displayMode = host.displayMode?.() ?? 'live';
 	if (host.hasStreamingEntry?.()) {
 		return true;
 	}
-	if (host.lastAttachedEntries?.some(entry => entry.streaming === true && entry.toolStatus !== 'pending')) {
+	if (host.lastAttachedEntries?.some(entry => isConversationRowActive(entry, displayMode))) {
 		return true;
 	}
 	const sessionId = host.getBoundSessionId?.();
-	if (sessionId && host.stubService.getTurns?.(sessionId).some(turn => turn.streaming && turn.toolStatus !== 'pending')) {
+	if (sessionId && host.stubService.getTurns?.(sessionId).some(turn => isConversationRowActive(turn, displayMode))) {
 		return true;
 	}
 	return false;

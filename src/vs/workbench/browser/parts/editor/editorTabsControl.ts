@@ -233,7 +233,10 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 			run: () => { }
 		});
 		const dropdown = this._register(new DropdownMenuActionViewItem(addTabAction, { getActions }, this.contextMenuService, {
-			classNames: ThemeIcon.asClassNameArray(Codicon.add),
+			// Keep a stable hook for the tab-strip affordance. The generic
+			// `.action-label` styles are shared by many toolbars and can otherwise
+			// make the Add Tab hit target inherit unrelated hover/focus treatment.
+			classNames: ['add-tab-action', ...ThemeIcon.asClassNameArray(Codicon.add)],
 			keybindingProvider: action => this.getKeybinding(action),
 			actionRunner,
 		}));

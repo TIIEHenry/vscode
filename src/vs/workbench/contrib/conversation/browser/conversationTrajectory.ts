@@ -428,7 +428,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			this.relayoutList();
 		}));
 
-		this.overviewTrack = append(this.overviewHost, $('.conversation-lens-trajectory-overview-track'));
+		const overviewScroll = append(this.overviewHost, $('.conversation-lens-trajectory-overview-scroll'));
+		this.overviewTrack = append(overviewScroll, $('.conversation-lens-trajectory-overview-track'));
 		this.overviewTrack.setAttribute('role', 'list');
 		this.overviewTrack.setAttribute('aria-label', conversationTrajectoryOverviewTitle);
 

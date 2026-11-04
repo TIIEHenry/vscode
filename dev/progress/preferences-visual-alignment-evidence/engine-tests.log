@@ -1,0 +1,947 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode/.build/crashes'
+[3523872:1102/204929.768277:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3523887) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3523887) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3523887) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  EngineAgentsSection (browser)[0m
+  [32m  ✔[0m[90m late listAgentProfiles after dispose does not paint profile rows[0m
+  [32m  ✔[0m[90m group header renders group item count in .engine-catalog-group-count (S9)[0m
+  [32m  ✔[0m[90m createProfile returns false when the engine link changes during the write[0m
+  [32m  ✔[0m[90m createProfile succeeds when the selection changes during the write[0m
+
+[0m  EngineClipboardSection (browser)[0m
+  [32m  ✔[0m[90m late listClipboard after dispose does not paint clipboard rows[0m
+  [32m  ✔[0m[90m late clipboard actions after pairing hold do not paint success[0m
+  [32m  ✔[0m[90m late clipboard write after disconnect does not paint success[0m
+  [32m  ✔[0m[90m late clipboard write error after list failure does not paint error[0m
+  [32m  ✔[0m[90m live clipboard write keeps success after its own refresh[0m
+
+[0m  EngineContextVariableSection (browser)[0m
+  [32m  ✔[0m[90m late listContextVariable after dispose does not paint context variable rows[0m
+  [32m  ✔[0m[90m late context read after pairing hold does not paint success[0m
+
+[0m  EngineHooksSection (browser)[0m
+  [32m  ✔[0m[90m late listHookPoints after dispose does not paint hook rows[0m
+
+[0m  EngineMcpRuntimePanel (browser)[0m
+  [32m  ✔[0m[90m late getMcpServerStatuses after dispose does not paint runtime rows[0m
+
+[0m  EngineMcpSection (browser)[0m
+  [32m  ✔[0m[90m late listMcpServers after dispose does not paint MCP definition rows[0m
+  [32m  ✔[0m[90m MCP list and writes carry the active session work directory[0m
+  [32m  ✔[0m[90m MCP dialog add sends args and env, global scope, and does not set enabled[0m
+  [32m  ✔[0m[90m MCP dialog add with blank args and env omits those keys[0m
+  [32m  ✔[0m[90m MCP dialog edit with blank args and env does not update when nothing else changed[0m
+  [32m  ✔[0m[90m MCP dialog edit that only changes an argument updates args and keeps env and enabled[0m
+  [32m  ✔[0m[90m MCP dialog invalid environment line does not add or update[0m
+  [32m  ✔[0m[90m MCP dialog stdio url-only edit does not update[0m
+  [32m  ✔[0m[90m MCP addServer() without config does not call addMcpServer[0m
+
+[0m  EngineOverviewSection (browser)[0m
+  [32m  ✔[0m[90m late listModels after dispose does not paint model summary[0m
+
+[0m  EnginePluginsSection (browser)[0m
+  [32m  ✔[0m[90m late listPlugins after dispose does not paint plugin rows[0m
+
+[0m  EnginePreferencesPane (browser)[0m
+  [32m  ✔[0m[90m late probeEngine after dispose does not paint test status[0m
+  [32m  ✔[0m[90m late probeEngine after the link changes clears Testing instead of dangling[0m
+  [32m  ✔[0m[90m narrow navigation returns focus to Back when opening a detail section[0m
+  [32m  ✔[0m[90m resizing from wide navigation returns focus to Back[0m
+
+[0m  EngineModelsSection (browser)[0m
+  [32m  ✔[0m[90m late listModels after dispose does not paint model rows[0m
+
+[0m  EngineRulesSection (browser)[0m
+  [32m  ✔[0m[90m late listProjectRules after dispose does not paint rule rows[0m
+
+[0m  EnginePreferencesSectionBase[0m
+  [32m  ✔[0m[90m showEmptyState clears a visible failure status so stale error copy is not stacked[0m
+  [32m  ✔[0m[90m showStatus hides empty state so list status does not share the pane with empty copy[0m
+
+[0m  engineSkillCatalog body dirty[0m
+  [32m  ✔[0m[90m isSkillBodyDirty before SkillInfo lands treats non-empty editor as dirty[0m
+  [32m  ✔[0m[90m groupSkillsBySource groups skills by source with correct length (S9)[0m
+
+[0m  EngineToolsSection (browser)[0m
+  [32m  ✔[0m[90m late listTools after dispose does not paint tool rows[0m
+  [32m  ✔[0m[90m group header renders group item count in .engine-catalog-group-count (S9)[0m
+
+[0m  EngineTriggersSection (browser)[0m
+  [32m  ✔[0m[90m late listTriggers after dispose does not paint trigger rows[0m
+  [32m  ✔[0m[90m set enabled is one stateful action for the selected trigger[0m
+  [32m  ✔[0m[90m late trigger actions after pairing hold do not paint success[0m
+
+[0m  engineAgentAgentsMd[0m
+  [32m  ✔[0m[90m formatAgentsMarkdown composes frontmatter and body[0m
+  [32m  ✔[0m[90m parseAgentsMarkdown round-trips composed markdown[0m
+  [32m  ✔[0m[90m formatAgentsMarkdown preserves raw file when systemPrompt includes frontmatter[0m
+  [32m  ✔[0m[90m save keeps quoted frontmatter newlines and quotes instead of JSON escapes[0m
+  [32m  ✔[0m[90m formatAgentsMarkdown keeps separate fields when the prompt already starts with ---[0m
+  [32m  ✔[0m[90m formatAgentsMarkdown still shows summary when a leading --- is not a closed frontmatter block[0m
+  [32m  ✔[0m[90m parseAgentsMarkdown reads frontmatter after leading whitespace[0m
+  [32m  ✔[0m[90m agentsMarkdownSaveUpdates clears removed fields when frontmatter follows leading whitespace[0m
+  [32m  ✔[0m[90m formatAgentsMarkdown does not wrap a second frontmatter when profile fields already match the prompt[0m
+
+[0m  engineAgentModel[0m
+  [32m  ✔[0m[90m profile fields trim strings and drop non-positive max turns[0m
+  [32m  ✔[0m[90m empty max turns is the engine default; zero and non-integers are rejected[0m
+  [32m  ✔[0m[90m input fields omit blanks and compare by the three proto values[0m
+  [32m  ✔[0m[90m model save patch clears omitted fields and does not rewrite a prompt that starts with ---[0m
+
+[0m  Engine catalog sections (Agents / MCP / Tools)[0m
+  [32m  ✔[0m[90m canPerformCatalogWrite is false when disconnected or unsupported[0m
+  [32m  ✔[0m[90m canPerformCatalogWriteLive refuses pairing-hold leftover-looks-live[0m
+  [32m  ✔[0m[90m Agents: disconnected hides section (§4 honest empty)[0m
+  [32m  ✔[0m[90m Agents: UNSUPPORTED shows honest message without fake rows[0m
+  [32m  ✔[0m[90m MCP: disconnected hides section (§4 honest empty)[0m
+  [32m  ✔[0m[90m MCP: UNSUPPORTED shows honest message without fake rows[0m
+  [32m  ✔[0m[90m Tools: disconnected hides section (§4 honest empty)[0m
+  [32m  ✔[0m[90m Tools: UNSUPPORTED shows honest message without fake rows[0m
+  [32m  ✔[0m[90m Tools: connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m Tools: connecting phase with pairingPending keeps leftover catalog and engine is not live[0m
+  [32m  ✔[0m[90m Agents: connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m Agents: name-only rows stay one line tall and a wide column keeps the editor beside the list[0m
+  [32m  ✔[0m[90m Agents: a narrow column stacks the editor under whole profile rows[0m
+  [32m  ✔[0m[90m Agents: a short wide viewport falls back to a natural-height editor without losing selection[0m
+  [32m  ✔[0m[90m Agents: Delete asks before removing a user profile[0m
+  [32m  ✔[0m[90m MCP: list viewport reserves its header and paints ready toggles as available[0m
+  [32m  ✔[0m[90m MCP: connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m MCP: leftover + pairingPending write buttons stay 0 unary[0m
+  [32m  ✔[0m[90m MCP: leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m MCP: pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Skills: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Plugins: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live Tools tab skips extra listTools with empty agentTools[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live empty tools paints disconnected KEEP-chrome, not empty-as-live[0m
+  [32m  ✔[0m[90m Agents: true connected without pairing empty tools still paints empty[0m
+  [32m  ✔[0m[90m Agents: true disconnect empty tools still paints disconnected KEEP-chrome[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live pairing-hold Instructions skips extra saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: true connected without pairing shows listed AGENTS.md and does not saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: pairing-hold refresh paints leftover editor honesty without reselect[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live refresh paints leftover editor honesty without reselect[0m
+  [32m  ✔[0m[90m Agents: pairing-hold refresh closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live refresh closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: pairing-hold leftover built_in AGENTS.md stays read-only without reselect[0m
+  [32m  ✔[0m[90m Agents: capability UNKNOWN leftover closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: list-fail leftover closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: capability UNKNOWN leftover closes leftover Tools page chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: list-fail leftover closes leftover Tools page chrome without reselect[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m Tools: pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: connected leftover still writes[0m
+  [32m  ✔[0m[90m Agents: disconnected status is copy-only without Open Connection[0m
+  [32m  ✔[0m[90m Agents: SUPPORTED loads RPC catalog[0m
+  [32m  ✔[0m[90m Agents: SUPPORTED createProfile calls saveAgentProfile RPC[0m
+  [32m  ✔[0m[90m Agents: disconnected createProfile is no-op[0m
+  [32m  ✔[0m[90m Agents: editing body and model keeps maxRewinds=undefined in SaveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: editing body and model keeps maxRewinds=0 in SaveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: editing body and model keeps maxRewinds=5 in SaveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: connected saveAgentsMarkdown persists body via SaveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: removing AGENTS.md frontmatter fields clears them instead of writing the list values back[0m
+  [32m  ✔[0m[90m Agents: a prompt that starts with --- still shows separate profile fields and an unedited save keeps both[0m
+  [32m  ✔[0m[90m Agents: disconnected saveAgentsMarkdown does not call Save[0m
+  [32m  ✔[0m[90m MCP: write RPC stubs reachable when connected (no SetToolEnabled)[0m
+  [32m  ✔[0m[90m MCP: disconnected addMcpServer not invoked from stub when engine off[0m
+  [32m  ✔[0m[90m Tools: toggleTool via saveAgentProfile when section mounted with empty catalog[0m
+  [32m  ✔[0m[90m Tools: disconnected saveAgentProfile not called from section[0m
+  [32m  ✔[0m[90m Tools: selecting a row loads ToolInfo detail without a schema editor[0m
+  [32m  ✔[0m[90m Tools: successful refresh then getToolInfo throw keeps leftover detail and paints failed[0m
+  [32m  ✔[0m[90m Tools: missing getToolInfo hook explains the detail API is unavailable[0m
+  [32m  ✔[0m[90m Tools: live paint then missing getToolInfo keeps leftover detail and paints unavailable[0m
+  [32m  ✔[0m[90m Tools: listTools reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m Tools: listAgentProfiles reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m Agents: listAgentProfiles reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m MCP: listMcpServers reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m Tools: successful load then listTools throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m Tools: successful load then listAgentProfiles throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m Tools: savePendingEnablement / toggleTool empty id paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Tools: savePendingEnablement / toggleTool throw paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Tools: successful reconnect refresh clears pending enablement and keeps catalog ready[0m
+  [32m  ✔[0m[90m Agents: successful load then listAgentProfiles throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m Agents: create/delete/reset ok:false paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Agents: create/delete/reset throw paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Agents: saveAgentsMarkdown throw paints editor-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Agents: dirty AGENTS.md selection to another profile keeps A and does not saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: dirty AGENTS.md reselecting the same profile is not blocked[0m
+  [32m  ✔[0m[90m Agents: clean AGENTS.md selection to another profile still changes selectedProfile[0m
+  [32m  ✔[0m[90m Agents: Model tab writes model fields and keeps loaded AGENTS.md and tools[0m
+  [32m  ✔[0m[90m Agents: built-in Model tab is read-only and does not save[0m
+  [32m  ✔[0m[90m Agents: invalid max turns does not call saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: dirty Model tab keeps the selected profile and does not probe-save[0m
+  [32m  ✔[0m[90m Agents: pairing-hold locks Model tab Save without another saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: capability UNKNOWN locks leftover Model tab Save without reselect[0m
+  [32m  ✔[0m[90m Agents: createProfile ok does not keep create-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: deleteSelectedProfile ok does not keep delete-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: resetSelectedProfile ok does not keep reset-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: saveSelectedProfile ok does not keep save-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: saveAgentsMarkdown ok does not keep save-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: tools tab listTools throw paints failed toolsStatus[0m
+  [32m  ✔[0m[90m Agents: tools tab reconnect listTools throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m Agents: successful reconnect refresh clears agent tool pending and keeps catalog ready[0m
+  [32m  ✔[0m[90m Agents: tools tab first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Agents: tools tab successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m Agents: instructions refresh keeps listed AGENTS.md and does not saveAgentProfile[0m
+  [32m  ✔[0m[90m MCP: successful load then listMcpServers throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m MCP: list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m MCP: capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Agents: first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Agents: successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m Agents: successful markdown load then list throw then select leftover keeps editor value[0m
+  [32m  ✔[0m[90m Agents: successful markdown load then capability UNKNOWN then select leftover keeps editor value[0m
+  [32m  ✔[0m[90m Agents: successful tools panel then list throw then select leftover keeps tools panel[0m
+  [32m  ✔[0m[90m Agents: successful tools panel then capability UNKNOWN then select leftover keeps tools panel[0m
+  [32m  ✔[0m[90m Agents: leftover markdown and tools stay after pairing re-select and tab, then true disconnect clears[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Agents refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m Agents: New opens an input dialog and does not save without a name[0m
+  [32m  ✔[0m[90m Agents: New still creates when the published link stays[0m
+  [32m  ✔[0m[90m Agents: New dialog drops the write when identity or link changes[0m[33m (54ms)[0m
+  [32m  ✔[0m[90m Agents: Delete confirm drops the write when identity or link changes[0m
+  [32m  ✔[0m[90m Agents: New create failure after a link change does not paint or refresh[0m
+  [32m  ✔[0m[90m Agents: Delete failure after a link change does not paint, refresh, or clear selection[0m
+  [32m  ✔[0m[90m Agents: New create does not paint success when the link changes during refresh[0m
+  [32m  ✔[0m[90m Agents: saveAgentsMarkdown does not paint failure when the link changes before the result[0m
+  [32m  ✔[0m[90m Agents: reset failure after a link change does not paint or refresh[0m
+  [32m  ✔[0m[90m Agents: model and tool saves do not paint when the link changes before the result[0m[33m (43ms)[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when createProfile catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m Tools: first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Tools: successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m Tools: successful info then list throw then select leftover keeps detail[0m
+  [32m  ✔[0m[90m Tools: successful info then capability UNKNOWN then select leftover keeps detail[0m
+  [32m  ✔[0m[90m Tools: leftover info stays after pairing re-select, then true disconnect clears[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live pairing-hold loadToolInfo skips extra getToolInfo[0m
+  [31m  1) Tools: in-flight getToolInfo leftover-looks-live keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m MCP: updateSelectedServer without override sends listed command args env url[0m
+  [32m  ✔[0m[90m MCP: add/update/remove ok:false shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m MCP: add/update/remove throw shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m MCP: addServer without complete config does not invent echo/mcp-stub and does not send RPC[0m
+  [32m  ✔[0m[90m MCP: Add and Update open an input dialog before writing[0m
+  [32m  ✔[0m[90m MCP: addMcpServer ok does not keep add-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: updateMcpServer ok does not keep update-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: removeMcpServer ok does not keep remove-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: toggleServer ok does not keep toggle-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: toggleServer ok:false shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m MCP: toggleServer throw shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when removeSelectedServer catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when toggleServer catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  Engine clipboard list bind[0m
+  [32m  ✔[0m[90m List gate is connected + hook; pairing-hold leftover-looks-live refuses; empty sessionId stays empty[0m
+  [32m  ✔[0m[90m clipboard label keeps empty fields as-is[0m
+  [32m  ✔[0m[90m Read gate is connected + hook; pairing-hold leftover-looks-live refuses; empty ids stay empty[0m
+  [32m  ✔[0m[90m Write gate is connected + hook; empty ids stay empty[0m
+  [32m  ✔[0m[90m Clear gate is connected + hook; empty sessionId stays empty[0m
+
+[0m  EngineClipboardSection[0m
+  [32m  ✔[0m[90m ListClipboard does not send when listClipboard capability is UNKNOWN[0m
+  [32m  ✔[0m[90m ListClipboard success then capability becomes UNKNOWN keeps leftover rows and does not call list[0m
+  [32m  ✔[0m[90m List does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m List sends empty sessionId as-is when connected[0m
+  [32m  ✔[0m[90m UNSUPPORTED clipboard list does not send when the proxy method exists[0m
+  [32m  ✔[0m[90m List empty entries[] is honest empty[0m
+  [32m  ✔[0m[90m List first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m List success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m List success then hook missing keeps leftover rows and paints unsupported[0m
+  [32m  ✔[0m[90m List success then disconnect clears leftover rows[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover rows and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold write buttons stay 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Read stays 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m list-fail leftover closes write chrome without reselect[0m
+  [32m  ✔[0m[90m Write Read and Clear stay off when proxy methods exist but the snapshot is UNSUPPORTED[0m
+  [32m  ✔[0m[90m Read does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Read sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m Read sends selected clipId without inventing defaults[0m
+  [32m  ✔[0m[90m Write does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Write does not send when content is blank[0m
+  [32m  ✔[0m[90m Write sends dialog label and content and keeps empty ids[0m
+  [32m  ✔[0m[90m Write sends the dialog text and ignores the selected row[0m
+  [32m  ✔[0m[90m WriteClipboard success refreshes so the written row appears[0m
+  [32m  ✔[0m[90m WriteClipboard success does not keep write-success when subsequent ListClipboard fails[0m
+  [32m  ✔[0m[90m WriteClipboard leftover list-fail keeps leftover rows and hides write-success[0m
+  [32m  ✔[0m[90m WriteClipboard throw paints write-status and leaves the row[0m
+  [32m  ✔[0m[90m Clear does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Clear sends empty sessionId as-is when connected[0m
+  [32m  ✔[0m[90m ClearClipboard success refreshes so the cleared row is gone[0m
+  [32m  ✔[0m[90m ClearClipboard success does not keep clear-success when subsequent ListClipboard fails[0m
+  [32m  ✔[0m[90m ClearClipboard throw paints clear-status and leaves the row[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh listClipboard rejects and status render throws[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when ClearClipboard rejects and clear-status paint throws[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when ReadClipboard rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m row is focusable and arrow keys do not fire[0m
+
+[0m  Engine context-variable list bind[0m
+  [32m  ✔[0m[90m List gate is connected + hook; pairing-hold leftover-looks-live refuses; empty sessionId / agentId stay empty[0m
+  [32m  ✔[0m[90m context-variable label keeps empty fields as-is[0m
+  [32m  ✔[0m[90m Read gate is connected + hook; pairing-hold leftover-looks-live refuses; empty ids stay empty[0m
+
+[0m  EngineContextVariableSection[0m
+  [32m  ✔[0m[90m List does not send when listContextVariable capability is UNKNOWN[0m
+  [32m  ✔[0m[90m List success then capability becomes UNKNOWN keeps leftover rows and does not call list[0m
+  [32m  ✔[0m[90m List does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m List sends empty sessionId / agentId as-is when connected[0m
+  [32m  ✔[0m[90m List empty current[] / inherited[] is honest empty[0m
+  [32m  ✔[0m[90m List first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m List success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m List success then hook missing keeps leftover rows and paints unsupported[0m
+  [32m  ✔[0m[90m List success then disconnect clears leftover rows[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover rows and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Read stays 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m list-fail leftover closes Read without reselect[0m
+  [32m  ✔[0m[90m Read stays off when the proxy method exists but the snapshot is UNSUPPORTED[0m
+  [32m  ✔[0m[90m Read does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Read sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m Read sends selected name without inventing defaults[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when ReadContextVariable rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m row is focusable and arrow keys do not fire[0m
+
+[0m  EngineHooksSection[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold still paints disconnected status[0m
+  [32m  ✔[0m[90m true connected without pairing keeps capability unsupported path[0m
+  [32m  ✔[0m[90m true connected UNKNOWN capability still paints loading[0m
+  [32m  ✔[0m[90m true disconnect still paints disconnected status[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when connection-change refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  Engine catalog status actions[0m
+  [32m  ✔[0m[90m disconnected status exposes the provided connection action[0m
+
+[0m  EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)[0m
+  [32m  ✔[0m[90m getMcpServerTools first throw paints failed toolsStatus without leftover[0m
+  [32m  ✔[0m[90m getMcpServerTools success then throw keeps leftover tool rows and paints failed[0m
+  [32m  ✔[0m[90m getMcpServerStatuses first throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m getMcpServerStatuses success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover runtime rows and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover runtime rows and skips unary[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold loadTools skips extra getMcpServerTools[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover tools honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover tools honesty without reselect[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover paints leftover tools honesty without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover paints leftover tools honesty without reselect[0m
+  [32m  ✔[0m[90m in-flight getMcpServerTools leftover-looks-live keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m in-flight getMcpServerTools UNKNOWN leftover keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m in-flight getMcpServerTools stale success does not paint after failed-mode reselect without generation bump[0m
+  [32m  ✔[0m[90m in-flight getMcpServerTools stale throw does not paint after pairing-hold reselect without generation bump[0m
+  [32m  ✔[0m[90m in-flight getMcpServerTools list-fail leftover keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays empty and skips unary[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m successful tools load then runtime UNKNOWN then select leftover keeps tool rows[0m
+  [32m  ✔[0m[90m successful tools load then runtime list throw then select leftover keeps tool rows[0m
+  [32m  ✔[0m[90m leftover tools stay after pairing re-select, then true disconnect clears[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading and does not list[0m
+  [32m  ✔[0m[90m getMcpServerTools reconnect reload in-flight keeps leftover tool rows[0m
+  [32m  ✔[0m[90m getMcpServerTools first-pull missing hook is unavailable with no leftover tool rows[0m
+  [32m  ✔[0m[90m getMcpServerTools live paint then missing hook keeps leftover tool rows and paints unavailable[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadTools catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  EngineMcpSection[0m
+  [32m  ✔[0m[90m addServer with complete config succeeds[0m
+  [32m  ✔[0m[90m updateSelectedServer with partial config succeeds[0m
+  [32m  ✔[0m[90m late add response after link replacement does not paint success[0m
+  [32m  ✔[0m[90m add stays disabled while the add RPC is in flight[0m
+  [32m  ✔[0m[90m remove keeps the success copy after the selection is cleared[0m
+  [32m  ✔[0m[90m a link change before add does not call addMcpServer[0m
+  [32m  ✔[0m[90m changing the selected server before update does not call updateMcpServer[0m
+  [32m  ✔[0m[90m add still lands when a connection event refreshes during the dialog[0m
+  [32m  ✔[0m[90m add still shows success when the link id leaves and returns[0m
+  [32m  ✔[0m[90m a failed add after the link changes shows unconfirmed, not the engine error[0m
+  [32m  ✔[0m[90m dispose during add stays silent[0m
+  [32m  ✔[0m[90m sessionWorkDir locks to sessionContext.getActiveWorkRoot().workDir[0m
+  [32m  ✔[0m[90m Clicking toolbar Add opens empty shared input without calling addMcpServer[0m
+  [32m  ✔[0m[90m Shared input validates stdio empty command and defensive confirmation does not add[0m
+  [32m  ✔[0m[90m Shared input with valid name and command calls addMcpServer once[0m
+  [32m  ✔[0m[90m Shared input validates sse URL before adding[0m
+  [32m  ✔[0m[90m Shared input validates streamable_http URL before adding[0m
+  [32m  ✔[0m[90m Clicking toolbar Update without selection does not open input or write[0m
+  [32m  ✔[0m[90m Clicking toolbar Update with selection pre-fills all shared input fields[0m
+  [32m  ✔[0m[90m Submitting unchanged shared input does not call updateMcpServer[0m
+  [32m  ✔[0m[90m Submitting modified name updates once preserving hidden and blank fields[0m
+  [32m  ✔[0m[90m Unknown transport pre-fills empty and requires an explicit valid transport[0m
+  [32m  ✔[0m[90m Cancelling shared input does not write and a new Add starts empty[0m
+  [32m  ✔[0m[90m Shared input rejects missing names and malformed environment before RPC[0m
+  [32m  ✔[0m[90m Shared input sends arguments and environment and editing arguments alone writes[0m
+  [32m  ✔[0m[90m Shared browser dialog keeps invalid input open, closes accepted input, and cancels without writing[0m
+  [32m  ✔[0m[90m Confirmation after disconnect does not add[0m
+  [32m  ✔[0m[90m Confirmation after selected server changes does not update either server[0m
+  [32m  ✔[0m[90m Active work root change automatically triggers refresh and passes new workDir[0m
+
+[0m  EngineMemorySection[0m
+  [32m  ✔[0m[90m list paints categories and search uses searchMemory[0m
+  [32m  ✔[0m[90m typed query without searchMemory does not keep the list as hits[0m
+  [32m  ✔[0m[90m search with no hits says no matching memory[0m
+  [32m  ✔[0m[90m add sends global scope and empty content does not save[0m
+  [32m  ✔[0m[90m delete confirm calls deleteMemory and cancel does not[0m
+  [32m  ✔[0m[90m save and delete pass the input-time owner outside the request[0m
+  [32m  ✔[0m[90m a main-side owner rejection shows unconfirmed, not the raw cancel[0m
+  [32m  ✔[0m[90m does not paint save success after the engine link changes[0m
+  [32m  ✔[0m[90m save still lands when a connection event refreshes during the dialog[0m
+  [32m  ✔[0m[90m save still shows success when a refresh puts the section in loading[0m
+  [32m  ✔[0m[90m a link change before send does not call saveMemory[0m
+  [32m  ✔[0m[90m a failed save after the link changes shows unconfirmed, not the engine error[0m
+  [32m  ✔[0m[90m save still shows success when the link id leaves and returns[0m
+  [32m  ✔[0m[90m dispose during save stays silent[0m
+  [32m  ✔[0m[90m missing saveMemory hides Add and pairing-hold does not write[0m
+  [32m  ✔[0m[90m missing listMemory is unavailable and a late list after dispose does not paint[0m
+
+[0m  EngineOverviewSection[0m
+  [32m  ✔[0m[90m expected owner: Overview passes request-start owner independently of model loading[0m
+  [32m  ✔[0m[90m expected owner: Overview ignores old model success without publishing a failure[0m
+  [32m  ✔[0m[90m expected owner: Overview ignores old model IPC reconstructed cancellation without publishing a failure[0m
+  [32m  ✔[0m[90m expected owner: Overview skips the model read without a published owner[0m
+  [32m  ✔[0m[90m model summary formatters cover three capability states[0m
+  [32m  ✔[0m[90m UNSUPPORTED models capability shows engine-side unavailable copy with reason title[0m
+  [32m  ✔[0m[90m UNKNOWN models capability shows confirming copy[0m
+  [32m  ✔[0m[90m SUPPORTED models capability lists registry count once[0m
+  [32m  ✔[0m[90m registry summaries count models and distinct providers[0m
+  [32m  ✔[0m[90m SUPPORTED models capability lists registry counts[0m
+  [32m  ✔[0m[90m capability rows print the snapshot support[0m
+  [32m  ✔[0m[90m Overview paints Supported from a SUPPORTED snapshot[0m
+  [32m  ✔[0m[90m SUPPORTED listModels failure shows read failure copy[0m
+  [32m  ✔[0m[90m connected phase with pairingPending paints Connection as Waiting for pairing[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover summary and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover summary and skips listModels[0m
+  [32m  ✔[0m[90m pairing-hold during the first listModels does not keep the loading row[0m
+  [32m  ✔[0m[90m successful listModels then capability UNKNOWN keeps last model count[0m
+  [32m  ✔[0m[90m successful listModels then listModels throw keeps last model count and failed honesty[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when setSectionActive renderAsync catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when connection-change renderAsync catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  EnginePluginsSection write-success (D155 / D216)[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading and no leftover rows[0m
+  [32m  ✔[0m[90m listPlugins first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listPlugins success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover Enable/write chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover Enable/write chrome without reselect[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover Enable/write chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover Enable/write chrome without reselect[0m
+  [32m  ✔[0m[90m active plugin Enable button sends enablePlugin false and shows Disabled.[0m
+  [32m  ✔[0m[90m disabled plugin Enable button sends enablePlugin true and shows Enabled.[0m
+  [32m  ✔[0m[90m late enable response after link replacement does not paint success[0m
+  [32m  ✔[0m[90m enable and reload stay disabled while their RPC is in flight[0m
+  [32m  ✔[0m[90m selecting another plugin before enable returns shows the selection notice[0m
+  [32m  ✔[0m[90m enable button aria-label follows the selected plugin[0m
+  [32m  ✔[0m[90m enablePlugin ok does not keep Enabled. when subsequent listPlugins fails[0m
+  [32m  ✔[0m[90m unloadPlugin ok does not keep Unloaded. when subsequent listPlugins fails[0m
+  [32m  ✔[0m[90m reloadPlugin ok does not keep Reloaded. when subsequent listPlugins fails[0m
+  [32m  ✔[0m[90m enablePlugin throw shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m scanNewPlugins empty ok does not keep scan-success when subsequent listPlugins fails[0m
+  [32m  ✔[0m[90m scanNewPlugins found ok does not keep scan-success when subsequent listPlugins fails[0m
+  [32m  ✔[0m[90m scanNewPlugins found ok paints scan-result success tone[0m
+  [32m  ✔[0m[90m scanNewPlugins throw paints write-status error and clears scan-result[0m
+  [32m  ✔[0m[90m scanNewPlugins ok keeps scan-success when subsequent listPlugins succeeds[0m
+  [32m  ✔[0m[90m scanNewPlugins ok does not keep scan-success when the published link changes before listPlugins returns[0m
+  [32m  ✔[0m[90m successful hooks then list throw then select leftover keeps hook rows[0m
+  [32m  ✔[0m[90m successful hooks then capability UNKNOWN then select leftover keeps hook rows[0m
+  [32m  ✔[0m[90m leftover hooks stay after pairing re-select, then true disconnect clears[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover hooks honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover hooks honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold loadInfo skips extra getPluginInfo[0m
+  [32m  ✔[0m[90m in-flight getPluginInfo stale success does not paint after failed-mode reselect without generation bump[0m
+  [32m  ✔[0m[90m in-flight getPluginInfo stale throw does not paint after pairing-hold reselect without generation bump[0m
+  [32m  ✔[0m[90m in-flight getPluginInfo leftover-looks-live keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m in-flight scanNew leftover-looks-live keeps leftover and does not paint live scan[0m
+  [32m  ✔[0m[90m getPluginInfo first-pull throw is failed with no leftover hook rows[0m
+  [32m  ✔[0m[90m getPluginInfo success then throw keeps leftover hook rows and paints failed[0m
+  [32m  ✔[0m[90m getPluginInfo reconnect reload in-flight keeps leftover hook rows[0m
+  [32m  ✔[0m[90m getPluginInfo first-pull missing hook is unavailable with no leftover hook rows[0m
+  [32m  ✔[0m[90m getPluginInfo live paint then missing hook keeps leftover hook rows and paints unavailable[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadInfo catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when scanNew catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when enableSelected catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when reloadSelected catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when unloadSelected catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  EnginePreferencesPane[0m
+  [32m  ✔[0m[90m getEngineTestStatusText reuses StatusBar phase copy[0m
+  [32m  ✔[0m[90m empty capability snapshot does not throw while constructing the pane[0m
+  [32m  ✔[0m[90m pane keeps the Engine heading for screen readers and leads with the section title[0m
+  [32m  ✔[0m[90m layout under 600px applies is-narrow and Back returns to nav[0m
+  [32m  ✔[0m[90m narrow navigation uses the available height instead of a width cap as its flex height[0m[33m (50ms)[0m
+  [32m  ✔[0m[90m disconnected pane keeps fifteen-section navigation with zero catalog rows and zero write buttons[0m
+  [32m  ✔[0m[90m pane has no chat widgets or editable engine fields[0m
+  [32m  ✔[0m[90m pane does not seed fake engine rows[0m
+  [32m  ✔[0m[90m Agents nav badge shows the profile count after the list loads[0m
+  [32m  ✔[0m[90m Skills nav badge tracks listed skills and drops when the catalog is cleared[0m
+  [32m  ✔[0m[90m Tools viewport keeps profile controls outside the virtual list at wide and narrow widths[0m[31m (178ms)[0m
+  [32m  ✔[0m[90m Tools nav badge tracks listed tools and drops when the catalog is cleared[0m
+  [32m  ✔[0m[90m Providers and Models nav badges track their own lists and drop when the catalog is cleared[0m
+  [32m  ✔[0m[90m catalog nav badges track listed rows and drop when the catalog is cleared[0m[33m (47ms)[0m
+  [32m  ✔[0m[90m Test Engine click probes the engine instead of echoing phase only[0m
+  [32m  ✔[0m[90m Test Engine reachable probe uses Reachable prefix[0m
+  [32m  ✔[0m[90m Test Engine probe ok with pairingPending paints warning not success[0m
+  [32m  ✔[0m[90m Test Engine throw paints error tone[0m
+  [32m  ✔[0m[90m Test Engine Testing… stays neutral until the probe settles[0m
+  [32m  ✔[0m[90m an older Test Engine settling late keeps the newer run's Testing on screen[0m
+  [32m  ✔[0m[90m banner Test Engine shares runEngineTest success tone[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when banner runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when footer runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m E2-1: desktop disconnected still draws Test Engine and Engine not connected[0m
+  [32m  ✔[0m[90m writeStatus trims whitespace-only copy so empty testStatus stays empty[0m
+  [32m  ✔[0m[90m E2-1: Web unsupported_environment omits Test Engine and shows named copy[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold still shows disconnected banner[0m
+  [32m  ✔[0m[90m pairing-hold with isEngineConnected false still shows disconnected banner[0m
+  [32m  ✔[0m[90m true connected without pairing hides disconnected banner[0m
+  [32m  ✔[0m[90m leftover-looks-live then true disconnect still shows disconnected banner[0m
+
+[0m  Engine providers and models sections[0m
+  [32m  ✔[0m[90m write ownership: provider input cannot submit after engine[0m
+  [32m  ✔[0m[90m write ownership: provider rename stops before deleting after engine[0m
+  [32m  ✔[0m[90m write ownership: model input cannot submit after engine[0m
+  [32m  ✔[0m[90m write ownership: model rename stops before deleting after engine[0m
+  [32m  ✔[0m[90m write ownership: clear confirmation cannot submit after engine[0m
+  [32m  ✔[0m[90m write ownership: delete confirmation cannot submit after engine[0m
+  [32m  ✔[0m[90m write ownership: import confirmation cannot submit after engine[0m
+  [32m  ✔[0m[90m write ownership: provider input cannot submit after link[0m
+  [32m  ✔[0m[90m write ownership: provider rename stops before deleting after link[0m
+  [32m  ✔[0m[90m write ownership: model input cannot submit after link[0m
+  [32m  ✔[0m[90m write ownership: model rename stops before deleting after link[0m
+  [32m  ✔[0m[90m write ownership: clear confirmation cannot submit after link[0m
+  [32m  ✔[0m[90m write ownership: delete confirmation cannot submit after link[0m
+  [32m  ✔[0m[90m write ownership: import confirmation cannot submit after link[0m
+  [32m  ✔[0m[90m write ownership: provider input cannot submit after dispose[0m
+  [32m  ✔[0m[90m write ownership: provider rename stops before deleting after dispose[0m
+  [32m  ✔[0m[90m write ownership: model input cannot submit after dispose[0m
+  [32m  ✔[0m[90m write ownership: model rename stops before deleting after dispose[0m
+  [32m  ✔[0m[90m write ownership: clear confirmation cannot submit after dispose[0m
+  [32m  ✔[0m[90m write ownership: delete confirmation cannot submit after dispose[0m
+  [32m  ✔[0m[90m write ownership: import confirmation cannot submit after dispose[0m
+  [32m  ✔[0m[90m write ownership: provider late success cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: model-enabled late success cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: model-test late success cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: provider late failure cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: model-enabled late failure cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: model-test late failure cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: provider late rejection cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: model-enabled late rejection cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: model-test late rejection cannot repaint or refresh another engine[0m
+  [32m  ✔[0m[90m write ownership: provider preview cannot open a new-engine confirmation[0m
+  [32m  ✔[0m[90m write ownership: provider failures redact the submitted key[0m
+  [32m  ✔[0m[90m write ownership: completed model feedback belongs to its published link[0m
+  [32m  ✔[0m[90m write ownership: missing published identity refuses a provider write[0m
+  [32m  ✔[0m[90m expected owner: provider add preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: provider add silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider add silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider edit preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: provider edit silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider edit silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider rename preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: provider rename silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider rename silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider clear preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: provider clear silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider clear silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider import preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: provider import silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider import silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model add preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: model add silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model add silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model edit preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: model edit silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model edit silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model rename preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: model rename silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model rename silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model toggle preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: model toggle silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model toggle silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model delete preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: model delete silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model delete silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model Test preserves action owner through every write and readback[0m
+  [32m  ✔[0m[90m expected owner: model Test silently consumes local cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: model Test silently consumes IPC reconstructed cancellation while renderer still caches A[0m
+  [32m  ✔[0m[90m expected owner: provider add waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: provider edit waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: provider rename waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: provider clear waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: provider import waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: model add waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: model edit waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: model rename waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: model toggle waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: model delete waits for readback and silently discards its reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: provider current readback failure keeps original list and write feedback semantics[0m
+  [32m  ✔[0m[90m expected owner: provider old readback cancellation cannot clear a newer owner result or block new writes[0m
+  [32m  ✔[0m[90m expected owner: model current readback failure keeps original list and write feedback semantics[0m
+  [32m  ✔[0m[90m expected owner: model old readback cancellation cannot clear a newer owner result or block new writes[0m
+  [32m  ✔[0m[90m expected owner: provider rename second step cancellation cannot report success or read back[0m
+  [32m  ✔[0m[90m expected owner: ordinary provider list captures owner while first load has no writable controls[0m
+  [32m  ✔[0m[90m expected owner: ordinary provider list rejects late results after an unnotified same-engine link change[0m
+  [32m  ✔[0m[90m expected owner: ordinary provider list silently consumes IPC reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: model rename second step cancellation cannot report success or read back[0m
+  [32m  ✔[0m[90m expected owner: ordinary model list captures owner while first load has no writable controls[0m
+  [32m  ✔[0m[90m expected owner: ordinary model list rejects late results after an unnotified same-engine link change[0m
+  [32m  ✔[0m[90m expected owner: ordinary model list silently consumes IPC reconstructed cancellation[0m
+  [32m  ✔[0m[90m expected owner: provider write readback cannot apply a late result after an unnotified owner change[0m
+  [32m  ✔[0m[90m expected owner: model write readback cannot apply a late result after an unnotified owner change[0m
+  [32m  ✔[0m[90m expected owner: ordinary provider list does not dispatch without a published owner[0m
+  [32m  ✔[0m[90m expected owner: ordinary model list does not dispatch without a published owner[0m
+  [32m  ✔[0m[90m expected owner: Edit Demo cannot capture a new engine from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Edit Demo cannot capture a new link from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Clear Demo cannot capture a new engine from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Clear Demo cannot capture a new link from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Edit m cannot capture a new engine from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Edit m cannot capture a new link from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Delete m cannot capture a new engine from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Delete m cannot capture a new link from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Disable m cannot capture a new engine from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Disable m cannot capture a new link from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Test m cannot capture a new engine from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: Test m cannot capture a new link from an old directory and recovers only after applying its new rows[0m
+  [32m  ✔[0m[90m expected owner: provider count observers cannot authorize old rows or toolbar during quiet owner and the replacement directory restores all actions[0m
+  [32m  ✔[0m[90m expected owner: provider count observers cannot authorize old rows or toolbar during reentrant notification and the replacement directory restores all actions[0m
+  [32m  ✔[0m[90m expected owner: model count observers cannot authorize old rows or toolbar during quiet owner and the replacement directory restores all actions[0m
+  [32m  ✔[0m[90m expected owner: model count observers cannot authorize old rows or toolbar during reentrant notification and the replacement directory restores all actions[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading and does not list[0m
+  [32m  ✔[0m[90m listModels first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listModels success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover models and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover models and skips listModels[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold paints provider group disconnected, not capability/unsupported-as-live[0m
+  [32m  ✔[0m[90m leftover-looks-live UNKNOWN provider capability still paints disconnected, not capability loading[0m
+  [32m  ✔[0m[90m true connected without pairing keeps provider capability/unsupported fold[0m
+  [32m  ✔[0m[90m true connected UNKNOWN provider capability still paints capability loading[0m
+  [32m  ✔[0m[90m true disconnect still paints provider group disconnected[0m
+  [32m  ✔[0m[90m listProviderStatus paints read-only rows and never shows api_key[0m
+  [32m  ✔[0m[90m provider enabled status is plain text and does not call a missing provider API[0m
+  [32m  ✔[0m[90m import control appears only when desktop provider write hooks exist[0m
+  [32m  ✔[0m[90m add provider opens an input dialog and does not paint credential fields[0m
+  [32m  ✔[0m[90m provider action feedback clears when capability becomes UNKNOWN[0m
+  [32m  ✔[0m[90m built-in presets render without a cloud method and the filter hides rows[0m
+  [32m  ✔[0m[90m a filter with no preset hits says so only after the cloud catalog settles[0m
+  [32m  ✔[0m[90m an unavailable cloud catalog keeps its status beside a filter miss[0m
+  [32m  ✔[0m[90m desktop cloud catalog renders a cloud row and refresh asks for a fresh copy[0m
+  [32m  ✔[0m[90m adding a built-in preset opens the credential dialog with id, protocol, and base URL[0m
+  [32m  ✔[0m[90m a cloud catalog failure keeps the built-in list and shows the error[0m
+  [32m  ✔[0m[90m model add and row actions appear only when registry write hooks exist[0m
+  [32m  ✔[0m[90m delete model confirms in a popover and does not open a native dialog[0m
+  [32m  ✔[0m[90m edit model keeps a blank description and sends typed cost and speed[0m
+  [32m  ✔[0m[90m add model sends empty description, cost, and speed when those fields are blank[0m
+  [32m  ✔[0m[90m listProviderStatus first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listProviderStatus success then throw keeps leftover rows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refreshProviders catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refreshModels catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m model enable failure after a mid-flight link change paints no action error[0m
+
+[0m  Engine Rules / Hooks list (G-ENG-2/3)[0m
+  [32m  ✔[0m[90m Rules lists Global + Project from proto scopes 2/1 without work_dir[0m
+  [32m  ✔[0m[90m Rules first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m Rules success then throw keeps leftover rows[0m
+  [32m  ✔[0m[90m Hooks lists points and keeps leftover after throw[0m
+
+[0m  EngineRulesSection[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold paints disconnected status, not capability/unsupported-as-live[0m
+  [32m  ✔[0m[90m true connected without pairing keeps capability/unsupported path[0m
+  [32m  ✔[0m[90m true disconnect still paints disconnected status[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m add global rule sends scope 2 and the dialog fields[0m
+  [32m  ✔[0m[90m edit keeps id, globs, and appliesTo[0m
+  [32m  ✔[0m[90m blank title does not upsert[0m
+  [32m  ✔[0m[90m delete confirm calls delete and cancel does not[0m
+  [32m  ✔[0m[90m does not paint save success after the engine link changes[0m
+  [32m  ✔[0m[90m save still shows success when a refresh puts the section in loading[0m
+  [32m  ✔[0m[90m missing upsert hides add and pairing-hold does not write[0m
+
+[0m  engineSkillCatalog (E1)[0m
+  [32m  ✔[0m[90m disconnected => disconnected mode hides catalog rows[0m
+  [32m  ✔[0m[90m connected + UNSUPPORTED => no catalog rows (§8.3 #6)[0m
+  [32m  ✔[0m[90m connected + UNKNOWN => loading mode hides catalog rows[0m
+  [32m  ✔[0m[90m connected + SUPPORTED + listed items => ready mode shows catalog rows[0m
+  [32m  ✔[0m[90m disconnect after connect must not keep ready mode when disconnected (§8.3 #5)[0m
+  [32m  ✔[0m[90m connection snapshot transition clears ready rendering path[0m
+
+[0m  EngineSkillsSection (E1)[0m
+  [32m  ✔[0m[90m Skills: measured editor height reduces the list budget without discarding its draft[0m
+  [32m  ✔[0m[90m Skills: description has its own line and the editor stays closed until a skill is selected[0m
+  [32m  ✔[0m[90m skill toggle action names describe the next enablement state[0m
+  [32m  ✔[0m[90m late listSkills after dispose does not paint skill rows[0m
+  [32m  ✔[0m[90m disconnected hides skills section (§8.3 #5 honest empty)[0m
+  [32m  ✔[0m[90m UNSUPPORTED shows honest message without fake skill names (§8.3 #6)[0m
+  [32m  ✔[0m[90m disconnect clears RPC catalog rows (§8.3 #5)[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m listSkills reject is failed with error status and no leftover catalog[0m
+  [32m  ✔[0m[90m successful load then refresh throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m first fetch capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m SUPPORTED connected shows New toolbar and createSkill calls saveSkillContent RPC[0m
+  [32m  ✔[0m[90m disconnected createSkill does not call saveSkillContent RPC[0m
+  [32m  ✔[0m[90m createSkill ok:false paints write-status and does not add a fake row[0m
+  [32m  ✔[0m[90m toggleSkill ok:false paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m toggleSkill throw paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m toggle settlement does not repaint success after a quiet live link drift[0m
+  [32m  ✔[0m[90m toggleSkill success does not keep toggle-success when subsequent listSkills fails[0m
+  [32m  ✔[0m[90m toggleSkill success still shows toggle-success when subsequent getSkillInfo fails[0m
+  [32m  ✔[0m[90m createSkill success does not keep create-success when subsequent listSkills fails[0m
+  [32m  ✔[0m[90m createSkill throw paints write-status and does not add a fake row[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody ok:false paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m runtime SaveSkillContent UNIMPLEMENTED closes write chrome after binding disappears[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody throw paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody reads canonical body without refreshing the list[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody reports failure when canonical getSkillInfo fails[0m
+  [32m  ✔[0m[90m SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC[0m
+  [32m  ✔[0m[90m save uses raw CAS and preserves typing during canonical readback[0m
+  [32m  ✔[0m[90m late save from old link cannot replace a draft or authorize a new-engine save[0m
+  [32m  ✔[0m[90m explicit refresh recovers CAS baseline after readback failure and keeps dirty draft[0m
+  [32m  ✔[0m[90m explicit Refresh recovers a dirty draft on a new link to the same engine[0m
+  [32m  ✔[0m[90m New dialog cannot create a skill on an engine switched while the dialog was open[0m
+  [32m  ✔[0m[90m a connection event during New still creates the skill[0m
+  [32m  ✔[0m[90m create still shows success when a refresh is loading, and a link change shows unconfirmed[0m
+  [32m  ✔[0m[90m Skills: dirty body selection to another skill keeps A and does not save B[0m
+  [32m  ✔[0m[90m Skills: dirty body selection of a group header keeps the skill and the text[0m
+  [32m  ✔[0m[90m Skills: clean body selection of a group header clears the editor[0m
+  [32m  ✔[0m[90m Skills: dirty body reselecting the same skill is not blocked[0m
+  [32m  ✔[0m[90m Skills: clean body selection to another skill still changes selectedSkill[0m
+  [32m  ✔[0m[90m Skills: switching skills clears the previous body and does not save it onto the next skill[0m
+  [32m  ✔[0m[90m bundled skill body is read-only and does not show save toolbar[0m
+  [32m  ✔[0m[90m successful refresh then getSkillInfo throw keeps leftover body and paints load-failed[0m
+  [32m  ✔[0m[90m successful body then list throw then select leftover keeps body text[0m
+  [32m  ✔[0m[90m successful body then capability UNKNOWN then select leftover keeps body text[0m
+  [32m  ✔[0m[90m leftover body stays after pairing re-select, then true disconnect clears[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold loadSkillBody skips extra getSkillInfo[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover body honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover body honesty without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m in-flight getSkillInfo leftover-looks-live keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m disconnected saveSelectedSkillBody does not call saveSkillContent RPC[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadSkillBody catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m New skill opens an input dialog and does not save without a name[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when createSkill catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when saveSelectedSkillBody catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when row toggleSkill catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+[0m    disconnected draft ownership[0m
+    [32m  ✔[0m[90m user edited draft survives a true disconnect and refreshes the original raw CAS[0m
+    [32m  ✔[0m[90m user empty draft survives a true disconnect and refreshes the original raw CAS[0m
+    [32m  ✔[0m[90m project edited draft survives a true disconnect and refreshes the original raw CAS[0m
+    [32m  ✔[0m[90m project empty draft survives a true disconnect and refreshes the original raw CAS[0m
+    [32m  ✔[0m[90m missing, changed-source, foreign-engine and failed reads keep the original draft isolated[0m
+    [32m  ✔[0m[90m UNKNOWN retains a read-only draft until a successful explicit refresh[0m
+    [32m  ✔[0m[90m UNSUPPORTED retains a read-only draft until a successful explicit refresh[0m
+    [32m  ✔[0m[90m list failure retains a read-only draft until a successful explicit refresh[0m
+    [32m  ✔[0m[90m pending old save accepted cannot block reconnect recovery or release a newer save lock[0m
+    [32m  ✔[0m[90m pending old save refused cannot block reconnect recovery or release a newer save lock[0m
+    [32m  ✔[0m[90m pending old save rejected cannot block reconnect recovery or release a newer save lock[0m
+    [32m  ✔[0m[90m late canonical readback cannot replace a reconnected draft or its refreshed baseline[0m
+    [32m  ✔[0m[90m a late old server write causes an honest CAS refusal and explicit refresh recovery[0m
+    [32m  ✔[0m[90m old toggle accepted after engine cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle refused after engine cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle rejected after engine cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle accepted after link cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle refused after link cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle rejected after link cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle accepted after dispose cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle refused after dispose cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m old toggle rejected after dispose cannot refresh or repaint the current section[0m
+    [32m  ✔[0m[90m toggle accepted cannot repaint after its refresh crosses into another link[0m
+    [32m  ✔[0m[90m toggle refused cannot repaint after its refresh crosses into another link[0m
+    [32m  ✔[0m[90m toggle rejected cannot repaint after its refresh crosses into another link[0m
+    [32m  ✔[0m[90m toggle requires a concrete published engine and link identity[0m
+[0m    expected owner IPC cancellation[0m
+    [32m  ✔[0m[90m initial loading list and selected body receive an independent owner[0m
+    [32m  ✔[0m[90m missing published owner /1 sends no Skills RPC or business failure[0m
+    [32m  ✔[0m[90m missing published owner engine-test/0 sends no Skills RPC or business failure[0m
+    [32m  ✔[0m[90m missing published owner engine-test/9007199254740992 sends no Skills RPC or business failure[0m
+    [32m  ✔[0m[90m Save and canonical preserve the original owner and raw CAS as independent arguments[0m
+    [32m  ✔[0m[90m New dialog, creation, refresh and selection all forward its original owner[0m
+    [32m  ✔[0m[90m toggle success refresh and implicit selected read keep the action owner[0m
+    [32m  ✔[0m[90m toggle ordinary refusal refresh and implicit selected read keep the action owner[0m
+    [32m  ✔[0m[90m selection from an older catalog cannot capture a newer snapshot owner for its body read[0m
+    [32m  ✔[0m[90m an old catalog after a quiet engine change cannot write and a fully applied new catalog restores actions[0m
+    [32m  ✔[0m[90m an old catalog after a quiet link change cannot write and a fully applied new catalog restores actions[0m
+    [32m  ✔[0m[90m catalog count notification quiet snapshot cannot publish a stale owner or reopen its write chrome[0m
+    [32m  ✔[0m[90m catalog count notification nested refresh cannot publish a stale owner or reopen its write chrome[0m
+    [32m  ✔[0m[90m a locally changed owner cannot be recaptured for a successful write follow-up[0m
+    [32m  ✔[0m[90m raw current create cancellation keeps "# Draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current save cancellation keeps "# Draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current save cancellation keeps "" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current save cancellation keeps "# Original" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current canonical cancellation keeps "# Newer draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current toggle cancellation keeps "# Draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current list cancellation keeps "" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw current info cancellation keeps "# Typed during reload" while the renderer still caches A[0m
+    [32m  ✔[0m[90m raw initial info cancellation never authorizes a body or paints a business error[0m
+    [32m  ✔[0m[90m raw old save cancellation cannot suspend a recovered draft or release a newer save token[0m
+    [32m  ✔[0m[90m raw old canonical cancellation cannot suspend a recovered draft or release a newer save token[0m
+    [32m  ✔[0m[90m raw old list cancellation cannot close a newer recovered editor[0m
+    [32m  ✔[0m[90m raw old selected info cannot suspend a newer skill under the same owner[0m
+    [32m  ✔[0m[90m raw create success followed by a late info cancellation revokes its success notice[0m
+    [32m  ✔[0m[90m raw toggle success followed by a late info cancellation revokes its success notice[0m
+    [32m  ✔[0m[90m IPC reconstructed current create cancellation keeps "# Draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current save cancellation keeps "# Draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current save cancellation keeps "" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current save cancellation keeps "# Original" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current canonical cancellation keeps "# Newer draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current toggle cancellation keeps "# Draft" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current list cancellation keeps "" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed current info cancellation keeps "# Typed during reload" while the renderer still caches A[0m
+    [32m  ✔[0m[90m IPC reconstructed initial info cancellation never authorizes a body or paints a business error[0m
+    [32m  ✔[0m[90m IPC reconstructed old save cancellation cannot suspend a recovered draft or release a newer save token[0m
+    [32m  ✔[0m[90m IPC reconstructed old canonical cancellation cannot suspend a recovered draft or release a newer save token[0m
+    [32m  ✔[0m[90m IPC reconstructed old list cancellation cannot close a newer recovered editor[0m
+    [32m  ✔[0m[90m IPC reconstructed old selected info cannot suspend a newer skill under the same owner[0m
+    [32m  ✔[0m[90m IPC reconstructed create success followed by a late info cancellation revokes its success notice[0m
+    [32m  ✔[0m[90m IPC reconstructed toggle success followed by a late info cancellation revokes its success notice[0m
+
+[0m  EngineTokenUsageSection[0m
+  [32m  ✔[0m[90m paints the eight fields from a stub result[0m
+  [32m  ✔[0m[90m refresh calls getGlobalUsage again[0m
+  [32m  ✔[0m[90m missing method shows unavailable and does not throw[0m
+  [32m  ✔[0m[90m disconnected does not call[0m
+  [32m  ✔[0m[90m pairing-hold does not call[0m
+  [32m  ✔[0m[90m late response after dispose does not paint[0m
+  [32m  ✔[0m[90m error path does not show zeros as success[0m
+
+[0m  engineToolProfile[0m
+  [32m  ✔[0m[90m editing tools preserves optional maxRewinds=undefined in the save profile[0m
+  [32m  ✔[0m[90m editing tools preserves optional maxRewinds=0 in the save profile[0m
+  [32m  ✔[0m[90m editing tools preserves optional maxRewinds=5 in the save profile[0m
+  [32m  ✔[0m[90m disabledTools mode: tool enabled unless listed[0m
+  [32m  ✔[0m[90m whitelist mode: tool enabled only when listed[0m
+  [32m  ✔[0m[90m applyToolEnablementChange writes disabledTools via SaveAgentProfile shape[0m
+  [32m  ✔[0m[90m applyToolEnablementChange drops stale disabledTools when enabling in whitelist mode[0m
+  [32m  ✔[0m[90m summaryToProfileDetail keeps model fields and drops a non-positive max turns[0m
+
+[0m  EngineToolsSection leftover info tone (D414)[0m
+  [32m  ✔[0m[90m tool rows reserve separate title and subtitle lines[0m
+  [32m  ✔[0m[90m leftover getToolInfo throw keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m leftover pairing-hold keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover info honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover info honesty without reselect[0m
+  [32m  ✔[0m[90m leftover missing getToolInfo keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadToolInfo catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when savePendingEnablement catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m switching active session or work root triggers list refresh with projectPath[0m
+  [32m  ✔[0m[90m toggleTool rejects the write when the engine link changes during the round trip[0m
+  [32m  ✔[0m[90m save stays valid when a same-profile refresh lands mid-save[0m
+  [32m  ✔[0m[90m a list refresh issued before a save lands cannot repaint the saved enablement[0m
+
+[0m  Engine trigger list bind[0m
+  [32m  ✔[0m[90m ListTriggers gate is connected + hook; pairing-hold leftover-looks-live refuses; empty ids stay empty[0m
+  [32m  ✔[0m[90m trigger label keeps empty fields as-is[0m
+  [32m  ✔[0m[90m FireTrigger gate is connected + hook; empty ids stay empty[0m
+  [32m  ✔[0m[90m SetTriggerEnabled gate is connected + hook; empty ids and enabled false stay as-is[0m
+  [32m  ✔[0m[90m DeleteTrigger gate is connected + hook; empty ids stay empty[0m
+  [32m  ✔[0m[90m UpsertTrigger gate is connected + hook; dialog draft is sent with empty scope[0m
+
+[0m  EngineTriggersSection[0m
+  [32m  ✔[0m[90m ListTriggers does not send when listTriggers capability is UNKNOWN[0m
+  [32m  ✔[0m[90m ListTriggers success then capability becomes UNKNOWN keeps leftover rows and does not call list[0m
+  [32m  ✔[0m[90m ListTriggers does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m ListTriggers sends empty scope / scopeId / typeFilter as-is when connected[0m
+  [32m  ✔[0m[90m ListTriggers empty triggers[] is honest empty[0m
+  [32m  ✔[0m[90m ListTriggers first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m ListTriggers success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m ListTriggers success then hook missing keeps leftover rows and paints unsupported[0m
+  [32m  ✔[0m[90m ListTriggers success then disconnect clears leftover rows[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover rows and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold write buttons stay 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m list-fail leftover closes write chrome without reselect[0m
+  [32m  ✔[0m[90m FireTrigger does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m write buttons stay off when proxy methods exist but the snapshot is UNSUPPORTED[0m
+  [32m  ✔[0m[90m write buttons stay disabled with hover hints when capability is UNKNOWN[0m
+  [32m  ✔[0m[90m FireTrigger sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m FireTrigger sends selected trigger_id without inventing defaults[0m
+  [32m  ✔[0m[90m FireTrigger empty status is error; unknown status stays neutral; empty parts are dropped[0m
+  [32m  ✔[0m[90m FireTrigger throw stays error tone[0m
+  [32m  ✔[0m[90m FireTrigger tone follows engine status values only, not status words or reason[0m
+  [32m  ✔[0m[90m SetTriggerEnabled stays disabled when disconnected or hook missing[0m
+  [32m  ✔[0m[90m SetTriggerEnabled stays disabled when connected with no selection[0m
+  [32m  ✔[0m[90m SetTriggerEnabled tone is error when returned enabled does not match the request[0m
+  [32m  ✔[0m[90m SetTriggerEnabled sends selected trigger_id and enabled without inventing defaults[0m
+  [32m  ✔[0m[90m DeleteTrigger does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m DeleteTrigger sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m DeleteTrigger sends selected trigger_id without inventing defaults[0m
+  [32m  ✔[0m[90m DeleteTrigger success refreshes so the deleted row is gone[0m
+  [32m  ✔[0m[90m DeleteTrigger success does not keep delete-success when subsequent ListTriggers fails[0m
+  [32m  ✔[0m[90m DeleteTrigger throw paints delete-status and leaves the row[0m
+  [32m  ✔[0m[90m UpsertTrigger does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m UpsertTrigger Add does not send when the form has no name or type[0m
+  [32m  ✔[0m[90m UpsertTrigger Add does not send when type is blank[0m
+  [32m  ✔[0m[90m UpsertTrigger Add does not send when interval or target is invalid[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit does not send when nothing is selected[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit does not resend the selected trigger when the dialog is empty[0m
+  [32m  ✔[0m[90m UpsertTrigger Add sends the dialog draft and does not copy the selected row[0m
+  [32m  ✔[0m[90m UpsertTrigger Add sends blanks as empty fields and enabled false when the checkbox is omitted[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit sends dialog values and keeps fields the form left blank[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit replaces non-blank fields and does not keep enabled from the row[0m
+  [32m  ✔[0m[90m UpsertTrigger dialog is prefilled for edit and empty for add[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit success refreshes so the updated row appears[0m
+  [32m  ✔[0m[90m UpsertTrigger success does not keep upsert-success when subsequent ListTriggers fails[0m
+  [32m  ✔[0m[90m UpsertTrigger throw paints upsert-status and leaves the row[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleUpsert catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleFire catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleSetEnabled catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleDelete catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m row is focusable and arrow keys do not fire[0m
+  [32m  ✔[0m[90m upsert dialog does not send when the published link or identity changed[0m
+  [32m  ✔[0m[90m trigger write return does not paint success or refresh when the published link or identity changed[0m[31m (152ms)[0m
+  [32m  ✔[0m[90m trigger writes still paint success when the published identity and link stay[0m
+
+[0m  EngineWriteGate[0m
+  [32m  ✔[0m[90m capture requires both identity and a positive link id[0m
+  [32m  ✔[0m[90m same link compares identity and link id only[0m
+  [32m  ✔[0m[90m classify stays current while a refresh would mark the catalog loading[0m
+  [32m  ✔[0m[90m refresh token dies on a newer refresh, a link change, and dispose[0m
+  [32m  ✔[0m[90m selection mismatch and in-flight generation reuse the existing copies[0m
+
+
+[92m [0m[32m 831 passing[0m[90m (6s)[0m
+[31m  1 failing[0m
+
+[0m  1) Engine catalog sections (Agents / MCP / Tools)
+       Tools: in-flight getToolInfo leftover-looks-live keeps leftover and does not paint live:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-3[0m
+      [32m+2[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  3 !== 2
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.js:4883:12)
+[0m
+
+

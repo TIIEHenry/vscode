@@ -1,0 +1,19 @@
+[
+	"connectionIpcSecretBoundary",
+	"connectionProfileStore",
+	"connectionResolver",
+	"deviceAuthHandshake",
+	"deviceGrantCrypto",
+	"grpcClientSessionToken",
+	"grpcQueueSkillWire",
+	"grpcSessionWrites",
+	"hubControlPlane",
+	"hubDirectoryClient",
+	"hubSessionStore",
+	"localEngineDiscovery",
+	"observeCandidateLeaf",
+	"pairingOrchestrator",
+	"universeAgentChannel",
+	"universeAgentConnection",
+	"universeAgentHubService"
+]

@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-11-02
+updated: 2026-11-04
 summary: "PRD-016 / ADR-002 的系统规格（2026-10-24 删除会话先确认）：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题；栏上新建 / 删除 / 改名禁用时写出原因"
 ---
 
@@ -28,8 +28,9 @@ CONVERSATION_PART
     └── leaf[beside]   session B（最多两叶；同样一份叶级 bar）
 ```
 
-- **叶** = 一个 session 的窗口。`IConversationSessionWindowService` 维护 `leafOrder`、`hidden`、sticky `focusedLeafSessionKey` / `onDidChangeFocusedLeaf`；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2`。切会话走 `revealSessionWindow(sessionKey, { replace? })` 状态机（已有可见叶则聚焦；单叶恢复/新建目标后 `promoteLeaf` 并藏旧 primary；两叶满员走 `openSessionBeside` 或 `replace` 指定让位叶；latest-wins）。`onDidChangeActiveSession` 调用 reveal，但对 bind-failed 哨兵与 `getSessions()` 没有的 id 零动作。在途删除会先把活动 id 挪到邻居、再等 unary 成功才发 `onDidDeleteSession`；这段时间焦点会话已经不在名册里，活动变化不另开邻居窗。连接着的目录列表若少了会话，走 `onDidPruneEngineSessions`（不是删除事件）：卸掉这些 id 的可见叶；卸完没有可见叶时，仍在名册里的活动会话得到一扇窗。`ensurePrimaryWindow` **只**在尚无 primary 时引导第一叶，**不**跟随 roster。`openSessionBeside` 仍建第二叶（Navigator「Open beside」）。隐藏叶释放该叶透镜 `sessionViewLease`，恢复时重取；失败回滚必须 `disposeConversationEditorPart`。`hideSessionWindow` 后回到单窗。
+- **叶** = 一个 session 的窗口。`IConversationSessionWindowService` 维护 `leafOrder`、`hidden`、sticky `focusedLeafSessionKey` / `onDidChangeFocusedLeaf`；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2`。切会话走 `revealSessionWindow(sessionKey, { replace? })` 状态机（已有可见叶则聚焦；单叶恢复/新建目标后 `promoteLeaf` 并藏旧 primary；两叶满员走 `openSessionBeside` 或 `replace` 指定让位叶；latest-wins）。`onDidChangeActiveSession` 调用 reveal，但对 bind-failed 哨兵与 `getSessions()` 没有的 id 零动作。还没有主叶、并且记下的可见叶仍在名册里时，这次活动变化先恢复那一对叶，不先只开活动会话。在途删除会先把活动 id 挪到邻居、再等 unary 成功才发 `onDidDeleteSession`；这段时间焦点会话已经不在名册里，活动变化不另开邻居窗。连接着的目录列表若少了会话，走 `onDidPruneEngineSessions`（不是删除事件）：卸掉这些 id 的可见叶；卸完没有可见叶时，仍在名册里的活动会话得到一扇窗。`ensurePrimaryWindow` **只**在尚无 primary 时引导第一叶，**不**跟随 roster。`openSessionBeside` 仍建第二叶（Navigator「Open beside」）。隐藏叶释放该叶透镜 `sessionViewLease`，恢复时重取；失败回滚必须 `disposeConversationEditorPart`。`hideSessionWindow` 后回到单窗。
 - **叶内 EditorPart** 由 `EditorParts.createConversationEditorPart` 创建，注册进 `IEditorGroupsService.parts`，共用主窗 `windowId`，`excludeFromGlobalEditorAggregation = true`（不进全局 editor 枚举、MRU `activePart`、`applyState` 工作集恢复、`IHistoryService`）。细节见 [editor-part-tabs §4](../workbench/editor-part-tabs.md)。
+- **跨重启的可见叶**：`conversation.sessionWindows.v1` 存在工作区、本机目标（不随 Settings Sync 漫游）。记下的是当前可见叶，主叶在前，最多两扇。网格挂上且这些 id 仍在名册里时，按主叶、并排叶打开，再把焦点放回活动会话；活动会话不在这对叶里就按原 reveal 打开它。名册里已经没有的 id 略过。名册还空着（目录第一次还在拉）就先等，不造一扇「Session unavailable」。隐藏叶不写进这份记录，重启后不自动打开；再次打开该会话时，叶内 chat tab 仍按该 `sessionKey` 的编辑器网格记忆恢复。Part 显隐仍走 Layout。绑定失败占位不记。
 - 两叶**共用**右侧 Preview / Sources / Panel；这不是 ADR-001 的双 session 孪生。
 - 每叶阅读列身份条的文件夹、分支及动作目标属于该叶绑定 session，重绑同步更新；全局引擎芯片和窗口加入目录的操作保持原范围。非活动叶不借活动叶焦点修正身份，详见 [composer-and-inbox](composer-and-inbox.md) 与 [D1386 方案](../../../dev/plans/2026-10-26-leaf-session-root-identity.md)。
 - 窄宽度（`.is-narrow` / `.is-compact`）把 History、Snapshots、新建、删除和会话选择收进 More。More 里的新建和删除与栏上写钮同一道闸：pairing-hold，或已连接但会话未就绪（KEEP leftover）时，这两项禁用。点它们不会创建、不会删除，也不弹出失败。History、Snapshots 和切会话仍可点。栏上的新建、删除与标题改名用同一道写闸：不可写时禁用，并把原因写进 `title` 与 `aria-label`（pairing-hold 写 `Engine not connected`，已连但会话未就绪按就绪度写 `Loading session…` 或 `Session unavailable — The engine is connected, but the active session is not ready.`）。删除先经 `IDialogService.confirm`（2026-10-24，PRD-002 验收 6）：标题 `Delete session "{title}"?`，说明 `This permanently deletes the session and its messages. This cannot be undone.`，主按钮 `Delete`。栏上的删除、More 里的删除、Navigator Sessions 标题上的删除和 Navigator Projects 会话行的删除共用这一个确认函数（`conversationDeleteSessionConfirm.ts`）。Projects 行在确认返回后重新检查写闸和会话是否还在，任一不满足就不删。顺序：先过写闸（配对保持、会话未就绪照旧拒绝），断连但有连接历史时也在确认前拒绝；再取会话 id 与标题并确认；取消时不删除、不写草稿、不提示失败；确认后重新过写闸并确认该 id 仍在名册，再用这个 id 删除。
@@ -99,7 +100,7 @@ CONVERSATION_PART
 | 验收 | 落点 |
 |------|------|
 | 1 中间可见 chat tab，不是 Preview 里的 Chat 标签 | §1 叶内 EditorPart + §2 围栏 |
-| 2 根 tab 不可关；隐藏再打开 tab 仍在 | `IEditorCloseHandler` + `hideSessionWindow` 保留叶（**进程内**；跨重启见 PRD-017） |
+| 2 根 tab 不可关；隐藏再打开 tab 仍在 | `IEditorCloseHandler` + `hideSessionWindow` 保留叶（**进程内**）。跨重启的可见叶见上文「跨重启的可见叶」；隐藏叶要再打开才回来，tab 记忆在该 `sessionKey` 的编辑器网格里 |
 | 3 Fork 不产生第二根会话 | §3 `registerForkChat` |
 | 4 子代理点击前无 tab / 无对话框；点击后 overlay；弹出才 tab | §3 |
 | 5 面包屑 + 关掉延伸标签 | §3 |
@@ -110,6 +111,6 @@ CONVERSATION_PART
 
 ## 7. 测试
 
-`contrib/conversation/test/browser/`：`conversationSessionChat.test.ts`、`conversationSessionSplit.test.ts`、`conversationSessionWindowSideBySide.test.ts`、`conversationEditorFence.test.ts`、`conversationEditorAggregation.test.ts`、`conversationNavigation.test.ts`。D4 目视：V5 / V7（[shell-smoke-verification](../../guides/shell-smoke-verification.md)）。
+`contrib/conversation/test/browser/`：`conversationSessionChat.test.ts`、`conversationSessionSplit.test.ts`、`conversationSessionWindowSideBySide.test.ts`、`conversationSessionWindowLayout.test.ts`、`conversationEditorFence.test.ts`、`conversationEditorAggregation.test.ts`、`conversationNavigation.test.ts`。D4 目视：V5 / V7（[shell-smoke-verification](../../guides/shell-smoke-verification.md)）。
 
 `conversationSessionWindowReveal.test.ts`保留默认QuietRoster原26条及静态展开13条真实EngineRoster / UA / Deferred catalog / SessionView host frame矩阵，覆盖见[窄方案§7.1](../../../dev/plans/conversation-visible-lease-recovery.md#71-静态展开选择器与待运行资格)。首次实际项目上下文checker在7361新L4报5条TS2339后停止；d8e窄修只复用作者一次AST/lint原件与源码peer结论，没有新checker/emit/tests/after，13条结果未观察，见[当前证明](../../../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)。

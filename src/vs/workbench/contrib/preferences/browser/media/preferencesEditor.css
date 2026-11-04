@@ -162,3 +162,55 @@
 	outline: 1px solid var(--vscode-contrastActiveBorder);
 	outline-offset: -1px;
 }
+
+/* Product preferences fill their host; the content column sets the reading width. */
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) {
+	max-width: none;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .preferences-editor-header {
+	max-width: none;
+	margin-top: 0;
+	padding: 12px 24px;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .preferences-tabs-container {
+	margin-top: 0;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .back-to-client-settings.monaco-button {
+	border-right: none;
+	font-size: var(--vscode-fontSize-label1);
+}
+
+/* ActionBar's default full-size UL must not add its padding outside the switcher. */
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .preferences-tabs-container {
+	gap: 8px 24px;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .preferences-tabs-container .monaco-action-bar {
+	flex: 0 0 auto;
+	height: auto;
+	max-width: 100%;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .preferences-tabs-container .actions-container {
+	box-sizing: border-box;
+	width: auto;
+	height: auto;
+	padding: 2px;
+	margin: 0;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .preferences-tabs-container .action-label {
+	box-sizing: border-box;
+	min-height: 24px;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane)) .back-to-client-settings.monaco-button {
+	margin-right: 0;
+}
+
+.preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane).is-narrow) .preferences-editor-header {
+	padding-inline: 16px;
+}

@@ -1,14 +1,15 @@
 ---
 title: "草稿会话提交后保留 Agent 浏览器页归属"
 type: plan
-status: draft
+status: implemented
 phase: M7
-updated: 2026-10-05
-summary: "草稿 chat URI 被正式 URI 替换后，只凭替换事件建立 owner 映射；删除时按映射目标匹配原始 removed 事件。后续工具访问与存储上下文分别验证。"
+updated: 2026-11-01
+summary: "切片 1、2（替换映射、删除清理与单测）已由 47871ee6737、c3d5cc452f6 落地；切片 3、4 属 Agents Window，按审查待定项决定 D22 不排期，退出条件里的动态证据不再要求。"
 ---
 
 # 草稿会话提交后保留 Agent 浏览器页归属
-状态：草案。
+状态：已完成。
+签收：签，签收人：agent:codex，日期：2026-11-01。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -49,3 +50,19 @@ Agent 页在草稿提交前、提交中、提交后创建的三种时序下都�
 ## 只读审查与改稿
 
 2026-10-05 独立只读审查指出：provider 发 `removed` 前已删目标缓存，删除不能复用显示路径的重新查询；泛 Agent audience 与旧 `ephemeral` affinity 还要求把工具访问和存储连续性拆开验证。本稿已按这两项改写删除完成式与验证边界；方案仍待实施与动态复现。
+
+## 签收复核（agent:kiro，2026-11-01）
+
+本稿已由 agent:codex 签成 `accepted`。agent:kiro 受用户委托做同一轮签收审查，结论不同：不该签。理由：
+
+- 整篇只服务 Agents Window。全仓唯一的 `registerContextualFilter` 生产注册者是 `src/vs/sessions/contrib/browserView/browser/sessionBrowserView.ts`，只由 `sessions.common.main.ts` 引入，默认编辑器窗口没有这条筛选。按 [产品愿景](../../docs/product/vision.md) 第 35 行，Agents Window 不属于产品验收。
+- 切片 1、2（单测、替换映射与清理）已在 `47871ee6737`（类型修补 `c3d5cc452f6`）落地，INDEX 写的「未实施」已过时。
+- 切片 3、4 是 Agents Window 的真实工具调用与桌面时序复现，本稿的退出条件要求它们，但按产品边界不该排期。
+
+建议：不升 `accepted`，也不标 `implemented`；写明「切片 1–2 已落地，3–4 属 Agents Window，不排期」后归档。agent:codex 的签收行原样保留，等用户决定。
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+按 D22 标 `implemented`：切片 1、2 已落地；切片 3、4 是 Agents Window 的联调，按[产品愿景](../../docs/product/vision.md)第 35 行不排期。agent:codex 的签收行保留。

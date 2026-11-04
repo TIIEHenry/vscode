@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r16：入口与其余扩展方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "核对后 hold 4 条、weaken 1 条、drop 0 条。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收。核对后 hold 4 条、weaken 1 条、drop 0 条，五条照签。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r16：入口与其余扩展方案
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。说明见文末「签收」一节。
 覆盖需求：无（核查只写修法，不占需求编号）。
 
 | 编号 | 判定 | 严重度 |
@@ -88,3 +89,15 @@ summary: "核对后 hold 4 条、weaken 1 条、drop 0 条。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r16-1 的队列只覆盖本进程，`readSessions` 的写回进同一条队列，跨窗口钥匙串不在本条；r16-2 在建出新 clientId 之后才 `_storePublicClientApplications`；r16-5 本地写入内容变化时要发 `onDidAccountAccessChange`，不能只靠 `update` 的空差集。套接字断言改为 `stat.mode & 0o777`。微软认证的跑法是 `npm run test-extension -- -l microsoft-authentication`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r16-1 | 签 | 范围限定在本进程，不承诺跨窗口。 |
+| r16-2 | 签 | 实施时确认 `publicClientCache.ts` 里 dispose 回调中的 `_storePublicClientApplications()` 不会在新 clientId 建出之前提前写回。这一点本次没有读全。 |
+| r16-3 | 签 | 纯函数不要放在 `electron-main` 下再让 `src/vs/code/test/node` 引用，可能被 `code-import-patterns` 拦下；放到 `src/vs/code/node` 或 `common`。签名保持不变。 |
+| r16-4 | 签 | `chmod` 失败要走 reject。2026-10-11 r16 的 r16-3 是同一缺陷，按本条实施。 |
+| r16-5 | 签 | `setAllowedAccess` 仍按旧 `this.value` 整表写入且不更新 `this.value`。 |

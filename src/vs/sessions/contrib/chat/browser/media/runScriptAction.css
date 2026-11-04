@@ -81,7 +81,7 @@
 
 .run-script-action-section .monaco-custom-radio > .monaco-button:hover:not(.active):not(.disabled) {
 	background-color: var(--vscode-list-hoverBackground);
-	border-color: rgba(255, 255, 255, 0.06);
+	border-color: var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
 	opacity: 1;
 }
 
@@ -122,6 +122,19 @@
 .run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button:focus,
 .run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button.active:focus {
 	outline: none !important;
+}
+
+.run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button:focus-visible,
+.run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button.active:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px !important;
+}
+
+.hc-black .run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button:focus-visible,
+.hc-light .run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button:focus-visible,
+.hc-black .run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button.active:focus-visible,
+.hc-light .run-script-action-section .monaco-custom-radio.run-script-action-radio-disabled > .monaco-button.active:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder) !important;
 }
 
 .run-script-action-hint {
@@ -191,5 +204,5 @@
 	position: fixed;
 	inset: 0;
 	background: rgba(0, 0, 0, 0.5);
-	z-index: 2549;
+	z-index: var(--sessions-z-quick-input-backdrop, 2549);
 }

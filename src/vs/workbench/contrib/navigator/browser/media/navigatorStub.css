@@ -29,8 +29,18 @@
 
 .monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row,
 .monaco-workbench .navigator-agents-activity-list .monaco-list-row {
-	border-radius: var(--vscode-cornerRadius-small, 4px);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
 	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row:hover,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list-row:hover {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list-row.selected {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 9%, transparent);
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row,
@@ -53,6 +63,11 @@
 .monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)),
 .monaco-workbench .navigator-agents-activity-list .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)) {
 	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)),
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)) {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
 .monaco-workbench .navigator-agents-row-actions .action-label {

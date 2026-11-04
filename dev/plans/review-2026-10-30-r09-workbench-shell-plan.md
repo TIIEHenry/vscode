@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r09：workbench 壳方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 3，不实施 1，weaken 1。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 3，不实施 1，weaken 1。签 r09-2、r09-5；r09-3 只走活动组；r09-4 确认不实施；r09-1 缺禅模式、重载与使用方清单，不签。未实施，不升 PRD。"
 ---
 # 十六路审查 r09：workbench 壳方案
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 | 编号 | 判定 | 严重度 |
@@ -118,3 +119,22 @@ summary: "hold 3，不实施 1，weaken 1。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r09-4 不实施。`parts-and-grid.md` 写明 Zen Mode 不居中 Preview。Important 已改：r09-1 在禅模式期间保持 `isPanelMaximized` 的现有短路；r09-2 把末列宽度和 Sources 缓存分开写；r09-3 超出组数时用活动组或 `addGroupInCategory`，非分类路径同样不得跳过；r09-5 关闭面板时对话可见就聚焦对话。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，`layout.ts` 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r09-1 | 不签 | 缺三处，补齐后再审：① 禅模式进入只调 `setEditorHidden` / `setSourcesHidden`，不经过 `toggleMaximizedPanel`，改读新标记后禅模式下 `isPanelMaximized` 会变假，方案要求禅模式结果不变却没写怎么做到；② `EDITOR_HIDDEN` / `SOURCES_HIDDEN` 按工作区持久化，新标记重载后是否保留没写；③ 谓词的其他使用方没有列出也没有验证：`contextkeys.ts`（PanelMaximized 上下文键）、`panelActions.ts`、`chat.contribution.ts`、`chatInputPart.ts`、`panelPart.ts` 与 `layout.ts` 内另外三处。另外 `docs/systems/workbench/panel-and-auxiliary-bar.md` 第 51 行写的是最大化藏 `CONVERSATION_PART`，与代码和 `parts-and-grid.md` 第 77、83 行不一致，要一起改。2026-11-01 UI 适配审查 a04-5 是同一改动。 |
+| r09-2 | 签 | 两块都隐藏时仍拿 `sourcesPartView` 的缓存尺寸写 `EDITOR_SIZE`。 |
+| r09-3 | 签（收窄） | 列号超出时一律打开到 `mainPart.activeGroup`（分类部件上就是当前分类的活动组），非分类部件也走这条。排除 `addGroupInCategory` 新建组那一支：启动时建组会改变分类布局，方案在两者之间没有选定。这处 `continue` 是本仓自己加的（`61f9a47dab61`）。 |
+| r09-4 | 确认不实施 | 与 `parts-and-grid.md` 第 83 行「不居中 Preview」一致。 |
+| r09-5 | 签（收窄） | 只在 `EDITOR_PART` 不可见时改走 `focus()` 的顺序（对话 → Sources）。排除「Preview 可见时也改为聚焦对话」：这会改变在 Preview 里开关终端面板后的落点，上游行为是回到编辑器，发现稿只报了 Preview 隐藏的情况。要用户定：Preview 可见时关闭面板，焦点留在 Preview 还是改到对话。 |
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+- r09-5：Preview 可见时关闭面板，焦点照上游回到 Preview 活动组；Preview 不可见时按 `focus()` 的顺序（对话、Sources）。即本条的收窄范围就是完整改法，签（D17）。
+- r09-1：面板最大化保持合同、改用独立标志（D17），仍要补齐禅模式、重载与使用方清单后再签。

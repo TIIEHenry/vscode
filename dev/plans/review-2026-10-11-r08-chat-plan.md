@@ -1,14 +1,15 @@
 ---
 title: "方案 r08：chat"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "hold 4，drop 0，weaken 1。一条请求还原失败会清空并回写会话；坏 jsonl 不回退旧 json；索引里的进行中和等待输入收不掉；拒绝新建文件时删除失败仍收掉条目。外部编辑开始只有回调真正拒绝时才会挂起。"
+updated: 2026-11-01
+summary: "hold 4，drop 0，weaken 1。r08-1 至 r08-4 已由 452c2c43e27 落地。2026-11-01 agent:kiro 受用户委托签收 r08-5，实施时补上已开始条目的 startExternalEdit 回滚。未实施，不升 PRD。"
 ---
 # 方案 r08：chat
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。只签 r08-5，附加条件见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -124,3 +125,15 @@ hold 4，drop 0，weaken 1。
 ### 本地验证
 - 已有：`src/vs/workbench/contrib/chat/test/browser/chatEditing/chatEditingService.test.ts` 的 `startExternalEdits keeps initial content when contentFor read fails`、`stopExternalEdits maps contentFor by start resources order when reads finish out of order`。这两条仍须正常返回。
 - 新增：让 `_acceptStreamingEditsStart` 或 `resetEditTrackerToInitialContent` 拒绝时，`startExternalEdits` 在有限时间内拒绝，`_externalEditOperations` 没有这次 `operationId`，同一资源可以再次 `startExternalEdits`。文件不存在（`Abort`）时 `startExternalEdits` 仍正常返回。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，对照了 2026-10-24、2026-10-30 两轮方案。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r08-1 | 已落地 | `452c2c43e27`：请求逐条 try/catch，全部失败时置 `_restoreDroppedAllRequests`，`shouldStoreSession` 看到它既不存也不删。2026-10-30 r10-5（待发请求整队丢）是本条「不改」里排除的那部分，属后续条目，不算重复。 |
+| r08-2 | 已落地 | `452c2c43e27`：坏 jsonl 回退 flat，`FILE_NOT_FOUND` 时转去旧位置。 |
+| r08-3 | 已落地 | `452c2c43e27`：`??=` 改成显式分支，Pending / NeedsInput 收成 Complete。 |
+| r08-4 | 已落地 | `452c2c43e27`：先 `del`，非 `FILE_NOT_FOUND` 就抛出，删除确认后才 fire。 |
+| r08-5 | 签，附加条件 | 缺陷仍在：`chatEditingSession.ts` 的 `startExternalEdits` 回调仍没有 try/finally。实施时补一点：同批里其他资源可能已经 `entry.startExternalEdit()`，失败路径不写入 `_externalEditOperations`，之后 `stopExternalEdits` 找不到这次操作，`_isExternalEditInProgress` 会一直为真，后续改动都被当成 agent 编辑。出错时对已开始的条目调用 `stopExternalEdit()`，并加一条断言该标志已复位。优先级低。 |

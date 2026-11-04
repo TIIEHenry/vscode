@@ -1486,27 +1486,31 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 }
 .chat-debug-cache-sig-seg.role-system {
 	background: var(--vscode-charts-purple, #b292ff);
-	color: #1a0e30;
+	color: var(--vscode-editor-background);
 }
 .chat-debug-cache-sig-seg.role-tools {
 	background: var(--vscode-charts-orange, #d9822b);
-	color: #2a1500;
+	color: var(--vscode-editor-background);
 }
 .chat-debug-cache-sig-seg.role-user {
 	background: var(--vscode-charts-blue);
-	color: #06243d;
+	color: var(--vscode-editor-background);
 }
 .chat-debug-cache-sig-seg.role-assistant {
 	background: var(--vscode-charts-green);
-	color: #082b0c;
+	color: var(--vscode-editor-background);
 }
 .chat-debug-cache-sig-seg.role-tool {
 	background: var(--vscode-charts-yellow);
-	color: #2a1d00;
+	color: var(--vscode-editor-background);
 }
 .chat-debug-cache-sig-seg.role-tool-search {
 	background: var(--vscode-charts-foreground, #56b6c2);
-	color: #102326;
+	color: var(--vscode-editor-background);
+}
+.hc-black .chat-debug-cache-sig-seg:is(.role-system, .role-tools, .role-user, .role-assistant, .role-tool, .role-tool-search),
+.hc-light .chat-debug-cache-sig-seg:is(.role-system, .role-tools, .role-user, .role-assistant, .role-tool, .role-tool-search) {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 .chat-debug-cache-sig-seg.role-empty {
 	background: transparent;

@@ -5,6 +5,8 @@
 
 import assert from 'assert';
 import { getWindow } from '../../../../../base/browser/dom.js';
+import { ActionBar } from '../../../../../base/browser/ui/actionbar/actionbar.js';
+import { Action } from '../../../../../base/common/actions.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { InputBox } from '../../../../../base/browser/ui/inputbox/inputBox.js';
 import { timeout } from '../../../../../base/common/async.js';
@@ -13,6 +15,7 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { defaultInputBoxStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
+import { asCssVariableName, getSizeRegistry, isSizeDefaults, sizeValueToCss } from '../../../../../platform/theme/common/sizeRegistry.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { writeStatus } from '../../browser/connectionPreferencesPane.js';
 import { EngineProvidersSection } from '../../browser/engineProviderModelSection.js';
@@ -42,7 +45,7 @@ suite('Preferences status styles', () => {
 	}
 
 	async function mountWorkbench(theme: typeof themes[number]): Promise<HTMLElement> {
-		await Promise.all(['connectionPreferencesPane', 'enginePreferencesPane'].map(async name => {
+		await Promise.all(['connectionPreferencesPane', 'enginePreferencesPane', 'engineEditorSettings', 'engineCatalogSettings'].map(async name => {
 			const stylesheet = document.createElement('link');
 			stylesheet.rel = 'stylesheet';
 			stylesheet.href = new URL(`../../browser/media/${name}.css`, import.meta.url).href;
@@ -60,6 +63,12 @@ suite('Preferences status styles', () => {
 		workbench.style.backgroundColor = theme.background;
 		workbench.style.fontSize = '13px';
 		workbench.style.fontFamily = 'sans-serif';
+		for (const entry of getSizeRegistry().getSizes()) {
+			const value = entry.defaults && isSizeDefaults(entry.defaults) ? entry.defaults.light : entry.defaults;
+			if (value) {
+				workbench.style.setProperty(asCssVariableName(entry.id), sizeValueToCss(value));
+			}
+		}
 		for (const [name, value] of Object.entries({
 			foreground: theme.foreground,
 			descriptionForeground: theme.description,
@@ -100,7 +109,9 @@ suite('Preferences status styles', () => {
 
 	async function mountProviderRows(theme: typeof themes[number], writable: boolean) {
 		const workbench = await mountWorkbench(theme);
-		const engine = append(workbench, 'engine-preferences-pane is-narrow');
+		const engine = append(workbench, 'engine-preferences-pane is-narrow is-showing-detail');
+		const detail = append(engine, 'engine-preferences-detail');
+		const detailBody = append(detail, 'engine-preferences-detail-body');
 		const capabilities = createTestCapabilitySnapshot({ providerConfig: { support: 'SUPPORTED' } });
 		const entries = [
 			{ providerId: 'anthropic-workspace', brand: 'Anthropic enterprise workspace endpoint with a long name', protocol: 'anthropic', configured: true, credentialSource: 'PROVIDER_ENV', hasBaseUrl: true, enabled: true },
@@ -116,13 +127,68 @@ suite('Preferences status styles', () => {
 		});
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, service);
-		const providers = store.add(instantiationService.createInstance(EngineProvidersSection, engine));
+		const providers = store.add(instantiationService.createInstance(EngineProvidersSection, detailBody));
 		providers.setSectionActive(true);
 		await timeout(0);
 		const rows = [...providers.getDomNode().querySelectorAll<HTMLElement>('.engine-provider-status-row')];
 		assert.strictEqual(rows.length, entries.length);
 		return { workbench, engine, entries, rows, getWrites: () => writes };
 	}
+
+	test('UA host switcher has symmetric insets and disconnected actions keep header gutters', async () => {
+		const stylesheet = document.createElement('link');
+		stylesheet.rel = 'stylesheet';
+		stylesheet.href = new URL('../../../preferences/browser/media/preferencesEditor.css', import.meta.url).href;
+		store.add(toDisposable(() => stylesheet.remove()));
+		await new Promise<void>((resolve, reject) => {
+			stylesheet.onload = () => resolve();
+			stylesheet.onerror = () => reject(new Error('preferencesEditor stylesheet failed to load'));
+			document.head.appendChild(stylesheet);
+		});
+		for (const theme of themes) {
+			const workbench = await mountWorkbench(theme);
+			for (const width of [1100, 440, 320]) {
+				const editor = append(workbench, 'preferences-editor');
+				editor.style.width = `${width}px`;
+				const header = append(editor, 'preferences-editor-header');
+				const tabs = append(header, 'preferences-tabs-container');
+				const back = store.add(new Button(tabs, {}));
+				back.element.classList.add('back-to-client-settings');
+				back.label = 'Back to Client Settings';
+				const bar = store.add(new ActionBar(tabs));
+				bar.push(store.add(new Action('connection', 'Connection')));
+				const selected = store.add(new Action('engine', 'Engine'));
+				selected.checked = true;
+				bar.push(selected);
+				const pane = append(editor, `engine-preferences-pane${width < 600 ? ' is-narrow' : ''}${width < 400 ? ' is-compact' : ''}`);
+				const banner = append(pane, 'engine-preferences-disconnected-banner');
+				append(banner, 'engine-preferences-disconnected-copy', 'Engine not connected');
+				const actions = append(banner, 'engine-preferences-disconnected-actions');
+				for (const label of ['Test Engine', 'Open Connection']) {
+					store.add(new Button(actions, {})).label = label;
+				}
+				const list = tabs.querySelector('.actions-container')!.getBoundingClientRect();
+				const labels = [...tabs.querySelectorAll('.action-label')].map(el => el.getBoundingClientRect());
+				assert.ok(Math.abs((labels[0].left - list.left) - (list.right - labels[1].right)) < 1, 'switcher end insets match');
+				for (const label of labels) {
+					assert.ok(Math.abs((label.top - list.top) - (list.bottom - label.bottom)) < 1, 'switcher vertical insets match');
+				}
+				const outer = editor.getBoundingClientRect();
+				const gutter = width < 600 ? 16 : 24;
+				const headerBox = header.getBoundingClientRect();
+				const headerStyle = getWindow(header).getComputedStyle(header);
+				assert.strictEqual(Number.parseFloat(headerStyle.paddingLeft), gutter);
+				assert.ok(headerBox.right <= outer.right + 1);
+				const actionBox = actions.getBoundingClientRect();
+				const copy = banner.querySelector('.engine-preferences-disconnected-copy')!.getBoundingClientRect();
+				assert.ok(copy.left >= outer.left + gutter, 'notice has a safe left gutter');
+				assert.ok(actionBox.right <= outer.right - gutter + 1, 'actions have a safe right gutter');
+				pane.className = `connection-preferences-pane${width < 600 ? ' is-narrow' : ''}`;
+				assert.strictEqual(Number.parseFloat(getWindow(header).getComputedStyle(header).paddingLeft), gutter, 'Connection shares host gutters');
+				editor.remove();
+			}
+		}
+	});
 
 	for (const theme of themes) {
 		test(`${theme.name}: success and warning text stays readable and semantic indicators survive`, async () => {
@@ -247,7 +313,7 @@ suite('Preferences status styles', () => {
 							enabled: entries[index].enabled ? 'Enabled' : 'Disabled',
 							source: index === 0 ? 'Provider env' : 'Built-in env',
 						}, `${theme.name} pane ${width}px, actual row ${rowBounds.width}px, ${entries[index].providerId}`);
-						assert.strictEqual(rowBounds.height, width === 720 ? 24 : Math.round(rowBounds.height / 24) * 24, 'wide rows stay single track; narrow tracks retain 24px density');
+						assert.ok(rowBounds.height >= 40, 'provider rows keep the settings minimum height and grow to fit complete status tracks');
 						if (index > 0) {
 							assert.ok(rows[index - 1].getBoundingClientRect().bottom <= rowBounds.top, 'growing rows reserve vertical space for their siblings');
 						}
