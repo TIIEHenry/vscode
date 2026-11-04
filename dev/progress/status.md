@@ -4,10 +4,21 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-04
-summary: "多槽并行编排完成 Wave 23：Slot A（Platform 核心服务 26 个模块错误处理去重与生命周期销毁守卫）、Slot B（Workbench Core Services 66 个模块错误处理去重与生命周期销毁守卫）、Slot C（Sessions Contrib 38 个模块错误处理去重、DOM 清理与生命周期销毁守卫）及配套 77 项扫描单测对齐。merge 槽单流水线全量编译 compile-client 0 错误（24s），valid-layers-check 0 错误，扫描单测 100% 全绿通过。"
+summary: "多槽并行编排完成 Wave 24：Slot A（Workbench API MainThread 与 ExtHost 31 个核心服务错误处理去重与生命周期守卫）、Slot B（Welcome 与 Onboarding 7 个模块错误处理去重、DOM 清理与生命周期守卫）、Slot C（Auth、UserDataSync、Webview 与 Workspace 16 个模块错误处理去重、DOM 清理与生命周期守卫）及配套 19 项扫描单测对齐。merge 槽单流水线全量编译 compile-client 0 错误（23s），valid-layers-check 0 错误，扫描单测 100% 全绿通过。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-04 轮次二十四）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Workbench API 核心服务错误处理去重与生命周期守卫)**：在 `mainThreadChatSessions.ts`、`mainThreadMcp.ts`、`mainThreadSpeech.ts`、`mainThreadTerminalService.ts`、`mainThreadTreeViews.ts`、`mainThreadWorkspace.ts` 6 个 MainThread 模块及 `extHostAgentEditorComments.ts`、`extHostAuthentication.ts`、`extHostChatAgents2.ts`、`extHostChatSessions.ts`、`extHostCodeInsets.ts`、`extHostConfiguration.ts`、`extHostDebugService.ts`、`extHostDocumentContentProviders.ts`、`extHostExtensionService.ts`、`extHostGitExtensionService.ts`、`extHostLanguageModelTools.ts`、`extHostLoggerService.ts`、`extHostManagedSockets.ts`、`extHostMcp.ts`、`extHostNotebook.ts`、`extHostNotebookKernels.ts`、`extHostProfileContentHandler.ts`、`extHostQuickDiff.ts`、`extHostSCM.ts`、`extHostTask.ts`、`extHostTelemetry.ts`、`extHostTreeViews.ts`、`extHostTunnelService.ts`、`extHostUrls.ts`、`extHostWindow.ts` 25 个 ExtHost 模块全面收敛 double catch 为单级 `.catch(onUnexpectedError)`；增设 `this._store.isDisposed || this._isDisposed` 异步回调与代理通知守卫；对齐 9 项 Workbench API companion scanner 单测。槽提交 `97cc251b980`。
+  - **槽位 B (Welcome 与 Onboarding 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 `agentSessionsWelcome.ts`、`gettingStarted.contribution.ts`、`gettingStarted.ts`、`gettingStartedService.ts`、`startupPage.ts`、`onboardingVariationA.ts`、`walkThroughInput.ts` 7 个模块收敛 double catch 为单级 `.catch(onUnexpectedError)`；在 `agentSessionsWelcome.ts`、`gettingStarted.ts`、`onboardingVariationA.ts` 的 `dispose()` 与清理逻辑中通过 `clearNode` + `.remove()` 彻底脱落清空 DOM 容器；为扩展探测、滚动、步骤执行增设 `this._store.isDisposed` 守卫；对齐 4 项 Welcome/Onboarding companion scanner 单测。槽提交 `7f97a5946e9`。
+  - **槽位 C (Authentication、UserDataSync、Webview 与 Workspace 错误处理去重、DOM 清理与生命周期守卫)**：在 authentication（actions 及 contribution）、userDataSync（browser、electron-browser 核心及视图）、webviewPanel、webviewViewPane、workspace（contribution 及 trust editor）16 个模块全面收敛 double catch 为单级 catch；在 `webviewViewPane.ts` 与 `workspaceTrustEditor.ts` 实施 DOM 容器 `clearNode` + `.remove()` 彻底脱落；在 `userDataSync.ts`、`webviewViewPane.ts` 异步方法与回调中增设 `this._store.isDisposed` 守卫；对齐 4 项 Auth/Sync/Workspace companion scanner 单测。槽提交 `f8882f02550`。
+  - **跨轨扫描单测协调 (merge 槽)**：在 `welcomeWalkthroughLeftoverPromiseCatchScanD799.test.ts` 中对齐对 `webviewViewPane.ts` 单级 catch 的跨轨断言并移除无用扫描辅助函数，19 项配套扫描单测（112 tests）100% 全绿通过。槽提交 `c11feebb0f6`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`。全量客户端编译 `npm run compile-client` 0 错误（23s），分层校验 `npm run valid-layers-check` 0 错误。文档门禁 `check-docs-health.py` 与 `wiki remind` 0 错误通过。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `welcomeWalkthroughLeftoverPromiseCatchScanD799.test.ts` 历史硬编码了 `webviewViewPane.ts` 的双重 catch 预期，在三路合并后产生跨轨冲突，自主对齐为单级 catch 验证，断言双重 catch 为 0 并清理无用扫描函数；
+    2) 发现 `mainThreadSpeech.ts` 原先缺少内部销毁状态追踪，自主引入 `_isDisposed` 并守卫语音识别会话取消回调与通知逻辑；
+    3) 发现 `workspaceTrustEditor.ts` 树视图与主编辑器销毁时未脱落描述节点与根节点 DOM，自主补充 `clearNode` + `.remove()` 杜绝游离 DOM 节点泄漏。
 
 - **多槽并行开发与单流水线集成（2026-11-04 轮次二十三）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Platform 核心服务错误处理去重与生命周期守卫)**：在 `agentService.ts`、`agentSessionResidency.ts`、`extensionTipsService.ts`、`keyboardLayoutMainService.ts`、`fileLog.ts`、`logIpc.ts`、`spdlogLog.ts`、`meteredConnectionIpc.ts`、`meteredConnectionService.ts`、`nativeManagedSettingsIpc.ts`、`universeAgentConnectionChannelClient.ts`、`universeAgentHubChannelClient.ts`、`sessionViewHost.ts`、`universeAgentConnectionService.ts`、`updateIpc.ts`、`abstractUpdateService.ts`、`updateService.snap.ts`、`updateService.win32.ts`、`userDataAutoSyncService.ts`、`userDataSyncAccount.ts`、`userDataSyncIpc.ts`、`userDataSyncLocalStoreService.ts`、`userDataSyncService.ts`、`userDataSyncServiceIpc.ts`、`webWorkerServiceImpl.ts`、`workspacesHistoryMainService.ts` 26 个生产模块收敛 double catch 为单级 `.catch(onUnexpectedError)`；增设 `this._store.isDisposed || this._isDisposed` 状态防护；对齐 14 项 Platform companion scanner 单测。槽提交 `a319b6c2aa5`。
