@@ -199,7 +199,7 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assert.ok(keybindingsExport.includes('void this.extensionService.whenInstalledExtensionsRegistered()'));
 		assert.strictEqual(countDoubleChains(callHierarchy), 3);
 		assert.ok(callHierarchy.includes('model.then(model => {'));
-		assert.strictEqual(countDoubleChains(timeline), 1);
+		assert.strictEqual(countDoubleChains(timeline), 0);
 		assert.ok(!interactive.includes('D798'));
 		assert.ok(!speech.includes('D798'));
 	});

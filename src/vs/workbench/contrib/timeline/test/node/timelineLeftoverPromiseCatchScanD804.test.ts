@@ -259,7 +259,7 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 		assert.ok(profile.includes('.catch(onUnexpectedError)'));
 		assert.strictEqual(countDoubleChains(profile), 0);
 		assert.ok(!profile.includes('D804'));
-		assert.ok(terminalContrib.includes(`${doubleCatch}`));
+		assert.ok(!terminalContrib.includes(`${doubleCatch}`));
 		assert.ok(!terminalContrib.includes('D804'));
 	});
 });

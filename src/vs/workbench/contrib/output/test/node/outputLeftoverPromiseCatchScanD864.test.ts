@@ -341,10 +341,10 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		assert.ok(explorer.includes(`${updateBadgeCall}.catch(onUnexpectedError)`));
 		assert.ok(explorer.includes(`${startStopCall}.catch(onUnexpectedError)`));
 		assert.ok(files.includes(`${resolveCall}.catch(onUnexpectedError)`));
-		assert.ok(suggestContrib.includes(`${prepareXtermRawCall}${doubleCatch}`));
+		assert.ok(!suggestContrib.includes(`${prepareXtermRawCall}${doubleCatch}`));
 		assert.ok(status.includes(`${notebookUpdateCall}.catch(onUnexpectedError)`));
 		assert.ok(findModel.includes(`${researchCall}.catch(onUnexpectedError)`));
-		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
+		assert.ok(!searchWidget.includes(`${submitCall}${doubleCatch}`));
 		assert.ok(comments.includes(`${refreshCall}.catch(onUnexpectedError)`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
 		assert.ok(debugConfig.includes(`${selectUndefinedCall}.catch(onUnexpectedError)`));

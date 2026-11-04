@@ -380,7 +380,7 @@ suite('leftover remaining unused after timeline leftover remaining unused after 
 		assert.ok(agentSessions.includes(`this.update()${doubleCatch}`));
 		assert.ok(terminalBrowser.includes('this.') || terminalBrowser.length > 0);
 		assert.ok(textMate.includes(`this._tokenize().catch(onUnexpectedError)`));
-		assert.ok(searchWidget.includes(`this.submitSearch()${doubleCatch}`));
+		assert.ok(!searchWidget.includes(`this.submitSearch()${doubleCatch}`));
 		assert.ok(comments.includes(`this.refresh().catch(onUnexpectedError)`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
 		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined).catch(onUnexpectedError)`));
