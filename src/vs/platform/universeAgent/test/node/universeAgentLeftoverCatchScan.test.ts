@@ -31,27 +31,29 @@ suite('UniverseAgent leftover fire-and-forget catch scan (D678)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_fireReconnect leftover void is double-chain; bare/single-chain gone', () => {
+	test('_fireReconnect leftover void is single-chain; bare/double-chain gone', () => {
 		const source = fs.readFileSync(resolveSource(CONNECTION_REL), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._fireReconnect(profileId)';
 		assert.ok(source.includes(ERRORS_IMPORT));
 		assert.strictEqual((source.match(/void this\._fireReconnect\(profileId\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('sessionViewHost pullNow leftover is onError then double-chain; single-chain gone', () => {
+	test('sessionViewHost pullNow leftover is onError then single-chain; double-chain gone', () => {
 		const source = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		// 2058aac5e25: the host now forwards onError into pullNow itself.
 		const call = 'void sidecar.tree.pullNow(onBound, onError).catch(onError)';
 		assert.ok(source.includes(ERRORS_IMPORT));
 		assert.strictEqual((source.match(/void sidecar\.tree\.pullNow\(onBound, onError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('scheduleRefresh pullNow leftover routes to caller onError; bare onBound signature gone', () => {

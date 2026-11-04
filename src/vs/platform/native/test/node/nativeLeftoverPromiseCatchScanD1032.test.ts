@@ -60,6 +60,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -76,9 +77,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const leftoverOpenExternalBrowserCall = 'this.openExternalBrowser(windowId, url, defaultApplication)';
@@ -154,13 +156,13 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		assert.ok(!iface.includes('D1032'));
 	});
 
-	test('this knife covers four leftover Promise double-chain sites after leftover remaining unused stayed on native this.foo() FOF', () => {
+	test('this knife covers four leftover Promise single-chain sites and zero double-chain sites after leftover remaining unused stayed on native this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d1032Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -168,13 +170,14 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(NATIVE_MAIN_REL) ?? ''), 4);
+		assert.strictEqual(countDoubleChains(seen.get(NATIVE_MAIN_REL) ?? ''), 0);
+		assert.ok(!seen.get(NATIVE_MAIN_REL)?.includes(doubleCatch));
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(NATIVE_AUTH_REL), 'utf8')), 0);
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(NATIVE_HOST_REL), 'utf8')), 0);
 		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(NATIVE_IFACE_REL), 'utf8')), 0);
 	});
 
-	test('native leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('native leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const native = fs.readFileSync(resolveSource(NATIVE_MAIN_REL), 'utf8');
 
 		assertPromiseSignature(native, 'private async openExternalBrowser(windowId: number | undefined, url: string, defaultApplication?: string): Promise<void> {');
@@ -188,10 +191,11 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		assertWrapped(native, leftoverDoOpenShellExternalCall);
 		assertWrapped(native, leftoverWriteClipboardCall);
 		assertWrapped(native, leftoverShowItemCall);
-		assert.strictEqual(countIncludes(native, `${leftoverOpenExternalBrowserCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(native, `${leftoverDoOpenShellExternalCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(native, `${leftoverWriteClipboardCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(native, `${leftoverShowItemCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(native, `${leftoverOpenExternalBrowserCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(native, `${leftoverDoOpenShellExternalCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(native, `${leftoverWriteClipboardCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(native, `${leftoverShowItemCall}${singleCatch}`), 1);
+		assert.ok(!native.includes(doubleCatch));
 		assert.ok(!native.includes('\t\t\t\tthis.openExternalBrowser(windowId, url, defaultApplication);\n'));
 		assert.ok(!native.includes('\t\t\t\tthis.doOpenShellExternal(windowId, url);\n'));
 		assert.ok(!native.includes('\t\t\tthis.writeClipboardText(windowId, url);\n'));
@@ -290,24 +294,36 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		assert.ok(!themes.includes(`this.trigger(value)${doubleCatch}`));
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`));
+		assert.ok(!compositeBar.includes(doubleCatch));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
+		assert.ok(!panePart.includes(doubleCatch));
+		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${singleCatch}`));
+		assert.ok(!workbenchConfig.includes(doubleCatch));
+		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${singleCatch}`));
+		assert.ok(!workbenchConfig.includes(doubleCatch));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`));
+		assert.ok(!titlebar.includes(doubleCatch));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
-		assert.ok(configService.includes(`${validateFoldersCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
+		assert.ok(configService.includes(`${validateFoldersCall}${singleCatch}`));
+		assert.ok(!configService.includes(doubleCatch));
+		assert.ok(storageBrowser.includes(`${applicationCloseCall}${singleCatch}`));
+		assert.ok(!storageBrowser.includes(doubleCatch));
 		assert.ok(chatSessions.includes(`${tryUpdateCall}${doubleCatch}`));
 		assert.ok(chatSessions.includes(`${leftoverAddOrUpdateCall}${doubleCatch}`));
 		assert.ok(chatSessions.includes(`${notifyOptionsCall}${doubleCatch}`));
 		assert.ok(mcp.includes(`${leftoverAuthSessionsCall}${doubleCatch}`));
-		assert.ok(mcpNode.includes(`${leftoverStartNodeMpcCall}${doubleCatch}`));
-		assert.ok(asyncSource.includes(`${leftoverProcessQueueCall}${doubleCatch}`));
-		assert.ok(storage.includes(`${leftoverSetKeyCall}${doubleCatch}`));
-		assert.ok(storage.includes(`${leftoverSetMigratedCall}${doubleCatch}`));
+		assert.ok(mcpNode.includes(`${leftoverStartNodeMpcCall}${singleCatch}`));
+		assert.ok(!mcpNode.includes(doubleCatch));
+		assert.ok(asyncSource.includes(`${leftoverProcessQueueCall}${singleCatch}`));
+		assert.ok(!asyncSource.includes(doubleCatch));
+		assert.ok(storage.includes(`void ${leftoverSetKeyCall}.then(async () => {`));
+		assert.ok(storage.includes(`}).catch(onUnexpectedError).finally`));
+		assert.ok(!storage.includes(doubleCatch));
+		assert.ok(storage.includes(`${leftoverSetMigratedCall}${singleCatch}`));
+		assert.ok(!storage.includes(doubleCatch));
 		assert.ok(chatTip.includes(doubleCatch));
-		assert.ok(extensionsRecs.includes(doubleCatch));
+		assert.ok(!extensionsRecs.includes(doubleCatch));
 		assert.ok(!mcpWorkbench.includes(doubleCatch));
 
 		for (const [rel, file] of [
@@ -360,9 +376,12 @@ suite('leftover remaining unused native leftover remaining unused this.foo() lef
 		const ipcNet = fs.readFileSync(resolveSource('src/vs/base/parts/ipc/node/ipc.net.ts'), 'utf8');
 		const scroll = fs.readFileSync(resolveSource('src/vs/base/browser/ui/scrollbar/scrollableElement.ts'), 'utf8');
 
-		assert.ok(ipcNet.includes(`${leftoverWriteQueueCall}${doubleCatch}`));
-		assert.ok(ipcNet.includes(`${leftoverReadQueueCall}${doubleCatch}`));
-		assert.ok(scroll.includes(`${leftoverPeriodicSyncCall}${doubleCatch}`));
+		assert.ok(ipcNet.includes(`${leftoverWriteQueueCall}${singleCatch}`));
+		assert.ok(!ipcNet.includes(doubleCatch));
+		assert.ok(ipcNet.includes(`${leftoverReadQueueCall}${singleCatch}`));
+		assert.ok(!ipcNet.includes(doubleCatch));
+		assert.ok(scroll.includes(`${leftoverPeriodicSyncCall}${singleCatch}`));
+		assert.ok(!scroll.includes(doubleCatch));
 		assert.ok(!native.includes('D1015'));
 		assert.ok(!autoSync.includes('D1032'));
 		assert.ok(!localStore.includes('D1032'));

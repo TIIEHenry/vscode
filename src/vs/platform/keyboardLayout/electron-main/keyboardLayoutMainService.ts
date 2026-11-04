@@ -37,10 +37,13 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 		// perf: automatically trigger initialize after windows
 		// have opened so that we can do this work in parallel
 		// to the window load.
-		lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize()).catch(onUnexpectedError).catch(onUnexpectedError);
+		lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize()).catch(onUnexpectedError);
 	}
 
 	private _initialize(): Promise<void> {
+		if (this._store.isDisposed) {
+			return Promise.resolve();
+		}
 		if (!this._initPromise) {
 			this._initPromise = this._startInitialize();
 		}

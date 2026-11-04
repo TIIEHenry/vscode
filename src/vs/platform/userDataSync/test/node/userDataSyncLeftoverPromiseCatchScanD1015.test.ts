@@ -50,6 +50,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -66,9 +67,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const leftoverDisableCall = 'this.disableMachineEventually()';
@@ -127,13 +129,13 @@ suite('leftover remaining unused userDataSync leftover remaining unused this.foo
 		assert.ok(!account.includes('D1015'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on userDataSync this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites and zero double-chain sites after leftover remaining unused stayed on userDataSync this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map();
 		for (const [rel, call, count] of d1015Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -141,13 +143,17 @@ suite('leftover remaining unused userDataSync leftover remaining unused this.foo
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(AUTO_SYNC_REL) ?? ''), 5);
-		assert.strictEqual(countDoubleChains(seen.get(LOCAL_STORE_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(SYNC_SVC_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(ACCOUNT_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(AUTO_SYNC_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(LOCAL_STORE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(SYNC_SVC_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ACCOUNT_REL) ?? ''), 0);
+		assert.ok(!seen.get(AUTO_SYNC_REL)?.includes(doubleCatch));
+		assert.ok(!seen.get(LOCAL_STORE_REL)?.includes(doubleCatch));
+		assert.ok(!seen.get(SYNC_SVC_REL)?.includes(doubleCatch));
+		assert.ok(!seen.get(ACCOUNT_REL)?.includes(doubleCatch));
 	});
 
-	test('userDataSync leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('userDataSync leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const autoSync = fs.readFileSync(resolveSource(AUTO_SYNC_REL), 'utf8');
 		const localStore = fs.readFileSync(resolveSource(LOCAL_STORE_REL), 'utf8');
 		const syncSvc = fs.readFileSync(resolveSource(SYNC_SVC_REL), 'utf8');
@@ -169,11 +175,15 @@ suite('leftover remaining unused userDataSync leftover remaining unused this.foo
 		assertWrapped(localStore, leftoverCleanCall);
 		assertWrapped(syncSvc, leftoverStaleCall);
 		assertWrapped(account, leftoverAccountCall);
-		assert.strictEqual(countIncludes(autoSync, `${leftoverDisableCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(autoSync, `${leftoverIntervalSyncCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(localStore, `${leftoverCleanCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(syncSvc, `${leftoverStaleCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(account, `${leftoverAccountCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(autoSync, `${leftoverDisableCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(autoSync, `${leftoverIntervalSyncCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(localStore, `${leftoverCleanCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(syncSvc, `${leftoverStaleCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(account, `${leftoverAccountCall}${singleCatch}`), 1);
+		assert.ok(!autoSync.includes(doubleCatch));
+		assert.ok(!localStore.includes(doubleCatch));
+		assert.ok(!syncSvc.includes(doubleCatch));
+		assert.ok(!account.includes(doubleCatch));
 		assert.ok(!autoSync.includes('\t\t\t\tthis.disableMachineEventually();\n'));
 		assert.ok(!autoSync.includes('\t\tthis.sync(AutoSync.INTERVAL_SYNCING, false);\n'));
 		assert.ok(!localStore.includes('\t\tthis.cleanUp();\n'));
@@ -208,8 +218,10 @@ suite('leftover remaining unused userDataSync leftover remaining unused this.foo
 		assert.ok(!account.includes('.then(undefined,'));
 		assert.ok(!autoSync.includes('window.loadURL'));
 		assert.ok(!localStore.includes('window.loadURL'));
-		assert.ok(ipc.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(svcIpc.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(ipc.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!ipc.includes(doubleCatch));
+		assert.ok(svcIpc.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!svcIpc.includes(doubleCatch));
 		assert.ok(svcIpc.includes('\t\t\tthis.updateStatus(status);\n'));
 		assert.ok(!svcIpc.includes(`this.updateStatus(status)${doubleCatch}`));
 		assert.ok(svcIpc.includes('\t\t\tthis.updateConflicts(conflicts);\n'));
@@ -286,9 +298,12 @@ suite('leftover remaining unused userDataSync leftover remaining unused this.foo
 		assert.ok(!themes.includes(`this.trigger(value)${doubleCatch}`));
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
-		assert.ok(findHistory.includes(`${leftoverSaveCall}${doubleCatch}`));
-		assert.ok(replaceHistory.includes(`${leftoverSaveCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
+		assert.ok(findHistory.includes(`${leftoverSaveCall}${singleCatch}`));
+		assert.ok(!findHistory.includes(doubleCatch));
+		assert.ok(replaceHistory.includes(`${leftoverSaveCall}${singleCatch}`));
+		assert.ok(!replaceHistory.includes(doubleCatch));
+		assert.ok(storageBrowser.includes(`${applicationCloseCall}${singleCatch}`));
+		assert.ok(!storageBrowser.includes(doubleCatch));
 		assert.ok(configService.includes('this.validateWorkspaceFoldersAndReload(fromCache)'));
 
 		for (const [rel, file] of [

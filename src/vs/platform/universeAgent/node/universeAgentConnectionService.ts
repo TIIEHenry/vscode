@@ -2887,7 +2887,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const delay = this._computeReconnectDelay(this._reconnectAttempt);
 		this._reconnectTimer = this._setTimeoutFn(() => {
 			this._reconnectTimer = undefined;
-			void this._fireReconnect(profileId).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed || this._reconnectDisposed) {
+				return;
+			}
+			void this._fireReconnect(profileId).catch(onUnexpectedError);
 		}, delay);
 	}
 

@@ -90,7 +90,7 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 			this._snapshotGeneration++;
 			this._applyRemoteSnapshot(snapshot);
 		}));
-		void this.hydrate().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.hydrate().catch(onUnexpectedError);
 		return createRemoteForwardingProxy(this, this.remote) as this;
 	}
 
@@ -135,7 +135,7 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 
 	requestAgentTreeRefresh(sessionId: string): void {
 		// Interface is void; ProxyChannel.toService still returns a Promise.
-		void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId)).catch(onUnexpectedError);
 	}
 
 	/**

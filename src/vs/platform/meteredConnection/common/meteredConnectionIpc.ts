@@ -42,7 +42,7 @@ export class MeteredConnectionChannelClient extends Disposable implements IMeter
 			if (value) {
 				this._onDidChangeIsConnectionMetered.fire(value);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(channel.listen<boolean>(MeteredConnectionCommand.OnDidChangeIsConnectionMetered)(value => {
 			if (this._isConnectionMetered !== value) {

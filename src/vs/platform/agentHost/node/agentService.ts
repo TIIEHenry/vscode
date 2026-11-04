@@ -680,7 +680,7 @@ export class AgentService extends Disposable implements IAgentService {
 		this._register(this._stateManager.onDidEmitEnvelope(e => {
 			if (e.action.type === ActionType.SessionIsArchivedChanged && e.action.isArchived && !isAhpChatChannel(e.channel)) {
 				this._clearAgentMergeIndex(URI.parse(e.channel));
-				void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._sessionResidency.reconcile().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this._stateManager.onDidEmitNotification(e => this._onDidNotification.fire(e)));
@@ -3028,7 +3028,7 @@ export class AgentService extends Disposable implements IAgentService {
 			...(createResult?.inheritedTurnId !== undefined ? { inheritedTurnId: createResult.inheritedTurnId } : {}),
 		});
 		this._sessionResidency.touch(session);
-		void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._sessionResidency.reconcile().catch(onUnexpectedError);
 
 		// If the agent exposes this chat as its own SDK session, mark that
 		// backing so it stays out of the top-level session list. `_markChatBacking`
@@ -4085,7 +4085,7 @@ export class AgentService extends Disposable implements IAgentService {
 				throw new Error(`Subscription cancelled: ${resourceStr}`);
 			}
 			this._sessionResidency.touch(resource);
-			void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._sessionResidency.reconcile().catch(onUnexpectedError);
 
 			// Ensure git state has been computed for this session. When the snapshot
 			// already existed (e.g. seeded by list query, or restored earlier), the
@@ -4168,7 +4168,7 @@ export class AgentService extends Disposable implements IAgentService {
 		if (this._maybeScheduleSessionGc(resource)) {
 			return;
 		}
-		void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._sessionResidency.reconcile().catch(onUnexpectedError);
 	}
 
 	/**
@@ -6695,7 +6695,7 @@ export class AgentService extends Disposable implements IAgentService {
 			};
 		} finally {
 			if (!wasRestored && this._stateManager.getSessionState(owningSession.toString()) && !this._subscriptions.hasSessionSubscribers(owningSession)) {
-				void this._sessionResidency.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._sessionResidency.reconcile().catch(onUnexpectedError);
 			}
 		}
 	}

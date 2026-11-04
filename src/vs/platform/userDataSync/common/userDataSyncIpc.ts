@@ -55,7 +55,7 @@ export class UserDataSyncAccountServiceChannelClient extends Disposable implemen
 				this._account = account;
 				this._onDidChangeAccount.fire(account);
 			}));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	updateAccount(account: IUserDataSyncAccount | undefined): Promise<undefined> {

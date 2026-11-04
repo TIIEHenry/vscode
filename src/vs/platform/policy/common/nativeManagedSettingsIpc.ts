@@ -59,7 +59,7 @@ export class NativeManagedSettingsChannelClient extends Disposable implements IN
 	) {
 		super();
 		this._register(this.channel.listen<ManagedSettingsData>('onDidChangeManagedSettings')(managedSettings => this.updateManagedSettings(managedSettings, true)));
-		void this.initializeInBackground().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.initializeInBackground().catch(onUnexpectedError);
 	}
 
 	private async initializeInBackground(): Promise<void> {
@@ -97,6 +97,9 @@ export class NativeManagedSettingsChannelClient extends Disposable implements IN
 	}
 
 	private updateManagedSettings(managedSettings: ManagedSettingsData, fireEvent: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.hasReceivedManagedSettings = true;
 		if (equals(this._managedSettings, managedSettings)) {
 			return;

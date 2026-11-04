@@ -40,6 +40,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -47,51 +48,58 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-chain sites and zero double-chain sites', () => {
 		const files = [NATIVE_REL, METERED_REL, TIPS_REL, WORKER_REL];
-		let sites = 0;
+		let doubleSites = 0;
+		let singleSites = 0;
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			doubleSites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			singleSites += (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+			assert.ok(!source.includes(doubleCatch), `${rel} must have zero chained double catches`);
 		}
 		assert.strictEqual(files.length, 4);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(doubleSites, 0);
+		assert.strictEqual(singleSites, 8);
 	});
 
-	test('nativeManagedSettings leftover void initializeInBackground is Promise double-chain', () => {
+	test('nativeManagedSettings leftover void initializeInBackground is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(NATIVE_REL), 'utf8');
 		assertPromiseSignature(source, 'private async initializeInBackground(): Promise<void> {');
 		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this.initializeInBackground()');
+		assertSingleThen(source, 'void this.initializeInBackground()');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('metered leftover ctor void and onChange channel.call are Promise double-chain; D705 ipc constructor then stays already-done', () => {
+	test('metered leftover ctor void and onChange channel.call are Promise single-chain; D705 ipc constructor then stays already-done', () => {
 		const source = fs.readFileSync(resolveSource(METERED_REL), 'utf8');
 		const ipc = fs.readFileSync(resolveSource(IPC_REL), 'utf8');
 		const meteredIpc = fs.readFileSync(resolveSource(METERED_IPC_REL), 'utf8');
 		assertPromiseSignature(ipc, 'call<T>(command: string, arg?: any, cancellationToken?: CancellationToken): Promise<T>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered)');
-		assertDoubleThen(source, 'this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered)');
+		assertSingleThen(source, 'void this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered)');
+		assertSingleThen(source, 'this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered)');
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(meteredIpc.includes(`channel.call<boolean>(MeteredConnectionCommand.IsConnectionMetered).then(value => {
 			this._isConnectionMetered = value;
 			if (value) {
 				this._onDidChangeIsConnectionMetered.fire(value);
 			}
-		})${doubleCatch};`));
+		})${singleCatch};`));
+		assert.ok(!meteredIpc.includes(doubleCatch));
 	});
 
-	test('extensionTips leftover high / medium prompt then are Promise double-chain', () => {
+	test('extensionTips leftover high / medium prompt then are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(TIPS_REL), 'utf8');
 		assertPromiseSignature(source, 'private async promptExeRecommendations(tips: IExecutableBasedExtensionTip[]): Promise<RecommendationsNotificationResult> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
@@ -118,9 +126,9 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 					}
 				}
 			})`;
-		assert.ok(source.includes(`${highThen}${doubleCatch};`));
+		assert.ok(source.includes(`${highThen}${singleCatch};`));
 		assert.ok(!source.includes(`${highThen};`));
-		assert.ok(!source.includes(`${highThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${highThen}${doubleCatch};`));
 		const mediumThen = `this.promptExeRecommendations(tips)
 			.then(result => {
 				switch (result) {
@@ -155,17 +163,18 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 					}
 				}
 			})`;
-		assert.ok(source.includes(`${mediumThen}${doubleCatch};`));
+		assert.ok(source.includes(`${mediumThen}${singleCatch};`));
 		assert.ok(!source.includes(`${mediumThen};`));
-		assert.ok(!source.includes(`${mediumThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${mediumThen}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('webWorker leftover ctor / dispose / postMessage then are Promise double-chain', () => {
+	test('webWorker leftover ctor / dispose / postMessage then are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(WORKER_REL), 'utf8');
 		assertPromiseSignature(source, 'constructor(worker: Promise<Worker>, id: number) {');
 		assertPromiseSignature(source, 'private worker: Promise<Worker> | null;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, `this.worker.then((w) => {
+		assertSingleThen(source, `this.worker.then((w) => {
 			w.onmessage = (ev) => {
 				this._onMessage.fire(ev.data);
 			};
@@ -176,13 +185,13 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 				w.addEventListener('error', errorHandler);
 			}
 		})`);
-		assertDoubleThen(source, `this.worker?.then(w => {
+		assertSingleThen(source, `this.worker?.then(w => {
 				w.onmessage = null;
 				w.onmessageerror = null;
 				w.removeEventListener('error', errorHandler);
 				w.terminate();
 			})`);
-		assertDoubleThen(source, `this.worker?.then(w => {
+		assertSingleThen(source, `this.worker?.then(w => {
 			try {
 				w.postMessage(message, transfer);
 			} catch (err) {
@@ -190,6 +199,7 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 				onUnexpectedError(new Error(\`FAILED to post message to worker\`, { cause: err }));
 			}
 		})`);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / two-arg then / assigned then / already-done / windows electron-main stay skipped', () => {
@@ -210,7 +220,7 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 		const windowImpl = fs.readFileSync(resolveSource(WINDOW_REL), 'utf8');
 		const windows = fs.readFileSync(resolveSource(WINDOWS_REL), 'utf8');
 		const launch = fs.readFileSync(resolveSource(LAUNCH_REL), 'utf8');
-		assert.ok(fileManaged.includes('const rawSnapshot = channel.call<RawManagedSettingsData>(\'getRawManagedSettings\').then(managedSettings => {'));
+		assert.ok(fileManaged.includes("channel.call<RawManagedSettingsData>('getRawManagedSettings'),"));
 		assert.ok(!fileManaged.includes(doubleCatch));
 		assert.ok(fileManagedService.includes('void this.throttledDelayer.trigger(() => this.refresh(), delay).then(() => {'));
 		assert.ok(fileManagedService.includes('}, error => {'));
@@ -221,23 +231,36 @@ suite('platform remaining leftover Promise fire-and-forget catch scan (D711)', (
 		assert.ok(!watcher.includes(doubleCatch));
 		assert.ok(language.includes('.then(() => this.languagePacks);'));
 		assert.ok(!language.includes(doubleCatch));
-		assert.ok(keyboard.includes(`lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())${doubleCatch};`));
-		assert.ok(history.includes(`this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())${doubleCatch};`));
-		assert.ok(lifecycle.includes(`this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners())${doubleCatch};`));
+		assert.ok(keyboard.includes(`lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())${singleCatch};`));
+		assert.ok(!keyboard.includes(doubleCatch));
+		assert.ok(history.includes(`this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())${singleCatch};`));
+		assert.ok(!history.includes(doubleCatch));
+		assert.ok(lifecycle.includes(`this.when(LifecycleMainPhase.Ready).then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.registerListeners();
+		})${singleCatch};`));
+		assert.ok(!lifecycle.includes(doubleCatch));
 		assert.ok(lifecycle.includes('private registerListeners(): void {'));
 		assert.ok(!lifecycle.includes('this.registerListeners().catch'));
-		assert.ok(updateIpc.includes(`this.channel.call<State>('_getInitialState').then(state => this.state = state)${doubleCatch};`));
-		assert.ok(logIpc.includes("channel.call('setLogLevel', [loggerService.getLogLevel()]).catch(onUnexpectedError).catch(onUnexpectedError);"));
+		assert.ok(updateIpc.includes(`this.channel.call<State>('_getInitialState').then(state => this.state = state)${singleCatch};`));
+		assert.ok(!updateIpc.includes(doubleCatch));
+		assert.ok(logIpc.includes("channel.call('setLogLevel', [loggerService.getLogLevel()]).catch(onUnexpectedError);"));
+		assert.ok(!logIpc.includes(doubleCatch));
 		assert.ok(windowImpl.includes('export class CodeWindow extends BaseWindow implements ICodeWindow'));
 		assert.ok(windows.includes('this.lifecycleMainService.unload(window, UnloadReason.LOAD).then(async veto => {'));
 		assert.ok(launch.includes('whenWindowReady.then(() => {'));
-		assert.ok(windowImpl.includes(doubleCatch));
-		assert.ok(windows.includes(doubleCatch));
-		assert.ok(launch.includes(doubleCatch));
+		assert.ok(!windowImpl.includes(doubleCatch));
+		assert.ok(!windows.includes(doubleCatch));
+		assert.ok(!launch.includes(doubleCatch));
 		for (const source of [native, metered, tips, worker]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));
+			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

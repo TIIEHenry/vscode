@@ -46,7 +46,7 @@ export class UserDataSyncAccountService extends Disposable implements IUserDataS
 		super();
 		this._register(userDataSyncStoreService.onTokenFailed(code => {
 			this.logService.info('Settings Sync auth token failed', this.account?.authenticationProviderId, this.wasTokenFailed, code);
-			this.updateAccount(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateAccount(undefined).catch(onUnexpectedError);
 			if (code === UserDataSyncErrorCode.Forbidden) {
 				this._onTokenFailed.fire(true /*bail out immediately*/);
 			} else {

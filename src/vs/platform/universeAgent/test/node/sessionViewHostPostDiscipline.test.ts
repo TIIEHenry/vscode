@@ -67,27 +67,24 @@ suite('SessionViewHost post discipline (F2)', () => {
 		assert.ok(drainIntentsBody!.includes('this.core.takeIntents('), 'takeIntents must live inside drainIntents');
 	});
 
-	test('sessionViewHost fire-and-forget voids double-catch onUnexpectedError', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('sessionViewHost fire-and-forget voids single-catch onUnexpectedError and eliminate double-catch', () => {
 		const source = fs.readFileSync(SESSION_VIEW_HOST_PATH, 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleCaughtWriteChat = `void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId)${doubleCatch}`;
-		assert.ok(source.includes(`void this.bringUpBoundSession(sessionId)${doubleCatch}`));
-		assert.ok(source.includes(`void this.bringUpBoundSession(binding.sessionId)${doubleCatch}`));
-		assert.ok(source.includes(doubleCaughtWriteChat));
-		assert.ok(source.includes(`void this.fillHistory(sessionId, intent)${doubleCatch}`));
-		assert.ok(source.includes(`void this.sendHeartbeatAck(sessionId, echoTs)${doubleCatch}`));
-		assert.strictEqual((source.match(/void this\.bringUpBoundSession\([^;]+catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.ok(!source.replace(doubleCaughtWriteChat, '').includes('void this.writeChat('));
+		const caughtWriteChat = `void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId)${singleCatch};`;
+		assert.ok(source.includes(`void this.bringUpBoundSession(sessionId)${singleCatch};`));
+		assert.ok(source.includes(`void this.bringUpBoundSession(binding.sessionId)${singleCatch};`));
+		assert.ok(source.includes(caughtWriteChat));
+		assert.ok(source.includes(`void this.fillHistory(sessionId, intent)${singleCatch};`));
+		assert.ok(source.includes(`void this.sendHeartbeatAck(sessionId, echoTs)${singleCatch};`));
+		assert.strictEqual((source.match(/void this\.bringUpBoundSession\([^;]+catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(!source.replace(caughtWriteChat, '').includes('void this.writeChat('));
 		assert.ok(!source.includes('void this.bringUpBoundSession(sessionId);'));
 		assert.ok(!source.includes('void this.bringUpBoundSession(binding.sessionId);'));
 		assert.ok(!source.includes('void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId);'));
 		assert.ok(!source.includes('void this.fillHistory(sessionId, intent);'));
 		assert.ok(!source.includes('void this.sendHeartbeatAck(sessionId);'));
-		assert.ok(!source.includes('void this.bringUpBoundSession(sessionId).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.fillHistory(sessionId, intent).catch(onUnexpectedError);'));
-		assert.ok(!source.includes('void this.sendHeartbeatAck(sessionId).catch(onUnexpectedError);'));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes('.catch(() => undefined)'));
 	});
 });

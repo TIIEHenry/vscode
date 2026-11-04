@@ -358,7 +358,7 @@ export abstract class AbstractUpdateService extends Disposable implements IUpdat
 
 		if (this.state.type === StateType.Ready) {
 			if (this._state.deferred) {
-				void this.checkForOverwriteUpdates().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.checkForOverwriteUpdates().catch(onUnexpectedError);
 			}
 			return;
 		}
@@ -504,7 +504,7 @@ export abstract class AbstractUpdateService extends Disposable implements IUpdat
 	}
 
 	protected resumeDeferredDownload(): void {
-		void this.downloadUpdate(false).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.downloadUpdate(false).catch(onUnexpectedError);
 	}
 
 	protected deferAutomaticDownload(update: IUpdate, explicit: boolean): boolean {
@@ -564,7 +564,7 @@ export abstract class AbstractUpdateService extends Disposable implements IUpdat
 
 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
 			this.doQuitAndInstall();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		return Promise.resolve(undefined);
 	}

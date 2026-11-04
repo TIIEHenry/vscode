@@ -67,16 +67,16 @@ export class AgentSessionResidency extends Disposable {
 			if (active) {
 				this.touch(URI.parse(session));
 			}
-			void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.reconcile().catch(onUnexpectedError);
 		}));
 		this._register(this._stateManager.onDidRemoveSession(session => {
 			const resource = URI.parse(session);
 			if (!parseSubagentSessionUri(resource)) {
 				this._recency.delete(session);
-				void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.reconcile().catch(onUnexpectedError);
 			}
 		}));
-		this._register(this._options.onDidReleaseHold(() => void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._options.onDidReleaseHold(() => void this.reconcile().catch(onUnexpectedError)));
 	}
 
 	touch(resource: URI): void {
@@ -112,7 +112,7 @@ export class AgentSessionResidency extends Disposable {
 			}
 		} finally {
 			this._sessionsBeingDisposed.delete(sessionKey);
-			void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.reconcile().catch(onUnexpectedError);
 		}
 	}
 
@@ -272,7 +272,7 @@ export class AgentSessionResidency extends Disposable {
 		}
 		this._releaseRetries.set(session, disposableTimeout(() => {
 			this._releaseRetries.deleteAndDispose(session);
-			void this.reconcile().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.reconcile().catch(onUnexpectedError);
 		}, this._releaseRetryMs));
 	}
 }

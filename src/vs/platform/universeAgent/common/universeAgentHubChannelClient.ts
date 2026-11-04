@@ -59,7 +59,7 @@ export class UniverseAgentHubChannelClient extends Disposable {
 			this.cache.applyProfiles(profiles);
 			this._onDidChangeProfiles.fire(this.cache.profiles);
 		}));
-		void this.hydrate().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.hydrate().catch(onUnexpectedError);
 		return createRemoteForwardingProxy(this, this.remote) as this;
 	}
 
@@ -69,7 +69,7 @@ export class UniverseAgentHubChannelClient extends Disposable {
 
 	setActiveHubBaseUrl(hubBaseUrl: string | undefined): void {
 		this.cache.applyHubBaseUrl(hubBaseUrl);
-		void Promise.resolve(this.remote.setActiveHubBaseUrl(hubBaseUrl)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void Promise.resolve(this.remote.setActiveHubBaseUrl(hubBaseUrl)).catch(onUnexpectedError);
 	}
 
 	getAuthStatus(): HubAuthStatus {

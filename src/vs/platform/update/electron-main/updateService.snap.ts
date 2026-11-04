@@ -132,7 +132,7 @@ abstract class AbstractUpdateService implements IUpdateService {
 
 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
 			this.doQuitAndInstall();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		return Promise.resolve(undefined);
 	}

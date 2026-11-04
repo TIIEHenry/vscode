@@ -192,7 +192,8 @@ suite('platform browserView leftover Promise fire-and-forget catch scan (D727)',
 		assert.ok(!windowImpl.includes(doubleCatch));
 		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${singleCatch};`));
 		assert.ok(!windowsMain.includes(doubleCatch));
-		assert.ok(shell.includes(`this._startMonitoringShell()${doubleCatch};`));
+		assert.ok(shell.includes(`this._startMonitoringShell()${singleCatch};`));
+		assert.ok(!shell.includes(doubleCatch));
 		assert.ok(inspect.includes('this.browser.debugger.attach().then(conn => this._watchSession(conn)).catch(() => { });'));
 		assert.ok(!inspect.includes(`this.browser.debugger.attach().then(conn => this._watchSession(conn))${doubleCatch}`));
 		assert.ok(perms.includes('this._resolveRequest(webContents, permission, details).then(callback, () => callback(false));'));

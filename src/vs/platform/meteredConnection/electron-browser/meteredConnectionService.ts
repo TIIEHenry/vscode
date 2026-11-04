@@ -27,7 +27,7 @@ export class NativeMeteredConnectionService extends AbstractMeteredConnectionSer
 	) {
 		super(configurationService, connectionMeteredDetector());
 		this._channel = mainProcessService.getChannel(METERED_CONNECTION_CHANNEL);
-		void this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered).catch(onUnexpectedError);
 
 		const connection = (navigator as NavigatorWithConnection).connection;
 		if (connection) {
@@ -42,7 +42,7 @@ export class NativeMeteredConnectionService extends AbstractMeteredConnectionSer
 	 */
 	protected override onChangeBrowserConnection(): void {
 		super.onChangeBrowserConnection();
-		this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._channel.call(MeteredConnectionCommand.SetIsBrowserConnectionMetered, this.isBrowserConnectionMetered).catch(onUnexpectedError);
 	}
 }
 

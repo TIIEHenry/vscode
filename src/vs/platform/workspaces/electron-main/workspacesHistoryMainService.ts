@@ -71,7 +71,7 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 
 		// Install window jump list delayed after opening window
 		// because perf measurements have shown this to be slow
-		this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList()).catch(onUnexpectedError);
 
 		// Add to history when entering workspace
 		this._register(this.workspacesManagementMainService.onDidEnterWorkspace(event => this.addRecentlyOpened([{ workspace: event.workspace, remoteAuthority: event.window.remoteAuthority }])));
@@ -354,7 +354,7 @@ export class WorkspacesHistoryMainService extends Disposable implements IWorkspa
 	private readonly macOSRecentDocumentsUpdater = this._register(new ThrottledDelayer<void>(800));
 
 	private async handleWindowsJumpList(): Promise<void> {
-		if (!isWindows) {
+		if (this._store.isDisposed || !isWindows) {
 			return; // only on windows
 		}
 

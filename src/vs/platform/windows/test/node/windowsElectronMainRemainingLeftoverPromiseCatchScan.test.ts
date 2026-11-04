@@ -138,9 +138,12 @@ suite('platform windows / electron-main remaining leftover Promise fire-and-forg
 			this.registerListeners();
 		})${singleCatch};`));
 		assert.ok(!lifecycle.includes(doubleCatch));
-		assert.ok(updateAbs.includes(`void this.checkForOverwriteUpdates()${doubleCatch};`));
-		assert.ok(logIpc.includes(`channel.call('setLogLevel', [loggerService.getLogLevel()])${doubleCatch};`));
-		assert.ok(spdlog.includes(`this._loggerCreationPromise.then(() => this.flushLogger())${doubleCatch};`));
+		assert.ok(updateAbs.includes(`void this.checkForOverwriteUpdates()${singleCatch};`));
+		assert.ok(!updateAbs.includes(doubleCatch));
+		assert.ok(logIpc.includes(`channel.call('setLogLevel', [loggerService.getLogLevel()])${singleCatch};`));
+		assert.ok(!logIpc.includes(doubleCatch));
+		assert.ok(spdlog.includes(`this._loggerCreationPromise.then(() => this.flushLogger())${singleCatch};`));
+		assert.ok(!spdlog.includes(doubleCatch));
 		assert.ok(ipc.includes('registerChannel(channelName: string, channel: IServerChannel<TContext>): void;'));
 		assert.ok(app.includes(`sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))${singleCatch};`));
 		assert.ok(app.includes(`void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)${singleCatch};`));

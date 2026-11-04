@@ -54,7 +54,7 @@ export class UpdateChannelClient implements IUpdateService {
 
 	constructor(private readonly channel: IChannel) {
 		this.disposables.add(this.channel.listen<State>('onStateChange')(state => this.state = state));
-		this.channel.call<State>('_getInitialState').then(state => this.state = state).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.channel.call<State>('_getInitialState').then(state => this.state = state).catch(onUnexpectedError);
 	}
 
 	checkForUpdates(explicit: boolean): Promise<void> {

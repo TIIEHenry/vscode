@@ -17,31 +17,32 @@ suite('UniverseAgentHubChannelClient fire-and-forget leftover catch', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('constructor hydrate void is double-caught; bare void this.hydrate() gone in this file only', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('constructor hydrate void is single-caught; bare void this.hydrate() gone in this file only', () => {
 		const source = fs.readFileSync(HUB_CHANNEL_CLIENT_PATH, 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleCaughtHydrate = `void this.hydrate()${doubleCatch};`;
+		const singleCaughtHydrate = `void this.hydrate()${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assert.ok(source.includes(doubleCaughtHydrate));
-		assert.strictEqual((source.match(/void this\.hydrate\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(singleCaughtHydrate));
+		assert.strictEqual((source.match(/void this\.hydrate\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 		assert.ok(!source.includes('void this.hydrate();'));
-		assert.ok(!source.includes('void this.hydrate().catch(onUnexpectedError);'));
-		assert.ok(!source.replace(doubleCaughtHydrate, '').includes('void this.hydrate('));
+		assert.ok(!source.includes(doubleCatch));
+		assert.ok(!source.replace(singleCaughtHydrate, '').includes('void this.hydrate('));
 	});
 
-	test('setActiveHubBaseUrl remote void is double-caught; hydrate double-catch stays (D562)', () => {
+	test('setActiveHubBaseUrl remote void is single-caught; hydrate single-catch stays (D562)', () => {
 		// ProxyChannel.toService always returns async functions even when the service types the member void.
 		const source = fs.readFileSync(HUB_CHANNEL_CLIENT_PATH, 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleCaughtSet = `void Promise.resolve(this.remote.setActiveHubBaseUrl(hubBaseUrl))${doubleCatch};`;
-		const doubleCaughtHydrate = `void this.hydrate()${doubleCatch};`;
+		const singleCaughtSet = `void Promise.resolve(this.remote.setActiveHubBaseUrl(hubBaseUrl))${singleCatch};`;
+		const singleCaughtHydrate = `void this.hydrate()${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assert.ok(source.includes(doubleCaughtSet));
-		assert.ok(source.includes(doubleCaughtHydrate));
-		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.setActiveHubBaseUrl\(hubBaseUrl\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(singleCaughtSet));
+		assert.ok(source.includes(singleCaughtHydrate));
+		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.setActiveHubBaseUrl\(hubBaseUrl\)\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 		assert.ok(!source.includes('void this.remote.setActiveHubBaseUrl(hubBaseUrl);'));
-		assert.ok(!source.includes('void this.remote.setActiveHubBaseUrl(hubBaseUrl).catch(onUnexpectedError);'));
-		assert.ok(!source.replace(doubleCaughtSet, '').includes('void this.remote.setActiveHubBaseUrl('));
+		assert.ok(!source.includes(doubleCatch));
+		assert.ok(!source.replace(singleCaughtSet, '').includes('void this.remote.setActiveHubBaseUrl('));
 	});
 });

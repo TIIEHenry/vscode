@@ -132,7 +132,8 @@ suite('platform webContentExtractor leftover Promise fire-and-forget catch scan 
 		assert.ok(!windowImpl.includes(doubleCatch));
 		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${singleCatch};`));
 		assert.ok(!windowsMain.includes(doubleCatch));
-		assert.ok(shell.includes(`this._startMonitoringShell()${doubleCatch};`));
+		assert.ok(shell.includes(`this._startMonitoringShell()${singleCatch};`));
+		assert.ok(!shell.includes(doubleCatch));
 		assert.ok(inspect.includes('this.browser.debugger.attach().then(conn => this._watchSession(conn)).catch(() => { });'));
 		assert.ok(!inspect.includes(`this.browser.debugger.attach().then(conn => this._watchSession(conn))${doubleCatch}`));
 		assert.ok(source.includes('void this._debugger.sendCommand(\'Network.enable\').catch(() => {'));

@@ -400,7 +400,7 @@ export class SessionViewHost extends Disposable {
 		}
 		// Pairing leftover can keep connectionUp. Return the lease; do not bring up.
 		if (this.connectionUp && !this.connection.getConnectionSnapshot().pairingPending) {
-			void this.bringUpBoundSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.bringUpBoundSession(sessionId).catch(onUnexpectedError);
 		}
 
 		return String(leaseId);
@@ -668,7 +668,7 @@ export class SessionViewHost extends Disposable {
 		this.connectionGeneration += 1;
 		this.connectionUp = true;
 		for (const binding of this.leases.values()) {
-			void this.bringUpBoundSession(binding.sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.bringUpBoundSession(binding.sessionId).catch(onUnexpectedError);
 		}
 	}
 
@@ -918,7 +918,7 @@ export class SessionViewHost extends Disposable {
 			});
 		};
 		if (immediate) {
-			void sidecar.tree.pullNow(onBound, onError).catch(onError).catch(onUnexpectedError).catch(onUnexpectedError);
+			void sidecar.tree.pullNow(onBound, onError).catch(onError).catch(onUnexpectedError);
 		} else {
 			sidecar.tree.scheduleRefresh(onBound, onError);
 		}
@@ -1527,9 +1527,9 @@ export class SessionViewHost extends Disposable {
 				break;
 			default:
 				if (isChatCoreIntent(intent) && intent.do === 'chatStreamWrite') {
-					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId).catch(onUnexpectedError);
 				} else if (isHistoryFillCoreIntent(intent)) {
-					void this.fillHistory(sessionId, intent).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.fillHistory(sessionId, intent).catch(onUnexpectedError);
 				} else {
 					this.markIntentUnhandled(sessionId, (intent as CoreIntent).do);
 				}
@@ -1623,7 +1623,7 @@ export class SessionViewHost extends Disposable {
 			});
 			return;
 		}
-		void this.dispatchEditMessage(sessionId, intent).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.dispatchEditMessage(sessionId, intent).catch(onUnexpectedError);
 	}
 
 	private async dispatchEditMessage(
@@ -1909,7 +1909,7 @@ export class SessionViewHost extends Disposable {
 				for (const arm of arms) {
 					if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
 						const echoTs = heartbeatEchoTs(arm);
-						void this.sendHeartbeatAck(sessionId, echoTs).catch(onUnexpectedError).catch(onUnexpectedError);
+						void this.sendHeartbeatAck(sessionId, echoTs).catch(onUnexpectedError);
 						continue;
 					}
 					this.postAndDrain(sessionId as SessionId, {

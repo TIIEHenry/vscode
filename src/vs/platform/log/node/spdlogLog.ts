@@ -114,7 +114,7 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		if (this._logger) {
 			this.flushLogger();
 		} else {
-			this._loggerCreationPromise.then(() => this.flushLogger()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._loggerCreationPromise.then(() => this.flushLogger()).catch(onUnexpectedError);
 		}
 	}
 
@@ -122,7 +122,7 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		if (this._logger) {
 			this.disposeLogger();
 		} else {
-			this._loggerCreationPromise.then(() => this.disposeLogger()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._loggerCreationPromise.then(() => this.disposeLogger()).catch(onUnexpectedError);
 		}
 		super.dispose();
 	}

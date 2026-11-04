@@ -17,28 +17,28 @@ suite('UniverseAgentConnectionChannelClient fire-and-forget scan', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('hydrate void is double-caught and snapshot does not IPC for phase', () => {
-		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('hydrate void is single-caught and snapshot does not IPC for phase', () => {
 		const source = fs.readFileSync(CHANNEL_CLIENT_PATH, 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void this.hydrate()${doubleCatch}`));
+		assert.ok(source.includes(`void this.hydrate()${singleCatch};`));
 		assert.ok(source.includes("from '../../../base/common/errors.js'"));
 		assert.ok(!source.includes('refreshPhaseAndNotify'));
 		assert.ok(!source.includes('this.remote.getConnectionPhase'));
 		assert.ok(!source.includes('this.remote.isAgentTreeFetchFailed'));
 		assert.ok(!source.includes('void this.hydrate();'));
-		assert.ok(!source.includes('void this.hydrate().catch(onUnexpectedError);'));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('requestAgentTreeRefresh remote void is double-caught (D561)', () => {
+	test('requestAgentTreeRefresh remote void is single-caught (D561)', () => {
 		// Typed void on IUniverseAgentConnection; ProxyChannel still returns a Promise.
 		const source = fs.readFileSync(CHANNEL_CLIENT_PATH, 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const doubleCaught = `void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId))${doubleCatch};`;
-		assert.ok(source.includes(doubleCaught));
-		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.requestAgentTreeRefresh\(sessionId\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		const singleCaught = `void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId))${singleCatch};`;
+		assert.ok(source.includes(singleCaught));
+		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.requestAgentTreeRefresh\(sessionId\)\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 		assert.ok(!source.includes('void this.remote.requestAgentTreeRefresh(sessionId);'));
-		assert.ok(!source.includes('void this.remote.requestAgentTreeRefresh(sessionId).catch(onUnexpectedError);'));
-		assert.ok(!source.includes(`void this.remote.requestAgentTreeRefresh(sessionId)${doubleCatch}`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

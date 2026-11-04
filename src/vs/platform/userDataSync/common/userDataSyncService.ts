@@ -114,7 +114,7 @@ export class UserDataSyncService extends Disposable implements IUserDataSyncServ
 		this._lastSyncTime = this.storageService.getNumber(LAST_SYNC_TIME_KEY, StorageScope.APPLICATION, undefined);
 		this._register(toDisposable(() => this.clearActiveProfileSynchronizers()));
 
-		this._register(new RunOnceScheduler(() => this.cleanUpStaleStorageData().catch(onUnexpectedError).catch(onUnexpectedError), 5 * 1000 /* after 5s */)).schedule();
+		this._register(new RunOnceScheduler(() => this.cleanUpStaleStorageData().catch(onUnexpectedError), 5 * 1000 /* after 5s */)).schedule();
 	}
 
 	async createSyncTask(manifest: IUserDataManifest | null, disableCache?: boolean): Promise<IUserDataSyncTask> {

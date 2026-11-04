@@ -249,7 +249,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
 						break;
 					}
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	/**
@@ -304,7 +304,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
 						break;
 					}
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	private async promptExeRecommendations(tips: IExecutableBasedExtensionTip[]): Promise<RecommendationsNotificationResult> {

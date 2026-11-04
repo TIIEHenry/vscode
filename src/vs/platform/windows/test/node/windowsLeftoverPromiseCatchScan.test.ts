@@ -209,7 +209,8 @@ suite('platform windows / electron-main leftover Promise fire-and-forget catch s
 		const updateAbs = fs.readFileSync(resolveSource(UPDATE_ABS_REL), 'utf8');
 		assert.ok(lifecycle.includes('this.when(LifecycleMainPhase.Ready).then'));
 		assert.ok(!lifecycle.includes(doubleCatch));
-		assert.ok(updateAbs.includes('void this.checkForOverwriteUpdates().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(updateAbs.includes(`void this.checkForOverwriteUpdates()${singleCatch};`));
+		assert.ok(!updateAbs.includes(doubleCatch));
 		assert.ok(windowsMain.includes('private registerListeners(): void {'));
 		assert.ok(!windowsMain.includes('this.registerListeners().catch'));
 		for (const source of [windowImpl, windowsMain, launch]) {

@@ -388,7 +388,7 @@ export class Win32UpdateService extends AbstractUpdateService implements IRelaun
 
 	protected override resumeDeferredDownload(): void {
 		this.setState(State.Idle(getUpdateType()));
-		void this.checkForUpdates(false).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.checkForUpdates(false).catch(onUnexpectedError);
 	}
 
 	private async getUpdatePackagePath(version: string): Promise<string> {

@@ -30,6 +30,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -37,40 +38,53 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('platform leftover remaining Promise fire-and-forget catch scan (D700)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-chain sites and zero double-chain sites', () => {
 		const files = [LIFECYCLE_REL, UPDATE_IPC_REL, UPDATE_ABS_REL, UPDATE_SNAP_REL, UPDATE_WIN32_REL];
-		let sites = 0;
+		let doubleSites = 0;
+		let singleSites = 0;
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			doubleSites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			singleSites += (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+			assert.ok(!source.includes(doubleCatch), `${rel} must have zero chained double catches`);
 		}
 		assert.strictEqual(files.length, 5);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(doubleSites, 0);
+		assert.strictEqual(singleSites, 8);
 	});
 
-	test('lifecycle leftover when Ready then is Promise double-chain; sync registerListeners stays skipped', () => {
+	test('lifecycle leftover when Ready then is Promise single-chain; sync registerListeners stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(source, 'when(phase: LifecycleMainPhase): Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners())');
+		assertSingleThen(source, `this.when(LifecycleMainPhase.Ready).then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.registerListeners();
+		})`);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('private registerListeners(): void {'));
 		assert.ok(!source.includes('this.registerListeners().catch'));
 	});
 
-	test('lifecycle leftover unload CLOSE then is Promise double-chain; returned doQuit then stays skipped', () => {
+	test('lifecycle leftover unload CLOSE then is Promise single-chain; returned doQuit then stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(source, 'unload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */>;');
 		const thenCall = `this.unload(window, UnloadReason.CLOSE).then(veto => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (veto) {
 					this.windowToCloseRequest.delete(windowId);
 					return;
@@ -85,22 +99,24 @@ suite('platform leftover remaining Promise fire-and-forget catch scan (D700)', (
 				// No veto, close window now
 				window.close();
 			})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}${singleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('return this.doQuit(willRestart).then(veto => {'));
 		assert.ok(!source.includes(`return this.doQuit(willRestart).then(veto => {}${doubleCatch}`));
 	});
 
-	test('updateIpc leftover _getInitialState then is Promise double-chain', () => {
+	test('updateIpc leftover _getInitialState then is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(UPDATE_IPC_REL), 'utf8');
 		const ipc = fs.readFileSync(resolveSource(IPC_REL), 'utf8');
 		assertPromiseSignature(ipc, 'call<T>(command: string, arg?: any, cancellationToken?: CancellationToken): Promise<T>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, `this.channel.call<State>('_getInitialState').then(state => this.state = state)`);
+		assertSingleThen(source, `this.channel.call<State>('_getInitialState').then(state => this.state = state)`);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('abstractUpdate leftover void overwrite / download and quit then are Promise double-chain; interval / await stay skipped', () => {
+	test('abstractUpdate leftover void overwrite / download and quit then are Promise single-chain; interval / await stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(UPDATE_ABS_REL), 'utf8');
 		const iface = fs.readFileSync(resolveSource(UPDATE_IFACE_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
@@ -108,8 +124,8 @@ suite('platform leftover remaining Promise fire-and-forget catch scan (D700)', (
 		assertPromiseSignature(iface, 'downloadUpdate(explicit: boolean): Promise<void>;');
 		assertPromiseSignature(lifecycle, 'quit(willRestart?: boolean): Promise<boolean /* veto */>;');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this.checkForOverwriteUpdates()');
-		assertDoubleThen(source, 'void this.downloadUpdate(false)');
+		assertSingleThen(source, 'void this.checkForOverwriteUpdates()');
+		assertSingleThen(source, 'void this.downloadUpdate(false)');
 		const quitThen = `this.lifecycleMainService.quit(true /* will restart */).then(vetod => {
 			this.logService.trace(\`update#quitAndInstall(): after lifecycle quit() with veto: \${vetod}\`);
 			if (vetod) {
@@ -121,16 +137,17 @@ suite('platform leftover remaining Promise fire-and-forget catch scan (D700)', (
 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
 			this.doQuitAndInstall();
 		})`;
-		assert.ok(source.includes(`${quitThen}${doubleCatch};`));
+		assert.ok(source.includes(`${quitThen}${singleCatch};`));
 		assert.ok(!source.includes(`${quitThen};`));
-		assert.ok(!source.includes(`${quitThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${quitThen}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('this.overwriteUpdatesCheckInterval.cancelAndSet(() => this.checkForOverwriteUpdates(), 5 * 60 * 1000);'));
 		assert.ok(!source.includes('() => this.checkForOverwriteUpdates().catch(onUnexpectedError)'));
 		assert.ok(source.includes('const didOverwrite = await this.checkForOverwriteUpdates(true);'));
 		assert.ok(source.includes('.catch(err => {'));
 	});
 
-	test('snap leftover quit then is Promise double-chain; two-arg then stays skipped', () => {
+	test('snap leftover quit then is Promise single-chain; two-arg then stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(UPDATE_SNAP_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'quit(willRestart?: boolean): Promise<boolean /* veto */>;');
@@ -146,20 +163,22 @@ suite('platform leftover remaining Promise fire-and-forget catch scan (D700)', (
 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
 			this.doQuitAndInstall();
 		})`;
-		assert.ok(source.includes(`${quitThen}${doubleCatch};`));
+		assert.ok(source.includes(`${quitThen}${singleCatch};`));
 		assert.ok(!source.includes(`${quitThen};`));
-		assert.ok(!source.includes(`${quitThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${quitThen}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('this.scheduleCheckForUpdates(30 * 1000).then(undefined, err => this.logService.error(err));'));
 		assert.ok(source.includes('this.isUpdateAvailable().then(result => {'));
 		assert.ok(source.includes('}, err => {'));
 	});
 
-	test('win32 leftover void checkForUpdates is Promise double-chain', () => {
+	test('win32 leftover void checkForUpdates is Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(UPDATE_WIN32_REL), 'utf8');
 		const iface = fs.readFileSync(resolveSource(UPDATE_IFACE_REL), 'utf8');
 		assertPromiseSignature(iface, 'checkForUpdates(explicit: boolean): Promise<void>;');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'void this.checkForUpdates(false)');
+		assertSingleThen(source, 'void this.checkForUpdates(false)');
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty / two-arg then / already-done stay skipped', () => {
@@ -172,16 +191,18 @@ suite('platform leftover remaining Promise fire-and-forget catch scan (D700)', (
 		const history = fs.readFileSync(resolveSource(HISTORY_REL), 'utf8');
 		assert.ok(lifecycle.includes('private registerListeners(): void {'));
 		assert.ok(!lifecycle.includes('this.registerListeners().catch'));
-		assert.ok(keyboard.includes(`lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())${doubleCatch};`));
-		assert.ok(history.includes(`this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())${doubleCatch};`));
+		assert.ok(keyboard.includes(`lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())${singleCatch};`));
+		assert.ok(!keyboard.includes(doubleCatch));
+		assert.ok(history.includes(`this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())${singleCatch};`));
+		assert.ok(!history.includes(doubleCatch));
 		for (const source of [lifecycle, updateIpc, updateAbs, snap, win32]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!source.includes('Wire('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
+			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('openerService.open'));
 			assert.ok(!source.includes('IOpenerService'));
 			assert.ok(!source.includes('then(clear,clear)'));

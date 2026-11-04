@@ -28,7 +28,7 @@ export class UserDataSyncLocalStoreService extends Disposable implements IUserDa
 		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
 	) {
 		super();
-		this.cleanUp().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.cleanUp().catch(onUnexpectedError);
 	}
 
 	private async cleanUp(): Promise<void> {
