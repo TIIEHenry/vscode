@@ -105,7 +105,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 - `createSessionSelectBox`、`refreshSessionSelectOptions`、`deleteActiveSession` 去掉 `?? getActiveSessionId()`。
 - `setFocusedLeaf` 保留写回；`focusin` 监听去掉自己的 `switchSession`。
 - `ConversationLeafSessionBar.switchLeafSession` 保持现有比较：活动 id 已经等于参数时不调用 `switchSession`。id 用参数。不把这笔写回挪进 `focusLeaf`，也不改成无条件调用。
-- History、Snapshots、Inbox 的 `resolveSessionId` 保持现状：已注入回调时只用回调；没注入时仍读活动 id。生产三条都传入 `() => host.listSessionId()`。未绑定透镜的这个回调在字段空时仍读活动 id。返回空只会影响 `getSessionId === undefined` 的夹具，例如 `test/browser/conversationEngineHistoryList.test.ts:526`。
+- History、Snapshots、Inbox 的 `resolveSessionId` 保持现状：已注入回调时只用回调的返回值；没注入时仍读活动 id。生产三条都传入 `() => host.listSessionId()`。未绑定透镜的这个回调在字段空时仍读活动 id。`test/browser/conversationEngineHistoryList.test.ts:526` 的 `mountList(connection)` 不传回调，走活动 id（默认夹具 `'sess-1'`）。空 id 只出现在回调已经注入且返回空的时候：History 用回调返回值，Inbox 在 `conversationInboxOverlay.ts:220` 用 `?? ''`。不要把未注入回退改成返回空。
 
 改法：
 
@@ -133,7 +133,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 - 保持 `conversationIdentityStrip.test.ts` 里未绑定宿主仍跟活动根、绑定叶不跟另一叶的用例，包括 `D1386 bound leaf does not borrow a window root when its root API is absent`。
 - `scripts/test.sh --grep "openSessionBeside creates two conversation editor parts|Conversation session window side-by-side|D1386 bound leaf|ConversationEngineHistoryList|ConversationEngineSnapshotsList|ConversationInboxOverlay"`，或 `scripts/test.sh --run` 指向上述文件。改动文件 `npx eslint`。
 
-风险与回退：允许名单里的 `conversationLens.ts` 仍能在新代码里直接读活动会话，eslint 不会响。绑定路径靠调用计数。回退是恢复栏上三条 `??` 和 `focusin` 的第二笔 `switchSession`。1a 可单独提交。没有 1b 时不要合 1c：`conversationLensSessionBar.ts` 的三处调用还在，它又不在允许名单里。叶栏与 History / Inbox / Snapshots 留在名单里，1c 不要求删它们的调用。
+风险与回退：允许名单里的 `conversationLens.ts` 仍能在新代码里直接读活动会话，eslint 不会响。绑定路径靠调用计数。回退是恢复栏上三条 `??` 和 `focusin` 的第二笔 `switchSession`。1a 可单独提交。1b 只删 `focusin` 的第二笔，`conversationSessionWindowService.ts` 留在允许名单，1c 不依赖 1b。没有 1a 时不要合 1c：`conversationLensSessionBar.ts` 的三处调用还在，它又不在允许名单里。叶栏与 History / Inbox / Snapshots 留在名单里，1c 不要求删它们的调用。
 
 ## p3-2 权限与模型选择的归属
 
@@ -165,7 +165,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 
 改法（按待定项 1 的推荐）：
 
-1. **p3-2a。** 服务持有现在 host 上的两张 map 和两套 epoch。`sessionModelEpoch` 在该 `sessionId` 已有记录时直接返回，不用后来的 host 的 `modelSelectedIndex` 当 confirmed 或 rollback。还没有记录时，用调用方当时的下标记一笔，之后只由 `applySessionModelIndex` / `drainSessionModel` 按活码更新。`drainSessionPermission` / `drainSessionModel` 的判断改读写服务，分支保持 `:1330` 与 `:1340` 的现状。host 只负责把事件画到自己的下拉；画之前看 host 未 dispose，且画的 `sessionId` 仍是该视图的绑定 id。
+1. **p3-2a。** 服务持有现在 host 上的两张 map 和两套 epoch。`sessionModelEpoch` 在该 `sessionId` 已有记录时直接返回，不用后来的 host 的 `modelSelectedIndex` 当 confirmed 或 rollback。还没有记录时，用调用方当时的下标记一笔，之后只由 `applySessionModelIndex` / `drainSessionModel` 按活码更新。两处 drain 的判断改读写服务，分支各自保持现状。`drainSessionModel`：`:1330` 过期且不可写，`:1340` 过期且可写时 `continue`，不写 confirmed。`drainSessionPermission`：过期且可写、`result.ok` 时先把 `confirmedIndex` 写成 `sentIndex` 再 `continue`（`:1256-1259`）；catch 里过期且可写则 `:1285` `continue`。不要把模型的 `:1340` 当成权限分支。host 只负责把事件画到自己的下拉；画之前看 host 未 dispose，且画的 `sessionId` 仍是该视图的绑定 id。
 2. **p3-2b。** 编辑器页透镜与 overlay 透镜都订阅同一服务。catalog 刷新回选时，以服务里该会话已接受的 id 为准；服务还没有时保持今天的回选（[conversation-bound-session](conversation-bound-session.md) S2：`setOptions` 前快照，不把成功刷新写成下标 0）。
 3. 两份透镜都接上服务之前，2a 与 2b 不分开合入。只合 2a 时两份透镜仍各写各的实例字段，上文「同一 `sessionId` 只有一份」不会出现。
 4. 订阅现有 `onDidChangeConnection`。载荷已是 `UniverseAgentConnectionSnapshot`（`universeAgentConnection.ts:439`），`linkId` 在 `universeAgentTypes.ts:1684`。与上一份已记下的 `linkId` 不同时（含从有到无）清空这两张 map，避免上一台引擎的 id 留在下拉里。同一事件也会因相位、`pairingPending`、`agentTreeFetchFailed` 发出，这些更新可以保持同一个 `linkId`（`universeAgentConnectionService.ts` 的 `_publishConnectionPhase`、`_setAgentTreeFetchFailed`，以及 pairing 在 `:1299-1302` 的 `_fireSnapshotChanged`）。`linkId` 未变时不清 map，避免 pairing 刷新清掉该会话的模型和权限。不新字段。
@@ -364,7 +364,7 @@ p3-5 不依赖这一项。选定之前不改 `:18`。
 ### Important
 
 - **采纳。** 叶栏保持 `:176-178` 的比较。无 grid / 叶不可见的 `cancelled: false` 仍在活动 id 不同时 `switchSession(参数)`。已经是目标 id 时不再调用，避免 `conversationEngineRosterService.ts:421-424` 在 id 相同时仍刷新 agent tree 并持久化。与「获焦只写一次」对齐。验证加上「已是目标 id 则零调用」。
-- **采纳。** History / Inbox / Snapshots 的未注入回退不改。生产都传入 `() => host.listSessionId()`；未绑定透镜的 `listSessionId` 仍读活动 id。返回空只打到夹具，例如 `test/browser/conversationEngineHistoryList.test.ts:526`。验证写上 `ConversationEngineHistoryList`、`ConversationEngineSnapshotsList`、`ConversationInboxOverlay`，并写明生产行为不变。
+- **采纳。** History / Inbox / Snapshots 的未注入回退不改。生产都传入 `() => host.listSessionId()`；未绑定透镜的 `listSessionId` 仍读活动 id。`test/browser/conversationEngineHistoryList.test.ts:526` 不传回调，走活动 id。空 id 只在回调已注入且返回空时出现。验证写上 `ConversationEngineHistoryList`、`ConversationEngineSnapshotsList`、`ConversationInboxOverlay`，并写明生产行为不变。
 - **采纳。** 允许名单仍整文件放过 `conversationLens.ts`。1a 增加调用计数：字段已设置时 `getBoundSessionId`、`listSessionId`、`getSessionBarSelectId` 对 `getActiveSessionId` 的次数为 0。两叶 id 仍是 A 只锁返回值。
 - **采纳。** 清 map 的条件改成前后 `linkId` 不同。相位、pairing、agent tree 失败发的是同一 `onDidChangeConnection`，`linkId` 可以不变。验证增加「同一 `linkId` 不清、`linkId` 变化才清」。
 - **采纳。** 切片顺序与改法写明 2a 与 2b 同一次合入。两份透镜接上服务之前，只持有 map 的 2a 不单独合入。
@@ -380,3 +380,5 @@ p3-5 不依赖这一项。选定之前不改 `:18`。
 - **采纳。** `editorGroupView.ts:220` 写成组的 `scopedInstantiationService`，编辑器页创建写在 `:237`，透镜仍落到 `conversationEditorPane.ts:152`。
 
 没有不采纳的意见。
+
+同轮复审又改了三处，都对照活码采纳：`:108` 不再把「返回空」写成未注入夹具的行为，`:526` 是未注入、走活动 id；1c 的合入前提从「没有 1b」改为「没有 1a」，三处 `??` 在 1a 删；`drainSessionPermission` 与 `drainSessionModel` 分开写行号，权限过期可写会先记 `confirmedIndex`（`:1256-1259`），模型 `:1340` 的 `continue` 不写 confirmed。
