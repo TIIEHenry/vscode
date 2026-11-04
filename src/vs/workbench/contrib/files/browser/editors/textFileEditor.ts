@@ -269,13 +269,19 @@ export class TextFileEditor extends AbstractTextCodeEditor<ICodeEditorViewState>
 	}
 
 	private doOpenAsBinaryInDifferentEditor(group: IEditorGroup, editorId: string | undefined, editor: FileEditorInput, editorOptions: ITextEditorOptions): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.editorService.replaceEditors([{
 			editor,
 			replacement: { resource: editor.resource, options: { ...editorOptions, override: editorId } }
-		}], group).catch(onUnexpectedError).catch(onUnexpectedError);
+		}], group).catch(onUnexpectedError);
 	}
 
 	private doOpenAsBinaryInSameEditor(group: IEditorGroup, editorId: string | undefined, editor: FileEditorInput, editorOptions: ITextEditorOptions): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Open binary as text
 		if (editorId === DEFAULT_EDITOR_ASSOCIATION.id) {
@@ -290,7 +296,7 @@ export class TextFileEditor extends AbstractTextCodeEditor<ICodeEditorViewState>
 			editor.setForceOpenAsBinary();
 		}
 
-		group.openEditor(editor, editorOptions).catch(onUnexpectedError).catch(onUnexpectedError);
+		group.openEditor(editor, editorOptions).catch(onUnexpectedError);
 	}
 
 	override clearInput(): void {

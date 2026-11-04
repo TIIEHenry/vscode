@@ -28,7 +28,7 @@ import { IThemeService, IFileIconTheme } from '../../../../platform/theme/common
 import { isSCMResource, isSCMResourceGroup, isSCMRepository, isSCMInput, collectContextMenuActions, getActionViewItemProvider, isSCMActionButton, isSCMViewService, isSCMResourceNode, connectPrimaryMenu } from './util.js';
 import { WorkbenchCompressibleAsyncDataTree, IOpenEvent } from '../../../../platform/list/browser/listService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { disposableTimeout, Sequencer, Throttler } from '../../../../base/common/async.js';
+import { disposableTimeout, Sequencer, Throttler, TimeoutTimer } from '../../../../base/common/async.js';
 import { ITreeNode, ITreeFilter, ITreeSorter, ITreeContextMenuEvent, ITreeDragAndDrop, ITreeDragOverReaction, IAsyncDataSource } from '../../../../base/browser/ui/tree/tree.js';
 import { ResourceTree, IResourceNode } from '../../../../base/common/resourceTree.js';
 import { ICompressibleTreeRenderer, ICompressibleKeyboardNavigationLabelProvider } from '../../../../base/browser/ui/tree/objectTree.js';
@@ -1360,6 +1360,7 @@ registerAction2(CollapseAllAction);
 
 export class SCMViewPane extends ViewPane {
 
+	private _isDisposed = false;
 	private readonly _onDidLayout: Emitter<void>;
 	private layoutCache: ISCMLayout;
 
@@ -1433,6 +1434,7 @@ export class SCMViewPane extends ViewPane {
 	private scmProviderHasRootUriContextKey: IContextKey<boolean>;
 
 	private readonly disposables = new DisposableStore();
+	private readonly _clearSelectionTimer = this.disposables.add(new TimeoutTimer());
 
 	constructor(
 		options: IViewPaneOptions,
@@ -1571,7 +1573,7 @@ export class SCMViewPane extends ViewPane {
 					}
 
 					this.updateRepositoryCollapseAllContextKeys();
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			} else {
 				this.visibilityDisposables.clear();
 				this.onDidChangeVisibleRepositories({ added: Iterable.empty(), removed: [...this.items.keys()] });
@@ -1686,7 +1688,12 @@ export class SCMViewPane extends ViewPane {
 				const selection = this.tree.getSelection();
 
 				if (selection.length === 1 && selection[0] === e.element) {
-					setTimeout(() => this.tree.setSelection([]));
+					this._clearSelectionTimer.cancelAndSet(() => {
+						if (this._store.isDisposed || this._isDisposed) {
+							return;
+						}
+						this.tree.setSelection([]);
+					}, 0);
 				}
 			}
 
@@ -1813,7 +1820,7 @@ export class SCMViewPane extends ViewPane {
 							}
 						}
 					}
-				})).catch(onUnexpectedError).catch(onUnexpectedError);
+				})).catch(onUnexpectedError);
 	}
 
 	private onDidChangeVisibleRepositories({ added, removed }: ISCMViewVisibleRepositoryChangeEvent): void {
@@ -2015,7 +2022,7 @@ export class SCMViewPane extends ViewPane {
 
 					this.updateScmProviderContextKeys();
 					this.updateRepositoryCollapseAllContextKeys();
-				})).catch(onUnexpectedError).catch(onUnexpectedError);
+				})).catch(onUnexpectedError);
 	}
 
 	private updateIndentStyles(theme: IFileIconTheme): void {
@@ -2062,7 +2069,7 @@ export class SCMViewPane extends ViewPane {
 	expandAllRepositories(): void {
 		for (const repository of this.scmViewService.visibleRepositories) {
 			if (this.tree.isCollapsible(repository)) {
-				this.tree.expand(repository).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.tree.expand(repository).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -2076,15 +2083,16 @@ export class SCMViewPane extends ViewPane {
 	}
 
 	focusPreviousInput(): void {
-		this.treeOperationSequencer.queue(() => this.focusInput(-1)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.treeOperationSequencer.queue(() => this.focusInput(-1)).catch(onUnexpectedError);
 	}
 
 	focusNextInput(): void {
-		this.treeOperationSequencer.queue(() => this.focusInput(1)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.treeOperationSequencer.queue(() => this.focusInput(1)).catch(onUnexpectedError);
 	}
 
 	private async focusInput(delta: number): Promise<void> {
-		if (!this.scmViewService.focusedRepository ||
+		if (this.disposables.isDisposed || this._isDisposed ||
+			!this.scmViewService.focusedRepository ||
 			this.scmViewService.visibleRepositories.length === 0) {
 			return;
 		}
@@ -2106,20 +2114,25 @@ export class SCMViewPane extends ViewPane {
 
 		await this.tree.expandTo(input);
 
+		if (this.disposables.isDisposed || this._isDisposed) {
+			return;
+		}
+
 		this.tree.reveal(input);
 		this.inputRenderer.getRenderedInputWidget(input)?.focus();
 	}
 
 	focusPreviousResourceGroup(): void {
-		this.treeOperationSequencer.queue(() => this.focusResourceGroup(-1)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.treeOperationSequencer.queue(() => this.focusResourceGroup(-1)).catch(onUnexpectedError);
 	}
 
 	focusNextResourceGroup(): void {
-		this.treeOperationSequencer.queue(() => this.focusResourceGroup(1)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.treeOperationSequencer.queue(() => this.focusResourceGroup(1)).catch(onUnexpectedError);
 	}
 
 	private async focusResourceGroup(delta: number): Promise<void> {
-		if (!this.scmViewService.focusedRepository ||
+		if (this.disposables.isDisposed || this._isDisposed ||
+			!this.scmViewService.focusedRepository ||
 			this.scmViewService.visibleRepositories.length === 0) {
 			return;
 		}
@@ -2153,6 +2166,11 @@ export class SCMViewPane extends ViewPane {
 
 		if (resourceGroupNext) {
 			await this.tree.expandTo(resourceGroupNext);
+
+			if (this.disposables.isDisposed || this._isDisposed) {
+				return;
+			}
+
 			this.tree.reveal(resourceGroupNext);
 
 			this.tree.setSelection([resourceGroupNext]);
@@ -2174,6 +2192,11 @@ export class SCMViewPane extends ViewPane {
 
 		this.treeOperationSequencer.queue(() => {
 			return new Promise<void>(resolve => {
+				if (this.disposables.isDisposed || this._isDisposed) {
+					resolve();
+					return;
+				}
+
 				if (this.isExpanded()) {
 					if (this.tree.getFocus().length === 0) {
 						for (const repository of this.scmViewService.visibleRepositories) {
@@ -2191,10 +2214,15 @@ export class SCMViewPane extends ViewPane {
 					resolve();
 				}
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
+		if (this.treeContainer) {
+			clearNode(this.treeContainer);
+			this.treeContainer.remove();
+		}
 		this._onDidChangeViewMode.dispose();
 		this._onDidChangeViewSortKey.dispose();
 		this.visibilityDisposables.dispose();

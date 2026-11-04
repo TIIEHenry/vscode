@@ -756,7 +756,7 @@ export class ExternalFileImport {
 			if (autoOpen && resourceFileEdits.length === 1) {
 				const item = this.explorerService.findClosest(resourceFileEdits[0].newResource!);
 				if (item && !item.isDirectory) {
-					this.editorService.openEditor({ resource: item.resource, options: { pinned: true } }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.editorService.openEditor({ resource: item.resource, options: { pinned: true } }).catch(onUnexpectedError);
 				}
 			}
 		}

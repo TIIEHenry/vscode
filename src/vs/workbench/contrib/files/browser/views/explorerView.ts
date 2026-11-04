@@ -465,7 +465,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		if (!resource) {
 			return;
 		}
-		void this.onLocationBreadcrumbPick(resource).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.onLocationBreadcrumbPick(resource).catch(onUnexpectedError);
 	}
 
 	protected onLocationBreadcrumbPick(resource: URI): Promise<void> {
@@ -509,7 +509,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 		// When the explorer viewer is loaded, listen to changes to the editor input
 		this._register(this.editorService.onDidActiveEditorChange(() => {
-			this.selectActiveFile().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.selectActiveFile().catch(onUnexpectedError);
 		}));
 
 		// Also handle configuration updates
@@ -522,7 +522,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 				// Update the collapse / expand  button state
 				this.updateAnyCollapsedContext();
 				// Find resource to focus from active editor input if set
-				this.selectActiveFile(true).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.selectActiveFile(true).catch(onUnexpectedError);
 			}
 		}));
 
@@ -618,6 +618,9 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	}
 
 	private async selectActiveFile(reveal = this._autoReveal): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// Sources holds the gate while it opens a tab. A later focus of that tab still reveals.
 		if (this._autoReveal && !isExplorerAutoRevealSuppressed()) {
 			const activeFile = EditorResourceAccessor.getCanonicalUri(this.editorService.activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
@@ -637,7 +640,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	private createTree(container: HTMLElement): void {
 		this.filter = this.instantiationService.createInstance(FilesFilter);
 		this._register(this.filter);
-		this._register(this.filter.onDidChange(() => void this.refresh(true).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.filter.onDidChange(() => void this.refresh(true).catch(onUnexpectedError)));
 		const explorerLabels = this.instantiationService.createInstance(ResourceLabels, { onDidChangeVisibility: this.onDidChangeBodyVisibility });
 		this._register(explorerLabels);
 
@@ -736,7 +739,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		this.onFocusChanged([]);
 		// Open when selecting via keyboard
 		this._register(this.tree.onDidOpen(e => {
-			void this.openExplorerElement(e).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.openExplorerElement(e).catch(onUnexpectedError);
 		}));
 
 		this._register(this.tree.onContextMenu(e => this.onContextMenu(e)));
@@ -765,7 +768,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 			const scrollingByPage = this.configurationService.getValue<boolean>('workbench.list.scrollByPage');
 			if (e.element === null && !scrollingByPage) {
 				// click in empty area -> create a new file #116676
-				void this.commandService.executeCommand(NEW_FILE_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.commandService.executeCommand(NEW_FILE_COMMAND_ID).catch(onUnexpectedError);
 			}
 		}));
 
@@ -868,7 +871,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 		// Push down config updates to components of viewer
 		if (event && (event.affectsConfiguration('explorer.decorations.colors') || event.affectsConfiguration('explorer.decorations.badges'))) {
-			void this.refresh(true).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh(true).catch(onUnexpectedError);
 		}
 	}
 
@@ -1061,6 +1064,10 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		// Wait for the last execution to complete before executing
 		if (this.setTreeInputPromise) {
 			await this.setTreeInputPromise;
+		}
+
+		if (this._store.isDisposed) {
+			return;
 		}
 
 		const initialInputSetup = !this.tree.getInput();
@@ -1368,6 +1375,18 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	override dispose(): void {
 		this.explorerService.unregisterView(this);
 		this.dragHandler?.dispose();
+		if (this.treeContainer) {
+			DOM.clearNode(this.treeContainer);
+			this.treeContainer.remove();
+		}
+		if (this.flatListEmpty) {
+			DOM.clearNode(this.flatListEmpty);
+			this.flatListEmpty.remove();
+		}
+		if (this.workspaceTitleContainer) {
+			DOM.clearNode(this.workspaceTitleContainer);
+			this.workspaceTitleContainer.remove();
+		}
 		super.dispose();
 	}
 }

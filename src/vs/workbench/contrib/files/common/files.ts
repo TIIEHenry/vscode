@@ -206,8 +206,11 @@ export class TextFileContentProvider extends Disposable implements ITextModelCon
 			const disposables = new DisposableStore();
 			this.fileWatcherDisposable.value = disposables;
 			disposables.add(this.fileService.onDidFilesChange(changes => {
+				if (disposables.isDisposed) {
+					return;
+				}
 				if (changes.contains(savedFileResource, FileChangeType.UPDATED)) {
-					this.resolveEditorModel(resource, false /* do not create if missing */).catch(onUnexpectedError).catch(onUnexpectedError); // update model when resource changes
+					this.resolveEditorModel(resource, false /* do not create if missing */).catch(onUnexpectedError); // update model when resource changes
 				}
 			}));
 

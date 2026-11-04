@@ -48,6 +48,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -64,9 +65,8 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const resolveCall = 'this.resolveEditorModel(resource, false /* do not create if missing */)';
@@ -118,12 +118,14 @@ suite('leftover remaining unused files leftover remaining unused after D786 over
 		const viewer = fs.readFileSync(resolveSource(EXPLORER_VIEWER_REL), 'utf8');
 		assertPromiseSignature(files, 'private async resolveEditorModel(resource: URI, createAsNeeded: boolean = true): Promise<ITextModel | null> {');
 		assertPromiseSignature(viewer, 'private async processIgnoreFile(root: string, ignoreFileResource: URI, update?: boolean) {');
-		const filesLegal = countIncludes(files, `${resolveCall}${doubleCatch}`) + countIncludes(viewer, `${processIgnoreCall}${doubleCatch}`);
+		const filesLegal = countIncludes(files, `${resolveCall}${singleCatch}`) + countIncludes(viewer, `${processIgnoreCall}${singleCatch}`);
 		assert.ok(filesLegal < 4, `expected leftover remaining unused files legal leftover <4, got ${filesLegal}`);
 		assert.strictEqual(filesLegal, 2);
 		assertWrapped(files, resolveCall);
 		assertWrapped(viewer, processIgnoreCall);
-		assert.ok(viewer.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(viewer.includes(`${refreshCall}${singleCatch}`));
+		assert.strictEqual(countDoubleChains(files), 0);
+		assert.strictEqual(countDoubleChains(viewer), 0);
 		assert.ok(files.includes('await this.resolveEditorModel(resource);'));
 		assert.ok(!files.includes(`await this.resolveEditorModel(resource)${doubleCatch}`));
 		assert.ok(viewer.includes('await this.processIgnoreFile(root, ignoreResource, true);'));
@@ -138,7 +140,8 @@ suite('leftover remaining unused files leftover remaining unused after D786 over
 		for (const [rel, call, count] of d850Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const expectedCatch = (rel === FILES_REL || rel === EXPLORER_VIEWER_REL) ? singleCatch : doubleCatch;
+			const wrapped = countIncludes(source, `${call}${expectedCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -146,8 +149,8 @@ suite('leftover remaining unused files leftover remaining unused after D786 over
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(FILES_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(EXPLORER_VIEWER_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(FILES_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(EXPLORER_VIEWER_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(SUGGEST_CONTRIB_REL) ?? ''), 5);
 	});
 
@@ -198,7 +201,7 @@ suite('leftover remaining unused files leftover remaining unused after D786 over
 		assert.ok(!files.includes(`return this.resolveEditorModel(resource)${doubleCatch}`));
 		assert.ok(viewer.includes('await this.processIgnoreFile(root, ignoreResource, true);'));
 		assert.ok(!viewer.includes(`return this.processIgnoreFile(root, ignoreResource, true)${doubleCatch}`));
-		assert.ok(viewer.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(viewer.includes(`${refreshCall}${singleCatch}`));
 		assert.ok(resize.includes('this._ctx.processManager.ptyProcessReady.then(() => {'));
 		assert.ok(!resize.includes(`ptyProcessReady.then(() => {${doubleCatch}`));
 
@@ -270,17 +273,17 @@ suite('leftover remaining unused files leftover remaining unused after D786 over
 		assert.ok(testing.includes(`${openAndShowCall};`));
 		assert.ok(!testing.includes(`${openAndShowCall}${doubleCatch}`));
 
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(findModel, `${researchCall}${doubleCatch}`), 4);
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(findModel, `${researchCall}${singleCatch}`), 4);
 		assert.ok(output.includes(`this.onDidRegisterChannel(channelIdentifier.id)${doubleCatch}`));
 		assert.ok(searchWidget.includes(`${submitSearchCall}${doubleCatch}`));
-		assert.ok(comments.includes(`this.refresh()${doubleCatch}`));
+		assert.ok(comments.includes(`this.refresh()${singleCatch}`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
-		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
-		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
+		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${singleCatch}`));
+		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${singleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
-		assert.ok(viewer.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(viewer.includes(`${refreshCall}${singleCatch}`));
 		assert.strictEqual(countDoubleChains(find), 5);
 		assert.strictEqual(countDoubleChains(sticky), 3);
 

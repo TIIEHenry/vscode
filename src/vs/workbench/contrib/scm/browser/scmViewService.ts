@@ -500,7 +500,10 @@ export class SCMViewService implements ISCMViewService {
 	}
 
 	toggleSelectionMode(selectionMode: 'multiple' | 'single'): void {
-		this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this.disposables.isDisposed) {
+			return;
+		}
+		this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode).catch(onUnexpectedError);
 	}
 
 	focus(repository: ISCMRepository | undefined): void {

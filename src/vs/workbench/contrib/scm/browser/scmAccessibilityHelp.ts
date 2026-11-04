@@ -53,18 +53,21 @@ class SCMAccessibilityHelpContentProvider extends Disposable implements IAccessi
 	}
 
 	onClose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		switch (this._focusedView) {
 			case 'Source Control':
-				this._commandService.executeCommand('workbench.scm').catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand('workbench.scm').catch(onUnexpectedError);
 				break;
 			case 'Source Control Repositories':
-				this._commandService.executeCommand('workbench.scm.repositories').catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand('workbench.scm.repositories').catch(onUnexpectedError);
 				break;
 			case 'Source Control Graph':
-				this._commandService.executeCommand('workbench.scm.history').catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand('workbench.scm.history').catch(onUnexpectedError);
 				break;
 			default:
-				this._commandService.executeCommand('workbench.view.scm').catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand('workbench.view.scm').catch(onUnexpectedError);
 		}
 	}
 
