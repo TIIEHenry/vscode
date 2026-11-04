@@ -7,7 +7,7 @@ import type { SerializeAddon as SerializeAddonType } from '@xterm/addon-serializ
 import type { WebglAddon as WebglAddonType } from '@xterm/addon-webgl';
 import type { LigaturesAddon as LigaturesAddonType } from '@xterm/addon-ligatures';
 import type { IBufferLine, IMarker, ITerminalOptions, ITheme, Terminal as RawXtermTerminal, Terminal as XTermTerminal } from '@xterm/xterm';
-import { $, addDisposableListener, addStandardDisposableListener, getWindow } from '../../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, clearNode, getWindow } from '../../../../../base/browser/dom.js';
 import { debounce, throttle } from '../../../../../base/common/decorators.js';
 import { Event } from '../../../../../base/common/event.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
@@ -143,8 +143,8 @@ export class TerminalStickyScrollOverlay extends Disposable {
 				this._xterm.raw.loadAddon(this._serializeAddon);
 				// Trigger a render as the serialize addon is required to render
 				this._refresh();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	lockHide() {
@@ -438,7 +438,7 @@ export class TerminalStickyScrollOverlay extends Disposable {
 			}
 			this._ligaturesAddon = new LigaturesAddon();
 			this._stickyScrollOverlay.loadAddon(this._ligaturesAddon);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		// Scroll to the command on click
 		this._register(addStandardDisposableListener(hoverOverlay, 'click', () => {
@@ -541,6 +541,15 @@ export class TerminalStickyScrollOverlay extends Disposable {
 		}
 		const trimmedCommand = command.command.trim().toLowerCase();
 		return this._ignoredCommands.some(cmd => cmd.toLowerCase() === trimmedCommand);
+	}
+
+	override dispose(): void {
+		if (this._element) {
+			clearNode(this._element);
+			this._element.remove();
+			this._element = undefined;
+		}
+		super.dispose();
 	}
 }
 

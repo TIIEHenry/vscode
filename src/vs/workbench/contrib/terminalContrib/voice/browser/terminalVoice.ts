@@ -331,7 +331,7 @@ export class TerminalVoiceSession extends Disposable {
 			// Fall back to the last interim text already staged in `_input`.
 		}
 		// A concurrent abort (e.g. the terminal was disposed) already tore down.
-		if (!this._usingBuiltin || this._cancellationTokenSource?.token.isCancellationRequested) {
+		if (this._store.isDisposed || !this._usingBuiltin || this._cancellationTokenSource?.token.isCancellationRequested) {
 			return;
 		}
 		if (finalText !== undefined) {
@@ -343,11 +343,14 @@ export class TerminalVoiceSession extends Disposable {
 	}
 
 	stop(send?: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// Built-in accept path: fetch the final transcript before tearing down.
 		if (this._usingBuiltin && send && !this._builtinFinalizing) {
 			this._builtinFinalizing = true;
 			this._acceptTranscriptionScheduler?.cancel();
-			this._finalizeBuiltinThenStop().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._finalizeBuiltinThenStop().catch(onUnexpectedError);
 			return;
 		}
 		if (this._builtinFinalizing && !send

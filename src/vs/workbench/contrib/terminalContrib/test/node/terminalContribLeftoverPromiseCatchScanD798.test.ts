@@ -45,6 +45,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -61,19 +62,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch}`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch}`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${thenStart}${doubleCatch}`));
 }
 
 const findPrevFindCall = 'this._findPreviousWithEvent(xterm, this.inputValue, { regex: this._getRegexValue(), wholeWord: this._getWholeWordValue(), caseSensitive: this._getCaseSensitiveValue(), incremental: update })';
@@ -106,7 +107,7 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites in terminalContrib only', () => {
+	test('this knife covers eight leftover Promise single-chain sites in terminalContrib only and asserts 0 double-chains', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count, kind] of d798Calls) {
@@ -116,7 +117,7 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 				assertThenWrapped(source, call);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 				assertWrapped(source, call);
 			}
@@ -126,11 +127,11 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assert.ok(sites >= 4);
 		const find = seen.get(FIND_REL) ?? fs.readFileSync(resolveSource(FIND_REL), 'utf8');
 		const sticky = seen.get(STICKY_REL) ?? fs.readFileSync(resolveSource(STICKY_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(find), 5);
-		assert.strictEqual(countDoubleChains(sticky), 3);
+		assert.strictEqual(countDoubleChains(find), 0);
+		assert.strictEqual(countDoubleChains(sticky), 0);
 	});
 
-	test('terminalContrib leftover find fire-and-forgets are Promise double-chain', () => {
+	test('terminalContrib leftover find fire-and-forgets are Promise single-chain', () => {
 		const find = fs.readFileSync(resolveSource(FIND_REL), 'utf8');
 		const iface = fs.readFileSync(resolveSource(TERMINAL_IFACE_REL), 'utf8');
 		assertPromiseSignature(find, 'private async _findNextWithEvent(xterm: IXtermTerminal, term: string, options: ISearchOptions): Promise<boolean> {');
@@ -146,9 +147,10 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assert.ok(!find.includes(`${findPrevFindCall};`));
 		assert.ok(!find.includes(`${findNextFindCall};`));
 		assert.ok(!find.includes(`${findFirstCall};`));
+		assert.strictEqual(countDoubleChains(find), 0);
 	});
 
-	test('terminalContrib leftover stickyScroll xtermCtor / importAddon thens are Promise double-chain', () => {
+	test('terminalContrib leftover stickyScroll xtermCtor / importAddon thens are Promise single-chain', () => {
 		const sticky = fs.readFileSync(resolveSource(STICKY_REL), 'utf8');
 		const addon = fs.readFileSync(resolveSource(XTERM_ADDON_REL), 'utf8');
 		assertPromiseSignature(sticky, 'xtermCtor: Promise<typeof XTermTerminal>,');
@@ -157,7 +159,8 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assertThenWrapped(sticky, xtermCtorThen);
 		assertThenWrapped(sticky, serializeThen);
 		assertThenWrapped(sticky, ligaturesThen);
-		assert.ok(sticky.includes(`})${doubleCatch};\n\t\t})${doubleCatch};`));
+		assert.ok(sticky.includes(`})${singleCatch};\n\t\t})${singleCatch};`));
+		assert.strictEqual(countDoubleChains(sticky), 0);
 	});
 
 	test('terminalContrib leftover remaining and preferred overflow modules stay unwrapped because this knife already has eight legal sites', () => {
@@ -194,9 +197,9 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assert.strictEqual(countDoubleChains(contrib), 0);
 		assert.strictEqual(countDoubleChains(keybindingsExport), 0);
 		assert.ok(keybindingsExport.includes('void this.extensionService.whenInstalledExtensionsRegistered()'));
-		assert.strictEqual(countDoubleChains(callHierarchy), 0);
+		assert.strictEqual(countDoubleChains(callHierarchy), 3);
 		assert.ok(callHierarchy.includes('model.then(model => {'));
-		assert.strictEqual(countDoubleChains(timeline), 0);
+		assert.strictEqual(countDoubleChains(timeline), 1);
 		assert.ok(!interactive.includes('D798'));
 		assert.ok(!speech.includes('D798'));
 	});

@@ -2826,7 +2826,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 						// Listen for terminal disposal to clean up storage
 						Event.once(instance.onDisposed)(() => {
-							this._removeProcessIdAssociation(instance.processId!).catch(onUnexpectedError).catch(onUnexpectedError);
+							this._removeProcessIdAssociation(instance.processId!).catch(onUnexpectedError);
 							this._removeExecutionAssociations(instance);
 						});
 					}
@@ -2841,7 +2841,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		await this._associateProcessIdWithSession(toolTerminal.instance, chatSessionResource, termId, toolTerminal.shellIntegrationQuality, isBackground);
 		Event.once(toolTerminal.instance.onDisposed)(() => {
 			if (toolTerminal!.instance.processId) {
-				this._removeProcessIdAssociation(toolTerminal!.instance.processId).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._removeProcessIdAssociation(toolTerminal!.instance.processId).catch(onUnexpectedError);
 			}
 		});
 	}

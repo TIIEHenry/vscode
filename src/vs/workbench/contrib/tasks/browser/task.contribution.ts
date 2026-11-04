@@ -119,8 +119,11 @@ export class TaskStatusBarContributions extends Disposable implements IWorkbench
 					progress.report({ message: nls.localize('building', 'Building...') });
 					return promise!;
 				}).then(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					promise = undefined;
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}));
 	}

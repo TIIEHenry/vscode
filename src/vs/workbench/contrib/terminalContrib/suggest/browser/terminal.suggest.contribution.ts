@@ -105,9 +105,12 @@ class TerminalSuggestContribution extends DisposableStore implements ITerminalCo
 		// The terminal view can be reparented (for example when moved into a new view). Ensure the
 		// suggest widget follows the terminal's DOM when focus returns to the instance.
 		this.add(this._ctx.instance.onDidFocus(() => {
+			if (this.isDisposed) {
+				return;
+			}
 			const xtermRaw = this._ctx.instance.xterm?.raw;
 			if (xtermRaw) {
-				this._prepareAddonLayout(xtermRaw).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._prepareAddonLayout(xtermRaw).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -174,9 +177,9 @@ class TerminalSuggestContribution extends DisposableStore implements ITerminalCo
 
 		const addon = this._addon.value = this._instantiationService.createInstance(SuggestAddon, this._ctx.instance.sessionId, this._ctx.instance.shellType, this._ctx.instance.capabilities, this._terminalSuggestWidgetVisibleContextKey);
 		xterm.loadAddon(addon);
-		this._loadLspCompletionAddon(xterm).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._loadLspCompletionAddon(xterm).catch(onUnexpectedError);
 
-		this._prepareAddonLayout(xterm).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._prepareAddonLayout(xterm).catch(onUnexpectedError);
 
 		this.add(dom.addDisposableListener(this._ctx.instance.domElement, dom.EventType.FOCUS_OUT, (e) => {
 			const focusedElement = e.relatedTarget as HTMLElement;
@@ -216,7 +219,7 @@ class TerminalSuggestContribution extends DisposableStore implements ITerminalCo
 			return;
 		}
 		// Relies on shell type being set
-		this._loadLspCompletionAddon(this._ctx.instance.xterm.raw).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._loadLspCompletionAddon(this._ctx.instance.xterm.raw).catch(onUnexpectedError);
 	}
 
 	private _updateContainerForTarget(target: TerminalLocation | undefined): void {
@@ -225,7 +228,7 @@ class TerminalSuggestContribution extends DisposableStore implements ITerminalCo
 			return;
 		}
 
-		this._prepareAddonLayout(this._ctx.instance.xterm.raw).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._prepareAddonLayout(this._ctx.instance.xterm.raw).catch(onUnexpectedError);
 	}
 
 

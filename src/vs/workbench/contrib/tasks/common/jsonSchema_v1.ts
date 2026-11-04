@@ -104,6 +104,6 @@ ProblemMatcherRegistry.onReady().then(() => {
 	} catch (err) {
 		console.log('Installing problem matcher ids failed');
 	}
-}).catch(onUnexpectedError).catch(onUnexpectedError);
+}).catch(onUnexpectedError);
 
 export default schema;

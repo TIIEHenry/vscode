@@ -28,34 +28,46 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function assertDoubleChain(source: string, call: string, count: number): void {
+function assertSingleChain(source: string, call: string, count: number): void {
 	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
-	assert.ok(source.includes(`${call}${doubleCatch};`));
+	assert.ok(source.includes(`${call}${singleCatch};`));
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 suite('tasks/preferences/welcome leftover Promise fire-and-forget catch scan (D689)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('tasks abstractTaskService leftover registerCommands / reconnect thens are double-chain', () => {
+	test('tasks abstractTaskService leftover registerCommands / reconnect thens are single-chain and zero double-chains remain', () => {
 		const source = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleChain(source, 'this._registerCommands().then(() => TaskCommandsRegistered.bindTo(this._contextKeyService).set(true))', 1);
+		assertSingleChain(source, 'this._registerCommands().then(() => TaskCommandsRegistered.bindTo(this._contextKeyService).set(true))', 1);
 		const reconnectThen = `this.getWorkspaceTasks(TaskRunSource.Reconnect).then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._tasksReconnected = await this._reconnectTasks();
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._log(nls.localize('TaskService.reconnected', 'Reconnected to running tasks.'), true);
 			this._onDidReconnectToTasks.fire();
 		})`;
-		assert.ok(source.includes(`${reconnectThen}${doubleCatch};`));
+		assert.ok(source.includes(`${reconnectThen}${singleCatch};`));
 		assert.ok(!source.includes(`${reconnectThen};`));
-		assert.ok(!source.includes(`${reconnectThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${reconnectThen}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 
-	test('preferences leftover onConfigUpdate / defineWidget.start thens are double-chain', () => {
+	test('preferences leftover onConfigUpdate / defineWidget.start thens are single-chain and zero double-chains remain', () => {
 		const settings = fs.readFileSync(resolveSource(SETTINGS_REL), 'utf8');
 		const keybindings = fs.readFileSync(resolveSource(KEYBINDINGS_REL), 'utf8');
 		assert.ok(settings.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
@@ -69,13 +81,15 @@ suite('tasks/preferences/welcome leftover Promise fire-and-forget catch scan (D6
 			// Init TOC selection
 			this.updateTreeScrollSync();
 		})`;
-		assert.ok(settings.includes(`${configThen}${doubleCatch};`));
+		assert.ok(settings.includes(`${configThen}${singleCatch};`));
 		assert.ok(!settings.includes(`${configThen};`));
-		assert.ok(!settings.includes(`${configThen}.catch(onUnexpectedError);`));
-		assertDoubleChain(keybindings, 'this._defineWidget.start().then(keybinding => this._onAccepted(keybinding))', 1);
+		assert.ok(!settings.includes(`${configThen}${doubleCatch};`));
+		assertSingleChain(keybindings, 'this._defineWidget.start().then(keybinding => this._onAccepted(keybinding))', 1);
+		assert.strictEqual(countDoubleChains(settings), 0);
+		assert.strictEqual(countDoubleChains(keybindings), 0);
 	});
 
-	test('welcome leftover getEnvironment / getInstalled / detectEditors / run are double-chain; Resolve stays skipped', () => {
+	test('welcome leftover getEnvironment / getInstalled / detectEditors / run are single-chain; Resolve stays skipped and zero double-chains remain', () => {
 		const contribution = fs.readFileSync(resolveSource(WELCOME_CONTRIB_REL), 'utf8');
 		const service = fs.readFileSync(resolveSource(WELCOME_SERVICE_REL), 'utf8');
 		const startup = fs.readFileSync(resolveSource(STARTUP_REL), 'utf8');
@@ -90,9 +104,9 @@ suite('tasks/preferences/welcome leftover Promise fire-and-forget catch scan (D6
 			this.setWorkspacePlatform(undefined);
 			onUnexpectedError(err);
 		})`;
-		assert.ok(contribution.includes(`${envThen}${doubleCatch};`));
+		assert.ok(contribution.includes(`${envThen}${singleCatch};`));
 		assert.ok(!contribution.includes(`${envThen};`));
-		assert.ok(!contribution.includes(`${envThen}.catch(onUnexpectedError);`));
+		assert.ok(!contribution.includes(`${envThen}${doubleCatch};`));
 		const setPlatform = `private setWorkspacePlatform(remoteOS: OS | undefined): void {
 		const remotePlatform = remoteOS === OS.Macintosh ? 'mac'
 			: remoteOS === OS.Windows ? 'windows'
@@ -117,15 +131,29 @@ suite('tasks/preferences/welcome leftover Promise fire-and-forget catch scan (D6
 	}`;
 		assert.ok(contribution.includes(setPlatform));
 		const installedThen = `this.extensionManagementService.getInstalled().then(installed => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			installed.forEach(ext => this.progressByEvent(\`extensionInstalled:\${ext.identifier.id.toLowerCase()}\`));
 		})`;
-		assert.ok(service.includes(`${installedThen}${doubleCatch};`));
+		assert.ok(service.includes(`${installedThen}${singleCatch};`));
 		assert.ok(!service.includes(`${installedThen};`));
-		assert.ok(!service.includes(`${installedThen}.catch(onUnexpectedError);`));
-		assertDoubleChain(onboarding, 'this._detectInstalledEditors().then(ids => { this._detectedEditorIds = ids; })', 1);
-		assertDoubleChain(startup, 'this.run()', 1);
+		assert.ok(!service.includes(`${installedThen}${doubleCatch};`));
+		const detectThen = `this._detectInstalledEditors().then(ids => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._detectedEditorIds = ids;
+		})`;
+		assert.ok(onboarding.includes(`${detectThen}${singleCatch};`));
+		assert.ok(!onboarding.includes(`${detectThen}${doubleCatch};`));
+		assertSingleChain(startup, 'this.run()', 1);
 		assert.ok(!startup.includes('this.run().then(undefined, onUnexpectedError);'));
 		assert.ok(startup.includes('const folderStat = await this.fileService.resolve(folderUri).catch(onUnexpectedError);'));
 		assert.ok(!startup.includes('this.fileService.resolve(folderUri).catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.strictEqual(countDoubleChains(contribution), 0);
+		assert.strictEqual(countDoubleChains(service), 0);
+		assert.strictEqual(countDoubleChains(startup), 0);
+		assert.strictEqual(countDoubleChains(onboarding), 0);
 	});
 });

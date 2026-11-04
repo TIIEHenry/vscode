@@ -478,7 +478,7 @@ export class SuggestAddon extends Disposable implements ITerminalAddon, ISuggest
 			// Only request on trigger character when it's a regular input, or on an arrow if the widget
 			// is already visible
 			if (!this._wasLastInputIncludedEscape() || this._terminalSuggestWidgetVisibleContextKey.get()) {
-				this.requestCompletions().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.requestCompletions().catch(onUnexpectedError);
 				return true;
 			}
 		}

@@ -460,7 +460,7 @@ const taskConfiguration: IJSONSchema = {
 const taskDefinitions: IJSONSchema[] = [];
 TaskDefinitionRegistry.onReady().then(() => {
 	updateTaskDefinitions();
-}).catch(onUnexpectedError).catch(onUnexpectedError);
+}).catch(onUnexpectedError);
 
 export function updateTaskDefinitions() {
 	for (const taskType of TaskDefinitionRegistry.all()) {
@@ -674,6 +674,6 @@ export function updateProblemMatchers() {
 
 ProblemMatcherRegistry.onReady().then(() => {
 	updateProblemMatchers();
-}).catch(onUnexpectedError).catch(onUnexpectedError);
+}).catch(onUnexpectedError);
 
 export default schema;

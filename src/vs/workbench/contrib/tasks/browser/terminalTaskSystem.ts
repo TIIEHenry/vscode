@@ -278,8 +278,11 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 		try {
 			const executeResult = { kind: TaskExecuteKind.Started, task, started: {}, promise: this._executeTask(task, resolver, trigger, new Set(), new Map(), thisRun, undefined) };
 			executeResult.promise.then(summary => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._lastTask = thisRun;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			return executeResult;
 		} catch (error) {
 			if (error instanceof TaskError) {
@@ -318,8 +321,11 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 			}
 			const result = this.run(this._lastTask.task, this._lastTask.resolver);
 			result.promise.then(summary => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._isRerun = false;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			return result;
 		} else {
 			return undefined;

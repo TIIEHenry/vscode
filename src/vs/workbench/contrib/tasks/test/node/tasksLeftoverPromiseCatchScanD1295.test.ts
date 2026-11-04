@@ -31,6 +31,10 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
+function countSingleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 function countDoubleChains(source: string): number {
 	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
@@ -55,28 +59,32 @@ suite('tasks leftover Promise fire-and-forget catch scan (D1295)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife locks double-chain totals on the seven tasks files', () => {
+	test('this knife locks single-chain totals and zero double-chains on the seven tasks files', () => {
 		let sites = 0;
 		for (const [rel, count] of totals) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			assert.strictEqual(countDoubleChains(source), count, rel);
+			assert.strictEqual(countSingleChains(source), count, rel);
+			assert.strictEqual(countDoubleChains(source), 0, rel);
 			assert.ok(!source.includes('D1295'), rel);
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`), rel);
+			assert.ok(!source.includes(doubleCatch), rel);
 			sites += count;
 		}
 		assert.strictEqual(sites, 51);
 	});
 
-	test('D689 registerCommands / reconnect chains stay, and the new tasks anchors are double-chain', () => {
+	test('D689 registerCommands / reconnect chains stay, and the new tasks anchors are single-chain', () => {
 		const abstract = fs.readFileSync(resolveSource(ABSTRACT_REL), 'utf8');
 		const auto = fs.readFileSync(resolveSource(AUTO_REL), 'utf8');
 		const matcher = fs.readFileSync(resolveSource(MATCHER_REL), 'utf8');
-		assert.ok(abstract.includes('this._registerCommands().then(() => TaskCommandsRegistered.bindTo(this._contextKeyService).set(true)).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(abstract.includes('void this._upgrade().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(abstract.includes('this._registerCommands().then(() => TaskCommandsRegistered.bindTo(this._contextKeyService).set(true)).catch(onUnexpectedError);'));
+		assert.ok(abstract.includes('void this._upgrade().catch(onUnexpectedError);'));
 		assert.ok(abstract.includes('void Promise.resolve(this._terminalService.whenConnected).then(() => {'));
-		assert.strictEqual((auto.match(/void this\._tryRunTasks\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.strictEqual((auto.match(/void this\._tryRunTasks\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
 		assert.ok(auto.includes('void this._runWithPermission('));
 		assert.ok(!auto.includes('_runWithPermission(this._taskService, this._configurationService, this._storageService, this._notificationService, this._openerService, autoTasks.tasks, autoTasks.taskNames, autoTasks.locations).catch'));
-		assert.ok(matcher.includes('void ProblemPatternRegistry.onReady().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(matcher.includes('void ProblemPatternRegistry.onReady().catch(onUnexpectedError);'));
+		assert.strictEqual(countDoubleChains(abstract), 0);
+		assert.strictEqual(countDoubleChains(auto), 0);
+		assert.strictEqual(countDoubleChains(matcher), 0);
 	});
 });
