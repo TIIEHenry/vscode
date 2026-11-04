@@ -126,7 +126,7 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 		super();
 
 		this.tryShowOnboarding();
-		this.run().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.run().catch(onUnexpectedError);
 		this._register(this.editorService.onDidCloseEditor((e) => {
 			if (e.editor instanceof GettingStartedInput) {
 				e.editor.selectedCategory = undefined;
@@ -139,6 +139,9 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 
 		// Wait for resolving startup editor until we are restored to reduce startup pressure
 		await this.lifecycleService.when(LifecyclePhase.Restored);
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		if (AuxiliaryBarMaximizedContext.getValue(this.contextKeyService)) {
 			// If the auxiliary bar is maximized, we do not show the welcome page.
@@ -215,6 +218,10 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 					else { return undefined; }
 				})));
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (!this.editorService.activeEditor) {
 			if (readmes.length) {
 				const isMarkDown = (readme: URI) => readme.path.toLowerCase().endsWith('.md');
@@ -232,6 +239,9 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 	}
 
 	private async openGettingStarted(showTelemetryNotice?: boolean) {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const startupEditorTypeID = gettingStartedInputTypeId;
 		const editor = this.editorService.activeEditor;
 

@@ -27,12 +27,16 @@ suite('GettingStarted leftover fire-and-forget catch scan (D664)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('recentlyOpened then() leftover sites are each then + double-chain; single-chain gone for these sites', () => {
-		// recentlyOpened is Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('recentlyOpened then() leftover sites are each then + single-chain; zero double-chains remain', () => {
 		const source = fs.readFileSync(gettingStartedSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const buildThen = `this.recentlyOpened.then(({ workspaces }) => {
 			const workspacesWithID = this.filterRecentlyOpened(workspaces);
+
+			if (this._store.isDisposed || this.recentlyOpenedList.value !== recentlyOpenedList || this.recentlyOpened !== pending) {
+				return;
+			}
 
 			const updateEntries = () => {
 				recentlyOpenedList.setEntries(workspacesWithID);
@@ -43,19 +47,24 @@ suite('GettingStarted leftover fire-and-forget catch scan (D664)', () => {
 		})`;
 		const refreshThen = `this.recentlyOpened.then(({ workspaces }) => {
 			const workspacesWithID = this.filterRecentlyOpened(workspaces);
+			if (this._store.isDisposed || this.recentlyOpened !== pending) {
+				return;
+			}
 			this.recentlyOpenedList.value?.setEntries(workspacesWithID);
 		})`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.recentlyOpened\.then\(/g) ?? []).length, 2);
 		assert.strictEqual((source.split(buildThen).length - 1), 1);
 		assert.strictEqual((source.split(refreshThen).length - 1), 1);
-		assert.ok(source.includes(`${buildThen}${doubleCatch};`));
-		assert.ok(source.includes(`${refreshThen}${doubleCatch};`));
+		assert.ok(source.includes(`${buildThen}${singleCatch};`));
+		assert.ok(source.includes(`${refreshThen}${singleCatch};`));
 		assert.ok(!source.includes(`${buildThen};`));
 		assert.ok(!source.includes(`${refreshThen};`));
-		assert.ok(!source.includes(`${buildThen}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${refreshThen}.catch(onUnexpectedError);`));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 15);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 30);
+		assert.ok(!source.includes(`${buildThen}${doubleCatch};`));
+		assert.ok(!source.includes(`${refreshThen}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 0);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\);/g) ?? []).length, 15);
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 15);
 	});
 });

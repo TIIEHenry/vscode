@@ -409,7 +409,7 @@ export class GettingStartedPage extends EditorPane {
 	}
 
 	async makeCategoryVisibleWhenAvailable(categoryID: string, stepId?: string) {
-		this.scrollToCategory(categoryID, stepId).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.scrollToCategory(categoryID, stepId).catch(onUnexpectedError);
 	}
 
 	private registerDispatchListeners() {
@@ -427,7 +427,7 @@ export class GettingStartedPage extends EditorPane {
 			if (command) {
 				this.dispatchListeners.add(addDisposableListener(element, 'click', (e) => {
 					e.stopPropagation();
-					this.runDispatchCommand(command, argument).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.runDispatchCommand(command, argument).catch(onUnexpectedError);
 				}));
 				this.dispatchListeners.add(addDisposableListener(element, 'keyup', (e) => {
 					const keyboardEvent = new StandardKeyboardEvent(e);
@@ -435,7 +435,7 @@ export class GettingStartedPage extends EditorPane {
 					switch (keyboardEvent.keyCode) {
 						case KeyCode.Enter:
 						case KeyCode.Space:
-							this.runDispatchCommand(command, argument).catch(onUnexpectedError).catch(onUnexpectedError);
+							this.runDispatchCommand(command, argument).catch(onUnexpectedError);
 							return;
 					}
 				}));
@@ -448,7 +448,7 @@ export class GettingStartedPage extends EditorPane {
 		this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command, argument, walkthroughId: this.currentWalkthrough?.id });
 		switch (command) {
 			case 'scrollPrev': {
-				this.scrollPrev().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.scrollPrev().catch(onUnexpectedError);
 				break;
 			}
 			case 'skip': {
@@ -473,7 +473,7 @@ export class GettingStartedPage extends EditorPane {
 			}
 			case 'selectCategory': {
 				this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'selectCategory', argument, walkthroughId: this.currentWalkthrough?.id });
-				this.scrollToCategory(argument).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.scrollToCategory(argument).catch(onUnexpectedError);
 				this.gettingStartedService.markWalkthroughOpened(argument);
 				break;
 			}
@@ -493,7 +493,7 @@ export class GettingStartedPage extends EditorPane {
 			}
 			// Use selectTask over selectStep to keep telemetry consistant:https://github.com/microsoft/vscode/issues/122256
 			case 'selectTask': {
-				this.selectStep(argument).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.selectStep(argument).catch(onUnexpectedError);
 				break;
 			}
 			case 'toggleStepCompletion': {
@@ -508,7 +508,7 @@ export class GettingStartedPage extends EditorPane {
 				const next = this.currentWalkthrough?.next;
 				if (next) {
 					this.prevWalkthrough = this.currentWalkthrough;
-					this.scrollToCategory(next).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.scrollToCategory(next).catch(onUnexpectedError);
 				} else {
 					console.error('Error scrolling to next section of', this.currentWalkthrough);
 				}
@@ -565,7 +565,7 @@ export class GettingStartedPage extends EditorPane {
 				description: x.source,
 			})), { canPickMany: false, matchOnDescription: true, matchOnDetail: true, title: localize('pickWalkthroughs', "Open Walkthrough...") });
 		if (selection) {
-			this.runDispatchCommand('selectCategory', selection.id).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.runDispatchCommand('selectCategory', selection.id).catch(onUnexpectedError);
 		}
 	}
 
@@ -1090,7 +1090,7 @@ export class GettingStartedPage extends EditorPane {
 				this.hostService.openWindow([windowOpenable], {
 					forceNewWindow: e.ctrlKey || e.metaKey,
 					remoteAuthority: recent.remoteAuthority || null // local window if remoteAuthority is not set or can not be deducted from the openable
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 				e.preventDefault();
 				e.stopPropagation();
 			});
@@ -1161,7 +1161,7 @@ export class GettingStartedPage extends EditorPane {
 
 			updateEntries();
 			recentlyOpenedList.register(this.labelService.onDidChangeFormatters(() => updateEntries()));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		return recentlyOpenedList;
 	}
@@ -1184,7 +1184,7 @@ export class GettingStartedPage extends EditorPane {
 				return;
 			}
 			this.recentlyOpenedList.value?.setEntries(workspacesWithID);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private buildStartList(): GettingStartedIndexList<IWelcomePageStartEntry> {
@@ -1361,7 +1361,7 @@ export class GettingStartedPage extends EditorPane {
 		}
 
 		this.inProgressScroll = this.inProgressScroll.then(async () => {
-			if (!this.editorInput) {
+			if (this._store.isDisposed || !this.editorInput) {
 				return;
 			}
 			reset(this.stepsContent);
@@ -1452,6 +1452,9 @@ export class GettingStartedPage extends EditorPane {
 			}
 
 			this.commandService.executeCommand(commandURI.path, ...args).then(result => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const toOpen = (result as { openFolder?: URI })?.openFolder;
 				if (toOpen) {
 					if (!URI.isUri(toOpen)) {
@@ -1463,9 +1466,9 @@ export class GettingStartedPage extends EditorPane {
 						restoreWalkthroughsConfigurationKey,
 						JSON.stringify(restoreData),
 						StorageScope.PROFILE, StorageTarget.MACHINE);
-					this.hostService.openWindow([{ folderUri: toOpen }]).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.hostService.openWindow([{ folderUri: toOpen }]).catch(onUnexpectedError);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		} else {
 			this.openerService.open(command, { allowCommands: true });
 		}
@@ -1537,6 +1540,10 @@ export class GettingStartedPage extends EditorPane {
 
 	override dispose(): void {
 		this.setInputIdentity++;
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+		}
 		super.dispose();
 	}
 
@@ -1545,11 +1552,13 @@ export class GettingStartedPage extends EditorPane {
 			return;
 		}
 
-
 		this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			// Remove internal extension id specifier from exposed id's
-			this.extensionService.activateByEvent(`onWalkthrough:${categoryID.replace(/[^#]+#/, '')}`).catch(onUnexpectedError).catch(onUnexpectedError);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.extensionService.activateByEvent(`onWalkthrough:${categoryID.replace(/[^#]+#/, '')}`).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this.detailsPageDisposables.clear();
 		this.mediaDisposables.clear();
@@ -1724,6 +1733,9 @@ export class GettingStartedPage extends EditorPane {
 
 	private async scrollPrev() {
 		this.inProgressScroll = this.inProgressScroll.then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.prevWalkthrough && this.prevWalkthrough !== this.currentWalkthrough) {
 				this.currentWalkthrough = this.prevWalkthrough;
 				this.prevWalkthrough = undefined;

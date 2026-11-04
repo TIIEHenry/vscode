@@ -42,6 +42,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -58,9 +59,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const scrollToCategoryIdCall = 'this.scrollToCategory(categoryID, stepId)';
@@ -105,7 +106,7 @@ suite('leftover remaining unused welcomeGettingStarted leftover Promise fire-and
 		for (const [, , count] of d828Calls) {
 			sites += count;
 		}
-		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${singleCatch}`), 1);
 		sites += 1;
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
@@ -116,28 +117,29 @@ suite('leftover remaining unused welcomeGettingStarted leftover Promise fire-and
 		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/policies/test/node/accountPolicyLeftoverPromiseCatchScanD828.test.ts')));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on welcomeGettingStarted', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on welcomeGettingStarted', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d828Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		const source = seen.get(GETTING_STARTED_REL) ?? '';
-		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${doubleCatch}`), 1);
-		assert.ok(source.includes(`\t\t\t\t${scrollPrevDispatchCall}${doubleCatch};`));
+		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${singleCatch}`), 1);
+		assert.ok(source.includes(`\t\t\t\t${scrollPrevDispatchCall}${singleCatch};`));
 		sites += 1;
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(source), 15);
+		assert.strictEqual(countDoubleChains(source), 0);
+		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('welcomeGettingStarted leftover remaining unused scrollToCategory / runDispatchCommand / scrollPrev / selectStep leftover async this.foo() FOF are Promise/async + double-chain', () => {
+	test('welcomeGettingStarted leftover remaining unused scrollToCategory / runDispatchCommand / scrollPrev / selectStep leftover async this.foo() FOF are Promise/async + single-chain', () => {
 		const source = fs.readFileSync(resolveSource(GETTING_STARTED_REL), 'utf8');
 		assertPromiseSignature(source, 'private async scrollToCategory(categoryID: string, stepId?: string) {');
 		assertPromiseSignature(source, 'private async runDispatchCommand(command: string, argument: string) {');
@@ -150,13 +152,13 @@ suite('leftover remaining unused welcomeGettingStarted leftover Promise fire-and
 		assertWrapped(source, selectStepArgCall);
 		assertWrapped(source, scrollToCategoryNextCall);
 		assertWrapped(source, runDispatchSelectCategoryCall);
-		assert.strictEqual(countIncludes(source, `${scrollToCategoryIdCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${runDispatchCommandCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${scrollToCategoryArgCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${selectStepArgCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${scrollToCategoryNextCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${runDispatchSelectCategoryCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${scrollToCategoryIdCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${runDispatchCommandCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${scrollPrevDispatchCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${scrollToCategoryArgCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${selectStepArgCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${scrollToCategoryNextCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${runDispatchSelectCategoryCall}${singleCatch}`), 1);
 		assert.ok(!source.includes('\t\tthis.scrollToCategory(categoryID, stepId);\n'));
 		assert.ok(!source.includes('\t\t\t\t\tthis.runDispatchCommand(command, argument);\n'));
 		assert.ok(!source.includes('\t\t\t\t\t\t\tthis.runDispatchCommand(command, argument);\n'));
@@ -211,7 +213,7 @@ suite('leftover remaining unused welcomeGettingStarted leftover Promise fire-and
 		assert.ok(!source.includes(`return this.buildCategoriesSlide()${doubleCatch}`));
 
 		assert.ok(source.includes(`this.recentlyOpened.then(({ workspaces }) => {`));
-		assert.ok(source.includes(`${doubleCatch}`));
+		assert.ok(!source.includes(`${doubleCatch}`));
 
 		for (const file of [source, contrib]) {
 			assert.ok(!file.includes('acknowledge('));

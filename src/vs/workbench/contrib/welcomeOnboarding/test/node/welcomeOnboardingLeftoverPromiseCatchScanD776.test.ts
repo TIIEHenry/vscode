@@ -27,6 +27,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -34,11 +35,11 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleChain(source: string, call: string, count: number): void {
+function assertSingleChain(source: string, call: string, count: number): void {
 	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count, `count mismatch: ${call}`);
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double-chain remains: ${call}`);
 }
 
 suite('welcomeOnboarding leftover Promise fire-and-forget catch scan (D776)', () => {
@@ -51,7 +52,7 @@ suite('welcomeOnboarding leftover Promise fire-and-forget catch scan (D776)', ()
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('leftover Promise fire-and-forget sites are Promise/async + double-chain; D689 already-double stays', () => {
+	test('leftover Promise fire-and-forget sites are Promise/async + single-chain; zero double-chains remain', () => {
 		const source = fs.readFileSync(resolveSource(ONBOARDING_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
 		const theme = fs.readFileSync(resolveSource(THEME_REL), 'utf8');
@@ -64,26 +65,34 @@ suite('welcomeOnboarding leftover Promise fire-and-forget catch scan (D776)', ()
 		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
 		assertPromiseSignature(theme, 'setColorTheme(themeId: string | undefined | IWorkbenchColorTheme, settingsTarget: ThemeSettingTarget): Promise<IWorkbenchColorTheme | null>;');
 		assertPromiseSignature(config, 'updateValue(key: string, value: unknown, target: ConfigurationTarget): Promise<void>;');
-		assertDoubleChain(source, 'this._applyKeymap(this.selectedKeymapId)', 1);
-		assert.ok(source.includes(`this._handleSignIn()${doubleCatch};`));
+		assertSingleChain(source, 'this._applyKeymap(this.selectedKeymapId)', 1);
+		assert.ok(source.includes(`this._handleSignIn()${singleCatch};`));
 		assert.ok(source.includes('await this._handleSignIn();'));
 		assert.ok(!source.includes('\t\t\tthis._handleSignIn();\n'));
-		assertDoubleChain(source, "this._handleSignIn('google')", 1);
-		assertDoubleChain(source, "this._handleSignIn('apple')", 1);
-		assertDoubleChain(source, 'void this._handleEnterpriseSignIn()', 1);
+		assertSingleChain(source, "this._handleSignIn('google')", 1);
+		assertSingleChain(source, "this._handleSignIn('apple')", 1);
+		assertSingleChain(source, 'void this._handleEnterpriseSignIn()', 1);
 		const defaultSetupThen = `this.commandService.executeCommand('workbench.action.chat.triggerSetup', undefined, {
 						disableChatViewReveal: true,
 						setupStrategy: ChatSetupStrategy.DefaultSetup,
 					})`;
-		assert.ok(source.includes(`${defaultSetupThen}${doubleCatch};`));
+		assert.ok(source.includes(`${defaultSetupThen}${singleCatch};`));
 		assert.ok(!source.includes(`${defaultSetupThen};`));
-		assert.ok(!source.includes(`${defaultSetupThen}.catch(onUnexpectedError);`));
-		assertDoubleChain(source, 'this._selectTheme(theme)', 1);
-		assertDoubleChain(source, 'this.themeService.setColorTheme(match.id, ConfigurationTarget.USER)', 1);
-		assertDoubleChain(source, "this.configurationService.updateValue('chat.agent.autoFix', false, ConfigurationTarget.USER)", 1);
-		assertDoubleChain(source, "this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER)", 2);
-		assertDoubleChain(source, 'this._detectInstalledEditors().then(ids => { this._detectedEditorIds = ids; })', 1);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 12);
+		assert.ok(!source.includes(`${defaultSetupThen}${doubleCatch};`));
+		assertSingleChain(source, 'this._selectTheme(theme)', 1);
+		assertSingleChain(source, 'this.themeService.setColorTheme(match.id, ConfigurationTarget.USER)', 1);
+		assertSingleChain(source, "this.configurationService.updateValue('chat.agent.autoFix', false, ConfigurationTarget.USER)", 1);
+		assertSingleChain(source, "this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER)", 2);
+		const detectThen = `this._detectInstalledEditors().then(ids => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._detectedEditorIds = ids;
+		})`;
+		assertSingleChain(source, detectThen, 1);
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 0);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\);/g) ?? []).length, 12);
 	});
 
 	test('opener / D145 / Resolve / Connect / Watch / Pty / Action2.run / already-double / invented proto stay skipped', () => {

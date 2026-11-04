@@ -241,8 +241,11 @@ export class WalkthroughsService extends Disposable implements IWalkthroughsServ
 		this._register(this.commandService.onDidExecuteCommand(command => this.progressByEvent(`onCommand:${command.commandId}`)));
 
 		this.extensionManagementService.getInstalled().then(installed => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			installed.forEach(ext => this.progressByEvent(`extensionInstalled:${ext.identifier.id.toLowerCase()}`));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(this.extensionManagementService.onDidInstallExtensions((result) => {
 
