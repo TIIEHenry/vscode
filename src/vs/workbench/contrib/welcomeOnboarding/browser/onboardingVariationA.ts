@@ -163,7 +163,12 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}
 
 		// Start detecting installed editors early so results are ready by the Personalize step
-		this._detectInstalledEditors().then(ids => { this._detectedEditorIds = ids; }).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._detectInstalledEditors().then(ids => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this._detectedEditorIds = ids;
+		}).catch(onUnexpectedError);
 	}
 
 	get isShowing(): boolean {
@@ -348,7 +353,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	 */
 	private _applyStepSelections(stepId: OnboardingStepId): void {
 		if (stepId === OnboardingStepId.Personalize) {
-			this._applyKeymap(this.selectedKeymapId).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._applyKeymap(this.selectedKeymapId).catch(onUnexpectedError);
 		}
 	}
 
@@ -552,7 +557,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(githubBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'github');
-			this._handleSignIn().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._handleSignIn().catch(onUnexpectedError);
 		}));
 
 		const googleBtn = this._registerStepFocusable(this._createSignInButton(actions, 'google', localize('onboarding.signIn.google', "Continue with Google"), {
@@ -561,7 +566,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(googleBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'google');
-			this._handleSignIn('google').catch(onUnexpectedError).catch(onUnexpectedError);
+			this._handleSignIn('google').catch(onUnexpectedError);
 		}));
 
 		const appleBtn = this._registerStepFocusable(this._createSignInButton(actions, 'apple', localize('onboarding.signIn.apple', "Continue with Apple"), {
@@ -570,7 +575,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(appleBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'apple');
-			this._handleSignIn('apple').catch(onUnexpectedError).catch(onUnexpectedError);
+			this._handleSignIn('apple').catch(onUnexpectedError);
 		}));
 
 		const gheBtn = this._registerStepFocusable(this._createSignInButton(actions, 'github-enterprise', localize('onboarding.signIn.ghe', "GHE"), {
@@ -579,7 +584,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 		}));
 		this.stepDisposables.add(addDisposableListener(gheBtn, EventType.CLICK, () => {
 			this._logAction('signIn', undefined, 'github-enterprise');
-			void this._handleEnterpriseSignIn().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._handleEnterpriseSignIn().catch(onUnexpectedError);
 		}));
 	}
 
@@ -742,7 +747,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 					this.commandService.executeCommand('workbench.action.chat.triggerSetup', undefined, {
 						disableChatViewReveal: true,
 						setupStrategy: ChatSetupStrategy.DefaultSetup,
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}
 				if (this.steps[this.currentStepIndex] === OnboardingStepId.SignIn) {
 					this._nextStep();
@@ -786,18 +791,18 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	}
 
 	private async _submitEnterpriseInstanceNow(seq: number, resolvedUri: string): Promise<void> {
-		if (seq !== this._enterpriseSubmitSeq) {
+		if (seq !== this._enterpriseSubmitSeq || this._store.isDisposed) {
 			return;
 		}
 		try {
 			await this.configurationService.updateValue(defaultChat.providerUriSetting, resolvedUri, ConfigurationTarget.USER);
-			if (seq !== this._enterpriseSubmitSeq) {
+			if (seq !== this._enterpriseSubmitSeq || this._store.isDisposed) {
 				return;
 			}
 			this.enterpriseInstanceValue = resolvedUri;
 			await this._runEnterpriseSignInSetup();
 		} catch {
-			if (seq !== this._enterpriseSubmitSeq) {
+			if (seq !== this._enterpriseSubmitSeq || this._store.isDisposed) {
 				return;
 			}
 			this.enterpriseSignInWatch = undefined;
@@ -807,7 +812,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	}
 
 	private async _runEnterpriseSignInSetup(): Promise<void> {
-		if (!this._shouldRunCopilotSetup()) {
+		if (!this._shouldRunCopilotSetup() || this._store.isDisposed) {
 			return;
 		}
 
@@ -821,6 +826,10 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 				disableChatViewReveal: true,
 				setupStrategy: ChatSetupStrategy.SetupWithEnterpriseProvider,
 			});
+
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			if (success) {
 				this._userSignedIn = true;
@@ -985,7 +994,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 
 		this.stepDisposables.add(addDisposableListener(card, EventType.CLICK, () => {
 			this._logAction('selectTheme', undefined, theme.id);
-			this._selectTheme(theme).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._selectTheme(theme).catch(onUnexpectedError);
 			for (const c of allCards) {
 				c.classList.remove('selected');
 				c.setAttribute('aria-checked', 'false');
@@ -1010,12 +1019,12 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private async _selectTheme(theme: IOnboardingThemeOption): Promise<void> {
 		this.selectedThemeId = theme.id;
 		const allThemes = await this.themeService.getColorThemes();
-		if (this.selectedThemeId !== theme.id) {
+		if (this.selectedThemeId !== theme.id || this._store.isDisposed) {
 			return;
 		}
 		const match = allThemes.find(t => t.settingsId === theme.themeId);
 		if (match) {
-			this.themeService.setColorTheme(match.id, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.themeService.setColorTheme(match.id, ConfigurationTarget.USER).catch(onUnexpectedError);
 		}
 	}
 
@@ -1027,17 +1036,17 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 
 		try {
 			const gallery = await this.extensionGalleryService.getExtensions([{ id: keymap.extensionId }], CancellationToken.None);
-			if (this.selectedKeymapId !== keymapId) {
+			if (this.selectedKeymapId !== keymapId || this._store.isDisposed) {
 				return;
 			}
 			if (gallery.length > 0) {
 				await this.extensionManagementService.installFromGallery(gallery[0], { context: { [EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT]: true } });
 			}
-			if (this.selectedKeymapId !== keymapId) {
+			if (this.selectedKeymapId !== keymapId || this._store.isDisposed) {
 				return;
 			}
 		} catch {
-			if (this.selectedKeymapId !== keymapId) {
+			if (this.selectedKeymapId !== keymapId || this._store.isDisposed) {
 				return;
 			}
 			this.notificationService.notify({
@@ -1166,13 +1175,13 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private _applyAiPreference(mode: AiCollaborationMode): void {
 		switch (mode) {
 			case AiCollaborationMode.CodeFirst:
-				this.configurationService.updateValue('chat.agent.autoFix', false, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.configurationService.updateValue('chat.agent.autoFix', false, ConfigurationTarget.USER).catch(onUnexpectedError);
 				break;
 			case AiCollaborationMode.Balanced:
-				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER).catch(onUnexpectedError);
 				break;
 			case AiCollaborationMode.AgentForward:
-				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.configurationService.updateValue('chat.agent.autoFix', true, ConfigurationTarget.USER).catch(onUnexpectedError);
 				break;
 		}
 	}
@@ -1313,6 +1322,7 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	private _removeFromDOM(): void {
 		++this._signInGeneration;
 		if (this.overlay) {
+			clearNode(this.overlay);
 			this.overlay.remove();
 			this.overlay = undefined;
 		}
@@ -1347,6 +1357,9 @@ export class OnboardingVariationA extends Disposable implements IOnboardingServi
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._removeFromDOM();
 		super.dispose();
 	}

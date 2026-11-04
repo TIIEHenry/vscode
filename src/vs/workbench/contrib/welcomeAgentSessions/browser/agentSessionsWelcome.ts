@@ -255,7 +255,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 		this._isEmptyWorkspace = this.workspaceContextService.getWorkbenchState() === WorkbenchState.EMPTY;
 		if (this._isEmptyWorkspace) {
 			const recentlyOpened = await this.getRecentlyOpenedWorkspaces(true);
-			if (generation !== this._recreateSessionGeneration || token.isCancellationRequested) {
+			if (generation !== this._recreateSessionGeneration || token.isCancellationRequested || this._store.isDisposed) {
 				return;
 			}
 			this._recentTrustedWorkspaces = recentlyOpened.slice(0, MAX_REPO_PICKS);
@@ -270,7 +270,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 
 		const startEntries = append(header, $('.agentSessionsWelcome-startEntries'));
 		await this.buildStartEntries(startEntries);
-		if (generation !== this._recreateSessionGeneration || token.isCancellationRequested) {
+		if (generation !== this._recreateSessionGeneration || token.isCancellationRequested || this._store.isDisposed) {
 			return;
 		}
 
@@ -464,7 +464,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 				);
 
 				this._closedBy = 'chatSubmission';
-				this.openSessionInChat(chatSessionResource).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.openSessionInChat(chatSessionResource).catch(onUnexpectedError);
 			}
 		}));
 
@@ -604,7 +604,7 @@ export class AgentSessionsWelcomePage extends EditorPane {
 				const isProjectionEnabled = this.configurationService.getValue<boolean>(ChatConfiguration.AgentSessionProjectionEnabled);
 				if (!isProjectionEnabled) {
 					this._closedBy = 'sessionClicked';
-					this.revealMaximizedChat().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.revealMaximizedChat().catch(onUnexpectedError);
 				}
 			}
 		};
@@ -910,6 +910,9 @@ export class AgentSessionsWelcomePage extends EditorPane {
 	}
 
 	private async closeEditorAndMaximizeAuxiliaryBarNow(sessionResource?: URI): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const editorToClose = this.input || this._storedInput;
 
 		if (editorToClose && this.group.contains(editorToClose)) {
@@ -947,6 +950,17 @@ export class AgentSessionsWelcomePage extends EditorPane {
 			.filter(result => onlyTrusted ? result.trusted : true)
 			.map(result => result.workspace);
 		return filteredWorkspaces;
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this.container) {
+			clearNode(this.container);
+			this.container.remove();
+		}
+		super.dispose();
 	}
 }
 

@@ -291,7 +291,7 @@ export class WorkspacePlatformContribution {
 		}, err => {
 			this.setWorkspacePlatform(undefined);
 			onUnexpectedError(err);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private setWorkspacePlatform(remoteOS: OS | undefined): void {

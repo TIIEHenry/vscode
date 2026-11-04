@@ -155,7 +155,7 @@ export class WalkThroughInput extends EditorInput {
 
 	override dispose(): void {
 		if (this.promise) {
-			this.promise.then(model => model.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.promise.then(model => model.dispose()).catch(onUnexpectedError);
 			this.promise = null;
 		}
 

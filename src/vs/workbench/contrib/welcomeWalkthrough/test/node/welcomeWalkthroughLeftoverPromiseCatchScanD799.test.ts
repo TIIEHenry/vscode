@@ -39,6 +39,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -52,6 +53,22 @@ function countDoubleChains(source: string): number {
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
+}
+
+function assertSingleWrapped(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double-chain remains: ${call}`);
+}
+
+function assertSingleThenWrapped(source: string, thenStart: string): void {
+	const idx = source.indexOf(thenStart);
+	assert.ok(idx >= 0, `missing then: ${thenStart}`);
+	const afterThen = source.slice(idx);
+	const closeThen = afterThen.indexOf(`})${singleCatch}`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!source.includes(`${thenStart};`));
+	assert.ok(!source.includes(`${thenStart}${doubleCatch}`));
 }
 
 function assertWrapped(source: string, call: string): void {
@@ -72,6 +89,13 @@ function assertThenWrapped(source: string, thenStart: string): void {
 
 const disposeThen = 'this.promise.then(model => model.dispose())';
 const withProgressEnd = `await this.webviewViewService.resolve(this.id, webviewView, source.token);
+
+			if (!overlayStillCurrent()) {
+				releaseExpiredOverlay();
+				return;
+			}
+
+			committed = true;
 		})`;
 const openViewCall = 'this.viewService.openView(this.id, !preserveFocus)';
 const findWorkspacesCall = 'this.findWorkspaces()';
@@ -106,10 +130,11 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		const provider = fs.readFileSync(resolveSource(PROVIDER_REL), 'utf8');
 		const urlValidator = fs.readFileSync(resolveSource(URL_VALIDATOR_REL), 'utf8');
 		const urlContrib = fs.readFileSync(resolveSource(URL_CONTRIB_REL), 'utf8');
-		const walkthroughLegal = countIncludes(input, `${disposeThen}${doubleCatch}`);
+		const walkthroughLegal = countIncludes(input, `${disposeThen}${singleCatch}`);
 		assert.ok(walkthroughLegal < 4, `expected welcomeWalkthrough legal leftover <4, got ${walkthroughLegal}`);
 		assert.strictEqual(walkthroughLegal, 1);
-		assert.strictEqual(countDoubleChains(input), 1);
+		assert.strictEqual(countDoubleChains(input), 0);
+		assert.ok(!input.includes(doubleCatch));
 		assert.strictEqual(countDoubleChains(part), 0);
 		assert.strictEqual(countDoubleChains(editorWalk), 0);
 		assert.strictEqual(countDoubleChains(provider), 0);
@@ -119,19 +144,30 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assert.ok(urlContrib.includes('return quickInputService.input({ prompt: localize(\'urlToOpen\', "URL to open"), value }).then(input => {'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites after welcomeWalkthrough leftover remaining overflow', () => {
+	test('this knife covers seven leftover Promise sites after welcomeWalkthrough leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count, kind] of d799Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
+			const isSingle = rel === INPUT_REL || rel === WORKSPACES_REL;
 			if (kind === 'then') {
-				assertThenWrapped(source, call);
+				if (isSingle) {
+					assertSingleThenWrapped(source, call);
+				} else {
+					assertThenWrapped(source, call);
+				}
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-				assertWrapped(source, call);
+				if (isSingle) {
+					const wrapped = countIncludes(source, `${call}${singleCatch}`);
+					assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
+					assertSingleWrapped(source, call);
+				} else {
+					const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+					assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
+					assertWrapped(source, call);
+				}
 			}
 			sites += count;
 		}
@@ -141,12 +177,14 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		const input = seen.get(INPUT_REL) ?? fs.readFileSync(resolveSource(INPUT_REL), 'utf8');
 		const pane = seen.get(WEBVIEW_PANE_REL) ?? fs.readFileSync(resolveSource(WEBVIEW_PANE_REL), 'utf8');
 		const workspaces = seen.get(WORKSPACES_REL) ?? fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(input), 1);
+		assert.strictEqual(countDoubleChains(input), 0);
+		assert.ok(!input.includes(doubleCatch));
 		assert.strictEqual(countDoubleChains(pane), 2);
-		assert.strictEqual(countDoubleChains(workspaces), 4);
+		assert.strictEqual(countDoubleChains(workspaces), 0);
+		assert.ok(!workspaces.includes(doubleCatch));
 	});
 
-	test('welcomeWalkthrough leftover dispose then is Promise double-chain; assigned / returned / Action2 / opener stay skipped', () => {
+	test('welcomeWalkthrough leftover dispose then is Promise single-chain; assigned / returned / Action2 / opener stay skipped', () => {
 		const input = fs.readFileSync(resolveSource(INPUT_REL), 'utf8');
 		const part = fs.readFileSync(resolveSource(PART_REL), 'utf8');
 		const editorWalk = fs.readFileSync(resolveSource(EDITOR_WALK_REL), 'utf8');
@@ -158,8 +196,10 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assertPromiseSignature(editorWalk, 'public override run(serviceAccessor: ServicesAccessor): Promise<void> {');
 		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
 		assert.ok(input.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(input, disposeThen);
+		assertSingleWrapped(input, disposeThen);
 		assert.ok(!input.includes('this.promise.then(model => model.dispose());'));
+		assert.ok(!input.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(input), 0);
 		assert.ok(input.includes('this.promise = moduleToContent(this.instantiationService, this.options.resource)'));
 		assert.ok(!input.includes(`this.promise = moduleToContent(this.instantiationService, this.options.resource)${doubleCatch}`));
 		assert.ok(input.includes('return this.promise;'));
@@ -194,7 +234,7 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assert.ok(!service.includes(doubleCatch));
 	});
 
-	test('workspaces leftover findWorkspaces / pick then / openWindow fire-and-forgets are Promise double-chain', () => {
+	test('workspaces leftover findWorkspaces / pick then / openWindow fire-and-forgets are Promise single-chain', () => {
 		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
 		const host = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
 		const quickInput = fs.readFileSync(resolveSource(QUICK_INPUT_REL), 'utf8');
@@ -202,10 +242,12 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assertPromiseSignature(host, 'openWindow(toOpen: IWindowOpenable[], options?: IOpenWindowOptions): Promise<void>;');
 		assertPromiseSignature(quickInput, 'pick<T extends IQuickPickItem>(picks: Promise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: Omit<IPickOptions<T>, \'canPickMany\'>, token?: CancellationToken): Promise<T | undefined>;');
 		assert.ok(workspaces.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(workspaces, findWorkspacesCall);
-		assertWrapped(workspaces, openWorkspaceFileCall);
-		assertThenWrapped(workspaces, pickThen);
-		assertWrapped(workspaces, openPickCall);
+		assertSingleWrapped(workspaces, findWorkspacesCall);
+		assertSingleWrapped(workspaces, openWorkspaceFileCall);
+		assertSingleThenWrapped(workspaces, pickThen);
+		assertSingleWrapped(workspaces, openPickCall);
+		assert.ok(!workspaces.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(workspaces), 0);
 		assert.ok(!workspaces.includes('\t\tthis.findWorkspaces();\n'));
 		assert.ok(workspaces.includes('return hostService.openWindow([{ workspaceUri: uri }]);'));
 		assert.ok(!workspaces.includes(`return hostService.openWindow([{ workspaceUri: uri }])${doubleCatch}`));
