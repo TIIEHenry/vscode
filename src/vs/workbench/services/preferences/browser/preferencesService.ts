@@ -337,7 +337,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 				target: ConfigurationTarget.USER_REMOTE,
 			};
 
-			this.open(environment.settingsPath, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.open(environment.settingsPath, options).catch(onUnexpectedError);
 		}
 		return undefined;
 	}
@@ -748,7 +748,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 		const settingInfo = uri.path.split('/').filter(part => !!part);
 		const settingId = ((settingInfo.length > 0) ? settingInfo[0] : undefined);
 		if (!settingId) {
-			this.openSettings().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.openSettings().catch(onUnexpectedError);
 			return true;
 		}
 
@@ -765,7 +765,7 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 			openSettingsOptions.query = settingId;
 		}
 
-		this.openSettings(openSettingsOptions).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.openSettings(openSettingsOptions).catch(onUnexpectedError);
 		return true;
 	}
 

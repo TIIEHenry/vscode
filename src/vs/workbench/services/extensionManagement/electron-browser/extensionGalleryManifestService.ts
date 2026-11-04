@@ -81,7 +81,7 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 			}
 			updateChannels(manifest);
 			this._register(this.onDidChangeExtensionGalleryManifest(manifest => updateChannels(manifest)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _accountAccessGeneration = 0;

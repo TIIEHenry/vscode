@@ -50,6 +50,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -66,9 +67,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const disableChatCall = 'this._disableExtension({ id: this._chatExtensionId })';
@@ -150,7 +151,7 @@ suite('leftover remaining unused extensionEnablement leftover async this.foo() F
 		assert.ok(unusedLeftoverRemainingLegal < 4, `expected unused leftover remaining legal leftover <4, got ${unusedLeftoverRemainingLegal}`);
 		let sites = 0;
 		for (const [, call] of d826Calls) {
-			sites += countIncludes(enablement, `${call}${doubleCatch}`);
+			sites += countIncludes(enablement, `${call}${singleCatch}`);
 		}
 		assert.ok(sites >= 4, `expected leftover remaining unused extensionEnablement legal leftover >=4, got ${sites}`);
 		assert.ok(!enablement.includes('D826'));
@@ -165,7 +166,7 @@ suite('leftover remaining unused extensionEnablement leftover async this.foo() F
 		for (const [rel, call, count] of d826Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -173,7 +174,7 @@ suite('leftover remaining unused extensionEnablement leftover async this.foo() F
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(ENABLEMENT_REL) ?? ''), 11);
+		assert.strictEqual(countDoubleChains(seen.get(ENABLEMENT_REL) ?? ''), 0);
 	});
 
 	test('extensionEnablement leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -229,12 +230,12 @@ suite('leftover remaining unused extensionEnablement leftover async this.foo() F
 		assert.ok(enablement.includes('return this.globalExtensionEnablementService.disableExtension(identifier, SOURCE);'));
 		assert.ok(!enablement.includes(`return this.globalExtensionEnablementService.disableExtension(identifier, SOURCE)${doubleCatch}`));
 
-		assert.ok(enablement.includes(`${whenInitializedThenCall}${doubleCatch}`));
-		assert.ok(enablement.includes(`${eventuallyThenCall}${doubleCatch}`));
-		assert.ok(enablement.includes(`${loopCheckThenCall}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(!enablement.includes(`${whenInitializedThenCall}${doubleCatch}.catch(onUnexpectedError)`));
-		assert.ok(!enablement.includes(`${eventuallyThenCall}${doubleCatch}.catch(onUnexpectedError)`));
-		assert.ok(!enablement.includes(`${loopCheckThenCall}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError).catch(onUnexpectedError)`));
+		assert.ok(enablement.includes(`${whenInitializedThenCall}${singleCatch}`));
+		assert.ok(enablement.includes(`${eventuallyThenCall}${singleCatch}`));
+		assert.ok(enablement.includes(`${loopCheckThenCall}\n\t\t\t.catch(onUnexpectedError);`));
+		assert.ok(!enablement.includes(`${whenInitializedThenCall}${doubleCatch}`));
+		assert.ok(!enablement.includes(`${eventuallyThenCall}${doubleCatch}`));
+		assert.ok(!enablement.includes(`${loopCheckThenCall}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError)`));
 
 		assert.ok(enablement.includes(`({ extensions, source }) => ${eventLeftoverCall}`));
 		assert.ok(!enablement.includes(`${eventLeftoverCall}${doubleCatch}`));
@@ -281,10 +282,14 @@ suite('leftover remaining unused extensionEnablement leftover async this.foo() F
 		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
 		const userActivity = fs.readFileSync(resolveSource(USER_ACTIVITY_REL), 'utf8');
 
-		assert.ok(secrets.includes(`${secretsQueueCall}${doubleCatch}`));
-		assert.ok(integrity.includes(`${integrityComputeCall}${doubleCatch}`));
-		assert.ok(label.includes(`${labelResolveCall}${doubleCatch}`));
-		assert.ok(notebook.includes(`${loadKernelPreloadsCall}${doubleCatch}`));
+		assert.ok(secrets.includes(`${secretsQueueCall}${singleCatch}`));
+		assert.ok(integrity.includes(`${integrityComputeCall}${singleCatch}`));
+		assert.ok(label.includes(`${labelResolveCall}${singleCatch}`));
+		assert.ok(notebook.includes(`${loadKernelPreloadsCall}${singleCatch}`));
+		assert.ok(!secrets.includes(`${secretsQueueCall}${doubleCatch}`));
+		assert.ok(!integrity.includes(`${integrityComputeCall}${doubleCatch}`));
+		assert.ok(!label.includes(`${labelResolveCall}${doubleCatch}`));
+		assert.ok(!notebook.includes(`${loadKernelPreloadsCall}${doubleCatch}`));
 
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));

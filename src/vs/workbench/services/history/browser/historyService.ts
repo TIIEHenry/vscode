@@ -183,13 +183,13 @@ export class HistoryService extends Disposable implements IHistoryService {
 			case 3:
 				EventHelper.stop(event);
 				if (isMouseDown) {
-					this.goBack().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.goBack().catch(onUnexpectedError);
 				}
 				break;
 			case 4:
 				EventHelper.stop(event);
 				if (isMouseDown) {
-					this.goForward().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.goForward().catch(onUnexpectedError);
 				}
 
 				break;

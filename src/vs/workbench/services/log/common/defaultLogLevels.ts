@@ -62,7 +62,7 @@ class DefaultLogLevelsService extends Disposable implements IDefaultLogLevelsSer
 		};
 		this._register(this.fileService.onDidFilesChange(e => {
 			if (e.contains(this.environmentService.argvResource)) {
-				this.onDidChangeArgv().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.onDidChangeArgv().catch(onUnexpectedError);
 			}
 		}));
 	}

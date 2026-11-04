@@ -38,7 +38,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	private readonly _maxTokenizationLineLength = observableValue(this, -1);
 	private _diffStateStacksRefEqFn?: typeof diffStateStacksRefEq;
 	private _tokenizeGeneration = 0;
-	private readonly _tokenizeDebouncer = new RunOnceScheduler(() => this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError), 10);
+	private readonly _tokenizeDebouncer = new RunOnceScheduler(() => this._tokenize().catch(onUnexpectedError), 10);
 
 	constructor(
 		uri: URI,
@@ -52,7 +52,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	) {
 		super(uri, lines, eol, versionId);
 		this._maxTokenizationLineLength.set(maxTokenizationLineLength, undefined);
-		this._resetTokenization().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._resetTokenization().catch(onUnexpectedError);
 	}
 
 	public override dispose(): void {
@@ -64,7 +64,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 	public onLanguageId(languageId: string, encodedLanguageId: LanguageId): void {
 		this._languageId = languageId;
 		this._encodedLanguageId = encodedLanguageId;
-		this._resetTokenization().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._resetTokenization().catch(onUnexpectedError);
 	}
 
 	override onEvents(e: IModelChangedEvent): void {
@@ -113,7 +113,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 		} else {
 			this._tokenizerWithStateStore = null;
 		}
-		this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._tokenize().catch(onUnexpectedError);
 	}
 
 	private async _tokenize(): Promise<void> {
@@ -184,7 +184,7 @@ export class TextMateWorkerTokenizer extends MirrorTextModel {
 			const deltaMs = new Date().getTime() - startTime;
 			if (deltaMs > 20) {
 				// yield to check for changes
-				setTimeout0(() => this._tokenize().catch(onUnexpectedError).catch(onUnexpectedError));
+				setTimeout0(() => this._tokenize().catch(onUnexpectedError));
 				return;
 			}
 		}

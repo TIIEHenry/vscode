@@ -61,6 +61,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -77,15 +78,15 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const validateFoldersCall = 'this.validateWorkspaceFoldersAndReload(fromCache)';
 const reloadLocalIdleCall = 'this.reloadLocalUserConfiguration(false, this._configuration.localUserConfiguration)';
 const processExperimentalCall = 'this.processExperimentalSettings(properties, false)';
-const folderChangeListenerCall = 'onDidChange(() => this.onWorkspaceFolderConfigurationChanged(folder)';
+const folderChangeListenerCall = 'this.onWorkspaceFolderConfigurationChanged(folder)';
 const writeStandaloneCall = 'this.writeConfiguration(operation.target, { key, value: operation.value }, { handleDirtyFile: \'save\', scopes })';
 const writeSettingsCall = 'this.writeConfiguration(operation.target, { key: operation.key, value: operation.value }, { handleDirtyFile: \'save\', scopes })';
 const onDidWorkspaceChangeCall = 'this.onDidWorkspaceConfigurationChange(false, true)';
@@ -137,7 +138,7 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 		for (const [rel, call, count] of d955Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -149,13 +150,13 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 		}
 	});
 
-	test('this knife covers six leftover Promise double-chain sites after leftover remaining unused stayed on configuration this.foo() FOF', () => {
+	test('this knife covers six leftover Promise single-chain sites after leftover remaining unused stayed on configuration this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d955Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -163,11 +164,11 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SERVICE_REL) ?? ''), 6);
-		assert.strictEqual(countDoubleChains(seen.get(EDITING_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(SERVICE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(EDITING_REL) ?? ''), 0);
 	});
 
-	test('configuration leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('configuration leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const service = fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
 		const editing = fs.readFileSync(resolveSource(EDITING_REL), 'utf8');
 
@@ -186,12 +187,12 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 		assertWrapped(service, folderChangeListenerCall);
 		assertWrapped(editing, writeStandaloneCall);
 		assertWrapped(editing, writeSettingsCall);
-		assert.strictEqual(countIncludes(service, `${validateFoldersCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(service, `${reloadLocalIdleCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(service, `${processExperimentalCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(service, `${folderChangeListenerCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(editing, `${writeStandaloneCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(editing, `${writeSettingsCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(service, `${validateFoldersCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(service, `${reloadLocalIdleCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(service, `${processExperimentalCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(service, `${folderChangeListenerCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(editing, `${writeStandaloneCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(editing, `${writeSettingsCall}${singleCatch}`), 1);
 		assert.ok(!service.includes('\t\t\tthis.validateWorkspaceFoldersAndReload(fromCache);\n'));
 		assert.ok(!service.includes('() => this.reloadLocalUserConfiguration(false, this._configuration.localUserConfiguration)));'));
 		assert.ok(!service.includes('({ properties }) => this.processExperimentalSettings(properties, false)));'));
@@ -229,6 +230,7 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 		assert.ok(!service.includes(`this.processExperimentalSettings(this.autoExperimentalSettings, true)${doubleCatch}`));
 
 		for (const source of [configuration, service, editing]) {
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
@@ -270,9 +272,10 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 
 		for (const [rel, call, count] of d827AlreadyDouble) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			assert.strictEqual(countIncludes(source, `${call}${doubleCatch}`), count, `D827 already-double drifted: ${rel} ${call}`);
+			assert.strictEqual(countIncludes(source, `${call}${singleCatch}`), count, `D827 single-chain drifted: ${rel} ${call}`);
+			assert.strictEqual(countIncludes(source, `${call}${doubleCatch}`), 0);
 		}
-		assert.strictEqual(countDoubleChains(configuration), 12);
+		assert.strictEqual(countDoubleChains(configuration), 0);
 		assert.ok(configuration.includes(`${onDidWorkspaceChangeCall};\n`));
 		assert.ok(!configuration.includes(`${onDidWorkspaceChangeCall}${doubleCatch}`));
 		assert.ok(configuration.includes(`${onDidWorkspaceListenerCall}`));
@@ -290,14 +293,21 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 		assert.ok(!editor.includes(`${leftoverReplaceEditorsCall}${doubleCatch}`));
 		assert.ok(browsers.includes(`${leftoverSyncActiveCall};`));
 		assert.ok(!browsers.includes(`${leftoverSyncActiveCall}${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
-		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`));
+		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
+		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${singleCatch}`));
+		assert.ok(!workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${singleCatch}`));
+		assert.ok(!workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`));
+		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(logLevels.includes(`${leftoverArgvCall}${singleCatch}`));
+		assert.ok(!logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
 		assert.ok(chatTip.includes(doubleCatch));
-		assert.ok(extensionsRecs.includes(doubleCatch));
+		assert.ok(extensionsRecs.includes(singleCatch));
+		assert.ok(!extensionsRecs.includes(doubleCatch));
 
 		assert.ok(!searchWidget.includes('D955'));
 		assert.ok(!searchEditor.includes('D955'));

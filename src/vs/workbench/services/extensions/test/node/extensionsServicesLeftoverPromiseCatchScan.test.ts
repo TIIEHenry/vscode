@@ -43,8 +43,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`) || source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch}`) || source.includes(`${call}${doubleCatch}`), `missing catch handler: ${call}`);
-	assert.ok(!source.includes(`${call};`));
+	assert.ok(source.includes(`${call}${singleCatch};`) || source.includes(`${call}${singleCatch}`), `missing catch handler: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`));
 }
 
 suite('workbench/services/extensions leftover Promise fire-and-forget catch scan (D698)', () => {
@@ -66,6 +67,11 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.strictEqual((browser.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assert.strictEqual((local.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assert.strictEqual((abstract.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((enablement.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((scanner.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((webWorker.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((remote.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((manager.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 
 		const calls = [
 			[native, `lifecycleService.when(LifecyclePhase.Ready).then(() => {
@@ -107,7 +113,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 			[manager, `this._proxy.then(() => {
 			this._hasStarted = true;
 			initialActivationEvents.forEach((activationEvent) => {
-				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError);
 			});
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
@@ -176,8 +182,16 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 				this._register(this.extensionsManager.onDidChangeExtensions(({ added, removed, isProfileSwitch }) => this._onDidChangeExtensions(added, removed, isProfileSwitch)));
 				this.loopCheckForMaliciousExtensions();
 			}
+		})${singleCatch};`));
+		assert.ok(!source.includes(`this.extensionsManager.whenInitialized().then(() => {
+			if (!isDisposed) {
+				uninstallDisposable.dispose();
+				this._onDidChangeExtensions([], [], false);
+				this._register(this.extensionsManager.onDidChangeExtensions(({ added, removed, isProfileSwitch }) => this._onDidChangeExtensions(added, removed, isProfileSwitch)));
+				this.loopCheckForMaliciousExtensions();
+			}
 		})${doubleCatch};`));
-		assert.ok(source.includes('.then(() => this.loopCheckForMaliciousExtensions());'));
+		assert.ok(source.includes('.then(() => this.loopCheckForMaliciousExtensions())'));
 		assert.ok(!source.includes(`.then(() => this.loopCheckForMaliciousExtensions())${doubleCatch}`));
 	});
 
@@ -240,7 +254,7 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assertDoubleThen(source, `this._proxy.then(() => {
 			this._hasStarted = true;
 			initialActivationEvents.forEach((activationEvent) => {
-				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.activateByEvent(activationEvent, ActivationKind.Normal).catch(onUnexpectedError);
 			});
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
@@ -267,6 +281,10 @@ suite('workbench/services/extensions leftover Promise fire-and-forget catch scan
 		assert.ok(abstract.includes('void this._initializeIfNeeded()?.catch(onUnexpectedError);'));
 		assert.ok(abstract.includes('this._activateDeferredRemoteEvents().catch(onUnexpectedError);'));
 		assert.ok(contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
+		// when all are done, resolve with undefined (relevant only if it was not activated so far)
+		resolve(undefined);
+	})${singleCatch};`));
+		assert.ok(!contains.includes(`Promise.all([fileNamePromise, globPatternPromise]).then(() => {
 		// when all are done, resolve with undefined (relevant only if it was not activated so far)
 		resolve(undefined);
 	})${doubleCatch};`));

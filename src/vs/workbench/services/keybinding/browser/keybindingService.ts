@@ -220,7 +220,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 			if (this.userKeybindings.keybindings.length) {
 				this.updateResolver();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._register(this.userKeybindings.onDidChange(() => {
 			logService.debug('User keybindings changed');
 			this.updateResolver();
@@ -254,7 +254,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 			}
 
 			if (browser.isFullscreen(mainWindow)) {
-				void Promise.resolve(keyboard?.lock(['Escape'])).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(keyboard?.lock(['Escape'])).catch(onUnexpectedError);
 			} else {
 				keyboard?.unlock();
 			}
@@ -419,7 +419,7 @@ export class WorkbenchKeybindingService extends AbstractKeybindingService {
 		this._keybindingHoldMode.p.finally(() => {
 			listener.dispose();
 			focusTracker.dispose();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._log(`+ Enabled hold-mode for ${commandId}.`);
 		return this._keybindingHoldMode.p;
 	}
@@ -768,7 +768,7 @@ class UserKeybindings extends Disposable {
 			if (changed) {
 				this._onDidChange.fire();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError), 50));
+		}).catch(onUnexpectedError), 50));
 
 		this._register(Event.filter(this.fileService.onDidFilesChange, e => e.contains(this.userDataProfileService.currentProfile.keybindingsResource))(() => {
 			logService.debug('Keybindings file changed');

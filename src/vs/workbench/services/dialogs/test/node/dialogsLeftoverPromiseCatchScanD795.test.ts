@@ -40,6 +40,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -56,19 +57,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!afterThen.includes(`})${doubleCatch};`));
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 const pickResourceThen = 'this.pickResource(true).then(result => {';
@@ -123,7 +124,7 @@ suite('splash leftover remaining overflowed to dialogs leftover Promise fire-and
 		assert.ok(!oldScan.includes('dialogs leftover'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after splash leftover remaining overflow', () => {
+	test('this knife covers five leftover Promise single-chain sites after splash leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count, kind] of d795Calls) {
@@ -133,7 +134,7 @@ suite('splash leftover remaining overflowed to dialogs leftover Promise fire-and
 				assertThenWrapped(source, call);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 				assertWrapped(source, call);
 			}
@@ -175,8 +176,9 @@ suite('splash leftover remaining overflowed to dialogs leftover Promise fire-and
 		const carousel = fs.readFileSync(resolveSource(CAROUSEL_REL), 'utf8');
 		const splash = fs.readFileSync(resolveSource(SPLASH_REL), 'utf8');
 		assert.ok(!preferences.includes('D795'));
-		assert.ok(workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${doubleCatch}`));
-		assert.ok(!workspacesSvc.includes('this.addRecentlyOpened([{ folderUri: folder.uri }]);') || workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${doubleCatch};`));
+		assert.ok(workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${singleCatch}`));
+		assert.ok(!workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${doubleCatch}`));
+		assert.ok(!workspacesSvc.includes('this.addRecentlyOpened([{ folderUri: folder.uri }]);') || workspacesSvc.includes(`this.addRecentlyOpened([{ folderUri: folder.uri }])${singleCatch};`));
 		assert.ok(search.includes(`newInput.ongoingSearchOperation.then(complete => {`));
 		assert.ok(carousel.includes('this._loadRawData(adjacentImage).catch(() => { /* ignore */ });'));
 		assert.strictEqual(countDoubleChains(splash), 2);
@@ -211,6 +213,9 @@ suite('splash leftover remaining overflowed to dialogs leftover Promise fire-and
 		assert.ok(!simple.includes(`pickFileAndOpen({ forceNewWindow: false, availableFileSystems: [Schemas.file] })${doubleCatch}`));
 		assert.ok(simple.includes('return dialogService.pickFolderAndOpen({ forceNewWindow: false, availableFileSystems: [Schemas.file] });'));
 		assert.ok(simple.includes('return dialogService.pickFileFolderAndOpen({ forceNewWindow: false, availableFileSystems: [Schemas.file] });'));
+		assert.ok(!simple.includes(doubleCatch));
+		assert.ok(!abstract.includes(doubleCatch));
+		assert.ok(!browser.includes(doubleCatch));
 		assert.ok(!electron.includes(doubleCatch));
 		assert.ok(!dialogSvc.includes(doubleCatch));
 		assert.ok(!dialogSvc.includes('Action2'));

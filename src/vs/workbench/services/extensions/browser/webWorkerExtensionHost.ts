@@ -136,7 +136,7 @@ export class WebWorkerExtensionHost extends Disposable implements IExtensionHost
 		if (!this._protocolPromise) {
 			const protocolPromise = this._startInsideIframe();
 			this._protocolPromise = protocolPromise;
-			this._protocolPromise.then(protocol => this._protocol = protocol).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._protocolPromise.then(protocol => this._protocol = protocol).catch(onUnexpectedError);
 			// In-flight callers share this promise. Drop it when this attempt rejects
 			// and the field still points at it, so the next start() tries again.
 			// A resolved protocol stays cached.

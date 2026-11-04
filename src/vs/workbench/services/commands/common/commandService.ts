@@ -34,7 +34,7 @@ export class CommandService extends Disposable implements ICommandService {
 		@ILogService private readonly _logService: ILogService
 	) {
 		super();
-		this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value).catch(onUnexpectedError);
 		this._starActivation = null;
 	}
 

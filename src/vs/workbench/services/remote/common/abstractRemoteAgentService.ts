@@ -198,7 +198,7 @@ class RemoteAgentConnection extends Disposable implements IRemoteAgentConnection
 	}
 
 	registerChannel<T extends IServerChannel<RemoteAgentConnectionContext>>(channelName: string, channel: T): void {
-		this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._getOrCreateConnection().then(client => client.registerChannel(channelName, channel)).catch(onUnexpectedError);
 	}
 
 	async getInitialConnectionTimeMs() {

@@ -154,7 +154,7 @@ export class ViewsService extends Disposable implements IViewsService {
 			this.layoutService.isVisible(this.paneCompositeService.getPartId(to)) &&
 			this.viewDescriptorService.getViewContainersByLocation(to).filter(vc => this.isViewContainerActive(vc.id)).length === 1
 		) {
-			this.openViewContainer(viewContainer.id).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.openViewContainer(viewContainer.id).catch(onUnexpectedError);
 		}
 	}
 
@@ -597,7 +597,7 @@ export class ViewsService extends Disposable implements IViewsService {
 				});
 			}
 			run(accessor: ServicesAccessor, options?: { preserveFocus?: boolean }): void {
-				accessor.get(IViewsService).openView(viewDescriptor.id, !options?.preserveFocus).catch(onUnexpectedError).catch(onUnexpectedError);
+				accessor.get(IViewsService).openView(viewDescriptor.id, !options?.preserveFocus).catch(onUnexpectedError);
 			}
 		});
 	}
@@ -633,7 +633,7 @@ export class ViewsService extends Disposable implements IViewsService {
 				}
 
 				viewDescriptorService.moveViewsToContainer([viewDescriptor], defaultContainer, undefined, this.desc.id);
-				accessor.get(IViewsService).openView(viewDescriptor.id, true).catch(onUnexpectedError).catch(onUnexpectedError);
+				accessor.get(IViewsService).openView(viewDescriptor.id, true).catch(onUnexpectedError);
 			}
 		});
 	}

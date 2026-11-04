@@ -37,6 +37,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -53,19 +54,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!afterThen.includes(`})${doubleCatch};`));
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 const galleryThen = 'this.getExtensionGalleryManifest().then(manifest => {';
@@ -91,19 +92,20 @@ suite('extensionManagement leftover Promise fire-and-forget catch scan (D800)', 
 		const scanner = fs.readFileSync(resolveSource(SCANNER_REL), 'utf8');
 		const newWraps = countIncludes(webGallery, `${galleryThen}`) +
 			countIncludes(nativeGallery, `${galleryThen}`) +
-			countIncludes(enablement, `${loopThen}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError)`);
+			countIncludes(enablement, `${loopThen}\n\t\t\t.catch(onUnexpectedError)`);
 		assert.strictEqual(newWraps, 3);
 		assert.ok(newWraps < 4, `expected extensionManagement new legal leftover <4, got ${newWraps}`);
-		assert.strictEqual(countDoubleChains(webGallery), 1);
-		assert.strictEqual(countDoubleChains(nativeGallery), 1);
-		assert.strictEqual(countDoubleChains(enablement), 11);
-		assert.strictEqual(countDoubleChains(scanner), 1);
+		assert.strictEqual(countDoubleChains(webGallery), 0);
+		assert.strictEqual(countDoubleChains(nativeGallery), 0);
+		assert.strictEqual(countDoubleChains(enablement), 0);
+		assert.strictEqual(countDoubleChains(scanner), 0);
 		assert.ok(enablement.includes(`this.extensionsManager.whenInitialized().then(() => {`));
 		assert.ok(enablement.includes(`this.lifecycleService.when(LifecyclePhase.Eventually).then(() => {`));
-		assert.ok(scanner.includes(`lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())${doubleCatch}`));
+		assert.ok(scanner.includes(`lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())${singleCatch}`));
+		assert.ok(!scanner.includes(`lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())${doubleCatch}`));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after extensionManagement leftover overflow', () => {
+	test('this knife covers five leftover Promise single-chain sites after extensionManagement leftover overflow', () => {
 		const webGallery = fs.readFileSync(resolveSource(WEB_GALLERY_REL), 'utf8');
 		const nativeGallery = fs.readFileSync(resolveSource(NATIVE_GALLERY_REL), 'utf8');
 		const enablement = fs.readFileSync(resolveSource(ENABLEMENT_REL), 'utf8');
@@ -111,7 +113,8 @@ suite('extensionManagement leftover Promise fire-and-forget catch scan (D800)', 
 		const textMate = fs.readFileSync(resolveSource(TEXTMATE_REL), 'utf8');
 		assertThenWrapped(webGallery, galleryThen);
 		assertThenWrapped(nativeGallery, galleryThen);
-		assert.ok(enablement.includes(`${loopThen}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(enablement.includes(`${loopThen}\n\t\t\t.catch(onUnexpectedError);`));
+		assert.ok(!enablement.includes(`${loopThen}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(!enablement.includes(`${loopThen};`));
 		assertWrapped(assignment, assignmentThen);
 		assertThenWrapped(textMate, textMateFofThen);
@@ -120,7 +123,7 @@ suite('extensionManagement leftover Promise fire-and-forget catch scan (D800)', 
 		assert.ok(sites >= 4 && sites <= 8);
 	});
 
-	test('wrapped leftover .then fire-and-forgets are Promise/async + double-chain', () => {
+	test('wrapped leftover .then fire-and-forgets are Promise/async + single-chain', () => {
 		const webGallery = fs.readFileSync(resolveSource(WEB_GALLERY_REL), 'utf8');
 		const nativeGallery = fs.readFileSync(resolveSource(NATIVE_GALLERY_REL), 'utf8');
 		const enablement = fs.readFileSync(resolveSource(ENABLEMENT_REL), 'utf8');
@@ -143,7 +146,8 @@ suite('extensionManagement leftover Promise fire-and-forget catch scan (D800)', 
 		assertThenWrapped(nativeGallery, galleryThen);
 		assertWrapped(assignment, assignmentThen);
 		assertThenWrapped(textMate, textMateFofThen);
-		assert.ok(enablement.includes(`${loopThen}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(enablement.includes(`${loopThen}\n\t\t\t.catch(onUnexpectedError);`));
+		assert.ok(!enablement.includes(`${loopThen}\n\t\t\t.catch(onUnexpectedError).catch(onUnexpectedError);`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -187,8 +191,10 @@ suite('extensionManagement leftover Promise fire-and-forget catch scan (D800)', 
 		assert.ok(!emmet.includes(doubleCatch));
 
 		assert.ok(enablement.includes(`this.extensionsManager.whenInitialized().then(() => {`));
-		assert.ok(enablement.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(scanner.includes(`lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())${doubleCatch}`));
+		assert.ok(enablement.includes(`}).catch(onUnexpectedError);`));
+		assert.ok(!enablement.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(scanner.includes(`lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())${singleCatch}`));
+		assert.ok(!scanner.includes(`lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())${doubleCatch}`));
 
 		assert.ok(assignment.includes('tasClient.initialFetch.then(() => {'));
 		assert.ok(assignment.includes('}).catch(() => undefined);'));

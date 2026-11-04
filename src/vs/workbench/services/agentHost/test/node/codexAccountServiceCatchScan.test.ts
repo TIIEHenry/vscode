@@ -27,9 +27,9 @@ suite('CodexAccountService leftover fire-and-forget catch scan (D667)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('profile image then() leftover site is then + double-chain (D667)', () => {
-		// readCodexProfileImageDataUri returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('profile image then() leftover site is then + single-chain (D667)', () => {
 		const source = fs.readFileSync(codexAccountServiceSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const thenSite = `void readCodexProfileImageDataUri(this._agentHostService, reference).then(profileImageDataUri => {
 			if (request !== this._profileImageRequest || profileImageKey !== this._profileImageKey) {
@@ -44,9 +44,10 @@ suite('CodexAccountService leftover fire-and-forget catch scan (D667)', () => {
 		})`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/readCodexProfileImageDataUri\(this\._agentHostService, reference\)\.then\(/g) ?? []).length, 1);
-		assert.ok(source.includes(`${thenSite}${doubleCatch};`));
+		assert.ok(source.includes(`${thenSite}${singleCatch};`));
 		assert.ok(!source.includes(`${thenSite};`));
-		assert.ok(!source.includes(`${thenSite}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${thenSite}${doubleCatch};`));
+		assert.ok(!source.includes(doubleCatch));
 	});
 
 	test('openCodexAuthUrl leftover site remains D145-style single-chain', () => {

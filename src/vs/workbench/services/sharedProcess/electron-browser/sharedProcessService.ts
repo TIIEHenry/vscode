@@ -64,7 +64,7 @@ export class SharedProcessService extends Disposable implements ISharedProcessSe
 	}
 
 	registerChannel(channelName: string, channel: IServerChannel<string>): void {
-		this.withSharedProcessConnection.then(connection => connection.registerChannel(channelName, channel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.withSharedProcessConnection.then(connection => connection.registerChannel(channelName, channel)).catch(onUnexpectedError);
 	}
 
 	async createRawConnection(): Promise<MessagePort> {

@@ -126,7 +126,7 @@ export class CachedExtensionScanner {
 						}]
 					);
 				});
-				timeout(5000).then(() => disposable.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+				timeout(5000).then(() => disposable.dispose()).catch(onUnexpectedError);
 			}
 
 			return r;

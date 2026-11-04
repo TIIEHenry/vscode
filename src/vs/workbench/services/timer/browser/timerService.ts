@@ -555,7 +555,7 @@ export abstract class AbstractTimerService implements ITimerService {
 			this._startupMetrics = metrics;
 			this._reportStartupTimes(metrics);
 			this._barrier.open();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 
 		this.perfBaseline = this._barrier.wait()

@@ -56,6 +56,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -77,14 +78,19 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
-function assertThenWrapped(source: string, thenStart: string): void {
+function assertThenWrapped(source: string, thenStart: string, isSingleCatch = false): void {
+	const expected = isSingleCatch ? singleCatch : doubleCatch;
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${expected};`);
+	assert.ok(closeThen >= 0, `then not wrapped: ${thenStart}`);
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
+	if (isSingleCatch) {
+		assert.ok(!afterThen.includes(`})${doubleCatch};`));
+	} else {
+		assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
+	}
 }
 
 const timerAllThen = `]).then(() => {
@@ -163,11 +169,13 @@ suite('configurationResolver leftover remaining overflowed to timer/onboarding/r
 		for (const [rel, call, count, kind] of d803Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
+			const isSingle = rel === TIMER_REL;
 			if (kind === 'then') {
-				assertThenWrapped(source, call);
+				assertThenWrapped(source, call, isSingle);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const expected = isSingle ? singleCatch : doubleCatch;
+				const wrapped = countIncludes(source, `${call}${expected}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 				assertWrapped(source, call);
 			}
@@ -176,12 +184,12 @@ suite('configurationResolver leftover remaining overflowed to timer/onboarding/r
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(TIMER_REL)!), 1);
+		assert.strictEqual(countDoubleChains(seen.get(TIMER_REL)!), 0);
 		assert.strictEqual(countDoubleChains(seen.get(ONBOARDING_REL)!), 2);
 		assert.strictEqual(countDoubleChains(seen.get(RELAUNCHER_REL)!), 5);
 	});
 
-	test('timer leftover Promise.all then is Promise double-chain; assigned perfBaseline stays skipped', () => {
+	test('timer leftover Promise.all then is Promise single-chain; assigned perfBaseline stays skipped', () => {
 		const timer = fs.readFileSync(resolveSource(TIMER_REL), 'utf8');
 		const electron = fs.readFileSync(resolveSource(TIMER_ELECTRON_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
@@ -192,9 +200,11 @@ suite('configurationResolver leftover remaining overflowed to timer/onboarding/r
 		assertPromiseSignature(layout, 'readonly whenRestored: Promise<void>;');
 		assertPromiseSignature(timer, 'private async _computeStartupMetrics(): Promise<IStartupMetrics> {');
 		assert.ok(timer.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertThenWrapped(timer, timerAllThen);
-		assert.ok(timer.includes(`${timerAllThen}${doubleCatch};`));
+		assertThenWrapped(timer, timerAllThen, true);
+		assert.ok(timer.includes(`${timerAllThen}${singleCatch};`));
+		assert.ok(!timer.includes(`${timerAllThen}${doubleCatch};`));
 		assert.ok(!timer.includes(`${timerAllThen};`));
+		assert.ok(!timer.includes(doubleCatch));
 		assert.ok(timer.includes('this.perfBaseline = this._barrier.wait()'));
 		assert.ok(timer.includes('.then(() => this._lifecycleService.when(LifecyclePhase.Eventually))'));
 		assert.ok(!timer.includes(`this._lifecycleService.when(LifecyclePhase.Eventually))${doubleCatch}`));

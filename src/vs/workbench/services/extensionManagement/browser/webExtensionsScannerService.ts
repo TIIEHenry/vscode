@@ -122,7 +122,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 			this.customBuiltinExtensionsCacheResource = joinPath(environmentService.userRoamingDataHome, 'customBuiltinExtensionsCache.json');
 
 			// Eventually update caches
-			lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches()).catch(onUnexpectedError).catch(onUnexpectedError);
+			lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches()).catch(onUnexpectedError);
 		}
 	}
 

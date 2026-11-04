@@ -267,7 +267,7 @@ export abstract class AbstractFileDialogService implements IFileDialogService {
 	}
 
 	protected addFileToRecentlyOpened(uri: URI): void {
-		this.workspacesService.addRecentlyOpened([{ fileUri: uri, label: this.labelService.getUriLabel(uri, { appendWorkspaceSuffix: true }) }]).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.workspacesService.addRecentlyOpened([{ fileUri: uri, label: this.labelService.getUriLabel(uri, { appendWorkspaceSuffix: true }) }]).catch(onUnexpectedError);
 	}
 
 	protected async pickFolderAndOpenSimplified(schema: string, options: IPickAndOpenOptions): Promise<void> {

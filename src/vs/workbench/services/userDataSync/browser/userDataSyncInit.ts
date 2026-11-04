@@ -61,7 +61,7 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 			if (!userDataSyncStoreClient) {
 				this.initializationFinished.open();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _userDataSyncStoreClientPromise: Promise<UserDataSyncStoreClient | undefined> | undefined;

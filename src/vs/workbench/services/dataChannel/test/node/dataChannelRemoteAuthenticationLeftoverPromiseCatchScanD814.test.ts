@@ -59,6 +59,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -75,9 +76,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const activateCall = 'void this._activateExtensionProvider(entry, provider, generation)';
@@ -97,7 +98,7 @@ const mcpQueueCall = `this._queue.queue(
 				() => this._addToCache(provider.id)
 			)`;
 const getDefaultAccountThenCall = `this.defaultAccountService.getDefaultAccount().then(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError);
 		})`;
 const showManagedSettingsDialogCall = `void this.showManagedSettingsDialog().finally(() => {
 			this.managedSettingsDialogVisibleKey = undefined;
@@ -129,29 +130,30 @@ suite('dataChannel leftover Promise fire-and-forget overflowed to remote/authent
 		const account = fs.readFileSync(resolveSource(ACCOUNT_REL), 'utf8');
 		const gate = fs.readFileSync(resolveSource(GATE_REL), 'utf8');
 		const telemetry = fs.readFileSync(resolveSource(TELEMETRY_REL), 'utf8');
-		const dataChannelLegal = countIncludes(dataChannel, `${activateCall}${doubleCatch}`);
+		const dataChannelLegal = countIncludes(dataChannel, `${activateCall}${singleCatch}`);
 		assert.ok(dataChannelLegal < 4, `expected dataChannel legal leftover <4, got ${dataChannelLegal}`);
 		assert.strictEqual(dataChannelLegal, 1);
-		assert.strictEqual(countDoubleChains(dataChannel), 1);
+		assert.strictEqual(countDoubleChains(dataChannel), 0);
 		const policiesAlreadyDouble =
-			countIncludes(account, `${getDefaultAccountThenCall}${doubleCatch}`) +
-			countIncludes(gate, `${showManagedSettingsDialogCall}${doubleCatch}`) +
-			countIncludes(gate, `${refreshCall}${doubleCatch}`);
+			countIncludes(account, `${getDefaultAccountThenCall}${singleCatch}`) +
+			countIncludes(gate, `${showManagedSettingsDialogCall}${singleCatch}`) +
+			countIncludes(gate, `${refreshCall}${singleCatch}`);
 		assert.strictEqual(policiesAlreadyDouble, 3);
-		assert.ok(account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
+		assert.ok(account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${singleCatch}`));
+		assert.ok(!account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
 		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(!telemetry.includes('.then('));
 		assert.ok(!telemetry.includes(doubleCatch));
 		assert.ok(!dataChannel.includes('D814'));
 	});
 
-	test('this knife covers five leftover Promise double-chain sites after dataChannel leftover overflow', () => {
+	test('this knife covers five leftover Promise single-chain sites after dataChannel leftover overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d814Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -159,11 +161,11 @@ suite('dataChannel leftover Promise fire-and-forget overflowed to remote/authent
 		assert.strictEqual(sites, 5);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(DATA_CHANNEL_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(REMOTE_ABS_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(DYNAMIC_AUTH_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(AUTH_USAGE_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(AUTH_MCP_USAGE_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(DATA_CHANNEL_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(REMOTE_ABS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(DYNAMIC_AUTH_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(AUTH_USAGE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(AUTH_MCP_USAGE_REL) ?? ''), 0);
 	});
 
 	test('dataChannel leftover _activateExtensionProvider is Promise double-chain', () => {
@@ -224,7 +226,8 @@ suite('dataChannel leftover Promise fire-and-forget overflowed to remote/authent
 		assertWrapped(account, getDefaultAccountThenCall);
 		assertWrapped(gate, showManagedSettingsDialogCall);
 		assertWrapped(gate, refreshCall);
-		assert.ok(account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
+		assert.ok(account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${singleCatch}`));
+		assert.ok(!account.includes(`this._updatePolicyDefinitions(this.policyDefinitions)${doubleCatch}`));
 		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(authExt.includes('this.completeSessionAccessRequest(provider, extensionId, extensionName, scopeListOrRequest);'));
 		assert.ok(!authExt.includes(`this.completeSessionAccessRequest(provider, extensionId, extensionName, scopeListOrRequest)${doubleCatch}`));
@@ -240,8 +243,8 @@ suite('dataChannel leftover Promise fire-and-forget overflowed to remote/authent
 		assert.ok(mcpBrowser.includes("channel.call('setMcpGalleryManifest', [manifest]);"));
 		assert.ok(!mcpElectron.includes(`channel.call('setMcpGalleryManifest', [manifest])${doubleCatch}`));
 		assert.ok(!mcpBrowser.includes(`channel.call('setMcpGalleryManifest', [manifest])${doubleCatch}`));
-		assert.ok(auxElectron.includes('(async () => {\n\t\t\tthis.maximized = await this.nativeHostService.isMaximized({ targetWindowId: this.window.vscodeWindowId });\n\t\t})();'));
-		assert.ok(auxElectron.includes('(async () => {\n\t\t\tthis.alwaysOnTop = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId: this.window.vscodeWindowId });\n\t\t})();'));
+		assert.ok(auxElectron.includes('const maximized = await this.nativeHostService.isMaximized({ targetWindowId: this.window.vscodeWindowId });'));
+		assert.ok(auxElectron.includes('const alwaysOnTop = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId: this.window.vscodeWindowId });'));
 		assert.ok(!auxElectron.includes('})().catch(onUnexpectedError)'));
 		assert.ok(workspaces.includes('\t\tthis.resolveCanonicalUris()\n\t\t\t.then(async () => {'));
 		assert.ok(workspaces.includes('\t\t\tthis.remoteAuthorityResolverService.resolveAuthority(this.environmentService.remoteAuthority)\n\t\t\t\t.then(async result => {'));

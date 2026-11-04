@@ -52,16 +52,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string, isSingleCatch = false): void {
-	const expected = isSingleCatch ? singleCatch : doubleCatch;
-	assert.ok(source.includes(`${call}${expected}`), `missing catch: ${call}`);
-	if (isSingleCatch) {
-		assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
-		assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
-	} else {
-		assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-	}
+function assertWrapped(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const untitledAutoDetectCall = 'this.autoDetectLanguage()';
@@ -96,19 +90,17 @@ suite('untitled + views leftover Promise fire-and-forget catch scan (D813)', () 
 		for (const [rel, call, count] of d813Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const isSingle = rel === UNTITLED_MODEL_REL;
-			const expectedCatch = isSingle ? singleCatch : doubleCatch;
-			const wrapped = countIncludes(source, `${call}${expectedCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call, isSingle);
+			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
 		assert.strictEqual(countDoubleChains(seen.get(UNTITLED_MODEL_REL) ?? ''), 0);
-		assert.strictEqual(countDoubleChains(seen.get(VIEWS_SVC_REL) ?? ''), 3);
-		assert.strictEqual(countDoubleChains(seen.get(VIEWS_DESC_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(VIEWS_SVC_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(VIEWS_DESC_REL) ?? ''), 0);
 		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_SVC_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_INPUT_REL), 'utf8').includes(doubleCatch));
 		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_HANDLER_REL), 'utf8').includes(doubleCatch));
@@ -121,7 +113,7 @@ suite('untitled + views leftover Promise fire-and-forget catch scan (D813)', () 
 		assertPromiseSignature(textEditorModel, 'protected autoDetectLanguage(): Promise<void> {');
 		assertPromiseSignature(textEditorModel, 'private async doAutoDetectLanguage(): Promise<void> {');
 		assert.ok(untitled.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(untitled, untitledAutoDetectCall, true);
+		assertWrapped(untitled, untitledAutoDetectCall);
 		assert.ok(!untitled.includes('\t\tthis.autoDetectLanguage();\n'));
 		assert.ok(!untitled.includes('override async autoDetectLanguage'));
 	});

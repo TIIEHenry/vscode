@@ -117,7 +117,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 		// Make sure to hide all toasts when the window gains focus
 		this._register(this.onDidChangeFocus(focus => {
 			if (focus) {
-				this.clearToasts().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.clearToasts().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -270,13 +270,13 @@ export class BrowserHostService extends Disposable implements IHostService {
 				} else if (options?.removeMode) {
 					foldersToRemove.push(openable.folderUri);
 				} else {
-					this.doOpen({ folderUri: openable.folderUri }, { reuse: this.shouldReuse(options, false /* no file */), payload }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.doOpen({ folderUri: openable.folderUri }, { reuse: this.shouldReuse(options, false /* no file */), payload }).catch(onUnexpectedError);
 				}
 			}
 
 			// Workspace
 			else if (isWorkspaceToOpen(openable)) {
-				this.doOpen({ workspaceUri: openable.workspaceUri }, { reuse: this.shouldReuse(options, false /* no file */), payload }).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.doOpen({ workspaceUri: openable.workspaceUri }, { reuse: this.shouldReuse(options, false /* no file */), payload }).catch(onUnexpectedError);
 			}
 
 			// File (handled later in bulk)
@@ -381,7 +381,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 								openables = [openable];
 							}
 
-							editorService.openEditors(coalesce(await pathsToEditors(openables, this.fileService, this.logService)), undefined, { validateTrust: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+							editorService.openEditors(coalesce(await pathsToEditors(openables, this.fileService, this.logService)), undefined, { validateTrust: true }).catch(onUnexpectedError);
 						}
 
 						// New Window: open into empty window
@@ -414,7 +414,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 
 						// ...before deleting the wait marker file
 						await this.fileService.del(waitMarkerFileURI);
-					})().catch(onUnexpectedError).catch(onUnexpectedError);
+					})().catch(onUnexpectedError);
 				}
 			});
 		}
@@ -424,7 +424,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 		// Host service is used in a lot of contexts and some services
 		// need to be resolved dynamically to avoid cyclic dependencies
 		// (https://github.com/microsoft/vscode/issues/108522)
-		void Promise.resolve(this.instantiationService.invokeFunction(accessor => fn(accessor))).catch(onUnexpectedError).catch(onUnexpectedError);
+		void Promise.resolve(this.instantiationService.invokeFunction(accessor => fn(accessor))).catch(onUnexpectedError);
 	}
 
 	private preservePayload(isEmptyWindow: boolean, options?: IOpenWindowOptions): Array<unknown> | undefined {

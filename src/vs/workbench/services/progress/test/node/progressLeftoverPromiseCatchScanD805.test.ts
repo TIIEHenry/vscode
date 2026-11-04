@@ -45,6 +45,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -61,19 +62,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!afterThen.includes(`})${doubleCatch};`));
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 const dialogShowThen = 'dialog.show().then(dialogResult => {';
@@ -123,7 +124,7 @@ suite('notification leftover remaining overflowed through progress leftover rema
 		const notificationLegal = 0;
 		assert.ok(notificationLegal < 4, `expected notification legal leftover <4, got ${notificationLegal}`);
 		assertThenWrapped(progress, dialogShowThen);
-		assert.strictEqual(countDoubleChains(progress), 1);
+		assert.strictEqual(countDoubleChains(progress), 0);
 		const progressLegal = 1;
 		assert.ok(progressLegal < 4, `expected progress legal leftover <4, got ${progressLegal}`);
 	});
@@ -138,7 +139,7 @@ suite('notification leftover remaining overflowed through progress leftover rema
 				assertThenWrapped(source, call);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 				assertWrapped(source, call);
 			}
@@ -147,7 +148,7 @@ suite('notification leftover remaining overflowed through progress leftover rema
 		assert.strictEqual(sites, 12);
 		assert.ok(sites >= 4);
 		const xterm = seen.get(XTERM_REL) ?? fs.readFileSync(resolveSource(XTERM_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(xterm), 11);
+		assert.strictEqual(countDoubleChains(xterm), 0);
 	});
 
 	test('progress leftover dialog.show then and userData / textresourceProperties leftover thens are Promise double-chain', () => {
@@ -176,17 +177,18 @@ suite('notification leftover remaining overflowed through progress leftover rema
 		const xterm = fs.readFileSync(resolveSource(XTERM_REL), 'utf8');
 		assertPromiseSignature(xterm, 'private async _updateUnicodeVersion(): Promise<void> {');
 		assertPromiseSignature(xterm, 'private async _enableWebglRenderer(): Promise<void> {');
-		assertPromiseSignature(xterm, 'private async _refreshLigaturesAddon(): Promise<void> {');
-		assertPromiseSignature(xterm, 'private async _refreshImageAddon(): Promise<void> {');
+		assertPromiseSignature(xterm, 'private _refreshLigaturesAddon(): Promise<void> {');
+		assertPromiseSignature(xterm, 'private _refreshImageAddon(): Promise<void> {');
 		assert.ok(xterm.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assertWrapped(xterm, updateUnicodeCall);
 		assertWrapped(xterm, enableWebglCall);
 		assertWrapped(xterm, refreshLigaturesCall);
 		assertWrapped(xterm, refreshImageCall);
-		assert.strictEqual(countIncludes(xterm, `${updateUnicodeCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(xterm, `${enableWebglCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(xterm, `${refreshLigaturesCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(xterm, `${refreshImageCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(xterm, `${updateUnicodeCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(xterm, `${enableWebglCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(xterm, `${refreshLigaturesCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(xterm, `${refreshImageCall}${singleCatch}`), 2);
+		assert.ok(!xterm.includes(doubleCatch));
 		assert.ok(!xterm.includes('\t\t\t\t\tthis._updateUnicodeVersion();\n'));
 		assert.ok(!xterm.includes('\t\tthis._updateUnicodeVersion();\n'));
 		assert.ok(!xterm.includes('\t\t\t\tthis._enableWebglRenderer();\n'));
@@ -231,7 +233,8 @@ suite('notification leftover remaining overflowed through progress leftover rema
 		assert.ok(xterm.includes(`this._xtermAddonLoader.importAddon('clipboard').then(ClipboardAddon => {`));
 		assert.ok(xterm.includes(`this._xtermAddonLoader.importAddon('progress').then(ProgressAddon => {`));
 		assert.ok(xterm.includes(`this._xtermAddonLoader.importAddon('clipboard').then(ClipboardAddon => {`));
-		assert.ok(xterm.includes(`\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\tthis._xtermAddonLoader.importAddon('progress')`));
+		assert.ok(xterm.includes(`\t\t}).catch(onUnexpectedError);\n\t\tthis._xtermAddonLoader.importAddon('progress')`));
+		assert.ok(!xterm.includes(`\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\tthis._xtermAddonLoader.importAddon('progress')`));
 		assert.strictEqual(countIncludes(xterm, `this._xtermAddonLoader.importAddon('clipboard').then(ClipboardAddon => {`), 1);
 		assert.strictEqual(countIncludes(xterm, `this._xtermAddonLoader.importAddon('progress').then(ProgressAddon => {`), 1);
 

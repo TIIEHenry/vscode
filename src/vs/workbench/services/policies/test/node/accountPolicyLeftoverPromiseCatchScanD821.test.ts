@@ -52,6 +52,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -68,14 +69,14 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const updatePolicyCall = 'this._updatePolicyDefinitions(this.policyDefinitions)';
 const getDefaultAccountThenCall = `this.defaultAccountService.getDefaultAccount().then(() => {
-			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._updatePolicyDefinitions(this.policyDefinitions).catch(onUnexpectedError);
 		})`;
 const fetchAlertsCall = 'this.fetchAlerts(emergencyAlertUrl)';
 const migrateCall = 'this.migrateToGnomeLibsecret()';
@@ -128,7 +129,7 @@ suite('unused leftover remaining after D820 moved to accountPolicy leftover Prom
 		for (const [rel, call, count] of d821Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -136,7 +137,7 @@ suite('unused leftover remaining after D820 moved to accountPolicy leftover Prom
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(ACCOUNT_REL) ?? ''), 9);
+		assert.strictEqual(countDoubleChains(seen.get(ACCOUNT_REL) ?? ''), 0);
 	});
 
 	test('accountPolicy leftover _updatePolicyDefinitions leftover void promises are Promise/async + double-chain', () => {
@@ -144,7 +145,7 @@ suite('unused leftover remaining after D820 moved to accountPolicy leftover Prom
 		assertPromiseSignature(account, 'protected async _updatePolicyDefinitions(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<void> {');
 		assert.ok(account.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(account, updatePolicyCall);
-		assert.strictEqual(countIncludes(account, `${updatePolicyCall}${doubleCatch}`), 8);
+		assert.strictEqual(countIncludes(account, `${updatePolicyCall}${singleCatch}`), 8);
 		assert.ok(!account.includes('\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(!account.includes('\t\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
 		assert.ok(!account.includes('\t\t\t\tthis._updatePolicyDefinitions(this.policyDefinitions);\n'));
@@ -217,9 +218,12 @@ suite('unused leftover remaining after D820 moved to accountPolicy leftover Prom
 
 		assert.ok(emergency.includes(`${fetchAlertsCall}${doubleCatch}`));
 		assert.ok(encryption.includes(`${migrateCall}${doubleCatch}`));
-		assert.ok(ignored.includes(`${ignoredCall}${doubleCatch}`));
-		assert.ok(update.includes(`${updateCall}${doubleCatch}`));
-		assert.ok(remoteProfile.includes(`${cleanUpCall}${doubleCatch}`));
+		assert.ok(ignored.includes(`${ignoredCall}${singleCatch}`));
+		assert.ok(!ignored.includes(doubleCatch));
+		assert.ok(update.includes(`${updateCall}${singleCatch}`));
+		assert.ok(!update.includes(doubleCatch));
+		assert.ok(remoteProfile.includes(`${cleanUpCall}${singleCatch}`));
+		assert.ok(!remoteProfile.includes(doubleCatch));
 		assert.ok(welcome.includes(`${openSessionCall}${doubleCatch}`));
 		assert.ok(welcome.includes(`${revealChatCall}${doubleCatch}`));
 
@@ -232,8 +236,9 @@ suite('unused leftover remaining after D820 moved to accountPolicy leftover Prom
 
 		assert.ok(policy.includes(doubleCatch));
 		assert.ok(quickaccess.includes(doubleCatch));
-		assert.ok(themes.includes(doubleCatch));
-		assert.ok(lifecycle.includes(doubleCatch));
+		assert.ok(themes.includes(singleCatch));
+		assert.ok(!themes.includes(doubleCatch));
+		assert.ok(!lifecycle.includes(doubleCatch));
 
 		for (const [rel, source] of [
 			[EMERGENCY_REL, emergency],

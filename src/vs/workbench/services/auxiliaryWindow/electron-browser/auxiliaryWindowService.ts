@@ -63,7 +63,7 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 			this.handleMaximizedState();
 		}
 
-		this.handleFullScreenState().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.handleFullScreenState().catch(onUnexpectedError);
 		this.handleAlwaysOnTopState();
 	}
 
@@ -135,7 +135,7 @@ export class NativeAuxiliaryWindow extends AuxiliaryWindow {
 		const confirmed = await this.instantiationService.invokeFunction(accessor => NativeAuxiliaryWindow.confirmOnShutdown(accessor, ShutdownReason.CLOSE));
 		if (confirmed) {
 			this.skipUnloadConfirmation = true;
-			this.nativeHostService.closeWindow({ targetWindowId: this.window.vscodeWindowId }).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.nativeHostService.closeWindow({ targetWindowId: this.window.vscodeWindowId }).catch(onUnexpectedError);
 		}
 	}
 

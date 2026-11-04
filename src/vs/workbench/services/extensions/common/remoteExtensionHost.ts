@@ -160,7 +160,7 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 							// 1) Extension Host is ready to receive messages, initialize it
 							this._createExtHostInitData(isExtensionDevelopmentDebug).then(data => {
 								protocol.send(VSBuffer.fromString(JSON.stringify(data)));
-							}).catch(onUnexpectedError).catch(onUnexpectedError);
+							}).catch(onUnexpectedError);
 							return;
 						}
 

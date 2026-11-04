@@ -38,6 +38,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -54,9 +55,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const updateTokenCall = 'this.update(cts.value.token)';
@@ -87,19 +88,19 @@ suite('chatEntitlement leftover remaining unused leftover Promise fire-and-forge
 
 	test('chatEntitlement leftover remaining unused still had four-plus legal unused sites so this knife did not move module', () => {
 		const entitlement = fs.readFileSync(resolveSource(CHAT_ENTITLEMENT_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(entitlement), 7);
+		assert.strictEqual(countDoubleChains(entitlement), 0);
 		const chatEntitlementLegal = 7;
 		assert.ok(chatEntitlementLegal >= 4, `expected chatEntitlement legal leftover ≥4, got ${chatEntitlementLegal}`);
 		assert.ok(!entitlement.includes('D825'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites in chatEntitlement leftover remaining unused', () => {
+	test('this knife covers seven leftover Promise single-chain sites in chatEntitlement leftover remaining unused', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d825Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -107,10 +108,10 @@ suite('chatEntitlement leftover remaining unused leftover Promise fire-and-forge
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CHAT_ENTITLEMENT_REL) ?? ''), 7);
+		assert.strictEqual(countDoubleChains(seen.get(CHAT_ENTITLEMENT_REL) ?? ''), 0);
 	});
 
-	test('chatEntitlement leftover remaining unused async this.foo() FOF (update/resolve) are Promise double-chain', () => {
+	test('chatEntitlement leftover remaining unused async this.foo() FOF (update/resolve) are Promise single-chain', () => {
 		const entitlement = fs.readFileSync(resolveSource(CHAT_ENTITLEMENT_REL), 'utf8');
 		assertPromiseSignature(entitlement, 'async update(token: CancellationToken): Promise<void> {');
 		assertPromiseSignature(entitlement, 'private async resolve(): Promise<void> {');
@@ -123,7 +124,7 @@ suite('chatEntitlement leftover remaining unused leftover Promise fire-and-forge
 		assertWrapped(entitlement, contextEntitlementUpdateCall);
 		assertWrapped(entitlement, configUpdateContextCall);
 		assertWrapped(entitlement, forceHiddenUpdateContextCall);
-		assert.strictEqual(countIncludes(entitlement, `${resolveCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(entitlement, `${resolveCall}${singleCatch}`), 2);
 		assert.ok(!entitlement.includes('\t\t\t\tthis.update(cts.value.token);\n'));
 		assert.ok(!entitlement.includes('\t\tthis.resolve();\n'));
 		assert.ok(!entitlement.includes('() => this.resolve())'));
@@ -144,10 +145,10 @@ suite('chatEntitlement leftover remaining unused leftover Promise fire-and-forge
 		assert.ok(progress.includes('dialog.show().then(dialogResult => {'));
 		assert.ok(userData.includes('extensionService.whenInstalledExtensionsRegistered().then(() => this.initializeOtherResource(userDataInitializeService, instantiationService))'));
 		assert.ok(textRes.includes('remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv)'));
-		assert.ok(xterm.includes(`this._updateUnicodeVersion()${doubleCatch}`));
-		assert.ok(xterm.includes(`this._enableWebglRenderer()${doubleCatch}`));
-		assert.ok(xterm.includes(`this._refreshLigaturesAddon()${doubleCatch}`));
-		assert.ok(xterm.includes(`this._refreshImageAddon()${doubleCatch}`));
+		assert.ok(xterm.includes(`this._updateUnicodeVersion()${singleCatch}`));
+		assert.ok(xterm.includes(`this._enableWebglRenderer()${singleCatch}`));
+		assert.ok(xterm.includes(`this._refreshLigaturesAddon()${singleCatch}`));
+		assert.ok(xterm.includes(`this._refreshImageAddon()${singleCatch}`));
 	});
 
 	test('H notebook/secrets/integrity/label, I settingsEditor2, F extensionsWorkbench, D tasks, J accountPolicy/configuration, A welcomeGettingStarted stay untouched by this knife', () => {
@@ -176,8 +177,8 @@ suite('chatEntitlement leftover remaining unused leftover Promise fire-and-forge
 		assert.ok(!entitlement.includes(`this.update(entitlements)${doubleCatch}`));
 		assert.ok(entitlement.includes('\t\tthis.update({ entitlement: ChatEntitlement.Free });\n'));
 		assert.ok(!entitlement.includes(`this.update({ entitlement: ChatEntitlement.Free })${doubleCatch}`));
-		assert.ok(entitlement.includes('return this.resolveEntitlement(defaultAccount, token);'));
-		assert.ok(!entitlement.includes(`return this.resolveEntitlement(defaultAccount, token)${doubleCatch}`));
+		assert.ok(entitlement.includes('return this.resolveEntitlement(defaultAccount, cts.token);'));
+		assert.ok(!entitlement.includes(`return this.resolveEntitlement(defaultAccount, cts.token)${doubleCatch}`));
 		assert.ok(entitlement.includes('await this.resolveEntitlement(defaultAccount, cts.token);'));
 		assert.ok(!entitlement.includes(`await this.resolveEntitlement(defaultAccount, cts.token)${doubleCatch}`));
 
@@ -185,6 +186,7 @@ suite('chatEntitlement leftover remaining unused leftover Promise fire-and-forge
 		assert.ok(!entitlement.includes('.then('));
 		assert.ok(!entitlement.includes(', error => {'));
 		assert.ok(!entitlement.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+		assert.ok(!entitlement.includes(doubleCatch));
 
 		assert.ok(!entitlement.includes('acknowledge('));
 		assert.ok(!entitlement.includes('releaseLease('));

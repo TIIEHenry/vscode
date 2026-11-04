@@ -53,7 +53,7 @@ export class NativeKeyboardLayoutService extends Disposable implements INativeKe
 				this._keyboardMapping = keyboardMapping;
 				this._keyboardLayoutInfo = keyboardLayoutInfo;
 				this._onDidChangeKeyboardLayout.fire();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 	}
 

@@ -337,7 +337,7 @@ export class LinkPresentationService extends Disposable implements ILinkPresenta
 			}
 			return;
 		}
-		void this._activateExtensionProvider(entry, provider, generation).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._activateExtensionProvider(entry, provider, generation).catch(onUnexpectedError);
 	}
 
 	private async _activateExtensionProvider(entry: SharedLinkPresentationEntry, provider: ISelectedLinkPresentationProvider, generation: number): Promise<void> {

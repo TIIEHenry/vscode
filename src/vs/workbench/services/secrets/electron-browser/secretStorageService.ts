@@ -48,7 +48,7 @@ export class NativeSecretStorageService extends BaseSecretStorageService {
 				await this.notifyOfNoEncryptionOnce();
 			}
 
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		return super.set(key, value);
 	}

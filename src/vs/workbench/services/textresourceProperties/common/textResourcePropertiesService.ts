@@ -49,7 +49,7 @@ export class TextResourcePropertiesService implements ITextResourcePropertiesSer
 
 		const remoteAgentService = this.remoteAgentService;
 		// Double catch fulfills on rejection, so the promise is dropped and is not a failure cache.
-		this.releaseRemoteEnvironmentAttempt(remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv).catch(onUnexpectedError).catch(onUnexpectedError));
+		this.releaseRemoteEnvironmentAttempt(remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv).catch(onUnexpectedError));
 	}
 
 	private releaseRemoteEnvironmentAttempt(swallowed: Promise<unknown>): void {

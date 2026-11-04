@@ -43,6 +43,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -59,19 +60,19 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 function assertThenWrapped(source: string, thenStart: string): void {
 	const idx = source.indexOf(thenStart);
 	assert.ok(idx >= 0, `missing then: ${thenStart}`);
 	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
+	const closeThen = afterThen.indexOf(`})${singleCatch};`);
+	assert.ok(closeThen >= 0, `then not single-chained: ${thenStart}`);
+	assert.ok(!afterThen.includes(`})${doubleCatch};`));
 	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 const registerChannelThen = 'this.withSharedProcessConnection.then(connection => connection.registerChannel(channelName, channel))';
@@ -132,7 +133,7 @@ suite('path leftover remaining overflowed to sharedProcess/auxiliaryWindow/mcp l
 				assertThenWrapped(source, call);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
 				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 				assertWrapped(source, call);
 			}
@@ -141,11 +142,11 @@ suite('path leftover remaining overflowed to sharedProcess/auxiliaryWindow/mcp l
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SHARED_REL)!), 1);
-		assert.strictEqual(countDoubleChains(seen.get(AUX_BROWSER_REL)!), 1);
-		assert.strictEqual(countDoubleChains(seen.get(AUX_ELECTRON_REL)!), 2);
-		assert.strictEqual(countDoubleChains(seen.get(MCP_ELECTRON_REL)!), 1);
-		assert.strictEqual(countDoubleChains(seen.get(MCP_BROWSER_REL)!), 2);
+		assert.strictEqual(countDoubleChains(seen.get(SHARED_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(AUX_BROWSER_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(AUX_ELECTRON_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(MCP_ELECTRON_REL)!), 0);
+		assert.strictEqual(countDoubleChains(seen.get(MCP_BROWSER_REL)!), 0);
 	});
 
 	test('sharedProcess registerChannel then / auxiliaryWindow wait then / handleFullScreenState / closeWindow / mcp getMcpGalleryManifest then / getAndUpdate are Promise double-chain', () => {
@@ -249,8 +250,8 @@ suite('path leftover remaining overflowed to sharedProcess/auxiliaryWindow/mcp l
 		assert.ok(auxBrowser.includes('this.whenStylesHaveLoaded = stylesHaveLoaded.wait().then(() => undefined);'));
 		assert.ok(!auxBrowser.includes(`this.whenStylesHaveLoaded = stylesHaveLoaded.wait().then(() => undefined)${doubleCatch}`));
 
-		assert.ok(auxElectron.includes('(async () => {\n\t\t\tthis.maximized = await this.nativeHostService.isMaximized({ targetWindowId: this.window.vscodeWindowId });\n\t\t})();'));
-		assert.ok(auxElectron.includes('(async () => {\n\t\t\tthis.alwaysOnTop = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId: this.window.vscodeWindowId });\n\t\t})();'));
+		assert.ok(auxElectron.includes('const maximized = await this.nativeHostService.isMaximized({ targetWindowId: this.window.vscodeWindowId });'));
+		assert.ok(auxElectron.includes('const alwaysOnTop = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId: this.window.vscodeWindowId });'));
 		assert.ok(!auxElectron.includes('})().catch(onUnexpectedError)'));
 
 		assert.ok(mcpElectron.includes("channel.call('setMcpGalleryManifest', [manifest]);"));

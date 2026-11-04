@@ -33,6 +33,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -40,10 +41,15 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+function assertDoubleThen(source: string, call: string, isSingleCatch = false): void {
+	const expected = isSingleCatch ? singleCatch : doubleCatch;
+	assert.ok(source.includes(`${call}${expected};`), `missing catch: ${call}`);
+	if (isSingleCatch) {
+		assert.ok(!source.includes(`${call}${doubleCatch};`), `double catch remains: ${call}`);
+	} else {
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	}
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${expected};`));
 }
 
 suite('platform/workbench services leftover Promise fire-and-forget catch scan (D696)', () => {
@@ -60,14 +66,14 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		const enablement = fs.readFileSync(resolveSource(ENABLEMENT_REL), 'utf8');
 		const keybinding = fs.readFileSync(resolveSource(KEYBINDING_REL), 'utf8');
 		const calls = [
-			[keyboard, 'lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())'],
-			[history, 'this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())'],
-			[command, 'this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value)'],
+			[keyboard, 'lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())', false],
+			[history, 'this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())', false],
+			[command, 'this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value)', true],
 			[language, `this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 			this.updateMime();
-		})`],
-			[editor, 'this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady())'],
-			[scanner, 'lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())'],
+		})`, true],
+			[editor, 'this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady())', true],
+			[scanner, 'lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())', true],
 			[enablement, `this.extensionsManager.whenInitialized().then(() => {
 			if (!isDisposed) {
 				uninstallDisposable.dispose();
@@ -75,16 +81,16 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 				this._register(this.extensionsManager.onDidChangeExtensions(({ added, removed, isProfileSwitch }) => this._onDidChangeExtensions(added, removed, isProfileSwitch)));
 				this.loopCheckForMaliciousExtensions();
 			}
-		})`],
+		})`, true],
 			[keybinding, `this.userKeybindings.initialize().then(() => {
 			if (this.userKeybindings.keybindings.length) {
 				this.updateResolver();
 			}
-		})`],
+		})`, true],
 		] as const;
 		assert.strictEqual(calls.length, 8);
-		for (const [source, call] of calls) {
-			assertDoubleThen(source, call);
+		for (const [source, call, isSingle] of calls) {
+			assertDoubleThen(source, call, isSingle);
 		}
 	});
 
@@ -94,7 +100,7 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		assertPromiseSignature(lifecycle, 'when(phase: LifecycleMainPhase): Promise<void>;');
 		assertPromiseSignature(source, 'private _initialize(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())');
+		assertDoubleThen(source, 'lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize())', false);
 	});
 
 	test('workspacesHistory leftover when Eventually then is Promise double-chain', () => {
@@ -103,7 +109,7 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		assertPromiseSignature(lifecycle, 'when(phase: LifecycleMainPhase): Promise<void>;');
 		assertPromiseSignature(source, 'private async handleWindowsJumpList(): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())');
+		assertDoubleThen(source, 'this.lifecycleMainService.when(LifecycleMainPhase.Eventually).then(() => this.handleWindowsJumpList())', false);
 	});
 
 	test('command leftover whenInstalledExtensionsRegistered then is Promise double-chain', () => {
@@ -111,7 +117,7 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
 		assertPromiseSignature(extensions, 'whenInstalledExtensionsRegistered(): Promise<boolean>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value)');
+		assertDoubleThen(source, 'this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value)', true);
 	});
 
 	test('language leftover whenInstalledExtensionsRegistered then is Promise double-chain; sync updateMime stays skipped', () => {
@@ -122,9 +128,9 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		const thenCall = `this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 			this.updateMime();
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}${singleCatch};`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
 		assert.ok(source.includes('private updateMime(): void {'));
 		assert.ok(source.includes('this.updateMime();'));
 		assert.ok(!source.includes('this.updateMime().catch'));
@@ -135,7 +141,7 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		const groups = fs.readFileSync(resolveSource(GROUPS_REL), 'utf8');
 		assertPromiseSignature(groups, 'readonly whenReady: Promise<void>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady())');
+		assertDoubleThen(source, 'this.editorGroupService.whenReady.then(() => this.onEditorGroupsReady())', true);
 		assert.ok(source.includes('private onEditorGroupsReady(): void {'));
 		assert.ok(source.includes('\t\t\tthis.onEditorGroupsReady();'));
 		assert.ok(!source.includes('this.onEditorGroupsReady().catch'));
@@ -147,7 +153,7 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
 		assertPromiseSignature(source, 'private async updateCaches(): Promise<void> {');
 		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())');
+		assertDoubleThen(source, 'lifecycleService.when(LifecyclePhase.Eventually).then(() => this.updateCaches())', true);
 	});
 
 	test('extensionEnablement leftover whenInitialized then is Promise double-chain; loop leftover stays skipped', () => {
@@ -162,10 +168,10 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 				this.loopCheckForMaliciousExtensions();
 			}
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}${singleCatch};`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('.then(() => this.loopCheckForMaliciousExtensions());'));
+		assert.ok(source.includes('.then(() => this.loopCheckForMaliciousExtensions())'));
 		assert.ok(!source.includes(`.then(() => this.loopCheckForMaliciousExtensions())${doubleCatch}`));
 	});
 
@@ -178,9 +184,9 @@ suite('platform/workbench services leftover Promise fire-and-forget catch scan (
 				this.updateResolver();
 			}
 		})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${thenCall}${singleCatch};`));
+		assert.ok(!source.includes(`${thenCall}${doubleCatch};`));
 		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty stay skipped', () => {
