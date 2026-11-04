@@ -81,13 +81,13 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 		this._register(this.urlService.registerHandler(this));
 
 		if (isWeb) {
-			lifecycleService.when(LifecyclePhase.Eventually).then(() => userDataProfilesService.cleanUp()).catch(onUnexpectedError).catch(onUnexpectedError);
+			lifecycleService.when(LifecyclePhase.Eventually).then(() => userDataProfilesService.cleanUp()).catch(onUnexpectedError);
 		}
 
-		this.reportWorkspaceProfileInfo().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.reportWorkspaceProfileInfo().catch(onUnexpectedError);
 
 		if (environmentService.options?.profileToPreview) {
-			lifecycleService.when(LifecyclePhase.Restored).then(() => this.handleURL(URI.revive(environmentService.options!.profileToPreview!))).catch(onUnexpectedError).catch(onUnexpectedError);
+			lifecycleService.when(LifecyclePhase.Restored).then(() => this.handleURL(URI.revive(environmentService.options!.profileToPreview!))).catch(onUnexpectedError);
 		}
 
 		this.registerDropHandler();
@@ -97,7 +97,7 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 		if (isProfileURL(uri)) {
 			const editor = await this.openProfilesEditor();
 			if (editor) {
-				editor.createNewProfile(uri).catch(onUnexpectedError).catch(onUnexpectedError);
+				editor.createNewProfile(uri).catch(onUnexpectedError);
 				return true;
 			}
 		}
@@ -137,7 +137,7 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 					const template = await userDataProfileImportExportService.resolveProfileTemplate(resource);
 					if (!template) {
 						notificationService.warn(localize('invalid profile', "The dropped profile is invalid."));
-						editorService.openEditor(textEditorService.createTextEditor({ resource })).catch(onUnexpectedError).catch(onUnexpectedError);
+						editorService.openEditor(textEditorService.createTextEditor({ resource })).catch(onUnexpectedError);
 						return true;
 					}
 					const editor = await that.openProfilesEditor();
@@ -543,6 +543,9 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 
 	private async reportWorkspaceProfileInfo(): Promise<void> {
 		await this.lifecycleService.when(LifecyclePhase.Eventually);
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		type UserProfilesCountClassification = {
 			owner: 'sandy081';
@@ -558,6 +561,9 @@ export class UserDataProfilesWorkbenchContribution extends Disposable implements
 		}
 
 		const workspaceId = await this.workspaceTagsService.getTelemetryWorkspaceId(this.workspaceContextService.getWorkspace(), this.workspaceContextService.getWorkbenchState());
+		if (this._store.isDisposed) {
+			return;
+		}
 		type WorkspaceProfileInfoClassification = {
 			owner: 'sandy081';
 			comment: 'Report profile information of the current workspace';

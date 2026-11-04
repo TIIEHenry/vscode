@@ -8,7 +8,7 @@ import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } f
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
-import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { isWeb } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -68,11 +68,19 @@ export class PostUpdateWidgetContribution extends Disposable implements IWorkben
 		}
 
 		this._register(CommandsRegistry.registerCommand('_update.showUpdateInfo', (_accessor, markdown?: string) => this.showUpdateInfo(markdown)));
-		void this.tryShowOnStartup().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.tryShowOnStartup().catch(onUnexpectedError);
 	}
 
 	private async tryShowOnStartup() {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (!await this.hostService.hadLastFocus()) {
+			return;
+		}
+
+		if (this._store.isDisposed) {
 			return;
 		}
 
@@ -92,8 +100,12 @@ export class PostUpdateWidgetContribution extends Disposable implements IWorkben
 	}
 
 	private async showUpdateInfo(markdown?: string) {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		const info = await this.getUpdateInfo(markdown);
-		if (!info) {
+		if (!info || this._store.isDisposed) {
 			return;
 		}
 
@@ -149,6 +161,10 @@ export class PostUpdateWidgetContribution extends Disposable implements IWorkben
 	private buildContent(info: IParsedUpdateInfoInput, disposables: DisposableStore): HTMLElement {
 		const { markdown, buttons, bannerImageUrl, badge, title, features } = info;
 		const container = dom.$('.post-update-widget');
+		disposables.add(toDisposable(() => {
+			dom.clearNode(container);
+			container.remove();
+		}));
 		const titleId = `post-update-widget-title-${PostUpdateWidgetContribution.idCounter++}`;
 		container.setAttribute('role', 'dialog');
 		container.setAttribute('aria-labelledby', titleId);
@@ -264,7 +280,7 @@ export class PostUpdateWidgetContribution extends Disposable implements IWorkben
 						{ id: commandId, from: 'postUpdateWidget' }
 					);
 
-					void this.commandService.executeCommand(commandId, ...(args ?? [])).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.commandService.executeCommand(commandId, ...(args ?? [])).catch(onUnexpectedError);
 					this.hoverService.hideHover(true);
 				}));
 			}

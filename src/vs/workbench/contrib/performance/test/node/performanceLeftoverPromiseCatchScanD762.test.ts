@@ -45,9 +45,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const existsThen = `this._fileService.exists(profileFilenamePrefix).then(exists => {
@@ -60,7 +60,7 @@ const existsThen = `this._fileService.exists(profileFilenamePrefix).then(exists 
 
 const markerFileThen = `				} else {
 					// simply restart
-					this._nativeHostService.relaunch({ removeArgs }).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._nativeHostService.relaunch({ removeArgs }).catch(onUnexpectedError);
 				}
 			});
 		})`;
@@ -75,7 +75,7 @@ const createIssueThen = `					]).then(() => {
 						}).then(res => {
 							// now we are ready to restart
 							if (res.confirmed) {
-								this._nativeHostService.relaunch({ removeArgs }).catch(onUnexpectedError).catch(onUnexpectedError);
+								this._nativeHostService.relaunch({ removeArgs }).catch(onUnexpectedError);
 							}
 						});
 					})`;
@@ -114,13 +114,18 @@ suite('Performance leftover remaining Promise fire-and-forget catch scan (D762)'
 		for (const [rel, call, count] of d762Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+			const wrapped = (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.catch\\(onUnexpectedError\\)`, 'g')) ?? []).length;
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 10);
 		assert.ok(sites >= 4);
+		assert.strictEqual((seen.get(PROFILER_REL)!.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((seen.get(RENDERER_REL)!.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((seen.get(NATIVE_TIMINGS_REL)!.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((seen.get(PERFVIEW_REL)!.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.strictEqual((seen.get(BROWSER_TIMINGS_REL)!.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 	});
 
 	test('leftover exists then / markerFile then / create-issue then / relaunch are Promise double-chain', () => {
@@ -135,7 +140,8 @@ suite('Performance leftover remaining Promise fire-and-forget catch scan (D762)'
 		assertWrapped(profiler, existsThen);
 		assertWrapped(profiler, markerFileThen);
 		assertWrapped(profiler, createIssueThen);
-		assert.strictEqual((profiler.match(/this\._nativeHostService\.relaunch\(\{ removeArgs \}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((profiler.match(/this\._nativeHostService\.relaunch\(\{ removeArgs \}\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.strictEqual((profiler.match(/this\._nativeHostService\.relaunch\(\{ removeArgs \}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
 		assert.ok(!profiler.includes('this._fileService.exists(profileFilenamePrefix).then(exists => {\n\t\t\t\t\t\tif (exists) {\n\t\t\t\t\t\t\tresolve();\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tsetTimeout(check, 500);\n\t\t\t\t\t\t}\n\t\t\t\t\t});'));
 		assert.ok(!profiler.includes('this._nativeHostService.relaunch({ removeArgs });'));
 	});
@@ -195,10 +201,10 @@ suite('Performance leftover remaining Promise fire-and-forget catch scan (D762)'
 		assert.ok(!profiler.includes(`return this._dialogService.confirm({\n\t\t\t\ttype: 'info',\n\t\t\t\tmessage: localize('prof.message'${doubleCatch}`));
 		assert.ok(nativeTimings.includes('timeout(5000).then(() => { throw new Error(\'Timed out flushing profiled startup state.\'); })'));
 		assert.ok(!nativeTimings.includes(`timeout(5000).then(() => { throw new Error('Timed out flushing profiled startup state.'); })${doubleCatch}`));
-		assert.ok(profiler.includes(`		]).then(() => {\n\t\t\tthis._stopProfiling();\n\t\t})${doubleCatch};`));
-		assert.ok(renderer.includes(`		}).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(nativeTimings.includes(`this._report()${doubleCatch};`));
-		assert.ok(nativeTimings.includes(`this._appendStartupTimes(standardStartupError)${doubleCatch};`));
+		assert.ok(profiler.includes(`		]).then(() => {\n\t\t\tthis._stopProfiling();\n\t\t}).catch(onUnexpectedError);`));
+		assert.ok(renderer.includes(`		}).catch(onUnexpectedError);`));
+		assert.ok(nativeTimings.includes(`this._report().catch(onUnexpectedError);`));
+		assert.ok(nativeTimings.includes(`this._appendStartupTimes(standardStartupError).catch(onUnexpectedError);`));
 		for (const source of [profiler, renderer, nativeTimings, contrib]) {
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

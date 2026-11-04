@@ -230,7 +230,7 @@ export class SnippetsService implements ISnippetsService {
 	) {
 		this._trackPendingWork(Promise.resolve(lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			this._initExtensionSnippets();
-			this._initUserSnippets().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._initUserSnippets().catch(onUnexpectedError);
 			this._initWorkspaceSnippets();
 		})));
 
@@ -310,7 +310,7 @@ export class SnippetsService implements ISnippetsService {
 			for (const file of this._files.values()) {
 				// kick off loading (which is a noop in case it's already loaded)
 				// and optimistically collect snippets
-				file.load().catch(_err => { /*ignore*/ }).catch(onUnexpectedError).catch(onUnexpectedError);
+				file.load().catch(_err => { /*ignore*/ }).catch(onUnexpectedError);
 				file.select(languageId, result);
 			}
 		}
@@ -433,6 +433,9 @@ export class SnippetsService implements ISnippetsService {
 		// workspace stuff
 		const disposables = new DisposableStore();
 		const updateWorkspaceSnippets = () => {
+			if (this._disposables.isDisposed) {
+				return;
+			}
 			disposables.clear();
 			++this._workspaceSnippetsEpoch;
 			this._trackPendingWork(this._initWorkspaceFolderSnippets(this._contextService.getWorkspace(), disposables));
@@ -448,16 +451,16 @@ export class SnippetsService implements ISnippetsService {
 		const promises = workspace.folders.map(async folder => {
 			const snippetFolder = folder.toResource('.vscode');
 			const value = await this._fileService.exists(snippetFolder);
-			if (epoch !== this._workspaceSnippetsEpoch || bucket.isDisposed) {
+			if (epoch !== this._workspaceSnippetsEpoch || bucket.isDisposed || this._disposables.isDisposed) {
 				return;
 			}
 			if (value) {
-				this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError);
 			} else {
 				// watch
 				bucket.add(this._fileService.onDidFilesChange(e => {
 					if (e.contains(snippetFolder, FileChangeType.ADDED)) {
-						this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError).catch(onUnexpectedError);
+						this._initFolderSnippets(SnippetSource.Workspace, snippetFolder, bucket).catch(onUnexpectedError);
 					}
 				}));
 			}
@@ -469,11 +472,14 @@ export class SnippetsService implements ISnippetsService {
 		const disposables = new DisposableStore();
 		let userSnippetsEpoch = 0;
 		const updateUserSnippets = async () => {
+			if (this._disposables.isDisposed) {
+				return;
+			}
 			const epoch = ++userSnippetsEpoch;
 			disposables.clear();
 			const userSnippetsFolder = this._userDataProfileService.currentProfile.snippetsHome;
 			await this._fileService.createFolder(userSnippetsFolder);
-			if (epoch !== userSnippetsEpoch || disposables.isDisposed) {
+			if (epoch !== userSnippetsEpoch || disposables.isDisposed || this._disposables.isDisposed) {
 				return;
 			}
 			await this._initFolderSnippets(SnippetSource.User, userSnippetsFolder, disposables);
@@ -512,11 +518,11 @@ export class SnippetsService implements ISnippetsService {
 
 		bucket.add(this._textfileService.files.onDidSave(e => {
 			if (resources.isEqualOrParent(e.model.resource, folder)) {
-				addFolderSnippets().catch(onUnexpectedError).catch(onUnexpectedError);
+				addFolderSnippets().catch(onUnexpectedError);
 			}
 		}));
 		bucket.add(watch(this._fileService, folder, () => {
-			addFolderSnippets().catch(onUnexpectedError).catch(onUnexpectedError);
+			addFolderSnippets().catch(onUnexpectedError);
 		}));
 		bucket.add(disposables);
 		return addFolderSnippets();

@@ -137,7 +137,7 @@ export class OutputViewPane extends FilterViewPane {
 
 	override focus(): void {
 		super.focus();
-		this.editorPromise?.then(() => this.editor.focus())?.catch(onUnexpectedError)?.catch(onUnexpectedError);
+		this.editorPromise?.then(() => this.editor.focus())?.catch(onUnexpectedError);
 	}
 
 	public clearFilterText(): void {

@@ -79,9 +79,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const registerLoopCall = 'this.onDidRegisterChannel(channelIdentifier.id)';
@@ -153,11 +153,12 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		assertPromiseSignature(services, 'private async onDidRegisterChannel(channelId: string): Promise<void> {');
 		assertPromiseSignature(services, 'private async setLevelIsDefaultContext(): Promise<void> {');
 		assertPromiseSignature(services, 'async showChannel(id: string, preserveFocus?: boolean): Promise<void> {');
-		assert.ok(services.includes(`${registerLoopCall}${doubleCatch}`));
-		assert.ok(services.includes(`${registerEventCall}${doubleCatch}`));
-		assert.ok(services.includes(`${setLevelCall}${doubleCatch}`));
-		assert.ok(services.includes(`${showRemovedCall}${doubleCatch}`));
-		assert.ok(services.includes(`${showDisposeCall}${doubleCatch}`));
+		assert.ok(services.includes(`${registerLoopCall}.catch(onUnexpectedError);`));
+		assert.ok(services.includes(`${registerEventCall}.catch(onUnexpectedError)`));
+		assert.ok(services.includes(`${setLevelCall}.catch(onUnexpectedError);`));
+		assert.ok(services.includes(`${showRemovedCall}.catch(onUnexpectedError);`));
+		assert.ok(services.includes(`${showDisposeCall}.catch(onUnexpectedError);`));
+		assert.strictEqual(countDoubleChains(services), 0);
 		assert.ok(!services.includes('\t\t\tthis.onDidRegisterChannel(channelIdentifier.id);\n'));
 		assert.ok(!services.includes('\t\t\tthis.setLevelIsDefaultContext();\n'));
 		assert.ok(contrib.includes('that.openActiveOutput();'));
@@ -187,7 +188,7 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		for (const [rel, call, count] of d864Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -195,10 +196,10 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countIncludes(seen.get(ASSIGN_REL) ?? '', `${refetchCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(seen.get(FILTERS_REL) ?? '', `${updateExtCall}${doubleCatch}`), 2);
-		assert.strictEqual(countDoubleChains(seen.get(ASSIGN_REL) ?? ''), 3);
-		assert.strictEqual(countDoubleChains(seen.get(FILTERS_REL) ?? ''), 2);
+		assert.strictEqual(countIncludes(seen.get(ASSIGN_REL) ?? '', `${refetchCall}.catch(onUnexpectedError)`), 2);
+		assert.strictEqual(countIncludes(seen.get(FILTERS_REL) ?? '', `${updateExtCall}.catch(onUnexpectedError)`), 2);
+		assert.strictEqual(countDoubleChains(seen.get(ASSIGN_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(FILTERS_REL) ?? ''), 0);
 	});
 
 	test('unused leftover remaining unused assignment leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -213,7 +214,7 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		assert.ok(!assign.includes('() => this.refetchAssignments())'));
 		assert.ok(!filters.includes('\t\tthis.updateExtensionVersions();\n'));
 		assert.ok(!filters.includes('\t\t\t\tthis.updateExtensionVersions();\n'));
-		assert.ok(assign.includes(`${leftoverAssignmentThenCall}${doubleCatch}`));
+		assert.ok(assign.includes(`${leftoverAssignmentThenCall}.catch(onUnexpectedError);`));
 		assert.ok(assign.includes(`${leftoverRecreateCall})`));
 		assert.ok(!assign.includes(`${leftoverRecreateCall}${doubleCatch}`));
 		assert.ok(filters.includes(`${leftoverEntitlementCall};`));
@@ -243,8 +244,9 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		assert.ok(logsContrib.includes('run(servicesAccessor: ServicesAccessor): Promise<void> {'));
 		assert.ok(logsContrib.includes('return action.run().finally(() => action.dispose());'));
 		assert.ok(!logsContrib.includes(`return action.run().finally(() => action.dispose())${doubleCatch}`));
-		assert.ok(services.includes(`${registerLoopCall}${doubleCatch}`));
-		assert.ok(assign.includes(`${leftoverAssignmentThenCall}${doubleCatch}`));
+		assert.ok(services.includes(`${registerLoopCall}.catch(onUnexpectedError);`));
+		assert.strictEqual(countDoubleChains(services), 0);
+		assert.ok(assign.includes(`${leftoverAssignmentThenCall}.catch(onUnexpectedError);`));
 		assert.ok(assign.includes('tasClient.initialFetch.then(() => {'));
 		assert.ok(!assign.includes(`tasClient.initialFetch.then(() => {${doubleCatch}`));
 		assert.ok(assign.includes('client?.then(c => c.dispose()).catch(() => undefined);'));
@@ -329,34 +331,34 @@ suite('leftover remaining unused after output leftover remaining unused after al
 		assert.ok(searchEditor.includes(leftoverNoArgIncludesCall));
 		assert.ok(!searchEditor.includes(`() => this.triggerSearch()${doubleCatch}`));
 
-		assert.ok(planReview.includes(`${leftoverClearAllCall}${doubleCatch}`));
-		assert.ok(planReview.includes(`${leftoverExitFeedbackCall}${doubleCatch}`));
-		assert.ok(planReview.includes(`${leftoverSubmitRejectionCall}${doubleCatch}`));
+		assert.ok(planReview.includes(`${leftoverClearAllCall}.catch(onUnexpectedError)`));
+		assert.ok(planReview.includes(`${leftoverExitFeedbackCall}.catch(onUnexpectedError)`));
+		assert.ok(planReview.includes(`${leftoverSubmitRejectionCall}.catch(onUnexpectedError)`));
 		assert.ok(!planReview.includes('\t\t\tthis._register(clearAllButton.onDidClick(() => this.clearAllInlineFeedback()));\n'));
 
-		assert.ok(history.includes(`${loadMoreCall}${doubleCatch}`));
-		assert.ok(repos.includes(`${addRepoCall}${doubleCatch}`));
-		assert.ok(explorer.includes(`${updateBadgeCall}${doubleCatch}`));
-		assert.ok(explorer.includes(`${startStopCall}${doubleCatch}`));
-		assert.ok(files.includes(`${resolveCall}${doubleCatch}`));
+		assert.ok(history.includes(`${loadMoreCall}.catch(onUnexpectedError)`));
+		assert.ok(repos.includes(`${addRepoCall}.catch(onUnexpectedError)`));
+		assert.ok(explorer.includes(`${updateBadgeCall}.catch(onUnexpectedError)`));
+		assert.ok(explorer.includes(`${startStopCall}.catch(onUnexpectedError)`));
+		assert.ok(files.includes(`${resolveCall}.catch(onUnexpectedError)`));
 		assert.ok(suggestContrib.includes(`${prepareXtermRawCall}${doubleCatch}`));
-		assert.ok(status.includes(`${notebookUpdateCall}${doubleCatch}`));
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
+		assert.ok(status.includes(`${notebookUpdateCall}.catch(onUnexpectedError)`));
+		assert.ok(findModel.includes(`${researchCall}.catch(onUnexpectedError)`));
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}.catch(onUnexpectedError)`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
-		assert.ok(unification.includes(`this._update()${doubleCatch}`));
-		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}.catch(onUnexpectedError)`));
+		assert.ok(debugService.includes(`${launchCall}.catch(onUnexpectedError)`));
+		assert.ok(debugEditor.includes(`${toggleCall}.catch(onUnexpectedError)`));
+		assert.ok(unification.includes(`this._update().catch(onUnexpectedError)`));
+		assert.ok(mgmt.includes(`this.switchProfile(profileToUse).catch(onUnexpectedError)`));
 
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(migration.includes(`this.migrateMcpConfig()${doubleCatch}`));
-		assert.ok(workbench.includes(`this.open(local)${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(discovery), 1);
-		assert.strictEqual(countDoubleChains(migration), 1);
-		assert.strictEqual(countDoubleChains(workbench), 5);
+		assert.ok(discovery.includes(`this.sync().catch(onUnexpectedError)`));
+		assert.ok(migration.includes(`this.migrateMcpConfig().catch(onUnexpectedError)`));
+		assert.ok(workbench.includes(`this.open(local).catch(onUnexpectedError)`));
+		assert.strictEqual(countDoubleChains(discovery), 0);
+		assert.strictEqual(countDoubleChains(migration), 0);
+		assert.strictEqual(countDoubleChains(workbench), 0);
 		assert.ok(migration.includes(`${leftoverCheckFileCall};`));
 		assert.ok(!migration.includes(`${leftoverCheckFileCall}${doubleCatch}`));
 		assert.ok(workbench.includes(`${leftoverProfileCall})`));

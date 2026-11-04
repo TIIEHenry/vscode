@@ -114,12 +114,12 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 		this.state = updateService.state;
 		this._register(updateService.onStateChange((state) => {
 			this.state = state;
-			this.onStateChange().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.onStateChange().catch(onUnexpectedError);
 		}));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(UPDATE_TITLE_BAR_SETTING)) {
-				this.onStateChange().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.onStateChange().catch(onUnexpectedError);
 			}
 		}));
 
@@ -146,7 +146,7 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 			));
 		}
 
-		void this.onStateChange(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.onStateChange(true).catch(onUnexpectedError);
 	}
 
 	private createEntry(instantiationService: IInstantiationService, action: IAction, options: IBaseActionViewItemOptions): UpdateTitleBarEntry {
@@ -168,6 +168,9 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 
 	private async onStateChange(startup = false) {
 		const seq = ++this._stateSeq;
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.configurationService.getValue<boolean>(UPDATE_TITLE_BAR_SETTING) === false) {
 			this.tooltipVisible = false;
 			this.tooltipFocused = false;
@@ -183,7 +186,7 @@ export class UpdateTitleBarContribution extends Disposable implements IWorkbench
 		}
 
 		const hadLastFocus = await this.hostService.hadLastFocus();
-		if (seq !== this._stateSeq) {
+		if (this._store.isDisposed || seq !== this._stateSeq) {
 			return;
 		}
 
@@ -270,6 +273,15 @@ export class UpdateTitleBarEntry extends BaseActionViewItem {
 				this.focusTooltip();
 			}
 		}));
+	}
+
+	override dispose(): void {
+		if (this.content) {
+			dom.clearNode(this.content);
+			this.content.remove();
+			this.content = undefined;
+		}
+		super.dispose();
 	}
 
 	public override render(container: HTMLElement) {

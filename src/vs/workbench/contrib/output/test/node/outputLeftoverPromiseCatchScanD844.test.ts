@@ -65,9 +65,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}.catch(onUnexpectedError)`), `missing catch: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}.catch(onUnexpectedError);`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 const researchCall = 'this.research()';
@@ -116,11 +116,12 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assertPromiseSignature(services, 'private async onDidRegisterChannel(channelId: string): Promise<void> {');
 		assertPromiseSignature(services, 'private async setLevelIsDefaultContext(): Promise<void> {');
 		assertPromiseSignature(services, 'async showChannel(id: string, preserveFocus?: boolean): Promise<void> {');
-		assert.ok(services.includes(`${registerLoopCall}${doubleCatch}`));
-		assert.ok(services.includes(`${registerEventCall}${doubleCatch}`));
-		assert.ok(services.includes(`${setLevelCall}${doubleCatch}`));
-		assert.ok(services.includes(`${showRemovedCall}${doubleCatch}`));
-		assert.ok(services.includes(`${showDisposeCall}${doubleCatch}`));
+		assert.ok(services.includes(`${registerLoopCall}.catch(onUnexpectedError);`));
+		assert.ok(services.includes(`${registerEventCall}.catch(onUnexpectedError)`));
+		assert.ok(services.includes(`${setLevelCall}.catch(onUnexpectedError);`));
+		assert.ok(services.includes(`${showRemovedCall}.catch(onUnexpectedError);`));
+		assert.ok(services.includes(`${showDisposeCall}.catch(onUnexpectedError);`));
+		assert.strictEqual(countDoubleChains(services), 0);
 		assert.ok(!services.includes('\t\t\tthis.onDidRegisterChannel(channelIdentifier.id);\n'));
 		assert.ok(!services.includes('\t\t\tthis.setLevelIsDefaultContext();\n'));
 		assert.ok(contrib.includes('that.openActiveOutput();'));
@@ -145,7 +146,7 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		for (const [rel, call, count] of d844Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}.catch(onUnexpectedError)`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -153,7 +154,7 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(FIND_MODEL_REL) ?? ''), 8);
+		assert.strictEqual(countDoubleChains(seen.get(FIND_MODEL_REL) ?? ''), 0);
 	});
 
 	test('notebook leftover remaining unused async this.foo() FOF (research) leftover void promises are Promise/async + double-chain', () => {
@@ -161,7 +162,7 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assertPromiseSignature(source, 'async research() {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assertWrapped(source, researchCall);
-		assert.strictEqual(countIncludes(source, `${researchCall}${doubleCatch}`), 4);
+		assert.strictEqual(countIncludes(source, `${researchCall}.catch(onUnexpectedError)`), 4);
 		assert.ok(!source.includes('\t\t\t\tthis.research();\n'));
 		assert.ok(!source.includes('\t\tthis.research();\n'));
 		assert.ok(source.includes('await this._research();'));
@@ -184,13 +185,14 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assert.ok(!source.includes('async run('));
 		assert.ok(source.includes('return this._throttledDelayer.trigger(async () => {'));
 		assert.ok(!source.includes(`return this._throttledDelayer.trigger(async () => {${doubleCatch}`));
-		assert.ok(view.includes('this.editorPromise?.then(() => this.editor.focus())?.catch(onUnexpectedError)?.catch(onUnexpectedError);'));
+		assert.ok(view.includes('this.editorPromise?.then(() => this.editor.focus())?.catch(onUnexpectedError);'));
+		assert.strictEqual(countDoubleChains(view), 0);
 		assert.ok(contrib.includes('registerAction2'));
 		assert.ok(contrib.includes('that.openActiveOutput();'));
 		assert.ok(!contrib.includes(`that.openActiveOutput()${doubleCatch}`));
-		assert.ok(services.includes(`${registerLoopCall}${doubleCatch}`));
-		assert.ok(source.includes('void this.highlightCurrentFindMatchDecoration(0, 0).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(source.includes('void this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(services.includes(`${registerLoopCall}.catch(onUnexpectedError);`));
+		assert.ok(source.includes('void this.highlightCurrentFindMatchDecoration(0, 0).catch(onUnexpectedError);'));
+		assert.ok(source.includes('void this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).catch(onUnexpectedError);'));
 
 		assert.ok(!source.includes('acknowledge('));
 		assert.ok(!source.includes('releaseLease('));
@@ -261,15 +263,15 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assert.ok(testing.includes(`${openAndShowCall};`));
 		assert.ok(!testing.includes(`${openAndShowCall}${doubleCatch}`));
 
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}.catch(onUnexpectedError)`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
-		assert.ok(unification.includes(`this._update()${doubleCatch}`));
-		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}.catch(onUnexpectedError)`));
+		assert.ok(unification.includes(`this._update().catch(onUnexpectedError)`));
+		assert.ok(mgmt.includes(`this.switchProfile(profileToUse).catch(onUnexpectedError)`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server).catch(onUnexpectedError)`) || aicustom.includes(`this.showPluginDetail(item).catch(onUnexpectedError)`));
+		assert.ok(discovery.includes(`this.sync().catch(onUnexpectedError)`));
+		assert.ok(configuration.includes(`this.updateCache().catch(onUnexpectedError)`));
 
 		for (const [rel, file] of [
 			[GETTING_STARTED_REL, gettingStarted],
