@@ -71,26 +71,10 @@ function assertSingleThenWrapped(source: string, thenStart: string): void {
 	assert.ok(!source.includes(`${thenStart}${doubleCatch}`));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-function assertThenWrapped(source: string, thenStart: string): void {
-	const idx = source.indexOf(thenStart);
-	assert.ok(idx >= 0, `missing then: ${thenStart}`);
-	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch}`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
-	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
-}
-
 const disposeThen = 'this.promise.then(model => model.dispose())';
 const withProgressEnd = `await this.webviewViewService.resolve(this.id, webviewView, source.token);
 
-			if (!overlayStillCurrent()) {
+			if (this._store.isDisposed || !overlayStillCurrent()) {
 				releaseExpiredOverlay();
 				return;
 			}
@@ -150,24 +134,13 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		for (const [rel, call, count, kind] of d799Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const isSingle = rel === INPUT_REL || rel === WORKSPACES_REL;
 			if (kind === 'then') {
-				if (isSingle) {
-					assertSingleThenWrapped(source, call);
-				} else {
-					assertThenWrapped(source, call);
-				}
+				assertSingleThenWrapped(source, call);
 				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
 			} else {
-				if (isSingle) {
-					const wrapped = countIncludes(source, `${call}${singleCatch}`);
-					assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-					assertSingleWrapped(source, call);
-				} else {
-					const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-					assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-					assertWrapped(source, call);
-				}
+				const wrapped = countIncludes(source, `${call}${singleCatch}`);
+				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
+				assertSingleWrapped(source, call);
 			}
 			sites += count;
 		}
@@ -179,7 +152,8 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		const workspaces = seen.get(WORKSPACES_REL) ?? fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
 		assert.strictEqual(countDoubleChains(input), 0);
 		assert.ok(!input.includes(doubleCatch));
-		assert.strictEqual(countDoubleChains(pane), 2);
+		assert.strictEqual(countDoubleChains(pane), 0);
+		assert.ok(!pane.includes(doubleCatch));
 		assert.strictEqual(countDoubleChains(workspaces), 0);
 		assert.ok(!workspaces.includes(doubleCatch));
 	});
@@ -214,7 +188,7 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assert.ok(!provider.includes(doubleCatch));
 	});
 
-	test('webviewView leftover withProgress / openView are Promise double-chain; resolver.resolve then stays skipped', () => {
+	test('webviewView leftover withProgress / openView are Promise single-chain; resolver.resolve then stays skipped', () => {
 		const pane = fs.readFileSync(resolveSource(WEBVIEW_PANE_REL), 'utf8');
 		const service = fs.readFileSync(resolveSource(WEBVIEW_SVC_REL), 'utf8');
 		const views = fs.readFileSync(resolveSource(VIEWS_REL), 'utf8');
@@ -223,11 +197,13 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assertPromiseSignature(service, 'resolve(webviewView: WebviewView, cancellation: CancellationToken): Promise<void>;');
 		assertPromiseSignature(service, 'resolve(viewType: string, webview: WebviewView, cancellation: CancellationToken): Promise<void>;');
 		assert.ok(pane.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(pane, withProgressEnd);
-		assertWrapped(pane, openViewCall);
+		assertSingleWrapped(pane, withProgressEnd);
+		assertSingleWrapped(pane, openViewCall);
 		assert.ok(pane.includes('this.withProgress(async () => {'));
-		assert.ok(pane.includes(`${withProgressEnd}${doubleCatch};`));
+		assert.ok(pane.includes(`${withProgressEnd}${singleCatch};`));
 		assert.ok(!pane.includes('this.viewService.openView(this.id, !preserveFocus);'));
+		assert.ok(!pane.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(pane), 0);
 		assert.ok(pane.includes('await this.webviewViewService.resolve(this.id, webviewView, source.token);'));
 		assert.ok(!pane.includes(`await this.webviewViewService.resolve(this.id, webviewView, source.token)${doubleCatch}`));
 		assert.ok(service.includes('resolver.resolve(pending.webview, CancellationToken.None).then(() => {'));
