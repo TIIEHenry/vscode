@@ -200,8 +200,10 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 		}
 		const scm = fs.readFileSync(resolveSource(SCM_VIEW_REL), 'utf8');
 		const files = fs.readFileSync(resolveSource(FILES_EXPLORER_REL), 'utf8');
-		assert.ok(scm.includes(`this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode)${doubleCatch}`));
-		assert.ok(files.includes(`void this.onConfigurationUpdated(e)${doubleCatch}`));
+		assert.ok(scm.includes(`this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode).catch(onUnexpectedError);`));
+		assert.ok(!scm.includes(`this.configurationService.updateValue('scm.repositories.selectionMode', selectionMode)${doubleCatch}`));
+		assert.ok(files.includes(`void this.onConfigurationUpdated(e).catch(onUnexpectedError)`));
+		assert.ok(!files.includes(`void this.onConfigurationUpdated(e)${doubleCatch}`));
 	});
 
 	test('leftover runTests then / executeCommand / queue / trigger / openView / followup execute are Promise single-chain', () => {

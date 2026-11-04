@@ -234,7 +234,8 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.ok(!typeContrib.includes('D815'));
 
 		assert.ok(viewsDesc.includes(`this.extensionService.whenInstalledExtensionsRegistered().then(() => this.whenExtensionsRegistered())${doubleCatch}`));
-		assert.ok(untitled.includes(`this.autoDetectLanguage()${doubleCatch}`));
+		assert.ok(untitled.includes(`this.autoDetectLanguage().catch(onUnexpectedError);`));
+		assert.ok(!untitled.includes(`this.autoDetectLanguage()${doubleCatch}`));
 
 		for (const [rel, source] of [
 			[PROGRESS_REL, progress],
