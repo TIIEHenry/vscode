@@ -137,7 +137,7 @@ class ManageTrustedMcpServersForAccountActionImpl {
 			.map(server => withLastUsed({ ...server, name: serverIdToLabel.get(server.id)! }));
 
 		if (!agentHostServers.length && !workbenchServers.length) {
-			this._dialogService.info(localize('noTrustedMcpServers', "This account has not been used by any MCP servers.")).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._dialogService.info(localize('noTrustedMcpServers', "This account has not been used by any MCP servers.")).catch(onUnexpectedError);
 			return [];
 		}
 
@@ -223,7 +223,7 @@ class ManageTrustedMcpServersForAccountActionImpl {
 		disposableStore.add(quickPick.onDidHide(() => disposableStore.dispose()));
 		disposableStore.add(quickPick.onDidCustom(() => quickPick.hide()));
 		disposableStore.add(quickPick.onDidTriggerItemButton((e: any) =>
-			this._commandService.executeCommand('_manageAccountPreferencesForMcpServer', e.item.mcpServer.id, accountQuery.providerId).catch(onUnexpectedError).catch(onUnexpectedError)
+			this._commandService.executeCommand('_manageAccountPreferencesForMcpServer', e.item.mcpServer.id, accountQuery.providerId).catch(onUnexpectedError)
 		));
 
 		return quickPick;

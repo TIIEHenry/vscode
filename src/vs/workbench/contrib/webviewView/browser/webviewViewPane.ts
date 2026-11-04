@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { addDisposableListener, EventType, findParentWithClass, getWindow } from '../../../../base/browser/dom.js';
+import { addDisposableListener, clearNode, EventType, findParentWithClass, getWindow } from '../../../../base/browser/dom.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
@@ -112,6 +112,12 @@ export class WebviewViewPane extends ViewPane {
 
 	override dispose() {
 		this._onDispose.fire();
+
+		if (this._container) {
+			clearNode(this._container);
+			this._container.remove();
+			this._container = undefined;
+		}
 
 		super.dispose();
 	}
@@ -284,19 +290,22 @@ export class WebviewViewPane extends ViewPane {
 				},
 
 				show: (preserveFocus) => {
-					this.viewService.openView(this.id, !preserveFocus).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.viewService.openView(this.id, !preserveFocus).catch(onUnexpectedError);
 				}
 			};
 
 			await this.webviewViewService.resolve(this.id, webviewView, source.token);
 
-			if (!overlayStillCurrent()) {
+			if (this._store.isDisposed || !overlayStillCurrent()) {
 				releaseExpiredOverlay();
 				return;
 			}
 
 			committed = true;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	protected override updateTitle(value: string | undefined) {

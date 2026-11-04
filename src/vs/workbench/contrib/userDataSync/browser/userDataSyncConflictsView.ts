@@ -53,7 +53,7 @@ export class UserDataSyncConflictsViewPane extends TreeViewPane implements IUser
 		@IAccessibleViewInformationService accessibleViewVisibilityService: IAccessibleViewInformationService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, notificationService, hoverService, accessibleViewVisibilityService);
-		this._register(this.userDataSyncService.onDidChangeConflicts(() => this.treeView.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.userDataSyncService.onDidChangeConflicts(() => this.treeView.refresh().catch(onUnexpectedError)));
 		this.registerActions();
 	}
 

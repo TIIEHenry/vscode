@@ -85,7 +85,7 @@ export class UserDataSyncDataViews extends Disposable {
 		treeView.canSelectMany = true;
 		treeView.dataProvider = dataProvider;
 
-		this._register(Event.any(this.userDataSyncMachinesService.onDidChange, this.userDataSyncService.onDidResetRemote)(() => treeView.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(Event.any(this.userDataSyncMachinesService.onDidChange, this.userDataSyncService.onDidResetRemote)(() => treeView.refresh().catch(onUnexpectedError)));
 		const viewsRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 		const viewDescriptor: ITreeViewDescriptor = {
 			id,
@@ -153,7 +153,7 @@ export class UserDataSyncDataViews extends Disposable {
 		this._register(Event.any(this.userDataSyncEnablementService.onDidChangeResourceEnablement,
 			this.userDataSyncEnablementService.onDidChangeEnablement,
 			this.userDataSyncService.onDidResetLocal,
-			this.userDataSyncService.onDidResetRemote)(() => treeView.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this.userDataSyncService.onDidResetRemote)(() => treeView.refresh().catch(onUnexpectedError)));
 		const viewsRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 		const viewDescriptor: ITreeViewDescriptor = {
 			id,
@@ -409,7 +409,7 @@ abstract class UserDataSyncActivityViewDataProvider<T = Profile> implements ITre
 							toAction({
 								id: 'reset',
 								label: localize('reset', "Reset Synced Data"),
-								run: () => this.userDataSyncWorkbenchService.resetSyncedData().catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.userDataSyncWorkbenchService.resetSyncedData().catch(onUnexpectedError)
 							}),
 						]
 					}

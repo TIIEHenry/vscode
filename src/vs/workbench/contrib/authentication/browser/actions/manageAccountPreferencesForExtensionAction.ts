@@ -181,7 +181,7 @@ class ManageAccountPreferenceForExtensionActionImpl {
 		picker.validationMessage = localize('noAccounts', "No accounts are currently used by this extension.");
 		picker.buttons = [this._quickInputService.backButton];
 		picker.show();
-		return Event.filter(picker.onDidTriggerButton, (e) => e === this._quickInputService.backButton)(() => this.run().catch(onUnexpectedError).catch(onUnexpectedError));
+		return Event.filter(picker.onDidTriggerButton, (e) => e === this._quickInputService.backButton)(() => this.run().catch(onUnexpectedError));
 	}
 
 	private async _accept(extensionId: string, selectedItems: ReadonlyArray<AccountPreferenceQuickPickItem>) {

@@ -46,12 +46,12 @@ class UserDataSyncReportIssueContribution extends Disposable implements IWorkben
 							toAction({
 								id: 'Show Sync Logs',
 								label: localize('show sync logs', "Show Log"),
-								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError)
 							}),
 							toAction({
 								id: 'Restart',
 								label: isWeb ? localize('reload', "Reload") : localize('restart', "Restart"),
-								run: () => this.hostService.restart().catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.hostService.restart().catch(onUnexpectedError)
 							})
 						]
 					}
@@ -70,7 +70,7 @@ class UserDataSyncReportIssueContribution extends Disposable implements IWorkben
 							toAction({
 								id: 'Show Sync Logs',
 								label: localize('show sync logs', "Show Log"),
-								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError)
 							})
 						]
 					}

@@ -108,20 +108,20 @@ class ManageAccountsActionImpl {
 
 		const items: AccountActionQuickPickItem[] = [{
 			label: localize('manageTrustedExtensions', "Manage Trusted Extensions"),
-			action: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel }).catch(onUnexpectedError).catch(onUnexpectedError)
+			action: () => this.commandService.executeCommand('_manageTrustedExtensionsForAccount', { providerId, accountLabel }).catch(onUnexpectedError)
 		}];
 
 		if (canUseMcp && this.environmentService.isSessionsWindow) {
 			items.push({
 				label: localize('manageTrustedMCPServers', "Manage Trusted MCP Servers"),
-				action: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel }).catch(onUnexpectedError).catch(onUnexpectedError)
+				action: () => this.commandService.executeCommand('_manageTrustedMCPServersForAccount', { providerId, accountLabel }).catch(onUnexpectedError)
 			});
 		}
 
 		if (await canSignOut()) {
 			items.push({
 				label: localize('signOut', "Sign Out"),
-				action: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel }).catch(onUnexpectedError).catch(onUnexpectedError)
+				action: () => this.commandService.executeCommand('_signOutOfAccount', { providerId, accountLabel }).catch(onUnexpectedError)
 			});
 		}
 
@@ -137,7 +137,7 @@ class ManageAccountsActionImpl {
 
 		store.add(quickPick.onDidTriggerButton((button) => {
 			if (button === this.quickInputService.backButton) {
-				void this.run().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.run().catch(onUnexpectedError);
 			}
 		}));
 

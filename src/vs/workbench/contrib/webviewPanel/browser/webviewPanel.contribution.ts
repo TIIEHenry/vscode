@@ -71,7 +71,7 @@ class WebviewPanelContribution extends Disposable implements IWorkbenchContribut
 			return;
 		}
 
-		previousGroup.closeEditor(editor).catch(onUnexpectedError).catch(onUnexpectedError);
+		previousGroup.closeEditor(editor).catch(onUnexpectedError);
 	}
 }
 

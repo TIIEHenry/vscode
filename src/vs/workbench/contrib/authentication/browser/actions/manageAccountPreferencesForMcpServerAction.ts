@@ -163,7 +163,7 @@ class ManageAccountPreferenceForMcpServerActionImpl {
 		picker.validationMessage = localize('noAccounts', "No accounts are currently used by this MCP server.");
 		picker.buttons = [this._quickInputService.backButton];
 		picker.show();
-		return Event.filter(picker.onDidTriggerButton, (e) => e === this._quickInputService.backButton)(() => this.run().catch(onUnexpectedError).catch(onUnexpectedError));
+		return Event.filter(picker.onDidTriggerButton, (e) => e === this._quickInputService.backButton)(() => this.run().catch(onUnexpectedError));
 	}
 
 	private async _accept(mcpServerId: string, selectedItems: ReadonlyArray<AccountPreferenceQuickPickItem>) {

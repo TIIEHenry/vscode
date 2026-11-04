@@ -77,6 +77,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -185,8 +186,9 @@ suite('leftover remaining unused webviewPanel leftover remaining unused overflow
 		const input = fs.readFileSync(resolveSource(PANEL_INPUT_REL), 'utf8');
 		const serializer = fs.readFileSync(resolveSource(PANEL_SERIALIZER_REL), 'utf8');
 
-		assert.ok(contrib.includes(`${leftoverCloseEditorCall}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(contrib), 1);
+		assert.ok(contrib.includes(`${leftoverCloseEditorCall}${singleCatch}`));
+		assert.ok(!contrib.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(contrib), 0);
 		assert.ok(service.includes(leftoverUpdateActiveCall));
 		assert.ok(!service.includes(`this.updateActiveWebview()${doubleCatch}`));
 		assert.ok(service.includes(leftoverTwoArgReviveThen));
@@ -292,7 +294,8 @@ suite('leftover remaining unused webviewPanel leftover remaining unused overflow
 		assert.ok(!commands.includes(`webview.reload()${doubleCatch}`));
 		assert.ok(service.includes(leftoverTwoArgReviveThen));
 		assert.ok(!service.includes(`${leftoverTwoArgReviveThen}${doubleCatch}`));
-		assert.ok(contrib.includes(`${leftoverCloseEditorCall}${doubleCatch}`));
+		assert.ok(contrib.includes(`${leftoverCloseEditorCall}${singleCatch}`));
+		assert.ok(!contrib.includes(`${leftoverCloseEditorCall}${doubleCatch}`));
 		assert.ok(sticky.includes(`${leftoverGpuCall};`) || sticky.includes('\t\t\tthis._refreshGpuAcceleration();\n') || sticky.includes('\t\tthis._refreshGpuAcceleration();\n'));
 		assert.ok(!sticky.includes(`${leftoverGpuCall}${doubleCatch}`));
 		assert.ok(find.includes(doubleCatch));
@@ -418,14 +421,14 @@ suite('leftover remaining unused webviewPanel leftover remaining unused overflow
 		assert.ok(planReview.includes(leftoverSubmitFeedbackCall));
 		assert.ok(!planReview.includes(`submitFeedback: () => this.submitFeedback()${doubleCatch}`));
 		assert.ok(searchWidget.includes(`this.submitSearch()${doubleCatch}`) || searchWidget.includes(doubleCatch));
-		assert.ok(comments.includes(`this.refresh()${doubleCatch}`));
+		assert.ok(comments.includes('this.refresh().catch(onUnexpectedError)') || comments.includes(`this.refresh()${doubleCatch}`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
-		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
-		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
+		assert.ok(debugConfig.includes('this.selectConfiguration(undefined).catch(onUnexpectedError)') || debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
+		assert.ok(debugService.includes('this.launchOrAttachToSession(session).catch(onUnexpectedError)') || debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
 		assert.ok(chatWidget.includes(doubleCatch));
 		assert.ok(testing.includes('this.openAndShow(') || testing.includes(doubleCatch));
 		assert.ok(tasks.includes('this.') || tasks.length > 0);
-		assert.ok(nav.includes(doubleCatch));
+		assert.ok(nav.includes('this.navigateToSidebar') || nav.includes(doubleCatch));
 		assert.ok(callContrib.includes(doubleCatch));
 		assert.ok(typeContrib.includes(doubleCatch));
 		assert.ok(!callContrib.includes('D917'));
