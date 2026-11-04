@@ -678,11 +678,14 @@ export class TerminalMessagePeek extends Disposable implements IPeekOutputRender
 	) {
 		width -= 10 + 20; // scrollbar width + margin
 		this.xtermLayoutDelayer.trigger(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const scaled = getXtermScaledDimensions(dom.getWindow(this.container), xterm.getFont(), width, height);
 			if (scaled) {
 				xterm.resize(scaled.cols, scaled.rows);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 

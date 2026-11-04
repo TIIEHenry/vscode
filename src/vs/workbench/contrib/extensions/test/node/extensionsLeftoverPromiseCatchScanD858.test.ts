@@ -65,6 +65,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -81,9 +82,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
 }
 
 const statusCall = 'this.updateExtensionGalleryStatusContexts()';
@@ -146,17 +147,17 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 		const viewlet = fs.readFileSync(resolveSource(VIEWLET_REL), 'utf8');
 		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
 
-		assert.ok(workbench.includes(`${enabledAutoCheckCall}${doubleCatch}`));
-		assert.ok(workbench.includes(`${autoUpdateCall}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(workbench), 13);
-		assert.strictEqual(countDoubleChains(viewlet), 2);
-		assert.strictEqual(countDoubleChains(widgets), 1);
+		assert.ok(workbench.includes(`${enabledAutoCheckCall}${singleCatch}`));
+		assert.ok(workbench.includes(`${autoUpdateCall}${singleCatch}`));
+		assert.strictEqual(countDoubleChains(workbench), 0);
+		assert.strictEqual(countDoubleChains(viewlet), 0);
+		assert.strictEqual(countDoubleChains(widgets), 0);
 		assert.ok(viewlet.includes(leftoverRefreshCall));
-		assert.ok(!viewlet.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(!viewlet.includes(`${refreshCall}${singleCatch}`));
 		assert.ok(viewlet.includes(leftoverDoSearchCall));
-		assert.ok(!viewlet.includes(`this.doSearch(true)${doubleCatch}`));
+		assert.ok(!viewlet.includes(`this.doSearch(true)${singleCatch}`));
 		assert.ok(workbench.includes(leftoverAutoUpdateCall));
-		assert.ok(!workbench.includes(`this.autoUpdateExtensions()${doubleCatch}`));
+		assert.ok(!workbench.includes(`this.autoUpdateExtensions()${singleCatch}`));
 
 		assertPromiseSignature(contrib, 'private async updateExtensionGalleryStatusContexts(): Promise<void> {');
 		assertPromiseSignature(contrib, 'private async updateGalleryCapabilitiesContexts(extensionGalleryManifest: IExtensionGalleryManifest | null): Promise<void> {');
@@ -169,7 +170,7 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 				: rel === ABSTRACT_REL ? abstractRuntime
 					: rel === ELECTRON_RUNTIME_REL ? electronRuntime
 						: remoteInit;
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -184,13 +185,13 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 		assert.ok(!widgets.includes('D858'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on extensions leftover remaining unused this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on extensions leftover remaining unused this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d858Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -198,10 +199,10 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CONTRIB_REL) ?? ''), 5);
-		assert.strictEqual(countDoubleChains(seen.get(ABSTRACT_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(ELECTRON_RUNTIME_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(REMOTE_INIT_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(CONTRIB_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ABSTRACT_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ELECTRON_RUNTIME_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(REMOTE_INIT_REL) ?? ''), 0);
 	});
 
 	test('extensions leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -223,11 +224,11 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 		assertWrapped(abstractRuntime, updateExtCall);
 		assertWrapped(electronRuntime, updateExtCall);
 		assertWrapped(remoteInit, initCall);
-		assert.strictEqual(countIncludes(contrib, `${statusCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(contrib, `${galleryCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(abstractRuntime, `${updateExtCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(electronRuntime, `${updateExtCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(remoteInit, `${initCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(contrib, `${statusCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(contrib, `${galleryCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(abstractRuntime, `${updateExtCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(electronRuntime, `${updateExtCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(remoteInit, `${initCall}${singleCatch}`), 1);
 		assert.ok(!contrib.includes('\t\tthis.updateExtensionGalleryStatusContexts();\n'));
 		assert.ok(!contrib.includes('\t\t\t\tthis.updateGalleryCapabilitiesContexts(extensionGalleryManifest);\n'));
 		assert.ok(!abstractRuntime.includes('\t\tthis._updateExtensions();\n'));
@@ -237,9 +238,9 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 		assert.ok(!remoteInit.includes(`this.installExtensionsIfInstalledLocallyInRemote()${doubleCatch}`));
 		assert.ok(remoteInit.includes(leftoverInstallFailedCall));
 		assert.ok(!remoteInit.includes(`this.installFailedRemoteExtensions()${doubleCatch}`));
-		assert.ok(!contrib.includes(`await ${statusCall}${doubleCatch}`));
-		assert.ok(!abstractRuntime.includes(`await ${updateExtCall}${doubleCatch}`));
-		assert.ok(!remoteInit.includes(`await ${initCall}${doubleCatch}`));
+		assert.ok(!contrib.includes(`await ${statusCall}${singleCatch}`));
+		assert.ok(!abstractRuntime.includes(`await ${updateExtCall}${singleCatch}`));
+		assert.ok(!remoteInit.includes(`await ${initCall}${singleCatch}`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -288,7 +289,8 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('D858'));
 		}
 	});
@@ -362,24 +364,24 @@ suite('leftover remaining unused after D815/D819 leftover remaining unused exten
 		assert.ok(profileModel.includes(`${initializeCall};`));
 		assert.ok(!profileModel.includes(`${initializeCall}${doubleCatch}`));
 
-		assert.ok(workbench.includes(`${enabledAutoCheckCall}${doubleCatch}`));
-		assert.ok(workbench.includes(`${autoUpdateCall}${doubleCatch}`));
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.ok(status.includes(`${updateCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(status, `${updateCall}${doubleCatch}`), 8);
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${showErrorCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
+		assert.ok(workbench.includes(`${enabledAutoCheckCall}${singleCatch}`));
+		assert.ok(workbench.includes(`${autoUpdateCall}${singleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(status.includes(`${updateCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(status, `${updateCall}${singleCatch}`), 8);
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(debugService.includes(`${showErrorCall}${singleCatch}`));
+		assert.ok(debugEditor.includes(`${toggleCall}${singleCatch}`));
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${singleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${singleCatch}`));
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(configuration.includes(`this.updateCache()${singleCatch}`));
 		assert.ok(implicit.includes(`this.updateImplicitContext()${doubleCatch}`));
 		assert.ok(entitlement.includes(`this.update(cts.value.token)${doubleCatch}`));
 		assert.ok(enablement.includes(`this._enableExtension(extension.identifier)${doubleCatch}`));

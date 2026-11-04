@@ -43,6 +43,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -59,9 +60,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
 }
 
 const enabledAutoCheckCall = 'this.checkForUpdates(`Enabled auto check updates`)';
@@ -102,13 +103,13 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.ok(!viewsSvc.includes('D815'));
 	});
 
-	test('this knife covers six leftover Promise double-chain sites after views leftover remaining moved', () => {
+	test('this knife covers six leftover Promise single-chain sites after views leftover remaining moved', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d815Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -116,9 +117,9 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_SVC_REL) ?? ''), 13);
-		assert.strictEqual(countDoubleChains(seen.get(VIEWLET_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8')), 1);
+		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_SVC_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(VIEWLET_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8')), 0);
 	});
 
 	test('extensions leftover checkForUpdates leftover void promises are Promise/async + double-chain', () => {
@@ -186,9 +187,11 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 		assert.ok(!editor.includes(`action.run()${doubleCatch}`));
 
 		assert.ok(viewlet.includes('extensionGalleryManifestService.getExtensionGalleryManifest()'));
-		assert.ok(viewlet.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(viewlet.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!viewlet.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(widgets.includes('extensionGalleryManifestService.getExtensionGalleryManifest().then(manifest => {'));
-		assert.ok(widgets.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(widgets.includes('}).catch(onUnexpectedError);'));
+		assert.ok(!widgets.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
 
 		assert.ok(workbench.includes('await this.checkForUpdates();'));
 		assert.ok(!workbench.includes(`await this.checkForUpdates()${doubleCatch}`));
@@ -204,7 +207,8 @@ suite('views leftover remaining moved to extensions leftover Promise fire-and-fo
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('D815'));
 		}
 	});

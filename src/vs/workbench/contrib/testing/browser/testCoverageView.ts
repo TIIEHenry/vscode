@@ -301,7 +301,12 @@ class TestCoverageTree extends Disposable {
 					this.tree.setChildren(el, [{ element: new LoadingDetails(), incompressible: true }]);
 				}
 
-				el.value!.details().then(details => this.updateWithDetails(el, details)).catch(onUnexpectedError).catch(onUnexpectedError);
+				el.value!.details().then(details => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.updateWithDetails(el, details);
+				}).catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.tree.onDidOpen(e => {
@@ -314,7 +319,7 @@ class TestCoverageTree extends Disposable {
 					resource = e.element.uri;
 					selection = e.element.location;
 				} else if (e.element instanceof CurrentlyFilteredTo) {
-					commandService.executeCommand(TestCommandId.CoverageFilterToTest).catch(onUnexpectedError).catch(onUnexpectedError);
+					commandService.executeCommand(TestCommandId.CoverageFilterToTest).catch(onUnexpectedError);
 					return;
 				}
 			}

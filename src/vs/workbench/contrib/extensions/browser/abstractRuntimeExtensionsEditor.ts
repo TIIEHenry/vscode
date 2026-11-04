@@ -102,11 +102,11 @@ export abstract class AbstractRuntimeExtensionsEditor extends EditorPane {
 
 		this._list = null;
 		this._elements = null;
-		this._updateSoon = this._register(new RunOnceScheduler(() => this._updateExtensions().catch(onUnexpectedError).catch(onUnexpectedError), 200));
+		this._updateSoon = this._register(new RunOnceScheduler(() => this._updateExtensions().catch(onUnexpectedError), 200));
 
 		this._register(this._extensionService.onDidChangeExtensionsStatus(() => this._updateSoon.schedule()));
 		this._register(this._extensionFeaturesManagementService.onDidChangeAccessData(() => this._updateSoon.schedule()));
-		this._updateExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._updateExtensions().catch(onUnexpectedError);
 	}
 
 	protected async _updateExtensions(): Promise<void> {

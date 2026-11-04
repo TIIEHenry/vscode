@@ -77,10 +77,16 @@ export class TestingProgressTrigger extends Disposable {
 	}
 
 	private openExplorerView() {
-		this.viewsService.openView(Testing.ExplorerViewId, false).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.viewsService.openView(Testing.ExplorerViewId, false).catch(onUnexpectedError);
 	}
 
 	private openResultsView() {
-		this.viewsService.openView(Testing.ResultsViewId, false).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.viewsService.openView(Testing.ResultsViewId, false).catch(onUnexpectedError);
 	}
 }

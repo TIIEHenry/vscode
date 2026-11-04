@@ -629,13 +629,16 @@ class ExtensionsContributions extends Disposable implements IWorkbenchContributi
 			hasWebServerContext.set(true);
 		}
 
-		this.updateExtensionGalleryStatusContexts().catch(onUnexpectedError).catch(onUnexpectedError);
-		this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifestStatus(() => this.updateExtensionGalleryStatusContexts().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.updateExtensionGalleryStatusContexts().catch(onUnexpectedError);
+		this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifestStatus(() => this.updateExtensionGalleryStatusContexts().catch(onUnexpectedError)));
 		extensionGalleryManifestService.getExtensionGalleryManifest()
 			.then(extensionGalleryManifest => {
-				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError).catch(onUnexpectedError);
-				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError).catch(onUnexpectedError)));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError);
+				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(extensionGalleryManifest => this.updateGalleryCapabilitiesContexts(extensionGalleryManifest).catch(onUnexpectedError)));
+			}).catch(onUnexpectedError);
 		this.registerGlobalActions();
 		this.registerContextMenuActions();
 		this.registerQuickAccessProvider();

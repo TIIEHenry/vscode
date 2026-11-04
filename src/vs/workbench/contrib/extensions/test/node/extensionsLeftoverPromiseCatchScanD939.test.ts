@@ -69,6 +69,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -85,9 +86,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
 }
 
 const leftoverPromptWorkspaceCall = 'this.promptWorkspaceRecommendations()';
@@ -165,13 +166,13 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 		const views = fs.readFileSync(resolveSource(VIEWS_REL), 'utf8');
 		const actions = fs.readFileSync(resolveSource(ACTIONS_REL), 'utf8');
 
-		assert.strictEqual(countDoubleChains(workbench), 13);
-		assert.strictEqual(countDoubleChains(viewlet), 2);
-		assert.strictEqual(countDoubleChains(widgets), 1);
-		assert.strictEqual(countDoubleChains(contrib), 5);
-		assert.strictEqual(countDoubleChains(abstractRuntime), 2);
-		assert.strictEqual(countDoubleChains(electronRuntime), 1);
-		assert.strictEqual(countDoubleChains(remoteInit), 1);
+		assert.strictEqual(countDoubleChains(workbench), 0);
+		assert.strictEqual(countDoubleChains(viewlet), 0);
+		assert.strictEqual(countDoubleChains(widgets), 0);
+		assert.strictEqual(countDoubleChains(contrib), 0);
+		assert.strictEqual(countDoubleChains(abstractRuntime), 0);
+		assert.strictEqual(countDoubleChains(electronRuntime), 0);
+		assert.strictEqual(countDoubleChains(remoteInit), 0);
 		assert.ok(viewlet.includes(leftoverRefreshCall));
 		assert.ok(!viewlet.includes(`this.refresh()${doubleCatch}`));
 		assert.ok(viewlet.includes(leftoverDoSearchCall));
@@ -190,7 +191,7 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 					: rel === WORKSPACE_RECS_REL ? workspaceRecs
 						: rel === VIEWS_REL ? views
 							: actions;
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -202,13 +203,13 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 		}
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on extensions leftover remaining unused this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on extensions leftover remaining unused this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d939Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -216,11 +217,11 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(RECS_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(FILE_RECS_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(WORKSPACE_RECS_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(VIEWS_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(ACTIONS_REL) ?? ''), 5);
+		assert.strictEqual(countDoubleChains(seen.get(RECS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(FILE_RECS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(WORKSPACE_RECS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(VIEWS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ACTIONS_REL) ?? ''), 0);
 	});
 
 	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -295,8 +296,9 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 		assert.ok(!editor.includes(`${leftoverCacheThenCall}${doubleCatch}`));
 		assert.ok(editor.includes(`${leftoverRenderCall};`));
 		assert.ok(!editor.includes(`${leftoverRenderCall}${doubleCatch}`));
-		assert.ok(actions.includes('this.extensionsWorkbenchService.queryLocal().then(() => this.updateExtensions())'));
-		assert.ok(actions.includes(`this.extensionsWorkbenchService.queryLocal().then(() => this.updateExtensions())${doubleCatch}`));
+		assert.ok(actions.includes('this.extensionsWorkbenchService.queryLocal().then(() => {'));
+		assert.ok(actions.includes(`this.updateExtensions();\n\t\t})${singleCatch};`));
+		assert.ok(!actions.includes(`this.updateExtensions();\n\t\t})${doubleCatch};`));
 		assert.ok(views.includes('this.reportSearchFinishedDelayer.trigger(() => this.reportSearchFinished())'));
 		assert.ok(!views.includes(`this.reportSearchFinished()${doubleCatch}`));
 		assert.ok(recs.includes('this.activationPromise = this.activate();'));
@@ -310,7 +312,8 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('D939'));
 		}
 	});
@@ -351,22 +354,22 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 		const gettingStartedContrib = fs.readFileSync(resolveSource(GETTING_STARTED_CONTRIB_REL), 'utf8');
 		const themes = fs.readFileSync(resolveSource(THEMES_REL), 'utf8');
 
-		assert.ok(workbench.includes(`${enabledAutoCheckCall}${doubleCatch}`));
-		assert.ok(workbench.includes(`${autoUpdateCall}${doubleCatch}`));
-		assert.ok(contrib.includes(`${statusCall}${doubleCatch}`));
-		assert.ok(contrib.includes(`${galleryCall}${doubleCatch}`));
-		assert.ok(abstractRuntime.includes(`${updateExtCall}${doubleCatch}`));
-		assert.ok(electronRuntime.includes(`${updateExtCall}${doubleCatch}`));
-		assert.ok(remoteInit.includes(`${initCall}${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(workbench.includes(`${enabledAutoCheckCall}${singleCatch}`));
+		assert.ok(workbench.includes(`${autoUpdateCall}${singleCatch}`));
+		assert.ok(contrib.includes(`${statusCall}${singleCatch}`));
+		assert.ok(contrib.includes(`${galleryCall}${singleCatch}`));
+		assert.ok(abstractRuntime.includes(`${updateExtCall}${singleCatch}`));
+		assert.ok(electronRuntime.includes(`${updateExtCall}${singleCatch}`));
+		assert.ok(remoteInit.includes(`${initCall}${singleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
+		assert.ok(configuration.includes(`${leftoverMigrateCall}${singleCatch}`));
+		assert.ok(configuration.includes(`${leftoverCreateCall}${singleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(workbench), 13);
-		assert.strictEqual(countDoubleChains(viewlet), 2);
-		assert.strictEqual(countDoubleChains(widgets), 1);
+		assert.strictEqual(countDoubleChains(workbench), 0);
+		assert.strictEqual(countDoubleChains(viewlet), 0);
+		assert.strictEqual(countDoubleChains(widgets), 0);
 
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
@@ -393,10 +396,10 @@ suite('leftover remaining unused after D815/D819/D858 leftover remaining unused 
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
 		assert.ok(searchWidget.includes(`this.submitSearch()${doubleCatch}`) || searchWidget.includes(doubleCatch));
-		assert.ok(comments.includes(`this.refresh()${doubleCatch}`));
+		assert.ok(comments.includes(`this.refresh()${singleCatch}`));
 		assert.ok(setup.includes(`this.checkExtensionInstallation(context)${doubleCatch}`));
-		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${doubleCatch}`));
-		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${doubleCatch}`));
+		assert.ok(debugConfig.includes(`this.selectConfiguration(undefined)${singleCatch}`));
+		assert.ok(debugService.includes(`this.launchOrAttachToSession(session)${singleCatch}`));
 		assert.ok(chatWidget.includes(doubleCatch));
 		assert.ok(testing.includes('this.openAndShow(') || testing.includes(doubleCatch));
 		assert.ok(planReview.includes('() => void this.enterReviewMode()'));

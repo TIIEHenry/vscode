@@ -7,7 +7,7 @@ import './media/extensionsWidgets.css';
 import * as semver from '../../../../base/common/semver/semver.js';
 import { Disposable, toDisposable, DisposableStore, MutableDisposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { IExtension, IExtensionsWorkbenchService, IExtensionContainer, ExtensionState, ExtensionEditorTab, IExtensionsViewState } from '../common/extensions.js';
-import { append, $, reset, addDisposableListener, EventType, finalHandler } from '../../../../base/browser/dom.js';
+import { append, $, reset, addDisposableListener, EventType, finalHandler, clearNode } from '../../../../base/browser/dom.js';
 import * as platform from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import { IExtensionManagementServerService } from '../../../services/extensionManagement/common/extensionManagement.js';
@@ -578,7 +578,11 @@ export class ExtensionPackCountWidget extends ExtensionWidget {
 	}
 
 	private clear(): void {
-		this.element?.remove();
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+			this.element = undefined;
+		}
 		this.countBadge?.dispose();
 		this.countBadge = undefined;
 	}
@@ -620,11 +624,15 @@ export class ExtensionKindIndicatorWidget extends ExtensionWidget {
 			}
 			this.extensionGalleryManifest = manifest;
 			this.render();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private clear(): void {
-		this.element?.remove();
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+			this.element = undefined;
+		}
 		this.disposables.clear();
 	}
 

@@ -411,9 +411,12 @@ export class TestingDecorations extends Disposable implements IEditorContributio
 			}
 
 			msgThrottler.queue(() => {
+				if (this._store.isDisposed) {
+					return timeout(0);
+				}
 				this.applyResults();
 				return timeout(100);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 
 		this._register(Event.any(
@@ -806,9 +809,13 @@ abstract class TitleLensContentWidget {
 
 	private readonly _domNode = dom.$('span');
 	private viewZoneId?: string;
+	private _isDisposed = false;
 
 	constructor(private readonly editor: ICodeEditor) {
 		queueMicrotask(() => {
+			if (this._isDisposed) {
+				return;
+			}
 			this.applyStyling();
 			this.editor.addContentWidget(this);
 		});
@@ -861,6 +868,7 @@ abstract class TitleLensContentWidget {
 
 	/** @inheritdoc */
 	public dispose() {
+		this._isDisposed = true;
 		this.editor.changeViewZones(accessor => {
 			if (this.viewZoneId) {
 				accessor.removeZone(this.viewZoneId);
@@ -868,6 +876,8 @@ abstract class TitleLensContentWidget {
 		});
 
 		this.editor.removeContentWidget(this);
+		dom.clearNode(this._domNode);
+		this._domNode.remove();
 	}
 
 	/** @inheritdoc */
@@ -1074,7 +1084,7 @@ abstract class RunTestDecoration {
 						controllerId: profile.controllerId,
 						testIds: [test.item.extId]
 					}]
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}));
 		}
 

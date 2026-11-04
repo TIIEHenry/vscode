@@ -2136,9 +2136,12 @@ export class SetColorThemeAction extends ExtensionAction {
 
 	update(): void {
 		this.workbenchThemeService.getColorThemes().then(colorThemes => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.enabled = this.computeEnablement(colorThemes);
 			this.class = this.enabled ? SetColorThemeAction.EnabledClass : SetColorThemeAction.DisabledClass;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private computeEnablement(colorThemes: IWorkbenchColorTheme[]): boolean {
@@ -2187,9 +2190,12 @@ export class SetFileIconThemeAction extends ExtensionAction {
 
 	update(): void {
 		this.workbenchThemeService.getFileIconThemes().then(fileIconThemes => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.enabled = this.computeEnablement(fileIconThemes);
 			this.class = this.enabled ? SetFileIconThemeAction.EnabledClass : SetFileIconThemeAction.DisabledClass;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private computeEnablement(colorThemfileIconThemess: IWorkbenchFileIconTheme[]): boolean {
@@ -2237,9 +2243,12 @@ export class SetProductIconThemeAction extends ExtensionAction {
 
 	update(): void {
 		this.workbenchThemeService.getProductIconThemes().then(productIconThemes => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.enabled = this.computeEnablement(productIconThemes);
 			this.class = this.enabled ? SetProductIconThemeAction.EnabledClass : SetProductIconThemeAction.DisabledClass;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private computeEnablement(productIconThemes: IWorkbenchProductIconTheme[]): boolean {
@@ -3229,7 +3238,12 @@ export abstract class AbstractInstallExtensionsInServerAction extends Action {
 	) {
 		super(id);
 		this.update();
-		this.extensionsWorkbenchService.queryLocal().then(() => this.updateExtensions()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.extensionsWorkbenchService.queryLocal().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.updateExtensions();
+		}).catch(onUnexpectedError);
 		this._register(this.extensionsWorkbenchService.onChange(() => {
 			if (this.extensions) {
 				this.updateExtensions();
@@ -3263,10 +3277,13 @@ export abstract class AbstractInstallExtensionsInServerAction extends Action {
 			disposable.dispose();
 			quickPick.hide();
 			quickPick.dispose();
-			this.onDidAccept(quickPick.selectedItems).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.onDidAccept(quickPick.selectedItems).catch(onUnexpectedError);
 		});
 		quickPick.show();
 		const localExtensionsToInstall = await this.queryExtensionsToInstall();
+		if (this._store.isDisposed) {
+			return;
+		}
 		quickPick.busy = false;
 		if (localExtensionsToInstall.length) {
 			quickPick.title = this.getQuickPickTitle();
@@ -3294,6 +3311,9 @@ export abstract class AbstractInstallExtensionsInServerAction extends Action {
 						title: localize('installing extensions', "Installing Extensions...")
 					},
 					() => this.installExtensions(localExtensionsToInstall));
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.notificationService.info(localize('finished installing', "Successfully installed extensions."));
 			}
 		}

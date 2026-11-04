@@ -587,10 +587,13 @@ class FollowupActionWidget extends Disposable {
 				label: f.message,
 				index: i
 			}))).then(picked => {
-				if (picked?.length) {
-					followups[picked[0].index].execute().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError)
+				if (picked?.length) {
+					followups[picked[0].index].execute().catch(onUnexpectedError);
+				}
+			}).catch(onUnexpectedError)
 		);
 
 		link.innerText = localize('testFollowup.more', '+{0} More...', followups.length - 1);
@@ -614,7 +617,7 @@ class FollowupActionWidget extends Disposable {
 	private actionFollowup(link: HTMLAnchorElement, fu: ITestFollowup) {
 		if (link.ariaDisabled !== 'true') {
 			link.ariaDisabled = 'true';
-			fu.execute().catch(onUnexpectedError).catch(onUnexpectedError);
+			fu.execute().catch(onUnexpectedError);
 
 			if (this.editor) {
 				this.onCloseEmitter.fire();

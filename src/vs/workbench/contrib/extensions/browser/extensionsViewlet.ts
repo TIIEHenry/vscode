@@ -610,12 +610,15 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 
 		extensionGalleryManifestService.getExtensionGalleryManifest()
 			.then(galleryManifest => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.extensionGalleryManifest = galleryManifest;
 				this._register(extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(galleryManifest => {
 					this.extensionGalleryManifest = galleryManifest;
 					this.refresh();
 				}));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	get searchValue(): string | undefined {
@@ -761,9 +764,12 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 
 	async refresh(): Promise<void> {
 		await this.updateInstalledExtensionsContexts();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.doSearch(true);
 		if (this.configurationService.getValue(AutoCheckUpdatesConfigurationKey)) {
-			this.extensionsWorkbenchService.checkForUpdates().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.extensionsWorkbenchService.checkForUpdates().catch(onUnexpectedError);
 		}
 	}
 

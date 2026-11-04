@@ -14,7 +14,7 @@ import { IExtensionRecommendationsService } from '../../../services/extensionRec
 import { areSameExtensions, getExtensionDependencies } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
-import { append, $ } from '../../../../base/browser/dom.js';
+import { append, $, clearNode } from '../../../../base/browser/dom.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ExtensionResultsListFocused, ExtensionState, IExtension, IExtensionsViewState, IExtensionsWorkbenchService, IWorkspaceRecommendedExtensionsView } from '../common/extensions.js';
 import { Query } from '../common/extensionQuery.js';
@@ -1176,6 +1176,13 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 			this.queryResult.disposables.dispose();
 			this.queryResult = undefined;
 		}
+		if (this.bodyTemplate) {
+			clearNode(this.bodyTemplate.messageContainer);
+			this.bodyTemplate.messageContainer.remove();
+			clearNode(this.bodyTemplate.extensionsList);
+			this.bodyTemplate.extensionsList.remove();
+			this.bodyTemplate = undefined;
+		}
 		this.list = null;
 	}
 
@@ -1500,7 +1507,10 @@ export class DefaultRecommendedExtensionsView extends ExtensionsListView {
 		super.renderBody(container);
 
 		this._register(this.extensionRecommendationsService.onDidChangeRecommendations(() => {
-			this.show('').catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.show('').catch(onUnexpectedError);
 		}));
 	}
 
@@ -1509,6 +1519,9 @@ export class DefaultRecommendedExtensionsView extends ExtensionsListView {
 			return this.showEmptyModel();
 		}
 		const model = await super.show(this.recommendedExtensionsQuery);
+		if (this._store.isDisposed) {
+			return model;
+		}
 		if (!this.extensionsWorkbenchService.local.some(e => !e.isBuiltin)) {
 			// This is part of popular extensions view. Collapse if no installed extensions.
 			this.setExpanded(model.length > 0);
@@ -1525,7 +1538,10 @@ export class RecommendedExtensionsView extends ExtensionsListView {
 		super.renderBody(container);
 
 		this._register(this.extensionRecommendationsService.onDidChangeRecommendations(() => {
-			this.show('').catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.show('').catch(onUnexpectedError);
 		}));
 	}
 
@@ -1547,6 +1563,9 @@ export class WorkspaceRecommendedExtensionsView extends ExtensionsListView imple
 	override async show(query: string): Promise<IPagedModel<IExtension>> {
 		const shouldShowEmptyView = query && query.trim() !== '@recommended' && query.trim() !== '@recommended:workspace';
 		const model = await (shouldShowEmptyView ? this.showEmptyModel() : super.show(this.recommendedExtensionsQuery));
+		if (this._store.isDisposed) {
+			return model;
+		}
 		this.setExpanded(model.length > 0);
 		return model;
 	}
@@ -1575,6 +1594,9 @@ export class WorkspaceRecommendedExtensionsView extends ExtensionsListView imple
 				this.extensionManagementService.installGalleryExtensions(galleryExtensions),
 				...resourceExtensions.map(extension => this.extensionsWorkbenchService.install(extension))
 			]);
+			if (this._store.isDisposed) {
+				return;
+			}
 		} else {
 			this.notificationService.notify({
 				severity: Severity.Info,

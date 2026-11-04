@@ -270,11 +270,21 @@ export class TestItemCollection<T extends ITestItemLike> extends Disposable {
 		if (internal.expand === TestItemExpandState.Expandable) {
 			const r = this.resolveChildren(internal);
 			return !r.isOpen()
-				? r.wait().then(() => this.expandChildren(internal, levels - 1))
+				? r.wait().then(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					return this.expandChildren(internal, levels - 1);
+				})
 				: this.expandChildren(internal, levels - 1);
 		} else if (internal.expand === TestItemExpandState.Expanded) {
 			return internal.resolveBarrier?.isOpen() === false
-				? internal.resolveBarrier.wait().then(() => this.expandChildren(internal, levels - 1))
+				? internal.resolveBarrier.wait().then(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					return this.expandChildren(internal, levels - 1);
+				})
 				: this.expandChildren(internal, levels - 1);
 		}
 	}
@@ -579,9 +589,12 @@ export class TestItemCollection<T extends ITestItemLike> extends Disposable {
 
 		if (isThenable(r)) {
 			r.catch(applyError).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				barrier.open();
 				this.updateExpandability(internal);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		} else {
 			barrier.open();
 			this.updateExpandability(internal);

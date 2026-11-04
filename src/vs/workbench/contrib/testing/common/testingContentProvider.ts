@@ -78,7 +78,7 @@ export class TestingContentProvider implements IWorkbenchContribution, ITextMode
 					append(localize('runNoOutout', 'The test run did not record any output.'));
 					dispose.dispose();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			dispose.add(model.onWillDispose(() => dispose.dispose()));
 
 			return model;
