@@ -1,14 +1,16 @@
 ---
 title: "UniverseAgent 真实编辑器联测"
 type: plan
-status: completed
+status: implemented
 phase: M7
 created: 2026-10-31
-updated: 2026-10-31
+updated: 2026-11-05
 summary: "通过生产本地引擎发现、Electron main/SessionViewHost 和默认编辑器 DOM 验证真实工具与助手行，并覆盖 reload 恢复。"
 ---
 
 # UniverseAgent 真实编辑器联测
+
+状态：已完成。
 
 `test/scenario/scenarios/universe-agent-real-editor.cjs` 是默认编辑器的真实联测剧本。它要求生产 UniverseAgent CLI 使用与 Electron 相同的 `UNIVERSE_AGENT_HOME`，等待 `Engine · Loopback`，提交真实 prompt，核对真实 tool/assistant timeline root 唯一性和 marker，最后 reload 并复核持久身份。`test/scenario/scripts/run-universe-agent-real-editor.sh` 负责隔离 cwd、启动生产 CLI、等待 lock/socket、运行 Electron scenario，并在结束时等待引擎退出。
 
