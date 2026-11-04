@@ -5,7 +5,7 @@
 
 import './media/browser.css';
 import { localize, localize2 } from '../../../../nls.js';
-import { $, Dimension, IDomPosition } from '../../../../base/browser/dom.js';
+import { $, clearNode, Dimension, IDomPosition } from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ContextKeyExpr, IContextKey, RawContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService, IConstructorSignature, BrandedService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -570,7 +570,7 @@ export class BrowserEditor extends EditorPane {
 			model = await input.resolve();
 		}
 
-		if (token.isCancellationRequested || this.input !== input) {
+		if (token.isCancellationRequested || this._store.isDisposed || this.input !== input) {
 			return;
 		}
 
@@ -645,7 +645,10 @@ export class BrowserEditor extends EditorPane {
 	 * Close this editor tab (i.e. the editor input owning the current page).
 	 */
 	closeTab(): void {
-		void Promise.resolve(this.group?.closeEditor(this.input)).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void Promise.resolve(this.group?.closeEditor(this.input)).catch(onUnexpectedError);
 	}
 
 	override layout(dimension?: Dimension, _position?: IDomPosition): void {
@@ -660,7 +663,12 @@ export class BrowserEditor extends EditorPane {
 			// In floating windows, we need to ensure that the
 			// container is ready for us to compute certain
 			// layout related properties.
-			whenContainerStylesLoaded.then(() => this.layoutBrowserContainer()).catch(onUnexpectedError).catch(onUnexpectedError);
+			whenContainerStylesLoaded.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.layoutBrowserContainer();
+			}).catch(onUnexpectedError);
 		} else {
 			this.layoutBrowserContainer();
 		}
@@ -698,7 +706,12 @@ export class BrowserEditor extends EditorPane {
 		const wrapperRect = this._browserContainerWrapper.getBoundingClientRect();
 		if ((wrapperRect.width === 0 || wrapperRect.height === 0) && retries > 0) {
 			// Wrapper not measured yet; retry on the next frame.
-			this.window.requestAnimationFrame(() => this.layoutBrowserContainer(retries - 1));
+			this.window.requestAnimationFrame(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.layoutBrowserContainer(retries - 1);
+			});
 			return;
 		}
 
@@ -741,7 +754,7 @@ export class BrowserEditor extends EditorPane {
 			zoomFactor: getZoomFactor(this.window),
 			cornerRadius,
 			emulation: layout.emulation,
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		for (const c of this._contributionInstances.values()) {
 			c.afterContainerLayout();
@@ -773,5 +786,16 @@ export class BrowserEditor extends EditorPane {
 		this._hasErrorContext.reset();
 
 		super.clearInput();
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this._browserContainerWrapper) {
+			clearNode(this._browserContainerWrapper);
+			this._browserContainerWrapper.remove();
+		}
+		super.dispose();
 	}
 }

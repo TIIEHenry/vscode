@@ -579,7 +579,7 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 			void this.setBrowserZoomIndex(
 				this.zoomService.getEffectiveZoomIndex(this._zoomHost, this._isEphemeral),
 				true
-			).catch(onUnexpectedError).catch(onUnexpectedError);
+			).catch(onUnexpectedError);
 		}));
 
 		this._register(this.onDidChangeLoadingState(e => {
@@ -1017,11 +1017,14 @@ export class BrowserViewModel extends Disposable implements IBrowserViewModel {
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		++this._screenshotGeneration;
 		this._onWillDispose.fire();
 
 		// Clean up the browser view when the model is disposed
-		void this.browserViewService.destroyBrowserView(this.id).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.browserViewService.destroyBrowserView(this.id).catch(onUnexpectedError);
 
 		super.dispose();
 	}

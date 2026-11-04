@@ -27,9 +27,9 @@ suite('WebContentsViewRendererFeature leftover fire-and-forget catch scan (D682)
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_doScreenshot / _handleKeyEvent / setVisible / focus leftover voids are double-chain; DOM focus stays skipped', () => {
-		// These methods return Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows (D480).
+	test('_doScreenshot / _handleKeyEvent / setVisible / focus leftover voids are single-chain; double-chain count is strictly 0', () => {
 		const source = fs.readFileSync(webContentsViewRendererFeatureSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const screenshot = 'void this._doScreenshot()';
 		const keyEvent = 'void this._handleKeyEvent(keyEvent)';
@@ -42,21 +42,18 @@ suite('WebContentsViewRendererFeature leftover fire-and-forget catch scan (D682)
 		assert.strictEqual((source.match(/void this\._model\.setVisible\(true\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._model\.setVisible\(false\)/g) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\._model\.focus\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${screenshot}${doubleCatch}`));
-		assert.ok(source.includes(`${keyEvent}${doubleCatch}`));
-		assert.ok(source.includes(`${setVisibleTrue}${doubleCatch};`));
-		assert.ok(source.includes(`${setVisibleFalse}${doubleCatch};`));
-		assert.ok(source.includes(`${modelFocus}${doubleCatch};`));
+		assert.ok(source.includes(`${screenshot}${singleCatch}`));
+		assert.ok(source.includes(`${keyEvent}${singleCatch}`));
+		assert.ok(source.includes(`${setVisibleTrue}${singleCatch};`));
+		assert.ok(source.includes(`${setVisibleFalse}${singleCatch};`));
+		assert.ok(source.includes(`${modelFocus}${singleCatch};`));
 		assert.ok(!source.includes(`${screenshot};`));
 		assert.ok(!source.includes(`${keyEvent};`));
 		assert.ok(!source.includes(`${setVisibleTrue};`));
 		assert.ok(!source.includes(`${setVisibleFalse};`));
 		assert.ok(!source.includes(`${modelFocus};`));
-		assert.ok(!source.includes(`${screenshot}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${keyEvent}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${setVisibleTrue}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${setVisibleFalse}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${modelFocus}.catch(onUnexpectedError);`));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('this._container?.focus();'));
 		assert.ok(!source.includes('this._container?.focus().catch'));
 	});

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize, localize2 } from '../../../../../nls.js';
-import { $ } from '../../../../../base/browser/dom.js';
+import { $, clearNode } from '../../../../../base/browser/dom.js';
 import { Event } from '../../../../../base/common/event.js';
 import { IContextKey, IContextKeyService, ContextKeyExpr, RawContextKey } from '../../../../../platform/contextkey/common/contextkey.js';
 import { Action2, registerAction2, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
@@ -225,13 +225,13 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		this._shareButton.label = '$(share-window)';
 
 		this._register(this._shareButton.onDidClick(() => {
-			void this._toggleShareWithAgent().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._toggleShareWithAgent().catch(onUnexpectedError);
 		}));
 
 		// Auto-disable element selection when the user sends a chat request.
 		this._register(this.chatService.onDidSubmitRequest(event => {
 			if (this.editor.model?.elementSelectionState.active) {
-				void this.editor.model.toggleElementSelection(false).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.editor.model.toggleElementSelection(false).catch(onUnexpectedError);
 			}
 			const submittedComments = [...this._commentReferences]
 				.filter(([, reference]) => reference.widget.viewModel && isEqual(reference.widget.viewModel.sessionResource, event.chatSessionResource));
@@ -328,7 +328,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	// -- Sharing -------------------------------------------------------
 
 	private async _toggleShareWithAgent(): Promise<void> {
-		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+		if (this._store.isDisposed || !isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
 			return;
 		}
 		const model = this.editor.model;
@@ -341,6 +341,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 			succeeded = await model.setSharedWithAgent(shared);
 		} catch (error) {
 			this.logService.error('BrowserEditor.toggleShareWithAgent: Failed to update sharing state', error);
+			return;
+		}
+		if (this._store.isDisposed) {
 			return;
 		}
 		if (shouldUnlockChatPetIntegratedBrowserShare(shared, succeeded)) {
@@ -639,7 +642,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 				body: line.slice(variable.range.endColumn - 1).trimStart()
 			});
 		}
-		void browserModel.setElementComments({ comments, pendingCommentIdsToDiscard }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void browserModel.setElementComments({ comments, pendingCommentIdsToDiscard }).catch(onUnexpectedError);
 	}
 
 	private _removeElementCommentReference(browserModel: IBrowserViewModel, elementId: string): void {
@@ -680,7 +683,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		}
 		this._commentModelListeners.deleteAndDispose(browserModel);
 		if (syncComments) {
-			void browserModel.setElementComments({ comments: [] }).catch(onUnexpectedError).catch(onUnexpectedError);
+			void browserModel.setElementComments({ comments: [] }).catch(onUnexpectedError);
 		}
 	}
 
@@ -810,7 +813,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * user-drawn region, and attach the resulting image to chat.
 	 */
 	async addAreaScreenshotToChat(): Promise<void> {
-		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+		if (this._store.isDisposed || !isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
 			return;
 		}
 		const model = this.editor.model;
@@ -820,7 +823,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 
 		// Toggle off if already active — second invocation cancels.
 		if (model.isAreaSelectionActive) {
-			void model.toggleAreaSelection(false).catch(onUnexpectedError).catch(onUnexpectedError);
+			void model.toggleAreaSelection(false).catch(onUnexpectedError);
 			return;
 		}
 
@@ -830,10 +833,10 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		// or `undefined` on cancellation, so we don't have to reconcile rect vs.
 		// activation-state events across the IPC boundary.
 		const pickPromise = Event.toPromise(Event.once(model.onDidPickArea));
-		void model.toggleAreaSelection(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.toggleAreaSelection(true).catch(onUnexpectedError);
 		const rect = await pickPromise;
 
-		if (!rect) {
+		if (this._store.isDisposed || !rect) {
 			return;
 		}
 
@@ -842,7 +845,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 			// into the captured screenshot.
 			const screenshotBuffer = await model.captureScreenshot({ quality: 80, pageRect: rect, awaitNextPaint: true });
 
-			if (!await this._confirmContentAttachmentRisk(model.url)) {
+			if (this._store.isDisposed || !await this._confirmContentAttachmentRisk(model.url)) {
 				return;
 			}
 
@@ -855,7 +858,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 				mimeType: 'image/jpeg',
 			}];
 
-			if (!await this._attachToChat(toAttach)) {
+			if (this._store.isDisposed || !await this._attachToChat(toAttach)) {
 				return;
 			}
 
@@ -871,7 +874,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * Capture a full-page screenshot (including content scrolled off-screen) and attach it to chat.
 	 */
 	async addFullPageScreenshotToChat(): Promise<void> {
-		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+		if (this._store.isDisposed || !isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
 			return;
 		}
 		const model = this.editor.model;
@@ -882,7 +885,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		try {
 			const screenshotBuffer = await model.captureScreenshot({ fullPage: true, format: 'png' });
 
-			if (!await this._confirmContentAttachmentRisk(model.url)) {
+			if (this._store.isDisposed || !await this._confirmContentAttachmentRisk(model.url)) {
 				return;
 			}
 
@@ -895,7 +898,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 				mimeType: 'image/png',
 			}];
 
-			if (!await this._attachToChat(toAttach)) {
+			if (this._store.isDisposed || !await this._attachToChat(toAttach)) {
 				return;
 			}
 
@@ -905,6 +908,15 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		} catch (error) {
 			this.logService.error('BrowserEditor.addFullPageScreenshotToChat: Failed to capture full-page screenshot', error);
 		}
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		clearNode(this._shareButtonContainer);
+		this._shareButtonContainer.remove();
+		super.dispose();
 	}
 }
 

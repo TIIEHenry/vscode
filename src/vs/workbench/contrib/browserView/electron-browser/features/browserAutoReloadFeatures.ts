@@ -128,12 +128,12 @@ export class BrowserAutoReloadWatcher extends Disposable {
 	}
 
 	private _reloadPendingChange(): void {
-		if (!this._enabled || !this._hasPendingChange || !this._model?.visible) {
+		if (this._store.isDisposed || !this._enabled || !this._hasPendingChange || !this._model?.visible) {
 			return;
 		}
 
 		this._hasPendingChange = false;
-		this._model.reload().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._model.reload().catch(onUnexpectedError);
 	}
 }
 

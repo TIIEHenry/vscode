@@ -531,6 +531,9 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 	}
 
 	private _updateWindowConfiguration(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		void this._browserViewService.updateWindowConfiguration(this._mainWindowId, {
 			theme: this._getTheme(),
 			keybindings: this._getKeybindings(),
@@ -539,7 +542,7 @@ export class BrowserViewWorkbenchService extends Disposable implements IBrowserV
 			proxyInfo: this._remoteProxyInfo,
 			trustedFileRoots: this._getTrustedFileRoots(),
 			trustAllFiles: !this.workspaceTrustEnablementService.isWorkspaceTrustEnabled(),
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _getKeybindings(): { [commandId: string]: string } {

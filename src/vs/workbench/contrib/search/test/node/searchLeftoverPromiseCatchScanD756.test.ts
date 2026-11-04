@@ -31,11 +31,17 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
+const errorsSingleCatch = '.catch(errors.onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 const errorsDoubleCatch = '.catch(errors.onUnexpectedError).catch(errors.onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\([^)]+\)\.catch\(/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -53,7 +59,7 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers four leftover Promise double-chain sites', () => {
+	test('this knife covers four leftover Promise single-chain sites with 0 double catches', () => {
 		const view = fs.readFileSync(resolveSource(SEARCH_VIEW_REL), 'utf8');
 		const find = fs.readFileSync(resolveSource(SEARCH_FIND_REL), 'utf8');
 		const nav = fs.readFileSync(resolveSource(SEARCH_NAV_REL), 'utf8');
@@ -61,16 +67,15 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 		const confirmWrap = `			} else {
 				progressComplete();
 			}
-		})${errorsDoubleCatch};`;
-		const paneWrap = `				explorerService.select(uri, true).then(() => explorerView.focus())${doubleCatch};
+		})${errorsSingleCatch};`;
+		const paneWrap = `				explorerService.select(uri, true).then(() => explorerView.focus())${singleCatch};
 			}
-		})${doubleCatch};`;
+		})${singleCatch};`;
 		const navWrap = `	openSearchView(viewsService).then(searchView => {
 		searchView?.moveFocusToResults();
-	})${doubleCatch};`;
-		const baseWrap = `				openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
-			}
-		})${doubleCatch};`;
+	})${singleCatch};`;
+		const baseWrap = `			openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
+		})${singleCatch};`;
 		const sites =
 			countIncludes(view, confirmWrap) +
 			countIncludes(find, paneWrap) +
@@ -78,15 +83,20 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 			countIncludes(base, baseWrap);
 		assert.ok(sites >= 4, `expected >=4 leftover sites, got ${sites}`);
 		assert.strictEqual(sites, 4);
+
+		for (const source of [view, find, nav, base]) {
+			assert.strictEqual(countDoubleChains(source), 0, 'expected 0 double catches');
+		}
 	});
 
-	test('searchView leftover confirm().then is Promise double-chain; return Promise.all / two-arg :1750 / already-double updateFileStats stay skipped', () => {
+	test('searchView leftover confirm().then is Promise single-chain; return Promise.all / two-arg :1750 / single-chain updateFileStats', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_VIEW_REL), 'utf8');
 		const dialogs = fs.readFileSync(resolveSource(DIALOGS_REL), 'utf8');
 		assertPromiseSignature(dialogs, 'confirm(confirmation: IConfirmation): Promise<IConfirmationResult>;');
 		assert.ok(source.includes('import * as errors from \'../../../../base/common/errors.js\';'));
 		assert.ok(source.includes(`this.dialogService.confirm(confirmation).then(res => {`));
-		assert.ok(source.includes(`		})${errorsDoubleCatch};`));
+		assert.ok(source.includes(`		})${errorsSingleCatch};`));
+		assert.ok(!source.includes(`		})${errorsDoubleCatch};`));
 		assert.ok(!source.includes(`			} else {
 				progressComplete();
 			}
@@ -95,7 +105,13 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 		assert.ok(!source.includes(`return Promise.all(folderQueriesExistP).then(existResults => {${errorsDoubleCatch}`));
 		assert.ok(source.includes('\t\t\t.then(() => undefined, () => undefined);'));
 		assert.ok(!source.includes(`.then(() => undefined, () => undefined)${errorsDoubleCatch}`));
-		assert.ok(source.includes(`this.updateFileStats(changedMatches).then(async () => this.refreshTreeController.queue())${errorsDoubleCatch};`));
+		assert.ok(source.includes(`this.updateFileStats(changedMatches).then(async () => {
+					if (this.isDisposed) {
+						return;
+					}
+					return this.refreshTreeController.queue();
+				})${errorsSingleCatch};`));
+		assert.ok(!source.includes(`this.updateFileStats(changedMatches).then(async () => this.refreshTreeController.queue())${errorsDoubleCatch};`));
 		assert.ok(source.includes('asyncResults.then((complete) => {'));
 		assert.ok(source.includes('\t\t}, (e) => {'));
 		assert.ok(!source.includes(`asyncResults.then((complete) => {
@@ -118,7 +134,7 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 					this.notificationService.error(error);
 				})${errorsDoubleCatch}`));
 		assert.ok(source.includes('this.validateQuery(query).then(() => {'));
-		assert.ok(source.includes('\t\t}, onQueryValidationError);'));
+		assert.ok(source.includes('onQueryValidationError(err);'));
 		assert.ok(!source.includes(`}, onQueryValidationError)${errorsDoubleCatch}`));
 		assert.ok(source.includes('aiSearchPromise.then((complete) => {'));
 		assert.ok(!source.includes(`aiSearchPromise.then((complete) => {
@@ -131,22 +147,21 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 		assert.ok(!source.includes(`return result.asyncResults.then((complete) => {${errorsDoubleCatch}`));
 	});
 
-	test('searchActionsFind leftover openPaneComposite.then is Promise double-chain; already-double explorerService.select stays', () => {
+	test('searchActionsFind leftover openPaneComposite.then is Promise single-chain; explorerService.select stays single-chain', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_FIND_REL), 'utf8');
 		const pane = fs.readFileSync(resolveSource(PANE_REL), 'utf8');
 		assertPromiseSignature(pane, 'openPaneComposite(id: string | undefined, viewContainerLocation: ViewContainerLocation, focus?: boolean): Promise<IPaneComposite | undefined>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes(`paneCompositeService.openPaneComposite(VIEWLET_ID_FILES, ViewContainerLocation.Sidebar, false).then((viewlet) => {`));
-		assert.ok(source.includes(`		})${doubleCatch};`));
-		assert.ok(!source.includes(`				explorerService.select(uri, true).then(() => explorerView.focus())${doubleCatch};
-			}
-		});`));
-		assert.ok(source.includes(`explorerService.select(uri, true).then(() => explorerView.focus())${doubleCatch};`));
+		assert.ok(source.includes(`		})${singleCatch};`));
+		assert.ok(!source.includes(`		})${doubleCatch};`));
+		assert.ok(source.includes(`explorerService.select(uri, true).then(() => explorerView.focus())${singleCatch};`));
+		assert.ok(!source.includes(`explorerService.select(uri, true).then(() => explorerView.focus())${doubleCatch};`));
 		assert.ok(source.includes('const resolvedResources = fileService.resolveAll(resources.map(resource => ({ resource }))).then(results => {'));
 		assert.ok(!source.includes(`const resolvedResources = fileService.resolveAll(resources.map(resource => ({ resource }))).then(results => {${doubleCatch}`));
 	});
 
-	test('searchActionsNav leftover openSearchView.then is Promise double-chain; returned openSearchView stays skipped', () => {
+	test('searchActionsNav leftover openSearchView.then is Promise single-chain; returned openSearchView stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_NAV_REL), 'utf8');
 		const views = fs.readFileSync(resolveSource(VIEWS_REL), 'utf8');
 		const base = fs.readFileSync(resolveSource(SEARCH_BASE_REL), 'utf8');
@@ -154,6 +169,9 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 		assertPromiseSignature(base, 'export function openSearchView(viewsService: IViewsService, focus?: boolean): Promise<SearchView | undefined> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes(`openSearchView(viewsService).then(searchView => {
+		searchView?.moveFocusToResults();
+	})${singleCatch};`));
+		assert.ok(!source.includes(`openSearchView(viewsService).then(searchView => {
 		searchView?.moveFocusToResults();
 	})${doubleCatch};`));
 		assert.ok(!source.includes(`openSearchView(viewsService).then(searchView => {
@@ -167,22 +185,20 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 		assert.ok(!source.includes(`return openSearchView(accessor.get(IViewsService), false).then(openedView => {${doubleCatch}`));
 	});
 
-	test('searchActionsBase leftover openSearchView.then is Promise double-chain; returned openView stays skipped', () => {
+	test('searchActionsBase leftover openSearchView.then is Promise single-chain; returned openView stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_BASE_REL), 'utf8');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes(`openSearchView(viewsService, false).then(openedView => {`));
-		assert.ok(source.includes(`		})${doubleCatch};`));
-		assert.ok(!source.includes(`				openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
-			}
-		});`));
+		assert.ok(source.includes(`		})${singleCatch};`));
+		assert.ok(!source.includes(`		})${doubleCatch};`));
 		assert.ok(source.includes('return viewsService.openView(VIEW_ID, focus).then(view => (view as SearchView ?? undefined));'));
 		assert.ok(!source.includes(`return viewsService.openView(VIEW_ID, focus).then(view => (view as SearchView ?? undefined))${doubleCatch}`));
 	});
 
-	test('searchModel already-double _startStreamDelay stays; assigned asyncResults / two-arg then stay skipped', () => {
+	test('searchModel single-chain _startStreamDelay stays; assigned asyncResults / two-arg then stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_MODEL_REL), 'utf8');
 		const delayThen = `this._startStreamDelay.then(() => {
-					if ((!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
+					if (this._store.isDisposed || (!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
 						return;
 					}
 					if (targetQueue.length) {
@@ -190,7 +206,8 @@ suite('Search leftover remaining Promise fire-and-forget catch scan (D756)', () 
 						targetQueue.length = 0;
 					}
 				})`;
-		assert.ok(source.includes(`${delayThen}${errorsDoubleCatch};`));
+		assert.ok(source.includes(`${delayThen}${errorsSingleCatch};`));
+		assert.ok(!source.includes(`${delayThen}${errorsDoubleCatch};`));
 		assert.ok(source.includes('asyncResults: asyncResults.then('));
 		assert.ok(!source.includes(`asyncResults: asyncResults.then(${errorsDoubleCatch}`));
 		assert.ok(source.includes('\t\t\t}).then('));

@@ -397,14 +397,14 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 				}
 			} else {
 				this._startStreamDelay.then(() => {
-					if ((!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
+					if (this._store.isDisposed || (!ai && searchInstanceID !== this._plainSearchInstanceID) || (ai && searchInstanceID !== this._aiSearchInstanceID)) {
 						return;
 					}
 					if (targetQueue.length) {
 						this._searchResult.add(targetQueue, searchInstanceID, ai, !ai);
 						targetQueue.length = 0;
 					}
-				}).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
+				}).catch(errors.onUnexpectedError);
 			}
 
 		}
@@ -439,6 +439,9 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		this._searchResult.aiTextSearchResult.clear(false);
 	}
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.cancelSearch();
 		this.cancelAISearch();
 		this.searchResult.dispose();

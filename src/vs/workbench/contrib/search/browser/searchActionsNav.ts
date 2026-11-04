@@ -447,7 +447,7 @@ const focusSearchListCommand: ICommandHandler = accessor => {
 	const viewsService = accessor.get(IViewsService);
 	openSearchView(viewsService).then(searchView => {
 		searchView?.moveFocusToResults();
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 };
 
 async function focusNextSearchResult(accessor: ServicesAccessor): Promise<any> {
