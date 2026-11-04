@@ -44,6 +44,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -60,9 +61,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
 }
 
 const autoUpdateCall = 'this.autoUpdateBuiltinExtensions()';
@@ -106,13 +107,13 @@ suite('notification leftover remaining moved to extensionsWorkbench leftover Pro
 		assert.ok(!notification.includes('D819'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after notification leftover remaining moved', () => {
+	test('this knife covers eight leftover Promise single-chain sites after notification leftover remaining moved', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d819Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -120,7 +121,7 @@ suite('notification leftover remaining moved to extensionsWorkbench leftover Pro
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_SVC_REL) ?? ''), 13);
+		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_SVC_REL) ?? ''), 0);
 	});
 
 	test('extensionsWorkbench leftover autoUpdateBuiltin / syncPinned / updateRunning / syncGallery leftover void promises are Promise/async + double-chain', () => {
@@ -201,7 +202,8 @@ suite('notification leftover remaining moved to extensionsWorkbench leftover Pro
 			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
+			assert.ok(!source.includes(doubleCatch));
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('D819'));
 		}
 	});
@@ -227,7 +229,11 @@ suite('notification leftover remaining moved to extensionsWorkbench leftover Pro
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const userActivity = fs.readFileSync(resolveSource(USER_ACTIVITY_REL), 'utf8');
 
-		assert.ok(workbench.includes(`${enabledAutoCheckCall}${doubleCatch}`));
+		assert.ok(workbench.includes(`${enabledAutoCheckCall}${singleCatch}`));
+		assert.ok(!workbench.includes(`${enabledAutoCheckCall}${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(workbench), 0);
+		assert.strictEqual(countDoubleChains(viewlet), 0);
+		assert.strictEqual(countDoubleChains(widgets), 0);
 		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
 		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
 		assert.ok(widgets.includes(`${openViewThenCall};`));

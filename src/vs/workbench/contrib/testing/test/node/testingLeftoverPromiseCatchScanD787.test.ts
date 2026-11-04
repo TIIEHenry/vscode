@@ -43,7 +43,12 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -51,13 +56,13 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 }
 
 const runTestsThenCall = `			}, token).then(() => {
@@ -75,6 +80,9 @@ const explorerRunTestsCall = `			this.testService.runTests({
 				tests: toRun.map(t => t.test),
 			})`;
 const msgQueueCall = `			msgThrottler.queue(() => {
+				if (this._store.isDisposed) {
+					return timeout(0);
+				}
 				this.applyResults();
 				return timeout(100);
 			})`;
@@ -87,10 +95,16 @@ const runResolvedCall = `				this.testService.runResolvedTests({
 					}]
 				})`;
 const updateTriggerCall = `		this._register(input.onInputDidChange(() => updateDelayer.trigger(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			input.addToHistory();
 			this.state.setText(input.getValue());
 		})`;
 const xtermTriggerCall = `		this.xtermLayoutDelayer.trigger(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const scaled = getXtermScaledDimensions(dom.getWindow(this.container), xterm.getFont(), width, height);
 			if (scaled) {
 				xterm.resize(scaled.cols, scaled.rows);
@@ -99,12 +113,18 @@ const xtermTriggerCall = `		this.xtermLayoutDelayer.trigger(() => {
 const openExplorerCall = 'this.viewsService.openView(Testing.ExplorerViewId, false)';
 const openResultsCall = 'this.viewsService.openView(Testing.ResultsViewId, false)';
 const resolveThenCall = `			r.catch(applyError).then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				barrier.open();
 				this.updateExpandability(internal);
 			})`;
 const followupPickThenCall = `			}))).then(picked => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (picked?.length) {
-					followups[picked[0].index].execute().catch(onUnexpectedError).catch(onUnexpectedError);
+					followups[picked[0].index].execute().catch(onUnexpectedError);
 				}
 			})`;
 const followupExecutePickedCall = 'followups[picked[0].index].execute()';
@@ -153,7 +173,7 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers fourteen leftover Promise double-chain sites in testing leftover remaining', () => {
+	test('this knife covers fourteen leftover Promise sites in testing leftover remaining with single-chain error catch', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d787Calls) {
@@ -163,6 +183,7 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 			const wrapped = countWrapped(source, call);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
+			assert.strictEqual(countDoubleChains(source), 0, `unexpected double-chain in ${rel}`);
 			sites += count;
 		}
 		assert.strictEqual(sites, 14);
@@ -183,7 +204,7 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 		assert.ok(files.includes(`void this.onConfigurationUpdated(e)${doubleCatch}`));
 	});
 
-	test('leftover runTests then / executeCommand / queue / trigger / openView / followup execute are Promise double-chain', () => {
+	test('leftover runTests then / executeCommand / queue / trigger / openView / followup execute are Promise single-chain', () => {
 		const chat = fs.readFileSync(resolveSource(CHAT_REL), 'utf8');
 		const coverage = fs.readFileSync(resolveSource(COVERAGE_VIEW_REL), 'utf8');
 		const explorer = fs.readFileSync(resolveSource(EXPLORER_REL), 'utf8');
@@ -229,6 +250,15 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 		assertWrapped(followup, followupPickThenCall);
 		assertWrapped(followup, followupExecutePickedCall);
 		assertWrapped(followup, followupExecuteFuCall);
+		assert.strictEqual(countDoubleChains(chat), 0);
+		assert.strictEqual(countDoubleChains(coverage), 0);
+		assert.strictEqual(countDoubleChains(explorer), 0);
+		assert.strictEqual(countDoubleChains(decorations), 0);
+		assert.strictEqual(countDoubleChains(filter), 0);
+		assert.strictEqual(countDoubleChains(output), 0);
+		assert.strictEqual(countDoubleChains(progress), 0);
+		assert.strictEqual(countDoubleChains(followup), 0);
+		assert.strictEqual(countDoubleChains(item), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Connect / Watch / Resolve / Pty / D145 stay skipped', () => {
@@ -271,11 +301,17 @@ suite('testing leftover Promise fire-and-forget catch scan (D787)', () => {
 		assert.ok(!decorations.includes(`() => this.testService.runTests({ group: bitset, tests: [test] })${doubleCatch}`));
 		assert.ok(service.includes('prom = prom.then(() => waitForTestToBeIdle(testService, test));'));
 		assert.ok(!service.includes(`prom = prom.then(() => waitForTestToBeIdle(testService, test))${doubleCatch}`));
-		assert.ok(item.includes('? r.wait().then(() => this.expandChildren(internal, levels - 1))'));
+		assert.ok(item.includes('? r.wait().then(() => {'));
+		assert.ok(item.includes('return this.expandChildren(internal, levels - 1);'));
 		assert.ok(!item.includes(`r.wait().then(() => this.expandChildren(internal, levels - 1))${doubleCatch}`));
 		assert.ok(content.includes(`task.output.endPromise.then(() => {`));
-		assert.ok(content.includes(`${doubleCatch}`));
-		assert.ok(coverage.includes(`el.value!.details().then(details => this.updateWithDetails(el, details))${doubleCatch}`));
+		assert.ok(content.includes(`${singleCatch}`));
+		assert.ok(!content.includes(`${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(content), 0);
+		assert.ok(coverage.includes('el.value!.details().then(details => {'));
+		assert.ok(coverage.includes('this.updateWithDetails(el, details);'));
+		assert.ok(!coverage.includes(`el.value!.details().then(details => this.updateWithDetails(el, details))${doubleCatch}`));
+		assert.strictEqual(countDoubleChains(coverage), 0);
 		for (const source of [coverage, decorations, coverageDecorations, peek, actions, item]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));

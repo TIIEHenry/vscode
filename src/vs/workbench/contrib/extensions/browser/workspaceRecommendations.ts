@@ -53,7 +53,7 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 		this.workspaceExtensions = await this.fetchWorkspaceExtensions();
 		await this.fetch();
 
-		this._register(this.workspaceExtensionsConfigService.onDidChangeExtensionsConfigs(() => this.onDidChangeExtensionsConfigs().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.workspaceExtensionsConfigService.onDidChangeExtensionsConfigs(() => this.onDidChangeExtensionsConfigs().catch(onUnexpectedError)));
 		for (const folder of this.contextService.getWorkspace().folders) {
 			this._register(this.fileService.watch(this.uriIdentityService.extUri.joinPath(folder.uri, WORKSPACE_EXTENSIONS_FOLDER)));
 		}
@@ -78,8 +78,11 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 	private async _onDidChangeWorkspaceExtensionsFoldersNow(): Promise<void> {
 		const existing = this.workspaceExtensions;
 		this.workspaceExtensions = await this.fetchWorkspaceExtensions();
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!equals(existing, this.workspaceExtensions, (a, b) => this.uriIdentityService.extUri.isEqual(a, b))) {
-			this.onDidChangeExtensionsConfigs().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.onDidChangeExtensionsConfigs().catch(onUnexpectedError);
 		}
 	}
 
@@ -183,6 +186,9 @@ export class WorkspaceRecommendations extends ExtensionRecommendations {
 
 	private async onDidChangeExtensionsConfigs(): Promise<void> {
 		await this.fetch();
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._onDidChangeRecommendations.fire();
 	}
 

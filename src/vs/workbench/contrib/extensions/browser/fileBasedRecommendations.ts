@@ -325,13 +325,16 @@ export class FileBasedRecommendations extends ExtensionRecommendations {
 			return false;
 		}
 
-		this.promptImportantExtensionsInstallNotification(recommendations, name, language).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.promptImportantExtensionsInstallNotification(recommendations, name, language).catch(onUnexpectedError);
 		return true;
 	}
 
 	private async promptImportantExtensionsInstallNotification(extensions: string[], name: string, language: string): Promise<void> {
 		try {
 			const result = await this.extensionRecommendationNotificationService.promptImportantExtensionsInstallNotification({ extensions, name, source: RecommendationSource.FILE });
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (result === RecommendationsNotificationResult.Accepted) {
 				this.addToPromptedRecommendations(language, extensions);
 			}

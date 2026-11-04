@@ -98,9 +98,12 @@ export class RuntimeExtensionsEditor extends AbstractRuntimeExtensionsEditor {
 		this._profileSessionState = CONTEXT_PROFILE_SESSION_STATE.bindTo(contextKeyService);
 
 		this._register(this._extensionHostProfileService.onDidChangeLastProfile(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._profileInfo = this._extensionHostProfileService.lastProfile;
 			this._extensionsHostRecorded.set(!!this._profileInfo);
-			this._updateExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._updateExtensions().catch(onUnexpectedError);
 		}));
 		this._register(this._extensionHostProfileService.onDidChangeState(() => {
 			const state = this._extensionHostProfileService.state;

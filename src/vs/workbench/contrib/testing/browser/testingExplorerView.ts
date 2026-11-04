@@ -876,7 +876,7 @@ class TestingExplorerViewModel extends Disposable {
 					commandService.executeCommand('vscode.revealTest', e.element.test.item.extId, {
 						openToSide: e.sideBySide,
 						preserveFocus: true,
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -1118,7 +1118,7 @@ class TestingExplorerViewModel extends Disposable {
 			this.testService.runTests({
 				group: TestRunProfileBitset.Run,
 				tests: toRun.map(t => t.test),
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 

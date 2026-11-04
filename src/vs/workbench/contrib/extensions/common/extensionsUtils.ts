@@ -34,13 +34,19 @@ export class KeymapExtensions extends Disposable implements IWorkbenchContributi
 		super();
 		this._register(lifecycleService.onDidShutdown(() => this.dispose()));
 		this._register(instantiationService.invokeFunction(onExtensionChanged)((identifiers => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			Promise.all(identifiers.map(identifier => this.checkForOtherKeymaps(identifier)))
-				.catch(onUnexpectedError).catch(onUnexpectedError);
+				.catch(onUnexpectedError);
 		})));
 	}
 
 	private checkForOtherKeymaps(extensionIdentifier: IExtensionIdentifier): Promise<void> {
 		return this.instantiationService.invokeFunction(getInstalledExtensions).then(extensions => {
+			if (this._store.isDisposed) {
+				return undefined;
+			}
 			const keymaps = extensions.filter(extension => isKeymapExtension(this.tipsService, extension));
 			const extension = keymaps.find(extension => areSameExtensions(extension.identifier, extensionIdentifier));
 			if (extension && extension.globallyEnabled) {

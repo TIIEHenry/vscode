@@ -1169,13 +1169,13 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 			}
 			if (e.affectsConfiguration(AutoCheckUpdatesConfigurationKey)) {
 				if (this.isAutoCheckUpdatesEnabled()) {
-					this.checkForUpdates(`Enabled auto check updates`).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.checkForUpdates(`Enabled auto check updates`).catch(onUnexpectedError);
 				}
 			}
 		}));
 		this._register(this.extensionEnablementService.onEnablementChanged(platformExtensions => {
 			if (this.isAutoCheckUpdatesEnabled() && this.getAutoUpdateValue() === 'on' && platformExtensions.some(e => this.extensionEnablementService.isEnabled(e))) {
-				this.checkForUpdates('Extension enablement changed').catch(onUnexpectedError).catch(onUnexpectedError);
+				this.checkForUpdates('Extension enablement changed').catch(onUnexpectedError);
 			}
 		}));
 		this._register(Event.debounce(this.onChange, () => undefined, 100)(() => this.hasOutdatedExtensionsContextKey.set(this.outdated.length > 0)));
@@ -1186,23 +1186,23 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 					comment: 'Report when update check is triggered on product update';
 				}>('extensions:updatecheckonproductupdate');
 				if (this.isAutoCheckUpdatesEnabled()) {
-					this.checkForUpdates('Product update').catch(onUnexpectedError).catch(onUnexpectedError);
+					this.checkForUpdates('Product update').catch(onUnexpectedError);
 				}
 			}
 		}));
 
 		this._register(this.allowedExtensionsService.onDidChangeAllowedExtensionsConfigValue(() => {
 			if (this.isAutoCheckUpdatesEnabled()) {
-				this.checkForUpdates('Allowed extensions changed').catch(onUnexpectedError).catch(onUnexpectedError);
+				this.checkForUpdates('Allowed extensions changed').catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(this.meteredConnectionService.onDidChangeIsConnectionMetered(() => {
 			if (this.isAutoCheckUpdatesEnabled()) {
-				this.checkForUpdates('Connection is no longer metered').catch(onUnexpectedError).catch(onUnexpectedError);
+				this.checkForUpdates('Connection is no longer metered').catch(onUnexpectedError);
 			}
 			if (isWeb && !this.isAutoUpdateEnabled()) {
-				this.autoUpdateBuiltinExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.autoUpdateBuiltinExtensions().catch(onUnexpectedError);
 			}
 		}));
 
@@ -1213,10 +1213,10 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 		this.eventuallyCheckForUpdates(true);
 
 		if (isWeb) {
-			this.syncPinnedBuiltinExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.syncPinnedBuiltinExtensions().catch(onUnexpectedError);
 			// Always auto update builtin extensions in web
 			if (!this.isAutoUpdateEnabled()) {
-				this.autoUpdateBuiltinExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.autoUpdateBuiltinExtensions().catch(onUnexpectedError);
 			}
 		}
 
@@ -1325,7 +1325,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 		if (this.configurationService.getValue(AutoRestartConfigurationKey) === true) {
 			this.autoRestartListenerDisposable.value = this.hostService.onDidChangeFocus(focus => {
 				if (!focus && this.configurationService.getValue(AutoRestartConfigurationKey) === true) {
-					this.updateRunningExtensions(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.updateRunningExtensions(undefined, true).catch(onUnexpectedError);
 				}
 			});
 		}
@@ -1482,14 +1482,14 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 
 		const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
 		const pager = await this.galleryService.query(options, token);
-		this.syncInstalledExtensionsWithGallery(pager.firstPage).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.syncInstalledExtensionsWithGallery(pager.firstPage).catch(onUnexpectedError);
 		return {
 			firstPage: pager.firstPage.map(gallery => this.fromGallery(gallery, extensionsControlManifest)),
 			total: pager.total,
 			pageSize: pager.pageSize,
 			getPage: async (pageIndex, token) => {
 				const page = await pager.getPage(pageIndex, token);
-				this.syncInstalledExtensionsWithGallery(page).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.syncInstalledExtensionsWithGallery(page).catch(onUnexpectedError);
 				return page.map(gallery => this.fromGallery(gallery, extensionsControlManifest));
 			}
 		};
@@ -1505,7 +1505,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 		extensionInfos.forEach(e => e.preRelease = e.preRelease ?? this.extensionManagementService.preferPreReleases);
 		const extensionsControlManifest = await this.extensionManagementService.getExtensionsControlManifest();
 		const galleryExtensions = await this.galleryService.getExtensions(extensionInfos, arg1, arg2);
-		this.syncInstalledExtensionsWithGallery(galleryExtensions).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.syncInstalledExtensionsWithGallery(galleryExtensions).catch(onUnexpectedError);
 		return galleryExtensions.map(gallery => this.fromGallery(gallery, extensionsControlManifest));
 	}
 
@@ -1614,7 +1614,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 							if (needsReload) {
 								this.hostService.reload();
 							} else {
-								this.updateRunningExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+								this.updateRunningExtensions().catch(onUnexpectedError);
 							}
 						}
 					},

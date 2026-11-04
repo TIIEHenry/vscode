@@ -113,7 +113,7 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 		this._register(Event.any(this.workspaceRecommendations.onDidChangeRecommendations, this.configBasedRecommendations.onDidChangeRecommendations, this.extensionRecommendationsManagementService.onDidChangeIgnoredRecommendations)(() => this._onDidChangeRecommendations.fire()));
 
-		this.promptWorkspaceRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.promptWorkspaceRecommendations().catch(onUnexpectedError);
 	}
 
 	private isEnabled(): boolean {
@@ -126,7 +126,7 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 	getAllRecommendationsWithReason(): { [id: string]: { reasonId: ExtensionRecommendationReason; reasonText: string } } {
 		/* Activate proactive recommendations */
-		this.activateProactiveRecommendations().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.activateProactiveRecommendations().catch(onUnexpectedError);
 
 		const output: { [id: string]: { reasonId: ExtensionRecommendationReason; reasonText: string } } = Object.create(null);
 
@@ -267,6 +267,9 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 	private async promptWorkspaceRecommendations(): Promise<void> {
 		const installed = await this.extensionsWorkbenchService.queryLocal();
+		if (this._store.isDisposed) {
+			return;
+		}
 		const allowedRecommendations = [
 			...this.workspaceRecommendations.recommendations,
 			...this.configBasedRecommendations.importantRecommendations.filter(
@@ -277,6 +280,9 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 		if (allowedRecommendations.length) {
 			await this._registerP(timeout(5000));
+			if (this._store.isDisposed) {
+				return;
+			}
 			await this.extensionRecommendationNotificationService.promptWorkspaceRecommendations(allowedRecommendations);
 		}
 	}

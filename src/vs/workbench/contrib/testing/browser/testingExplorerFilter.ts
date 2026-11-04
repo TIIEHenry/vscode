@@ -119,9 +119,12 @@ export class TestingExplorerFilter extends BaseActionViewItem {
 		}));
 
 		this._register(input.onInputDidChange(() => updateDelayer.trigger(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			input.addToHistory();
 			this.state.setText(input.getValue());
-		}).catch(onUnexpectedError).catch(onUnexpectedError)));
+		}).catch(onUnexpectedError)));
 
 		const actionbar = this._register(new ActionBar(container, {
 			actionViewItemProvider: (action, options) => {
@@ -163,6 +166,10 @@ export class TestingExplorerFilter extends BaseActionViewItem {
 	 */
 	public override dispose() {
 		this.saveState();
+		if (this.wrapper) {
+			dom.clearNode(this.wrapper);
+			this.wrapper.remove();
+		}
 		super.dispose();
 	}
 

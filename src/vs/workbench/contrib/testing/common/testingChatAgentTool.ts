@@ -238,7 +238,7 @@ export class RunTestTool implements IToolImpl {
 				if (!store.isDisposed) {
 					store.add(disposableTimeout(() => onDidTimeout.fire(), 5_000));
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}).finally(() => store.dispose());
 	}
 

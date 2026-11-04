@@ -131,7 +131,7 @@ export class RemoteExtensionsInitializerContribution implements IWorkbenchContri
 		@IRemoteAuthorityResolverService private readonly remoteAuthorityResolverService: IRemoteAuthorityResolverService,
 		@IUserDataSyncEnablementService private readonly userDataSyncEnablementService: IUserDataSyncEnablementService,
 	) {
-		this.initializeRemoteExtensions().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeRemoteExtensions().catch(onUnexpectedError);
 	}
 
 	private async initializeRemoteExtensions(): Promise<void> {
