@@ -4,10 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-04
-summary: "多槽并行编排完成 Wave 22：Slot A（Files 与 SCM 17 个生产模块错误处理去重、DOM 清理与生命周期销毁守卫）、Slot B（Extensions 与 Testing 23 个生产模块错误处理去重、DOM 清理与生命周期销毁守卫）、Slot C（WorkingCopy、Workspaces、Textfile 与 Untitled 13 个生产模块错误处理去重、DOM 清理与生命周期销毁守卫）及配套 13 项扫描单测（80 tests）对齐。merge 槽单流水线全量编译 compile-client 0 错误（19s），valid-layers-check 0 错误，80 项扫描测试 100% 全绿通过。"
+summary: "多槽并行编排完成 Wave 23：Slot A（Platform 核心服务 26 个模块错误处理去重与生命周期销毁守卫）、Slot B（Workbench Core Services 66 个模块错误处理去重与生命周期销毁守卫）、Slot C（Sessions Contrib 38 个模块错误处理去重、DOM 清理与生命周期销毁守卫）及配套 77 项扫描单测对齐。merge 槽单流水线全量编译 compile-client 0 错误（24s），valid-layers-check 0 错误，扫描单测 100% 全绿通过。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-04 轮次二十三）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Platform 核心服务错误处理去重与生命周期守卫)**：在 `agentService.ts`、`agentSessionResidency.ts`、`extensionTipsService.ts`、`keyboardLayoutMainService.ts`、`fileLog.ts`、`logIpc.ts`、`spdlogLog.ts`、`meteredConnectionIpc.ts`、`meteredConnectionService.ts`、`nativeManagedSettingsIpc.ts`、`universeAgentConnectionChannelClient.ts`、`universeAgentHubChannelClient.ts`、`sessionViewHost.ts`、`universeAgentConnectionService.ts`、`updateIpc.ts`、`abstractUpdateService.ts`、`updateService.snap.ts`、`updateService.win32.ts`、`userDataAutoSyncService.ts`、`userDataSyncAccount.ts`、`userDataSyncIpc.ts`、`userDataSyncLocalStoreService.ts`、`userDataSyncService.ts`、`userDataSyncServiceIpc.ts`、`webWorkerServiceImpl.ts`、`workspacesHistoryMainService.ts` 26 个生产模块收敛 double catch 为单级 `.catch(onUnexpectedError)`；增设 `this._store.isDisposed || this._isDisposed` 状态防护；对齐 14 项 Platform companion scanner 单测。槽提交 `a319b6c2aa5`。
+  - **槽位 B (Workbench Core Services 错误处理去重与生命周期守卫)**：在 accounts、agentHost、assignment、authentication、auxiliaryWindow、chat、commands、configuration、contextmenu、dataChannel、dialogs、editor、extensionManagement、extensionRecommendations、extensions、files、history、host、inlineCompletions、integrity、keybinding、label、language、lifecycle、log、mcp、policies、preferences、progress、remote、secrets、sharedProcess、textMate、textresourceProperties、themes、timer、tunnel、update、userData、userDataProfile、userDataSync、utilityProcess、views 66 个核心服务生产模块全面收敛 double catch 为单级 `.catch(onUnexpectedError)`；异步回调增设 `this._store.isDisposed` 与 `this._isDisposed` 守卫；对齐 30 项 Workbench Services companion scanner 单测。槽提交 `e3c3eded87e`。
+  - **槽位 C (Sessions Contrib 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 accountMenu、agentFeedback、aiCustomizationTreeView、changes、chat、codeReview、layout、providers (agentHost, copilotChatSessions, remoteAgentHost)、terminal 38 个生产模块收敛 double catch 为单级 `.catch(onUnexpectedError)`；在视图部件与输入面板的 `dispose()` 中以 `clearNode` + `.remove()` 彻底脱落清空 DOM 容器；异步回调与事件流中增设生命周期销毁判定守卫；对齐 33 项 Sessions Contrib companion scanner 单测。槽提交 `26e7f43c0f8`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`。全量客户端编译 `npm run compile-client` 0 错误（24s），分层校验 `npm run valid-layers-check` 0 错误。多模块扫描单测全绿通过。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `configurationLeftoverPromiseCatchScanD827.test.ts`、`dialogHandlerLeftoverPromiseCatchScanD895.test.ts` 与 `secretsLeftoverPromiseCatchScanD808.test.ts` 历史断言固化了旧版双重 catch 签名，自主对齐为单级 catch 验证并断言双重 catch 为 0；
+    2) 发现 `progressLeftoverPromiseCatchScanD805.test.ts` 的 `_refreshImageAddon` 异步方法签名断言滞后，自主更新为当前同步返回 Promise 签名；
+    3) 发现 `copilotChatSessionsProviderCatchScan.test.ts` 位于子目录 `providers/copilotChatSessions/`，自主在集成测试运行参数中采用精准路径。
 
 - **多槽并行开发与单流水线集成（2026-11-04 轮次二十二）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Files 与 SCM 错误处理去重、DOM 清理与生命周期销毁守卫)**：在 `textFileEditor.ts`、`textFileEditorTracker.ts`、`explorerService.ts`、`fileCommands.ts`、`fileImportExport.ts`、`explorerView.ts`、`explorerViewer.ts`、`openEditorsView.ts`、`workspaceWatcher.ts`、`files.ts`、`quickDiffModel.ts`、`scmAccessibilityHelp.ts`、`scmHistoryViewPane.ts`、`scmInput.ts`、`scmRepositoriesViewPane.ts`、`scmViewPane.ts`、`scmViewService.ts` 17 个生产模块收敛 double catch 为单级 `.catch(onUnexpectedError)`；在 `explorerView.ts`、`openEditorsView.ts`、`scmHistoryViewPane.ts`、`scmRepositoriesViewPane.ts`、`scmViewPane.ts` 等视图部件的 `dispose()` 中以 `clearNode` + `.remove()` 彻底脱落清空 DOM 容器；在 `scmInput.ts` 与 `scmViewPane.ts` 将未托管 `setTimeout` 改写为经由 `this._store` 托管的 `TimeoutTimer` 及 `RunOnceScheduler`；增设 `this._store.isDisposed || this._isDisposed` 状态防护；对齐 4 项 Files/SCM companion scanner 单测。槽提交 `2c58aca8377`。
