@@ -706,6 +706,9 @@ export class AICustomizationViewPane extends ViewPane {
 
 		// Handle double-click to open file or navigate to section
 		this.treeDisposables.add(this.tree.onDidOpen(async e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.element && e.element.type === 'file') {
 				this.editorService.openEditor({
 					resource: e.element.uri,
@@ -713,6 +716,9 @@ export class AICustomizationViewPane extends ViewPane {
 			} else if (e.element && e.element.type === 'link') {
 				const input = AICustomizationManagementEditorInput.getOrCreate();
 				const editor = await this.editorService.openEditor(input, { pinned: true });
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (editor instanceof AICustomizationManagementEditor) {
 					editor.selectSectionById(e.element.section);
 				}
@@ -723,11 +729,11 @@ export class AICustomizationViewPane extends ViewPane {
 		this.treeDisposables.add(this.tree.onContextMenu(e => this.onContextMenu(e)));
 
 		// Initial load and auto-expand category nodes
-		void this.tree.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories()).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.tree.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories()).catch(onUnexpectedError);
 	}
 
 	private async autoExpandCategories(): Promise<void> {
-		if (!this.tree) {
+		if (this._store.isDisposed || !this.tree) {
 			return;
 		}
 		// Auto-expand all category nodes to show storage groups
@@ -735,6 +741,9 @@ export class AICustomizationViewPane extends ViewPane {
 		for (const child of rootNode.children) {
 			if (child.element !== ROOT_ELEMENT) {
 				await this.tree.expand(child.element);
+				if (this._store.isDisposed || !this.tree) {
+					return;
+				}
 			}
 		}
 	}
@@ -748,7 +757,7 @@ export class AICustomizationViewPane extends ViewPane {
 		// Clear the cache before refreshing
 		this.dataSource?.clearCache();
 		this.isEmptyContextKey.set(true); // Reset until we know the count
-		void this.tree?.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories()).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.tree?.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories()).catch(onUnexpectedError);
 	}
 
 	public collapseAll(): void {
@@ -796,6 +805,15 @@ export class AICustomizationViewPane extends ViewPane {
 				},
 			});
 		}
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.tree = undefined;
+		this.treeContainer = undefined;
+		super.dispose();
 	}
 }
 

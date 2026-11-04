@@ -93,7 +93,7 @@ export class SinglePaneLayoutController extends BaseLayoutController {
 			}
 			this._managedTabs = this._register(this._instantiationService.createInstance(SinglePaneDockedTabsCoordinator, this._ctx));
 			this._existingSession?.registerManagedTabs(this._managedTabs);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	/** Toggle the detail panel and return whether it is now visible. */

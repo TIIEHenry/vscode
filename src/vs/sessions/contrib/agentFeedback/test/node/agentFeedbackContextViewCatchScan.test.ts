@@ -23,19 +23,24 @@ function agentFeedbackContextViewSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('AgentFeedbackContextView leftover fire-and-forget catch scan (D641)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('onDidOpen revealFeedback void double-catch onUnexpectedError (D641)', () => {
-		// revealFeedback returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('onDidOpen revealFeedback void single-catch onUnexpectedError (D641)', () => {
 		const source = fs.readFileSync(agentFeedbackContextViewSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._agentFeedbackService\.revealFeedback\(this\._attachment\.sessionResource, e\.element\.id\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

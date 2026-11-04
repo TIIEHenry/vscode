@@ -23,6 +23,10 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('Manage Remote Agent Hosts leftover fire-and-forget catch scan (D1328)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -34,8 +38,10 @@ suite('Manage Remote Agent Hosts leftover fire-and-forget catch scan (D1328)', (
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void instantiationService\.invokeFunction\(a => showRemoteHostOptions\(a, selected\.provider, \{ showBackButton: true \}\)\)/g) ?? []).length, 1);
 		assert.ok(source.includes(`${call}.then(result => {`));
-		assert.ok(source.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes(`}).catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call}.then(result => {\n\t\t\t\t\t\tif (result === 'back') {\n\t\t\t\t\t\t\tshowManagePicker();\n\t\t\t\t\t\t}\n\t\t\t\t\t});`));
-		assert.ok(source.includes(doubleCatch));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

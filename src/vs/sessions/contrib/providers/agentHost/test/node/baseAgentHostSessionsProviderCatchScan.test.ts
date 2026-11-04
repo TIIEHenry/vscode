@@ -23,13 +23,17 @@ function baseAgentHostSessionsProviderSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('BaseAgentHostSessionsProvider leftover fire-and-forget catch scan (D618)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_dispatchActiveClientWhenResolved / _resolveRunningSessionConfig voids double-catch onUnexpectedError (D618)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_dispatchActiveClientWhenResolved / _resolveRunningSessionConfig voids single-catch onUnexpectedError (D618)', () => {
 		const source = fs.readFileSync(baseAgentHostSessionsProviderSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const dispatch = 'void this._dispatchActiveClientWhenResolved(cancellation.token, activeSession.sessionId, rawId, cached, connection, scope)';
 		const resolve = 'void this._resolveRunningSessionConfig(sessionId, cached, nextValues)';
@@ -38,12 +42,13 @@ suite('BaseAgentHostSessionsProvider leftover fire-and-forget catch scan (D618)'
 		assert.ok(source.includes('private async _resolveRunningSessionConfig(sessionId: string, cached: AgentHostSessionAdapter, values: Record<string, unknown>): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._dispatchActiveClientWhenResolved\(/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._resolveRunningSessionConfig\(/g) ?? []).length, 2);
-		assert.ok(source.includes(`${dispatch}${doubleCatch};`));
-		assert.ok(source.includes(`${resolve}${doubleCatch};`));
+		assert.ok(source.includes(`${dispatch}${singleCatch};`));
+		assert.ok(source.includes(`${resolve}${singleCatch};`));
 		assert.ok(!source.includes(`${dispatch};`));
 		assert.ok(!source.includes(`${resolve};`));
-		assert.ok(!source.includes(`${dispatch}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${resolve}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${dispatch}${doubleCatch};`));
+		assert.ok(!source.includes(`${resolve}${doubleCatch};`));
 		assert.ok(source.includes('this._logService.warn(`[${this.id}] Failed to re-resolve session config for ${sessionId}: ${err}`);'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

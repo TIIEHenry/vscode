@@ -390,7 +390,7 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		// in is optional) or a prominent "Agents Signed Out". Re-render so toggling the
 		// setting switches between them while the window is open.
 		this._register(runOnChange(this.allowSignedOutWhenUsable, () => this.renderState()));
-		this.refreshAccount().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.refreshAccount().catch(onUnexpectedError);
 		this.refreshCodexAvatar();
 	}
 
@@ -902,7 +902,7 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		panelStore.add(this.instantiationService.createInstance(SessionsChatPetAchievementBadges, panel, () => {
 			this.hoverService.hideHover(true);
 			this.clickPanelDisposable.clear();
-			void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID).catch(onUnexpectedError);
 		}));
 
 		if (this.shouldShowCopilotDashboardHover()) {
@@ -1186,6 +1186,20 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		}, 2000));
 
 		return dashboardElement;
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.clickPanelDisposable.clear();
+		this.copilotDashboardStore.clear();
+		this.avatarLoadDisposable.clear();
+		this.codexAvatarLoadDisposable.clear();
+		if (this.container) {
+			clearNode(this.container);
+		}
+		super.dispose();
 	}
 }
 

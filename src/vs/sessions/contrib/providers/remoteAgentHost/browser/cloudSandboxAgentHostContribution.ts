@@ -200,7 +200,10 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 			if (e.affectsConfiguration(CloudSandboxEnabledSettingId) || e.affectsConfiguration(RemoteAgentHostsEnabledSettingId)) {
 				this._updateHostGroupRegistration();
 				if (this._isEnabled()) {
-					void this._discoverAndSeed().catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this._discoverAndSeed().catch(onUnexpectedError);
 				} else {
 					this._teardownAll();
 				}
@@ -212,18 +215,21 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		// Lazy discovery: surface environment-bound sandbox sessions in the list without connecting.
 		// Connecting happens on open via the sandbox async activator.
 		this._register(this._agentHostFilterService.registerDiscoveryHandler(() => this._discoverAndSeed()));
-		void this._discoverAndSeed().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._discoverAndSeed().catch(onUnexpectedError);
 
 		// Discovery needs a GitHub session, and the auth provider is contributed by an extension that
 		// may not be registered yet at startup. Retry as sessions become available, until the first
 		// success; from then on the discovery handler above drives refreshes.
 		const retryUntilFirstSuccess = this._register(new DisposableStore());
 		const retry = () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this._hasDiscovered) {
 				retryUntilFirstSuccess.clear();
 				return;
 			}
-			void this._discoverAndSeed().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._discoverAndSeed().catch(onUnexpectedError);
 		};
 		retryUntilFirstSuccess.add(this._authenticationService.onDidChangeSessions(retry));
 		retryUntilFirstSuccess.add(this._authenticationService.onDidRegisterAuthenticationProvider(retry));
@@ -345,6 +351,9 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 	 * refresher via `onDidChangeConnections`.
 	 */
 	private async _disconnectEnvironment(address: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			await this._remoteAgentHostService.removeRemoteAgentHost(address);
 		} catch (error) {
@@ -433,7 +442,7 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		// Drop the read-only stand-in too, or disabling the feature would leave a content provider
 		// registered for a session type this contribution no longer serves.
 		this._clearReadOnly(address);
-		void this._disconnectEnvironment(address).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._disconnectEnvironment(address).catch(onUnexpectedError);
 	}
 
 	/** Tear down every known sandbox environment (feature disabled). */
@@ -658,8 +667,8 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 				const result = await this._cloudSandboxService.connect(options, token);
 				// The feature may have been disabled while connecting; drop the connection rather
 				// than leaving a live relay open after teardown.
-				if (token.isCancellationRequested || !this._isEnabled()) {
-					void this._disconnectEnvironment(address).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (token.isCancellationRequested || !this._isEnabled() || this._store.isDisposed) {
+					void this._disconnectEnvironment(address).catch(onUnexpectedError);
 					throw new CancellationError();
 				}
 				// `onDidChangeConnections` fires from addManagedConnection and wires the

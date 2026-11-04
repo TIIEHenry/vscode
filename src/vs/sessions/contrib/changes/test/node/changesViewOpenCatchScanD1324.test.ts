@@ -23,21 +23,29 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('ChangesView open diff fire-and-forget catch scan (D1324)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('single and multi-file diff opens catch failures', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const single = 'void this._openSingleFileDiffEditor(e.element, sideBySide, !!e.editorOptions?.preserveFocus, !!e.editorOptions?.pinned)';
 		const multi = 'void this._openMultiFileDiffEditor(e.element.uri)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._openSingleFileDiffEditor\(e\.element, sideBySide, !!e\.editorOptions\?\.preserveFocus, !!e\.editorOptions\?\.pinned\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._openMultiFileDiffEditor\(e\.element\.uri\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${single}${doubleCatch};`));
-		assert.ok(source.includes(`${multi}${doubleCatch};`));
+		assert.ok(source.includes(`${single}${singleCatch};`));
+		assert.ok(source.includes(`${multi}${singleCatch};`));
 		assert.ok(!source.includes(`${single};`));
 		assert.ok(!source.includes(`${multi};`));
+		assert.ok(!source.includes(`${single}${doubleCatch};`));
+		assert.ok(!source.includes(`${multi}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

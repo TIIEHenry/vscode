@@ -69,11 +69,11 @@ export class SinglePaneDetailPanelCoordinator extends Disposable {
 
 	private _queueTarget(target: DetailPanelTarget): void {
 		const generation = ++this._generation;
-		void this._sequencer.queue(() => this._syncTarget(target, generation)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._sequencer.queue(() => this._syncTarget(target, generation)).catch(onUnexpectedError);
 	}
 
 	private async _syncTarget(target: DetailPanelTarget, generation: number): Promise<void> {
-		if (generation !== this._generation || !this._layoutService.isVisible(Parts.AUXILIARYBAR_PART)) {
+		if (this._store.isDisposed || generation !== this._generation || !this._layoutService.isVisible(Parts.AUXILIARYBAR_PART)) {
 			return;
 		}
 

@@ -23,13 +23,17 @@ function singlePaneDockedTabsCoordinatorSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SinglePaneDockedTabsCoordinator leftover fire-and-forget catch scan (D639)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_sequencer.queue five leftover sites double-catch onUnexpectedError (D639)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_sequencer.queue five leftover sites single-catch onUnexpectedError (D639)', () => {
 		const source = fs.readFileSync(singlePaneDockedTabsCoordinatorSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const removeFiles = 'void this._sequencer.queue(() => this._removeFilesTab(this._editorGroupsService.mainPart.activeGroup))';
 		const restoreCollapsed = 'void this._sequencer.queue(() => this._restoreCollapsedTabs())';
@@ -40,18 +44,19 @@ suite('SinglePaneDockedTabsCoordinator leftover fire-and-forget catch scan (D639
 		assert.strictEqual((source.match(/void this\._sequencer\.queue\(\(\) => this\._restoreCollapsedTabs\(\)\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._sequencer\.queue\(\(\) => this\._collapseNonManagedTabs\(\)\)/g) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\._sequencer\.queue\(\(\) => this\._reconcile\(generation\)\)/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 5);
-		assert.ok(source.includes(`${removeFiles}${doubleCatch};`));
-		assert.ok(source.includes(`${restoreCollapsed}${doubleCatch};`));
-		assert.strictEqual((source.split(`${collapseNonManaged}${doubleCatch};`).length - 1), 2);
-		assert.ok(source.includes(`${reconcile}${doubleCatch};`));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\);/g) ?? []).length, 5);
+		assert.ok(source.includes(`${removeFiles}${singleCatch};`));
+		assert.ok(source.includes(`${restoreCollapsed}${singleCatch};`));
+		assert.strictEqual((source.split(`${collapseNonManaged}${singleCatch};`).length - 1), 2);
+		assert.ok(source.includes(`${reconcile}${singleCatch};`));
 		assert.ok(!source.includes(`${removeFiles};`));
 		assert.ok(!source.includes(`${restoreCollapsed};`));
 		assert.ok(!source.includes(`${collapseNonManaged};`));
 		assert.ok(!source.includes(`${reconcile};`));
-		assert.ok(!source.includes(`${removeFiles}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${restoreCollapsed}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${collapseNonManaged}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${reconcile}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${removeFiles}${doubleCatch};`));
+		assert.ok(!source.includes(`${restoreCollapsed}${doubleCatch};`));
+		assert.ok(!source.includes(`${collapseNonManaged}${doubleCatch};`));
+		assert.ok(!source.includes(`${reconcile}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

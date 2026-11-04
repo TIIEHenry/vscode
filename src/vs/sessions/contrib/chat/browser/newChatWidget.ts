@@ -83,6 +83,7 @@ export class NewChatWidget extends Disposable {
 	private _activeEmptyState: NoAgentHostEmptyState | undefined;
 	private _workspacePickerRow: HTMLElement | undefined;
 	private _quickChatHeaderPickerHost: HTMLElement | undefined;
+	private _renderedRootElement: HTMLElement | undefined;
 
 	private readonly _session: IObservable<IActiveSession | undefined>;
 
@@ -358,7 +359,7 @@ export class NewChatWidget extends Disposable {
 			return;
 		}
 		if (folderUri) {
-			void this._refreshPromptOptions().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._refreshPromptOptions().catch(onUnexpectedError);
 		} else {
 			this._newChatInput.clearPromptOptions();
 		}
@@ -368,6 +369,7 @@ export class NewChatWidget extends Disposable {
 
 	render(parent: HTMLElement): void {
 		const element = dom.append(parent, dom.$('.sessions-chat-widget'));
+		this._renderedRootElement = element;
 		const chatWidgetContainer = dom.append(element, dom.$('.new-chat-widget-container'));
 		const chatWidgetContent = dom.append(chatWidgetContainer, dom.$(`.new-chat-widget-content.${chatInputStackClass}`));
 
@@ -527,7 +529,7 @@ export class NewChatWidget extends Disposable {
 	private _seedWorkspaceDraft(): void {
 		const restoredFolderUri = this._workspacePicker.selectedFolderUri;
 		if (!this._syncWorkspacePickerFromActiveSession() && restoredFolderUri) {
-			void this._createNewSession(restoredFolderUri).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._createNewSession(restoredFolderUri).catch(onUnexpectedError);
 		}
 	}
 
@@ -573,7 +575,7 @@ export class NewChatWidget extends Disposable {
 		if (this.sessionsManagementService.getSessionTypesForFolder(folderUri).length === 0 || this._isPreferredServable(folderUri, pick)) {
 			return;
 		}
-		void this._createNewSession(folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._createNewSession(folderUri).catch(onUnexpectedError);
 	}
 
 	private _isPreferredServable(folderUri: URI, pick: IPreferredSessionType): boolean {
@@ -583,6 +585,9 @@ export class NewChatWidget extends Disposable {
 	}
 
 	private async _createNewSession(folderUri: URI): Promise<IOpenNewSessionResult> {
+		if (this._store.isDisposed) {
+			return { session: undefined, trustDeclined: false };
+		}
 		this._pendingPreferredUpgrade.clear();
 		const creationCts = new CancellationTokenSource();
 		const creationLifecycle = toDisposable(() => creationCts.dispose(true));
@@ -602,6 +607,9 @@ export class NewChatWidget extends Disposable {
 			result = await this._createSessionNow(folderUri, userPick, creationCts.token);
 		} finally {
 			pendingChange.dispose();
+		}
+		if (this._store.isDisposed) {
+			return result;
 		}
 		const isCurrentCreation = this._newSessionCreation.value === creationLifecycle;
 		if (isCurrentCreation) {
@@ -687,7 +695,7 @@ export class NewChatWidget extends Disposable {
 				}
 			}
 		}
-		void this._createNewSession(folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._createNewSession(folderUri).catch(onUnexpectedError);
 	}
 
 	/**
@@ -1029,6 +1037,18 @@ export class NewChatWidget extends Disposable {
 
 	selectWorkspace(folderUri: URI, providerId?: string): void {
 		this._workspacePicker.setSelectedWorkspace(folderUri, { providerId });
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this._renderedRootElement) {
+			dom.clearNode(this._renderedRootElement);
+			this._renderedRootElement.remove();
+			this._renderedRootElement = undefined;
+		}
+		super.dispose();
 	}
 }
 

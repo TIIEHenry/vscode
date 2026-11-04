@@ -23,21 +23,25 @@ function modePickerSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('ModePicker leftover fire-and-forget catch scan (D601)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('configure OpenEditor executeCommand void double-catch onUnexpectedError (D601)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('configure OpenEditor executeCommand void catch onUnexpectedError (D601)', () => {
 		const source = fs.readFileSync(modePickerSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}.catch(onUnexpectedError);`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(AICustomizationManagementCommands\.OpenEditor, AICustomizationManagementSection\.Agents\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(source.includes('this._selectMode(item.mode);'));
 		assert.ok(!source.includes('this._selectMode(item.mode).catch'));
 	});

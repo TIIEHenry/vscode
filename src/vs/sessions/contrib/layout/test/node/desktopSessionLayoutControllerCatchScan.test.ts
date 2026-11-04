@@ -23,13 +23,17 @@ function desktopSessionLayoutControllerSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('DesktopSessionLayoutController leftover fire-and-forget catch scan (D604)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('openView / openViewContainer / _openDefaultAuxiliaryBarContainer voids double-catch onUnexpectedError (D604)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('openView / openViewContainer / _openDefaultAuxiliaryBarContainer voids single-catch onUnexpectedError (D604)', () => {
 		const source = fs.readFileSync(desktopSessionLayoutControllerSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const openView = 'void this._viewsService.openView(CHANGES_VIEW_ID, false)';
 		const openContainer = 'void this._viewsService.openViewContainer(savedContainerId, false)';
@@ -40,22 +44,23 @@ suite('DesktopSessionLayoutController leftover fire-and-forget catch scan (D604)
 		assert.strictEqual((source.match(/void this\._viewsService\.openViewContainer\(savedContainerId, false\)/g) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\._openDefaultAuxiliaryBarContainer\(\)/g) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\._openDefaultAuxiliaryBarContainer\(defaultContainerId\)/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 7);
-		assert.ok(source.includes(`${openView}${doubleCatch};`));
-		assert.ok(source.includes(`${openContainer}${doubleCatch};`));
-		assert.ok(source.includes(`${openDefault}${doubleCatch};`));
-		assert.ok(source.includes(`${openDefaultId}${doubleCatch};`));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\);/g) ?? []).length, 7);
+		assert.ok(source.includes(`${openView}${singleCatch};`));
+		assert.ok(source.includes(`${openContainer}${singleCatch};`));
+		assert.ok(source.includes(`${openDefault}${singleCatch};`));
+		assert.ok(source.includes(`${openDefaultId}${singleCatch};`));
 		assert.ok(!source.includes(`${openView};`));
 		assert.ok(!source.includes(`${openContainer};`));
 		assert.ok(!source.includes(`${openDefault};`));
 		assert.ok(!source.includes(`${openDefaultId};`));
-		assert.ok(!source.includes(`${openView}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${openContainer}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${openDefault}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${openDefaultId}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${openView}${doubleCatch};`));
+		assert.ok(!source.includes(`${openContainer}${doubleCatch};`));
+		assert.ok(!source.includes(`${openDefault}${doubleCatch};`));
+		assert.ok(!source.includes(`${openDefaultId}${doubleCatch};`));
 		assert.ok(source.includes('return this._viewsService.openView(CHANGES_VIEW_ID, false);'));
 		assert.ok(source.includes('return this._viewsService.openViewContainer(containerId, false);'));
 		assert.ok(!source.includes('return this._viewsService.openView(CHANGES_VIEW_ID, false).catch'));
 		assert.ok(!source.includes('return this._viewsService.openViewContainer(containerId, false).catch'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

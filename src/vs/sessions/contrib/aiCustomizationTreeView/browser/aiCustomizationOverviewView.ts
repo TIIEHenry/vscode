@@ -139,14 +139,14 @@ export class AICustomizationOverviewView extends ViewPane {
 
 			// Click handler to open the management editor overview
 			this._register(DOM.addDisposableListener(sectionElement, 'click', () => {
-				void this.openOverview().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.openOverview().catch(onUnexpectedError);
 			}));
 
 			// Keyboard support
 			this._register(DOM.addDisposableListener(sectionElement, 'keydown', (e: KeyboardEvent) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
-					void this.openOverview().catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.openOverview().catch(onUnexpectedError);
 				}
 			}));
 
@@ -159,7 +159,7 @@ export class AICustomizationOverviewView extends ViewPane {
 	}
 
 	private reloadCounts(): void {
-		void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.loadCounts().catch(onUnexpectedError);
 	}
 
 	private async loadCounts(): Promise<void> {
@@ -199,6 +199,10 @@ export class AICustomizationOverviewView extends ViewPane {
 			}
 		}));
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		// Update MCP server count reactively
 		const mcpSection = this.sections.find(s => s.id === AICustomizationManagementSection.McpServers);
 		if (mcpSection) {
@@ -230,8 +234,14 @@ export class AICustomizationOverviewView extends ViewPane {
 	}
 
 	private async openOverview(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const input = AICustomizationManagementEditorInput.getOrCreate();
 		const editor = await this.editorService.openEditor(input, { pinned: true });
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		// Always reset to the welcome page when opening from the sidebar,
 		// so we don't restore the previously selected section.
@@ -243,5 +253,20 @@ export class AICustomizationOverviewView extends ViewPane {
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
 		this.container.style.height = `${height}px`;
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this.sectionsContainer) {
+			DOM.clearNode(this.sectionsContainer);
+		}
+		if (this.container) {
+			DOM.clearNode(this.container);
+		}
+		this.countElements.clear();
+		this.sectionElements.clear();
+		super.dispose();
 	}
 }

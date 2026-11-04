@@ -23,23 +23,27 @@ function localAgentHostSessionsProviderSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('LocalAgentHostSessionsProvider leftover fire-and-forget catch scan (D617)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('createNewSession _resolveDevContainerAvailability void double-catch onUnexpectedError (D617)', () => {
-		// Method body already try/catches; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('createNewSession _resolveDevContainerAvailability void single-catch onUnexpectedError (D617)', () => {
 		const source = fs.readFileSync(localAgentHostSessionsProviderSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._resolveDevContainerAvailability(session.sessionId, workspaceUri)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { CancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._resolveDevContainerAvailability\(session\.sessionId, workspaceUri\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/this\._resolveDevContainerAvailability\(/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 		assert.ok(source.includes('private async _resolveDevContainerAvailability(sessionId: string, workspaceUri: URI): Promise<void>'));
-		assert.ok(source.includes('\t\t} catch (error) {\n\t\t\tthis._logService.warn(`[${this.id}] Failed to resolve Dev Container availability for ${workspaceUri.toString()}`, error);\n\t\t}'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

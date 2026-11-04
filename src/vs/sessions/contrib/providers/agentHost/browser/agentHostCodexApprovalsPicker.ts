@@ -104,7 +104,10 @@ export class AgentHostCodexApprovalsPicker extends AgentHostSessionEnumPicker {
 		if (item.value !== LEARN_MORE_VALUE) {
 			return false;
 		}
-		void this._openerService.open(URI.parse(CODEX_APPROVALS_LEARN_MORE_URL)).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return true;
+		}
+		void this._openerService.open(URI.parse(CODEX_APPROVALS_LEARN_MORE_URL)).catch(onUnexpectedError);
 		return true;
 	}
 }

@@ -23,12 +23,15 @@ function singlePaneNewSessionStrategySourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SinglePaneNewSessionStrategy leftover fire-and-forget catch scan (D643)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_openEmptyFiles finally + double-catch onUnexpectedError (D643)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_openEmptyFiles finally + single-catch onUnexpectedError (D643)', () => {
 		const source = fs.readFileSync(singlePaneNewSessionStrategySourcePath(), 'utf8');
 		const finallyFirst = '.finally(() => suppression.dispose())';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
@@ -39,7 +42,8 @@ suite('SinglePaneNewSessionStrategy leftover fire-and-forget catch scan (D643)',
 		assert.ok(source.includes('): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._openEmptyFiles\(/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/\.finally\(\(\) => suppression\.dispose\(\)\)/g) ?? []).length, 1);
-		assert.ok(source.includes(finallyDouble));
-		assert.ok(!source.includes(finallySingleTerminated));
+		assert.ok(source.includes(finallySingleTerminated));
+		assert.ok(!source.includes(finallyDouble));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

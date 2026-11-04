@@ -1059,7 +1059,7 @@ export class ChangesViewPane extends ViewPane {
 			}));
 
 			this.renderDisposables.add(tree.onDidOpen((e) => {
-				if (!e.element || !isChangesFileItem(e.element)) {
+				if (this._store.isDisposed || !e.element || !isChangesFileItem(e.element)) {
 					return;
 				}
 
@@ -1077,12 +1077,12 @@ export class ChangesViewPane extends ViewPane {
 				if (openSingleFileDiff) {
 					// Alt here only switches the diff mode, not the target group.
 					const sideBySide = e.sideBySide && !altKey;
-					void this._openSingleFileDiffEditor(e.element, sideBySide, !!e.editorOptions?.preserveFocus, !!e.editorOptions?.pinned).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this._openSingleFileDiffEditor(e.element, sideBySide, !!e.editorOptions?.preserveFocus, !!e.editorOptions?.pinned).catch(onUnexpectedError);
 					return;
 				}
 
 				// Open multi-file diff editor
-				void this._openMultiFileDiffEditor(e.element.uri).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._openMultiFileDiffEditor(e.element.uri).catch(onUnexpectedError);
 			}));
 		}
 
@@ -1880,7 +1880,12 @@ export class ChangesViewPane extends ViewPane {
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.tree = undefined;
+		this.ciStatusWidget?.dispose();
+		this.ciStatusWidget = undefined;
 		super.dispose();
 	}
 }

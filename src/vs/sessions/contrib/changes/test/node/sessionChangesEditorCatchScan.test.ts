@@ -23,22 +23,27 @@ function sessionChangesEditorSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionChangesEditor leftover fire-and-forget catch scan (D597)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('handleHeaderMiddleClick executeCommand CHANGESET_REVIEW_ACTION_ID void double-catch onUnexpectedError (D597)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('handleHeaderMiddleClick executeCommand CHANGESET_REVIEW_ACTION_ID void single-catch onUnexpectedError (D597)', () => {
 		const source = fs.readFileSync(sessionChangesEditorSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this.commandService.executeCommand(CHANGESET_REVIEW_ACTION_ID, resource)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('handleHeaderMiddleClick(resource: URI): boolean'));
 		assert.ok(source.includes('\t\treturn true;'));
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(CHANGESET_REVIEW_ACTION_ID, resource\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

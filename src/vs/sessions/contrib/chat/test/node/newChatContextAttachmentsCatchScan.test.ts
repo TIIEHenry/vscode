@@ -23,18 +23,24 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('NewChatContextAttachments leftover fire-and-forget catch scan (D1316)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('configure command uses a double catch for onUnexpectedError', () => {
+	test('configure command uses a single catch for onUnexpectedError', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this.commandService.executeCommand(configureItem.commandId)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(configureItem\.commandId\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

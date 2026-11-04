@@ -88,7 +88,12 @@ class MobileChatInputConfigPicker extends Disposable {
 	) {
 		super();
 		this._register(this._newChatModelPickerService.registerModelPicker({
-			open: () => { void this._showSheet().catch(onUnexpectedError).catch(onUnexpectedError); },
+			open: () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._showSheet().catch(onUnexpectedError);
+			},
 			switchToModel: modelIdentifier => this._switchToModel(modelIdentifier),
 		}));
 
@@ -147,13 +152,19 @@ class MobileChatInputConfigPicker extends Disposable {
 		for (const eventType of [dom.EventType.CLICK, TouchEventType.Tap]) {
 			this._renderDisposables.add(dom.addDisposableListener(trigger, eventType, e => {
 				dom.EventHelper.stop(e, true);
-				void this._showSheet().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._showSheet().catch(onUnexpectedError);
 			}));
 		}
 		this._renderDisposables.add(dom.addDisposableListener(trigger, dom.EventType.KEY_DOWN, e => {
 			if (e.key === 'Enter' || e.key === ' ') {
 				dom.EventHelper.stop(e, true);
-				void this._showSheet().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._showSheet().catch(onUnexpectedError);
 			}
 		}));
 
@@ -298,6 +309,9 @@ class MobileChatInputConfigPicker extends Disposable {
 				getSessionContext: () => createChatPhoneInputSessionContext(this._session.get()),
 				selectModel: modelIdentifier => this._switchToModel(modelIdentifier),
 			});
+			if (this._store.isDisposed) {
+				return;
+			}
 			const afterCtx = this._getContext();
 			if (beforeCtx && afterCtx && matchesChatPhoneInputTarget(target, createChatPhoneInputSessionContext(afterCtx.session), this._uriIdentityService)) {
 				if (beforeCtx.modeItems.length > 0) {
@@ -328,9 +342,26 @@ class MobileChatInputConfigPicker extends Disposable {
 				}
 			}
 		} finally {
-			trigger.setAttribute('aria-expanded', 'false');
-			trigger.focus();
+			if (!this._store.isDisposed) {
+				trigger.setAttribute('aria-expanded', 'false');
+				trigger.focus();
+			}
 		}
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._renderDisposables.dispose();
+		if (this._slotElement) {
+			dom.clearNode(this._slotElement);
+			this._slotElement.remove();
+			this._slotElement = undefined;
+		}
+		this._triggerElement = undefined;
+		this._containerElement = undefined;
+		super.dispose();
 	}
 }
 

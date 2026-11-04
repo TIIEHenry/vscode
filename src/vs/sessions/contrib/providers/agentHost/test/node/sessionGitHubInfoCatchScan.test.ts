@@ -23,13 +23,15 @@ function sessionGitHubInfoSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionGitHubInfo leftover fire-and-forget catch scan (D621)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('PR-number lookup.then keeps D181 inner catch; success-path throw double-catch onUnexpectedError (D621)', () => {
-		// lookup already swallows reject (D181). then success-path throw still leaks;
-		// a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('PR-number lookup.then keeps D181 inner catch; success-path throw single-catch onUnexpectedError (D621)', () => {
 		const source = fs.readFileSync(sessionGitHubInfoSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const thenHead = 'lookup.then(prNumber => {';
@@ -38,9 +40,9 @@ suite('SessionGitHubInfo leftover fire-and-forget catch scan (D621)', () => {
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(source.includes(thenHead));
 		assert.strictEqual((source.match(/lookup\.then\(prNumber => \{/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleThenTail));
-		assert.ok(!source.includes(singleThenTail));
+		assert.ok(source.includes(singleThenTail));
+		assert.ok(!source.includes(doubleThenTail));
 		assert.ok(source.includes('.catch(error => {\n\t\t\tonUnexpectedError(error);\n\t\t\treturn undefined;\n\t\t})'));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

@@ -23,20 +23,27 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('NewChatWidget fire-and-forget catch scan (D1322)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('background prompt refresh and draft creation use double catches', () => {
+	test('background prompt refresh and draft creation catch rejected promises', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._refreshPromptOptions\(\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._createNewSession\([^\n;]+/g) ?? []).length, 3);
-		assert.ok(source.includes(`void this._refreshPromptOptions()${doubleCatch};`));
-		assert.strictEqual((source.match(new RegExp(`void this\\._createNewSession\\([^\\n;]+${doubleCatch}`, 'g')) ?? []).length, 3);
+		assert.ok(source.includes(`void this._refreshPromptOptions()${singleCatch};`));
+		assert.strictEqual((source.match(/void this\._createNewSession\([^)\n;]+\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.ok(!source.includes(`void this._refreshPromptOptions()${doubleCatch}`));
 		assert.ok(!source.includes('void this._refreshPromptOptions();'));
 		assert.ok(!source.includes('void this._createNewSession(restoredFolderUri);'));
 		assert.ok(!source.includes('void this._createNewSession(folderUri);'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

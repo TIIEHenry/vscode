@@ -98,14 +98,26 @@ export class AgentFeedbackAttachmentWidget extends Disposable {
 	}
 
 	private _activateAttachment(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const feedbackItems = this._attachment.feedbackItems;
 		if (feedbackItems.length === 0) {
 			return;
 		}
 		if (feedbackItems.length === 1) {
-			void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, feedbackItems[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, feedbackItems[0].id).catch(onUnexpectedError);
 			return;
 		}
 		this._contextView.toggle();
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		dom.clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 }

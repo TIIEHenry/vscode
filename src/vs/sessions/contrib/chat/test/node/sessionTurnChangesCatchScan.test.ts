@@ -23,13 +23,17 @@ function sessionTurnChangesSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionTurnChanges leftover fire-and-forget catch scan (D625)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_openSessionTurnChanges four voids double-catch onUnexpectedError (D625)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_openSessionTurnChanges four voids single-catch onUnexpectedError (D625)', () => {
 		const source = fs.readFileSync(sessionTurnChangesSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const lastTurn = 'void this._openSessionTurnChanges(owner.session)';
 		const historical = 'void this._openSessionTurnChanges(owner.session, {';
@@ -38,20 +42,20 @@ suite('SessionTurnChanges leftover fire-and-forget catch scan (D625)', () => {
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _openSessionTurnChanges(session: ISession, transientTurn?: ISessionTransientTurnChanges): Promise<void>'));
 		assert.strictEqual((source.match(/void this\._openSessionTurnChanges\(owner\.session\)/g) ?? []).length, 2);
-		assert.ok(source.includes(`${lastTurn}${doubleCatch};`));
+		assert.ok(source.includes(`${lastTurn}${singleCatch};`));
 		assert.ok(!source.includes(`${lastTurn};`));
-		assert.ok(!source.includes(`${lastTurn}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${lastTurn}${doubleCatch};`));
 		assert.strictEqual((source.match(/void this\._openSessionTurnChanges\(owner\.session, \{/g) ?? []).length, 1);
 		assert.ok(source.includes(historical));
 		assert.ok(source.includes('id: `${TURN_CHANGES_CHANGESET_ID}:${requestId}`'));
 		assert.strictEqual((source.match(/void this\._openSessionTurnChanges\(session, \{/g) ?? []).length, 1);
 		assert.ok(source.includes(transient));
 		assert.ok(source.includes('id: `${TURN_CHANGES_CHANGESET_ID}:${id}`'));
-		assert.strictEqual((source.match(/\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
-		assert.ok(!source.includes('}).catch(onUnexpectedError);'));
+		assert.strictEqual((source.match(/\}\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.ok(!source.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.ok(source.includes(standalone));
 		assert.ok(source.includes('label: localize(\'chatTurnPills.changes.title\', "Turn File Changes")'));
 		assert.ok(source.includes(`${standalone}`));
-		assert.ok(source.includes('\t\t} catch (error) {\n\t\t\tonUnexpectedError(error);\n\t\t}'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

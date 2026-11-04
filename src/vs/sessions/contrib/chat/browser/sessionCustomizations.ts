@@ -140,10 +140,13 @@ export class SessionCustomizations extends Disposable {
 	}
 
 	private _reveal(customization: ISessionChatCustomization): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		void this._commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, {
 			section: customizationSections.get(customization.kind),
 			revealUri: customization.uri,
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 
