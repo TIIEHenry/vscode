@@ -23,12 +23,15 @@ function copilotChatSessionsProviderSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('CopilotChatSessionsProvider leftover fire-and-forget catch scan (D615)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('openRepository then success/error callbacks keep; success-path throw double-catch onUnexpectedError (D615)', () => {
-		// `.then(success, error)` still leaks when success throws; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('openRepository then success/error callbacks keep; success-path throw single-catch onUnexpectedError (D615)', () => {
 		const source = fs.readFileSync(copilotChatSessionsProviderSourcePath(), 'utf8');
 		const collapsed = source.replace(/\s+/g, ' ');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
@@ -41,11 +44,12 @@ suite('CopilotChatSessionsProvider leftover fire-and-forget catch scan (D615)', 
 		assert.ok(source.includes(thenHead));
 		assert.ok(source.includes(warn));
 		assert.strictEqual((source.match(/void this\.gitService\.openRepository\(uri\)\.then\(/g) ?? []).length, 1);
-		assert.ok(collapsed.includes(doubleThenCollapsed));
+		assert.ok(collapsed.includes(singleThenCollapsed));
 		assert.ok(!collapsed.includes(bareThenCollapsed));
-		assert.ok(!collapsed.includes(singleThenCollapsed));
+		assert.ok(!collapsed.includes(doubleThenCollapsed));
 		assert.ok(source.includes('this._gitRepository = await this.gitService.openRepository(repoUri);'));
 		assert.ok(!source.includes('void this.gitService.openRepository(repoUri)'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });
 
@@ -53,8 +57,7 @@ suite('CopilotChatSessionsProvider leftover fire-and-forget catch scan (D623)', 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('PR lookup.then success-path throw double-catch onUnexpectedError (D623)', () => {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('PR lookup.then success-path throw single-catch onUnexpectedError (D623)', () => {
 		const source = fs.readFileSync(copilotChatSessionsProviderSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const thenHead = 'lookup.then(pullRequestNumber => {';
@@ -66,10 +69,11 @@ suite('CopilotChatSessionsProvider leftover fire-and-forget catch scan (D623)', 
 		assert.ok(source.includes("import { CancellationError, onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/lookup\.then\(pullRequestNumber => \{/g) ?? []).length, 1);
 		assert.ok(source.includes('this._gitHubService.findPullRequestNumberByHeadBranch(owner, repo, branch).catch(error => {'));
-		assert.ok(collapsed.includes(doubleThenCollapsed));
-		assert.ok(!collapsed.includes(singleThenCollapsed));
+		assert.ok(collapsed.includes(singleThenCollapsed));
+		assert.ok(!collapsed.includes(doubleThenCollapsed));
 		assert.ok(!collapsed.includes(bareThenCollapsed));
 		assert.ok(source.includes('void this.gitService.openRepository(uri).then(repository => {'));
-		assert.ok(source.includes('}).catch(onUnexpectedError).catch(onUnexpectedError);\n\t}'));
+		assert.ok(source.includes('}).catch(onUnexpectedError);\n\t}'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

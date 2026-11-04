@@ -195,12 +195,18 @@ export class PermissionPicker extends Disposable {
 		this._renderDisposables.add(Gesture.addTarget(trigger));
 		for (const eventType of [dom.EventType.CLICK, TouchEventType.Tap]) {
 			this._renderDisposables.add(dom.addDisposableListener(trigger, eventType, (e) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				dom.EventHelper.stop(e, true);
 				this.showPicker();
 			}));
 		}
 
 		this._renderDisposables.add(dom.addDisposableListener(trigger, dom.EventType.KEY_DOWN, (e) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.key === 'Enter' || e.key === ' ') {
 				dom.EventHelper.stop(e, true);
 				this.showPicker();
@@ -259,7 +265,7 @@ export class PermissionPicker extends Disposable {
 	}
 
 	showPicker(): void {
-		if (!this._triggerElement || this.actionWidgetService.isVisible || this._isResolving()) {
+		if (this._store.isDisposed || !this._triggerElement || this.actionWidgetService.isVisible || this._isResolving()) {
 			return;
 		}
 
@@ -336,6 +342,9 @@ export class PermissionPicker extends Disposable {
 		const triggerElement = this._triggerElement;
 		const delegate: IActionListDelegate<IPermissionItem> = {
 			onSelect: async (item) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.actionWidgetService.hide();
 				if (item.level) {
 					await this._selectLevel(item.level);
@@ -343,7 +352,11 @@ export class PermissionPicker extends Disposable {
 					await this.openerService.open(URI.parse('https://aka.ms/vscode/docs/permissions'));
 				}
 			},
-			onHide: () => { triggerElement.focus(); },
+			onHide: () => {
+				if (!this._store.isDisposed && triggerElement.isConnected) {
+					triggerElement.focus();
+				}
+			},
 		};
 
 		const listOptions: IActionListOptions = { minWidth: 255 };
@@ -371,6 +384,9 @@ export class PermissionPicker extends Disposable {
 			defaultSettingKey: this._delegate.defaultSettingKey,
 			levelLabel: this._getPermissionLevelMeta(level).label,
 		})) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			reportNewChatPickerClosed(this.telemetryService, {
 				id: 'NewChatPermissionPicker',
 				name: 'NewChatPermissionPicker',
@@ -380,6 +396,10 @@ export class PermissionPicker extends Disposable {
 				optionLabelAfter: undefined,
 				isPII: false,
 			});
+			return;
+		}
+
+		if (this._store.isDisposed) {
 			return;
 		}
 
@@ -435,13 +455,13 @@ export class PermissionPicker extends Disposable {
 			checked: this._isSandboxingEnabled(),
 			disabled: managed,
 			onChange: (checked: boolean) => {
-				if (this._isSandboxManaged()) {
+				if (this._store.isDisposed || this._isSandboxManaged()) {
 					return;
 				}
 				const settingId = this._delegate.getSandboxToggleSettingId?.();
 				if (settingId) {
 					const target = checked ? AgentSandboxEnabledValue.On : AgentSandboxEnabledValue.Off;
-					void this.configurationService.updateValue(settingId, target).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.configurationService.updateValue(settingId, target).catch(onUnexpectedError);
 				}
 			},
 		};
@@ -481,6 +501,15 @@ export class PermissionPicker extends Disposable {
 	protected _getPermissionLevelMeta(level: ChatPermissionLevel): IPermissionLevelMeta {
 		const meta = getPermissionLevelMeta(level);
 		return this._delegate.getPermissionLevelMeta(level, meta);
+	}
+
+	override dispose(): void {
+		if (this._triggerElement) {
+			dom.clearNode(this._triggerElement);
+			this._triggerElement.remove();
+			this._triggerElement = undefined;
+		}
+		super.dispose();
 	}
 }
 

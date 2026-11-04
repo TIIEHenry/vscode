@@ -23,6 +23,10 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('PermissionPicker sandbox toggle fire-and-forget catch scan (D1326)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -33,8 +37,9 @@ suite('PermissionPicker sandbox toggle fire-and-forget catch scan (D1326)', () =
 		const call = 'void this.configurationService.updateValue(settingId, target)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\.configurationService\.updateValue\(settingId, target\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

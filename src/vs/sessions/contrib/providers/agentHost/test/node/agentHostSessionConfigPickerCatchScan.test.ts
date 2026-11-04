@@ -23,21 +23,26 @@ function agentHostSessionConfigPickerSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('AgentHostSessionConfigPicker leftover fire-and-forget catch scan (D620)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_showPicker onSelect IIFE void double-catch onUnexpectedError (D620)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_showPicker onSelect IIFE void single-catch onUnexpectedError (D620)', () => {
 		const source = fs.readFileSync(agentHostSessionConfigPickerSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(source.includes('protected async _showPicker(provider: IAgentHostSessionsProvider, sessionId: string, property: string, schema: SessionConfigPropertySchema, trigger: HTMLElement): Promise<void>'));
 		assert.strictEqual((source.match(/void \(async \(\) => \{/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(source.includes(`})()${doubleCatch};`));
-		assert.ok(!source.includes('})().catch(onUnexpectedError);'));
+		assert.strictEqual((source.match(/\)\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
+		assert.ok(source.includes(`})()${singleCatch};`));
+		assert.ok(!source.includes(`})()${doubleCatch};`));
 		assert.ok(source.includes('provider.setSessionConfigValue(sessionId, property, nextValue).catch(() => { /* best-effort */ });'));
 		assert.ok(source.includes('provider.setSessionConfigValue(sessionId, SessionConfigKey.Isolation, nextValue).catch(() => { /* best-effort */ });'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

@@ -23,12 +23,15 @@ function wslAgentHostContributionSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('WSLAgentHost leftover fire-and-forget catch scan (D627)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_reconnectWSLEntriesIfRunning / _attemptWSLReconnect voids double-catch onUnexpectedError (D627)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_reconnectWSLEntriesIfRunning / _attemptWSLReconnect voids catch onUnexpectedError (D627)', () => {
 		const source = fs.readFileSync(wslAgentHostContributionSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const reconnect = 'void this._reconnectWSLEntriesIfRunning()';
@@ -40,16 +43,13 @@ suite('WSLAgentHost leftover fire-and-forget catch scan (D627)', () => {
 		assert.strictEqual((source.match(/void this\._reconnectWSLEntriesIfRunning\(\)/g) ?? []).length, 2);
 		assert.strictEqual((source.match(/void this\._attemptWSLReconnect\(entry\.distro, entry\.name, entry\.address\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._attemptWSLReconnect\(distro, name, address\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`() => ${reconnect}${doubleCatch},`));
-		assert.ok(source.includes(`${reconnect}${doubleCatch};`));
-		assert.ok(source.includes(`${attemptEntry}${doubleCatch};`));
-		assert.ok(source.includes(`${attemptNamed}${doubleCatch};`));
+		assert.ok(source.includes(`${reconnect}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${attemptEntry}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${attemptNamed}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${reconnect};`));
 		assert.ok(!source.includes(`${attemptEntry};`));
 		assert.ok(!source.includes(`${attemptNamed};`));
-		assert.ok(!source.includes(`${reconnect}.catch(onUnexpectedError),`));
-		assert.ok(!source.includes(`${reconnect}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${attemptEntry}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${attemptNamed}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

@@ -113,7 +113,7 @@ export class ModelPicker extends Disposable {
 			if (!this._store.isDisposed) {
 				this._updatePickerState();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		// Re-evaluate when entitlement / sentiment / anonymous access change: when
 		// Chat needs sign-in the shared widget renders a Sign In state, so the
@@ -166,6 +166,15 @@ export class ModelPicker extends Disposable {
 		if (this._container) {
 			this._container.style.display = visible ? '' : 'none';
 		}
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._renderDisposables.dispose();
+		this._container = undefined;
+		super.dispose();
 	}
 }
 

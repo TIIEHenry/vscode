@@ -266,7 +266,7 @@ export class SinglePaneNewSessionStrategy extends SinglePaneLayoutStrategy {
 					sessionKey,
 					this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow),
 				)
-					.finally(() => suppression.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+					.finally(() => suppression.dispose()).catch(onUnexpectedError);
 			}),
 		);
 	}

@@ -5,6 +5,7 @@
 
 import { structuralEquals } from '../../../../../base/common/equals.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
+import { IDisposable } from '../../../../../base/common/lifecycle.js';
 import { derived, derivedOpts, IDerivedReader, IObservable, observableFromPromise } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -56,7 +57,9 @@ type PullRequestNumberObservable = IObservable<{ readonly value?: number | undef
  * the pull request, which would release and dispose the shared live model and
  * blank the icon.
  */
-export class SessionGitHubInfoResolver {
+export class SessionGitHubInfoResolver implements IDisposable {
+
+	private _isDisposed = false;
 
 	/** {@link IGitHubInfo} for the session, including the PR status icon. */
 	readonly gitHubInfo: IObservable<IGitHubInfo | undefined>;
@@ -130,6 +133,9 @@ export class SessionGitHubInfoResolver {
 		// Don't pin a "no PR yet" result: drop it so a later recompute re-queries
 		// (the GitHub service likewise only caches resolved PR numbers indefinitely).
 		lookup.then(prNumber => {
+			if (this._isDisposed) {
+				return;
+			}
 			if (prNumber === undefined) {
 				const evicted = this._pullRequestNumberCache.get(key) === prNumberObs;
 				if (evicted) {
@@ -139,7 +145,7 @@ export class SessionGitHubInfoResolver {
 			} else {
 				this._logService.trace(`${TRACE_PREFIX} [IconAdapter] Session ${this._sessionId} PR-number lookup for ${key} resolved PR #${prNumber}; kept sticky`);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		return prNumberObs;
 	}
 
@@ -204,5 +210,10 @@ export class SessionGitHubInfoResolver {
 		const icon = computePullRequestIcon(livePR.isDraft ? 'draft' : livePR.state, status);
 		this._logService.trace(`${TRACE_PREFIX} [IconAdapter] Session ${this._sessionId} PR ${coords.owner}/${coords.repo}#${prNumber}: livePR present (state ${livePR.state}, isDraft ${livePR.isDraft}, headSha ${livePR.headSha}), hasFailingChecks ${!!status.hasFailingChecks}, hasUnresolvedComments ${!!status.hasUnresolvedComments} -> icon ${icon?.id ?? 'none'}`);
 		return icon;
+	}
+
+	dispose(): void {
+		this._isDisposed = true;
+		this._pullRequestNumberCache.clear();
 	}
 }

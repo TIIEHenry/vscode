@@ -23,12 +23,15 @@ function cloudSandboxAgentHostContributionSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('CloudSandboxAgentHostContribution leftover fire-and-forget catch scan (D628)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_discoverAndSeed / _disconnectEnvironment voids double-catch onUnexpectedError (D628)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_discoverAndSeed / _disconnectEnvironment voids catch onUnexpectedError (D628)', () => {
 		const source = fs.readFileSync(cloudSandboxAgentHostContributionSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const discover = 'void this._discoverAndSeed()';
@@ -37,15 +40,15 @@ suite('CloudSandboxAgentHostContribution leftover fire-and-forget catch scan (D6
 		assert.ok(source.includes('private _discoverAndSeed(): Promise<void>'));
 		assert.ok(source.includes('private async _disconnectEnvironment(address: string): Promise<void>'));
 		assert.strictEqual((source.match(/void this\._discoverAndSeed\(\)/g) ?? []).length, 3);
-		assert.strictEqual((source.match(/void this\._discoverAndSeed\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\._discoverAndSeed\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
 		assert.strictEqual((source.match(/void this\._disconnectEnvironment\(address\)/g) ?? []).length, 2);
-		assert.strictEqual((source.match(/void this\._disconnectEnvironment\(address\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
-		assert.ok(source.includes(`${discover}${doubleCatch};`));
-		assert.ok(source.includes(`${disconnect}${doubleCatch};`));
+		assert.strictEqual((source.match(/void this\._disconnectEnvironment\(address\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.ok(source.includes(`${discover}.catch(onUnexpectedError);`));
+		assert.ok(source.includes(`${disconnect}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${discover};`));
 		assert.ok(!source.includes(`${disconnect};`));
-		assert.ok(!source.includes(`${discover}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${disconnect}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(doubleCatch));
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(source.includes('this._register(this._agentHostFilterService.registerDiscoveryHandler(() => this._discoverAndSeed()));'));
 	});
 });

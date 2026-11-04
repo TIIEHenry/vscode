@@ -240,6 +240,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			}
 			if (instance.shellLaunchConfig.attachPersistentProcess && this._activeKey) {
 				instance.getInitialCwd().then(cwd => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (cwd.toLowerCase() !== this._activeKey) {
 						const availableInstance = this._getAvailableTerminal(instance, `hide restored terminal for ${cwd}`);
 						if (!availableInstance) {
@@ -248,7 +251,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 						this._terminalService.moveToBackground(availableInstance);
 						this._logService.trace(`[SessionsTerminal] Hid restored terminal ${availableInstance.instanceId} (cwd: ${cwd})`);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}));
 
@@ -301,10 +304,16 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			}
 			this._logService.trace(`[SessionsTerminal] onDidChangeSessions cleanup (removed: ${e.removed.length}, justArchived: ${justArchived.length}, trackedSessions: ${this._sessionTerminals.size}, activeKey: ${this._activeKey ?? '<none>'})`);
 			for (const session of e.removed) {
-				void this._closeTerminalsForSession(session.sessionId, `session removed (${session.sessionId})`).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._closeTerminalsForSession(session.sessionId, `session removed (${session.sessionId})`).catch(onUnexpectedError);
 			}
 			for (const session of justArchived) {
-				void this._closeArchivedSessionTerminals(session).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._closeArchivedSessionTerminals(session).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -593,7 +602,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			return;
 		}
 		this._activeSessionActivation++;
-		void this._onActiveSessionChanged(active).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._onActiveSessionChanged(active).catch(onUnexpectedError);
 	}
 
 	private _shouldKeepActiveSessionTerminal(session: ISession, generation: number): boolean {

@@ -25,6 +25,10 @@ function sessionsTelemetrySourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionsTelemetry leftover fire-and-forget catch scan (D645)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -36,6 +40,7 @@ suite('SessionsTelemetry leftover fire-and-forget catch scan (D645)', () => {
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes(leftoverSingle), 'single-catch }).catch(onUnexpectedError); missing in sessionsTelemetry.contribution.ts');
 		assert.ok(!source.includes(leftoverDouble), 'double-catch still in sessionsTelemetry.contribution.ts');
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.strictEqual((source.split(leftoverSingle).length - 1), PREVIOUS_LEFTOVER_COUNT);
 	});
 });

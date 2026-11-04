@@ -152,18 +152,26 @@ export class SessionBrowsersControl extends Disposable {
 			id: input?.id ?? label,
 			label,
 			icon: Codicon.globe,
-			open: () => { void this._openBrowser(input, chat).catch(onUnexpectedError).catch(onUnexpectedError); },
+			open: () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._openBrowser(input, chat).catch(onUnexpectedError);
+			},
 		};
 	}
 
 	private async _openBrowser(input: BrowserEditorInput | undefined, chat: IChat | undefined): Promise<void> {
-		if (!input) {
+		if (!input || this._store.isDisposed) {
 			return;
 		}
 		const target = this._getBrowserInputToOpen(input, chat);
 		const existing = this._editorService.findEditors(target.resource)
 			.find(identifier => identifier.editor instanceof BrowserEditorInput && identifier.editor.id === target.id);
 		const targetGroup = existing?.groupId ?? await this._browserViewService.getPreferredGroup();
+		if (this._store.isDisposed) {
+			return;
+		}
 		await this._editorService.openEditor(target, undefined, targetGroup);
 	}
 

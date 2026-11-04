@@ -370,9 +370,12 @@ export class AgentFeedbackContextView extends Disposable {
 		));
 		this._tree = tree;
 		disposables.add(tree.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.element && !isFeedbackFileElement(e.element)) {
 				this._openContextView?.close();
-				void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._agentFeedbackService.revealFeedback(this._attachment.sessionResource, e.element.id).catch(onUnexpectedError);
 			}
 		}));
 
@@ -387,6 +390,11 @@ export class AgentFeedbackContextView extends Disposable {
 		const treeHeight = Math.min(totalRows * ROW_HEIGHT, MAX_ROWS * ROW_HEIGHT);
 		tree.layout(treeHeight, 200);
 		treeContainer.style.height = `${treeHeight}px`;
+
+		disposables.add(toDisposable(() => {
+			dom.clearNode(treeContainer);
+			treeContainer.remove();
+		}));
 
 		return disposables;
 	}
@@ -435,5 +443,15 @@ export class AgentFeedbackContextView extends Disposable {
 		}
 
 		return { children, commentElements: allComments };
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._openContextView?.close();
+		this._openContextView = undefined;
+		this._tree = undefined;
+		super.dispose();
 	}
 }

@@ -949,14 +949,14 @@ export class AgentHostSessionConfigPicker extends Disposable {
 
 					if (isAutoApproveProperty && item.value !== 'default') {
 						const confirmed = await confirmAutoApproveLevel(item.value, item.label, this._dialogService, this._storageService);
-						if (!confirmed) {
+						if (!confirmed || this._store.isDisposed) {
 							return;
 						}
 					}
 
 					const nextValue = schema.type === 'boolean' ? item.value === 'true' : item.value;
 					provider.setSessionConfigValue(sessionId, property, nextValue).catch(() => { /* best-effort */ });
-				})().catch(onUnexpectedError).catch(onUnexpectedError);
+				})().catch(onUnexpectedError);
 			},
 			onFilter: schema.enumDynamic
 				? query => this._filterDelayer.trigger(async () => {

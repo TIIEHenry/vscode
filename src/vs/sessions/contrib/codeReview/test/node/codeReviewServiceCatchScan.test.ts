@@ -23,25 +23,28 @@ function codeReviewServiceSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('CodeReviewService leftover fire-and-forget catch scan (D613)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('reviewThreadsRef.object.refresh void double-catch onUnexpectedError (D613)', () => {
-		// GitHubPullRequestReviewThreadsModel.refresh returns Promise<void>; a bare void leaks on reject.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
-		// The settled callback records a swallowed failure (hasLoaded stays false); rejection still rethrows into the double catch.
+	test('reviewThreadsRef.object.refresh void single-catch onUnexpectedError (D613)', () => {
 		const source = fs.readFileSync(codeReviewServiceSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void reviewThreadsRef.object.refresh()';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/reviewThreadsRef\.object\.refresh\(\)/g) ?? []).length, 1);
 		assert.ok(source.includes(`${call}.then(`));
 		assert.ok(source.includes('_noteReviewRefreshSettled('));
-		assert.ok(source.includes(`${doubleCatch};`));
+		assert.ok(source.includes(`${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${doubleCatch};`));
 		assert.ok(source.includes('reader.store.add(reviewThreadsRef.object.startPolling());'));
 		assert.ok(!source.includes('reviewThreadsRef.object.startPolling().catch'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

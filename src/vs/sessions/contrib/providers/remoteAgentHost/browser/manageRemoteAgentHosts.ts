@@ -160,12 +160,22 @@ registerAction2(class extends Action2 {
 				}
 				if (selected.kind === 'remote') {
 					void instantiationService.invokeFunction(a => showRemoteHostOptions(a, selected.provider, { showBackButton: true })).then(result => {
+						if (store.isDisposed) {
+							return;
+						}
 						if (result === 'back') {
 							showManagePicker();
 						}
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				} else if (selected.kind === 'menu-action') {
-					commandService.executeCommand(selected.action.id, () => showManagePicker());
+					if (store.isDisposed) {
+						return;
+					}
+					commandService.executeCommand(selected.action.id, () => {
+						if (!store.isDisposed) {
+							showManagePicker();
+						}
+					});
 				}
 			}));
 

@@ -254,19 +254,22 @@ export class LocalAgentHostSessionsProvider extends BaseAgentHostSessionsProvide
 
 	override createNewSession(workspaceUri: URI, sessionTypeId: string, options?: ISessionsProviderCreateSessionOptions): ISession {
 		const session = super.createNewSession(workspaceUri, sessionTypeId, options);
-		void this._resolveDevContainerAvailability(session.sessionId, workspaceUri).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._resolveDevContainerAvailability(session.sessionId, workspaceUri).catch(onUnexpectedError);
 		return session;
 	}
 
 	private async _resolveDevContainerAvailability(sessionId: string, workspaceUri: URI): Promise<void> {
 		try {
 			const available = await this._devContainerAgentHostService.isAvailable(workspaceUri);
-			if (!available || !this._getNewSession(sessionId)) {
+			if (this._store.isDisposed || !available || !this._getNewSession(sessionId)) {
 				return;
 			}
 			this._devContainerAvailableDrafts.add(sessionId);
 			this._onDidChangeSessionConfig.fire(sessionId);
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._logService.warn(`[${this.id}] Failed to resolve Dev Container availability for ${workspaceUri.toString()}`, error);
 		}
 	}

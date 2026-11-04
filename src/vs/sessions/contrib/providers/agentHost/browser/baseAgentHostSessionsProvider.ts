@@ -745,10 +745,13 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 		const observable = observableFromPromise(lookup);
 		this._pullRequestNumberCache.set(key, observable);
 		lookup.then(pullRequestNumber => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (typeof pullRequestNumber !== 'number' && this._pullRequestNumberCache.get(key) === observable) {
 				this._pullRequestNumberCache.delete(key);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		return observable;
 	}
 
@@ -3193,7 +3196,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			this._activeSessionScopeRoots = [...cached.workingDirectories];
 		}
 
-		void this._dispatchActiveClientWhenResolved(cancellation.token, activeSession.sessionId, rawId, cached, connection, scope).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._dispatchActiveClientWhenResolved(cancellation.token, activeSession.sessionId, rawId, cached, connection, scope).catch(onUnexpectedError);
 	}
 
 	private async _dispatchActiveClientWhenResolved(
@@ -3719,7 +3722,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 			const sessionUri = cached.backendUri;
 			const action = { type: ActionType.SessionConfigChanged as const, config: { [property]: normalizedValue } };
 			connection.dispatch(sessionUri.toString(), action);
-			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError);
 		}
 	}
 
@@ -3775,7 +3778,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				replace: true,
 			};
 			connection.dispatch(sessionUri.toString(), action);
-			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._resolveRunningSessionConfig(sessionId, cached, nextValues).catch(onUnexpectedError);
 		}
 	}
 
@@ -3824,12 +3827,15 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				workingDirectory: cached.workspace.get()?.folders[0]?.root,
 				config: values,
 			});
-			if (this._runningSessionConfigResolveSeq.get(sessionId) !== seq) {
+			if (this._store.isDisposed || this._runningSessionConfigResolveSeq.get(sessionId) !== seq) {
 				return;
 			}
 			this._runningSessionConfigs.set(sessionId, resolved);
 			this._onDidChangeSessionConfig.fire(sessionId);
 		} catch (err) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._logService.warn(`[${this.id}] Failed to re-resolve session config for ${sessionId}: ${err}`);
 		}
 	}

@@ -23,13 +23,17 @@ function sessionCustomizationsSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionCustomizations leftover fire-and-forget catch scan (D605)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_reveal executeCommand OpenEditor void double-catch onUnexpectedError (D605)', () => {
-		// Bare executeCommand voids leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_reveal executeCommand OpenEditor void single-catch onUnexpectedError (D605)', () => {
 		const source = fs.readFileSync(sessionCustomizationsSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = `void this._commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, {
 			section: customizationSections.get(customization.kind),
@@ -38,8 +42,9 @@ suite('SessionCustomizations leftover fire-and-forget catch scan (D605)', () => 
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private _reveal(customization: ISessionChatCustomization): void'));
 		assert.strictEqual((source.match(/void this\._commandService\.executeCommand\(AICustomizationManagementCommands\.OpenEditor/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

@@ -184,7 +184,10 @@ export class NewSessionPromptOptionsWidget extends Disposable {
 			}
 			dom.append(button.element, dom.$('.new-session-prompt-option-description')).textContent = option.description;
 			store.add(button.onDidClick(() => {
-				void this._select(option).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this._select(option).catch(onUnexpectedError);
 			}));
 			buttons.push({ option, button });
 		}
@@ -231,6 +234,17 @@ export class NewSessionPromptOptionsWidget extends Disposable {
 			button.element.setAttribute('aria-disabled', String(!enabled));
 			button.element.tabIndex = 0;
 		}
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._renderDisposables.dispose();
+		dom.clearNode(this._optionsContainer);
+		dom.clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 }
 

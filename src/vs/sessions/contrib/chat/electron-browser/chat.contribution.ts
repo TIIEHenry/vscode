@@ -209,7 +209,7 @@ class SelectAgentsFolderContribution extends Disposable implements IWorkbenchCon
 				disposable.dispose();
 			}
 		});
-		this.lifecycleService.when(LifecyclePhase.Eventually).then(() => disposable.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.lifecycleService.when(LifecyclePhase.Eventually).then(() => disposable.dispose()).catch(onUnexpectedError);
 	}
 
 	private tryResolveAndSelect(folderUri: URI): boolean {

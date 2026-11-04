@@ -173,11 +173,17 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				const refreshKey = pullRequestRefreshKey(pullRequest);
 				// A resolved refresh can still have failed: the model logs and leaves hasLoaded false.
 				void reviewThreadsRef.object.refresh().then(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this._noteReviewRefreshSettled(epoch, refreshKey, reviewThreadsRef.object.hasLoaded.get());
 				}, err => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this._noteReviewRefreshSettled(epoch, refreshKey, false);
 					throw err;
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 				reader.store.add(reviewThreadsRef.object.startPolling());
 			}
 		}));

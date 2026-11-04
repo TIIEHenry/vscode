@@ -23,21 +23,25 @@ function singlePaneDetailPanelCoordinatorSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SinglePaneDetailPanelCoordinator leftover fire-and-forget catch scan (D642)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_sequencer.queue _syncTarget leftover site double-catch onUnexpectedError (D642)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_sequencer.queue _syncTarget leftover site single-catch onUnexpectedError (D642)', () => {
 		const source = fs.readFileSync(singlePaneDetailPanelCoordinatorSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._sequencer.queue(() => this._syncTarget(target, generation))';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._sequencer\.queue\(\(\) => this\._syncTarget\(target, generation\)\)/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

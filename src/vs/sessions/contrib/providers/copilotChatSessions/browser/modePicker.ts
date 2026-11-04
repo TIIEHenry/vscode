@@ -208,12 +208,18 @@ export class ModePicker extends Disposable {
 		this._renderDisposables.add(Gesture.addTarget(trigger));
 		for (const eventType of [dom.EventType.CLICK, TouchEventType.Tap]) {
 			this._renderDisposables.add(dom.addDisposableListener(trigger, eventType, (e) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				dom.EventHelper.stop(e, true);
 				this._showPicker();
 			}));
 		}
 
 		this._renderDisposables.add(dom.addDisposableListener(trigger, dom.EventType.KEY_DOWN, (e) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (e.key === 'Enter' || e.key === ' ') {
 				dom.EventHelper.stop(e, true);
 				this._showPicker();
@@ -224,7 +230,7 @@ export class ModePicker extends Disposable {
 	}
 
 	private _showPicker(): void {
-		if (!this._triggerElement || this.actionWidgetService.isVisible) {
+		if (this._store.isDisposed || !this._triggerElement || this.actionWidgetService.isVisible) {
 			return;
 		}
 
@@ -235,6 +241,9 @@ export class ModePicker extends Disposable {
 		const triggerElement = this._triggerElement;
 		const delegate: IActionListDelegate<ModePickerItem> = {
 			onSelect: (item) => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.actionWidgetService.hide();
 				if (item.kind === 'mode') {
 					const activeChat = this.session.get()?.activeChat.get();
@@ -252,10 +261,17 @@ export class ModePicker extends Disposable {
 					reportChatModeChange(this.telemetryService, previousMode, item.mode, requestCount);
 					this._selectMode(item.mode);
 				} else {
-					void this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(AICustomizationManagementCommands.OpenEditor, AICustomizationManagementSection.Agents).catch(onUnexpectedError);
 				}
 			},
-			onHide: () => { triggerElement.focus(); },
+			onHide: () => {
+				if (!this._store.isDisposed && triggerElement.isConnected) {
+					triggerElement.focus();
+				}
+			},
 		};
 
 		this.actionWidgetService.show<ModePickerItem>(
@@ -336,5 +352,14 @@ export class ModePicker extends Disposable {
 		labelSpan.textContent = selectedMode.label.get();
 
 		this._triggerElement.ariaLabel = localize('modePicker.triggerAriaLabel', "Pick Mode, {0}", selectedMode.label.get());
+	}
+
+	override dispose(): void {
+		if (this._triggerElement) {
+			dom.clearNode(this._triggerElement);
+			this._triggerElement.remove();
+			this._triggerElement = undefined;
+		}
+		super.dispose();
 	}
 }

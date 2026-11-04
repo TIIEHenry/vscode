@@ -23,21 +23,26 @@ function claudePermissionModePickerSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('AgentHostClaudePermissionModePicker leftover fire-and-forget catch scan (D609)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('Learn more opener void double-catch onUnexpectedError (D609)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('Learn more opener void single-catch onUnexpectedError (D609)', () => {
 		const source = fs.readFileSync(claudePermissionModePickerSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._openerService.open(URI.parse(CLAUDE_PERMISSION_MODE_LEARN_MORE_URL))';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._openerService\.open\(URI\.parse\(CLAUDE_PERMISSION_MODE_LEARN_MORE_URL\)\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 		assert.ok(source.includes('protected override _handleFooterActionItem(item: IAgentHostSessionEnumPickerItem): boolean'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

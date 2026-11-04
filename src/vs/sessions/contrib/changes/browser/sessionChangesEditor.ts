@@ -105,7 +105,7 @@ export class SessionChangesUIElementFactory implements IWorkbenchUIElementFactor
 			return false;
 		}
 
-		void this.commandService.executeCommand(CHANGESET_REVIEW_ACTION_ID, resource).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.commandService.executeCommand(CHANGESET_REVIEW_ACTION_ID, resource).catch(onUnexpectedError);
 		return true;
 	}
 

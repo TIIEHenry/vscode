@@ -23,21 +23,26 @@ function sessionBrowsersControlSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('SessionBrowsersControl leftover fire-and-forget catch scan (D635)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_openBrowser void double-catch onUnexpectedError (D635)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_openBrowser void single-catch onUnexpectedError (D635)', () => {
 		const source = fs.readFileSync(sessionBrowsersControlSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._openBrowser(input, chat)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _openBrowser(input: BrowserEditorInput | undefined, chat: IChat | undefined): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._openBrowser\(input, chat\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

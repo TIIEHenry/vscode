@@ -23,29 +23,34 @@ function aiCustomizationOverviewViewSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('AICustomizationOverviewView leftover fire-and-forget catch scan (D614)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('loadCounts voids double-catch onUnexpectedError (D614)', () => {
-		// Bare loadCounts voids / dropped Promises leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('loadCounts voids single-catch onUnexpectedError (D614)', () => {
 		const source = fs.readFileSync(aiCustomizationOverviewViewSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this.loadCounts()';
-		const doubleCall = `${call}${doubleCatch}`;
+		const singleCall = `${call}${singleCatch}`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async loadCounts(): Promise<void>'));
 		assert.ok(source.includes('private reloadCounts(): void {'));
 		// Catalog, workspace, project-root, and first render all go through reloadCounts, which is the only loadCounts void.
 		assert.strictEqual((source.match(/void this\.loadCounts\(\)/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.loadCounts\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${doubleCall};`));
-		assert.ok(!source.includes(`${doubleCall})`));
+		assert.strictEqual((source.match(/void this\.loadCounts\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.ok(source.includes(`${singleCall};`));
+		assert.ok(!source.includes(`${singleCall})`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError))`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.ok(!source.includes(`${call}${doubleCatch})`));
 		assert.ok(!source.includes('() => this.loadCounts()'));
 		assert.ok(!source.includes('\t\t\tthis.loadCounts();'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });
 
@@ -53,19 +58,20 @@ suite('AICustomizationOverviewView leftover fire-and-forget catch scan (D622)', 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('openOverview voids double-catch onUnexpectedError (D622)', () => {
-		// Bare openOverview dropped Promises leak on reject; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('openOverview voids single-catch onUnexpectedError (D622)', () => {
 		const source = fs.readFileSync(aiCustomizationOverviewViewSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this.openOverview()';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async openOverview(): Promise<void>'));
 		assert.strictEqual((source.match(/void this\.openOverview\(\)/g) ?? []).length, 2);
-		assert.strictEqual((source.match(/void this\.openOverview\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
-		assert.ok(source.includes(doubleCall));
+		assert.strictEqual((source.match(/void this\.openOverview\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
 		assert.ok(!source.includes('\t\t\t\tthis.openOverview();'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

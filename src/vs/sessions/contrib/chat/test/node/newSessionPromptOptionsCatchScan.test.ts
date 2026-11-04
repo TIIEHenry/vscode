@@ -23,22 +23,26 @@ function newSessionPromptOptionsSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('NewSessionPromptOptions leftover fire-and-forget catch scan (D634)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('onDidClick _select void double-catch onUnexpectedError (D634)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('onDidClick _select void single-catch onUnexpectedError (D634)', () => {
 		const source = fs.readFileSync(newSessionPromptOptionsSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._select(option)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _select(option: INewSessionPromptOption): Promise<void> {'));
-		assert.ok(source.includes(`store.add(button.onDidClick(() => {\n\t\t\t\t${doubleCall}\n\t\t\t}));`));
 		assert.strictEqual((source.match(/void this\._select\(option\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

@@ -22,15 +22,24 @@ function sourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('MobileChatInputConfigPicker fire-and-forget catch scan (D1332)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('all sheet entry points catch presentation failures', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
+		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\._showSheet\(\)/g) ?? []).length, 3);
-		assert.strictEqual((source.match(/void this\._showSheet\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/void this\._showSheet\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.ok(source.includes(`void this._showSheet()${singleCatch};`));
+		assert.ok(!source.includes(`void this._showSheet()${doubleCatch}`));
 		assert.ok(!source.includes('void this._showSheet();'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

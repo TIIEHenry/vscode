@@ -95,7 +95,10 @@ export class AgentHostClaudePermissionModePicker extends AgentHostSessionEnumPic
 		if (item.value !== LEARN_MORE_VALUE) {
 			return false;
 		}
-		void this._openerService.open(URI.parse(CLAUDE_PERMISSION_MODE_LEARN_MORE_URL)).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return true;
+		}
+		void this._openerService.open(URI.parse(CLAUDE_PERMISSION_MODE_LEARN_MORE_URL)).catch(onUnexpectedError);
 		return true;
 	}
 }

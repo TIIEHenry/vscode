@@ -576,7 +576,7 @@ export class WorkspacePicker extends Disposable {
 			if (directBrowseItem?.browseActionIndex !== undefined && !items[0].disabled) {
 				this._activeTriggerElement = undefined;
 				triggerElement.setAttribute('aria-expanded', 'false');
-				void this._dispatchPickerItem(directBrowseItem).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => {
+				void this._dispatchPickerItem(directBrowseItem).catch(onUnexpectedError).finally(() => {
 					this._directPickerGroup = undefined;
 					this._directPickerAttachesContext = undefined;
 					triggerElement.focus();
@@ -663,7 +663,7 @@ export class WorkspacePicker extends Disposable {
 	private _buildDelegate(triggerElement: HTMLElement, hide: () => void): IActionListDelegate<IWorkspacePickerItem> {
 		return {
 			onSelect: (item) => {
-				void this._dispatchPickerItem(item).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._dispatchPickerItem(item).catch(onUnexpectedError);
 				hide();
 			},
 			onHide: () => {
@@ -761,10 +761,10 @@ export class WorkspacePicker extends Disposable {
 		const generation = ++this._selectionGeneration;
 		this._reportPickerClosed(item);
 		if (item.run) {
-			void Promise.resolve(item.run()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(item.run()).catch(onUnexpectedError);
 			return true;
 		} else if (item.commandId) {
-			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(item.commandId).catch(onUnexpectedError);
 			return true;
 		} else if (item.folderUri && item.providerId && this._isProviderUnavailable(item.providerId)) {
 			// Workspace belongs to an unavailable remote — ignore selection
@@ -1701,7 +1701,7 @@ export class WorkspacePicker extends Disposable {
 			this._onDidChangeSelection.fire();
 			this._onDidSelectWorkspace.fire(this._selectedFolderUri);
 			this._watchForConnectionFailure(restored);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _canRestoreProviderWorkspace(providerId: string): boolean {
@@ -1819,4 +1819,11 @@ export class WorkspacePicker extends Disposable {
 		}
 	}
 
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._activeTriggerElement = undefined;
+		super.dispose();
+	}
 }

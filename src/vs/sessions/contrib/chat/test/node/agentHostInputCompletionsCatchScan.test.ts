@@ -23,21 +23,26 @@ function agentHostInputCompletionsSourcePath(): string {
 	return found;
 }
 
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
+
 suite('AgentHostInputCompletions leftover fire-and-forget catch scan (D650)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_registerForScheme void double-catch onUnexpectedError (D650)', () => {
-		// _registerForScheme is async; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('_registerForScheme void single-catch onUnexpectedError (D650)', () => {
 		const source = fs.readFileSync(agentHostInputCompletionsSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._registerForScheme(scheme)';
-		const doubleCall = `${call}${doubleCatch};`;
+		const singleCall = `${call}${singleCatch};`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _registerForScheme(scheme: string): Promise<void> {'));
 		assert.strictEqual((source.match(/void this\._registerForScheme\(scheme\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCall));
+		assert.ok(source.includes(singleCall));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 });

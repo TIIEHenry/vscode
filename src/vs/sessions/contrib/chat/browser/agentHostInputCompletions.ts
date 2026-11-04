@@ -234,14 +234,14 @@ export class AgentHostInputCompletionHandler extends AgentHostInputCompletionsBa
 			currentScheme = scheme;
 			this._registration.clear();
 			if (scheme && isAgentHostTarget(scheme)) {
-				void this._registerForScheme(scheme).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._registerForScheme(scheme).catch(onUnexpectedError);
 			}
 		}));
 	}
 
 	private async _registerForScheme(scheme: string): Promise<void> {
 		const triggerCharacters = await this._chatSessionsService.getChatInputCompletionTriggerCharacters(scheme);
-		if (!triggerCharacters || triggerCharacters.length === 0) {
+		if (this._store.isDisposed || !triggerCharacters || triggerCharacters.length === 0) {
 			return;
 		}
 
