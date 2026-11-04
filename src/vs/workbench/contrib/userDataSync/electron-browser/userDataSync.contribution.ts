@@ -57,7 +57,7 @@ registerAction2(class DownloadSyncActivityAction extends Action2 {
 			notificationService.prompt(Severity.Info, localize('download sync activity complete', "Successfully downloaded Settings Sync activity."),
 				[{
 					label: localize('open', "Open Folder"),
-					run: () => hostService.showItemInFolder(folder.fsPath).catch(onUnexpectedError).catch(onUnexpectedError)
+					run: () => hostService.showItemInFolder(folder.fsPath).catch(onUnexpectedError)
 				}]);
 		}
 	}

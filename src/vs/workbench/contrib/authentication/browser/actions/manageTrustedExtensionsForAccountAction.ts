@@ -144,7 +144,7 @@ class ManageTrustedExtensionsForAccountActionImpl {
 			});
 
 		if (!filteredExtensions.length) {
-			this._dialogService.info(localize('noTrustedExtensions', "This account has not been used by any extensions.")).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._dialogService.info(localize('noTrustedExtensions', "This account has not been used by any extensions.")).catch(onUnexpectedError);
 			return [];
 		}
 
@@ -212,9 +212,9 @@ class ManageTrustedExtensionsForAccountActionImpl {
 		disposableStore.add(quickPick.onDidCustom(() => quickPick.hide()));
 		disposableStore.add(quickPick.onDidTriggerItemButton(e => {
 			if (e.button === this._managePreferencesButton) {
-				this._commandService.executeCommand('_manageAccountPreferencesForExtension', e.item.extension.id, accountQuery.providerId).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._commandService.executeCommand('_manageAccountPreferencesForExtension', e.item.extension.id, accountQuery.providerId).catch(onUnexpectedError);
 			} else if (e.button === this._viewDetailsButton) {
-				this._extensionsWorkbenchService.open(e.item.extension.id).catch(onUnexpectedError).catch(onUnexpectedError);
+				this._extensionsWorkbenchService.open(e.item.extension.id).catch(onUnexpectedError);
 			}
 		}));
 

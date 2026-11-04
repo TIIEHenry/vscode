@@ -123,8 +123,8 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 		if (userDataSyncWorkbenchService.enabled) {
 			registerConfiguration();
 
-			this.updateAccountBadge().catch(onUnexpectedError).catch(onUnexpectedError);
-			this.updateGlobalActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateAccountBadge().catch(onUnexpectedError);
+			this.updateGlobalActivityBadge().catch(onUnexpectedError);
 			this.onDidChangeConflicts(this.userDataSyncService.conflicts);
 
 			this._register(Event.any(
@@ -132,8 +132,8 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 				this.userDataSyncEnablementService.onDidChangeEnablement,
 				this.userDataSyncWorkbenchService.onDidChangeAccountStatus
 			)(() => {
-				this.updateAccountBadge().catch(onUnexpectedError).catch(onUnexpectedError);
-				this.updateGlobalActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateAccountBadge().catch(onUnexpectedError);
+				this.updateGlobalActivityBadge().catch(onUnexpectedError);
 			}));
 			this._register(userDataSyncService.onDidChangeConflicts(() => this.onDidChangeConflicts(this.userDataSyncService.conflicts)));
 			this._register(userDataSyncEnablementService.onDidChangeEnablement(() => this.onDidChangeConflicts(this.userDataSyncService.conflicts)));
@@ -156,7 +156,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 
 	private set turningOnSync(turningOn: boolean) {
 		this.turningOnSyncContext.set(turningOn);
-		this.updateGlobalActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateGlobalActivityBadge().catch(onUnexpectedError);
 	}
 
 	private toKey({ syncResource: resource, profile }: IUserDataSyncResource): string {
@@ -165,7 +165,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 
 	private readonly conflictsDisposables = new Map<string, IDisposable>();
 	private onDidChangeConflicts(conflicts: IUserDataSyncResourceConflicts[]) {
-		this.updateGlobalActivityBadge().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateGlobalActivityBadge().catch(onUnexpectedError);
 		this.registerShowConflictsAction();
 		if (!this.userDataSyncEnablementService.isEnabled()) {
 			return;
@@ -189,20 +189,20 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 							{
 								label: localize('replace remote', "Replace Remote"),
 								run: () => {
-									this.acceptLocal(conflict, conflict.conflicts[0]).catch(onUnexpectedError).catch(onUnexpectedError);
+									this.acceptLocal(conflict, conflict.conflicts[0]).catch(onUnexpectedError);
 								}
 							},
 							{
 								label: localize('replace local', "Replace Local"),
 								run: () => {
-									this.acceptRemote(conflict, conflict.conflicts[0]).catch(onUnexpectedError).catch(onUnexpectedError);
+									this.acceptRemote(conflict, conflict.conflicts[0]).catch(onUnexpectedError);
 								}
 							},
 							{
 								label: localize('show conflicts', "Show Conflicts"),
 								run: () => {
 									this.telemetryService.publicLog2<{ source: string; action?: string }, SyncConflictsClassification>('sync/showConflicts', { source: conflict.syncResource });
-									this.userDataSyncWorkbenchService.showConflicts(conflict.conflicts[0]).catch(onUnexpectedError).catch(onUnexpectedError);
+									this.userDataSyncWorkbenchService.showConflicts(conflict.conflicts[0]).catch(onUnexpectedError);
 								}
 							}
 						],
@@ -249,7 +249,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 						primary: [toAction({
 							id: 'turn on sync',
 							label: localize('turn on sync', "Turn on Settings Sync..."),
-							run: () => this.turnOn().catch(onUnexpectedError).catch(onUnexpectedError)
+							run: () => this.turnOn().catch(onUnexpectedError)
 						})]
 					}
 				});
@@ -262,7 +262,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 						primary: [toAction({
 							id: 'turn on sync',
 							label: localize('turn on sync', "Turn on Settings Sync..."),
-							run: () => this.turnOn().catch(onUnexpectedError).catch(onUnexpectedError)
+							run: () => this.turnOn().catch(onUnexpectedError)
 						})]
 					}
 				});
@@ -300,12 +300,12 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 							toAction({
 								id: 'Show Sync Logs',
 								label: localize('show sync logs', "Show Log"),
-								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.commandService.executeCommand(SHOW_SYNC_LOG_COMMAND_ID).catch(onUnexpectedError)
 							}),
 							toAction({
 								id: 'Report Issue',
 								label: localize('report issue', "Report Issue"),
-								run: () => this.workbenchIssueService.openReporter().catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.workbenchIssueService.openReporter().catch(onUnexpectedError)
 							})
 						]
 					}
@@ -321,12 +321,12 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 							toAction({
 								id: 'reset',
 								label: localize('reset', "Clear Data in Cloud..."),
-								run: () => this.userDataSyncWorkbenchService.resetSyncedData().catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.userDataSyncWorkbenchService.resetSyncedData().catch(onUnexpectedError)
 							}),
 							toAction({
 								id: 'show synced data',
 								label: localize('show synced data action', "Show Synced Data"),
-								run: () => this.userDataSyncWorkbenchService.showSyncActivity().catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.userDataSyncWorkbenchService.showSyncActivity().catch(onUnexpectedError)
 							})
 						]
 					}
@@ -361,7 +361,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 							primary: [toAction({
 								id: 'turn on sync',
 								label: localize('turn on sync', "Turn on Settings Sync..."),
-								run: () => this.turnOn().catch(onUnexpectedError).catch(onUnexpectedError)
+								run: () => this.turnOn().catch(onUnexpectedError)
 							})]
 						}
 					});
@@ -379,7 +379,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 				primary: [toAction({
 					id: 'open sync file',
 					label: localize('open file', "Open {0} File", getSyncAreaLabel(resource)),
-					run: () => resource === SyncResource.Settings ? this.preferencesService.openUserSettings({ jsonEditor: true }).catch(onUnexpectedError).catch(onUnexpectedError) : this.preferencesService.openGlobalKeybindingSettings(true).catch(onUnexpectedError).catch(onUnexpectedError)
+					run: () => resource === SyncResource.Settings ? this.preferencesService.openUserSettings({ jsonEditor: true }).catch(onUnexpectedError) : this.preferencesService.openGlobalKeybindingSettings(true).catch(onUnexpectedError)
 				})]
 			}
 		});
@@ -439,7 +439,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 				primary: [toAction({
 					id: 'open sync file',
 					label: localize('open file', "Open {0} File", errorArea),
-					run: () => source === SyncResource.Settings ? this.preferencesService.openUserSettings({ jsonEditor: true }).catch(onUnexpectedError).catch(onUnexpectedError) : this.preferencesService.openGlobalKeybindingSettings(true).catch(onUnexpectedError).catch(onUnexpectedError)
+					run: () => source === SyncResource.Settings ? this.preferencesService.openUserSettings({ jsonEditor: true }).catch(onUnexpectedError) : this.preferencesService.openGlobalKeybindingSettings(true).catch(onUnexpectedError)
 				})]
 			}
 		});
@@ -455,6 +455,9 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 	}
 
 	private async updateGlobalActivityBadge(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.globalActivityBadgeDisposable.clear();
 
 		let badge: IBadge | undefined = undefined;
@@ -470,6 +473,9 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 	}
 
 	private async updateAccountBadge(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.accountBadgeDisposable.clear();
 
 		let badge: IBadge | undefined = undefined;
@@ -484,16 +490,22 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 	}
 
 	private async turnOn(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		try {
 			if (!this.userDataSyncWorkbenchService.authenticationProviders.length) {
 				throw new Error(localize('no authentication providers', "No authentication providers are available."));
 			}
 			const turnOn = await this.askToConfigure();
-			if (!turnOn) {
+			if (!turnOn || this._store.isDisposed) {
 				return;
 			}
 			if (this.userDataSyncStoreManagementService.userDataSyncStore?.canSwitch) {
 				await this.selectSettingsSyncService(this.userDataSyncStoreManagementService.userDataSyncStore);
+			}
+			if (this._store.isDisposed) {
+				return;
 			}
 			await this.userDataSyncWorkbenchService.turnOn();
 		} catch (e) {
@@ -528,12 +540,12 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 									toAction({
 										id: 'reset',
 										label: localize('reset', "Clear Data in Cloud..."),
-										run: () => this.userDataSyncWorkbenchService.resetSyncedData().catch(onUnexpectedError).catch(onUnexpectedError)
+										run: () => this.userDataSyncWorkbenchService.resetSyncedData().catch(onUnexpectedError)
 									}),
 									toAction({
 										id: 'show synced data',
 										label: localize('show synced data action', "Show Synced Data"),
-										run: () => this.userDataSyncWorkbenchService.showSyncActivity().catch(onUnexpectedError).catch(onUnexpectedError)
+										run: () => this.userDataSyncWorkbenchService.showSyncActivity().catch(onUnexpectedError)
 									})
 								]
 							}
@@ -963,7 +975,7 @@ export class UserDataSyncWorkbenchContribution extends Disposable implements IWo
 					quickPick.items = items;
 					disposables.add(quickPick.onDidAccept(() => {
 						if (quickPick.selectedItems[0] && quickPick.selectedItems[0].id) {
-							commandService.executeCommand(quickPick.selectedItems[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
+							commandService.executeCommand(quickPick.selectedItems[0].id).catch(onUnexpectedError);
 						}
 						quickPick.hide();
 					}));

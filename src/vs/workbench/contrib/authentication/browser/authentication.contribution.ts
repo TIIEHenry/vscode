@@ -105,7 +105,7 @@ class AuthenticationUsageContribution implements IWorkbenchContribution {
 	constructor(
 		@IAuthenticationUsageService private readonly _authenticationUsageService: IAuthenticationUsageService,
 	) {
-		this._initializeExtensionUsageCache().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._initializeExtensionUsageCache().catch(onUnexpectedError);
 	}
 
 	private async _initializeExtensionUsageCache() {

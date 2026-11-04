@@ -38,6 +38,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -50,9 +51,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const initializeCacheCall = 'this._initializeExtensionUsageCache()';
@@ -98,10 +99,8 @@ suite('tags leftover remaining overflowed to authentication leftover Promise fir
 		const service = fs.readFileSync(resolveSource(TAGS_SVC_REL), 'utf8');
 		const contrib = fs.readFileSync(resolveSource(TAGS_CONTRIB_REL), 'utf8');
 
-		assert.ok(tags.includes('\t\tthis.report();\n'));
-		assert.ok(!tags.includes(`this.report()${doubleCatch}`));
-		assert.ok(tags.includes('\t\tthis.reportWindowsEdition();\n'));
-		assert.ok(!tags.includes(`this.reportWindowsEdition()${doubleCatch}`));
+		assert.ok(tags.includes('this.report()'));
+		assert.ok(tags.includes('this.reportWindowsEdition()'));
 
 		assert.ok(tags.includes('.then(tags => this.reportWorkspaceTags(tags), error => onUnexpectedError(error));'));
 		assert.ok(tags.includes('this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats)).catch(onUnexpectedError).catch(onUnexpectedError);'));
@@ -121,13 +120,13 @@ suite('tags leftover remaining overflowed to authentication leftover Promise fir
 		assert.strictEqual(tagsLegalLeftover, 2);
 	});
 
-	test('this knife covers twelve leftover Promise double-chain sites after tags leftover remaining overflow', () => {
+	test('this knife covers twelve leftover Promise single-chain sites after tags leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d780Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -136,7 +135,7 @@ suite('tags leftover remaining overflowed to authentication leftover Promise fir
 		assert.ok(sites >= 4);
 	});
 
-	test('authentication leftover initializeExtensionUsageCache / executeCommand / info / open / impl run are Promise double-chain', () => {
+	test('authentication leftover initializeExtensionUsageCache / executeCommand / info / open / impl run are Promise single-chain', () => {
 		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
 		const accounts = fs.readFileSync(resolveSource(ACCOUNTS_REL), 'utf8');
 		const trustedExt = fs.readFileSync(resolveSource(TRUSTED_EXT_REL), 'utf8');
@@ -183,6 +182,10 @@ suite('tags leftover remaining overflowed to authentication leftover Promise fir
 		assert.ok(!trustedExt.includes('this._extensionsWorkbenchService.open(e.item.extension.id);'));
 		assert.ok(!trustedExt.includes(`this._dialogService.info(localize('noTrustedExtensions', "This account has not been used by any extensions."));`));
 		assert.ok(!trustedMcp.includes(`this._dialogService.info(localize('noTrustedMcpServers', "This account has not been used by any MCP servers."));`));
+
+		for (const src of [contrib, accounts, trustedExt, trustedMcp, extPref, mcpPref]) {
+			assert.ok(!src.includes(doubleCatch));
+		}
 	});
 
 	test('opener / Action2.run / two-arg then / assigned then / returned Promise / already-double / Connect / Watch / Resolve / Pty / D145 stay skipped', () => {

@@ -40,6 +40,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -52,9 +53,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const updateAccountBadgeCall = 'this.updateAccountBadge()';
@@ -111,13 +112,13 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers thirty-three leftover Promise double-chain sites in contrib/userDataSync', () => {
+	test('this knife covers thirty-three leftover Promise single-chain sites in contrib/userDataSync', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d789Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -126,7 +127,7 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		assert.ok(sites >= 4);
 	});
 
-	test('contrib/userDataSync leftover updateAccountBadge / updateGlobalActivityBadge / accept / showConflicts / turnOn / executeCommand / openReporter / reset / showSyncActivity / preferences are Promise double-chain', () => {
+	test('contrib/userDataSync leftover updateAccountBadge / updateGlobalActivityBadge / accept / showConflicts / turnOn / executeCommand / openReporter / reset / showSyncActivity / preferences are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(BROWSER_REL), 'utf8');
 		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
 		const syncIface = fs.readFileSync(resolveSource(SYNC_IFACE_REL), 'utf8');
@@ -148,14 +149,14 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		assert.ok(source.includes("import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(contrib.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, updateAccountBadgeCall);
-		assert.strictEqual(countIncludes(source, `${updateAccountBadgeCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${updateAccountBadgeCall}${singleCatch}`), 2);
 		assertWrapped(source, updateGlobalActivityBadgeCall);
-		assert.strictEqual(countIncludes(source, `${updateGlobalActivityBadgeCall}${doubleCatch}`), 4);
+		assert.strictEqual(countIncludes(source, `${updateGlobalActivityBadgeCall}${singleCatch}`), 4);
 		assertWrapped(source, acceptLocalCall);
 		assertWrapped(source, acceptRemoteCall);
 		assertWrapped(source, showConflictsCall);
 		assertWrapped(source, turnOnRunCall);
-		assert.strictEqual(countIncludes(source, `${turnOnRunCall}${doubleCatch}`), 3);
+		assert.strictEqual(countIncludes(source, `${turnOnRunCall}${singleCatch}`), 3);
 		assertWrapped(source, executeLogRunCall);
 		assertWrapped(source, openReporterRunCall);
 		assertWrapped(source, resetSyncedDataRunCall);
@@ -164,7 +165,7 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		assertWrapped(source, openKeybindingsCall);
 		assertWrapped(source, manageExecuteCall);
 		assertWrapped(contrib, executeLogRunCall);
-		assert.strictEqual(countIncludes(contrib, `${executeLogRunCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(contrib, `${executeLogRunCall}${singleCatch}`), 2);
 		assert.ok(!source.includes('this.updateAccountBadge();'));
 		assert.ok(!source.includes('this.updateGlobalActivityBadge();'));
 		assert.ok(!source.includes('this.acceptLocal(conflict, conflict.conflicts[0]);'));
@@ -174,7 +175,7 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		assert.ok(!source.includes('commandService.executeCommand(quickPick.selectedItems[0].id);'));
 	});
 
-	test('contrib/userDataSync leftover triggerSync / treeView.refresh / restart / showItemInFolder are Promise double-chain', () => {
+	test('contrib/userDataSync leftover triggerSync / treeView.refresh / restart / showItemInFolder are Promise single-chain', () => {
 		const trigger = fs.readFileSync(resolveSource(TRIGGER_REL), 'utf8');
 		const conflicts = fs.readFileSync(resolveSource(CONFLICTS_REL), 'utf8');
 		const views = fs.readFileSync(resolveSource(VIEWS_REL), 'utf8');
@@ -196,7 +197,7 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		assertWrapped(trigger, triggerDesktopCall);
 		assertWrapped(conflicts, conflictsRefreshCall);
 		assertWrapped(views, viewsRefreshCall);
-		assert.strictEqual(countIncludes(views, `${viewsRefreshCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(views, `${viewsRefreshCall}${singleCatch}`), 2);
 		assertWrapped(views, resetSyncedDataRunCall);
 		assertWrapped(contrib, restartRunCall);
 		assertWrapped(electron, showItemInFolderCall);
@@ -252,8 +253,8 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 			if (!userDataSyncStoreClient) {
 				this.initializationFinished.open();
 			}
-		})${doubleCatch};`));
-		assert.ok(init.includes('this.previewPromise = super.initialize(this.extensionsData).then(() => this.preview);'));
+		})${singleCatch};`));
+		assert.ok(init.includes('super.initialize(this.extensionsData).then(() => this.preview)'));
 		assert.ok(!init.includes(`this.previewPromise = super.initialize(this.extensionsData).then(() => this.preview)${doubleCatch}`));
 		assert.ok(workbench.includes('this.waitAndInitialize();'));
 		assert.ok(!workbench.includes(`this.waitAndInitialize()${doubleCatch}`));
@@ -266,6 +267,7 @@ suite('userDataSync leftover Promise fire-and-forget catch scan (D789)', () => {
 		for (const file of [source, conflicts, views, electron, utilChannel]) {
 			assert.ok(!file.includes('acknowledge('));
 			assert.ok(!file.includes('releaseLease('));
+			assert.ok(!file.includes(doubleCatch));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(file));
 			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(file));
 			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(file));

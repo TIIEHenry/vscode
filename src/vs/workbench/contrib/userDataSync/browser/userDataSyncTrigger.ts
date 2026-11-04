@@ -40,9 +40,9 @@ export class UserDataSyncTrigger extends Disposable implements IWorkbenchContrib
 					Event.map(hostService.onDidChangeFocus, () => 'windowFocus'),
 					Event.map(event, source => source!),
 				), (last, source) => last ? [...last, source] : [source], 1000)
-				(sources => userDataAutoSyncService.triggerSync(sources, { skipIfSyncedRecently: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
+				(sources => userDataAutoSyncService.triggerSync(sources, { skipIfSyncedRecently: true }).catch(onUnexpectedError)));
 		} else {
-			this._register(event(source => userDataAutoSyncService.triggerSync([source!], { skipIfSyncedRecently: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._register(event(source => userDataAutoSyncService.triggerSync([source!], { skipIfSyncedRecently: true }).catch(onUnexpectedError)));
 		}
 	}
 

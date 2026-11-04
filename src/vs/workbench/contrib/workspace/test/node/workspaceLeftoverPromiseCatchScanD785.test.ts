@@ -30,6 +30,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -42,9 +43,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(doubleCatch));
 }
 
 const iifeCall = `			}
@@ -53,7 +54,7 @@ const showModalCall = 'this.showModalOnStart()';
 const doShowModalCall = `				markdownStrings,
 				checkboxText
 			)`;
-const initializedThenCall = `				this._register(this.workspaceTrustManagementService.onDidChangeTrust(isTrusted => this.logWorkspaceTrust(isTrusted).catch(onUnexpectedError).catch(onUnexpectedError)));
+const initializedThenCall = `				this._register(this.workspaceTrustManagementService.onDidChangeTrust(isTrusted => this.logWorkspaceTrust(isTrusted).catch(onUnexpectedError)));
 			})`;
 const logCtorCall = 'this.logWorkspaceTrust(this.workspaceTrustManagementService.isWorkspaceTrusted())';
 const logEventCall = 'this.logWorkspaceTrust(isTrusted)';
@@ -85,13 +86,13 @@ suite('workspace leftover Promise fire-and-forget catch scan (D785)', () => {
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers eleven leftover Promise double-chain sites in contrib/workspace', () => {
+	test('this knife covers eleven leftover Promise single-chain sites in contrib/workspace', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d785Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -100,7 +101,7 @@ suite('workspace leftover Promise fire-and-forget catch scan (D785)', () => {
 		assert.ok(sites >= 4);
 	});
 
-	test('contrib/workspace leftover IIFE / showModalOnStart / doShowModal / workspaceTrustInitialized.then / logWorkspaceTrust are Promise double-chain', () => {
+	test('contrib/workspace leftover IIFE / showModalOnStart / doShowModal / workspaceTrustInitialized.then / logWorkspaceTrust are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
 		const trust = fs.readFileSync(resolveSource(TRUST_IFACE_REL), 'utf8');
 		assertPromiseSignature(trust, 'readonly workspaceTrustInitialized: Promise<void>;');
@@ -110,7 +111,7 @@ suite('workspace leftover Promise fire-and-forget catch scan (D785)', () => {
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, iifeCall);
 		assertWrapped(source, showModalCall);
-		assert.strictEqual(countIncludes(source, `${showModalCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${showModalCall}${singleCatch}`), 2);
 		assertWrapped(source, doShowModalCall);
 		assertWrapped(source, initializedThenCall);
 		assertWrapped(source, logCtorCall);
@@ -120,7 +121,7 @@ suite('workspace leftover Promise fire-and-forget catch scan (D785)', () => {
 		assert.ok(!source.includes('this.workspaceTrustManagementService.workspaceTrustInitialized\n\t\t\t.then(() => {\n\t\t\t\tthis.logInitialWorkspaceTrustInfo();\n\t\t\t\tthis.logWorkspaceTrust(this.workspaceTrustManagementService.isWorkspaceTrusted());'));
 	});
 
-	test('workspaceTrustEditor leftover edit / setUrisTrust / setTrustedUris / setWorkspaceTrust are Promise double-chain', () => {
+	test('workspaceTrustEditor leftover edit / setUrisTrust / setTrustedUris / setWorkspaceTrust are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
 		const trust = fs.readFileSync(resolveSource(TRUST_IFACE_REL), 'utf8');
 		assertPromiseSignature(trust, 'setWorkspaceTrust(trusted: boolean): Promise<void>;');
@@ -180,6 +181,7 @@ suite('workspace leftover Promise fire-and-forget catch scan (D785)', () => {
 		for (const source of [contrib, editor, common]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
+			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
