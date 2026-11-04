@@ -36,6 +36,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -51,10 +52,16 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+function assertWrapped(source: string, call: string, isSingleCatch = false): void {
+	const expected = isSingleCatch ? singleCatch : doubleCatch;
+	assert.ok(source.includes(`${call}${expected}`), `missing catch: ${call}`);
+	if (isSingleCatch) {
+		assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+		assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	} else {
+		assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
+		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	}
 }
 
 const untitledAutoDetectCall = 'this.autoDetectLanguage()';
@@ -89,15 +96,17 @@ suite('untitled + views leftover Promise fire-and-forget catch scan (D813)', () 
 		for (const [rel, call, count] of d813Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const isSingle = rel === UNTITLED_MODEL_REL;
+			const expectedCatch = isSingle ? singleCatch : doubleCatch;
+			const wrapped = countIncludes(source, `${call}${expectedCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
+			assertWrapped(source, call, isSingle);
 			sites += count;
 		}
 		assert.strictEqual(sites, 6);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(UNTITLED_MODEL_REL) ?? ''), 1);
+		assert.strictEqual(countDoubleChains(seen.get(UNTITLED_MODEL_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(VIEWS_SVC_REL) ?? ''), 3);
 		assert.strictEqual(countDoubleChains(seen.get(VIEWS_DESC_REL) ?? ''), 2);
 		assert.ok(!fs.readFileSync(resolveSource(UNTITLED_SVC_REL), 'utf8').includes(doubleCatch));
@@ -112,7 +121,7 @@ suite('untitled + views leftover Promise fire-and-forget catch scan (D813)', () 
 		assertPromiseSignature(textEditorModel, 'protected autoDetectLanguage(): Promise<void> {');
 		assertPromiseSignature(textEditorModel, 'private async doAutoDetectLanguage(): Promise<void> {');
 		assert.ok(untitled.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(untitled, untitledAutoDetectCall);
+		assertWrapped(untitled, untitledAutoDetectCall, true);
 		assert.ok(!untitled.includes('\t\tthis.autoDetectLanguage();\n'));
 		assert.ok(!untitled.includes('override async autoDetectLanguage'));
 	});
@@ -145,7 +154,7 @@ suite('untitled + views leftover Promise fire-and-forget catch scan (D813)', () 
 		const encoding = fs.readFileSync(resolveSource(TEXTFILE_ENCODING_REL), 'utf8');
 		const filesCfg = fs.readFileSync(resolveSource(FILES_CFG_REL), 'utf8');
 		assertPromiseSignature(textfileModel, 'protected override async autoDetectLanguage(): Promise<void> {');
-		assert.ok(textfileModel.includes(`this.autoDetectLanguage()${doubleCatch}`));
+		assert.ok(textfileModel.includes(`this.autoDetectLanguage()${singleCatch}`));
 		assert.ok(!textfileModel.includes('\t\tthis.autoDetectLanguage();\n'));
 		assert.ok(textfileMgr.includes('this.modelResolveQueue.queueFor(model.resource, async () => {'));
 		assert.ok(!textfileMgr.includes(`this.modelResolveQueue.queueFor(model.resource, async () => {${doubleCatch}`));

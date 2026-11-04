@@ -43,6 +43,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -59,9 +60,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 }
 
 const addedFolderCall = 'this.addRecentlyOpened([{ folderUri: folder.uri }])';
@@ -103,7 +104,7 @@ suite('workspaces leftover Promise fire-and-forget catch scan (D801)', () => {
 		for (const [rel, call, count] of d801Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -114,10 +115,10 @@ suite('workspaces leftover Promise fire-and-forget catch scan (D801)', () => {
 		const trust = seen.get(TRUST_REL) ?? fs.readFileSync(resolveSource(TRUST_REL), 'utf8');
 		const abstract = seen.get(ABSTRACT_REL) ?? fs.readFileSync(resolveSource(ABSTRACT_REL), 'utf8');
 		const native = seen.get(NATIVE_REL) ?? fs.readFileSync(resolveSource(NATIVE_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(browser), 3);
-		assert.strictEqual(countDoubleChains(trust), 2);
-		assert.strictEqual(countDoubleChains(abstract), 1);
-		assert.strictEqual(countDoubleChains(native), 2);
+		assert.strictEqual(countDoubleChains(browser), 0);
+		assert.strictEqual(countDoubleChains(trust), 0);
+		assert.strictEqual(countDoubleChains(abstract), 0);
+		assert.strictEqual(countDoubleChains(native), 0);
 	});
 
 	test('workspaces leftover addRecentlyOpened / workspaceTrustInitialized.then / updateValue / executeCommand / reload / startExtensionHosts are Promise/async + double-chain', () => {
@@ -154,7 +155,7 @@ suite('workspaces leftover Promise fire-and-forget catch scan (D801)', () => {
 		assertWrapped(native, startHostsCall);
 
 		assert.ok(trust.includes('this._workspaceTrustInitializedPromise.then(() => {'));
-		assert.ok(trust.includes(`${initializedThenCall}${doubleCatch};`));
+		assert.ok(trust.includes(`${initializedThenCall}${singleCatch};`));
 		assert.ok(!browser.includes('this.addRecentlyOpened([{ folderUri: folder.uri }]);'));
 		assert.ok(!trust.includes('this.configurationService.updateValue(WORKSPACE_TRUST_UNTRUSTED_FILES, value);'));
 		assert.ok(!native.includes('this.hostService.reload();\n'));

@@ -400,10 +400,13 @@ export class TextFileEditorModelManager extends Disposable implements ITextFileE
 								onUnexpectedError(error); // only log if the model is still around
 							}
 						}
-					})().catch(onUnexpectedError).catch(onUnexpectedError);
+					})().catch(onUnexpectedError);
 					modelResolve = Promise.resolve();
 					mapPendingResolve = asyncReloadPromise;
 					asyncReloadPromise.finally(() => {
+						if (this._store.isDisposed) {
+							return;
+						}
 						if (this.mapResourceToPendingModelResolvers.get(resource) === asyncReloadPromise) {
 							this.mapResourceToPendingModelResolvers.delete(resource);
 						}

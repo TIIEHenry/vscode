@@ -373,7 +373,7 @@ export abstract class AbstractWorkspaceEditingService extends Disposable impleme
 		this.notificationService.prompt(Severity.Error, message,
 			[{
 				label: localize('openWorkspaceConfigurationFile', "Open Workspace Configuration"),
-				run: () => this.commandService.executeCommand('workbench.action.openWorkspaceConfigFile').catch(onUnexpectedError).catch(onUnexpectedError)
+				run: () => this.commandService.executeCommand('workbench.action.openWorkspaceConfigFile').catch(onUnexpectedError)
 			}]
 		);
 	}

@@ -67,7 +67,7 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 		// in the history so that these can later be restored.
 
 		for (const folder of e.added) {
-			this.addRecentlyOpened([{ folderUri: folder.uri }]).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.addRecentlyOpened([{ folderUri: folder.uri }]).catch(onUnexpectedError);
 		}
 	}
 
@@ -76,10 +76,10 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 		const remoteAuthority = this.environmentService.remoteAuthority;
 		switch (this.contextService.getWorkbenchState()) {
 			case WorkbenchState.FOLDER:
-				this.addRecentlyOpened([{ folderUri: workspace.folders[0].uri, remoteAuthority }]).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.addRecentlyOpened([{ folderUri: workspace.folders[0].uri, remoteAuthority }]).catch(onUnexpectedError);
 				break;
 			case WorkbenchState.WORKSPACE:
-				this.addRecentlyOpened([{ workspace: { id: workspace.id, configPath: workspace.configuration! }, remoteAuthority }]).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.addRecentlyOpened([{ workspace: { id: workspace.id, configPath: workspace.configuration! }, remoteAuthority }]).catch(onUnexpectedError);
 				break;
 		}
 	}
@@ -116,7 +116,13 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 
 	async addRecentlyOpened(recents: IRecent[]): Promise<void> {
 		const run = this._recentlyOpenedChain.then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const recentlyOpened = await this.getRecentlyOpened();
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			for (const recent of recents) {
 				if (isRecentFile(recent)) {
@@ -139,7 +145,13 @@ export class BrowserWorkspacesService extends Disposable implements IWorkspacesS
 
 	async removeRecentlyOpened(paths: URI[]): Promise<void> {
 		const run = this._recentlyOpenedChain.then(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const recentlyOpened = await this.getRecentlyOpened();
+			if (this._store.isDisposed) {
+				return;
+			}
 
 			this.doRemoveRecentlyOpened(recentlyOpened, paths);
 

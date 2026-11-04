@@ -182,7 +182,7 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 				if (this._storedTrustState.isEmptyWorkspaceTrusted === undefined) {
 					this._storedTrustState.isEmptyWorkspaceTrusted = this.isWorkspaceTrusted();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -726,7 +726,7 @@ export class WorkspaceTrustRequestService extends Disposable implements IWorkspa
 	}
 
 	private set untrustedFilesSetting(value: 'prompt' | 'open' | 'newWindow') {
-		this.configurationService.updateValue(WORKSPACE_TRUST_UNTRUSTED_FILES, value).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.configurationService.updateValue(WORKSPACE_TRUST_UNTRUSTED_FILES, value).catch(onUnexpectedError);
 	}
 
 	async completeOpenFilesTrustRequest(result: WorkspaceTrustUriResponse, saveResponse?: boolean): Promise<void> {

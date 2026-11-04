@@ -1199,7 +1199,7 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 						isWindows ? localize('overwriteElevated', "Overwrite as Admin...") : localize('overwriteElevatedSudo', "Overwrite as Sudo...") :
 						isWindows ? localize('saveElevated', "Retry as Admin...") : localize('saveElevatedSudo', "Retry as Sudo..."),
 					run: () => {
-						this.save({ ...options, writeElevated: true, writeUnlock: triedToUnlock, reason: SaveReason.EXPLICIT }).catch(onUnexpectedError).catch(onUnexpectedError);
+						this.save({ ...options, writeElevated: true, writeUnlock: triedToUnlock, reason: SaveReason.EXPLICIT }).catch(onUnexpectedError);
 					}
 				}));
 			}
@@ -1222,6 +1222,9 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 					const editor = this.workingCopyEditorService.findEditor(this);
 					if (editor) {
 						const result = await this.editorService.save(editor, { saveAs: true, reason: SaveReason.EXPLICIT });
+						if (this.isDisposed()) {
+							return;
+						}
 						if (!result.success) {
 							this.doHandleSaveError(error, options); // show error again given the operation failed
 						}

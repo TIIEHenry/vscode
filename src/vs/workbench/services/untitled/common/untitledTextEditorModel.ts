@@ -445,7 +445,7 @@ export class UntitledTextEditorModel extends BaseTextEditorModel implements IUnt
 		this._onDidChangeContent.fire();
 
 		// Detect language from content
-		this.autoDetectLanguage().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.autoDetectLanguage().catch(onUnexpectedError);
 	}
 
 	private updateNameFromFirstLine(textEditorModel: ITextModel): void {

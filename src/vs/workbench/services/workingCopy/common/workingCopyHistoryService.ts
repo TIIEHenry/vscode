@@ -841,7 +841,7 @@ export class NativeWorkingCopyHistoryService extends WorkingCopyHistoryService {
 	private readonly isRemotelyStored = typeof this.environmentService.remoteAuthority === 'string';
 
 	private readonly storeAllCts = this._register(new CancellationTokenSource());
-	private readonly storeAllScheduler = this._register(new RunOnceScheduler(() => this.storeAll(this.storeAllCts.token).catch(onUnexpectedError).catch(onUnexpectedError), NativeWorkingCopyHistoryService.STORE_ALL_INTERVAL));
+	private readonly storeAllScheduler = this._register(new RunOnceScheduler(() => this.storeAll(this.storeAllCts.token).catch(onUnexpectedError), NativeWorkingCopyHistoryService.STORE_ALL_INTERVAL));
 
 	constructor(
 		@IFileService fileService: IFileService,
@@ -896,7 +896,7 @@ export class NativeWorkingCopyHistoryService extends WorkingCopyHistoryService {
 		const models = Array.from(this.models.values());
 		for (const model of models) {
 			promises.push(limiter.queue(async () => {
-				if (token.isCancellationRequested) {
+				if (this._store.isDisposed || token.isCancellationRequested) {
 					return;
 				}
 

@@ -12,7 +12,7 @@ import { ShutdownReason, ILifecycleService, LifecyclePhase, InternalBeforeShutdo
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { IFilesConfigurationService } from '../../filesConfiguration/common/filesConfigurationService.js';
 import { IWorkingCopyEditorHandler, IWorkingCopyEditorService } from './workingCopyEditorService.js';
-import { Promises } from '../../../../base/common/async.js';
+import { Promises, TimeoutTimer } from '../../../../base/common/async.js';
 import { IEditorService } from '../../editor/common/editorService.js';
 import { EditorsOrder } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
@@ -61,7 +61,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 		this._register(this.lifecycleService.onWillShutdown(() => this.onWillShutdown()));
 
 		// Once a handler registers, restore backups
-		this._register(this.workingCopyEditorService.onDidRegisterHandler(handler => this.restoreBackups(handler).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.workingCopyEditorService.onDidRegisterHandler(handler => this.restoreBackups(handler).catch(onUnexpectedError)));
 	}
 
 	protected abstract onFinalBeforeShutdown(reason: ShutdownReason): boolean | Promise<boolean>;
@@ -177,8 +177,8 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 		// Schedule new backup
 		const workingCopyIdentifier = { resource: workingCopy.resource, typeId: workingCopy.typeId };
 		const cts = new CancellationTokenSource();
-		const handle = setTimeout(async () => {
-			if (cts.token.isCancellationRequested) {
+		const timer = new TimeoutTimer(async () => {
+			if (this._store.isDisposed || cts.token.isCancellationRequested) {
 				return;
 			}
 
@@ -188,7 +188,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 
 				try {
 					const backup = await workingCopy.backup(cts.token);
-					if (cts.token.isCancellationRequested) {
+					if (this._store.isDisposed || cts.token.isCancellationRequested) {
 						return;
 					}
 
@@ -204,7 +204,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 
 			// Clear disposable unless we got canceled which would
 			// indicate another operation has started meanwhile
-			if (!cts.token.isCancellationRequested) {
+			if (!this._store.isDisposed && !cts.token.isCancellationRequested) {
 				this.doClearPendingBackupOperation(workingCopyIdentifier);
 			}
 		}, this.getBackupScheduleDelay(workingCopy));
@@ -218,7 +218,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 			},
 			disposable: toDisposable(() => {
 				cts.dispose();
-				clearTimeout(handle);
+				timer.dispose();
 			})
 		});
 	}
@@ -250,7 +250,7 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 		// Schedule backup discard asap
 		const workingCopyIdentifier = { resource: workingCopy.resource, typeId: workingCopy.typeId };
 		const cts = new CancellationTokenSource();
-		this.doDiscardBackup(workingCopyIdentifier, cts).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.doDiscardBackup(workingCopyIdentifier, cts).catch(onUnexpectedError);
 
 		// Keep in map for disposal as needed
 		this.pendingBackupOperations.set(workingCopyIdentifier, {
@@ -429,4 +429,10 @@ export abstract class WorkingCopyBackupTracker extends Disposable {
 	}
 
 	//#endregion
+
+	override dispose(): void {
+		super.dispose();
+
+		this.cancelBackupOperations();
+	}
 }
