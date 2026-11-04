@@ -682,7 +682,24 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(height <= 480 - 160, `editor lost its share of the column (${height}px)`);
 		assert.ok(profileListHeightLandsOnRow(height), `list viewport ${height}px ends in the middle of a row`);
 		assert.notStrictEqual(detail.style.display, 'none');
-		assert.strictEqual(section.getDomNode().style.height, '480px');
+		assert.strictEqual(section.getDomNode().style.height, '');
+	});
+
+	test('Agents: a short wide viewport falls back to a natural-height editor without losing selection', async () => {
+		const section = mountAgentsSection(createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: longAgentProfiles() }),
+		}));
+		section.setSectionActive(true);
+		section.layout(640, 480);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('review');
+		section.layout(640, 300);
+		const container = section.getDomNode();
+		const detail = container.querySelector('.engine-agents-detail') as HTMLElement;
+		assert.deepStrictEqual({ split: container.classList.contains('is-split'), height: container.style.height, overflow: container.style.overflow, selected: section.getSelectedProfileId() }, { split: false, height: '', overflow: '', selected: 'review' });
+		assert.notStrictEqual(detail.style.display, 'none');
 	});
 
 	test('Agents: Delete asks before removing a user profile', async () => {
@@ -729,6 +746,22 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(rows.every(row => !row.classList.contains('selected')), 'list selection must be cleared');
 		assert.ok(rows.some(row => row.classList.contains('focused')), 'focus must land on a list row');
 		parent.remove();
+	});
+
+	test('MCP: list viewport reserves its header and paints ready toggles as available', async () => {
+		const section = mountMcpSection(createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => ({ servers: Array.from({ length: 30 }, (_, index) => ({ ...demoMcpServer(), id: `server-${index}` })) }),
+		}));
+		section.layout(640, 200);
+		await flushMicrotasks();
+		const list = section.getDomNode().querySelector('.engine-mcp-definitions-panel > .engine-catalog-list') as HTMLElement;
+		const height = Number.parseFloat(list.style.height);
+		assert.ok(height >= 80 && height < 200, `list consumed the header budget: ${height}`);
+		const toggle = list.querySelector('.monaco-custom-toggle') as HTMLElement;
+		assert.ok(toggle);
+		assert.notStrictEqual(toggle.getAttribute('aria-disabled'), 'true');
 	});
 
 	test('MCP: connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {

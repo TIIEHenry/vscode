@@ -200,6 +200,8 @@ export class ChatMcpServersInteractionContentPart extends Disposable implements 
 	}
 
 	private async _start(startLink: HTMLElement) {
+		// Link label comes from the localized markdown in createInteractionMessage.
+		const startLabel = startLink.textContent;
 		// Update to starting state
 		startLink.style.pointerEvents = 'none';
 		startLink.style.opacity = '0.7';
@@ -245,7 +247,7 @@ export class ChatMcpServersInteractionContentPart extends Disposable implements 
 			// Reset link on error
 			startLink.style.pointerEvents = '';
 			startLink.style.opacity = '';
-			startLink.textContent = 'Start now?';
+			startLink.textContent = startLabel;
 		}
 	}
 

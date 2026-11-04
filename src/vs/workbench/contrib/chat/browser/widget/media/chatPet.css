@@ -21,7 +21,6 @@
 	height: 48px;
 	padding: 0;
 	border: 0;
-	outline: none;
 	background: transparent;
 	cursor: grab;
 	overflow: visible;
@@ -106,8 +105,13 @@
 	}
 }
 
-.monaco-workbench .chat-pet-overlay > .chat-pet-button:focus {
+.monaco-workbench .chat-pet-overlay > .chat-pet-button:focus:not(:focus-visible) {
 	outline: none;
+}
+
+.monaco-workbench .chat-pet-overlay > .chat-pet-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .chat-pet-visual {

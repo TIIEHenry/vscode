@@ -3,12 +3,13 @@ title: "方案 r06：sessions"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-26
-summary: "hold 3，drop 0，weaken 1。r06-4 已按 D1313 落地：删会话时一个终端关失败留下跟踪并继续关其余。r06-2 / r06-3 不在该刀。方案仍 draft。"
+updated: 2026-11-01
+summary: "hold 3，drop 0，weaken 1。r06-2 已由 63b6d6eebe9、r06-4 已按 D1313 由 341c018ff8d 落地。2026-11-01 agent:kiro 受用户委托核对：r06-1 与 2026-10-30 r06-3 重复，按后者实施；r06-3 方案自相矛盾须重写。不签，方案仍 draft。"
 ---
 # 方案 r06：sessions
 
 状态：草案。
+签收：不签。签收人：agent:kiro（用户委托），日期：2026-11-01。原因见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -97,3 +98,14 @@ hold 3，drop 0，weaken 1。
 ### 落地（2026-10-25，D1313）
 
 `_closeTerminalsForSession` 对每个终端单独接住抛错。抛错的实例留在该会话跟踪里，循环继续关掉后面的，并写 warn。正常返回仍从跟踪里移除：用户取消关闭时 `safeDisposeTerminal` 不抛错、终端仍在，这次按收尾处理，不把该终端留在已删除会话 id 上。活动终端和已经不在的终端也不再挂在这个 id 上。调用点不再 `.finally` 删掉整张表。r06-2 对照当前源码已会在第一次等待落空后把活动槽放进补放；r06-3 不在本刀。方案仍是 `draft`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`。所引代码都在 `src/vs/sessions`（Agents Window），属于上游缺陷修复，不计默认窗口的产品验收。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r06-1 | 重复，不签 | 缺陷仍在：`replaceSessionConfig` 仍把 `AgentMergeController` 抄进 `replace: true` 的 payload。与 [2026-10-30 r06-3](review-2026-10-30-r06-sessions-plan.md) 是同一改法，已按那份签收实施。本条验证要求「拒绝后 `_runningSessionConfigs` 回到派发前」，与本条「回滚先不要写」矛盾。 |
+| r06-2 | 已落地 | `63b6d6eebe9`：活动槽第一次等待落空后，补放循环再等一次并放回原位。 |
+| r06-3 | 不签，方案要重写 | 缺陷仍在：`automationScheduler.ts` 超时后先标 failed，之后才 `perRunCts.cancel()`。方案自相矛盾：不变量禁止「先取消、再无条件等 `whenCompleted`、再标失败」，「要动的符号」写的却正是这个顺序；验证要求 `cancelCurrentRequest` 抛错时 run 不保持 failed，不变量又承认 scheduler 收不到「取消失败」的信号。 |
+| r06-4 | 已落地 | `341c018ff8d`（D1313）：一个终端关失败时留在跟踪里，接着关其余。 |

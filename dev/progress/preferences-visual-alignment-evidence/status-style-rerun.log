@@ -1,0 +1,162 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode/.build/crashes'
+[3561905:1102/205606.263320:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3561925) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3561925) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3561925) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Preferences status styles[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Light: success and warning text stays readable and semantic indicators survive[0m[31m (281ms)[0m
+  [31m  1) UniverseAgentStudio Light: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  2) UniverseAgentStudio Light: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - UniverseAgentStudio Light: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Light: selected utility rows follow focus and remain distinct from hover[0m[33m (69ms)[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Dark: success and warning text stays readable and semantic indicators survive[0m[33m (75ms)[0m
+  [31m  3) UniverseAgentStudio Dark: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  4) UniverseAgentStudio Dark: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - UniverseAgentStudio Dark: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Dark: selected utility rows follow focus and remain distinct from hover[0m[33m (41ms)[0m
+  [32m  ✔[0m[90m High Contrast Dark: success and warning text stays readable and semantic indicators survive[0m[33m (67ms)[0m
+  [31m  5) High Contrast Dark: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  6) High Contrast Dark: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - High Contrast Dark: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m High Contrast Dark: selected utility rows follow focus and remain distinct from hover[0m
+  [32m  ✔[0m[90m High Contrast Dark: Back, input and action boundaries match the real workbench theme root[0m
+  [32m  ✔[0m[90m High Contrast Light: success and warning text stays readable and semantic indicators survive[0m[31m (213ms)[0m
+  [31m  7) High Contrast Light: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  8) High Contrast Light: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - High Contrast Light: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m High Contrast Light: selected utility rows follow focus and remain distinct from hover[0m
+  [32m  ✔[0m[90m High Contrast Light: Back, input and action boundaries match the real workbench theme root[0m
+
+
+[92m [0m[32m 11 passing[0m[90m (962ms)[0m
+[36m [0m[36m 4 pending[0m
+[31m  8 failing[0m
+
+[0m  1) Preferences status styles
+       UniverseAgentStudio Light: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-65[0m
+      [32m+72[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  65 !== 72
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  2) Preferences status styles
+       UniverseAgentStudio Light: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-89[0m
+      [32m+96[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  89 !== 96
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  3) Preferences status styles
+       UniverseAgentStudio Dark: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-65[0m
+      [32m+72[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  65 !== 72
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  4) Preferences status styles
+       UniverseAgentStudio Dark: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-89[0m
+      [32m+96[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  89 !== 96
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  5) Preferences status styles
+       High Contrast Dark: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-65[0m
+      [32m+72[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  65 !== 72
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  6) Preferences status styles
+       High Contrast Dark: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-89[0m
+      [32m+96[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  89 !== 96
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  7) Preferences status styles
+       High Contrast Light: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-65[0m
+      [32m+72[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  65 !== 72
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+[0m  8) Preferences status styles
+       High Contrast Light: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-89[0m
+      [32m+96[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: wide rows stay single track; narrow tracks retain 24px density
+  
+  89 !== 96
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:253:20)
+[0m
+
+

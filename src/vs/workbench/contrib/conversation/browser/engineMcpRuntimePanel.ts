@@ -141,6 +141,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	private readonly toolsMeta: HTMLElement;
 	private readonly toolsList: HTMLElement;
 	private list: WorkbenchList<EngineMcpRuntimeListEntry> | undefined;
+	private lastLayout: { readonly width: number; readonly height: number } | undefined;
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpRuntimeListEntry[] = [];
@@ -185,6 +186,11 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.toolsList.setAttribute('role', 'list');
 		this.toolsList.setAttribute('aria-label', MCP_RUNTIME_TOOLS_FEATURE);
 		this.toolsList.style.display = 'none';
+
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver(
+			'EngineMcpRuntimePanel.viewport', () => this.layoutListViewport(), DOM.getWindow(this.container),
+		));
+		this._register(resizeObserver.observe(this.container));
 
 		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -233,7 +239,19 @@ export class EngineMcpRuntimePanel extends Disposable {
 	}
 
 	layout(width: number, height: number): void {
-		this.list?.layout(Math.max(80, Math.floor(height * 0.45)), width);
+		this.lastLayout = { width, height };
+		this.layoutListViewport();
+	}
+
+	private layoutListViewport(): void {
+		if (!this.list || !this.lastLayout) {
+			return;
+		}
+		const chrome = Math.max(0, DOM.getTotalHeight(this.container) - DOM.getTotalHeight(this.listContainer));
+		const budget = Math.max(104, this.lastLayout.height - chrome);
+		const height = Math.min(Math.max(104, this.listEntries.length * 52), budget);
+		this.listContainer.style.height = `${height}px`;
+		this.list.layout(height, DOM.getContentWidth(this.container) || this.lastLayout.width);
 	}
 
 	render(): void {
@@ -648,6 +666,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			}
 			const list = this.ensureList();
 			list.splice(0, list.length, this.listEntries);
+			this.layoutListViewport();
 			if (this.selectedServerId) {
 				const index = this.listEntries.findIndex(entry => entry.status.serverId === this.selectedServerId);
 				if (index >= 0) {

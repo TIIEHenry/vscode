@@ -1,0 +1,222 @@
+[
+  {
+    "label": "light-wide",
+    "body": {
+      "x": 460,
+      "y": 94,
+      "width": 760,
+      "height": 848,
+      "overflow": "hidden",
+      "scrollHeight": 848,
+      "clientHeight": 848
+    },
+    "section": {
+      "x": 460,
+      "y": 94,
+      "width": 760,
+      "height": 848,
+      "overflow": "visible",
+      "scrollHeight": 848,
+      "clientHeight": 848
+    },
+    "list": {
+      "x": 460,
+      "y": 194,
+      "width": 760,
+      "height": 748,
+      "overflow": "hidden",
+      "scrollHeight": 746,
+      "clientHeight": 746
+    },
+    "profile": {
+      "x": 460,
+      "y": 124,
+      "width": 760,
+      "height": 54,
+      "overflow": "visible",
+      "scrollHeight": 52,
+      "clientHeight": 52
+    },
+    "subtitleBelowTitle": true,
+    "toggleAfterName": true,
+    "switchWidth": 32,
+    "switchHeight": 20,
+    "horizontalOverflow": false
+  },
+  {
+    "label": "dark-wide",
+    "body": {
+      "x": 460,
+      "y": 94,
+      "width": 760,
+      "height": 848,
+      "overflow": "hidden",
+      "scrollHeight": 848,
+      "clientHeight": 848
+    },
+    "section": {
+      "x": 460,
+      "y": 94,
+      "width": 760,
+      "height": 848,
+      "overflow": "visible",
+      "scrollHeight": 848,
+      "clientHeight": 848
+    },
+    "list": {
+      "x": 460,
+      "y": 194,
+      "width": 760,
+      "height": 748,
+      "overflow": "hidden",
+      "scrollHeight": 746,
+      "clientHeight": 746
+    },
+    "profile": {
+      "x": 460,
+      "y": 124,
+      "width": 760,
+      "height": 54,
+      "overflow": "visible",
+      "scrollHeight": 52,
+      "clientHeight": 52
+    },
+    "subtitleBelowTitle": true,
+    "toggleAfterName": true,
+    "switchWidth": 32,
+    "switchHeight": 20,
+    "horizontalOverflow": false
+  },
+  {
+    "label": "high-contrast",
+    "body": {
+      "x": 460,
+      "y": 94,
+      "width": 760,
+      "height": 848,
+      "overflow": "hidden",
+      "scrollHeight": 848,
+      "clientHeight": 848
+    },
+    "section": {
+      "x": 460,
+      "y": 94,
+      "width": 760,
+      "height": 848,
+      "overflow": "visible",
+      "scrollHeight": 848,
+      "clientHeight": 848
+    },
+    "list": {
+      "x": 460,
+      "y": 194,
+      "width": 760,
+      "height": 748,
+      "overflow": "hidden",
+      "scrollHeight": 746,
+      "clientHeight": 746
+    },
+    "profile": {
+      "x": 460,
+      "y": 124,
+      "width": 760,
+      "height": 54,
+      "overflow": "visible",
+      "scrollHeight": 52,
+      "clientHeight": 52
+    },
+    "subtitleBelowTitle": true,
+    "toggleAfterName": true,
+    "switchWidth": 32,
+    "switchHeight": 20,
+    "horizontalOverflow": false
+  },
+  {
+    "label": "light-narrow",
+    "body": {
+      "x": 12,
+      "y": 78,
+      "width": 416,
+      "height": 624,
+      "overflow": "hidden",
+      "scrollHeight": 624,
+      "clientHeight": 624
+    },
+    "section": {
+      "x": 12,
+      "y": 78,
+      "width": 416,
+      "height": 624,
+      "overflow": "visible",
+      "scrollHeight": 624,
+      "clientHeight": 624
+    },
+    "list": {
+      "x": 12,
+      "y": 192,
+      "width": 416,
+      "height": 510,
+      "overflow": "hidden",
+      "scrollHeight": 508,
+      "clientHeight": 508
+    },
+    "profile": {
+      "x": 12,
+      "y": 122,
+      "width": 416,
+      "height": 54,
+      "overflow": "visible",
+      "scrollHeight": 52,
+      "clientHeight": 52
+    },
+    "subtitleBelowTitle": true,
+    "toggleAfterName": true,
+    "switchWidth": 32,
+    "switchHeight": 20,
+    "horizontalOverflow": false
+  },
+  {
+    "label": "light-short",
+    "body": {
+      "x": 280.953125,
+      "y": 94,
+      "width": 702.09375,
+      "height": 228,
+      "overflow": "auto",
+      "scrollHeight": 260,
+      "clientHeight": 228
+    },
+    "section": {
+      "x": 280.953125,
+      "y": 94,
+      "width": 702.09375,
+      "height": 260,
+      "overflow": "visible",
+      "scrollHeight": 260,
+      "clientHeight": 260
+    },
+    "list": {
+      "x": 280.953125,
+      "y": 194,
+      "width": 702.09375,
+      "height": 160,
+      "overflow": "hidden",
+      "scrollHeight": 158,
+      "clientHeight": 158
+    },
+    "profile": {
+      "x": 280.953125,
+      "y": 124,
+      "width": 702.09375,
+      "height": 54,
+      "overflow": "visible",
+      "scrollHeight": 52,
+      "clientHeight": 52
+    },
+    "subtitleBelowTitle": true,
+    "toggleAfterName": true,
+    "switchWidth": 32,
+    "switchHeight": 20,
+    "horizontalOverflow": false
+  }
+]

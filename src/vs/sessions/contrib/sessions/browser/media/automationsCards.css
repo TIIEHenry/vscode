@@ -118,9 +118,15 @@
 }
 
 .automations-card:has(> .automations-card-main:focus-visible) {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .automations-card:has(> .automations-card-main:focus-visible),
+.hc-light .automations-card:has(> .automations-card-main:focus-visible) {
+	outline-color: var(--vscode-contrastActiveBorder);
 }
 
 /* Card Main Content */
@@ -256,8 +262,14 @@
 }
 
 .automations-card-actions .monaco-button.automations-card-action-button:focus-visible {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .automations-card-actions .monaco-button.automations-card-action-button:focus-visible,
+.hc-light .automations-card-actions .monaco-button.automations-card-action-button:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder);
 }
 
 .automations-card-actions .monaco-button.automations-card-action-button.disabled {

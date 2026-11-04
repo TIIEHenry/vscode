@@ -65,3 +65,62 @@
 	white-space: normal;
 	overflow-wrap: anywhere;
 }
+
+/* Keep the upstream tree's measured geometry; align only its visual surfaces. */
+.monaco-workbench .settings-editor.ua-client-settings {
+	background: var(--vscode-editor-background);
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .settings-editor.ua-client-settings > .settings-body .settings-toc-container {
+	background: var(--vscode-sideBar-background);
+	border-inline-end: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .settings-editor.ua-client-settings > .settings-header > .search-container > .suggest-input-container {
+	border-radius: var(--vscode-cornerRadius-large);
+	border-color: var(--vscode-input-border, var(--vscode-panel-border));
+	background: color-mix(in srgb, var(--vscode-foreground) 4%, var(--vscode-editor-background));
+}
+
+.monaco-workbench .settings-editor.ua-client-settings > .settings-body .settings-tree-container .setting-item-contents {
+	background: var(--vscode-editor-background);
+
+}
+
+/* An inset separator does not change the virtual row's measured height. */
+.monaco-workbench .settings-editor.ua-client-settings > .settings-body .settings-tree-container .setting-item-contents::after {
+	content: '';
+	position: absolute;
+	inset-inline: var(--vscode-spacing-size160);
+	bottom: 0;
+	height: var(--vscode-strokeThickness);
+	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	pointer-events: none;
+}
+
+.monaco-workbench .settings-editor.ua-client-settings .setting-item-contents .setting-item-label {
+	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .settings-editor.ua-client-settings .setting-item-contents .setting-item-description {
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .settings-editor.ua-client-settings .setting-item-contents :is(.monaco-inputbox, .monaco-select-box) {
+	border-radius: var(--vscode-cornerRadius-medium);
+}
+
+.monaco-workbench .settings-editor.ua-client-settings .setting-item-contents :is(input, select, textarea):focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .settings-editor.ua-client-settings > .settings-body .settings-toc-container {
+	border-inline-end-color: var(--vscode-contrastBorder);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .settings-editor.ua-client-settings > .settings-body .settings-tree-container .setting-item-contents::after {
+	background: var(--vscode-contrastBorder);
+}

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { fromNow } from '../../../../base/common/date.js';
 import { localize } from '../../../../nls.js';
 import type { ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
@@ -38,6 +40,16 @@ export const conversationSessionsViewNoMatches = localize(
 	'conversationSessionsView.noMatches',
 	"No matches",
 );
+
+/** Navigation glyphs describe actual session state; idle has no visible glyph. */
+export function sessionRosterGlyph(tone: SessionRosterTone): ThemeIcon {
+	switch (tone) {
+		case 'waiting': return Codicon.bell;
+		case 'running': return Codicon.loading;
+		case 'failed': return Codicon.error;
+		default: return Codicon.commentDiscussion;
+	}
+}
 
 export function resolveSessionRosterTone(turns: readonly ConversationStubTurn[], pendingConfirmations: number): SessionRosterTone {
 	if (pendingConfirmations > 0) {

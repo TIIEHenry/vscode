@@ -542,12 +542,16 @@ export class EngineAgentsSection extends Disposable {
 		}
 
 		const detailOpen = this.detailHost.style.display !== 'none';
-		const split = detailOpen && width >= AGENT_SPLIT_MIN_WIDTH;
+		const split = detailOpen && width >= AGENT_SPLIT_MIN_WIDTH && viewportHeight >= 360;
 		this.container.classList.toggle('is-split', split);
-		this.container.style.height = `${viewportHeight}px`;
-		this.container.style.overflow = 'hidden';
+		// Stacked editors belong to the outer settings scroller. A fixed-height
+		// stack can shrink the body and Save into an inaccessible inner viewport.
+		this.container.style.height = !detailOpen || split ? `${viewportHeight}px` : '';
+		this.container.style.overflow = !detailOpen || split ? 'hidden' : '';
 
-		const bodyHeight = this.measureBodyHeight(viewportHeight);
+		const bodyHeight = !detailOpen || split
+			? this.measureBodyHeight(viewportHeight)
+			: Math.max(0, viewportHeight - this.chromeAboveListHeight());
 		if (split) {
 			const listWidth = agentListColumnWidth(width);
 			const listHeight = this.listViewportHeight(contentHeight, bodyHeight, false);

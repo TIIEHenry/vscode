@@ -43,6 +43,8 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 
+import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
+
 const $ = DOM.$;
 
 /**
@@ -344,7 +346,11 @@ export class EngineClipboardSection extends Disposable {
 			row.setAttribute('role', 'listitem');
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
-			row.textContent = formatEngineClipboardListLabel(entry);
+			appendCatalogSettingFields(row, [
+				{ role: 'name', value: entry.label },
+				{ role: 'kind', value: entry.type },
+				{ role: 'identity', value: entry.clipId },
+			], formatEngineClipboardListLabel(entry));
 			row.addEventListener('click', () => this.selectEntry(entry));
 			row.addEventListener('keydown', event => this.onClipboardRowKeyDown(event, entry));
 		}

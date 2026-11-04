@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r06：sessions 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 2，weaken 1，drop 0。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 2，weaken 1，drop 0。r06-3 只从派发 payload 去掉 AgentMergeController，乐观缓存与 equals 保留。上游 Agents Window 缺陷修复，默认窗口不受益，只靠单测验证。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r06：sessions 方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -104,3 +105,13 @@ summary: "hold 2，weaken 1，drop 0。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r06-3 不再按拒绝回执回滚整份快照。`dispatch` 不返回序号，重叠写入对不上派发前的值。本条只从 `replaceSessionConfig` 的 payload 去掉 `AgentMergeController`，拒绝分支和记忆撤回保持不动，与 `review-2026-10-11-r06-sessions-plan.md` 一致。Important 已改：r06-1 只在同一 id 同时出现在 `added` 和 `removed` 时跳过清理。只出现在 `removed` 的 `sessionRemoved` 和换 id 仍清视图状态和最近记录。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交。`BaseAgentHostSessionsProvider` 只在 Agents Window 使用，默认编辑器窗口走 `agentHostChatContribution.ts`；三条都是上游缺陷修复，不给 Agents Window 加功能，默认窗口不受益，只靠单测验证。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r06-1 | 签 | `mergeSessionChangeEvents` 后到的 `added` 仍保留先前的 `removed`，输出两边都 push。 |
+| r06-2 | 签 | 缓存已被通知摘掉时 `_removeCachedSession` 返回 undefined，`deleteSessions` 不记这个 id。 |
+| r06-3 | 签（收窄） | 只从派发 action 的 `config` 里去掉 `AgentMergeController`。乐观缓存用的 `nextValues` 与 `equals` 早退保留它，否则 `equals` 恒为假、每次都派发，本地缓存在下一次快照前丢掉 controller 状态。宿主对 replace 自己保留这个键（`agentService.ts` 的 `_withPreservedHostWrittenSessionConfig`），去掉是安全的。2026-10-11 r06 的 r06-1 是同一缺陷，按本条实施。 |

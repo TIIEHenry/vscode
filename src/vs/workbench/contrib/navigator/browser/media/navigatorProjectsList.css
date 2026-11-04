@@ -16,7 +16,12 @@
 }
 
 .monaco-workbench .navigator-projects-list {
+	--ua-navigation-font-size: 14px;
 	height: 100%;
+	width: calc(100% - 16px);
+	margin-inline: var(--vscode-spacing-size80);
+	font-size: var(--ua-navigation-font-size);
+	box-sizing: border-box;
 }
 
 .monaco-workbench .navigator-projects-body .navigator-projects-list {
@@ -37,7 +42,7 @@
 	width: 100%;
 	height: 100%;
 	min-width: 0;
-	padding-left: 8px;
+	padding: 0 var(--vscode-spacing-size120);
 }
 
 .monaco-workbench .navigator-projects-list .monaco-list-row .navigator-projects-node-label {
@@ -53,11 +58,20 @@
 .monaco-workbench .navigator-projects-list .navigator-projects-node-icon {
 	flex: 0 0 16px;
 	width: 16px;
-	margin-right: 4px;
+	margin-right: var(--vscode-spacing-size80);
 	font-size: 16px;
 	line-height: 24px;
 	text-align: center;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row:has(.navigator-projects-node-icon.codicon-folder) .navigator-projects-node-name {
+	font-weight: var(--vscode-fontWeight-regular);
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row:has(.navigator-projects-node-icon.codicon-comment-discussion) .navigator-projects-node-name {
+	font-weight: var(--vscode-fontWeight-regular);
 }
 
 .monaco-workbench .navigator-projects-list .navigator-projects-node-name,
@@ -100,48 +114,39 @@
 	color: inherit;
 }
 
-/* Straight bar. An inset shadow on the row's border-radius reads as a blue "(". */
-.monaco-workbench .navigator-projects-list .monaco-list-row:has(.is-active-session)::after {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 4px;
-	bottom: 4px;
-	width: 2px;
-	background: var(--vscode-focusBorder);
-	pointer-events: none;
-	border-radius: 1px;
-}
-
 .monaco-workbench .navigator-projects-row-actions {
 	display: none;
 	flex: 0 0 auto;
 	align-items: center;
-	margin-left: 4px;
+	gap: var(--vscode-spacing-size20);
+	margin-left: var(--vscode-spacing-size80);
 }
 
 .monaco-workbench .navigator-projects-list .monaco-list-row:hover .navigator-projects-row-actions.is-available.is-session-actions,
-.monaco-workbench .navigator-projects-list .monaco-list-row.focused .navigator-projects-row-actions.is-available.is-session-actions,
-.monaco-workbench .navigator-projects-list .monaco-list-row.selected .navigator-projects-row-actions.is-available.is-session-actions,
+.monaco-workbench .navigator-projects-list .monaco-list:focus-visible .monaco-list-row.focused .navigator-projects-row-actions.is-available.is-session-actions,
+.monaco-workbench .navigator-projects-list .monaco-list-row:focus-within .navigator-projects-row-actions.is-available.is-session-actions,
 .monaco-workbench .navigator-projects-list .monaco-list-row:hover .navigator-projects-row-actions.is-available.is-workdir-actions,
-.monaco-workbench .navigator-projects-list .monaco-list-row.focused .navigator-projects-row-actions.is-available.is-workdir-actions {
+.monaco-workbench .navigator-projects-list .monaco-list:focus-visible .monaco-list-row.focused .navigator-projects-row-actions.is-available.is-workdir-actions {
 	display: flex;
 }
 
 .monaco-workbench .navigator-projects-row-actions.is-session-actions .action-item:has(.navigator-projects-new-session),
-.monaco-workbench .navigator-projects-row-actions.is-workdir-actions .action-item:has(.navigator-projects-session-action) {
+.monaco-workbench .navigator-projects-row-actions.is-workdir-actions .action-item:has(.navigator-projects-more) {
 	display: none;
 }
 
 .monaco-workbench .navigator-projects-list .monaco-list-row:hover:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail,
 .monaco-workbench .navigator-projects-list .monaco-list-row.focused:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail,
-.monaco-workbench .navigator-projects-list .monaco-list-row.selected:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail {
+.monaco-workbench .navigator-projects-list .monaco-list-row:focus-within:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail {
 	display: none;
 }
 
 .monaco-workbench .navigator-projects-row-actions .action-label {
-	border-radius: var(--vscode-cornerRadius-small, 4px);
-	padding: 2px;
+	width: var(--vscode-spacing-size280);
+	height: var(--vscode-spacing-size280);
+	border-radius: var(--vscode-cornerRadius-circle, 9999px);
+	padding: 0;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .navigator-projects-row-actions .action-label:active {
@@ -197,12 +202,34 @@
 }
 
 .monaco-workbench .navigator-projects-list .monaco-list-row {
-	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row .monaco-icon-label {
+	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
+	padding-inline: var(--vscode-spacing-size80);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row:hover {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 2.5%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row.selected {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row:has(.navigator-projects-node-label.is-active-session) {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
 }
 
 .monaco-workbench .navigator-projects-list .monaco-list-row:active:not(:has(.navigator-projects-row-actions:active)) {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row:active:not(:has(.navigator-projects-row-actions:active)) {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
 /* ViewPane.element stays `.pane` (no view-id DOM id). .navigator-projects-body is only this pane body. */
@@ -234,4 +261,119 @@
 	content: "\ea83";
 	color: var(--vscode-descriptionForeground);
 	opacity: 0.65;
+}
+
+.monaco-workbench .navigator-projects-list .navigator-projects-node-row.is-group {
+	padding-top: var(--vscode-spacing-size120);
+}
+
+.monaco-workbench .navigator-projects-list .is-session .navigator-projects-node-icon {
+	display: none;
+}
+
+/* Keep native tree disclosure and align child titles with folder titles. */
+.monaco-workbench .navigator-projects-list .navigator-projects-node-row {
+	gap: var(--vscode-spacing-size40);
+}
+
+.monaco-workbench .navigator-projects-list .navigator-projects-node-row.is-group {
+	padding-inline: var(--vscode-spacing-size40);
+}
+
+.monaco-workbench .navigator-projects-list .navigator-projects-node-row.is-session {
+	padding-left: var(--vscode-spacing-size160);
+}
+
+.monaco-workbench .navigator-projects-list .is-group .navigator-projects-node-description,
+.monaco-workbench .navigator-projects-list .is-session .navigator-projects-node-detail {
+	display: none;
+}
+
+.monaco-workbench .navigator-projects-session-status {
+	flex: 0 0 var(--vscode-codiconFontSize);
+	font-size: var(--vscode-codiconFontSize);
+	line-height: var(--vscode-codiconFontSize);
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .navigator-projects-session-count {
+	flex: 0 0 auto;
+	font-size: var(--vscode-fontSize-label1);
+	color: var(--vscode-editorWarning-foreground);
+}
+
+.monaco-workbench .navigator-projects-session-status.is-waiting {
+	color: var(--vscode-editorWarning-foreground);
+}
+
+.monaco-workbench .navigator-projects-session-status.is-failed {
+	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench .navigator-projects-session-status[hidden],
+.monaco-workbench .navigator-projects-session-count[hidden] {
+	display: none;
+}
+
+.monaco-workbench.monaco-reduce-motion .navigator-projects-session-status.is-running {
+	animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .navigator-projects-session-status.is-running {
+		animation: none;
+	}
+}
+
+.monaco-workbench .part.sidebar:has(.navigator-projects-body) > .composite.title .title-label h2 {
+	font-size: var(--vscode-fontSize-heading2);
+	font-weight: var(--vscode-fontWeight-semiBold);
+	text-transform: none;
+}
+
+/* Native indent spans keep their measured depth; avoid counting it again in twistie padding. */
+.monaco-workbench .navigator-projects-list .monaco-tl-indent {
+	position: static;
+	flex: 0 0 auto;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-tl-twistie {
+	padding: 0 !important;
+	width: var(--vscode-spacing-size160);
+	flex: 0 0 var(--vscode-spacing-size160);
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row:has(.is-group) {
+	box-sizing: border-box;
+	padding-top: var(--vscode-spacing-size120);
+	background-clip: content-box;
+}
+
+.monaco-workbench .navigator-projects-list .navigator-projects-node-row.is-group {
+	padding-top: 0;
+	padding-left: 0;
+	padding-right: var(--vscode-spacing-size120);
+}
+
+.monaco-workbench .navigator-projects-list .is-group .navigator-projects-node-label,
+.monaco-workbench .navigator-projects-list .is-group .navigator-projects-node-name {
+	height: 30px;
+	line-height: 30px;
+}
+
+.monaco-workbench .navigator-projects-list .is-group .navigator-projects-node-icon {
+	margin-right: var(--vscode-spacing-size40);
+}
+
+.monaco-workbench .navigator-projects-list .navigator-projects-node-row.is-session {
+	padding-left: var(--vscode-spacing-size120);
+}
+
+.monaco-workbench .navigator-projects-row-actions.is-menu-open {
+	display: flex;
+}
+
+/* Local folder paths remain in the resource title and tree accessible name. */
+.monaco-workbench .navigator-projects-list .monaco-icon-description-container {
+	display: none;
 }

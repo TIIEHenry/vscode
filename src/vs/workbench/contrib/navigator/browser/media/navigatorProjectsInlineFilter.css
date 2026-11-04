@@ -120,3 +120,8 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 4px;
 }
+
+/* Product navigation text uses the same readable scale as its rows. */
+.monaco-workbench .navigator-projects-inline-filter input {
+	font-size: 14px;
+}

@@ -1,0 +1,181 @@
+/*---------------------------------------------------------------------------------------------
+	*  Copyright (c) Microsoft Corporation. All rights reserved.
+	*  Licensed under the MIT License. See License.txt in the project root for license information.
+	*--------------------------------------------------------------------------------------------*/
+
+/* Local menu contract: native focus, keyboard and placement remain owned by Menu. */
+.monaco-workbench .context-view.ua-rounded-menu,
+.monaco-workbench .ua-rounded-menu .monaco-submenu {
+	border-radius: 16px;
+	border: 1px solid var(--vscode-menu-border, var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 8%, transparent)));
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow);
+	background-color: var(--vscode-menu-background);
+}
+.monaco-workbench .ua-rounded-menu .monaco-menu {
+	/* The outer shell owns the single border; do not count Menu's own border twice. */
+	border: none;
+	border-radius: inherit;
+	min-width: min(184px, calc(100vw - 16px));
+	max-width: calc(100vw - 16px);
+	font-size: 14px;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical {
+	padding: 4px;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-item {
+	height: auto;
+	min-height: 30px;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-menu-item {
+	min-width: 0;
+	min-height: 30px;
+	height: auto;
+	margin: 0;
+	padding: 5px 8px;
+	box-sizing: border-box;
+	border-radius: 12px;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-label:not(.separator) {
+	min-width: 0;
+	padding: 0 8px 0 0;
+	font-size: 14px;
+	line-height: 20px;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .keybinding {
+	flex: 0 0 auto;
+	padding: 0;
+	font-size: 12px;
+	line-height: 20px;
+	color: var(--vscode-descriptionForeground);
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .submenu-indicator {
+	flex: 0 0 16px;
+	padding: 0;
+	margin-left: 8px;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .submenu-indicator::before {
+	margin: 0;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-item:has(.separator) {
+	min-height: 0;
+}
+.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-label.separator {
+	margin: 8px !important;
+	width: calc(100% - 16px);
+}
+@media (forced-colors: none) {
+	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-rounded-menu .action-item.focused > .action-menu-item {
+		background-color: color-mix(in srgb, var(--vscode-foreground) 4%, var(--vscode-menu-background)) !important;
+		color: var(--vscode-menu-foreground) !important;
+	}
+}
+.monaco-workbench:is(.hc-black, .hc-light) .context-view.ua-rounded-menu {
+	border-color: var(--vscode-contrastBorder);
+	box-shadow: none;
+}
+/* Fixed action sets only; do not decorate a nested submenu or reuse its check slot. */
+.monaco-workbench .ua-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:first-child > .action-menu-item::before {
+	content: "\eb56" / "";
+	font-family: codicon;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	flex: 0 0 16px;
+	margin-right: 8px;
+	pointer-events: none;
+}
+@media (forced-colors: none) {
+	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:first-child > .action-menu-item::before {
+		content: '';
+		background-color: currentColor;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%202.5h11v11h-11zM8%203v10%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+	}
+}
+.monaco-workbench .ua-project-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:first-child > .action-menu-item::before {
+	content: "\ea94" / "";
+	font-family: codicon;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	flex: 0 0 16px;
+	margin-right: 8px;
+	pointer-events: none;
+}
+@media (forced-colors: none) {
+	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-project-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:first-child > .action-menu-item::before {
+		content: '';
+		background-color: currentColor;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%202.5H3a1%201%200%200%200-1%201v9a1%201%200%200%200%201%201h7a1%201%200%200%200%201-1V10M9%202.5h4.5V7M7%209l6.5-6.5%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+	}
+}
+.monaco-workbench .ua-project-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:nth-child(2) > .action-menu-item::before {
+	content: "\ea81" / "";
+	font-family: codicon;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	flex: 0 0 16px;
+	margin-right: 8px;
+	pointer-events: none;
+}
+@media (forced-colors: none) {
+	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-project-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:nth-child(2) > .action-menu-item::before {
+		content: '';
+		background-color: currentColor;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%204h11M6%202h4M4%204l.6%209.5h6.8L12%204M6.5%206.5v4.5M9.5%206.5v4.5%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+	}
+}
+
+/* Composer menus retain their search, groups, max-heights and hidden rules. */
+.monaco-workbench .conversation-lens-dock-add-popup,
+.monaco-workbench .conversation-lens-dock-more-popup,
+.monaco-workbench .conversation-lens-dock-tune-popup,
+.monaco-workbench .conversation-lens-dock-templates-popup {
+	padding: 4px;
+	border-radius: 16px;
+	font-size: 14px;
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow);
+}
+.monaco-workbench .part.conversation .conversation-lens-dock-more-popup .conversation-lens-dock-more-item,
+.monaco-workbench .part.conversation .conversation-lens-dock-add-popup .conversation-lens-dock-add-option,
+.monaco-workbench .part.conversation .conversation-lens-dock-tune-popup .conversation-lens-dock-tune-tool,
+.monaco-workbench .part.conversation .conversation-lens-dock-tune-popup .conversation-lens-dock-tune-open,
+.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item,
+.monaco-workbench .conversation-lens-dock-add-popup .conversation-lens-dock-add-option,
+.monaco-workbench .conversation-lens-dock-tune-popup .conversation-lens-dock-tune-tool,
+.monaco-workbench .conversation-lens-dock-tune-popup .conversation-lens-dock-tune-open {
+	min-height: 30px;
+	height: auto;
+	padding: 5px 8px;
+	border-radius: 12px;
+	font-size: 14px;
+	line-height: 20px;
+}
+.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item[role="menuitemradio"] {
+	padding-left: 28px;
+}
+@media (forced-colors: active) {
+	.monaco-workbench .context-view.ua-rounded-menu {
+		border-color: CanvasText;
+		box-shadow: none;
+	}
+}
+
+.monaco-workbench .ua-rounded-menu .action-item.disabled > .action-menu-item::before {
+	color: var(--vscode-disabledForeground);
+}
+.monaco-workbench:is(.hc-black, .hc-light) :is(.conversation-lens-dock-add-popup, .conversation-lens-dock-more-popup, .conversation-lens-dock-tune-popup, .conversation-lens-dock-templates-popup) {
+	border-color: var(--vscode-contrastBorder);
+	box-shadow: none;
+}
+@media (forced-colors: active) {
+	.monaco-workbench :is(.conversation-lens-dock-add-popup, .conversation-lens-dock-more-popup, .conversation-lens-dock-tune-popup, .conversation-lens-dock-templates-popup) {
+		border-color: CanvasText;
+		box-shadow: none;
+	}
+}

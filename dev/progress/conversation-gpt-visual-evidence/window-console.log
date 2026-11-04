@@ -1,0 +1,70 @@
+[    1143ms] [LOG] %c INFO color: #33f [AgentHost:renderer] Acquiring MessagePort to agent host... @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1333ms] [LOG] %c INFO color: #33f [AgentHost:renderer] MessagePort acquired, creating client... @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1361ms] [LOG] %c INFO color: #33f Started local extension host with pid 3397022. @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1371ms] [LOG] %c INFO color: #33f Started initializing default profile extensions in extensions installation folder. file:///sdd/tmp/code-oss-dev-20261102-201508-3396543-C2fidY/user-data/extensions @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1445ms] [LOG] %c INFO color: #33f Completed initializing default profile extensions in extensions installation folder. file:///sdd/tmp/code-oss-dev-20261102-201508-3396543-C2fidY/user-data/extensions @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1785ms] [LOG] %c INFO color: #33f [AgentHost:renderer] Protocol connection established; clientId=9f2bb3f2-f242-475d-8f86-c4af7aa64ec1 @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1975ms] [ERROR] %c  ERR color: #f33 Cannot read properties of undefined (reading 'catch'): TypeError: Cannot read properties of undefined (reading 'catch')
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileResolverService.js:53:117)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at TerminalProfileService._now (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileService.js:150:42) @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    1983ms] [ERROR] %c  ERR color: #f33 Cannot read properties of undefined (reading 'catch'): TypeError: Cannot read properties of undefined (reading 'catch')
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileResolverService.js:50:42)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at WorkspaceService.triggerConfigurationChange (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configurationService.js:932:38)
+    at WorkspaceService.onDefaultConfigurationChanged (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configurationService.js:618:12)
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configurationService.js:118:106)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at _DefaultConfiguration.onDidUpdateConfiguration (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/configuration/common/configurations.js:45:36)
+    at _DefaultConfiguration.onDidUpdateConfiguration (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configuration.js:61:11)
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/configuration/common/configurations.js:36:127)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at ConfigurationRegistry.updateConfigurations (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/configuration/common/configurationRegistry.js:117:36)
+    at registerTerminalDefaultProfileConfiguration (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/terminal/common/terminalPlatformConfiguration.js:462:12)
+    at TerminalProfileService._refreshPlatformConfig (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileService.js:210:5)
+    at async TerminalProfileService._now (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileService.js:153:7) @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2086ms] [LOG] %c INFO color: #33f [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2190ms] [WARNING] HTML element already has a title attribute, which will conflict with the custom hover. Please remove the title attribute. @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/hover/browser/hoverService.js:433
+[    2372ms] [WARNING] HTML element already has a title attribute, which will conflict with the custom hover. Please remove the title attribute. @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/hover/browser/hoverService.js:433
+[    2555ms] [LOG] %c INFO color: #33f [AgentHost] No token resolved for resource: https://api.github.com @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2586ms] [LOG] %c INFO color: #33f [AgentHost] Clearing authentication for resource: https://api.github.com @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2610ms] [LOG] %c INFO color: #33f [AgentHost] No token resolved for resource: https://api.github.com/repos @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2611ms] [LOG] %c INFO color: #33f [AgentHost] Clearing authentication for resource: https://api.github.com/repos @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2612ms] [LOG] %c INFO color: #33f [AgentHost] No token resolved for resource: https://api.github.com @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    2614ms] [LOG] %c INFO color: #33f [AgentHost] No token resolved for resource: https://api.github.com/repos @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    3947ms] [ERROR] %c  ERR color: #f33 Cannot read properties of undefined (reading 'catch'): TypeError: Cannot read properties of undefined (reading 'catch')
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileResolverService.js:53:117)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at TerminalProfileService._now (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileService.js:150:42) @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    3953ms] [ERROR] %c  ERR color: #f33 Cannot read properties of undefined (reading 'catch'): TypeError: Cannot read properties of undefined (reading 'catch')
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileResolverService.js:50:42)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at WorkspaceService.triggerConfigurationChange (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configurationService.js:932:38)
+    at WorkspaceService.onDefaultConfigurationChanged (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configurationService.js:618:12)
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configurationService.js:118:106)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at _DefaultConfiguration.onDidUpdateConfiguration (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/configuration/common/configurations.js:45:36)
+    at _DefaultConfiguration.onDidUpdateConfiguration (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/services/configuration/browser/configuration.js:61:11)
+    at UniqueContainer.value (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/configuration/common/configurations.js:36:127)
+    at Emitter._deliver (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:811:16)
+    at Emitter._deliverQueue (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:820:12)
+    at Emitter.fire (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/event.js:840:12)
+    at ConfigurationRegistry.updateConfigurations (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/configuration/common/configurationRegistry.js:117:36)
+    at registerTerminalDefaultProfileConfiguration (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/terminal/common/terminalPlatformConfiguration.js:462:12)
+    at TerminalProfileService._refreshPlatformConfig (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileService.js:210:5)
+    at async TerminalProfileService._now (vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/terminal/browser/terminalProfileService.js:153:7) @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98
+[    7086ms] [LOG] %c INFO color: #33f [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false @ vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/platform/log/common/log.js:98

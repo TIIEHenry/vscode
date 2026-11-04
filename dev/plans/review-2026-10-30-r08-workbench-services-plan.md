@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r08：workbench services 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "5 条 hold，0 条 weaken。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。5 条 hold：签 r08-1、r08-3、r08-5；r08-2、r08-4 按审查待定项决定 D20 不实施（不回退上游 #121804，不换授权键）。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r08：workbench services 方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 | 编号 | 判定 | 严重度 |
@@ -93,3 +94,22 @@ summary: "5 条 hold，0 条 weaken。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 无。已按活码改入：短延迟覆盖不会把内容变化送进 `scheduleAutoSave`；迁移跳过是或关系，路径相等时仍要迁 state 并写标记；授权键不再用「含 `-` 才换新键」加未转义的 `-`。Minor 已并入：`toErrorMessage` 的文件位置、默认远程配置文件的提前返回、解析失败先于脏检查，以及 r08-1 / r08-2 的测试文件路径。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r08-1 | 签 | 空 path 分支仍用 `content.length`。现有调用点都传非空 path，影响面小。 |
+| r08-2 | 不签 | 上游有意改动：39f0d26deb2（Fix #121804）删掉了 `save` 透传、`hasEdits && save` 判断与 `errorFileDirty`，方案等于回退这次修复，正文没提。要用户定两件事：写入默认值后 settings.json 留脏，还是像现在这样立即保存（`preferencesService.ts` 的 `getPositionToReveal`）；目标文件已脏时写入是否改为拒绝。后者影响加删工作区文件夹、切换语言、argv 与 extensions.json 的写入。 |
+| r08-3 | 签 | 源 state 在 move 之前就被拷走并清空，move 失败后仍写完成标记。 |
+| r08-4 | 不签 | 换键后，身份含 `-` 的用户（例如 `github-enterprise`）读不回旧授权，会重新弹授权提示；记录以 `StorageTarget.USER` 写入，换键后与旧版或上游的机器不再共用（同步这一点没有逐行核实）。要用户定：接受重新授权，还是做一次性迁移；以及能否接受与上游存储格式分叉。 |
+| r08-5 | 签 | 创建分支仍追加 `currentProfile.id`，不是刚创建的 `profile.id`。 |
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+- r08-2：不实施（D20）。上游 39f0d26deb2 有意删掉 save 透传与脏检查，回退违背 ADR-007。
+- r08-4：不实施，留作上游缺口（D20）。换键会让含 `-` 的身份重新授权，并与上游存储格式分叉。

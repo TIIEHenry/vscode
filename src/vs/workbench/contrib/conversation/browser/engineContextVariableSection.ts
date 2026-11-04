@@ -35,6 +35,8 @@ import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesP
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 
+import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
+
 const $ = DOM.$;
 
 /**
@@ -278,7 +280,14 @@ export class EngineContextVariableSection extends Disposable {
 			item.setAttribute('role', 'listitem');
 			item.tabIndex = 0;
 			item.setAttribute('aria-selected', 'false');
-			item.textContent = formatEngineContextVariableListLabel(row.source, row.entry);
+			appendCatalogSettingFields(item, [
+				{ role: 'source', value: row.source },
+				{ role: 'name', value: row.entry.name },
+				{ role: 'scope', value: row.entry.scope },
+				{ role: 'author', value: row.entry.updatedBy },
+				{ role: 'timestamp', value: String(row.entry.updatedAt) },
+				{ role: 'preview', value: row.entry.contentPreview },
+			], formatEngineContextVariableListLabel(row.source, row.entry));
 			item.addEventListener('click', () => this.selectContextRow(row));
 			item.addEventListener('keydown', event => this.onContextRowKeyDown(event, row));
 		}

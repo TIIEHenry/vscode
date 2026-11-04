@@ -1,14 +1,15 @@
 ---
 title: "会话工作根与 Workbench 双层状态"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-24
+updated: 2026-11-01
 summary: "PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 已全面落地合入（提交 4615d3aa990 与 b6bccf8ff2c）。2026-10-24 用户改为多根工作区随时扩展：身份条与 Navigator 选文件夹改为加入工作区，Loopback 引擎的本机工作目录切会话时自动加入；未受信任目录和已保存的工作区文件不自动改写（S6）。Preview 换入换出等 PRD-027 P3。不升 PRD。"
 ---
 
 # 会话工作根与 Workbench 双层状态
-状态：草案。
+状态：执行中。负责：agent:codex。
+签收：签，签收人：agent:codex，日期：2026-11-01。
 覆盖需求：PRD-027、PRD-029。
 
 
@@ -188,7 +189,7 @@ S5 只换 Code 类别组里的编辑器，按 `projectKey` 自己存一份 Code 
 
 | 切片 | 内容 | 验证 |
 |:--|:--|:--|
-| **S0** | PRD-029 `proposed`、本稿 `draft`、规则 16 只读审查并改稿（见 §8）；用户签收后本稿 `accepted`，PRD-029 `accepted` | `python3 scripts/check-docs-health.py`；`python3 scripts/generate-docs-status.py` |
+| **S0** | PRD-029 `proposed`、本稿已 `accepted`（规则 16 只读审查并改稿见 §8）；PRD-029 不因本次方案签收而升为 `accepted` | `python3 scripts/check-docs-health.py`；`python3 scripts/generate-docs-status.py` |
 | **S1 工作根** | `agentWorkRoot.ts` 纯函数（解析、规范化、本地根、项目键）；`IAgentSessionContext` 加三个可选成员；`AgentSessionContext` 实现、缓存最后提交的身份与连接 `workDir`、事件去重。五份旧规范化改为调用它，行为保持 | 新 `services/agentSession/test/common/agentWorkRoot.test.ts`：会话优先、空白回落连接、都无为 `'none'`、尾斜杠与反斜杠、SCM 根优先于窗口文件夹、嵌套仓库仍是本地、多候选不猜、身份缺省时 `projectKey` 为 `undefined`。`contrib/conversation/browser/agentSessionContext.test.ts`：同值不发、切会话发、换引擎发、窗口文件夹或 SCM 仓库变化影响 `access` 时发；快照清掉身份与 `workDir`（配对、断连）时工作根不变、不发；新 `linkId` 提交后替换；新链路无身份时不沿用旧身份 |
 | **S2 路径消费方** | 见下方清单 | 见下方清单 |
 | **S3 换引擎提示** | 按 3.1 放提示门，两个入口都在断开、忘记、拨号之前；同端点不提示；只数本窗口待确认座位 | `contrib/conversation/test/browser/connectionPreferencesPane.test.ts`：选中 profile 时有待确认座位就提示并写明条数，取消不调 `connectProfile`；Direct Address 取消时不调 `forgetConnectionProfile`、不 `disconnect`；同一 `host:port` 重连不提示；没有待处理会话时不提示 |
@@ -253,3 +254,17 @@ S2 清单（每项一条验证）：
 - Critical：原写「信任框拒绝算失败、拒绝后不再重试」。核对 `workspace.contribution.ts` 339–375 行，点 No 只标记不受信任，加入照常完成，整窗进入受限模式。风险表与 §3.7 已改，是否要在自动加入前预判信任列为开放问题 6。
 - Important：远程授权不同的文件夹改为先比较授权再开新窗口，不再依赖 `addFolders` 的过滤；无标题工作区的保存提示、`.code-workspace` 被改写、删空后再加入会重启扩展宿主、`enterWorkspace` 被否决时静默返回，都写进 §3.7 与 §6；§3.4 的「窗口打开的文件夹」改指向 §3.7；只认 Loopback、读屏名替 V5 做的决定、身份条 Workspace 段选中无动作，都标成本稿的决定。
 - Minor：§1 身份条行号改为 HEAD 行号；引用范围改为 198–217 行；S2 第 5 项改写正文；Navigator 的 Ctrl / Alt 也适用于当前文件夹节点；贡献在构造时先判断一次，条件 5 写明按 URI 比较、不解析软链接。`dev/plans/INDEX.md` 的摘要行未同步，属索引生成物，不在本稿改。
+
+## 签收复核（agent:kiro，2026-11-01）
+
+本稿已由 agent:codex 签成 `accepted`，并把 S0 改为 PRD-029 不随方案签收升级。agent:kiro 受用户委托做同一轮签收审查，同意签收，补三点：
+
+- 签收范围排除 S5 的实施许可。S5 只有验收清单和「PRD-027 P3 后另写设计、走规则 16」，没有具体改法，P3 也没做。
+- 落地注记与 summary 里的 `b6bccf8ff2c` 是错号：那是 2026-10-05 的 Sources 能力快照提交，早于本稿。S1–S4 只在 `4615d3aa990`；S6 在 `279f2c18f08`（2026-10-25），注记里没记。§3.5 与 §6 还写着「见开放问题 1」，§7 已不再编号。
+- S2 的后续补修 [conversation-review-root-invalidation](conversation-review-root-invalidation.md) 与叶级身份条（D1386，对应 PRD-029.12）都已 `implemented`，本稿没有引用。
+
+PRD-029 是否升 `accepted` 由用户定：原 S0 写的是「用户签收后 PRD-029 accepted」，本次是 agent 受托签收，维持 agent:codex 的保守处理。
+
+## 按设计原则的决定（2026-11-01）
+
+按 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md) D20，PRD-029 已升 `accepted`（验收 3、4 等 S5，不是 `implemented`）。S5 仍要等 PRD-027 P3 后另写设计并走规则 16。

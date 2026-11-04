@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-11-01
+updated: 2026-11-02
 summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
@@ -1343,3 +1343,14 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1390 | P2 | **open（生命周期代码已补，新补测试已跑绿）** Engine Terminal 启动deadline只覆盖openStream/send-open两个await之后，shutdown不能唤醒前两步；renderer缺不可逆终态，sessionClosed后普通end被main再次映射error，late事件/输入/resize与拒绝未收口；close pending可阻dispose，main slot也未完整释放，首次listen前终态有同步flush重入边界。本轮 `591a2c422a0`/`486eaa77474`（+`6180ee097e7` 测试帧合同修正）已补 deadline 全链、不可逆终态收口 late 帧与拒绝、开流 expectedOwner fail-closed、slot/handle 幂等回收与 flush 重入；12 项验收 10 新补、1 既有、#12 已验证（S5 收口波跑绿：universeAgentPtyTerminal 10 过 0 败，universeAgentPtyChannel 并入 47 过 0 败套）。 | Astra续轮按真实PTY/channel/connection/gRPC核实完整状态机；本波先补C/F shared owner，Terminal后批复用，不扩域 | deadline覆盖全启动链，shutdown及时完成；正常exit原码一次，无正式exit的提前断流为非空错误；终态后无写/属性/事件，拒绝被消费，slot/handle及时幂等回收且首次listen不丢终态；expectedOwner经IPC防mainB/rendererA，保持字节/0/false序列化；旧生产业务红、新生产绿及独立复核 | terminal / engine-lifecycle | open |
 | D1391 | P1 | **closed** Memory输入/确认后仅当前canMutate、无原owner，RPC/刷新晚回还可重画新页；main已B而renderer仍A时，无owner参数的save/delete取当前transport，捕获函数receiver也不能绑定原引擎。已落 `7a5cbd423e4`/`587a0dbb023`：save/delete 输入起捕获 expectedOwner 走独立 IDE 参数，IPC 门缺失/畸形/陈旧 owner 分派前拒绝并实证 main B 零调用，main 发前原子验、晚回固定取消不污染健康，owner 拒绝映射 unconfirmed 而非裸 CancellationError。 | 真实源码链与Astra续轮已确认，当前C/F先重开补shared expectedOwner；Memory后批复用，不能把UI检查当完整闭合，不新占槽 | save/delete从输入起捕获owner，经独立IDE参数/真实IPC由main发前原子验、发后旧拒绝固定取消且不污染健康；扣住B通知证明B零调用；UI含RPC及refresh后边界、same-transport新link/dispose/正常流程，保留原语义且补真取消确认测试 | engine / memory-ownership | closed |
 | D1392 | P2 | **closed** `scripts/tests/test_docs_status.py:176` 硬编码 PRD 数量 28，当前基线已有 29，文档工具单测真实 6 passing / 1 failing。已落 `6405327c268`：数量断言改为与 requirements.md 现场 heading 集合对账（缺失/多报、重复 heading、状态闭集三类检测），移除同属腐化面的位次状态快照；copy_docs_tree 只收 INDEX 已链接计划；复跑 `python3 -m unittest scripts/tests/test_docs_status.py` 8 过 0 败。 | executor 用固定 d91 原 test 与 requirements 复现，属既有陈旧断言，不在本波生命周期修复中改变测试口径 | 以有意义的产品需求解析合同替代陈旧数量断言，保留缺失/重复/非法状态检测，文档工具完整单测通过 | docs / status-generator-tests | closed |
+
+
+## D17：2026-11-02 GPT视觉定向CSS检查
+
+- 首次记录树：HEAD `629d8b33df84755d5009dddc80a0ed503ec7156b` 加工作区WIP（源码哈希见[验证记录](conversation-gpt-visual-evidence/source-manifest.json)）。
+- `conversationLensCssScan.test.ts` 两处失败：`trajectory table and engine nav rows stay 22px without uppercase kind chrome`、`S9: filter chips, search boxes, and engine catalog group/row heights follow visual specification`。均在Engine导航22px旧断言处失败，当前Engine设置视觉规则为32px；本主题未改Engine导航样式，未独立重跑HEAD，不能标baseline或宣称全套通过。
+- owner：Engine设置视觉/测试合同对齐；当前41样式过/2失败，270组件过/5pending，编译0错误，不升级整个视觉PRD。关闭证据需按已接受设置规格修订断言并重跑，日志见[css-tests.log](conversation-gpt-visual-evidence/css-tests.log)。
+
+- 同次隔离窗口还记录TerminalProfileResolverService的4条undefined.catch与2条title/hover警告，未改终端源、不归因基线；owner为终端配置/hover后续核验，见[window-console.log](conversation-gpt-visual-evidence/window-console.log)。
+
+- **2026-11-04 U1 活态半成品新增 5 红**：`conversationLensDisposeGate.test.ts` 实测 166 过 / 5 败，五条全部是 `shouldShowReadingColumnLiveChrome` 的 pairing-hold / leftover 锁定断言（keeps leftover lease while pairingPending then true disconnect hides、keeps leftover cached turns without lease while pairingPending、leftover-looks-live keeps leftover lease、leftover-looks-live keeps leftover cached turns、reading column live chrome and stale banner follow bound session without lease not global active），由未登记的 `conversationLivePhase.ts`（U1 前半）引入：配对保持期一律非 live。[conversation-stream-ui-review §14](../plans/conversation-stream-ui-review.md) 已点名该半成品不能当作已签收实现；10-26 基线的三条 LensDisposeGate 红本轮实测全绿。owner：Conversation 回归主题（U1 收口按 §14 四条前置再签），关闭证据为五条转绿的 `scripts/test.sh --runGlob '**/conversationLensDisposeGate.test.js'` 日志。红测不阻塞本次主题提交，只挡 conversation-stream-ui-review 升 implemented。

@@ -2118,7 +2118,12 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 					return true; // no tab always fits
 				}
 
-				const lastTabOverlapWithToolbarWidth = lastTab.offsetWidth + editorToolbarWidth() - dimensions.available.width;
+				// The Add Tab control is a flex item after the editor tabs. Include it
+				// when deciding whether the last row can fit: otherwise the tabs may
+				// wrap successfully while the Add Tab control is pushed onto a lone
+				// second row in a narrow tab strip.
+				const addTabWidth = this.addTabContainer?.offsetWidth ?? 0;
+				const lastTabOverlapWithToolbarWidth = lastTab.offsetWidth + addTabWidth + editorToolbarWidth() - dimensions.available.width;
 				if (lastTabOverlapWithToolbarWidth > 1) {
 					// Allow for slight rounding errors related to zooming here
 					// https://github.com/microsoft/vscode/issues/116385

@@ -42,6 +42,8 @@ import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conver
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
+import { getConversationDisplayMode } from './conversationLensReadingColumn.js';
+import { isConversationRowActive } from './conversationLivePhase.js';
 import {
 	applySessionModelIndex,
 	applySessionPermissionIndex,
@@ -181,7 +183,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			onQueueItemHold: itemId => host.beginQueueEdit(itemId),
 			onScrollToPendingConfirmation: () => host.scrollToInboxPendingConfirmation(),
 			showPostFailure: reason => showPostFailure(host, reason),
-			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => entry.streaming === true && entry.toolStatus !== 'pending'),
+			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => isConversationRowActive(entry, getConversationDisplayMode(host))),
 		}, () => host.listSessionId()));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));

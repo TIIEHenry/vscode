@@ -81,7 +81,7 @@
 
 .run-script-action-section .monaco-custom-radio > .monaco-button:hover:not(.active):not(.disabled) {
 	background-color: var(--vscode-list-hoverBackground);
-	border-color: rgba(255, 255, 255, 0.06);
+	border-color: var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
 	opacity: 1;
 }
 

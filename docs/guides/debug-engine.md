@@ -3,8 +3,8 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-10-19
-summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准。"
+updated: 2026-11-01
+summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定，线上二进制以 engine/VERSION 与 lib.SHA256SUMS 为准；IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。"
 ---
 
 # 钉死 UniverseAgent 引擎（IDE 调试）
@@ -22,7 +22,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_A
 
 | 项 | 值 |
 |----|-----|
-| 源码 | 分离头指针 worktree `vscode-debug-engine/universe-agent/`，SHA 以 `PIN` 为准 |
+| 源码 | 分离头指针 worktree `vscode-debug-engine/universe-agent-027ab/`，SHA 以 `PIN` 为准 |
 | 数据 / TLS / Grant | `vscode-debug-engine/agent-home/`（`UNIVERSE_AGENT_HOME`），**不是** `~/.universe-agent` |
 | 监听 | `127.0.0.1:50061`（避开 UA 默认 `50051`） |
 | 形态 | HeadlessServer TCP `--no-uds`，**不加** `--hub` |
@@ -34,13 +34,15 @@ summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_A
 在 `vscode-debug-engine/`：
 
 ```bash
-./compile.sh          # 只编 :grpc-server JVM；换钉后才需要
+./compile.sh          # 编 HeadlessServer 及运行时模块；换钉后才需要
 ./start-engine.sh     # 前台听 50061
 ./stop-engine.sh
 ./approve-grant.sh XXXX-XXXX   # 首次 Connect 的 SAS
 ```
 
-当前钉与 TLS 指纹只写在 `PIN`，本页不复制（换钉会变）。
+源码钉与 TLS 指纹只写在仓外 `PIN`。线上实际运行的版本以本仓 `engine/VERSION` 的 `source_sha`、`source_dirty`、`built_at` 和 `lib.SHA256SUMS` 为准；不能只拿 `PIN` 推断运行中二进制。
+
+当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:44:32+08:00`，运行时模块清单哈希见 `engine/VERSION`。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
 
 ## 3. 在 Agent IDE 里连
 
@@ -52,22 +54,19 @@ IDE 要和引擎用同一个 `UNIVERSE_AGENT_HOME`（钉死工位是 `vscode-deb
 
 IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer <session_token>`（[remote-link-auth-and-relay](../../dev/plans/remote-link-auth-and-relay.md) S1）。token 被拒或调用 `UNAVAILABLE` 会先摘掉这条链路再重连（中继即新票）。这份钉死引擎仍跳过鉴权拦截器，验不到这个头，也不经过 Hub 中继票。远程路径仍要在强制鉴权模式（非回环绑定，或 `--hub`）下另验。
 
-## 4. 本地补丁（不回推 UA）
+## 4. 构建边界
 
-`PIN` 所钉的 UA `origin/main` 当时编不过。隔离 worktree 只留两处本地改，**禁止** push 回 UniverseAgent：
-
-1. `generationJob` 类型改为 `CompletableJob`（`Job.complete()` 不在接口上）。
-2. `AgentHome.defaultHomePath()` 读取 `UNIVERSE_AGENT_HOME`（外仓文档写了，源码原先只认 `~/.universe-agent`）。
+当前钉使用干净 detached worktree，没有本地源码补丁。`compile.sh` 会同时编 `grpc-server`、`remote-agent-server` 和 `hook-jvm`；只替换主包而遗漏运行时模块会在启动时产生二进制 ABI 错误。
 
 Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、会话、Grant 在 `agent-home/`。
 
-占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。Engine 设置页可以 upsert 凭据、导入本地 harness，并在引擎提供写 RPC 后改模型注册表；seed 脚本仍是这份钉死引擎的启动引导。当前钉上的进程要重新编译并重启后才有 `UpsertModel` / `DeleteModel` / `SetModelEnabled`。在那之前，设置页里的 provider 导入仍可完成，模型写入会记为未实现。**2026-09-12** 重启后 grpcurl `ListModels` 非空、`AgentService/Chat` 带 `SessionInput.model_profile_id` **PASS**（`turnComplete`/`end_turn`）。本仓 Composer 发送时带同一字段（选中 catalog 的 `id`；诚实空选项不带）。这不是 IDE 接通冒烟，不升 PRD-008。
+占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。当前 027ab 钉已包含 `UpsertModel` / `DeleteModel` / `SetModelEnabled` 与 `GetPermissionMode` 的引擎实现；这只证明二进制已换钉，不等于 IDE 产品路径已验收。模型目录仍由 seed 脚本提供启动基线。本仓 Composer 发送时带 `SessionInput.model_profile_id`（选中 catalog 的 `id`；诚实空选项不带）。
 
 ## 5. 换钉
 
-换钉触发已满足：要吃进引擎仓已合并的 IDE 远程协议 A–F（以及 store 自愈）。步骤见仓外 README。**仓外 PIN 已换**；不要把新 SHA 抄进本页。
+换钉触发已满足：要吃进引擎仓已合并的 IDE 远程协议 A–F、权限模式读回和模型写 RPC。步骤见仓外 README。更新时先从干净 commit 建 detached worktree，再编完整运行时模块；启动后以 `engine/VERSION` 核对实际二进制，不把当前开发树的 dirty HEAD 当发布钉。
 
-[D25](../../dev/progress/deferred-gaps.md) / [D26](../../dev/progress/deferred-gaps.md) 已在这份钉上复验 List / Create 后关闭。空 catalog 当时不并入那两行；seed 后 Chat 已过引擎面。本仓不加兼容层。
+[D25](../../dev/progress/deferred-gaps.md) / [D26](../../dev/progress/deferred-gaps.md) 的 List / Create PASS 属旧钉历史；027ab 新钉尚未重跑业务验收，不能把旧证据迁移到当前版本。空 catalog 当时不并入那两行；本仓不加兼容层。
 
 ## 相关
 

@@ -14,6 +14,7 @@ import { ConversationStubTurn } from './conversationStubModel.js';
 import { ConversationTimelineRenderer } from './conversationTimelineRenderer.js';
 import { ConversationTimelineItem } from './conversationTimelineTypes.js';
 import { IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
+import type { ConversationDisplayMode } from './conversationLivePhase.js';
 
 export interface ConversationTimelineHostRoot {
 	readonly id: string;
@@ -34,6 +35,7 @@ export interface ConversationTimelineItemHostHooks {
 	readonly setToolExpanded: (turnId: string, expanded: boolean) => void;
 	readonly onProcessFoldLayout: (rootId: string) => void;
 	readonly showLiveChrome: () => boolean;
+	readonly displayMode?: () => ConversationDisplayMode;
 	readonly writesEnabled: () => boolean;
 	readonly showToolInvocationDetails: () => boolean;
 	readonly onViewInTrajectory?: (turnId: string) => void;
@@ -162,6 +164,7 @@ export class ConversationTimelineItemHost {
 			this.foldHandle = renderProcessFoldSpan(this.inner, root.span, {
 				defaultOuterExpanded: false,
 				showLiveChrome: this.hooks.showLiveChrome(),
+				displayMode: this.hooks.displayMode?.() ?? (this.hooks.showLiveChrome() ? 'live' : 'stub'),
 				writesEnabled: this.hooks.writesEnabled(),
 				showToolInvocationDetails: this.hooks.showToolInvocationDetails(),
 				diffEditorPool: this.hooks.diffEditorPool,

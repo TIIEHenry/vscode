@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-28
+updated: 2026-11-02
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -11,6 +11,8 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 
 | 文件 | 说明 |
 |------|------|
+| [其余设置页视觉验证](preferences-visual-alignment-evidence/verification.md) | Connection/Client/Engine组合：1101过、4pending；47张受控截图，非真实引擎验收 |
+| [Engine 设置参考图视觉验证](engine-settings-visual-evidence/verification.md) | 生产组件受控目录：Electron 48过；浅深/高对比/窄短五种渲染，非真实引擎验收 |
 | [Sources Pane cleanup v2 窄源码修订](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md) | 固定ae902原Astra窄peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；原审查转发摘要/原件保持，J等lease当前业务门，真实接入与runtime仍另定。 |
 | [Sources Pane首await取消解析源码候选](sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md) | 固定df44仅四行guard与10项真实resolver回归源码；旧test/D两host完整保留、各一次parse与双TS一次无缓存lint通过；accepted/runtime pending，root独核/原Astra源码peer待。 |
 | [J本地D→J完整切片三路集成](sources-pane-local-git-integration-20261027-evidence/INDEX.md) | 676e/22d真实双亲、base736171，完整路径mode/blob与冲突canonical保双方源码/114静态矩阵及主题docs；仅J候选，无首await实现或运行信用。 |
@@ -87,4 +89,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [ui-gap-review-2026-10-01.md](ui-gap-review-2026-10-01.md) | 2026-10-01 四路只读 UI 缺口审查（3 Critical、19 Important）；发现稿，不登记 D、不升 PRD |
 | [visual-review-2026-10-16.md](visual-review-2026-10-16.md) | 2026-10-16 对照 UI 设计原则审查工作区未提交的视觉改动（5 条需要改、3 条建议改）；静态审查未截图，发现稿，不登记 D |
 | [sources-architecture-review-2026-09-28.md](sources-architecture-review-2026-09-28.md) | Sources 只读架构审查 8 条（SAR-1…8）。方案 [sources-architecture](../plans/sources-architecture.md) 仍 accepted；P7 已在 loop/merge 落 |
-| [engine-link-architecture-review-2026-09-28.md](engine-link-architecture-review-2026-09-28.md) | 引擎链接只读架构审查 9 条（ELR-1…9）。ELR-1/ELR-2 的 S1–S4 与 bug-hunt 01 S2 已落；试连超时绕过 SAS 仍开 |
+| [engine-link-architecture-review-2026-09-28.md](engine-link-architecture-review-2026-09-28.md) | 引擎链接只读架构审查 14 条（ELR-1…14）。ELR-1/ELR-2 的 S1–S4 与 bug-hunt 01 S2 已落；试连超时绕过 SAS 仍开 |
+| [engine-interaction-review-2026-11-01.md](engine-interaction-review-2026-11-01.md) | 固定基线下的引擎交互与功能适配只读审查 17 条（EIR-1…17）：审查时 50061 为 10635d、协议落后与权限枚举漂移；换钉后已改用干净 027ab7ed03 构建，但未做线上反射/业务验收。含功能适配矩阵，发现稿，不登记 D、不升 PRD |
+
+- [默认窗口GPT参考图视觉验证](conversation-gpt-visual-evidence/verification.md)：最终列表30px；组件与隔离窗口证据，未真引擎验收。

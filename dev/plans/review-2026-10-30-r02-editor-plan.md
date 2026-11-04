@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r02：editor 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 3，weaken 0。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 3，weaken 0。签 r02-1、r02-2；r02-3 改法不成立，不签，须重写。未实施，不升 PRD。"
 ---
 # 十六路审查 r02：editor 方案
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 | 编号 | 判定 | 严重度 |
@@ -100,3 +101,13 @@ summary: "hold 3，weaken 0。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿，Critical 无。Important 已改：r02-3 从没有说明的 drop 改回 hold。r02-1 的转交留在 `fetch`，因为 `createStateWithAppliedResults` 拿不到 `store`。r02-2 的在飞标记放在 `RenameSymbolRunnable` 上，因为最新注册的命令处理函数不一定是拥有 `_renameRunnable` 的那个 processor。验证改用 `scripts/test.sh`，不用 `run-unit-custom.sh`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r02-1 | 签 | `inlineCompletionsSource.test.ts` 目前不存在，要新建；测试替身在 `test/browser/utils.ts`。 |
+| r02-2 | 签 | 要保留的 `renameSymbolProcessor.test.ts` 三条用例都在。 |
+| r02-3 | 不签 | 缺陷仍在，但改法不成立。`createCancelablePromise` 的 `cancel()` 立刻拒绝外层 Promise，「`p.cancel()` 之后等 `p` 结束」等不到内部工作。`return this._postPasteWidgetManager.applyEditAndShowIfNeeded(...)` 写在 try 里且没有 await，`finally` 先释放 `cts`，`postEditWidget.ts` 看不到用户取消，方案在那里加的撤销分支是死代码。改成 `return await` 后，粘贴自己的写入会经 Value 标志取消 editorStateCts，「apply 成功且 token 已取消就撤掉」会撤掉每次正常的 provider 粘贴。重写时需要一个与 editor-state 无关的「用户点了取消」信号，并拿到内部工作的句柄；`postEditWidget.test.ts` 的 `CopyPasteController - cancel after provider edit` 套件要列进保持清单。 |

@@ -1,14 +1,15 @@
 ---
 title: "方案 r12：editor-features"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "hold 3，drop 1，weaken 1。下载取消仍会 close 把同名目标收成空文件或半截，上传取消仍会留下空缺或半截并报成功，剪切碰到同名仍会失败并清掉剪切标记；轮播 postMessage 没有转走源缓冲；首选内容只在 files.resolve 真正抛错时才留不住。"
+updated: 2026-11-01
+summary: "hold 3，drop 1，weaken 1。r12-1、r12-2 已由 ab4136c17cb，r12-4 已由 82d3861e572 落地；目录覆盖的字节恢复由 2026-10-30 r14-2 承接；r12-3 维持 drop。2026-11-01 agent:kiro 受用户委托签收剩下的 r12-5（收窄，低优先）。未实施，不升 PRD。"
 ---
 # 方案 r12：editor-features
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。只签 r12-5，范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -118,3 +119,15 @@ hold 3，drop 1，weaken 1。
 反证：`textFileEditorModel.doResolve`（现 319–321 行）在 `options.contents` 存在时返回 `resolveFromBuffer`。`resolveFromBuffer`（现 345–381 行）捕获 `fileService.stat` 的错误，包括 `FILE_NOT_FOUND`，然后 `resolveFromContent` 装入这份缓冲。因此文件不存在时 `files.resolve` 不抛，内容已经在模型里。`resolve`（现 305–308 行）在没有 `contents` 且模型已脏时直接返回。`fileEditorInput.toUntyped`（现 450–456 行）从脏模型取值。`fileEditorInput.test.ts` 的 `preferred contents` 在成功 `resolve` 之后仍能读到这段文本。`FILE_IS_BINARY` 来自 `resolveFromFile`，有 `contents` 时不会进入。
 
 保留 `preferred contents`（`src/vs/workbench/contrib/files/test/browser/fileEditorInput.test.ts`）。应新增断言：`files.resolve` 在装入缓冲之前拒绝时，同一 `FileEditorInput` 再次 `resolve` 仍把原来的字符串传给 `contents`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，对照了 2026-10-24、2026-10-30 两轮方案。没有跑测试。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r12-1 | 已落地 | `ab4136c17cb`（之后 `1d7a8f927d5`、`821ffbfb9f9` 补清理）：缓冲下载用 `settleTarget` 保证 abort 与 close 只发生一个，非缓冲下载读失败或取消时 `abort`。 |
+| r12-2 | 已落地（文件）；目录残余另行承接 | `ab4136c17cb`：只在顶层是文件时删除，取消或失败时用删除自己的 undo 把原字节写回（没用方案说的 `undo(URI)`，提交说明写明它可能被拒绝）。目录里子文件被覆盖后的字节恢复由 [2026-10-30 r14-2](review-2026-10-30-r14-contrib-rest-plan.md) 承接。原稿说「目录合并还是覆盖」要用户拍板，现码已按不删目录实现。 |
+| r12-3 | 维持 drop | `postMessage` 只把 `transfer` 放进数据体，`doPostMessage` 的 transferable 为空，源缓冲没有被转走。 |
+| r12-4 | 已落地 | `82d3861e572`：剪切不再默认允许覆盖，`executedMove` 放在 `applyBulkEdit` 之后。 |
+| r12-5 | 签（收窄） | 缺陷仍在：`fileEditorInput.ts` 的 `doResolveAsText` 在 `files.resolve` 之前清空 `preferredContents`，2026-10-11 之后没有提交改过这个文件。收窄改法：不要把清空挪到 resolve 之后，改为在 catch 里「字段仍为 undefined 时写回原字符串」。挪到后面的话，第一次 resolve 返回前进入的第二次 resolve 也会带上 contents，破坏「只用一次」。优先级低。 |

@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r04：universeAgent 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 4，weaken 0。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 4，weaken 0。r04-3 删去入口代际递增那一句，入口递增不变。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r04：universeAgent 方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -145,3 +146,14 @@ summary: "hold 4，weaken 0。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿，Critical 无。Important 已改：r04-3 的 session generation 只挡住同一 Hub 的 `clear`。另一个 Hub 已经占用目录时，登出收尾不再递增目录代际，也不把目录收成 `idle`。这四份测试走 `node test/unit/node/index.js --run`，不走 `scripts/test.sh --grep`。r04-1 只用推迟写入，失败路径不再 `put`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`。`universeAgentConnectionService.ts` 在 2026-10-30 之后有 98aa1b2、f49f1ed（合并）、587a0db 三处改动，逐段核过配对、epoch 与 skip-auth 失败分支，行为没变，只是行号后移。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r04-1 | 签 | `put(cleared)` 仍在 `_startProfilePairing` 之前；失败与拨号作废的返回不写回旧 trust。 |
+| r04-2 | 签 | 置 false 的 7 处与方案一一对应。另有一处读者（expectedOwner 校验，10-28 加入）不在清单里，清掉残留标志对它同样成立。 |
+| r04-3 | 签（收窄） | 删去「进入时那次递增若会作废另一个 Hub，就不要无条件做」一句：进入登出时 `_activeHubBaseUrl` 就是正在登出的那个 Hub，这句没有可执行的改法。入口那次递增保持不变，只改收尾。 |
+| r04-4 | 签 | skip-auth 失败分支仍不关旧通道，`_connectLocalSkipAuth` 直接提交新通道。 |

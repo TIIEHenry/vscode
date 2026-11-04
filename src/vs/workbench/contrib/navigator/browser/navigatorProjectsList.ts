@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/navigatorProjectsList.css';
+import '../../../browser/media/uaRoundedIcons.css';
+import '../../../browser/media/uaRoundedMenus.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
-import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { IListContextMenuEvent, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -44,13 +46,13 @@ import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser
 import { confirmDeleteConversationSession } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { conversationLensDockEngineNotConnected } from '../../conversation/browser/conversationLensDockStrings.js';
-import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
+import { formatSessionRosterSubtitle, resolveSessionRosterTone, sessionRosterGlyph, type SessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { filterNavigatorProjectsTreeNodes } from '../common/navigatorProjectsInlineFilter.js';
-import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode, isNavigatorWorkDirCreateTarget, navigatorNewSessionInLabel } from './navigatorProjectsTree.js';
+import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode, isNavigatorWorkDirCreateTarget, navigatorNewSessionInLabel, workDirGroupLabel } from './navigatorProjectsTree.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
 
@@ -68,12 +70,12 @@ export function navigatorProjectsRecentsFailureMessage(error: unknown): string {
 	return localize('navigatorProjects.recentsFailed', "Unable to load recent folders: {0}", getErrorMessage(error));
 }
 
-/** Same height as a workbench menu row. */
-export const NAVIGATOR_PROJECTS_ROW_HEIGHT = 24;
+/** Comfortable conversation navigation; group spacing is included in virtual geometry. */
+export const NAVIGATOR_PROJECTS_ROW_HEIGHT = 30;
 
 class ProjectsTreeDelegate implements IListVirtualDelegate<INavigatorProjectsTreeNode> {
-	getHeight(): number {
-		return NAVIGATOR_PROJECTS_ROW_HEIGHT;
+	getHeight(element: INavigatorProjectsTreeNode): number {
+		return NAVIGATOR_PROJECTS_ROW_HEIGHT + (element.kind === 'workdir' || element.kind === 'local-group' ? 12 : 0);
 	}
 
 	getTemplateId(element: INavigatorProjectsTreeNode): string {
@@ -85,6 +87,12 @@ interface IProjectFolderTemplateData {
 	readonly label: IResourceLabel;
 }
 
+interface IProjectsMenuOwner {
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number | undefined;
+	readonly revision: number;
+}
+
 interface IProjectNodeTemplateData {
 	readonly row: HTMLElement;
 	readonly label: HTMLElement;
@@ -92,10 +100,11 @@ interface IProjectNodeTemplateData {
 	readonly name: HTMLElement;
 	readonly description: HTMLElement;
 	readonly detail: HTMLElement;
+	readonly status: HTMLElement;
+	readonly pendingCount: HTMLElement;
 	readonly actions: HTMLElement;
 	readonly actionBar: ActionBar;
-	openAction: Action;
-	deleteAction: Action;
+	moreAction: Action;
 	newSessionAction: Action;
 	element: INavigatorProjectsTreeNode | undefined;
 }
@@ -144,6 +153,10 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 	private readonly templates = new Set<IProjectNodeTemplateData>();
 
 	constructor(
+		private readonly contextMenuService: IContextMenuService,
+		private readonly restoreFocus: () => void,
+		private readonly getMenuOwner: () => IProjectsMenuOwner,
+		private readonly getSessionStatus: (sessionId: string) => { tone: SessionRosterTone; pending: number },
 		private readonly areRowActionsLive: () => boolean,
 		private readonly onOpenSession: (sessionId: string) => void,
 		private readonly onDeleteSession: (sessionId: string) => void,
@@ -166,6 +179,10 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		const name = dom.append(label, $('span.navigator-projects-node-name'));
 		const description = dom.append(label, $('span.navigator-projects-node-description'));
 		const detail = dom.append(label, $('span.navigator-projects-node-detail'));
+		const status = dom.append(row, $('span.navigator-projects-session-status'));
+		status.setAttribute('aria-hidden', 'true');
+		const pendingCount = dom.append(row, $('span.navigator-projects-session-count'));
+		pendingCount.setAttribute('aria-hidden', 'true');
 		const actions = dom.append(row, $('.navigator-projects-row-actions'));
 		actions.addEventListener('mousedown', event => event.stopPropagation());
 		actions.addEventListener('click', event => event.stopPropagation());
@@ -178,39 +195,14 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 			name,
 			description,
 			detail,
+			status,
+			pendingCount,
 			actions,
 			actionBar: new ActionBar(actions),
 			element: undefined,
-			openAction: undefined!,
-			deleteAction: undefined!,
+			moreAction: undefined!,
 			newSessionAction: undefined!,
 		};
-		templateData.openAction = new Action(
-			'navigator.projects.openSession',
-			localize('navigatorProjects.openSession', "Open"),
-			`${ThemeIcon.asClassName(Codicon.openPreview)} navigator-projects-session-action`,
-			true,
-			() => {
-				const sessionId = this.sessionIdOf(templateData);
-				if (!sessionId || !this.areRowActionsLive()) {
-					return;
-				}
-				this.onOpenSession(sessionId);
-			},
-		);
-		templateData.deleteAction = new Action(
-			'navigator.projects.deleteSession',
-			localize('navigatorProjects.deleteSession', "Delete"),
-			`${ThemeIcon.asClassName(Codicon.trash)} navigator-projects-session-action`,
-			true,
-			() => {
-				const sessionId = this.sessionIdOf(templateData);
-				if (!sessionId || !this.areRowActionsLive()) {
-					return;
-				}
-				this.onDeleteSession(sessionId);
-			},
-		);
 		templateData.newSessionAction = new Action(
 			'navigator.projects.newSession',
 			localize('navigatorProjects.newSession', "New session"),
@@ -224,10 +216,11 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 				this.onCreateSession();
 			},
 		);
-		templateData.openAction.tooltip = localize('navigatorProjects.openSession', "Open");
-		templateData.deleteAction.tooltip = localize('navigatorProjects.deleteSession', "Delete");
 		templateData.newSessionAction.tooltip = localize('navigatorProjects.newSession', "New session");
-		templateData.actionBar.push([templateData.openAction, templateData.deleteAction, templateData.newSessionAction], { icon: true, label: false });
+		templateData.moreAction = new Action('navigator.projects.more', localize('navigatorProjects.more', "More"),
+			`${ThemeIcon.asClassName(Codicon.ellipsis)} navigator-projects-more`, true,
+			() => this.showContextMenu(templateData.element, actions));
+		templateData.actionBar.push([templateData.moreAction, templateData.newSessionAction], { icon: true, label: false });
 		templateData.actionBar.setFocusable(false);
 		this.templates.add(templateData);
 		return templateData;
@@ -235,7 +228,10 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 
 	renderElement(node: ITreeNode<INavigatorProjectsTreeNode, void>, _index: number, templateData: IProjectNodeTemplateData): void {
 		const element = node.element;
+		templateData.row.classList.toggle('is-group', element.kind === 'workdir' || element.kind === 'local-group');
+		templateData.row.classList.toggle('is-session', element.kind === 'session');
 		templateData.element = element;
+		templateData.actions.classList.remove('is-menu-open');
 		const icon = navigatorProjectsNodeIcon(element.kind);
 		templateData.icon.className = 'navigator-projects-node-icon';
 		if (icon) {
@@ -244,7 +240,15 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		} else {
 			templateData.icon.style.display = 'none';
 		}
-		templateData.name.textContent = element.label;
+		templateData.name.textContent = element.kind === 'workdir' ? workDirGroupLabel(element.description, false) : element.label;
+		const state = element.kind === 'session' && element.sessionId ? this.getSessionStatus(element.sessionId) : { tone: 'idle' as const, pending: 0 };
+		templateData.row.dataset.tone = state.tone;
+		templateData.status.className = `navigator-projects-session-status is-${state.tone}`;
+		templateData.status.classList.add(...ThemeIcon.asClassNameArray(sessionRosterGlyph(state.tone)));
+		templateData.status.classList.toggle('codicon-modifier-spin', state.tone === 'running');
+		templateData.status.hidden = state.tone === 'idle';
+		templateData.pendingCount.textContent = state.pending > 0 ? String(state.pending) : '';
+		templateData.pendingCount.hidden = state.pending < 1;
 		templateData.description.textContent = element.description ?? '';
 		templateData.detail.textContent = element.detail ?? '';
 		templateData.detail.style.display = element.detail ? '' : 'none';
@@ -264,9 +268,51 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 	disposeTemplate(templateData: IProjectNodeTemplateData): void {
 		this.templates.delete(templateData);
 		templateData.actionBar.dispose();
-		templateData.openAction.dispose();
-		templateData.deleteAction.dispose();
+		templateData.moreAction.dispose();
 		templateData.newSessionAction.dispose();
+	}
+
+	showContextMenu(element: INavigatorProjectsTreeNode | undefined, anchor: HTMLElement | IListContextMenuEvent<INavigatorProjectsTreeNode>['anchor']): void {
+		const sessionId = element?.kind === 'session' ? element.sessionId : undefined;
+		if (!sessionId) {
+			return;
+		}
+		const menuActions = [...this.templates].find(template => template.element?.id === element?.id)?.actions;
+		menuActions?.classList.add('is-menu-open');
+		// Snapshot identity: a virtual row may be recycled while the menu is open.
+		const owner = this.getMenuOwner();
+		const isCurrent = () => {
+			const current = this.getMenuOwner();
+			return current.engineIdentityId === owner.engineIdentityId && current.linkId === owner.linkId && current.revision === owner.revision && this.areRowActionsLive();
+		};
+		const live = isCurrent();
+		const reason = this.getRowActionUnavailableReason();
+		const openLabel = localize('navigatorProjects.openSession', "Open");
+		const deleteLabel = localize('navigatorProjects.deleteSession', "Delete");
+		const actions = [
+			new Action('navigator.projects.openSession', live ? openLabel : `${openLabel}. ${reason}`, undefined, live, () => {
+				if (isCurrent()) {
+					this.onOpenSession(sessionId);
+				}
+			}),
+			new Action('navigator.projects.deleteSession', live ? deleteLabel : `${deleteLabel}. ${reason}`, undefined, live, () => {
+				if (isCurrent()) {
+					this.onDeleteSession(sessionId);
+				}
+			}),
+		];
+		this.contextMenuService.showContextMenu({
+			getMenuClassName: () => 'ua-rounded-menu ua-project-session-menu',
+			getAnchor: () => anchor,
+			getActions: () => actions,
+			onHide: didCancel => {
+				menuActions?.classList.remove('is-menu-open');
+				actions.forEach(action => action.dispose());
+				if (didCancel) {
+					this.restoreFocus();
+				}
+			},
+		});
 	}
 
 	private sessionIdOf(templateData: IProjectNodeTemplateData): string | undefined {
@@ -278,18 +324,11 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		const element = templateData.element;
 		const session = !!this.sessionIdOf(templateData);
 		const workdir = !!element && element.kind === 'workdir' && this.isWorkDirCreateTarget(element);
-		const live = session && this.areRowActionsLive();
 		templateData.actions.classList.toggle('is-available', session || workdir);
 		templateData.actions.classList.toggle('is-session-actions', session);
 		templateData.actions.classList.toggle('is-workdir-actions', workdir);
-		templateData.openAction.enabled = live;
-		templateData.deleteAction.enabled = live;
 		templateData.newSessionAction.enabled = workdir && !!element && this.canCreateInWorkDir(element);
-		const openLabel = localize('navigatorProjects.openSession', "Open");
-		const deleteLabel = localize('navigatorProjects.deleteSession', "Delete");
 		const holdReason = this.getRowActionUnavailableReason();
-		templateData.openAction.tooltip = session && !live ? `${openLabel}. ${holdReason}` : openLabel;
-		templateData.deleteAction.tooltip = session && !live ? `${deleteLabel}. ${holdReason}` : deleteLabel;
 		if (workdir && element) {
 			const label = navigatorNewSessionInLabel(element.description);
 			templateData.newSessionAction.label = label;
@@ -319,6 +358,7 @@ export class NavigatorProjectsView extends ViewPane {
 	/** Last connection workDir seen on a painted snapshot. Only used to keep the New session row after the snapshot loses it. */
 	private lastConnectionWorkDir: string | undefined;
 	private _rebuildSeq = 0;
+	private menuConnectionRevision = 0;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -366,7 +406,10 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 			this.refresh();
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.refresh()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.menuConnectionRevision++;
+			this.refresh();
+		}));
 	}
 
 	override shouldShowWelcome(): boolean {
@@ -435,7 +478,7 @@ export class NavigatorProjectsView extends ViewPane {
 		const emptyHeight = this.filterEmpty && this.filterEmpty.style.display !== 'none'
 			? this.filterEmpty.offsetHeight
 			: 0;
-		this.tree?.layout(height - filterHeight - statusHeight - emptyHeight, width);
+		this.tree?.layout(height - filterHeight - statusHeight - emptyHeight, Math.max(0, width - 16));
 	}
 
 	private ensureTree(): WorkbenchObjectTree<INavigatorProjectsTreeNode, void> {
@@ -446,6 +489,16 @@ export class NavigatorProjectsView extends ViewPane {
 		const labels = this._register(this.instantiationService.createInstance(ResourceLabels, { onDidChangeVisibility: this.onDidChangeBodyVisibility }));
 		const delegate = new ProjectsTreeDelegate();
 		this.nodeRenderer = new ProjectNodeRenderer(
+			this.contextMenuService,
+			() => { if (this.isBodyVisible()) { this.tree?.domFocus(); } },
+			() => {
+				const snapshot = this.uaConnection.getConnectionSnapshot();
+				return { engineIdentityId: snapshot.engineIdentityId, linkId: snapshot.linkId, revision: this.menuConnectionRevision };
+			},
+			sessionId => {
+				const pending = this.rosterService.countPendingConfirmations(sessionId);
+				return { tone: resolveSessionRosterTone(this.rosterService.getTurns(sessionId), pending), pending };
+			},
 			() => this.isProjectsSessionSwitchLive(),
 			sessionId => this.openSession(sessionId),
 			sessionId => {
@@ -469,6 +522,7 @@ export class NavigatorProjectsView extends ViewPane {
 			{
 				identityProvider: { getId: (node: INavigatorProjectsTreeNode) => node.id },
 				horizontalScrolling: false,
+				indent: 12,
 				hideTwistiesOfChildlessElements: true,
 				renderIndentGuides: RenderIndentGuides.None,
 				accessibilityProvider: {
@@ -491,6 +545,7 @@ export class NavigatorProjectsView extends ViewPane {
 		));
 
 		this._register(this.tree.onDidOpen(e => this.openTreeNode(e.element, e.browserEvent)));
+		this._register(this.tree.onContextMenu(e => this.nodeRenderer?.showContextMenu(e.element ?? undefined, e.anchor)));
 
 		return this.tree;
 	}

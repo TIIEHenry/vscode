@@ -64,6 +64,7 @@ export class EngineHooksSection extends Disposable {
 		this.layoutHost.style.display = 'none';
 
 		const definitionsColumn = DOM.append(this.layoutHost, $('.engine-hooks-column.engine-hooks-column--definitions'));
+		definitionsColumn.setAttribute('role', 'note');
 		DOM.append(definitionsColumn, $('h4')).textContent = localize('ua.engineHooksDefinitions', "Definitions");
 		const definitionsList = DOM.append(definitionsColumn, $('.engine-hooks-list'));
 		definitionsList.textContent = localize('ua.engineHooksDefinitionsEmpty', "No hook definitions.");

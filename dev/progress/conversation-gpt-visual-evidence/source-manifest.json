@@ -1,0 +1,21 @@
+{
+  "head": "629d8b33df84755d5009dddc80a0ed503ec7156b",
+  "working_tree": true,
+  "note": "Hashes include preserved pre-existing WIP; they do not imply whole-file authorship.",
+  "files": {
+    "src/vs/workbench/browser/parts/activitybar/activitybarPart.ts": "fd1404adf39f335d9d9f3e51267068799864ae631a27c156eeac4e2a5cdbf17e",
+    "src/vs/workbench/contrib/modernUI/browser/media/activityBar.css": "14af8d295efb929f428f93ddc94bf49854068b92032d5a7df8c5ad73abd928a0",
+    "src/vs/workbench/browser/parts/conversation/media/conversationPart.css": "eeba14c094ae22f113826f06e55d4e185bab5c38ae8f19e9df9dc9f393696bc2",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css": "8d91b2fe4d1fba04258f9164fbe6aec69b46473569d4156ef27fbdae9fbd29b3",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationTimeline.css": "0a864c3f04d5bcda779fd71dc3fd3b6f2bc8c0d05f51c48ff8240337ed16ba4f",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css": "33917e758a1e7f3b51da4a5930c2290a2812d32f996e24975c69307316709ac4",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts": "9990d656f304ada32e4834c1f1b8cf32b316fd0045515a42bfe48cbbdde47aae",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts": "f5c4c0a6f0eb7ed1a4cbe1799b9c221af213d5d837a88ff62ed10a41ed469078",
+    "src/vs/workbench/contrib/conversation/browser/conversationSessionsView.ts": "541cd1cd41633c01e83ec93e5b2b81c05e6659444c28e403e8dd9fcc130de65d",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css": "2dcb313c33fdbf05e96f846ee8cf5ba894ae15f82d4af46a330434c7cbf20ffc",
+    "src/vs/workbench/contrib/navigator/browser/navigatorProjectsList.ts": "5323d00b7f971a06aab4dde8dffe34ffe09f0d965e9c0630c1a4a7a01da3aa6c",
+    "src/vs/workbench/contrib/conversation/browser/engineToolsSection.ts": "779d92f43951cba32326116911007777bbb7a80282071104a121f7d1ef25161d",
+    "src/vs/workbench/browser/media/uaRoundedIcons.css": "cca7ca3b4c52584a827054034796c7819b9988e65283f521626139eed69520bd",
+    "src/vs/workbench/browser/media/uaRoundedMenus.css": "a9c6b4adae82b6c0a6384a4dd7c3b2152c3060270c5131c4e0097bef8d6e9a15"
+  }
+}

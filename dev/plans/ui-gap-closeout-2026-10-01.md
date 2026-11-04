@@ -1,18 +1,19 @@
 ---
 title: "UI 缺口收口 2026-10-01"
 type: plan
-status: draft
+status: implemented
 phase: M7
-updated: 2026-10-02
-summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。提问座位必填单选为空白时，提交不再静默。不升 PRD。父代理已核验并改入锚点。"
+updated: 2026-11-01
+summary: "产品部分已落地（S-B 两份 workbench CSS、S-C、S-D 的 I1/I2、必填单选、S-G2）；S-A、S-B 的 Sessions CSS、S-D 的 I4/I5、S-E、S-F、S-G1、S-H 属 Agents Window，不计产品验收。按审查待定项决定 D22 标 implemented。不升 PRD-008。"
 ---
 
 # UI 缺口收口 2026-10-01
-状态：草案。
+状态：已完成。
+签收：签，签收人：agent:codex，日期：2026-11-01。
 覆盖需求：PRD-008、PRD-018。
 
 
-> 发现稿：[ui-gap-review-2026-10-01](../progress/ui-gap-review-2026-10-01.md)。本稿 `draft`。不改 PRD 状态，不登记 D 编号。
+> 发现稿：[ui-gap-review-2026-10-01](../progress/ui-gap-review-2026-10-01.md)。本稿已 `accepted`。不改 PRD 状态，不登记 D 编号。
 > 相关方案只链不抄：[m7-gap-closeout](m7-gap-closeout.md) GC-1b、[prd-008-engine-e2e](prd-008-engine-e2e.md)、[accessibility-responsive-ui](accessibility-responsive-ui.md) T1、[sources-architecture](sources-architecture.md) P4、[settings-two-surfaces](settings-two-surfaces.md)、[connection-hub-client](connection-hub-client.md)。
 
 ## 1. 背景与范围
@@ -247,4 +248,20 @@ S-A、S-B、S-C、S-D、S-E、S-F、S-G1、S-G2、S-H 可同时开工。S-H 不�
 4. `focusSession` 是否需要再走进聊天输入。今日停在 `SessionView.focus()`。
 5. `git.sync` 的 Action 失败是否已有工作台级通知。若已有，S-A 只保留一处通知，避免双弹。
 
-只读审查已改入（Grok 起草 + 父代理 2026-10-01 核验）：S-E 保留 `FileReadWrite`；S-B 补 181–185、选中 tab 91–97、Inbox 同款 `!important`；S-A 写明 pairingHold 源是 `IUniverseAgentConnection` 不是 `IAgentConnection`；S-F 路径改为 `sessionsPartService` 的 browser 实现，调用对齐 980/2579；S-H 必须在 DOM 挂 `.ua-motion`；S-C 绑窗并跳过 `isDestroyed()`，桌面走 channel client。状态仍是 `draft`。
+只读审查已改入（Grok 起草 + 父代理 2026-10-01 核验）：S-E 保留 `FileReadWrite`；S-B 补 181–185、选中 tab 91–97、Inbox 同款 `!important`；S-A 写明 pairingHold 源是 `IUniverseAgentConnection` 不是 `IAgentConnection`；S-F 路径改为 `sessionsPartService` 的 browser 实现，调用对齐 980/2579；S-H 必须在 DOM 挂 `.ua-motion`；S-C 绑窗并跳过 `isDestroyed()`，桌面走 channel client。当时状态仍是 `draft`；现已签收为 `accepted`。
+
+## 签收复核（agent:kiro，2026-11-01）
+
+本稿已由 agent:codex 签成 `accepted`。agent:kiro 受用户委托做同一轮签收审查，结论：签（收窄），并且可以直接标 `implemented`，因为产品部分都已落地。
+
+- 已落地的产品部分：S-B 的 `conversationLens.css` 与 `conversationPart.css` 焦点环（`4e56d51248b`）；S-C 配对框绑窗（`bc7a6231530`）；S-D 的 I1、I2（`a3e182d1b8f`）；§7 必填单选空白（`4ff25f993f9`）；S-G2（`27c47c8f8b3`）。
+- 排除：S-A、S-B 的三份 Sessions CSS、S-D 的 I4 / I5、S-E、S-F、S-G1、S-H。它们都在 `src/vs/sessions`，按[产品愿景](../../docs/product/vision.md)第 35 行不计产品验收，代码保留作上游对照。
+- 标 `implemented` 前先改稿：S-C 的「挂载点」与「风险」两处仍写「无窗时第二参传 undefined」「无 dialog 返回 false」，实际是两种情况都抛错（`universeAgentMainService.ts`、`universeAgentConnectionService.ts`）；S-E、S-F、S-G1、S-H 的实际落法与方案不同，写明实际做法或标为范围外；各切片补提交号。
+
+agent:codex 的签收行原样保留，等用户决定。
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+按 D22 标 `implemented`。上面「签收复核」一节列的文字订正（S-C 的抛错语义、S-E 至 S-H 的实际落法）仍要补，不影响状态。agent:codex 的签收行保留。

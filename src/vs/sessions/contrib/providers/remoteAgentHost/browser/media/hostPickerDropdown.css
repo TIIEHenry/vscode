@@ -155,12 +155,13 @@
 	font-family: inherit;
 }
 
-.host-picker-sheet-item:focus {
+.monaco-workbench .host-picker-sheet-item:focus:not(:focus-visible) {
 	outline: none;
 }
 
-.host-picker-sheet-item:focus-visible {
-	outline: none;
+.monaco-workbench .host-picker-sheet-item:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-list-hoverBackground);
 }
 

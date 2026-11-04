@@ -1,15 +1,20 @@
 ---
-title: "视觉语言以 ChatGPT 为主参照（保留 IDE 密度）"
+title: "视觉语言以 ChatGPT 为主参照"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-28
-summary: "Conversation细节逐轮落地：中线/摘要、引用删除/按压、菜单键盘定位与13/12层级；真实浅深/HC前后图。扫描39通过2既有失败，Esc实际owner返回已红绿与真实菜单验证，未提交、不升PRD。"
+updated: 2026-11-04
+summary: "Conversation视觉逐轮落地；2026-11-04用户修订为产品自有界面全面复刻GPT视觉与输入框，文件管理器和代码编辑器保留原版字号/行高，产品自有焦点不画焦点框描边；本计划保留历史切片与实施证据，真实窗口待验。"
 ---
 
-# 视觉语言以 ChatGPT 为主参照（保留 IDE 密度）
-状态：草案。
+# 视觉语言以 ChatGPT 为主参照
+状态：执行中。负责：agent:codex。
+签收：签，签收人：agent:codex，日期：2026-11-01。
 覆盖需求：PRD-007、PRD-015、PRD-018、PRD-027、PRD-028。
+
+## 0. 2026-11-04 用户修订
+
+本计划的长期视觉与交互边界以 [GPT 视觉复刻与产品密度边界](../../docs/decisions/ui-gpt-visual-replication-2026-11-04.md) 和 [UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 为准：产品自有界面全面复刻 GPT 的颜色、圆角、图标、输入框、菜单和 item 高度；VS Code 文件管理器与代码编辑器保留原版字号和行高；产品自有界面不画 `focusBorder`、`outline`、内描边或外圈焦点框，键盘定位改由背景、文字、图标和激活态表达。下文较早的 focusBorder、旧紧凑尺寸与取样记录保留为历史证据，不再作为当前合同。
 
 
 本次菜单细节实施见 §16，近邻表面见 §15，中线/摘要见 §14，分析与原型结论见 §13；§12为首次分析交付，§10/§11保留取样前后判断与修订轨迹，不作为新的实施签收。
@@ -174,11 +179,11 @@ S1 与 S2 文件不重叠，可以并行。S3 与 S4 都改 `conversationLens.cs
 | P2 / V4 边界与动作细节 | 白画布已有细边；最新动作常显、旧动作悬浮契约已定；只读chevron是已修局部问题 | 检查用户卡/代码块/Composer边界是否清楚、旧动作是否遮住相邻回合，菜单标题/副信息是否抢主项；只用现有token与颜色/透明度反馈，不重复实施已有修复 | 浅深/HC、键盘Tab、旧动作悬停、窄列、长同名会话菜单；盒不碰撞、焦点可见、只读无伪选择线索。历史组件通过不代替当前完整窗口此项 |
 | P3 / V5 深色层次与外部取样 | S0登录桌面样本缺失；当前深色已有中性主按钮，不能写成深色完全未适配 | 产品自身先验证画布/chrome/抬起表面可辨与对比；只有拟从ChatGPT推导新的深色阶差时才依赖S0，再进入S5。外部登录不可用不阻塞V1–V4 | 产品深色与Dark Modern分别标主题；比较实际合成色与控件边界，HC另走对比描边；有来源数据且存在实际缺口才提主题token改动，不在组件写hex |
 
-推荐下一刀是 V0 后的 V1：先确认空间分配，再用同一内容判断 V2。V3 涉及状态职责，不能借降噪直接删除；V4 只修新的运行反例；V5 不阻塞本地产品优化。上述切片均未实施；方案继续 `draft`，不提升 PRD-028。
+推荐下一刀是 V0 后的 V1：先确认空间分配，再用同一内容判断 V2。V3 涉及状态职责，不能借降噪直接删除；V4 只修新的运行反例；V5 不阻塞本地产品优化。上述切片均未实施；当时方案继续 `draft`，不提升 PRD-028。
 
 ### 10.3 第一阶段检查与审查
 
-第一阶段改动仅此方案；未改产品代码、未提交。`check-docs-health.py` 为 0 errors / 37 既有 warnings，目标 `git diff --check` 通过；未改目录结构、方案状态与生成列，无需更新索引或生成状态。规则16已派独立只读 reviewer：Critical 0、Important 1、Minor 1；Important 经核对 `conversationLens.css` 用户回合选择器和 renderer 后改入，纠正 82%/100% 是同一元素的特异性覆盖，并保留运行计算值待验；Minor 已将证据节标题改为“证据与边界”。审查结论为修正后可接受，方案仍 `draft`。已核对现有源码、主题声明、规格和上述本地图片；未做新的运行、引擎链路、登录外部对照或用户效率测量。
+第一阶段改动仅此方案；未改产品代码、未提交。`check-docs-health.py` 为 0 errors / 37 既有 warnings，目标 `git diff --check` 通过；未改目录结构、方案状态与生成列，无需更新索引或生成状态。规则16已派独立只读 reviewer：Critical 0、Important 1、Minor 1；Important 经核对 `conversationLens.css` 用户回合选择器和 renderer 后改入，纠正 82%/100% 是同一元素的特异性覆盖，并保留运行计算值待验；Minor 已将证据节标题改为“证据与边界”。审查结论为修正后可接受，当时方案仍 `draft`。已核对现有源码、主题声明、规格和上述本地图片；未做新的运行、引擎链路、登录外部对照或用户效率测量。
 
 
 ## 11. V0/V1/V2 运行取样（2026-10-27）
@@ -193,7 +198,7 @@ V0已为本次取样建立关键范围绑定：四份源码/输出做内存转�
 | V2：H2–H6同13px可能削弱长文层次 | 本fixture的H1/H2/H3、段落、列表、代码头与表格可辨；计算正文13/19.5、H1为18/24.3、H2/H3为13/17.55，标题靠600及段前后距区分。窄列增加换行与代码横滚，容器仍稳定 | 撤回“同字号本身就是缺陷”与整体放大字号方向。本轮没有证据支持普遍加间距。保留混合思考/工具/权限与更深标题的节奏假设，不立即开排版实施 |
 | 旧短Stub图块间过散 | 长回答fixture没有相同混合过程构成，无法用该图证明或否定过程/权限与回答之间的归组问题 | V3仍待任务场景取样；不能删待确认/取消等状态换取简洁 |
 
-本阶段未证实需要立即实施的视觉缺陷；后续混合状态补样与最终方向已在 §12 收口。本阶段建议优先补真实任务反馈（用户是否能发现右列开关、何时需要并置材料与双会话），以及确有需求时的混合过程阅读样本；不为扩大覆盖继续跑全面UI测试。S0登录后ChatGPT对照和S5外部深色取样仍未做；现有产品深色实拍不冒充外部取样完成。方案继续 `draft`，PRD-028不升。
+本阶段未证实需要立即实施的视觉缺陷；后续混合状态补样与最终方向已在 §12 收口。本阶段建议优先补真实任务反馈（用户是否能发现右列开关、何时需要并置材料与双会话），以及确有需求时的混合过程阅读样本；不为扩大覆盖继续跑全面UI测试。S0登录后ChatGPT对照和S5外部深色取样仍未做；现有产品深色实拍不冒充外部取样完成。当时方案继续 `draft`，PRD-028不升。
 
 续轮规则16独立只读审查为 Critical 0 / Important 0 / Minor 1；Minor已清理来源JSON的探索性比较标签并说明最终static-block选项。docs-health 0 errors / 37既有warnings，目标diff-check通过。[清理记录](../progress/ui-visual-review-2026-10-26-evidence/20261027-reading-source.json) 确认仅关闭自有临时profile窗口及Xvfb，旧PID1444798仍存活。未提交、未修改产品代码。
 
@@ -211,9 +216,9 @@ V0已为本次取样建立关键范围绑定：四份源码/输出做内存转�
 | 需要真实任务反馈 | 标题栏Conversation/Preview/Sources各22px常显，ARIA/tooltip有名称与Ctrl+Shift+Alt+C/P/S，F1命令也已注册。因此不先判“入口藏太深”；控件存在不等于用户能发现。是否需要布局预设、更多可见文字、改变默认比例，应由真实双会话/并置材料任务反馈决定，不冒称已经完成用户研究 |
 | 后续证据与实现验收 | 无引擎fixture的running/pending不渲染live spinner/Cancel，符合showLiveChrome约束；真实流式强制展开/取消、目标离屏时Inbox定位仍未运行验收。本轮产品深色有真实样本，但S0登录后ChatGPT及S5外部深色未做；HC/所有合成对比度也未新增量化。它们属于未来相关实现的验收，不阻塞本次分析交付，也不升PRD |
 
-V3样本验证了状态呈现的职责分离与混合阅读的可用基线；C1/C2是明确场景、可回滚、带退出条件的审美试验，不因当前无功能bug就取消优化方向。未来实施另走需求/规格与实施检查；本稿仍 `draft`，不把“本次分析完成”误写成“所有切片已实施”或PRD-028完成。
+V3样本验证了状态呈现的职责分离与混合阅读的可用基线；C1/C2是明确场景、可回滚、带退出条件的审美试验，不因当前无功能bug就取消优化方向。未来实施另走需求/规格与实施检查；当时本稿仍 `draft`；现已签收为 `accepted`，不把“本次分析完成”误写成“所有切片已实施”或PRD-028完成。
 
-最终规则16独立只读审查为 Critical 0 / Important 0 / Minor 0；reviewer实际查看混合浅深窄叶截图并核对五组JSON与盒间距离。文档健康0 errors / 37既有warnings，主题差异检查通过。自有Electron与Xvfb已清理，旧进程及既有引擎保持，见来源JSON的 `mixedCheckpoint.cleanup`。本次持续分析及Sol文档更新交付完成；产品方案仍 `draft`，C1/C2尚未实施，未提交。
+最终规则16独立只读审查为 Critical 0 / Important 0 / Minor 0；reviewer实际查看混合浅深窄叶截图并核对五组JSON与盒间距离。文档健康0 errors / 37既有warnings，主题差异检查通过。自有Electron与Xvfb已清理，旧进程及既有引擎保持，见来源JSON的 `mixedCheckpoint.cleanup`。本次持续分析及Sol文档更新交付完成；产品方案随后已签收为 `accepted`；C1/C2尚未实施，未提交。
 
 
 ## 13. C1/C2 A/B原型结论与具体候选方案
@@ -247,7 +252,7 @@ C2-B将可见步骤串缩为 `Stub · 4 steps`，waiting/failed/cancelled计数�
 
 本次交付是A/B视觉原型和推荐/否决结论，未改产品代码、未刷新共享输出、未连接引擎、未提交。图片在本地 `/home/clarence/Projects/Agents/vscode/.build/visual-ab-20261027/`：浅色正常展开 `light-normal-expanded-A.png` / `light-normal-expanded-C1-B.png`；深色窄收起 `dark-narrow-collapsed-A.png` / `dark-narrow-collapsed-C1-B.png`；C2否决 `dark-narrow-collapsed-C2-B.png`。来源与复现探针在上述证据链接，不把临时覆盖当生产修复。
 
-本轮规则16独立只读审查 Critical 0 / Important 0 / Minor 1；Minor已据矩阵纠正动作按钮22×22px与旧动作行容器94×24px的区别，不将容器高度称按钮命中区。reviewer实际查看A/C1-B/C2-B三图并核26记录。docs-health 0 errors / 37既有warnings，主题diff-check通过；自有Electron/Xvfb已清理，旧PID1444798仍存活，原型style/标签/摘要已先恢复A，见source JSON `abCheckpoint`。方案仍 `draft`，PRD-028不升，未提交。
+本轮规则16独立只读审查 Critical 0 / Important 0 / Minor 1；Minor已据矩阵纠正动作按钮22×22px与旧动作行容器94×24px的区别，不将容器高度称按钮命中区。reviewer实际查看A/C1-B/C2-B三图并核26记录。docs-health 0 errors / 37既有warnings，主题diff-check通过；自有Electron/Xvfb已清理，旧PID1444798仍存活，原型style/标签/摘要已先恢复A，见source JSON `abCheckpoint`。当时方案仍 `draft`；现已签收为 `accepted`，PRD-028不升，未提交。
 
 
 ## 14. 默认编辑器细节实现：底栏中线与过程摘要行（2026-10-27）
@@ -402,4 +407,150 @@ SessionBar13过，原生键旧用例改真实DOM键后红0/1→绿1；扫描前�
 
 新增真实双 TimelineHost 同 turnId 的生产组件回归，经双方真实内容 patch 触发用户行重建，核 DOM 对象归属与每叶一张输入；A 退出及销毁后 B 仍只持有自己的节点。它是组件测试，不能写成双 Lens 默认窗口实拍，也不证明“编辑中直接销毁”与真实引擎退订。原单叶 XOR / Chrome 放置 / 发送门闩继续保留。最小代价为三生产调用链和一测试文件的实例归属调整，无迁移、无新设置。
 
-本条窄修复已获独立设计/源码审查，当前尚未运行；最终来源、实际定向结果及限制由[本次收尾证据](../progress/session-closeout-2026-10-28-evidence/README.md)记录。全视觉方案保持 draft，PRD 不升。
+本条窄修复已获独立设计/源码审查，当前尚未运行；最终来源、实际定向结果及限制由[本次收尾证据](../progress/session-closeout-2026-10-28-evidence/README.md)记录。本条尚未运行；全视觉方案已签收为 `accepted`，PRD 不升。
+
+## 20. Navigator 与会话列表中性选中态（2026-11-01）
+
+状态：已实施，整体视觉方案已签收为 `accepted`，仍保持草案中的未实施切片边界。
+
+默认编辑器窗口的 Projects、Agents、Team 与 Sessions 列表收拢到 ChatGPT 主参照的近白表面语言：列表行使用 `cornerRadius.medium`，悬停使用前景色约 5% 的淡底，选中使用约 9% 的中性整行底色，按压再加深到约 12%。Projects 的工作目录行使用更清楚的文件夹层级，会话行保留缩进，当前会话按同一中性胶囊渲染；行尾 Open / Delete / New session 操作保持原语义并收成轻量图标按钮。Projects 的活动会话不再画左侧蓝色竖条，状态图标、待确认计数、键盘焦点和 22/24px 密度保持不变。规则只落在自有 Navigator/Conversation CSS，不调整上游 Activity Bar 尺寸或 Sessions 窗口壳。
+
+本轮验证范围：定向 stylelint、`git diff --check` 与源码级 CSS contract 检查。定向 test-node 在加载测试套前被缺少 `@parcel/watcher-linux-x64-glibc` 阻塞；未启动默认窗口、未做浅深主题实拍、未运行全仓编译。若后续实拍发现深色对比不足，沿主题 token 调整表面，不把移动端的大行高搬入桌面。
+
+## 签收复核（agent:kiro，2026-11-01）
+
+本稿已由 agent:codex 整篇签成 `accepted`。agent:kiro 受用户委托做同一轮签收审查，结论：签（收窄）。
+
+- 排除 §20。它对应的 CSS 还没提交，没过规则 16 只读审查，也没有实拍；行圆角改成 `cornerRadius-medium`、当前会话行改成 `cornerRadius-large`，与 [ui-design-principles](../../docs/architecture/cross-cutting/ui-design-principles.md) §3.1（行悬停底用 `cornerRadius.small`，large 只给浮层与用户回合卡）和 §1.1 侧栏一行冲突；保留的 `0.12s` 过渡超过原则七的 100ms。按 DOCUMENTATION 规则 16，未审的部分不能标成签收完成。
+- 排除 §13 的 C1-B（前提「同轮组身份合同」未定）与 C2-B（已否决），它们是原型结论，不是实施承诺。
+- 签收覆盖 S1–S4、§14–§19 的已落地部分（`773eafd007f`、`0d5a910b6f0`、`ae8297add7f`、`1246e0ca354`）。S0、S5 等用户提供登录取样；S6 剩下的验证见 §12。
+- 文字待修：summary 仍写「未提交」、updated 曾是 10-28；文首一句重复了两次；§18 排在 §19 后；§18 写「当前尚未运行」已过时。PRD-028 已是 `accepted`，不改状态。
+
+agent:codex 的签收行原样保留，等用户决定。
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面复核留下的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+- §20：不按现稿提交。按 D2 改：Navigator 与会话列表的悬停、选中走主题 `list.*` 颜色，行圆角 `cornerRadius.small`，过渡不超过 100ms，当前会话用标题 600 字重、不画竖条。由 §20 的作者改完对应 CSS 后补一次规则 16 只读审查。
+- §13.1 的 C1-B（同轮 12px）：作废。相邻回合间距按 D18 的 V3 回到规范 §4 的 16px。
+- 其余按上面「签收复核」：S1–S4、§14–§19 签收，S0、S5 等外部取样。
+
+## 21. 2026-11-02 用户修订：会话列表舒展尺度
+
+本节覆盖 §3.4、§4、§8 对 Sessions / Projects 的紧凑上限；其余既定行为不变。以用户附件为视觉参考，不把截图缩放后的像素声称为实测 CSS。
+
+- Sessions / Projects：虚拟列表 delegate 与 CSS 同步改为 40px；组头同轨，项目组头 52px（上方 12px 留白，内部 40px 行轨；包括第一组），其它行 40px。行内左右 12px、圆角 xLarge（12px），按钮 28px、图标 16px。窄栏维持高度，长标题省略并保留提示。
+- Sessions 空闲重复会话图标不占位；进行中、失败、等待确认图标仍常显。Projects 空闲会话图标去掉，项目文件夹、展开箭头保留。
+- Projects 行尾由 Open / Delete 两个图标改为一个更多按钮，菜单复用原动作与禁用原因、删除确认；当前工作目录 New Session 保留，不新增钉住。Sessions 沿用已有更多菜单，调整命中区。更多在 hover / focused / focus-within 显露，选中但未交互时保留时间。
+- 键盘沿用列表键盘导航与菜单机制；右键和键盘上下文菜单也接相同动作。主题颜色与高对比焦点保留，不改 Sessions 产品入口。
+- 只修改这两个列表，先跑定向 compile / eslint 与现有行样式、Projects / Sessions 测试；将旧行高断言明确改成 40px，圆角 medium 改为 xLarge。实际窗口尚未复验时不宣称像素复刻完成。
+
+审查：同会话只读 reviewer C0/I3，已核验并纳入：Projects 新增 tree.onContextMenu，更多入口始终可展开，禁用原因在菜单动作中可读；菜单捕获打开时的 sessionId，行回收不能改写目标，动作执行时再次核对连接。Esc 关闭菜单返回列表。
+
+明确替换：conversationSessionsView.test.ts 普通/compact 22px → 40px；navigatorProjectsList.test.ts workdir 24px → 52px（含组前12px）；navigatorProjectsListCss.test.ts medium → xLarge。Projects 原按钮测试改为展开菜单后验证 Open/Delete 及禁用原因。保留 list 主题色与高对比焦点，不用硬编码灰色覆盖主题。实施：执行中。
+
+实现窄复核（2026-11-02）：review_list_plan C0/I1，旧菜单跨连接归属意见已采纳：捕获 engineIdentityId / linkId / 连接修订，执行时失配拒绝；新增同ID旧菜单连接变化回归。Minor 采纳：只在取消菜单且视图可见时主动恢复列表焦点。
+
+本轮实施记录：本地验证：最新两个组件测试88 passing / 5 pending，Projects CSS检查3 passing，定向ESLint 0 errors（Sessions相关3 warnings）。compile-client曾于本轮19:33通过；末轮重跑仅在其它并发WIP engineToolsSection.ts:177报 Toggle 缺inputActiveOptionForeground，当前组合树编译未通过，未修改该文件。docs-health/wiki check无错误。实际默认窗口视觉/键盘复验未完成，未提交。
+
+## 22. 默认窗口视觉续补：按 UA 功能适配 GPT
+
+状态：执行中；本节为用户要求继续的实施范围，待规则16只读审查后开代码。
+
+- 活动栏：仅Modern UI标准档从36px行/列改为48px，维持8px纵向组距，图标24px；选中/hover底为居中的40px圆角矩形，12px圆角。compact显式设置保留。badge、溢出、拖动提示、四区域与Accounts/Manage入口不变；JS尺寸与CSS共用变量。
+- 侧栏：沿用产品浅灰主题与上一节40px列表；不改成GPT功能导航。列表右侧菜单/状态保留；不改Sources/工程树的密度。
+- 阅读区：在Conversation区域声明800px共享宽度变量；时间线正文、身份条、陈旧快照说明、空会话hero、Composer外框同列居中，窄叶16px内衬。不改变时间线测量/滚动、Tray/Trajectory布局。
+- 空会话：添加本地化标题“What would you like to work on?”作为非交互heading，身份/工作目录依旧在输入上方，避免CSS order造成键盘顺序变化；空会话不画假对话。
+- Composer：单一卡片与原移动/行内编辑生命周期不变。20px圆角与细边、柔和阴影；文本左内衬16px。底栏44px，图标/发送/select命中32px，图标16px，左侧上下文/Tools/Permission/可选Agent，右侧Model/发送。窄叶底栏允许按DOM顺序换行，不缩小按钮；模型长名截断带原tooltip。输入至少两行/活动空稿单行/放大逻辑不变。
+- UA功能约束：Stop、Goal和队列留在Inbox，权限/工具/模型不可用与离线原因保留，Permit警告保留；不加麦克风/插件/钉住，无引擎仍诚实降级。仅改变视觉，不改RPC和会话归属。
+- 断言更新点名：conversationLensCssScan.test.ts 的 Composer bar28→44、send24→32、cluster内衬与宽度改为共享变量；activitybarPart.test.ts Modern UI标准静态期望36→48。原UA行为断言保留。
+- 验证：compile-client、定向eslint；activitybarPart、conversationLens、Composer chrome、行样式测试；隔离默认编辑器窗口截图，浅/深、窄/宽、键盘焦点。通过.launch技能创建临时配置，不连真实引擎，不拿无引擎截图冒充真实引擎验收。已发现/tmp空间不足，改用/sdd/tmp临时目录，失败临时副本已清理。
+
+审查：review_list_plan只读审查C0/I3，已核验采纳。宽度仅白名单：timeline-content/stream、pinned-user-inner/pinned-inner、identity、stale、hero、composer、gate/inbox及回到底部定位；Trajectory list/body的720px保留。800px指外框border-box，标准横向内衬16px。底栏44px是min-height，leading/trailing同步自动增高/换行，清除末尾narrow/compact固定24px及overflow-y:hidden限制；293px叶宽、Permit/长模型组合须检查。活动栏compact设置仍为28px行（floating列28px）；Modern UI compact仅收间距/lane，标准activityBar尺寸仍48px，不误认为同一设置。新增heading不参与active/行内编辑，最大化时隐藏标题。
+
+补充：SessionBar及part级region-chrome同步40px，lens tab32px、标题操作28px；CSS flex与ResizeObserver负责内容再布局。History/Snapshots/Trajectory/隐藏入口保留。相关测试旧标题28px/tab24px断言依次改为40/32，仅Conversation作用域，不动Sources/Engine tabs。
+
+实施：执行中。
+
+§22补充核验：默认窗口实测Modern UI关闭，因此同一产品样式文件为非Modern UI标准活动栏补同样4px内缩/12px圆角选中底；不强制开启实验开关。显式compact维持原行列尺寸。组件断言补充点名：conversationLens.test.ts T2 bottomBarMinHeight28→44、sendHeight24→32，与DockStrings导出控件高度32一致；activitybarPart.test.ts stride标准44→56、Modern UI紧凑密度40→52（含原间距）。Session controls宿主32px/overflow visible修正只读实现复核I1裁切，28px按钮完整显示。阻碍组合编译的Engine Tools Toggle缺参数仅补inputActiveOptionForeground，不改其并发实现。
+
+## 23. 用户纠偏：高度过大（2026-11-02）
+
+状态：执行中。用户指出上一版高度太大，本节优先于§21/§22尺寸。Sessions/Projects行40→32px，项目组52→44px（仍含12px组前留白），行尾28px保持；Conversation标题40→36px，tab32保持（紧凑宽也32），标题操作28与宿主32保持。Composer按钮/select/发送32→28px，底栏min-height44→36px，内衬4px 12px（总高至少36），卡片顶8px、内间距8px；活动空稿输入32px保留，空会话输入52px保留，正常空会话约106px。只读Agent长原因单行截断、full title/aria保留，并允许宿主收缩；中宽度leading不再因原因文本换成两行，真实窄叶仍可换行。800px共享列、主题、功能/状态、菜单、UA保存和权限门控不变。
+
+明确断言同步：Sessions两个行高40→32；Projects组高52→44；Lens T2 min-height44→36/send32→28/DockStrings32→28；Lens CSS scan同项同步。ActivityBar48标准行列不扩大。要检验窄叶无横向溢出、原因可读与焦点命中完整。待同会话只读核验后执行。
+
+§23规则16只读审查review_list_plan C0/I1已核验采纳：leading/trailing最小高度32→28，Permission/Agent/Model宿主24→28；只读Agent宿主min-width0/flex-shrink允许，span单行省略、title与aria不丢。总高106仅估算，以实测为准。实施：执行中。
+
+## 24. 同屏参考图与用户明确范围：列表行
+
+状态：执行中。用户补图并明确回答「列表行太高」。本轮继续收紧仅限列表：Sessions/Projects 30px行，项目组42px（含12px组前留白），28px行尾命中保留，13px标题字号不缩小；32px行是中间稿。输入区保持§23当前实现，不再因这条反馈继续缩小。row delegate/CSS/普通与compact断言同步30，Projects组高断言42。参考图用于视觉比例，不声称实测对方CSS。
+
+## 25. 同屏差异全部修复与 Terra 对比审查
+
+状态：执行中。用户指出上一轮不像，要求全部修复，并在修复完成后由Terra对比审查。
+
+- Sessions/Projects：标题14px局部导航变量，30px行保留，8px列表外留白、12px行内衬、12px圆角。delegate/layout宽度与CSS外留白同步减16px，窄栏不溢出；列表hover为前景2.5%、选中4%，高对比走主题与焦点线。
+- Sessions标题起排；尾部紧凑状态：waiting铃铛+数字、running转圈、failed错误常显；idle无图标，有访问时间时仅短时间。不再渲染No messages/完整消息数，已有hover与ARIA继续完整。More未显示时不预留28px空位，hover或真正键盘focus时出现；状态不因此消失。日期分组保留，组头42px含12px留白，非选择项。
+- Projects保留真实工作目录分组与树折叠。可见组标题去重复current session后缀（用已有workDirGroupLabel(path,false)，底层label/ARIA不变），路径在原title/ARIA可查。会话消息数详情不占标题；通过真实roster的tone/pending渲染尾部状态，生命周期与原菜单归属检查不变。组头42px内部30px，文件夹16px；父子缩进控制为12px，沿用tree组件，不手绘假项目或把Sessions强改项目组。
+- 仅Sessions/Projects所在侧栏title取消大写样式，18px半粗标题；搜索保留原功能、正常14px字。浅色产品sidebar背景FAFAFA，主区白，活动栏仍F6F6F6；其余主题用token，不把来源/失败状态抹成灰。
+- 活动栏标准项48→44px步距、图标24→20px、选中底36×36居中（Modern UI标准也44、gap0）。栏宽仍48；两个compact概念保留：显式activity compact仍28px/16图标，Modern UI compact仅保留紧间距。JS composite/overflow/badge预算同步，产品CSS内实现，不改业务图标含义，也不复制GPT专有图标。
+- 不再调整Composer高度；此前UA上下文/工具/权限/模型、独立Stop/Goal/队列、引擎与工作根身份条保持。
+- 明确更新测试：Sessions No messages/1 message可见副标题→空可见副标题但ARIA/hover保留；projection count测试转验证ARIA计数随详情刷新、可见pending数仍1；compact用ARIA区分同名项。Activitybar标准actionHeight48→44/icon24→20，Modern stride56→44、compact-density52→48，其它维度依原公式。Projects CSS检查路径仍有title、状态常显且hover不隐藏、外边距预算一致。
+- 完成代码与本地验证后，开启指定`gpt-6.1-terra`只读对比审查：原参考图`/tmp/codex-clipboard-847e2988-7306-4621-9d95-5af8255f288b.png`、原GPT其它参考与新1440/1024浅深实拍、实际尺寸、源码diff。审查关注比例/状态/操作，Critical/Important修复并复审。不把无引擎取样写成真引擎验收。
+
+规则16方案只读审查：待完成，未开始代码。
+
+§25规则16只读审查C0/I1已采纳：Sessions header delegate42px/session30px，layoutList回退按entry逐条求和，不按条数乘固定高度；补至少两组日期偏移/末行可达测试。More用列表focus-visible+focused行或按钮focus-within，不用focused独立常驻；CSS容器外留白缩宽一次，layoutBody按outerwidth减16，layoutList按已缩小clientWidth直用。状态回idle清空计数与glyph。实施开始。
+
+§25测试合同补充：Projects compact可见workdir名从“live · current session”改为“live”，title继续包含完整旧标签/路径；行操作测试改按完整title找到工作目录，不再假定可见文本包含旧后缀。日期组DOM/末行回归已过。
+
+§25实际盒修正：Projects原twistie将深度计入padding（根30px、子38px），现保留原生indent span的实测深度，但让其参与flex并将twistie固定16px，避免重复计入。原生折叠/键盘行为保留；组头42px的12px空白移至row外padding，内部标签明确30px，消除42px继承line-height裁切。菜单展开时保持More锚点可见，取消恢复列表焦点，避免渐进显示改动导致菜单锚点消失。
+
+Terra首次完成后对比审查（gpt-6.1-terra，只读）：Critical0/Important0/Minor1，确认Sessions排版/活动栏比例与状态/菜单保持；不称像素复刻，真实引擎组与运行失败目视未验。Minor采纳：Local folders路径也不占行内标题，原资源title与树ARIA保留；追加真实240px侧栏截图后交Terra复核。
+
+## 26. 输入卡整体验证与视觉修复（2026-11-02）
+
+状态：执行中。用户补上UA/下GPT输入框同屏图，指出视觉相差很大。本节不重开已完成的导航修正，Terra在输入修复完成后一并复审。
+
+- 卡片：20→24px局部圆角；普通描边前景8%（当前10%），聚焦10%（当前20%），保留1px细边与HC强边。阴影改为低透明度2/4与8/32px两层，聚焦仅轻微加深；不画外圈光环。
+- 排版：input、Permission、Model字号局部14px，草稿line-height24px。输入box-sizing border-box，padding 8px 36px 8px 12px；base min-height48px。placeholder浅色弱化，深色/HC仍沿主题token，禁用控件状态不抹掉。
+- 活动空稿：仍走原is-single-line条件，仅把输入盒32→48px；卡顶8px、gap0、40px底栏、边框约2px，合计约98px。输入有一行文本时base48px+gap8，约106px；原有单实例、自动增高和行内编辑生命周期不变。
+- 空会话：输入min-height64px，容纳两行24px文字+16px内衬，整卡约122px；实际高度依内容/引用增加。不能为抄高度截断文本、引用、失败/不可用说明。
+- 底栏：40px最小高度，padding4px 8px 8px；按钮与select仍28px，图标16px，chevron12px。enabled幽灵按钮前景色与文字一致，禁用沿原状态。模型仍靠右，send圆尺寸与已有状态不变；UA Tools、权限、可选Agent保留，Stop/Goal/队列仍独立Inbox。
+- 窄叶：取消多余input-row左右8px叠加；leading flex 1 1 auto、trailing 0 1 auto，在More+Model/Send能放下时同一行，放不下才wrap。原narrow More功能内容、权限门控和模型截断不变。
+- 明确断言：conversationLensCssScan.test.ts S5/single-line旧32px→48px，输入padding旧4/32/0/16→8/36/8/12；卡片radius20→24、shadow两层与focus10%，bar36→40/padding4/12→4/8/8；send28不变。conversationLens.test.ts T2 bar36→40；保留293px More+长模型/发送不溢出、Submit/Busy/队列/编辑/放大行为断言。
+- 验证：先规则16只读方案审查；compile-client/eslint、相关组件与CSS扫描；隔离默认窗相同CSS缩放下拍活动空稿/输入文字/空会话/聚焦未聚焦/浅深/窄叶，记录实际盒。对照新reference.png，颜色需区分GPT正在生成与UA无引擎的不同状态，不能把蓝色Stop当成禁用Send应有颜色。完成后指定Terra只读对比，C/I闭环。
+
+审查：review_list_plan只读审查C0/I0/M2；两项均采纳：同步旧single-line padding/line-height及窄叶flex-basis/input-row内衬。已实施，验证中。
+
+§25/26完成本地实施与截图比较：272组件通过5pending、编译通过、CSS41过2个D17旧Engine断言。Terra完成后复审C0/I0/M0，导航路径Minor关闭；证据见dev/progress/conversation-gpt-visual-evidence/verification.md。无真引擎黄金路径验收，整体PRD不升，未提交。
+
+## 27. 圆角图标轮廓与内衬（2026-11-02）
+
+状态：执行中。用户追加侧栏与输入卡局部图，要求1:1复刻圆角、图标质感和padding。参考截图是栅格图，未提供原SVG；以相同文字/行尺度重建轮廓，不宣称取得原始图标资产。
+
+- 继续使用frontend-design、pc-web-ui-interaction；用户截图优先于通用密度默认。30px列表、14px字、28px按钮、24px输入卡壳/40px底栏保持，避免反复放大缩小。参考侧栏背景胶囊约60截图像素高，对应30px本地行；圆角约22–24截图像素，对应12px，本轮不将整行改成全圆胶囊。
+- 新建workbench/browser/media/uaRoundedIcons.css，由Lens、Sessions、Projects各自引入。局部现有codicon类的::before使用本地SVG data mask：16px画布、1.5px圆头/圆连接描边，currentColor着色。仅覆盖这些UA表面的add、ellipsis、folder、arrowUp、permission shield与模型chevron；Tools重画为同线宽圆连接工具轮廓。保留原图标类、DOM、title/ARIA、监听器与状态/禁用门控；不全局替换Codicon、不依赖字体描边滤镜。
+- 加号有效轮廓12px居中16px；More为三颗等径圆点、中心对称。文件夹开口弧线与圆连接重画；Permission沿原warning语义换盾牌感叹号，不引入麦克风或pin功能。原图pin只作为有对应功能时的视觉参考，现有UA无pin入口则不造按钮。运行/失败glyph不受影响。
+- 输入底栏left/right8px，28px按钮/8px组间距保持，输入左12px；模型chevron12px画布、1.5px描边，避免字体的细小锯齿与假粗。Sessions More圆形hover命中底与弱化中性前景；Projects actions同样28px圆底，状态常显。
+- 验证：编译或快速transpile保证CSS引入生效；现有Sessions/Projects/Lens组件与CSS扫描。隔离默认窗浅深、hover/菜单/窄栏实拍并测mask命中区与padding；用户指定Terra完成后只读对照本次两张reference。截图无法消除未知原始缩放或证明像素级资产一致；不伪造蓝色Stop与pin。
+
+§27只读review_list_plan审查C0/I1/M3：I1采纳，mask规则只在非HC且forced-colors:none生效，高对比与强制颜色保留原Codicon；验证发送/More/权限焦点。M采纳明确宿主白名单、空content/居中mask、许可证与引入核验。
+
+§27完成：局部SVG轮廓与3入口样式引入，HC/forced-colors原图标回退；实际More菜单、浅深/窄窗取样完成，238组件过5pending，compile-client通过，Terra只读C0/I0/M0。参考SVG不可得，仅重绘轮廓，不称像素原资产一致。证据见verification.md的§27记录。
+
+## 28. 菜单视觉参照（2026-11-02）
+
+状态：执行中。用户补菜单主层及子菜单截图要求复刻；只匹配视觉，继续UA功能范围。
+
+- Sessions/Projects原contextMenuService delegate增加getMenuClassName，白名单ua-rounded-menu及各自归属类。新uaRoundedMenus.css三个入口引入，只作用这些菜单及Composer自有Add/More/Tools/Templates浮层，保留原菜单引擎与键盘/鼠标/取消/锚点算法，不改全局Menu。
+- 截图文字约28像素与本地14px对应，仅作尺度归一假设：14px菜单文字，行最小30px（长禁用原因允许增高），shell圆角16px，4px内衬，行圆角12px/水平8px、图标16px、标签间8px；最小宽184px（最多视口减16），正常前景8%细边、widget.shadow柔和投影，HC/forced保留主题强边和焦点。hover/focused用中性淡灰，shortcut12px弱化右对齐，分隔线8px外留白。
+- 原生菜单本身没有暴露Action图标渲染选项，不扩散改基础Menu。当前固定动作菜单按归属类/固定动作位渲染装饰::before（Sessions仅Open beside，Projects依次Open/Delete）；装饰无语义/不接收事件、不占checked槽；测试现有动作次序合同与委托类。图形使用局部圆头SVG，HC/forced使用同语义Codicon；不按中文文本选取。今后菜单内容变化须同步图标位映射。
+- UA无重命名/置顶/未读/移动项目/归档菜单合同，不引入截图专属操作、假快捷键或空子菜单。现有快捷键如有由原服务提供，子菜单样式只继承壳层，保留原生左右翻转和定位，不为复制间隙用transform破坏锚点。
+- 验证现有Sessions/Projects/Lens测试与CSS扫描，新增委托class断言纳入已有菜单用例；隔离默认窗浅深More菜单/键盘Escape焦点/Composer Add/窄窗/forced-colors；无真引擎Projects菜单仅组件验证不冒充实际窗口。完成后Terra对照复审。
+
+§28只读审查C0/I0/M3已采纳：行/label长原因同时解锁高度与white-space；图标位限定直接动作列表不影响子菜单；Composer Add的搜索/分组/hidden原结构保持。
+
+§28本地完成：238组件过5pending、compile-client与lint无错误；CSS41过2个D17旧Engine断言。浅深/窄窗/forced菜单实拍与Escape焦点完成，最终壳186×40/行30，去除内层重复border。Terra C0/I0/M0，真实Projects多项/子菜单与长不可用说明仅代码/组件合同覆盖，未真窗实拍。未提交，证据见verification.md §28。

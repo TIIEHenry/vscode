@@ -259,9 +259,9 @@ export class EnginePluginsSection extends Disposable {
 		this.hooksTable.style.width = '100%';
 		const head = DOM.append(this.hooksTable, $('thead'));
 		const headRow = DOM.append(head, $('tr'));
-		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookType', "hook_type");
-		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookPriority', "priority");
-		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "class_name");
+		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookType', "Hook Type");
+		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookPriority', "Priority");
+		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "Class Name");
 		this.hooksBody = DOM.append(this.hooksTable, $('tbody'));
 
 		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));

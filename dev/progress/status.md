@@ -3,17 +3,23 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-31
-summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。 Sources Pane固定ff224规则16 C0/I0/M0/root采纳，独立accepted docs；固定ae902原Astra窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；J保候选等lease当前业务门，真实接入/最终源码runtime另定。 J本地完整D22d保留，114矩阵仅静态，非运行信用；D的c2词法输入已获root独核，五target/loaded/独立after仍待。 C/F S2主题已提交5a56d0a5/1a0988dd，独立200/133全过、原项目noEmit0与证据文档门禁已收；Git窗归还，产品真实合入与组合验证待。"
+updated: 2026-11-04
+summary: "工作区三主题已按 GPT 视觉复刻 / 设置页视觉对齐 / 审查收口拆三笔提交；U1 活态半成品新增 5 条 DisposeGate 红已记 D17。钉死引擎换到干净 027ab7ed03 构建；真实引擎/窗口/打包验收与既有验证债仍保持。"
 ---
 
 # Development Progress
 
+- **工作区三主题提交（2026-11-04）**：按主题拆三笔入库——① GPT 参考图视觉复刻（会话/导航/活动栏/图标/菜单/Composer，随行未登记的 U1 活态半成品 `conversationLivePhase.ts`）② 设置页视觉对齐（Engine/Connection/Client）③ 审查收口、决定与文档状态行。U1 半成品使 `conversationLensDisposeGate` 新增 5 条红（166 过/5 败，方案 §14 点名不能当已签收实现），连同 CSS 2 红记入 [D17](deferred-gaps.md)；compile-client 0 错误、docs-health / wiki check 0 错误。红测只挡 plan/PRD 升 implemented，真实引擎与默认窗验收仍欠、未推送。
+- **默认窗口GPT参考图视觉（2026-11-02）**：最终导航30px/14px、活动栏44px步距；输入框按用户追加图修正24px圆角/14px文字/40px底栏，活动空稿实测98px、首屏122px。UA功能门控保持。Terra完成对比C0/I0/M0，旧路径Minor关闭。 §27追加圆头SVG图标/行尾圆底与padding校准，当前轮238组件过5pending，浅深/强制颜色实拍和Terra复审通过；原SVG像素一致不作保证。 §28菜单壳/行/图标/内衬同参考校准，原生操作与焦点恢复保持；238组件过5pending，Terra复审无待修问题。compile-client通过、272组件过/5pending，CSS41过2处Engine旧断言记D17；隔离默认窗浅深/窄栏取样，无真引擎验收、未提交。见[证据](conversation-gpt-visual-evidence/verification.md)。
+
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 
+- **其余设置页视觉（2026-11-02）**：Connection/Client/其余Engine三路组合完成，浅灰导航、居中分组与字段分层；Client原生虚拟行几何保持。Engine832过，Connection/样式/Client269过4pending；目标类型20文件0诊断、lint0错17警告；47张受控组件截图无横向溢出。见[证据](preferences-visual-alignment-evidence/verification.md)。未full compile/真实引擎窗口验收，PRD不升，未提交推送。 用户截图追补修正外层切换栏对称内缩与断连条安全边距，新增盒测量；定向50过4pending。
+- **Engine 设置视觉（2026-11-02）**：按用户 ChatGPT 参考图调整浅灰导航、居中白底分组、Tools 双行/右侧开关与单列表滚动；保留保存协议，不加搜索筛选。定向 Electron 48过，五种组件渲染与键盘/受控保存检查通过；[证据](engine-settings-visual-evidence/verification.md)。真实引擎默认窗口未验，方案 accepted/PRD不升；未提交未推送。
 - **当前组合源**：真三路24e/58972保留双方实现及作者1246原生键盘增量；固定 `58972a2f679b125f97fd488e823961491dee4bc3` 的49 TS + 1 CSS已fresh，50份source/output hash运行后复查相同。
 - **当前实际验证**：Electron13文件521/0 exit0，含真实双Host composer归属；Node五文件97过2败 exit1，其中UA四suite58/0。两败与10/27原日志同CSS断言，本轮未重跑旧HEAD。49目标语义0；lint0error/44warning，未逐条基线差分，订阅八TS0warning。[准确范围/日志](session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。
-- **签收边界**：D1389及订阅方案仅代码/自动层closed/implemented；Automation仅Sessions兼容，不算默认编辑器产品交付。D405/V-S5真实窗口与引擎手测仍open，大视觉plan仍draft，PRD未提升；未fullCompile、未新引擎、未真实默认窗口视觉验收。
+- **钉死引擎换版（2026-11-01）**：按 EIR-2 决定从旧 `10635d612dac` 换到干净 detached `027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`；重编 `grpc-api`、`grpc-server`、`remote-agent-server`、`hook-jvm`，`engine/VERSION` 标记 `source_dirty=false`，`engine/lib.SHA256SUMS` 固定模块清单。首次启动因遗漏两个运行时模块触发 `NoSuchMethodError`，补齐后 50061 已稳定监听；重启后 IDE 能力探测自动到达，`AgentService/GetQueue` 返回 `INVALID_ARGUMENT`，未做 RPC 反射、手工业务调用或默认窗口验收。
+- **签收边界**：D1389及订阅方案仅代码/自动层closed/implemented；Automation仅Sessions兼容，不算默认编辑器产品交付。D405/V-S5真实窗口与引擎手测仍open，大视觉plan仍draft，PRD未提升；未fullCompile、未完成新钉黄金路径、未真实默认窗口视觉验收。
 - **lease保持**：[原new实测/恢复](conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)仍40项39过1败、238hooks，official1/Mgreen=false/fullCompile=false；恢复已接收，L5 successor方案draft/未审，本轮无L5新run。
 - **同步状态**：第一次父ff到c1因ENOSPC exit128，主HEAD/index未进。两ignored缓存完整校验迁sdd并接symlink；2748部分checkout原件完整quarantine后，仅撤销本次2739新文件与9文档写入。主回1246/clean且index SHA前后相同后，父13:20Z实测ff至9a215378成功exit0，两树当时同HEAD/clean；见[成功同步回执](session-closeout-2026-10-28-evidence/sync-main-fast-forward-9a215378.receipt.json.gz)及[事故/恢复](session-closeout-2026-10-28-evidence/README.md#主工位同步-enospc-与恢复2026-10-28)。
 - **工位保全**：B13文档+531证据、H4附件、I两symlink、C/F/D/J clean未合正式分支均保留。未push，不称全部工位同步；主工位已由父独核后ff至9a，本次仅补记该实测事实。

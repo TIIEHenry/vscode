@@ -17,6 +17,7 @@ import { conversationLensTurnViewInTrajectory } from './conversationLensSessionB
 import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summarizeProcessStepParts, summarizeThinkingTools } from './conversationProcessFoldModel.js';
+import { isConversationRowActive, type ConversationDisplayMode } from './conversationLivePhase.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
@@ -76,6 +77,7 @@ export interface ProcessFoldDomOptions {
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
+	readonly displayMode?: ConversationDisplayMode;
 	/** When false, Cancel stays painted but aria-disabled (D297 pairing-hold). */
 	readonly writesEnabled?: boolean;
 	/**
@@ -292,7 +294,7 @@ export function renderProcessFoldSpan(
 	}
 
 	function syncFoldSummary(next: ProcessFoldSpan): void {
-		const parts = summarizeProcessStepParts(next, { showLiveChrome: options.showLiveChrome });
+		const parts = summarizeProcessStepParts(next, { showLiveChrome: options.showLiveChrome, displayMode: options.displayMode });
 		summary.textContent = parts.steps;
 		statuses.replaceChildren(...parts.statuses.map(text => {
 			const count = $('span.conversation-process-fold-status-count');
@@ -844,7 +846,7 @@ export function renderFileEditCard(
 		const label = fileEditDisplayPath(turn);
 		path.textContent = label;
 		path.title = label;
-		const executing = isExecutingTurn(turn, { showLiveChrome: options.showLiveChrome === true });
+		const executing = isExecutingTurn(turn, options);
 		appendProcessFoldToolCancel(line, turn, executing, options, disposables);
 
 		if (!canOpen) {
@@ -1039,14 +1041,11 @@ function formatThinkingSummary(turn: ConversationStubTurn, tools: readonly Conve
 	return localize('conversationProcessFold.thinkingLoading', "{0} · Loading", base);
 }
 
-function isExecutingTurn(turn: ConversationStubTurn, options: { readonly showLiveChrome: boolean }): boolean {
-	if (!options.showLiveChrome) {
-		return false;
-	}
-	return turn.toolStatus === 'pending' || turn.toolStatus === 'running' || !!turn.streaming;
+function isExecutingTurn(turn: ConversationStubTurn, options: { readonly showLiveChrome?: boolean; readonly displayMode?: ConversationDisplayMode }): boolean {
+	return options.showLiveChrome === true && isConversationRowActive(turn, options.displayMode ?? 'live');
 }
 
-function processFoldSpanHasExecutingTurn(span: ProcessFoldSpan, options: { readonly showLiveChrome: boolean }): boolean {
+function processFoldSpanHasExecutingTurn(span: ProcessFoldSpan, options: { readonly showLiveChrome: boolean; readonly displayMode?: ConversationDisplayMode }): boolean {
 	for (const node of span.nodes) {
 		if (isExecutingTurn(node.turn, options)) {
 			return true;
@@ -1082,14 +1081,18 @@ function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldD
 
 function formatToolSummary(turn: ConversationStubTurn, options: ProcessFoldDomOptions): string {
 	const base = turn.summary ?? turn.text;
-	if (!options.showLiveChrome) {
+	if (options.displayMode === 'stub' || (!options.showLiveChrome && options.displayMode === undefined)) {
 		return base;
 	}
 	switch (turn.toolStatus) {
 		case 'pending':
-			return localize('conversationProcessFold.toolPending', "{0} · Pending", base);
+			return options.showLiveChrome
+				? localize('conversationProcessFold.toolPending', "{0} · Pending", base)
+				: localize('conversationProcessFold.toolIncomplete', "{0} · Incomplete", base);
 		case 'running':
-			return localize('conversationProcessFold.toolRunning', "{0} · Running", base);
+			return options.showLiveChrome
+				? localize('conversationProcessFold.toolRunning', "{0} · Running", base)
+				: localize('conversationProcessFold.toolIncomplete', "{0} · Incomplete", base);
 		case 'failed':
 			return localize('conversationProcessFold.toolFailed', "{0} · Failed", base);
 		case 'cancelled':

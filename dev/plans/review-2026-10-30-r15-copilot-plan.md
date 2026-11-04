@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r15：copilot 扩展方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 3，weaken 1，drop 1。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 3，weaken 1，drop 1。r15-4 不拒绝已存在的空文件；r15-5 维持 drop。未实施，不升 PRD。"
 ---
 # 十六路审查 r15：copilot 扩展方案
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 对照 `extensions/copilot` 活码后的改法。只描述要改的行为，不改代码。
@@ -176,3 +177,15 @@ summary: "hold 3，weaken 1，drop 1。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿，Critical 无。Important 已改：r15-1 的删除墓碑必须在让出队列之前可见，`refresh` 的 `!local` 补回也要认墓碑；r15-2 把「崩溃后不能只剩 `.new`」收成正式文件已存在时的约束，首次创建直接写正式路径，并且 `flushAsync` 与 `flushSync` 不得共用同一个临时文件。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。`docs/systems/chat/agent-ui.md` 只把 `extensions/copilot` 标为闭源产品面、spike 禁止依赖，不禁止上游缺陷修复。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r15-1 | 签 | 删除仍不进 `_bulkSequencer`，`updateGlobalStorageImpl` 与 `reloadBulkFromDisk` 遇到 `!local` 会补回条目。 |
+| r15-2 | 签 | `flushAsync` 与 `flushSync` 仍共用 `.new`，且先 `unlink` 再 `rename`。 |
+| r15-3 | 签 | 空 `catch` 只在 v1 且 `autoCommit === false` 时走到。 |
+| r15-4 | 签（收窄） | 排除「已存在的空文件也拒绝」：上游用 `!!doc?.getText()` 有意放行已存在的空文件，那是超出本缺陷的行为改动。条件只改成 `fileExists && (doc === undefined \|\| doc.getText().length > 0)`。 |
+| r15-5 | 维持 drop | `remoteContentExclusion.spec.ts` 把跨仓库 glob 钉成可接受结果，不进入实施。 |

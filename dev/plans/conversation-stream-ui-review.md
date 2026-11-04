@@ -1,15 +1,16 @@
 ---
 title: "Conversation 消息订阅 UI 审查与改进方案：控制流与子代理"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-11-01
-summary: "审查订阅链路 → 投影 → 时间线 / 过程折 / 子代理显示（基线 6842a293306，复核 6180ee097e7）。三条根因：引擎与宿主的活态都只有每会话一份，子代理的逐字流不进会话流；回合与代理不是视图实体，活态靠多处谓词猜；引擎已发的工具终态、停止原因、子代理活动与 parent_tool_call_id 被丢弃。方案分 U1–U8，先做无合同的渲染层收口，再接宿主解码与 runtime sidecar（显式例外），再加回合 chrome 与子代理卡；多块 overlay 需引擎与 session-core 两处上游。规则 16 审查一轮已改入；D-1 至 D-5 待用户拍板。"
+summary: "2026-11-01 agent:kiro 受用户委托签收：D-1 至 D-4 按审查待定项决定 D21 定下，U1–U8 全部签收（U1 带四条前置，U2 需另写 ADR）。审查订阅链路 → 投影 → 时间线 / 过程折 / 子代理显示（基线 6842a293306，复核 6180ee097e7）。三条根因：引擎与宿主的活态都只有每会话一份，子代理的逐字流不进会话流；回合与代理不是视图实体，活态靠多处谓词猜；引擎已发的工具终态、停止原因、子代理活动与 parent_tool_call_id 被丢弃。方案分 U1–U8，先做无合同的渲染层收口，再接宿主解码与 runtime sidecar（显式例外），再加回合 chrome 与子代理卡；多块 overlay 需引擎与 session-core 两处上游。规则 16 审查一轮已改入；D-1 至 D-5 待用户拍板。"
 ---
 
 # Conversation 消息订阅 UI 审查与改进方案：控制流与子代理
 
-状态：草案。范围：contrib/conversation 时间线、过程折、座位、子代理对话框与 catalog；platform/universeAgent/node 宿主侧解码与 overlay 交接。负责：agent:kiro。
+状态：执行中。范围：contrib/conversation 时间线、过程折、座位、子代理对话框与 catalog；platform/universeAgent/node 宿主侧解码与 overlay 交接。负责：agent:kiro。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见 §14、§15。
 覆盖需求：PRD-003、PRD-004、PRD-007、PRD-012、PRD-013、PRD-016。
 
 > **定位：** 本稿是审查结论加改进方案，不 supersede [conversation-stream-timeline](conversation-stream-timeline.md)（`accepted`）、[conversation-timeline-refactor](conversation-timeline-refactor.md)（`implemented`，[ADR-010](../decisions/010-conversation-timeline-document-flow.md)）、[conversation-ui-closeout](conversation-ui-closeout.md) 与 [conversation-session-windows](conversation-session-windows.md)。对这几稿已拍板句子的修订集中在 [§10](#10-对既有方案与知识页的修订)，签收前不生效。
@@ -316,3 +317,36 @@ UI 联调按 AGENTS.md 只在默认编辑器窗口；自动剧本是壳冒烟 `t
 | Important | D-1 B 是有状态折叠，attribution 不是合适先例 | §5.2 改写为显式例外，引真正先例，加缓存键要求 |
 | Important | attribution hint 只增不减 | 并入 S8、§5.3、U2、§9 |
 | Minor | 行号漂移、C2 补 `showLiveChrome`、C5 措辞、Q4 出处、D10 出入、A9 父关系、折 id 变两次、C9 无功能损失、INDEX 未登记 | 全部改入；代理边界切折并入 U3；INDEX 已登记 |
+
+## 14. 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268` 与工作区现状，没有跑测试。§13 第一轮的 3 Critical、8 Important 抽查确认已改入。
+
+**签：U1（收窄）。** 不依赖 D-1 至 D-4，只改 `cb/`，不碰 platform。实施时满足四条：
+
+1. 排除 C6 里「cached 会话不再显示 `Stub ·`」这一半。PRD-013.4 写「无引擎时折内文案带 Stub」，[lens-and-trajectory](../../docs/systems/conversation/lens-and-trajectory.md) 与 [ui-design-principles](../../docs/architecture/cross-cutting/ui-design-principles.md) §5.1 也这样写；断连后的引擎缓存会话属于无引擎。去掉要先由用户改 PRD-013.4，再改这两份文档。新文案 `Incomplete` 同样要先写进方案。
+2. 配对保持期间仍按 cached 处理、不变成 stub。现有 `conversationLensDisposeGate.test.ts` 锁着 D304：配对保持且有 lease 或缓存回合时 live chrome 为真，改动后这些断言要继续成立，或在方案里写明为何改判。
+3. 写明 pending（等权限）是否算「活」。旧 Stop 判定特意排除 pending，新的活态函数若把它算进去，Stop、`hasStreamingEntry`、`lastStreamingAgentId` 的行为都会变，§5.5 只写了「删掉三处」。
+4. 先按 §9 写失败断言（before），并补 §12 要求的锁测：三处 Stop、宿主 `busy`、`lastStreamingAgentId`。
+
+**签：U7 前半。** 在新钉的引擎上抓一次子代理会话的原始流，结论写回 S1，并登记 G-UA-1、G-UI-1 至 G-UI-5。这是 D-1 的输入，与选 A 还是 B 无关。
+
+**不签：U2–U6、U8。** 等用户就 §11 的 D-1 至 D-4 拍板。§8 依赖行里 U4 漏写了 D-4，应补上。
+
+**工作区注意：** 工作区里已经有一份未登记、未提交的 U1 前半实现（新文件 `conversationLivePhase.ts`，以及 Dock、ComposerChrome、TimelineHost、Roster、ReadingColumn 的改动）。它把 `shouldShowReadingColumnLiveChrome` 改成「显示模式为 live」，配对保持时一律不是 live，会打破上面第 2 条锁住的测试；它也已经在 cached 模式下去掉 `Stub ·`，即第 1 条排除的部分。这份半成品不能直接当作已签收的实现。
+
+## 15. 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定 §11 与 §14 留下的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md) D21。
+
+| 项 | 决定 |
+|----|------|
+| D-1 | B：宿主 runtime sidecar，作为 stream-timeline §1 / §6 的显式例外；只放显示事实，不参与行身份，上游有对应字段后删除。实施 U2 时另写 ADR 登记 |
+| D-2 | 允许宿主写 `displayKey`；取不到时退回现行为 |
+| D-3 | 根页默认只画子代理卡，提供「显示全部代理」开关；PRD-016 同刀补一条可观察陈述 |
+| D-4 | 回合页脚只写非正常结束的原因（截断、取消、出错）；耗时只在引擎给出真实字段时写；token 留在轨迹与上下文环 |
+| C6 | 采纳：引擎缓存会话不标 `Stub ·`，断开时未结束的工具写 Incomplete。PRD-013.4 已改写；实施时同刀改 lens-and-trajectory 与规范 §5.1 的 Stub 句 |
+| 配对保持 | 沿用 D304：有遗留内容时 live chrome 保持，现有测试不改判 |
+| pending | 算「回合进行中」（Stop 可用、宿主 busy），不算「正在执行」（不转圈）；实施前确认引擎在等待权限时接受取消，不接受就维持旧行为 |
+
+据此 §14 的第 1 条前置作废；第 2、3 条由上表定下；第 4 条（先写 before 测试）照旧。U2–U6、U8 签收，按 §8 的依赖顺序实施，U4 的依赖补上 D-4。

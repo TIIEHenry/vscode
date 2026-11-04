@@ -1,14 +1,14 @@
 ---
 title: "方案 r10：notebook-terminal"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-23
-summary: "hold 4，drop 0，weaken 1。r10-2 沙箱自动批准、r10-3 执行失败收尾、r10-4 删除未执行单元格已落；r10-1 借来的笔记本模型与 r10-5 终端 error 帧仍开。"
+updated: 2026-11-01
+summary: "hold 4，drop 0，weaken 1。r10-2 至 r10-4 已由 281589a56b1、r10-5 已由 757601a01f8（之后 591a2c422a0 重写终态机）落地。r10-1 的 getOrCreate 没有调用方，不实施。r10-2 留一个问题等用户决定：沙箱自动批准开启时，拒绝规则与工作区外写入是否仍要确认。2026-11-01 agent:kiro 只读核对，未重跑测试。不升 PRD。"
 ---
 # 方案 r10：notebook-terminal
 
-状态：草案。
+状态：已完成。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -124,3 +124,21 @@ hold 4，drop 0，weaken 1。
 ### 本地验证
 - 已有：`terminalInstance.test.ts` 的 `parseExitResult` 套件（`undefined` 与 0 没有 message）。
 - 新增：`_launch` 已完成后再送 `error` 帧，数据流里出现 `frame[1].message`，`onProcessExit` 收到非 0 数字，而不是 `undefined`，也不是对象。`undefined` 与 0 的现有断言保持。
+
+## 签收核对（2026-11-01）
+
+agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`，没有重跑测试。本稿没有待签条目；上面 summary 里「r10-5 仍开」的说法已过时。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r10-1 | 不实施 | `notebookOriginalModelRefFactory.ts` 未改，但 `getOrCreate` 在 `src/vs` 里没有调用方，唯一引用是 `registerSingleton`。方案自己也写了「没有入口」。改它只增加与上游的差异。 |
+| r10-2 | 已落地，留一个问题 | `281589a56b1`：`commandLineSandboxAnalyzer` 不再返回 `forceAutoApproval`，`runInTerminalTool.ts` 只认 `_allowSandboxAutoApprove`。方案自身前后矛盾（不变量说不要加 `analyzersIsAutoApproveAllowed`，要动的符号里又写加上），落地代码没加，所以 `AgentSandboxAllowAutoApprove=true` 时拒绝规则与工作区外写入仍不参与判断。要用户定：沙箱自动批准开启时，命中拒绝规则或写到工作区外是否仍需确认。2026-10-30 r13-1 是相邻的另一条缺陷，不是重复。 |
+| r10-3 | 已落地 | `281589a56b1`：执行抛错时对仍在状态服务里的 execution `complete({})` 后重新抛出。 |
+| r10-4 | 已落地 | `281589a56b1`：splice 之后收尾已删单元格的 execution。 |
+| r10-5 | 已落地 | `757601a01f8`：启动完成后的 error 帧先发说明再以非 0 退出；`591a2c422a0`（2026-11-01）又重写了终态机。 |
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+
+- r10-2 残留：沙箱自动批准开启时，命中拒绝规则或写到工作区外仍要确认（D20）。本稿已 implemented，残留另写方案实施。

@@ -43,6 +43,7 @@ import {
 import { IConversationTimelineHostOptions } from './conversationTimelineTypes.js';
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { ConversationTurnContentAdapter, IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
+import { isConversationRowActive } from './conversationLivePhase.js';
 
 export const conversationTimelineEmptyTitle = localize('conversationLens.timelineEmptyTitle', "No messages yet");
 export const conversationTimelineMessagesNotLoaded = localize('conversationLens.timelineMessagesNotLoaded', "Messages not loaded");
@@ -219,6 +220,7 @@ export class ConversationTimelineHost extends Disposable {
 			options.onRegenerateTurn,
 			options.onRespondClientTool,
 			() => this.refreshScrollChrome(),
+			() => options.displayMode?.() ?? (options.showLiveChrome?.() ? 'live' : 'stub'),
 		);
 
 		const expanded = () => this.renderer.getTestExpandedState();
@@ -253,6 +255,7 @@ export class ConversationTimelineHost extends Disposable {
 			},
 			onProcessFoldLayout: rootId => this.onProcessFoldLayout(rootId),
 			showLiveChrome: () => options.showLiveChrome?.() ?? false,
+			displayMode: () => options.displayMode?.() ?? (options.showLiveChrome?.() ? 'live' : 'stub'),
 			writesEnabled: () => options.writesEnabled?.() ?? true,
 			showToolInvocationDetails: () => options.showToolInvocationDetails?.() ?? true,
 			onViewInTrajectory: options.onViewInTrajectory,
@@ -926,6 +929,7 @@ export class ConversationTimelineHost extends Disposable {
 		const total = this.latestRoots.length;
 		const tailFrom = Math.max(0, total - CONVERSATION_TIMELINE_CV_TAIL);
 		const showLive = this.options.showLiveChrome?.() ?? false;
+		const displayMode = this.options.displayMode?.() ?? (showLive ? 'live' : 'stub');
 		const latestAssistantId = this.latestAssistantRootId();
 		for (let index = 0; index < this.latestRoots.length; index++) {
 			const root = this.latestRoots[index]!;
@@ -933,13 +937,13 @@ export class ConversationTimelineHost extends Disposable {
 			if (!host) {
 				continue;
 			}
-			const streaming = root.turns.some(entry => entry.turn.streaming === true);
+			const streaming = root.turns.some(entry => isConversationRowActive(entry.turn, displayMode));
 			const editing = this.editingTurnId !== undefined && root.turns.some(entry => entry.id === this.editingTurnId);
 			const pending = rootHasPendingSeat(root);
 			host.setChrome({
 				posinset: index + 1,
 				setsize: total,
-				label: rootAriaLabel(root, showLive),
+				label: rootAriaLabel(root, showLive, displayMode),
 				cvVisible: streaming || editing || pending || index >= tailFrom,
 				busy: streaming,
 				latestAssistant: root.id === latestAssistantId,
@@ -1372,12 +1376,12 @@ function rootReadsPresentation(root: ConversationTimelineHostRoot): boolean {
 	return kind === 'confirmation' || kind === 'question' || kind === 'assistant' || kind === 'tool';
 }
 
-function rootAriaLabel(root: ConversationTimelineHostRoot, showLiveChrome: boolean): string {
+function rootAriaLabel(root: ConversationTimelineHostRoot, showLiveChrome: boolean, displayMode: import('./conversationLivePhase.js').ConversationDisplayMode): string {
 	if (root.kind === 'process-fold' && root.span) {
 		return localize(
 			'conversationProcessFold.accessibility',
 			"Process steps: {0}",
-			summarizeProcessSteps(root.span, { showLiveChrome }),
+			summarizeProcessSteps(root.span, { showLiveChrome, displayMode }),
 		);
 	}
 	const turn = root.turns[0]?.turn;

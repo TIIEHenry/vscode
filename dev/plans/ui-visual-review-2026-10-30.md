@@ -1,15 +1,16 @@
 ---
 title: "2026-10-30 默认窗口视觉审查收口"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
+updated: 2026-11-01
 summary: "默认编辑器窗口浅色、深色和 1024 宽的视觉审查。焦点、圆角、设置卡内衬、空态字号、禁用选择器和单复数已直接修。类别条裁切、状态重复、回合间距和深色分层等待拍板。规则 16 审查后已改稿。"
 ---
 
 # 2026-10-30 默认窗口视觉审查收口
 
-状态：草案。负责：agent:grok。
+状态：执行中。负责：agent:grok。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。S1、S3、S4 签收，S2 不做；范围见文末两节。
 覆盖需求：PRD-028。
 
 对照 [UI 设计原则](../../docs/architecture/cross-cutting/ui-design-principles.md)。同轮间距仍归 [chatgpt-visual-language](chatgpt-visual-language.md) §13.1，本方案不另改那条 margin，见 V3。不改 PRD 状态，也不重做上游标题栏和活动栏。
@@ -145,3 +146,34 @@ summary: "默认编辑器窗口浅色、深色和 1024 宽的视觉审查。焦�
 验证只用本地门禁：改到的 CSS 和 TS 跑 `conversationLensCssScan` 与对应 Engine 单测。现有扫描没有锁住 `:focus:not(:focus-visible)`、label2 和 “1 model”，跑过不能当成这三处已锁上。浅色和深色各看一眼；1024 宽确认组动作；Tab 确认用户卡和权限座位有焦点环。不重开托管 CI。
 
 只读审查（规则 16）没有 Critical。Important 已改入正文：Engine 文件里审查前就有的 diff 与本次内衬分开；`> *` 不叠成双倍内衬；V3 不再和 §13.1 抢同一条 margin；V1 的溢出按钮、V4 的用户回合头、V2 的跨区域收口、V8 的上游分段和空卡高度改为待拍板。提问座位圆角已随直接修复改成 medium。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268` 与工作区现状，没有跑测试。「已直接修复」一表已随 `98aa1b2140f`（2026-10-31）提交，切片表里「工作区已改，随本主题提交」已过时。
+
+| 切片 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| S1 · V1 开关内横向滚动 | 签 | 改动只放在产品文件 `previewCategoryBar.css`，不碰上游 `editorgroupview.css`。不违反 ADR-011（七个类别独占一行、不高于 28px）。补一条 CSS 合同测试，可放进 `previewEditorGroupHeader.test.ts`；现写的 `conversationLensCssScan` 覆盖不到 editor 的 CSS。 |
+| S1 · V5 会话胶囊 | 签 | 只换成 token 的密度修正，不加颜色。 |
+| S1 · V8 Sources 空态 | 签 | 打开文件夹的文本按钮要写明调用哪个命令，以及无工作区、远程窗口时怎么表现。 |
+| S1 · V8 Engine 导航行改 4px 与 `toolbar.hoverBackground` | 不签 | 工作区正在把 Navigator 与会话列表统一到 `cornerRadius.medium` 加 5% / 9% / 12% 中性底（chatgpt-visual-language §20，未提交、未审），本项方向相反，做了会有两套列表选中态。等 §20 的去留定了再说。 |
+| S2 去掉权限座位上的 “Input needed” | 不签，改为拍板项 | [agent-ui](../../docs/systems/chat/agent-ui.md) 的复用清单点名了这个徽标，lens-and-trajectory.md 把它写成等待态的显示规则，`conversationTimelineRenderer.test.ts` 断言它存在；方案也没说读屏名称里的 Input needed 留不留。 |
+| S3、S4 | 不签 | 等用户就 V1（溢出按钮）、V2 跨区域、V3、V4、V6、V7、V8 空卡拍板。V2 的 A、B 都要改 `docs/systems/conversation/overview.md` 里身份条与状态栏共用引擎芯片色调那一句，方案没列；V7 的 A 除了 §10，还要改 [theming](../../docs/architecture/cross-cutting/theming.md) 里深色画布 `#191A1B` 那一句。 |
+
+## 按设计原则的决定（2026-11-01）
+
+用户委托 agent:kiro 按设计原则决定待拍板项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md) D18。
+
+| 项 | 决定 |
+|:---|:-----|
+| V1 | A：类别开关内部横向滚动，不加溢出按钮 |
+| V2 跨区域 | A。同刀改 `docs/systems/conversation/overview.md` 里身份条与状态栏共用引擎芯片色调那句 |
+| V2 同一张卡（S2） | 不做：保留 Input needed 徽标 |
+| V3（S4） | B：相邻回合间距回到 16px，[ChatGPT 视觉语言](chatgpt-visual-language.md) §13.1 的同轮收紧作废 |
+| V4 | A：View in trajectory 绝对定位到卡角，悬停或焦点出现 |
+| V6 | A：产品浅色主题 `button.secondaryBackground` 透明、描边前景约 12% |
+| V7 | A：深色会话画布 `#121314`。同刀改规范 §10 与 theming 的深色画布值 |
+| V8 空卡 | A：未连接时分区按内容高度 |
+| V8 Engine 导航行 | 按 D2、D15：行底走主题 `list.*`、`cornerRadius.small`，选中分有焦点 / 无焦点两色 |
+
+S1 补签 Engine 导航行；S3、S4 签收，按上表实施。

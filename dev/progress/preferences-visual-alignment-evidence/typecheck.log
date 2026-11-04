@@ -1,0 +1,23 @@
+[96msrc/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.ts[0m:[93m722[0m:[93m63[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ title: string; isChecked: true; inputActiveOptionBackground: string; inputActiveOptionBorder: string; }' is not assignable to parameter of type 'IToggleOpts'.
+  Property 'inputActiveOptionForeground' is missing in type '{ title: string; isChecked: true; inputActiveOptionBackground: string; inputActiveOptionBorder: string; }' but required in type 'IToggleOpts'.
+
+[7m722[0m   this.directAllowPrivateCheckbox = this._register(new Toggle({
+[7m   [0m [91m                                                              ~[0m
+[7m723[0m    title: allowPrivateLabelText,
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m726[0m    inputActiveOptionBorder: 'transparent',
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m727[0m   }));
+[7m   [0m [91m~~~[0m
+
+  [96msrc/vs/base/browser/ui/toggle/toggle.ts[0m:[93m33[0m:[93m11[0m
+    [7m33[0m  readonly inputActiveOptionForeground: string | undefined;
+    [7m  [0m [96m          ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    'inputActiveOptionForeground' is declared here.
+[96msrc/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.ts[0m:[93m755[0m:[93m99[0m - [91merror[0m[90m TS2554: [0mExpected 0 arguments, but got 1.
+
+[7m755[0m    listMcpServers: async () => ({ servers: Array.from({ length: 30 }, (_, index) => demoMcpServer({ id: `server-${index}` })) }),
+[7m   [0m [91m                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+18 targeted files: 2 diagnostics

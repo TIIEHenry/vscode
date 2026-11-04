@@ -1,15 +1,16 @@
 ---
 title: "十六路审查 r03：agentHost 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "保留 4 条：hold 4，weaken 0。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。保留 4 条：hold 4，weaken 0。r03-3 实施前写明首次绑定路径的失败处理。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r03：agentHost 方案
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 核对范围是发现稿里的 4 条。引用都在 `src/vs/platform/agentHost` 内，行为仍在。
@@ -146,3 +147,14 @@ summary: "保留 4 条：hold 4，weaken 0。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r03-1 不再拒绝一切换行。`answer\n` → `answer\r` 且成功的现有测试保持；拒绝范围收成空闲 shell 上的 `\n` 或 `\r`，含中间的 `\r`。r03-2 不再要求「没有成功写入就不得自动批准」，那条和现有 `auto-approves sandboxed-by-default` 相反。已有成功记录之后才做结构化比较，两处成功写入都更新记录。r03-3 的 `send` 在下发失败时必须拒绝这次 Promise。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，`src/vs/platform/agentHost` 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r03-1 | 签 | `_busyShellIds` 是私有字段，实施时给它加一个只读查询。 |
+| r03-2 | 签 | 残余风险不挡签：从没成功写入沙箱配置时仍自动批准，现有 `copilotAgentSession.test.ts` 把它当合同，本稿有意保留。要收紧另开一条。 |
+| r03-3 | 签（收窄） | `_replayCurrentConfig` 不只在 `_rebindQuery` 里调用，首次绑定（`send` 与取 query 的入口）也调用。实施前二选一并写进方案：首绑失败也让 `send` 拒绝并补测试；或把抛错限定在 `_rebindQuery`。`ClaudeAgentSession.send` 本身不 catch，上游拒绝时它自然拒绝。 |
+| r03-4 | 签 | 写入与重定向仍拿未解析的工作目录比较；`isAutoApproveRuleResolvable` 不动。 |

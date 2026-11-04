@@ -16,7 +16,7 @@ summary: "全局横切：分层、测试、主题、UI 设计原则、外部对�
 | [分层规则](layers.md) | `base` → `platform` → `editor` → `workbench` → `sessions` / `code` / `server`；目标环境子目录 |
 | [测试与校验](testing.md) | 单测、集成测、typecheck、layer check 的入口与选用原则 |
 | [B2 壳/Agent UI 分析](../../reference/code-oss-b2/INDEX.md) | 对照 Desktop 文档壳：Parts/Grid、四钮映射、T1–T3 |
-| [UI 设计原则与规范](ui-design-principles.md) | 视觉语言参考 Cursor / ChatGPT、密度参考 IntelliJ IDEA（PRD-028）：中性色、排版分层、token 与密度上限、焦点可见、两级空态、PC 按压零形变 |
+| [UI 设计原则与规范](ui-design-principles.md) | 视觉全面以 GPT 为主参照，交互参考 GPT，产品自有界面不画焦点框描边；文件管理器与代码编辑器保留上游字号和行高；另见 [GPT 视觉复刻与密度边界](../../decisions/ui-gpt-visual-replication-2026-11-04.md) |
 | [外部对话界面密度对照](../../reference/external-chat-ui-density.md) | 2026-10-15 对 Cursor / ChatGPT / Claude 的只读取样，2026-10-16 用户签收；结构可参考，行高仍以 UI 设计原则为准 |
 | [主题与 token](theming.md) | 颜色/尺寸 token 机制、产品默认主题（自有浅/深，默认浅色）；Desktop ADR-003 只对照，不迁 token |
 | [IPC](ipc.md) | 进程通道、channel、main / shared / ext host / remote |

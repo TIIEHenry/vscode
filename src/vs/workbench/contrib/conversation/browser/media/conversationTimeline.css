@@ -38,11 +38,11 @@
 .conversation-timeline-stream {
 	box-sizing: border-box;
 	align-self: center;
-	width: min(100%, 720px);
-	max-width: 720px;
+	width: min(100%, var(--conversation-content-width, 800px));
+	max-width: var(--conversation-content-width, 800px);
 	min-width: 0;
 	margin: 0 auto;
-	padding-bottom: 48px;
+	padding: 0 var(--vscode-spacing-size160) 48px;
 	interpolate-size: allow-keywords;
 }
 
@@ -109,7 +109,7 @@
 }
 
 .conversation-timeline-pinned .conversation-timeline-pinned-inner {
-	max-width: 720px;
+	max-width: var(--conversation-content-width, 800px);
 	margin: 0 auto;
 	pointer-events: auto;
 	background: linear-gradient(to bottom, var(--vscode-conversation-background, var(--vscode-editor-background)) 70%, transparent);

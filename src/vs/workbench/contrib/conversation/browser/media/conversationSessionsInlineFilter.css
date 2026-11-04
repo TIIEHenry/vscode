@@ -121,3 +121,8 @@
 .monaco-workbench.monaco-reduce-motion .conversation-sessions-inline-filter-clear {
 	transition: none;
 }
+
+/* Product navigation text uses the same readable scale as its rows. */
+.monaco-workbench .conversation-sessions-inline-filter input {
+	font-size: 14px;
+}

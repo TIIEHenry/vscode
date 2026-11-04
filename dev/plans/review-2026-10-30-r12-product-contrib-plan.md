@@ -1,15 +1,16 @@
 ---
 title: "十六路审查 r12：产品贡献面方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 2 条、weaken 1 条：取消信任被写成永久拒绝，URL elicitation 完成监听被提前拆掉，活连接上的资源监视结束未退订。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收。hold 2 条、weaken 1 条：取消信任被写成永久拒绝，URL elicitation 完成监听被提前拆掉，活连接上的资源监视结束未退订。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r12：产品贡献面方案
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。说明见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 | 编号 | 判定 | 严重度 |
@@ -46,3 +47,13 @@ summary: "hold 2 条、weaken 1 条：取消信任被写成永久拒绝，URL el
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿，Critical 无。Important 已改：r12-2 不再把「服务器必须先收到响应才发完成通知」写成合同，`wait.finally` 要接住 rejection，新测试走 handler；r12-3 不再把 store dispose 写成会取消 subscribe token，迟到的成功回调要补 `unsubscribe`。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，MCP 三个文件 2026-10-30 之后没有提交，也没有未提交改动。三条都是上游 MCP 的缺陷修复，适用于默认编辑器窗口。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r12-1 | 签 | `_promptForTrust` 末尾 `!!trustedDefinitionIds?.includes(...)` 仍把取消收成 `false`，`_checkTrust` 的 `undefined` 分支走不到。 |
+| r12-2 | 签 | `elicit` 之后仍马上 `r.dispose()` 再返回。 |
+| r12-3 | 签 | store dispose 时仍不发 `unsubscribe`；要用的 `McpServerRequestHandler.unsubscribe` 已在。 |

@@ -21,7 +21,7 @@ summary: "全局文档导航：产品需求、设计原则、文档系统设计�
 | 了解整体架构 | [架构概览](architecture/overview.md) |
 | 开发规范 | [development](standards/development.md) |
 | 写法 | [writing](standards/writing.md) |
-| 文档系统决策与存量 ADR | [wiki 采用](decisions/wiki-adoption.md) · [dev/decisions](../dev/decisions/INDEX.md) |
+| 文档系统决策与存量 ADR | [wiki 采用](decisions/wiki-adoption.md) · [2026-11-01 审查待定项决定](decisions/ui-review-decisions-2026-11-01.md) · [GPT 视觉复刻与密度边界](decisions/ui-gpt-visual-replication-2026-11-04.md) · [dev/decisions](../dev/decisions/INDEX.md) |
 | 过程（进度、计划、路线图） | [dev/INDEX.md](../dev/INDEX.md) |
 | 看分层与 import 规则 | [分层规则](architecture/cross-cutting/layers.md) |
 | 找某一层入口 | [分层列表](#分层模块) |

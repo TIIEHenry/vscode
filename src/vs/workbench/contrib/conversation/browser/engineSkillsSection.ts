@@ -6,7 +6,7 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
+import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
@@ -24,7 +24,7 @@ import type { UniverseAgentExpectedOwner } from '../../../../platform/universeAg
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { evaluateEngineWrite, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
@@ -61,8 +61,8 @@ function getSkillToggleLabel(skillName: string, enabled: boolean): string {
 		: localize('ua.engineSkillRowToggleEnable', "Enable {0}", skillName);
 }
 
-function skillEntryHeight(_entry: EngineSkillListEntry): number {
-	return 24;
+function skillEntryHeight(entry: EngineSkillListEntry): number {
+	return entry.kind === 'group' ? 28 : entry.skill.description?.trim() ? 44 : 32;
 }
 
 class EngineSkillListDelegate implements IListVirtualDelegate<EngineSkillListEntry> {
@@ -82,7 +82,7 @@ interface ISkillGroupTemplateData {
 
 interface ISkillRowTemplateData {
 	readonly row: HTMLElement;
-	readonly checkbox: Checkbox;
+	readonly checkbox: Toggle;
 	readonly name: HTMLElement;
 	readonly description: HTMLElement;
 	skill: UniverseAgentSkillSummary | undefined;
@@ -125,7 +125,14 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 
 	renderTemplate(container: HTMLElement): ISkillRowTemplateData {
 		const row = DOM.append(container, $('.engine-skill-row'));
-		const checkbox = new Checkbox('', false, defaultCheckboxStyles);
+		const checkbox = new Toggle({
+			title: '',
+			isChecked: false,
+			inputActiveOptionBackground: 'var(--ua-editor-setting-switch-track)',
+			inputActiveOptionForeground: 'var(--vscode-inputOption-activeForeground)',
+			inputActiveOptionBorder: 'transparent',
+		});
+		checkbox.domNode.setAttribute('role', 'switch');
 		const checkboxDisposable = checkbox.onChange(() => {
 			const skill = (row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill;
 			if (skill && this.canToggle()) {
@@ -133,8 +140,8 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 				this.onToggle(skill, checkbox.checked);
 			}
 		});
-		row.appendChild(checkbox.domNode);
 		const text = DOM.append(row, $('.engine-skill-text'));
+		row.appendChild(checkbox.domNode);
 		const name = DOM.append(text, $('.engine-skill-name'));
 		const description = DOM.append(text, $('.engine-skill-description'));
 		const template = { row, checkbox, name, description, skill: undefined, checkboxDisposable: { dispose: () => checkboxDisposable.dispose() } };
@@ -149,8 +156,10 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		templateData.skill = entry.skill;
 		(templateData.row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill = entry.skill;
 		templateData.name.textContent = entry.skill.name;
+		templateData.name.title = entry.skill.name;
 		const description = entry.skill.description?.trim() ?? '';
 		templateData.description.textContent = description;
+		templateData.description.title = description;
 		templateData.description.style.display = description ? '' : 'none';
 		templateData.checkbox.setTitle(getSkillToggleLabel(entry.skill.name, entry.skill.enabled));
 		templateData.checkbox.checked = entry.skill.enabled;
@@ -312,6 +321,11 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyStatus.setAttribute('aria-live', 'polite');
 		this.bodyStatus.style.display = 'none';
 
+		const resizeObserver = this._register(new DOM.DisposableResizeObserver(
+			'EngineSkillsSection.viewport', () => this.layoutListViewport(), DOM.getWindow(this.container),
+		));
+		this._register(resizeObserver.observe(this.container));
+
 		this._register(this.connection.onDidChangeConnection(() => {
 			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
@@ -321,7 +335,20 @@ export class EngineSkillsSection extends Disposable {
 
 	layout(width: number, listHeight: number): void {
 		this.lastLayout = { width, listHeight };
-		this.list?.layout(Math.max(120, listHeight), width);
+		this.layoutListViewport();
+	}
+
+	private layoutListViewport(): void {
+		if (!this.list || !this.lastLayout) {
+			return;
+		}
+		const chrome = Math.max(0, DOM.getTotalHeight(this.container) - DOM.getTotalHeight(this.listContainer));
+		const budget = Math.max(120, this.lastLayout.listHeight - chrome);
+		const contentHeight = this.listEntries.reduce((height, entry) => height + skillEntryHeight(entry), 0);
+		const height = Math.min(Math.max(80, contentHeight), budget);
+		const width = DOM.getContentWidth(this.container) || this.lastLayout.width;
+		this.listContainer.style.height = `${height}px`;
+		this.list.layout(height, width);
 	}
 
 	override dispose(): void {
@@ -688,9 +715,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private relayoutLeftoverList(): void {
-		if (this.lastLayout && this.list) {
-			this.list.layout(Math.max(120, this.lastLayout.listHeight), this.lastLayout.width);
-		}
+		this.layoutListViewport();
 	}
 
 	private closeLeftoverRowToggleChrome(): void {
@@ -1101,6 +1126,7 @@ export class EngineSkillsSection extends Disposable {
 		this.setSkillsCount(skills.length);
 		if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
 		this.catalogReadOwner = owner;
+		this.layoutListViewport();
 		return true;
 	}
 

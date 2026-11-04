@@ -1,0 +1,65 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode/.build/crashes'
+[2939620:1102/194559.556190:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:2939637) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:2939637) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:2939637) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  EngineToolsSection leftover info tone (D414)[0m
+  [32m  ✔[0m[90m tool rows reserve separate title and subtitle lines[0m[33m (46ms)[0m
+  [32m  ✔[0m[90m leftover getToolInfo throw keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m leftover pairing-hold keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover info honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover info honesty without reselect[0m
+  [32m  ✔[0m[90m leftover missing getToolInfo keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadToolInfo catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when savePendingEnablement catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m switching active session or work root triggers list refresh with projectPath[0m
+  [32m  ✔[0m[90m toggleTool rejects the write when the engine link changes during the round trip[0m
+  [32m  ✔[0m[90m save stays valid when a same-profile refresh lands mid-save[0m
+  [32m  ✔[0m[90m a list refresh issued before a save lands cannot repaint the saved enablement[0m
+
+[0m  EnginePreferencesPane[0m
+  [32m  ✔[0m[90m getEngineTestStatusText reuses StatusBar phase copy[0m
+  [32m  ✔[0m[90m empty capability snapshot does not throw while constructing the pane[0m
+  [32m  ✔[0m[90m pane keeps the Engine heading for screen readers and leads with the section title[0m
+  [32m  ✔[0m[90m layout under 600px applies is-narrow and Back returns to nav[0m
+  [32m  ✔[0m[90m disconnected pane keeps fifteen-section navigation with zero catalog rows and zero write buttons[0m
+  [32m  ✔[0m[90m pane has no chat widgets or editable engine fields[0m
+  [32m  ✔[0m[90m pane does not seed fake engine rows[0m
+  [32m  ✔[0m[90m Agents nav badge shows the profile count after the list loads[0m[33m (40ms)[0m
+  [32m  ✔[0m[90m Skills nav badge tracks listed skills and drops when the catalog is cleared[0m[33m (46ms)[0m
+  [32m  ✔[0m[90m Tools viewport keeps profile controls outside the virtual list at wide and narrow widths[0m[31m (205ms)[0m
+  [32m  ✔[0m[90m Tools nav badge tracks listed tools and drops when the catalog is cleared[0m[33m (47ms)[0m
+  [32m  ✔[0m[90m Providers and Models nav badges track their own lists and drop when the catalog is cleared[0m
+  [32m  ✔[0m[90m catalog nav badges track listed rows and drop when the catalog is cleared[0m[33m (50ms)[0m
+  [32m  ✔[0m[90m Test Engine click probes the engine instead of echoing phase only[0m
+  [32m  ✔[0m[90m Test Engine reachable probe uses Reachable prefix[0m
+  [32m  ✔[0m[90m Test Engine probe ok with pairingPending paints warning not success[0m
+  [32m  ✔[0m[90m Test Engine throw paints error tone[0m
+  [32m  ✔[0m[90m Test Engine Testing… stays neutral until the probe settles[0m
+  [32m  ✔[0m[90m an older Test Engine settling late keeps the newer run's Testing on screen[0m
+  [32m  ✔[0m[90m banner Test Engine shares runEngineTest success tone[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when banner runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when footer runEngineTest catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m E2-1: desktop disconnected still draws Test Engine and Engine not connected[0m
+  [32m  ✔[0m[90m writeStatus trims whitespace-only copy so empty testStatus stays empty[0m
+  [32m  ✔[0m[90m E2-1: Web unsupported_environment omits Test Engine and shows named copy[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold still shows disconnected banner[0m
+  [32m  ✔[0m[90m pairing-hold with isEngineConnected false still shows disconnected banner[0m
+  [32m  ✔[0m[90m true connected without pairing hides disconnected banner[0m
+  [32m  ✔[0m[90m leftover-looks-live then true disconnect still shows disconnected banner[0m
+
+
+[92m [0m[32m 48 passing[0m[90m (1s)[0m
+

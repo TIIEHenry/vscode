@@ -43,6 +43,7 @@ export interface IConversationLensComposerHost {
 	submitInFlight: boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
+	displayMode?: () => import('./conversationLivePhase.js').ConversationDisplayMode;
 	modelSelectedIndex: number;
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
 	modelProfileIdBySessionId?: Map<string, string>;

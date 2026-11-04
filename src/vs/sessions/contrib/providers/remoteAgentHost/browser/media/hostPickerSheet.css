@@ -153,11 +153,11 @@
 	transition: background-color 0.12s ease;
 }
 
-.host-picker-sheet-item:focus {
+.monaco-workbench .host-picker-sheet-item:focus:not(:focus-visible) {
 	outline: none;
 }
 
-.host-picker-sheet-item:focus-visible {
+.monaco-workbench .host-picker-sheet-item:focus-visible {
 	background-color: var(--vscode-list-hoverBackground);
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;

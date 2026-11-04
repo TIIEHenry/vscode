@@ -1,14 +1,15 @@
 ---
 title: "十六路审查 r11：conversation 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 3、drop 2、weaken 0。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 3、drop 2。r11-1 以 connectedProfileId 判定拨号成功；r11-5 按现行 rejectWrite 与 sameSettledWriteLink 落位。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r11：conversation 方案
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:kiro（用户委托），日期：2026-11-01。范围见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -123,3 +124,15 @@ summary: "hold 3、drop 2、weaken 0。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r11-5 不再在刷新后用「选中 id 仍是被删服务器」决定成功文案；列表失败不得写 “Removed.”。Important 已改：r11-1 在 add 之前拍下旧档，拨号成功后才 forget，且不含新 `profileId`；r11-3 把空模型槽排除在「不改 rollback」之外，过期成功以 `sentModelId` 为准。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`。`engineMcpSection.ts` 在 2026-10-31 的 `98aa1b2140f` 引入 `rejectWrite`，`861339ad90c` 把 `sameWriteLink` 改成 `sameSettledWriteLink`；`connectionPreferencesPane.ts` 与 `conversationLensComposerChrome.ts` 的新提交和未提交改动都不碰所引函数。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r11-1 | 签（收窄） | `ensureDirectAddressProfileForConnect` 仍先 forget、再 disconnect、最后 add。`connectProfileWithPairing` 返回 `Promise<void>`，方案没写怎么判断拨号成功或配对挂起。限定为返回后用 `connectedProfileId === 新 profileId` 判定成功，不改 `connectProfileWithPairing` 的签名；没有这个判据就不做「拨号成功后才 forget」。 |
+| r11-2 | drop | 不在签收范围。 |
+| r11-3 | 签 | 切换在飞时 `applySessionModelIndex` 仍把 `rollbackIndex` / `rollbackId` 改成被盖掉的乐观值；空模型槽的例外已写清。2026-10-11 r09 的 r09-2 残留由本条承接。 |
+| r11-4 | drop | 不在签收范围。 |
+| r11-5 | 签（收窄） | 按现行代码落位：`removeSelectedServer` 在读 `result.ok` 之前调用 `rejectWrite(link, true, { targetId, currentTargetId }, generation)`，第一次调用改为只传 `link`，目标和代次只用来决定文案与是否清空选择。方案「不改」栏里的 `sameWriteLink` 按现行的 `rejectWrite(link, true)` 与 `sameSettledWriteLink` 理解。 |

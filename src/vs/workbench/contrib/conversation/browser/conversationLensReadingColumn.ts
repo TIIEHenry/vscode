@@ -28,6 +28,7 @@ import { isConversationDisconnectedEngineSession, isConversationSessionNotReady 
 import type { ConversationSessionSource } from './conversationRosterStorage.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import type { ConversationDisplayMode } from './conversationLivePhase.js';
 
 export const conversationLensStaleSnapshotClass = 'conversation-lens-stale-snapshot';
 
@@ -74,6 +75,8 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	staleSnapshot.setAttribute('aria-live', 'polite');
 	host.prefirstHero = append(host.readingColumn, $(`.${conversationLensPrefirstHeroClass}`));
 	host.prefirstHero.hidden = true;
+	const title = append(host.prefirstHero, $('h2.conversation-lens-prefirst-title'));
+	title.textContent = localize('conversationLens.prefirstTitle', "What would you like to work on?");
 	host.timelineTree = host.register(host.instantiationService.createInstance(ConversationTimelineHost, host.readingColumn, {
 		onResolveConfirmation: (turnId, status) => host.resolveConfirmation(turnId, status),
 		onQuestionRespond: (turnId, requestId, answers, customText) => host.resolveQuestion(turnId, requestId, answers, customText),
@@ -88,6 +91,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onReviewNavClick: paths => executeReadingColumnSourcesReview(host.commandService, paths),
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
 		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
+		displayMode: () => getConversationDisplayMode(host),
 		writesEnabled: () => isReadingColumnWritesEnabled(host),
 		getResponseProjection: () => host.sessionViewLease?.sessionId === host.getBoundSessionId() ? host.sessionViewLease.responseProjection : undefined,
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
@@ -206,18 +210,21 @@ export function shouldShowReadingColumnLiveChrome(host: {
 	readonly sessionViewLease?: { readonly sessionId: string };
 	getBoundSessionId(): string;
 }): boolean {
-	if (!isConversationPairingHold(host.uaConnection)) {
-		return host.stubService.isEngineConnected();
+	return getConversationDisplayMode(host) === 'live';
+}
+
+export function getConversationDisplayMode(host: {
+	readonly stubService: {
+		isEngineConnected(): boolean;
+		getSessionSource?(sessionId: string): 'local' | 'engine-cache';
+	};
+	readonly uaConnection: IConversationPairingHoldSource;
+	getBoundSessionId(): string;
+}): ConversationDisplayMode {
+	if (!isConversationPairingHold(host.uaConnection) && host.stubService.isEngineConnected()) {
+		return 'live';
 	}
-	const sessionId = resolveReadingColumnSessionId(host);
-	if (!sessionId) {
-		return false;
-	}
-	const lease = host.sessionViewLease?.sessionId === sessionId ? host.sessionViewLease : undefined;
-	if (lease) {
-		return true;
-	}
-	return host.stubService.getTurns(sessionId).length > 0;
+	return host.stubService.getSessionSource?.(host.getBoundSessionId()) === 'engine-cache' ? 'cached' : 'stub';
 }
 
 function readingColumnHasSnapshotContent(host: {

@@ -1,15 +1,16 @@
 ---
 title: "十六路审查 r07：workbench api 方案"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "hold 3，weaken 1。"
+updated: 2026-11-01
+summary: "2026-11-01 agent:kiro 受用户委托签收。hold 4，weaken 1；r07-4 实施前修正「不改」措辞。未实施，不升 PRD。"
 ---
 
 # 十六路审查 r07：workbench api 方案
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:kiro（用户委托），日期：2026-11-01。说明见文末「签收」一节。
 覆盖需求：无（正文未引用需求编号）。
 
 发现稿 5 条的引用都在 `src/vs/workbench/api` 内。下表是对照当前源码后的判定。方案只写仍要改的条目。
@@ -67,3 +68,15 @@ summary: "hold 3，weaken 1。"
 ## 审查
 
 2026-10-30 只读审查的结论是须改稿。Critical 已改：r07-4 从 drop 改回 hold。`_deliverEventAsync` 在版本匹配时固定返回 `true`，主线程只在收到 `false` 时拒绝，应用失败因此被吞掉。Important 已改：nonce 比较仍留在扩展宿主，但不再写「主线程看不到最终 query」；删除集合包含交互 `invalid_client`，且这两种授权失败必须是可识别的错误；`openUri` 返回 false 时要取消等待令牌。
+
+## 签收（2026-11-01）
+
+签收人：agent:kiro（用户委托）。只读核对到 HEAD `38c867b5268`，所引文件 2026-10-30 之后没有提交，也没有未提交改动。没有跑测试。
+
+| 条目 | 签收 | 说明 |
+|:-----|:-----|:-----|
+| r07-1 | 签 | nonce 在回调 URI 里，`waitForAuthorizationCode` 仍只取 `code`。 |
+| r07-2 | 签 | `removedTokens.push(token)` 仍在 try 之前，刷新失败只打日志。 |
+| r07-3 | 签 | 超时分支不注销 handler；`openUri` 返回 false 时等待仍挂着。 |
+| r07-4 | 签 | 实施前修正「不改」的措辞：没有编辑时 `$tryApplyWorkspaceEdit` 之前就返回 undefined，必须仍算成功；版本不符现在是 `reject('concurrent_edits')`，走错误分支，不是「跳过」。 |
+| r07-5 | 签 | 1750ms 计时器只 reject，不 clear，也不给扩展宿主传取消。 |

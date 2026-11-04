@@ -48,6 +48,8 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import type { ConnectionStatusTone } from './connectionPreferencesPaneLabels.js';
 
+import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
+
 const $ = DOM.$;
 
 /**
@@ -456,7 +458,11 @@ export class EngineTriggersSection extends Disposable {
 			row.setAttribute('role', 'listitem');
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
-			row.textContent = formatEngineTriggerListLabel(trigger);
+			appendCatalogSettingFields(row, [
+				{ role: 'name', value: trigger.name },
+				{ role: 'kind', value: trigger.type },
+				{ role: 'identity', value: trigger.triggerId },
+			], formatEngineTriggerListLabel(trigger));
 			row.addEventListener('click', () => this.selectTrigger(trigger));
 			row.addEventListener('keydown', event => this.onTriggerRowKeyDown(event, trigger));
 		}

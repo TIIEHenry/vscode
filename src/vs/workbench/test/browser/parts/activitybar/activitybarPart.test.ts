@@ -146,8 +146,8 @@ suite('ActivitybarPart', () => {
 			},
 			{
 				width: 48,
-				actionHeight: 48,
-				iconSize: 24,
+				actionHeight: 44,
+				iconSize: 20,
 			}
 		);
 	});
@@ -167,7 +167,7 @@ suite('ActivitybarPart', () => {
 		);
 	});
 
-	test('floating constants are narrower than default', () => {
+	test('floating constants use comfortable navigation while keeping compact explicit', () => {
 		assert.deepStrictEqual(
 			{
 				width: ActivitybarPart.FLOATING_ACTIVITYBAR_WIDTH,
@@ -175,8 +175,8 @@ suite('ActivitybarPart', () => {
 				compactWidth: ActivitybarPart.FLOATING_COMPACT_ACTIVITYBAR_WIDTH,
 			},
 			{
-				width: 36,
-				actionHeight: 36,
+				width: 48,
+				actionHeight: 44,
 				compactWidth: 28,
 			}
 		);
@@ -590,14 +590,14 @@ suite('ActivitybarPart', () => {
 			},
 			{
 				// Items stack flush against each other, so the stride is just the action height.
-				classicDefault: { compositeSize: 48, overflowActionSize: 48 },
+				classicDefault: { compositeSize: 44, overflowActionSize: 44 },
 				classicCompact: { compositeSize: 28, overflowActionSize: 28 },
 				// Modern UI separates items with an 8px gap, but only at the default size.
 				modernDefault: { compositeSize: 44, overflowActionSize: 44 },
 				modernCompact: { compositeSize: 28, overflowActionSize: 28 },
 				// The compact density tightens that gap to 4px, and the stride has to follow it
 				// so items do not collapse into the overflow menu early.
-				modernCompactDensity: { compositeSize: 40, overflowActionSize: 40 },
+				modernCompactDensity: { compositeSize: 48, overflowActionSize: 48 },
 			}
 		);
 	});

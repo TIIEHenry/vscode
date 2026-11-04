@@ -56,10 +56,12 @@
 }
 
 .agent-sessions-workbench.dock-detail-panel .part.editor > .content .editor-group-container > .title:not(.tabs) > .label-container > .tabs-bar-add-tab .action-label:not(.separator) {
-	width: var(--vscode-codiconFontSize);
-	height: var(--vscode-codiconFontSize);
+	width: var(--vscode-spacing-size240, 24px);
+	height: var(--vscode-spacing-size240, 24px);
+	padding: var(--vscode-spacing-size40, 4px);
 	margin: 0 var(--vscode-spacing-size40);
 	display: flex;
+	box-sizing: border-box;
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small);
@@ -77,8 +79,13 @@
 }
 
 .agent-sessions-workbench.dock-detail-panel .part.editor > .content .editor-group-container > .title:not(.tabs) > .label-container > .tabs-bar-add-tab .action-label:not(.separator):focus-visible {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+:is(.hc-black, .hc-light) .agent-sessions-workbench.dock-detail-panel .part.editor > .content .editor-group-container > .title:not(.tabs) > .label-container > .tabs-bar-add-tab .action-label:not(.separator):focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .agent-sessions-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.tabs-border-bottom > .monaco-scrollable-element {

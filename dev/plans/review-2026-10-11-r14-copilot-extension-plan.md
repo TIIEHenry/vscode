@@ -1,14 +1,14 @@
 ---
 title: "方案 r14：copilot-extension"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-23
-summary: "hold 5，drop 0，weaken 0。r14-2 元数据覆盖、r14-5 日志队列已落；云端删除、事件缓冲、会话映射回写仍开。"
+updated: 2026-11-01
+summary: "hold 5，drop 0，weaken 0。五条均已落地：r14-1、r14-3、r14-4 由 86961f4d2f0，r14-2、r14-5 由 281589a56b1。2026-11-01 agent:kiro 只读核对，无待签条目，未重跑测试。不升 PRD。"
 ---
 # 方案 r14：copilot-extension
 
-状态：草案。
+状态：已完成。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -87,3 +87,15 @@ hold 5，drop 0，weaken 0。
 不改 10 秒延迟，不改 `FlushableJSONFile` 的临时文件替换，不改 `workspaceRecorder.ts` 第 265 行 `setContent` 所记录的文档正文，不给 `flushSync` 补 `_lock`。
 ### 本地验证
 仓库里没有 `FlushableSafeJSONLFile` 的测试。应新增断言：`appendFile` 拒绝后，同一条 JSON 仍在队列里，再次 `flushAsync` 会把它写入且只写一次；`appendFileSync` 抛错后 `flushSync` 再调用仍能写回该条。追加期间新 `appendEntry` 的内容排在失败批次之后。
+
+## 签收核对（2026-11-01）
+
+agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`，没有重跑测试。五条都已落地，本稿没有待签条目；落地记录里「r14-1/3/4 仍开」已过时，它们 2026-10-13 就已落地。
+
+| 条目 | 结果 | 说明 |
+|:-----|:-----|:-----|
+| r14-1 | 已落地 | `86961f4d2f0`：云端删除返回 error 时 `continue`，不删本地会话和映射；会话窗口删除路径同样处理。 |
+| r14-2 | 已落地 | `281589a56b1`：读坏了返回 `null`，不写 `origin:'other'` 存根；先写 `.tmp` 再 `rename`。2026-10-30 r15-1 改的是批量索引，不是同一缺陷。 |
+| r14-3 | 已落地 | `86961f4d2f0`：瞬时失败的 slot 放回缓冲。 |
+| r14-4 | 已落地 | `86961f4d2f0`：只有 ENOENT 才置已加载，未加载时不持久化；写入走临时文件加 `rename`。 |
+| r14-5 | 已落地 | `281589a56b1`：追加成功后才 `splice`，锁被占时 `flushSync` 直接返回。 |

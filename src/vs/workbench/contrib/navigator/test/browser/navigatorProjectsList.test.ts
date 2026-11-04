@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { IAction } from '../../../../../base/common/actions.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -37,6 +39,14 @@ import { createNavigatorConnectionTestStub } from '../common/navigatorConnection
 suite('NavigatorProjectsView', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const menus = new WeakMap<NavigatorProjectsView, () => readonly IAction[]>();
+	const closeMenus = new WeakMap<NavigatorProjectsView, () => void>();
+
+	function sessionMenuActions(view: NavigatorProjectsView, row: Element): readonly IAction[] {
+		(row.querySelector('.navigator-projects-more') as HTMLElement).click();
+		return menus.get(view)!();
+	}
+
 
 	class WorkspacesWithRecents extends TestWorkspacesService {
 		constructor(private readonly recents: IRecentlyOpened) {
@@ -156,6 +166,16 @@ suite('NavigatorProjectsView', () => {
 		const workspacesService = options?.workspacesService ?? new TestWorkspacesService();
 		const rosterService = store.add(options?.rosterService ?? new ConversationStubService());
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		let menu: Parameters<IContextMenuService['showContextMenu']>[0] | undefined;
+		instantiationService.stub(IContextMenuService, {
+			showContextMenu: (delegate: Parameters<IContextMenuService['showContextMenu']>[0]) => {
+				menu?.onHide?.(false);
+				assert.strictEqual(delegate.getMenuClassName?.(), 'ua-rounded-menu ua-project-session-menu');
+				assert.deepStrictEqual(delegate.getActions?.().map(action => action.id), ['navigator.projects.openSession', 'navigator.projects.deleteSession']);
+				menu = delegate;
+			},
+		});
+		store.add({ dispose: () => menu?.onHide?.(false) });
 		instantiationService.stub(IWorkspaceContextService, contextService);
 		instantiationService.stub(IWorkspacesService, workspacesService);
 		instantiationService.stub(IConversationRosterService, rosterService);
@@ -228,6 +248,8 @@ suite('NavigatorProjectsView', () => {
 
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
+		menus.set(view, () => menu?.getActions?.() ?? []);
+		closeMenus.set(view, () => { menu?.onHide?.(true); menu = undefined; });
 		return view;
 	}
 
@@ -1194,10 +1216,11 @@ suite('NavigatorProjectsView', () => {
 		const labels = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')) as HTMLElement[];
 		const workdirLabel = labels.find(el => el.title.includes(workdir.description!));
 		assert.ok(workdirLabel, 'workdir row must keep the full path in title');
-		assert.strictEqual((workdirLabel.closest('.monaco-list-row') as HTMLElement | null)?.style.height, '24px');
+		assert.strictEqual((workdirLabel.closest('.monaco-list-row') as HTMLElement | null)?.style.height, '42px');
 		const name = workdirLabel.querySelector('.navigator-projects-node-name');
 		assert.ok(name);
-		assert.strictEqual(name.textContent, workdir.label);
+		assert.strictEqual(name.textContent, 'live');
+		assert.ok(workdirLabel.title.includes(workdir.label), 'full current-session label remains available');
 		assert.ok(!name.textContent?.includes(workdir.description!), 'compact label must not inline the full path');
 		const description = workdirLabel.querySelector('.navigator-projects-node-description') as HTMLElement | null;
 		assert.ok(description);
@@ -1255,13 +1278,13 @@ suite('NavigatorProjectsView', () => {
 		const sessionRow = sessionRowFor(view, active.sessionId);
 		const actions = sessionRow.querySelector('.navigator-projects-row-actions');
 		assert.ok(actions?.classList.contains('is-available'), 'session row must offer hover actions');
-		assert.ok(actions?.querySelector('.codicon-open-preview'), 'session row must offer Open');
-		assert.ok(actions?.querySelector('.codicon-trash'), 'session row must offer Delete');
+		assert.ok(actions?.querySelector('.codicon-ellipsis'), 'session row offers More');
+		assert.deepStrictEqual(sessionMenuActions(view, sessionRow).map(action => [action.id, action.enabled]), [['navigator.projects.openSession', true], ['navigator.projects.deleteSession', true]]);
 		assert.strictEqual(actions?.querySelector('.action-item.disabled:not(:has(.navigator-projects-new-session))'), null, 'live session actions stay enabled');
 
 		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir');
 		assert.ok(workdir);
-		const workdirLabel = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')).find(el => el.textContent?.includes(workdir.label));
+		const workdirLabel = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')).find(el => (el as HTMLElement).title.includes(workdir.label));
 		assert.ok(workdirLabel);
 		const workdirActions = workdirLabel.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions');
 		assert.ok(workdirActions?.classList.contains('is-workdir-actions'), 'current engine workDir row offers New session');
@@ -1270,7 +1293,7 @@ suite('NavigatorProjectsView', () => {
 		assert.ok(actions?.classList.contains('is-session-actions'), 'session row keeps Open and Delete');
 		const title = rosterService.getSessions().find(session => session.id === active.sessionId)?.title;
 		assert.ok(title);
-		const trash = actions?.querySelector('.codicon-trash') as HTMLElement;
+		const trash = { click: () => sessionMenuActions(view, sessionRow)[1].run() };
 
 		confirmAnswers.push(() => false);
 		trash.click();
@@ -1329,9 +1352,10 @@ suite('NavigatorProjectsView', () => {
 		const sessionRow = sessionRowFor(view, active.sessionId);
 		const sessionActions = sessionRow.querySelector('.navigator-projects-row-actions');
 		assert.ok(sessionActions?.classList.contains('is-available'));
-		assert.ok(sessionActions?.querySelector('.action-item.disabled'));
-		assert.match(sessionActions?.querySelector('.codicon-open-preview')?.closest('.action-label')?.getAttribute('aria-label') ?? '', /Session unavailable/);
-		assert.match(sessionActions?.querySelector('.codicon-trash')?.closest('.action-label')?.getAttribute('aria-label') ?? '', /active session is not ready/);
+		const unavailableActions = sessionMenuActions(view, sessionRow);
+		assert.ok(unavailableActions.every(action => !action.enabled));
+		assert.match(unavailableActions[0].label, /Session unavailable/);
+		assert.match(unavailableActions[1].label, /active session is not ready/);
 
 		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir' && node.description === '/engine/live');
 		assert.ok(workdir);
@@ -1429,8 +1453,8 @@ suite('NavigatorProjectsView', () => {
 		}
 	}
 
-	async function mountHoldView(options?: { dialogService?: IDialogService; errors?: string[] }) {
-		const rosterService = new HoldRoster();
+	async function mountHoldView(options?: { dialogService?: IDialogService; errors?: string[]; rosterService?: HoldRoster }) {
+		const rosterService = options?.rosterService ?? new HoldRoster();
 		rosterService.setEngineConnected(true);
 		const state = { pairingPending: false, phaseKind: 'connected' as 'connected' | 'disconnected', workDir: '/engine/live' as string | undefined };
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
@@ -1451,7 +1475,7 @@ suite('NavigatorProjectsView', () => {
 			/** The row-actions container decides visibility through `is-available` and `is-workdir-actions`. */
 			workdirActions: () => workdirActionsFor(view, 'live'),
 			newSession: () => workdirActionsFor(view, 'live')?.querySelector('.navigator-projects-new-session') as HTMLElement | null | undefined,
-			sessionAction: (icon: string) => sessionRowFor(view, 'ua-here').querySelector(`.${icon}`) as HTMLElement | null,
+			sessionAction: (index: number) => sessionMenuActions(view, sessionRowFor(view, 'ua-here'))[index],
 			settle: async () => {
 				onDidChangeConnection.fire(uaConnection.getConnectionSnapshot());
 				await flushMicrotasks();
@@ -1460,13 +1484,90 @@ suite('NavigatorProjectsView', () => {
 		};
 	}
 
+	test('group labels align with child titles and state stays visible beside More', async () => {
+		class StatusRoster extends HoldRoster {
+			pending = 2;
+			override countPendingConfirmations(): number { return this.pending; }
+		}
+		const roster = new StatusRoster();
+		const fixture = await mountHoldView({ rosterService: roster });
+		const { view } = fixture;
+		const root = document.createElement('div');
+		root.className = 'monaco-workbench';
+		root.style.width = '300px';
+		// Standalone view fixtures do not pass through the workbench size-token publisher.
+		for (const size of [4, 8, 12, 16]) {
+			root.style.setProperty(`--vscode-spacing-size${size * 10}`, `${size}px`);
+		}
+		root.style.setProperty('--vscode-codiconFontSize', '16px');
+		root.appendChild(view.element);
+		document.body.appendChild(root);
+		store.add({ dispose: () => root.remove() });
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 300);
+		const group = view.element.querySelector('.is-group .navigator-projects-node-name') as HTMLElement;
+		const row = sessionRowFor(view, 'ua-here');
+		const title = row.querySelector('.navigator-projects-node-name') as HTMLElement;
+		assert.strictEqual(group.getBoundingClientRect().height, 30);
+		const inset = title.getBoundingClientRect().left - group.getBoundingClientRect().left;
+		assert.ok(inset >= 0 && inset <= 16, `tree depth must not be counted twice (group=${group.getBoundingClientRect().left}, child=${title.getBoundingClientRect().left}, inset=${inset})`);
+		assert.strictEqual(row.querySelector('.navigator-projects-session-count')?.textContent, '2');
+		sessionMenuActions(view, row);
+		const status = row.querySelector('.navigator-projects-session-status') as HTMLElement;
+		assert.ok(!status.hidden && status.getBoundingClientRect().width > 0, 'pending state stays visible with an open menu');
+		closeMenus.get(view)!();
+		roster.pending = 0;
+		await fixture.settle();
+		const idleRow = sessionRowFor(view, 'ua-here');
+		assert.ok((idleRow.querySelector('.navigator-projects-session-status') as HTMLElement).hidden);
+		assert.strictEqual(idleRow.querySelector('.navigator-projects-session-count')?.textContent, '');
+	});
+
+	test('keyboard context menu returns focus and keeps its target after virtual rows change', async () => {
+		const fixture = await mountHoldView({ dialogService: { confirm: async () => ({ confirmed: true }) } as unknown as IDialogService });
+		const { view } = fixture;
+		document.body.appendChild(view.element);
+		store.add({ dispose: () => view.element.remove() });
+		const tree = getViewTree(view);
+		const navigation = tree.navigate();
+		let session: INavigatorProjectsTreeNode | undefined;
+		for (let node = navigation.next(); node; node = navigation.next()) {
+			const entry = node as INavigatorProjectsTreeNode;
+			if (entry.sessionId === 'ua-here') {
+				session = entry;
+				break;
+			}
+		}
+		assert.ok(session);
+		tree.setFocus([session]);
+		tree.domFocus();
+		const list = view.element.querySelector('.monaco-list') as HTMLElement;
+		list.dispatchEvent(new KeyboardEvent('keyup', { key: 'F10', keyCode: 121, shiftKey: true, bubbles: true }));
+		const actions = menus.get(view)!();
+		assert.deepStrictEqual(actions.map(action => action.id), ['navigator.projects.openSession', 'navigator.projects.deleteSession']);
+		tree.setChildren(null, [{ element: { ...session, id: 'other', sessionId: 'other' } }]);
+		await actions[1].run();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fixture.rosterService.deleteSessionCalls, ['ua-here']);
+		closeMenus.get(view)!();
+		assert.strictEqual(document.activeElement, list);
+	});
+
+	test('a menu opened before a connection change cannot delete a same-ID session on the new connection', async () => {
+		const fixture = await mountHoldView({ dialogService: { confirm: async () => ({ confirmed: true }) } as unknown as IDialogService });
+		const actions = sessionMenuActions(fixture.view, sessionRowFor(fixture.view, 'ua-here'));
+		await fixture.settle();
+		await actions[1].run();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fixture.rosterService.deleteSessionCalls, []);
+	});
+
 	test('pairing hold keeps Delete and New session visible, disabled, with the reason', async () => {
 		const fixture = await mountHoldView();
 		const { rosterService } = fixture;
 
 		assert.ok(fixture.workdirActions()?.classList.contains('is-workdir-actions'), 'live current workDir offers New session');
 		assert.ok(!fixture.newSession()?.classList.contains('disabled'));
-		assert.ok(!fixture.sessionAction('codicon-trash')?.classList.contains('disabled'));
+		assert.ok(!!fixture.sessionAction(1).enabled);
 
 		fixture.state.pairingPending = true;
 		rosterService.setPairingPending(true);
@@ -1476,11 +1577,11 @@ suite('NavigatorProjectsView', () => {
 		assert.ok(fixture.workdirActions()?.classList.contains('is-available') && fixture.workdirActions()?.classList.contains('is-workdir-actions'), 'New session stays visible');
 		assert.ok(fixture.newSession()?.classList.contains('disabled'));
 		assert.strictEqual(fixture.newSession()?.getAttribute('aria-label'), 'New session in live. Engine not connected');
-		assert.ok(fixture.sessionAction('codicon-trash')?.classList.contains('disabled'));
-		assert.strictEqual(fixture.sessionAction('codicon-trash')?.getAttribute('aria-label'), 'Delete. Engine not connected');
-		assert.ok(fixture.sessionAction('codicon-open-preview')?.classList.contains('disabled'));
+		assert.ok(!fixture.sessionAction(1).enabled);
+		assert.strictEqual(fixture.sessionAction(1).label, 'Delete. Engine not connected');
+		assert.ok(!fixture.sessionAction(0).enabled);
 		fixture.newSession()?.click();
-		fixture.sessionAction('codicon-trash')?.click();
+		void fixture.sessionAction(1).run();
 		await flushMicrotasks();
 		assert.strictEqual(rosterService.createCalls, 0, 'a disabled New session creates nothing');
 		assert.deepStrictEqual(rosterService.deleteSessionCalls, [], 'a disabled Delete deletes nothing');
@@ -1517,7 +1618,7 @@ suite('NavigatorProjectsView', () => {
 		const fixture = await mountHoldView({ dialogService, errors });
 		rosterRef = fixture.rosterService;
 
-		fixture.sessionAction('codicon-trash')?.click();
+		void fixture.sessionAction(1).run();
 		await flushMicrotasks();
 		assert.deepStrictEqual(fixture.rosterService.deleteSessionCalls, [], 'a delete confirmed after the engine dropped is not sent');
 		assert.deepStrictEqual(errors, [], 'and it does not report a failure the user never triggered');
