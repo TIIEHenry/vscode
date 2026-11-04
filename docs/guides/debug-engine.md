@@ -3,8 +3,8 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-11-01
-summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定，线上二进制以 engine/VERSION 与 lib.SHA256SUMS 为准；IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。"
+updated: 2026-11-05
+summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定，线上二进制以 engine/VERSION 与 lib.SHA256SUMS 为准；IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口；真实 SGLang 探针走 UniverseAgent 的 integration-tests。"
 ---
 
 # 钉死 UniverseAgent 引擎（IDE 调试）
@@ -62,9 +62,23 @@ Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、�
 
 占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。当前 027ab 钉已包含 `UpsertModel` / `DeleteModel` / `SetModelEnabled` 与 `GetPermissionMode` 的引擎实现；这只证明二进制已换钉，不等于 IDE 产品路径已验收。模型目录仍由 seed 脚本提供启动基线。本仓 Composer 发送时带 `SessionInput.model_profile_id`（选中 catalog 的 `id`；诚实空选项不带）。
 
-## 5. 换钉
+## 6. 换钉
 
 换钉触发已满足：要吃进引擎仓已合并的 IDE 远程协议 A–F、权限模式读回和模型写 RPC。步骤见仓外 README。更新时先从干净 commit 建 detached worktree，再编完整运行时模块；启动后以 `engine/VERSION` 核对实际二进制，不把当前开发树的 dirty HEAD 当发布钉。
+
+## 5. SGLang 真实 Provider 探针
+
+当前 VS Code 仓没有独立的 SGLang 服务入口；真实模型协议探针沿用 UniverseAgent 仓的固定脚本。它会发现 `/v1/models`（或使用显式模型名），把 token 只放在当前进程环境中，不写入仓库或证据文件：
+
+```bash
+cd /home/clarence/Projects/Agents/UniverseAgent
+export SGLANG_ANTHROPIC_BASE_URL="http://192.168.10.68:8192"
+export SGLANG_MODEL="Local"                 # 省略时从 /v1/models 发现
+export SGLANG_ANTHROPIC_AUTH_TOKEN="<token>" # 不要提交或打印
+scripts/run-sglang-integration-tests.sh --protocol anthropic
+```
+
+也可用 `--protocol chat`、`responses`、`both` 或 `all` 验证对应的 OpenAI-compatible 路径。2026-11-05 的实际 SGLang Anthropic 探针为 **3 tests / 3 passed / 0 failed**，覆盖文本流终止、工具调用回灌和权限拒绝；日志中的未知 context window 警告只影响预算回退，不代表模型调用失败。这个结果证明 Provider 与 SGLang 的真实协议链路，不等于默认编辑器窗口或 50061 引擎已经完成 UI / Composer 端到端验收。
 
 [D25](../../dev/progress/deferred-gaps.md) / [D26](../../dev/progress/deferred-gaps.md) 的 List / Create PASS 属旧钉历史；027ab 新钉尚未重跑业务验收，不能把旧证据迁移到当前版本。空 catalog 当时不并入那两行；本仓不加兼容层。
 
@@ -72,3 +86,4 @@ Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、�
 
 - [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) · [connection-hub-client](../../dev/plans/connection-hub-client.md)（Direct Address / SAS）
 - [壳冒烟](shell-smoke-verification.md)（IDE 侧隔离 profile，与本引擎正交）
+- UniverseAgent 仓外脚本：`/home/clarence/Projects/Agents/UniverseAgent/scripts/run-sglang-integration-tests.sh`
