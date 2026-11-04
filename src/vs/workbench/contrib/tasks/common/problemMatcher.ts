@@ -1925,7 +1925,7 @@ class ProblemMatcherRegistryImpl implements IProblemMatcherRegistry {
 	}
 
 	public onReady(): Promise<void> {
-		void ProblemPatternRegistry.onReady().catch(onUnexpectedError).catch(onUnexpectedError);
+		void ProblemPatternRegistry.onReady().catch(onUnexpectedError);
 		return this.readyPromise;
 	}
 

@@ -37,15 +37,15 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 		@IOpenerService private readonly _openerService: IOpenerService) {
 		super();
 		if (this._taskService.isReconnected) {
-			void this._tryRunTasks().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._tryRunTasks().catch(onUnexpectedError);
 		} else {
-			this._register(Event.once(this._taskService.onDidReconnectToTasks)(() => void this._tryRunTasks().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._register(Event.once(this._taskService.onDidReconnectToTasks)(() => void this._tryRunTasks().catch(onUnexpectedError)));
 		}
-		this._register(this._workspaceTrustManagementService.onDidChangeTrust(() => void this._tryRunTasks().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._workspaceTrustManagementService.onDidChangeTrust(() => void this._tryRunTasks().catch(onUnexpectedError)));
 	}
 
 	private async _tryRunTasks() {
-		if (!this._workspaceTrustManagementService.isWorkspaceTrusted()) {
+		if (this._store.isDisposed || !this._workspaceTrustManagementService.isWorkspaceTrusted()) {
 			return;
 		}
 		const { value, userValue } = this._configurationService.inspect<string>(ALLOW_AUTOMATIC_TASKS);
@@ -94,12 +94,15 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 		tasks.forEach(task => {
 			if (task instanceof Promise) {
 				task.then(promiseResult => {
-					if (promiseResult) {
-						void taskService.run(promiseResult).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (promiseResult) {
+						void taskService.run(promiseResult).catch(onUnexpectedError);
+					}
+				}).catch(onUnexpectedError);
 			} else {
-				void taskService.run(task).catch(onUnexpectedError).catch(onUnexpectedError);
+				void taskService.run(task).catch(onUnexpectedError);
 			}
 		});
 	}

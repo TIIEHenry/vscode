@@ -125,10 +125,13 @@ export class TerminalClipboardContribution extends Disposable implements ITermin
 	}
 
 	async handleMouseEvent(event: MouseEvent): Promise<{ handled: boolean } | void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		switch (event.button) {
 			case 1: { // Middle click
 				if (this._terminalConfigurationService.config.middleClickBehavior === 'paste') {
-					this.paste().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.paste().catch(onUnexpectedError);
 					return { handled: true };
 				}
 				break;
@@ -147,7 +150,7 @@ export class TerminalClipboardContribution extends Disposable implements ITermin
 					this._ctx.instance.clearSelection();
 				} else {
 					if (BrowserFeatures.clipboard.readText) {
-						this.paste().catch(onUnexpectedError).catch(onUnexpectedError);
+						this.paste().catch(onUnexpectedError);
 					} else {
 						this._notificationService.info(`This browser doesn't support the clipboard.readText API needed to trigger a paste, try ${isMacintosh ? '⌘' : 'Ctrl'}+V instead.`);
 					}

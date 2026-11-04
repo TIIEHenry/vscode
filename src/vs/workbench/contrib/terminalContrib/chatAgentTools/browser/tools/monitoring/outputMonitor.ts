@@ -189,10 +189,10 @@ export class OutputMonitor extends Disposable implements IOutputMonitor {
 		// its finally block, so we always call it when we're still the current
 		// CTS (even if the token has since been cancelled).
 		timeout(0).then(() => {
-			if (this._currentMonitoringCts !== cts) {
+			if (this._store.isDisposed || this._currentMonitoringCts !== cts) {
 				return;
 			}
-			this._startMonitoring(command, invocationContext, cts.token).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._startMonitoring(command, invocationContext, cts.token).catch(onUnexpectedError);
 		});
 	}
 
@@ -298,6 +298,9 @@ export class OutputMonitor extends Disposable implements IOutputMonitor {
 	 * is capped by the standard polling timeouts.
 	 */
 	continueMonitoringAsync(token: CancellationToken): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._asyncMode = true;
 		// Cancel and dispose any in-progress monitoring run to avoid two concurrent loops.
 		// Cancel before dispose so that onCancellationRequested handlers fire and pending
@@ -307,7 +310,7 @@ export class OutputMonitor extends Disposable implements IOutputMonitor {
 		currentMonitoringCts?.dispose();
 		this._currentMonitoringCts = new CancellationTokenSource(token);
 		this._state = OutputMonitorState.PollingForIdle;
-		this._startMonitoring(this._command, this._invocationContext, this._currentMonitoringCts.token).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._startMonitoring(this._command, this._invocationContext, this._currentMonitoringCts.token).catch(onUnexpectedError);
 	}
 
 	/**
