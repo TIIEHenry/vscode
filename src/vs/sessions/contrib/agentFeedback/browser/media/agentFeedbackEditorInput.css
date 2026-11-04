@@ -5,7 +5,7 @@
 
 .agent-feedback-input-widget {
 	position: absolute;
-	z-index: 10000;
+	z-index: var(--sessions-z-drop-target, 10000);
 	background-color: var(--vscode-panel-background);
 	border: 1px solid var(--vscode-agentFeedbackInputWidget-border, var(--vscode-editorWidget-border, var(--vscode-contrastBorder)));
 	box-shadow: var(--vscode-shadow-lg);

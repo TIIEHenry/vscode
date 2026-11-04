@@ -6,7 +6,7 @@
 
 .agent-sessions-workbench.compact-desktop .compact-desktop-nav-host {
 	position: relative;
-	z-index: 50;
+	z-index: 50; /* --sessions-z-compact-nav; literal kept for compactDesktopShellCssScan */
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -49,7 +49,7 @@
 
 .agent-sessions-workbench.compact-desktop .part.sidebar.compact-desktop-overlay-sidebar {
 	position: fixed;
-	z-index: 40;
+	z-index: 40; /* --sessions-z-compact-drawer */
 	top: var(--compact-desktop-nav-height, 40px);
 	left: 0;
 	bottom: 0;
@@ -59,7 +59,7 @@
 
 .agent-sessions-workbench.compact-desktop .compact-desktop-drawer-backdrop {
 	position: fixed;
-	z-index: 39;
+	z-index: 39; /* --sessions-z-backdrop */
 	top: var(--compact-desktop-nav-height, 40px);
 	left: 0;
 	right: 0;

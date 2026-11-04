@@ -26,6 +26,10 @@
 	overflow-y: hidden;
 	-webkit-overflow-scrolling: touch;
 	scrollbar-width: none;
+	/* Chip ::before pads 8px past the 28px chip. overflow-y:hidden clips that
+	 * pad, so it sits in this padding. The negative margin keeps the row height. */
+	padding-block: 8px;
+	margin-block: -8px;
 	/* Mask-based fade on the trailing edge so chips that scroll under the
 	 * pinned Find chip get visually softened instead of clipped abruptly. */
 	-webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);

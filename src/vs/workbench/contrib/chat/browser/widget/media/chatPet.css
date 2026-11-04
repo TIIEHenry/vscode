@@ -335,6 +335,11 @@
 	background: #191a1b;
 }
 
+.hc-black .chat-pet-pupil,
+.hc-light .chat-pet-pupil {
+	background: var(--vscode-editor-foreground);
+}
+
 .chat-pet-button[data-state='idle'] .chat-pet-eye,
 .chat-pet-button[data-state='rendering'] .chat-pet-eye,
 .chat-pet-button[data-state='achievementUnlocked'] .chat-pet-eye,
@@ -392,6 +397,13 @@
 	width: 8px;
 	height: 2px;
 	background: #191a1b;
+}
+
+.hc-black .chat-pet-button.dragging .chat-pet-eye::before,
+.hc-black .chat-pet-button.dragging .chat-pet-eye::after,
+.hc-light .chat-pet-button.dragging .chat-pet-eye::before,
+.hc-light .chat-pet-button.dragging .chat-pet-eye::after {
+	background: var(--vscode-editor-foreground);
 }
 
 .chat-pet-button.dragging .chat-pet-eye::before {

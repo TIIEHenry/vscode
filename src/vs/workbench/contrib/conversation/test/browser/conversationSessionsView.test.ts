@@ -110,7 +110,7 @@ suite('ConversationSessionsView', () => {
 
 	function isFilterVisible(view: ConversationSessionsView): boolean {
 		const filter = view.element.querySelector('.conversation-sessions-inline-filter') as HTMLElement | null;
-		return filter !== null && filter.style.display !== 'none';
+		return filter !== null && !filter.hidden;
 	}
 
 	async function setFilterQuery(view: ConversationSessionsView, query: string): Promise<void> {
@@ -386,7 +386,7 @@ suite('ConversationSessionsView', () => {
 		const labels = [...view.element.querySelectorAll('.conversation-sessions-item-label')];
 		assert.strictEqual(labels.length, sessions.length);
 		assert.ok(labels.every((label, index) => label.textContent === sessions[index].title));
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-empty') as HTMLElement | null)?.hidden, true);
 
 		const activeIndex = sessions.findIndex(session => session.id === stubService.getActiveSessionId());
 		assert.ok(activeIndex >= 0);
@@ -446,7 +446,7 @@ suite('ConversationSessionsView', () => {
 		assert.ok(!empty.textContent?.match(/engine session/i));
 		assert.ok(!empty.textContent?.toLowerCase().includes('open chat'));
 		assert.strictEqual(view.element.querySelector('.chat-widget'), null);
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-list') as HTMLElement | null)?.hidden, true);
 	});
 
 	test('New session action title matches SessionBar copy', () => {
@@ -644,7 +644,7 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(getVisibleSessionTitles(view)[0], 'Alpha roster item');
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
 		assert.ok(empty);
-		assert.strictEqual(empty.style.display, 'none');
+		assert.strictEqual(empty.hidden, true);
 	});
 
 	test('inline filter keeps the active session visible when its title does not match', async () => {
@@ -728,18 +728,18 @@ suite('ConversationSessionsView', () => {
 		const { view } = mountView({ stubService });
 		const stubRowCount = view.element.querySelectorAll('.conversation-sessions-item-label').length;
 		assert.ok(stubRowCount > 0);
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-empty')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-empty') as HTMLElement | null)?.hidden, true);
 
 		stubService.setEngineConnected(true);
 
 		assert.strictEqual(stubService.getSessions().length, 0);
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
-		assert.strictEqual(empty?.getAttribute('style'), 'display: block;');
+		assert.strictEqual(empty?.hidden, false);
 		assert.strictEqual(empty?.textContent, conversationSessionsViewEmptyMessage);
 		assert.ok(!empty?.textContent?.match(/stub conversation/i));
 		assert.ok(!empty?.textContent?.match(/in-memory/i));
 		assert.ok(!empty?.textContent?.match(/engine session/i));
-		assert.strictEqual(view.element.querySelector('.conversation-sessions-list')?.getAttribute('style'), 'display: none;');
+		assert.strictEqual((view.element.querySelector('.conversation-sessions-list') as HTMLElement | null)?.hidden, true);
 		assert.ok(!isFilterVisible(view));
 	});
 

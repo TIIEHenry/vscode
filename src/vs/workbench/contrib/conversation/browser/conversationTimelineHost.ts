@@ -281,7 +281,7 @@ export class ConversationTimelineHost extends Disposable {
 		}));
 		this.scrollDownButton.element.classList.add('conversation-timeline-scroll-down');
 		this.scrollDownButton.label = `$(${Codicon.chevronDown.id})`;
-		this.scrollDownButton.element.style.display = 'none';
+		this.scrollDownButton.element.hidden = true;
 		this._register(this.scrollDownButton.onDidClick(() => {
 			this.follow.setScrollLock(true);
 			this.scrollToEnd();
@@ -1055,7 +1055,7 @@ export class ConversationTimelineHost extends Disposable {
 			this.viewport.scrollHeight,
 		);
 		const { showButton } = computeConversationScrollDownState(atBottom, this.follow.scrollLock);
-		this.scrollDownButton.element.style.display = showButton ? 'flex' : 'none';
+		this.scrollDownButton.element.hidden = !showButton;
 		this.viewport.classList.toggle('conversation-timeline-scroll-down-visible', showButton);
 		this.viewport.classList.toggle('conversation-timeline-at-bottom', atBottom);
 	}

@@ -12,6 +12,7 @@
 .monaco-workbench .conversation-subagent-overlay {
 	position: absolute;
 	inset: 0;
+	/* Covers in-part timeline chrome, including the scroll-down button at z-index 2. Part popovers stay at 20; the visualize lightbox is 2600. */
 	z-index: 5;
 	display: flex;
 	align-items: center;

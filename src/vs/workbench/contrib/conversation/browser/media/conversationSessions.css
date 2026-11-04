@@ -10,6 +10,12 @@
 }
 
 
+/* Author `display: flex` beats the UA `[hidden]` rule. */
+.monaco-workbench .conversation-sessions-empty[hidden],
+.monaco-workbench .conversation-sessions-list[hidden] {
+	display: none;
+}
+
 .monaco-workbench .conversation-sessions-empty {
 	display: flex;
 	flex-direction: column;

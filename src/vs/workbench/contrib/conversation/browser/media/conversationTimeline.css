@@ -93,7 +93,7 @@
 	font-size: var(--vscode-fontSize-body1, 13px);
 	line-height: 1.5;
 	text-align: center;
-	opacity: 0.75;
+	color: var(--vscode-descriptionForeground);
 }
 
 .conversation-timeline-pinned {
@@ -117,9 +117,14 @@
 
 .conversation-timeline-scroll-down {
 	position: absolute;
+	/* Above the timeline stream. The sub-agent overlay (z-index 5) covers this while open. */
 	z-index: 2;
 	right: 16px;
 	bottom: 12px;
+}
+
+.conversation-timeline-scroll-down[hidden] {
+	display: none;
 }
 
 .monaco-workbench .conversation-timeline-item[data-streaming] .conversation-timeline-caret::after {

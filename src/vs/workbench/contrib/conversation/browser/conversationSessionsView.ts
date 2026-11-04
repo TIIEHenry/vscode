@@ -549,8 +549,8 @@ export class ConversationSessionsView extends ViewPane {
 		const filtered = hasSessions ? this.getFilteredSessions() : [];
 		const filterMiss = hasSessions && this.hasActiveFilter() && filtered.length === 0;
 		this.emptyMessage.textContent = filterMiss ? conversationSessionsViewNoMatches : conversationSessionsViewEmptyMessage;
-		this.emptyMessage.style.display = (!hasSessions || filterMiss) ? 'block' : 'none';
-		this.listContainer.style.display = (hasSessions && !filterMiss) ? 'block' : 'none';
+		this.emptyMessage.hidden = hasSessions && !filterMiss;
+		this.listContainer.hidden = !hasSessions || filterMiss;
 		this.filterBox?.setVisible(hasSessions);
 
 		if (!this.list) {
