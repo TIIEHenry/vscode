@@ -141,9 +141,9 @@ export class MainThreadTerminalService extends Disposable implements MainThreadT
 		const read = remoteAgentService.getEnvironment().then(async env => {
 			this._os = env?.os || OS;
 			this._updateDefaultProfile();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._remoteOsRead = read;
-		// Double catch fulfills a rejection, so `read` is not a failed-read cache.
+		// Catch fulfills a rejection, so `read` is not a failed-read cache.
 		// Drop the settled attempt. The next update calls getEnvironment again unless the OS was cached.
 		void read.then(() => {
 			if (this._remoteOsRead === read) {
@@ -164,7 +164,11 @@ export class MainThreadTerminalService extends Disposable implements MainThreadT
 		const remoteAuthority = this._environmentService.remoteAuthority;
 		const defaultProfile = this._terminalProfileResolverService.getDefaultProfile({ remoteAuthority, os: this._os });
 		const defaultAutomationProfile = this._terminalProfileResolverService.getDefaultProfile({ remoteAuthority, os: this._os, allowAutomationShell: true });
-		this._proxy.$acceptDefaultProfile(...await Promise.all([defaultProfile, defaultAutomationProfile]));
+		const [defaultProfileResolved, defaultAutomationProfileResolved] = await Promise.all([defaultProfile, defaultAutomationProfile]);
+		if (this._store.isDisposed) {
+			return;
+		}
+		this._proxy.$acceptDefaultProfile(defaultProfileResolved, defaultAutomationProfileResolved);
 	}
 
 	private async _getTerminalInstance(id: ExtHostTerminalIdentifier): Promise<ITerminalInstance | undefined> {

@@ -135,7 +135,7 @@ export class ExtHostMcpService extends Disposable implements IExtHostMpcService 
 	$stopMcp(id: number): void {
 		this._sseEventSources.get(id)
 			?.close()
-			.then(() => this._didClose(id)).catch(onUnexpectedError).catch(onUnexpectedError);
+			.then(() => this._didClose(id)).catch(onUnexpectedError);
 	}
 
 	private _didClose(id: number) {

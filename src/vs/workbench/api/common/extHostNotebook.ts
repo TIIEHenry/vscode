@@ -172,7 +172,7 @@ export class ExtHostNotebookController implements ExtHostNotebookShape {
 		const eventHandle = typeof provider.onDidChangeCellStatusBarItems === 'function' ? ExtHostNotebookController._notebookStatusBarItemProviderHandlePool++ : undefined;
 
 		this._notebookStatusBarItemProviders.set(handle, provider);
-		this._notebookProxy.$registerNotebookCellStatusBarItemProvider(handle, eventHandle, notebookType).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._notebookProxy.$registerNotebookCellStatusBarItemProvider(handle, eventHandle, notebookType).catch(onUnexpectedError);
 
 		let subscription: vscode.Disposable | undefined;
 		if (eventHandle !== undefined) {
@@ -181,7 +181,7 @@ export class ExtHostNotebookController implements ExtHostNotebookShape {
 
 		return new extHostTypes.Disposable(() => {
 			this._notebookStatusBarItemProviders.delete(handle);
-			this._notebookProxy.$unregisterNotebookCellStatusBarItemProvider(handle, eventHandle).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._notebookProxy.$unregisterNotebookCellStatusBarItemProvider(handle, eventHandle).catch(onUnexpectedError);
 			subscription?.dispose();
 		});
 	}

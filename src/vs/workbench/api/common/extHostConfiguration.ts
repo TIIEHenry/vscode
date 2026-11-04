@@ -133,7 +133,7 @@ export class ExtHostConfiguration implements ExtHostConfigurationShape {
 	}
 
 	$acceptConfigurationChanged(data: IConfigurationInitData, change: IConfigurationChange): void {
-		this.getConfigProvider().then(provider => provider.$acceptConfigurationChanged(data, change)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.getConfigProvider().then(provider => provider.$acceptConfigurationChanged(data, change)).catch(onUnexpectedError);
 	}
 }
 

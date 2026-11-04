@@ -299,7 +299,7 @@ class ChatSessionItemCollectionImpl implements vscode.ChatSessionItemCollection 
 		}
 
 		this.#items = newItemsMap;
-		void this.#proxy.$updateChatSessionItems(this.#controllerHandle, convertChatSessionDeltaToDto(delta)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.#proxy.$updateChatSessionItems(this.#controllerHandle, convertChatSessionDeltaToDto(delta)).catch(onUnexpectedError);
 	}
 
 	forEach(callback: (item: vscode.ChatSessionItem, collection: vscode.ChatSessionItemCollection) => unknown, thisArg?: any): void {
@@ -324,7 +324,7 @@ class ChatSessionItemCollectionImpl implements vscode.ChatSessionItemCollection 
 			void this.#proxy.$updateChatSessionItems(this.#controllerHandle, {
 				addedOrUpdated: [],
 				removed: [resource]
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 

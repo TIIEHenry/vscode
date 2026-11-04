@@ -454,7 +454,7 @@ class MainThreadChatSessionItemController extends Disposable implements IChatSes
 				return;
 			}
 
-			this.tryUpdateItemForModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.tryUpdateItemForModel(model).catch(onUnexpectedError);
 
 			const requestChangeListener = model.lastRequestObs.map(last => last?.response && observableSignalFromEvent('chatSessions.modelRequestChangeListener', last.response.onDidChange));
 			const modelChangeListener = observableSignalFromEvent('chatSessions.modelChangeListener', model.onDidChange);
@@ -462,7 +462,7 @@ class MainThreadChatSessionItemController extends Disposable implements IChatSes
 				requestChangeListener.read(reader)?.read(reader);
 				modelChangeListener.read(reader);
 
-				this.tryUpdateItemForModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.tryUpdateItemForModel(model).catch(onUnexpectedError);
 			}));
 		};
 
@@ -549,10 +549,13 @@ class MainThreadChatSessionItemController extends Disposable implements IChatSes
 	}
 
 	private async tryUpdateItemForModel(model: IChatModel): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		const resource = model.sessionResource;
 		const existing = this._items.get(resource);
 		if (existing) {
-			this.addOrUpdateItem(existing).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.addOrUpdateItem(existing).catch(onUnexpectedError);
 		}
 	}
 
@@ -741,7 +744,7 @@ export class MainThreadChatSessions extends Disposable implements MainThreadChat
 			const handle = this._getHandleForSessionType(sessionType);
 			this._logService.trace(`[MainThreadChatSessions] onRequestNotifyExtension received: sessionType '${sessionType}', handle ${handle}, ${updates.size} update(s)`);
 			if (handle !== undefined) {
-				this.notifyOptionsChange(handle, sessionResource, updates).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.notifyOptionsChange(handle, sessionResource, updates).catch(onUnexpectedError);
 			} else {
 				this._logService.warn(`[MainThreadChatSessions] Cannot notify option change for sessionType '${sessionType}': no provider registered. Registered types: [${Array.from(this._sessionTypeToHandle.keys()).join(', ')}]`);
 			}
@@ -1120,6 +1123,9 @@ export class MainThreadChatSessions extends Disposable implements MainThreadChat
 	 * Notify the extension about option changes for a session
 	 */
 	async notifyOptionsChange(handle: number, sessionResource: URI, updates: ReadonlyMap<string, string | IChatSessionProviderOptionItem | undefined>): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._logService.trace(`[MainThreadChatSessions] notifyOptionsChange: starting proxy call for handle ${handle}, sessionResource ${sessionResource}`);
 		try {
 			await this._proxy.$provideHandleOptionsChange(handle, sessionResource, Object.fromEntries(updates), CancellationToken.None);

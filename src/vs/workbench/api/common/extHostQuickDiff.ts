@@ -75,7 +75,7 @@ class ExtHostSourceControlDiffInformation implements vscode.SourceControlDiffInf
 	}
 
 	dispose(): void {
-		this.proxy.$disposeSourceControlDiffInformation(this.handle).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.proxy.$disposeSourceControlDiffInformation(this.handle).catch(onUnexpectedError);
 		this._onDidChange.dispose();
 		this.onDispose(this.handle);
 	}
@@ -117,10 +117,10 @@ export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 		this.providers.set(handle, quickDiffProvider);
 
 		const extensionId = ExtensionIdentifier.toKey(extension.identifier);
-		this.proxy.$registerQuickDiffProvider(handle, DocumentSelector.from(selector, this.uriTransformer), `${extensionId}.${id}`, label, rootUri).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.proxy.$registerQuickDiffProvider(handle, DocumentSelector.from(selector, this.uriTransformer), `${extensionId}.${id}`, label, rootUri).catch(onUnexpectedError);
 		return {
 			dispose: () => {
-				this.proxy.$unregisterQuickDiffProvider(handle).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.proxy.$unregisterQuickDiffProvider(handle).catch(onUnexpectedError);
 				this.providers.delete(handle);
 			}
 		};
@@ -130,7 +130,7 @@ export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 		const handle = ExtHostQuickDiff.handlePool++;
 		const information = new ExtHostSourceControlDiffInformation(handle, this.proxy, this.documents, h => this.informations.delete(h));
 		this.informations.set(handle, information);
-		this.proxy.$createSourceControlDiffInformation(handle, uri).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.proxy.$createSourceControlDiffInformation(handle, uri).catch(onUnexpectedError);
 		return information;
 	}
 }

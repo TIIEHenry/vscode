@@ -163,7 +163,7 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
 				supportedAuthorizationServers: options?.supportedAuthorizationServers,
 				supportsChallenges: options?.supportsChallenges
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		// unregister
 		return new Disposable(() => {
@@ -174,7 +174,7 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
 					this._authenticationProviders.delete(id);
 					await this._proxy.$unregisterAuthenticationProvider(id);
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		});
 	}
 

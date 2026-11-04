@@ -65,7 +65,12 @@ export class MainThreadWorkspace extends Disposable implements MainThreadWorkspa
 		if (workspace.configuration && !isNative && !fileService.hasProvider(workspace.configuration)) {
 			this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted());
 		} else {
-			this._contextService.getCompleteWorkspace().then(workspace => this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted())).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._contextService.getCompleteWorkspace().then(workspace => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted());
+			}).catch(onUnexpectedError);
 		}
 		this._register(this._contextService.onDidChangeWorkspaceFolders(this._onDidChangeWorkspace, this));
 		this._register(this._contextService.onDidChangeWorkbenchState(this._onDidChangeWorkspace, this));

@@ -38,11 +38,11 @@ export class ExtHostProfileContentHandlers implements ExtHostProfileContentHandl
 		}
 
 		this.handlers.set(id, handler);
-		this.proxy.$registerProfileContentHandler(id, handler.name, handler.description, extension.identifier.value).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.proxy.$registerProfileContentHandler(id, handler.name, handler.description, extension.identifier.value).catch(onUnexpectedError);
 
 		return toDisposable(() => {
 			this.handlers.delete(id);
-			this.proxy.$unregisterProfileContentHandler(id).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.proxy.$unregisterProfileContentHandler(id).catch(onUnexpectedError);
 		});
 	}
 

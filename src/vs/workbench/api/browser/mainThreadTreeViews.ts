@@ -48,6 +48,9 @@ export class MainThreadTreeViews extends Disposable implements MainThreadTreeVie
 		this.logService.trace('MainThreadTreeViews#$registerTreeViewDataProvider', treeViewId, options);
 
 		this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const dataProvider = new TreeViewDataProvider(treeViewId, this._proxy, this.notificationService);
 			const disposables = new DisposableStore();
 			this._dataProviders.set(treeViewId, { dataProvider, dispose: () => disposables.dispose() });
@@ -70,7 +73,7 @@ export class MainThreadTreeViews extends Disposable implements MainThreadTreeVie
 			} else {
 				this.notificationService.error('No view is registered with id: ' + treeViewId);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	$reveal(treeViewId: string, itemInfo: { item: ITreeItem; parentChain: ITreeItem[] } | undefined, options: IRevealOptions): Promise<void> {
