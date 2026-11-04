@@ -102,7 +102,12 @@ export class WorkspaceWatcher extends Disposable {
 				localize('eshutdownError', "File changes watcher stopped unexpectedly. A reload of the window may enable the watcher again unless the workspace cannot be watched for file changes."),
 				[{
 					label: localize('reload', "Reload"),
-					run: () => this.hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError)
+					run: () => {
+						if (this._store.isDisposed) {
+							return;
+						}
+						this.hostService.reload().catch(onUnexpectedError);
+					}
 				}],
 				{
 					sticky: true,

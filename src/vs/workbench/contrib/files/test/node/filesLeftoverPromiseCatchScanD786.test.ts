@@ -39,10 +39,15 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -51,14 +56,14 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const onDidRunOperationCall = 'this.onDidRunOperation(e)';
 const selectRevealCall = 'this.select(resource, autoReveal)';
-const selectForceCall = "this.explorerService.selectInView(this.id, resource, 'force')";
+const selectForceCall = 'this.onLocationBreadcrumbPick(resource)';
 const selectActiveFileCall = 'this.selectActiveFile()';
 const selectActiveFileTrueCall = 'this.selectActiveFile(true)';
 const refreshCall = 'this.explorerService.refresh()';
@@ -112,13 +117,16 @@ suite('files leftover Promise fire-and-forget catch scan (D786)', () => {
 		for (const [rel, call, count] of d786Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
 		}
 		assert.strictEqual(sites, 13);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
 	test('files leftover onDidRunOperation / select / selectActiveFile / refresh are Promise double-chain', () => {
@@ -171,7 +179,7 @@ suite('files leftover Promise fire-and-forget catch scan (D786)', () => {
 		assertPromiseSignature(groups, 'openEditor(editor: EditorInput, options?: IEditorOptions): Promise<IEditorPane | undefined>;');
 		assertPromiseSignature(host, 'reload(options?: { disableExtensions?: boolean }): Promise<void>;');
 
-		assert.ok(imported.includes("import { canceled, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(imported.includes("import { canceled, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(commands.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(tracker.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(textEditor.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
@@ -247,9 +255,9 @@ suite('files leftover Promise fire-and-forget catch scan (D786)', () => {
 		assert.ok(viewer.includes('const promise = children.then('));
 		assert.ok(!viewer.includes(`children.then(${doubleCatch}`));
 
-		assert.ok(service.includes('void this.view?.setTreeInput()?.catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(service.includes('void this.refresh(false).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(view.includes('void this.commandService.executeCommand(NEW_FILE_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(service.includes('void this.view?.setTreeInput()?.catch(onUnexpectedError);'));
+		assert.ok(service.includes('void this.refresh(false).catch(onUnexpectedError);'));
+		assert.ok(view.includes('void this.commandService.executeCommand(NEW_FILE_COMMAND_ID).catch(onUnexpectedError);'));
 
 		assert.ok(watcher.includes('disposables.add(this.fileService.watch(pathToWatch, { recursive: true, excludes }));'));
 		assert.ok(!watcher.includes(`fileService.watch(pathToWatch, { recursive: true, excludes })${doubleCatch}`));

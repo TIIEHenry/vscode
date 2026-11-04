@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/scm.css';
-import { $, append, h, reset } from '../../../../base/browser/dom.js';
+import { $, append, clearNode, h, reset } from '../../../../base/browser/dom.js';
 import { HoverStyle, IDelayedHoverOptions, IHoverLifecycleOptions } from '../../../../base/browser/ui/hover/hover.js';
 import { IconLabel } from '../../../../base/browser/ui/iconLabel/iconLabel.js';
 import { IIdentityProvider, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
@@ -1664,6 +1664,7 @@ class HistoryItemRefPicker extends Disposable {
 
 export class SCMHistoryViewPane extends ViewPane {
 
+	private _isDisposed = false;
 	private _treeContainer!: HTMLElement;
 	private _tree!: WorkbenchCompressibleAsyncDataTree<SCMHistoryViewModel, TreeElement, FuzzyScore>;
 	private _treeViewModel!: SCMHistoryViewModel;
@@ -1842,7 +1843,7 @@ export class SCMHistoryViewPane extends ViewPane {
 						// If tree is scrolled to the top, we can safely refresh the tree, otherwise we
 						// will show a visual cue that the view is outdated.
 						if (this._tree.scrollTop === 0) {
-							void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+							void this.refresh().catch(onUnexpectedError);
 							return;
 						}
 
@@ -1851,7 +1852,7 @@ export class SCMHistoryViewPane extends ViewPane {
 						return;
 					}
 
-					void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.refresh().catch(onUnexpectedError);
 				}));
 
 				// HistoryItemRefs filter changed
@@ -1889,7 +1890,7 @@ export class SCMHistoryViewPane extends ViewPane {
 				// since the graph for the first repository is rendered when the tree
 				// input is set.
 				if (!isFirstRun) {
-					void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.refresh().catch(onUnexpectedError);
 				}
 				isFirstRun = false;
 			}));
@@ -1955,14 +1956,14 @@ export class SCMHistoryViewPane extends ViewPane {
 	}
 
 	private async _refresh(token: CancellationToken): Promise<void> {
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this._store.isDisposed || this._isDisposed) {
 			return;
 		}
 
 		this._treeViewModel.clearRepositoryState();
 		await this._updateChildren();
 
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this._store.isDisposed || this._isDisposed) {
 			return;
 		}
 
@@ -2066,7 +2067,7 @@ export class SCMHistoryViewPane extends ViewPane {
 			[
 				this.instantiationService.createInstance(HistoryItemRenderer, this.viewDescriptorService.getViewLocationById(this.id)),
 				this.instantiationService.createInstance(HistoryItemChangeRenderer, () => this._treeViewModel.viewMode.get(), resourceLabels),
-				this.instantiationService.createInstance(HistoryItemLoadMoreRenderer, this._repositoryIsLoadingMore, () => this._loadMore().catch(onUnexpectedError).catch(onUnexpectedError)),
+				this.instantiationService.createInstance(HistoryItemLoadMoreRenderer, this._repositoryIsLoadingMore, () => this._loadMore().catch(onUnexpectedError)),
 			],
 			this._treeDataSource,
 			{
@@ -2150,7 +2151,7 @@ export class SCMHistoryViewPane extends ViewPane {
 		} else if (isSCMHistoryItemLoadMoreTreeElement(e.element)) {
 			const pageOnScroll = this.configurationService.getValue<boolean>('scm.graph.pageOnScroll') === true;
 			if (!pageOnScroll) {
-				this._loadMore().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._loadMore().catch(onUnexpectedError);
 				this._tree.setSelection([]);
 			}
 		}
@@ -2272,7 +2273,7 @@ export class SCMHistoryViewPane extends ViewPane {
 	private async _loadMore(cursor?: string): Promise<void> {
 		const repository = this._treeViewModel.repository.get();
 		return this._treeLoadMoreSequencer.queue(async () => {
-			if (this._treeViewModel.repository.get() !== repository) {
+			if (this._store.isDisposed || this._isDisposed || this._treeViewModel.repository.get() !== repository) {
 				return;
 			}
 
@@ -2309,6 +2310,11 @@ export class SCMHistoryViewPane extends ViewPane {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
+		if (this._treeContainer) {
+			clearNode(this._treeContainer);
+			this._treeContainer.remove();
+		}
 		this._contextMenuDisposables.dispose();
 		this._visibilityDisposables.dispose();
 		super.dispose();

@@ -93,14 +93,14 @@ export class TextFileEditorTracker extends Disposable implements IWorkbenchContr
 	}
 
 	private doEnsureDirtyTextFilesAreOpened(resources: URI[]): void {
-		if (!resources.length) {
+		if (this._store.isDisposed || !resources.length) {
 			return;
 		}
 
 		this.editorService.openEditors(resources.map(resource => ({
 			resource,
 			options: { inactive: true, pinned: true, preserveFocus: true }
-		}))).catch(onUnexpectedError).catch(onUnexpectedError);
+		}))).catch(onUnexpectedError);
 	}
 
 	//#endregion

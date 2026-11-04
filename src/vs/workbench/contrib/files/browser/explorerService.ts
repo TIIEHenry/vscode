@@ -69,9 +69,12 @@ export class ExplorerService implements IExplorerService {
 
 		this.model = new ExplorerModel(this.contextService, this.uriIdentityService, this.fileService, this.configurationService, this.filesConfigurationService);
 		this.disposables.add(this.model);
-		this.disposables.add(this.fileService.onDidRunOperation(e => this.onDidRunOperation(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.disposables.add(this.fileService.onDidRunOperation(e => this.onDidRunOperation(e).catch(onUnexpectedError)));
 
 		this.onFileChangesScheduler = this.disposables.add(new RunOnceScheduler(async () => {
+			if (this.disposables.isDisposed) {
+				return;
+			}
 			const events = this.fileChangeEvents;
 			this.fileChangeEvents = [];
 
@@ -119,7 +122,7 @@ export class ExplorerService implements IExplorerService {
 				this.onFileChangesScheduler.schedule();
 			}
 		}));
-		this.disposables.add(this.configurationService.onDidChangeConfiguration(e => void this.onConfigurationUpdated(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.disposables.add(this.configurationService.onDidChangeConfiguration(e => void this.onConfigurationUpdated(e).catch(onUnexpectedError)));
 		this.disposables.add(Event.any<{ scheme: string }>(this.fileService.onDidChangeFileSystemProviderRegistrations, this.fileService.onDidChangeFileSystemProviderCapabilities)(async e => {
 			let affected = false;
 			this.model.roots.forEach(r => {
@@ -133,10 +136,10 @@ export class ExplorerService implements IExplorerService {
 			}
 		}));
 		this.disposables.add(this.model.onDidChangeRoots(() => {
-			void this.view?.setTreeInput()?.catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.view?.setTreeInput()?.catch(onUnexpectedError);
 			for (const view of this.views) {
 				if (view !== this.view) {
-					void view.setTreeInput().catch(onUnexpectedError).catch(onUnexpectedError);
+					void view.setTreeInput().catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -144,7 +147,7 @@ export class ExplorerService implements IExplorerService {
 		// Refresh explorer when window gets focus to compensate for missing file events #126817
 		this.disposables.add(hostService.onDidChangeFocus(hasFocus => {
 			if (hasFocus) {
-				void this.refresh(false).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh(false).catch(onUnexpectedError);
 			}
 		}));
 		this.revealExcludeMatcher = new ResourceGlobMatcher(
@@ -438,6 +441,9 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	async refresh(reveal = true): Promise<void> {
+		if (this.disposables.isDisposed) {
+			return;
+		}
 		// Do not refresh the tree when it is showing temporary nodes (phantom elements)
 		if (this.views.some(view => view.hasPhantomElements())) {
 			return;
@@ -451,7 +457,7 @@ export class ExplorerService implements IExplorerService {
 
 			if (reveal && resource && autoReveal && !isExplorerAutoRevealSuppressed()) {
 				// We did a top level refresh, reveal the active file #67118
-				this.select(resource, autoReveal).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.select(resource, autoReveal).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -474,6 +480,9 @@ export class ExplorerService implements IExplorerService {
 	// File events
 
 	private async onDidRunOperation(e: FileOperationEvent): Promise<void> {
+		if (this.disposables.isDisposed) {
+			return;
+		}
 		// When nesting, changes to one file in a folder may impact the rendered structure
 		// of all the folder's immediate children, thus a recursive refresh is needed.
 		// Ideally the tree would be able to recusively refresh just one level but that does not yet exist.
@@ -596,6 +605,9 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	private async onConfigurationUpdated(event: IConfigurationChangeEvent): Promise<void> {
+		if (this.disposables.isDisposed) {
+			return;
+		}
 		if (!event.affectsConfiguration('explorer')) {
 			return;
 		}

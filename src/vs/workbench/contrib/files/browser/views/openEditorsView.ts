@@ -81,6 +81,7 @@ export function findFirstDirtyEditor(groups: readonly IEditorGroup[]): OpenEdito
 
 export class OpenEditorsView extends ViewPane {
 
+	private _isDisposed = false;
 	private static readonly DEFAULT_VISIBLE_OPEN_EDITORS = 9;
 	private static readonly DEFAULT_MIN_VISIBLE_OPEN_EDITORS = 0;
 	static readonly ID = 'workbench.explorer.openEditorsView';
@@ -274,6 +275,9 @@ export class OpenEditorsView extends ViewPane {
 		// Register the refresh scheduler
 		let labelChangeListeners: IDisposable[] = [];
 		this.listRefreshScheduler = this._register(new RunOnceScheduler(() => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			const preserveSelection = this.preserveSelectionOnRefresh;
 			this.preserveSelectionOnRefresh = false;
 
@@ -464,6 +468,9 @@ export class OpenEditorsView extends ViewPane {
 	}
 
 	private openEditor(element: OpenEditor, options: { preserveFocus?: boolean; pinned?: boolean; sideBySide?: boolean }): void {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		if (element) {
 			this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: 'workbench.files.openFile', from: 'openEditors' });
 
@@ -472,7 +479,7 @@ export class OpenEditorsView extends ViewPane {
 				this.editorGroupService.activateGroup(element.group); // needed for https://github.com/microsoft/vscode/issues/6672
 			}
 			const targetGroup = options.sideBySide ? this.editorGroupService.sideGroup : element.group;
-			targetGroup.openEditor(element.editor, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			targetGroup.openEditor(element.editor, options).catch(onUnexpectedError);
 		}
 	}
 
@@ -638,6 +645,11 @@ export class OpenEditorsView extends ViewPane {
 		const childNodes: HTMLElement[] = [].slice.call(parentNode.querySelectorAll('.open-editor > a'));
 
 		return dom.getLargestChildWidth(parentNode, childNodes);
+	}
+
+	override dispose(): void {
+		this._isDisposed = true;
+		super.dispose();
 	}
 }
 

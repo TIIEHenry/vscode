@@ -39,7 +39,12 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -47,13 +52,13 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 }
 
 const diffDelayerCall = `this.setChanges(result.allChanges, result.changes, result.mapChanges, result.versionId);
@@ -141,18 +146,21 @@ suite('scm leftover Promise fire-and-forget catch scan (D781)', () => {
 		}
 		assert.strictEqual(sites, 19);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 	});
 
 	test('scm leftover remaining did not overflow into files leftover remaining', () => {
 		const explorer = fs.readFileSync(resolveSource(FILES_EXPLORER_REL), 'utf8');
 		const filesView = fs.readFileSync(resolveSource(FILES_VIEW_REL), 'utf8');
-		assert.ok(explorer.includes(`void this.onConfigurationUpdated(e)${doubleCatch}`));
-		assert.ok(explorer.includes(`void this.view?.setTreeInput()?${doubleCatch}`));
-		assert.ok(explorer.includes(`void this.refresh(false)${doubleCatch}`));
-		assert.ok(filesView.includes(`void this.refresh(true)${doubleCatch}`));
-		assert.ok(filesView.includes(`void this.commandService.executeCommand(NEW_FILE_COMMAND_ID)${doubleCatch}`));
-		assert.strictEqual((explorer.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
-		assert.strictEqual((filesView.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.ok(explorer.includes(`void this.onConfigurationUpdated(e)${singleCatch}`));
+		assert.ok(explorer.includes(`void this.view?.setTreeInput()?${singleCatch}`));
+		assert.ok(explorer.includes(`void this.refresh(false)${singleCatch}`));
+		assert.ok(filesView.includes(`void this.refresh(true)${singleCatch}`));
+		assert.ok(filesView.includes(`void this.commandService.executeCommand(NEW_FILE_COMMAND_ID)${singleCatch}`));
+		assert.strictEqual(countDoubleChains(explorer), 0);
+		assert.strictEqual(countDoubleChains(filesView), 0);
 	});
 
 	test('leftover _diffDelayer.trigger single-catch / accessibility executeCommand / updateValue / validation trigger are Promise double-chain', () => {
@@ -218,8 +226,8 @@ suite('scm leftover Promise fire-and-forget catch scan (D781)', () => {
 		assert.ok(viewPane.includes('IOpenerService'));
 		assert.ok(!viewPane.includes(`openerService.open${doubleCatch}`));
 		assert.ok(!viewPane.includes(`this.openerService.open(`));
-		assert.ok(viewPane.includes('await e.element.open(!!e.editorOptions.preserveFocus);'));
-		assert.ok(!viewPane.includes(`e.element.open(!!e.editorOptions.preserveFocus)${doubleCatch}`));
+		assert.ok(viewPane.includes('await resource.open(!!e.editorOptions.preserveFocus);'));
+		assert.ok(!viewPane.includes(`resource.open(!!e.editorOptions.preserveFocus)${doubleCatch}`));
 
 		assert.ok(history.includes('async runInView(_: ServicesAccessor, view: SCMHistoryViewPane): Promise<void> {'));
 		assert.ok(history.includes('\t\tview.refresh();'));
@@ -229,7 +237,8 @@ suite('scm leftover Promise fire-and-forget catch scan (D781)', () => {
 		assert.ok(history.includes('commandService.executeCommand(actionId, ...args, historyItemRef.id);'));
 		assert.ok(!history.includes(`commandService.executeCommand(actionId, ...args, historyItemRef.id)${doubleCatch}`));
 		assert.ok(history.includes('void this.refresh()'));
-		assert.strictEqual((history.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.strictEqual((history.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.strictEqual(countDoubleChains(history), 0);
 
 		assert.ok(util.includes('return this.commandService.executeCommand(this.command.id, ...(this.command.arguments || []));'));
 		assert.ok(!util.includes(`return this.commandService.executeCommand(this.command.id, ...(this.command.arguments || []))${doubleCatch}`));
@@ -237,8 +246,8 @@ suite('scm leftover Promise fire-and-forget catch scan (D781)', () => {
 		assert.ok(!contrib.includes(`return commandService.executeCommand(id, ...(args || []))${doubleCatch}`));
 		assert.ok(chat.includes('return this._delayer.trigger(() => {'));
 		assert.ok(!chat.includes(`return this._delayer.trigger(() => {${doubleCatch}`));
-		assert.ok(quickDiff.includes('this._quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {'));
-		assert.ok(!quickDiff.includes(`this._quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {${doubleCatch}`));
+		assert.ok(quickDiff.includes('const quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {'));
+		assert.ok(!quickDiff.includes(`const quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {${doubleCatch}`));
 		assert.ok(!quickDiff.includes('.then(undefined,'));
 		assert.ok(!history.includes('.then(undefined,'));
 

@@ -7,7 +7,7 @@ import './media/scm.css';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import { append, $, Dimension, trackFocus } from '../../../../base/browser/dom.js';
+import { append, $, clearNode, Dimension, trackFocus } from '../../../../base/browser/dom.js';
 import { InputValidationType, ISCMInput, IInputValidation, ISCMViewService, SCMInputChangeReason, ISCMInputValueProviderContext } from '../common/scm.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IContextViewService, IContextMenuService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
@@ -19,7 +19,7 @@ import { MenuItemAction, IMenuService, registerAction2, MenuId, Action2 } from '
 import { IAction, ActionRunner, Action } from '../../../../base/common/actions.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { IConfigurationService, ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
-import { ThrottledDelayer } from '../../../../base/common/async.js';
+import { RunOnceScheduler, ThrottledDelayer, TimeoutTimer } from '../../../../base/common/async.js';
 import { localize } from '../../../../nls.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { CodeEditorWidget, ICodeEditorWidgetOptions } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
@@ -383,7 +383,7 @@ export class SCMInputWidget {
 	private validation: IInputValidation | undefined;
 	private validationContextView: IOpenContextView | undefined;
 	private validationHasFocus: boolean = false;
-	private _validationTimer: Timeout | undefined;
+	private readonly _validationTimer = this.disposables.add(new TimeoutTimer());
 
 	// This is due to "Setup height change listener on next tick" above
 	// https://github.com/microsoft/vscode/issues/108067
@@ -417,7 +417,7 @@ export class SCMInputWidget {
 		this.inputEditor.setModel(textModel);
 
 		if (this.configurationService.getValue('editor.wordBasedSuggestions', { resource: textModel.uri }) !== 'off') {
-			this.configurationService.updateValue('editor.wordBasedSuggestions', 'off', { resource: textModel.uri }, ConfigurationTarget.MEMORY).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.configurationService.updateValue('editor.wordBasedSuggestions', 'off', { resource: textModel.uri }, ConfigurationTarget.MEMORY).catch(onUnexpectedError);
 		}
 
 		// Validation
@@ -428,13 +428,13 @@ export class SCMInputWidget {
 			const value = textModel.getValue();
 
 			const validation = await input.validateInput(value, offset || 0);
-			if (this.model?.input !== input) {
+			if (this.disposables.isDisposed || this.model?.input !== input) {
 				return;
 			}
 			this.setValidation(validation);
 		};
 
-		const triggerValidation = () => validationDelayer.trigger(validate).catch(onUnexpectedError).catch(onUnexpectedError);
+		const triggerValidation = () => validationDelayer.trigger(validate).catch(onUnexpectedError);
 		this.repositoryDisposables.add(validationDelayer);
 		this.repositoryDisposables.add(this.inputEditor.onDidChangeCursorPosition(triggerValidation));
 
@@ -556,10 +556,7 @@ export class SCMInputWidget {
 	}
 
 	private setValidation(validation: IInputValidation | undefined, options?: { focus?: boolean; timeout?: boolean }) {
-		if (this._validationTimer) {
-			clearTimeout(this._validationTimer);
-			this._validationTimer = undefined;
-		}
+		this._validationTimer.cancel();
 
 		this.validation = validation;
 		this.renderValidation();
@@ -569,7 +566,7 @@ export class SCMInputWidget {
 		}
 
 		if (validation && options?.timeout) {
-			this._validationTimer = setTimeout(() => this.setValidation(undefined), SCMInputWidget.ValidationTimeouts[validation.type]);
+			this._validationTimer.cancelAndSet(() => this.setValidation(undefined), SCMInputWidget.ValidationTimeouts[validation.type]);
 		}
 	}
 
@@ -637,14 +634,17 @@ export class SCMInputWidget {
 			this.element.classList.add('synthetic-focus');
 			this.renderValidation();
 		}));
+		const blurValidationScheduler = this.disposables.add(new RunOnceScheduler(() => {
+			if (this.disposables.isDisposed) {
+				return;
+			}
+			if (!this.validation || !this.validationHasFocus) {
+				this.clearValidation();
+			}
+		}, 0));
 		this.disposables.add(this.inputEditor.onDidBlurEditorText(() => {
 			this.element.classList.remove('synthetic-focus');
-
-			setTimeout(() => {
-				if (!this.validation || !this.validationHasFocus) {
-					this.clearValidation();
-				}
-			}, 0);
+			blurValidationScheduler.schedule();
 		}));
 
 		this.disposables.add(this.inputEditor.onDidBlurEditorWidget(() => {
@@ -842,7 +842,10 @@ export class SCMInputWidget {
 		this.input = undefined;
 		this.repositoryDisposables.dispose();
 		this.clearValidation();
-		clearTimeout(this._validationTimer);
+		if (this.element) {
+			clearNode(this.element);
+			this.element.remove();
+		}
 		this.disposables.dispose();
 	}
 }

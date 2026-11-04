@@ -6,7 +6,7 @@
 import './media/scm.css';
 import { localize } from '../../../../nls.js';
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
-import { append, $ } from '../../../../base/browser/dom.js';
+import { append, $, clearNode } from '../../../../base/browser/dom.js';
 import { IListVirtualDelegate, IIdentityProvider } from '../../../../base/browser/ui/list/list.js';
 import { IAsyncDataSource, ITreeEvent, ITreeContextMenuEvent, ITreeNode, ITreeElementRenderDetails } from '../../../../base/browser/ui/tree/tree.js';
 import { IOpenEvent, WorkbenchCompressibleAsyncDataTree } from '../../../../platform/list/browser/listService.js';
@@ -429,6 +429,8 @@ class RepositoriesTreeCompressionDelegate implements ITreeCompressionDelegate<Tr
 
 export class SCMRepositoriesViewPane extends ViewPane {
 
+	private _isDisposed = false;
+	private _treeContainer: HTMLElement | undefined;
 	private tree!: WorkbenchCompressibleAsyncDataTree<ISCMViewService, TreeElement>;
 	private treeDataSource!: RepositoryTreeDataSource;
 	private treeIdentityProvider!: RepositoryTreeIdentityProvider;
@@ -473,7 +475,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
-		const treeContainer = append(container, $('.scm-view.scm-repositories-view'));
+		const treeContainer = this._treeContainer = append(container, $('.scm-view.scm-repositories-view'));
 
 		// scm.providerCountBadge setting
 		this._register(autorun(reader => {
@@ -526,7 +528,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 				this.scmService.onDidAddRepository(this.onDidAddRepository, this, this.visibilityDisposables);
 				this.scmService.onDidRemoveRepository(this.onDidRemoveRepository, this, this.visibilityDisposables);
 				for (const repository of this.scmService.repositories) {
-					this.onDidAddRepository(repository).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.onDidAddRepository(repository).catch(onUnexpectedError);
 				}
 
 				// Expand repository if there is only one
@@ -539,7 +541,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 							this.tree.expand(this.scmViewService.repositories[0]));
 					}
 				}));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}, this, this._store);
 	}
 
@@ -683,7 +685,7 @@ export class SCMRepositoriesViewPane extends ViewPane {
 			return;
 		}
 
-		void this.commandService.executeCommand(e.element.artifact.command.id, e.element.repository.provider, e.element.artifact).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.commandService.executeCommand(e.element.artifact.command.id, e.element.repository.provider, e.element.artifact).catch(onUnexpectedError);
 	}
 
 	private onTreeContextMenu(e: ITreeContextMenuEvent<TreeElement>): void {
@@ -766,12 +768,15 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		this.updateBodySize(height);
 
 		// Refresh the selection
-		this.treeOperationSequencer.queue(() => this.updateTreeSelection()).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.treeOperationSequencer.queue(() => this.updateTreeSelection()).catch(onUnexpectedError);
 	}
 
 	private async updateChildren(element?: TreeElement): Promise<void> {
 		return this.updateChildrenThrottler.queue(
 			() => this.treeOperationSequencer.queue(async () => {
+				if (this._isDisposed || this._store.isDisposed) {
+					return;
+				}
 				if (element && this.tree.hasNode(element)) {
 					await this.tree.updateChildren(element, true);
 				} else {
@@ -829,6 +834,9 @@ export class SCMRepositoriesViewPane extends ViewPane {
 	}
 
 	private async updateTreeSelection(): Promise<void> {
+		if (this._isDisposed || this._store.isDisposed) {
+			return;
+		}
 		const oldSelection = this.getTreeSelection();
 		const oldSet = new Set(oldSelection);
 
@@ -895,8 +903,13 @@ export class SCMRepositoriesViewPane extends ViewPane {
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		for (const [repository, generation] of this._repositoryListenerGeneration) {
 			this._repositoryListenerGeneration.set(repository, generation + 1);
+		}
+		if (this._treeContainer) {
+			clearNode(this._treeContainer);
+			this._treeContainer.remove();
 		}
 		this.visibilityDisposables.dispose();
 		this.repositoryDisposables.dispose();

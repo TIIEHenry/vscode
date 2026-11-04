@@ -254,7 +254,7 @@ CommandsRegistry.registerCommand({
 				original: { resource: globalResourceToCompare },
 				modified: { resource: rightResource },
 				options: { pinned: true }
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 });

@@ -51,6 +51,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -67,9 +68,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single catch: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
 }
 
 const loadMoreCall = 'this._loadMore()';
@@ -95,7 +96,7 @@ const checkInstallCall = 'this.checkExtensionInstallation(context)';
 const selectUndefinedCall = 'this.selectConfiguration(undefined)';
 const launchCall = 'this.launchOrAttachToSession(session)';
 const toggleCall = 'this.toggleExceptionWidget()';
-const assignedQuickDiffThenCall = 'this._quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {';
+const assignedQuickDiffThenCall = 'const quickDiffsPromise = this.getOriginalResource().then(async (quickDiffs) => {';
 
 const d854Calls: Array<[string, string, number]> = [
 	[HISTORY_REL, loadMoreCall, 2],
@@ -119,13 +120,15 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		const repos = fs.readFileSync(resolveSource(REPOS_REL), 'utf8');
 		assertPromiseSignature(history, 'private async _loadMore(cursor?: string): Promise<void> {');
 		assertPromiseSignature(repos, 'private async onDidAddRepository(repository: ISCMRepository): Promise<void> {');
-		assert.ok(history.includes('void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.strictEqual((history.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.ok(history.includes('void this.refresh().catch(onUnexpectedError);'));
+		assert.strictEqual((history.match(/void this\.refresh\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
 		let scmSites = 0;
-		scmSites += countIncludes(history, `${loadMoreCall}${doubleCatch}`);
-		scmSites += countIncludes(repos, `${addRepoCall}${doubleCatch}`);
+		scmSites += countIncludes(history, `${loadMoreCall}${singleCatch}`);
+		scmSites += countIncludes(repos, `${addRepoCall}${singleCatch}`);
 		assert.strictEqual(scmSites, 3, `expected leftover remaining unused scm legal leftover 3, got ${scmSites}`);
 		assert.ok(scmSites < 4, `expected leftover remaining unused scm legal leftover <4, got ${scmSites}`);
+		assert.strictEqual(countDoubleChains(history), 0);
+		assert.strictEqual(countDoubleChains(repos), 0);
 		assert.ok(!history.includes('D854'));
 		assert.ok(!repos.includes('D854'));
 	});
@@ -136,7 +139,7 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		for (const [rel, call, count] of d854Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -144,11 +147,13 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		assert.strictEqual(sites, 7);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countIncludes(seen.get(HISTORY_REL) ?? '', `${loadMoreCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(seen.get(REPOS_REL) ?? '', `${addRepoCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(seen.get(EXPLORER_REL) ?? '', `${updateBadgeCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(seen.get(EXPLORER_REL) ?? '', `${startStopCall}${doubleCatch}`), 1);
-		assert.strictEqual(countDoubleChains(seen.get(HISTORY_REL) ?? ''), 5);
+		assert.strictEqual(countIncludes(seen.get(HISTORY_REL) ?? '', `${loadMoreCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(seen.get(REPOS_REL) ?? '', `${addRepoCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(seen.get(EXPLORER_REL) ?? '', `${updateBadgeCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(seen.get(EXPLORER_REL) ?? '', `${startStopCall}${singleCatch}`), 1);
+		assert.strictEqual(countDoubleChains(seen.get(HISTORY_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(REPOS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(EXPLORER_REL) ?? ''), 0);
 	});
 
 	test('scm leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
@@ -160,8 +165,8 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		assert.ok(repos.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(history, loadMoreCall);
 		assertWrapped(repos, addRepoCall);
-		assert.strictEqual(countIncludes(history, `${loadMoreCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(repos, `${addRepoCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(history, `${loadMoreCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(repos, `${addRepoCall}${singleCatch}`), 1);
 		assert.ok(!history.includes('\t\t\t\tthis._loadMore();\n'));
 		assert.ok(!history.includes(', () => this._loadMore()),'));
 		assert.ok(history.includes('await this._loadMore(historyItemRef.revision);'));
@@ -176,8 +181,8 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		assert.ok(explorer.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(explorer, updateBadgeCall);
 		assertWrapped(explorer, startStopCall);
-		assert.strictEqual(countIncludes(explorer, `${updateBadgeCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(explorer, `${startStopCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(explorer, `${updateBadgeCall}${singleCatch}`), 3);
+		assert.strictEqual(countIncludes(explorer, `${startStopCall}${singleCatch}`), 1);
 		assert.ok(!explorer.includes('\t\t\t\t\tthis.updateActivityBadge();\n'));
 		assert.ok(!explorer.includes('\t\t\t\tthis.updateActivityBadge();\n'));
 		assert.ok(!explorer.includes('\t\tthis.startStopCandidateListener();\n'));
@@ -210,10 +215,10 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		assert.ok(!history.includes(`return this._refreshThrottler.queue(token => this._refresh(token))${doubleCatch}`));
 		assert.ok(quickDiff.includes(assignedQuickDiffThenCall));
 		assert.ok(!quickDiff.includes(`${assignedQuickDiffThenCall}${doubleCatch}`));
-		assert.ok(history.includes('void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(explorer.includes('this.enableForwardedPortsFeatures().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(explorer.includes('this.restore().catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(explorer.includes('this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(history.includes('void this.refresh().catch(onUnexpectedError);'));
+		assert.ok(explorer.includes('this.enableForwardedPortsFeatures().catch(onUnexpectedError);'));
+		assert.ok(explorer.includes('this.restore().catch(onUnexpectedError);'));
+		assert.ok(explorer.includes('this.initialize().catch(onUnexpectedError);'));
 
 		for (const source of [history, repos, explorer]) {
 			assert.ok(!source.includes('acknowledge('));
@@ -286,18 +291,18 @@ suite('leftover remaining unused after D781 overflow to leftover remaining unuse
 		assert.ok(!profileModel.includes(`${initializeCall}${doubleCatch}`));
 
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`${toggleCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(debugEditor.includes(`${toggleCall}${singleCatch}`));
 		assert.ok(unification.includes(`this._update()${doubleCatch}`));
 		assert.ok(mgmt.includes(`this.switchProfile(profileToUse)${doubleCatch}`));
 		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${doubleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${doubleCatch}`));
-		assert.ok(discovery.includes(`this.sync()${doubleCatch}`));
-		assert.ok(configuration.includes(`this.updateCache()${doubleCatch}`));
+		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server)${singleCatch}`) || aicustom.includes(`this.showPluginDetail(item)${singleCatch}`));
+		assert.ok(discovery.includes(`this.sync()${singleCatch}`));
+		assert.ok(configuration.includes(`this.updateCache()${singleCatch}`));
 
 		for (const [rel, file] of [
 			[GETTING_STARTED_REL, gettingStarted],

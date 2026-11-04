@@ -519,7 +519,7 @@ export class ExplorerFindProvider implements IAsyncFindProvider<ExplorerItem> {
 			}
 
 			this.filterSessionStartState = undefined;
-			this.explorerService.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.explorerService.refresh().catch(onUnexpectedError);
 		});
 	}
 
@@ -1266,6 +1266,7 @@ interface CachedParsedExpression {
  * Makes sure that visible editors are always shown in the explorer even if they are filtered out by settings.
  */
 export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
+	private _isDisposed = false;
 	private hiddenExpressionPerRoot = new Map<string, CachedParsedExpression>();
 	private editorsAffectingFilter = new Set<EditorInput>();
 	private _onDidChange = new Emitter<void>();
@@ -1414,7 +1415,7 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 		const readGeneration = (this.ignoreFileReadGeneration.get(ignoreFileKey) ?? 0) + 1;
 		this.ignoreFileReadGeneration.set(ignoreFileKey, readGeneration);
 		const content = await this.fileService.readFile(ignoreFileResource);
-		if (this.ignoreFileReadGeneration.get(ignoreFileKey) !== readGeneration) {
+		if (this._isDisposed || this.ignoreFileReadGeneration.get(ignoreFileKey) !== readGeneration) {
 			return;
 		}
 
@@ -1441,7 +1442,7 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 	filter(stat: ExplorerItem, parentVisibility: TreeVisibility): boolean {
 		// Add newly visited .gitignore files to the ignore tree
 		if (stat.name === '.gitignore' && this.ignoreTreesPerRoot.has(stat.root.resource.toString())) {
-			this.processIgnoreFile(stat.root.resource.toString(), stat.resource, false).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.processIgnoreFile(stat.root.resource.toString(), stat.resource, false).catch(onUnexpectedError);
 			return true;
 		}
 
@@ -1510,6 +1511,7 @@ export class FilesFilter implements ITreeFilter<ExplorerItem, FuzzyScore> {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		dispose(this.toDispose);
 	}
 }
