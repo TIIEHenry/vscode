@@ -51,6 +51,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 const leftoverFiles = [DECORATIONS_REL, CHAT_AGENTS_REL, MCP_REL, NODE_AUTH_REL, AUTH_REL];
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -58,10 +59,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async ') || signature.includes('Thenable<') || signature.includes('CancelablePromise<'));
 }
 
-function assertDoubleThen(source: string, call: string, catchChain: string = doubleCatch): void {
-	assert.ok(source.includes(`${call}${catchChain};`), `missing double-chain: ${call}`);
+function assertDoubleThen(source: string, call: string, catchChain: string = singleCatch): void {
+	assert.ok(source.includes(`${call}${catchChain};`), `missing catch-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 	assert.ok(!source.includes(`${call}.catch(errors.onUnexpectedError);`));
 }
 
@@ -80,8 +81,9 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 		for (const rel of leftoverFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.strictEqual(sites, 6);
+		assert.strictEqual(sites, 0);
 		const decorationsSource = fs.readFileSync(resolveSource(DECORATIONS_REL), 'utf8');
 		assert.ok(!decorationsSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		const nodeAuthSource = fs.readFileSync(resolveSource(NODE_AUTH_REL), 'utf8');
@@ -227,7 +229,8 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 		assert.ok(mainWindow.includes('async $openUri(uriComponents: UriComponents, uriString: string | undefined, options: IOpenUriOptions): Promise<boolean> {'));
 		assert.ok(!/this\._openerService\.open\([^;]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(mainWindow));
 
-		assert.ok(providers.includes(`					.catch(onUnexpectedError)
+		assert.ok(providers.includes(`					.catch(onUnexpectedError)`));
+		assert.ok(!providers.includes(`					.catch(onUnexpectedError)
 					.catch(onUnexpectedError)`));
 		assert.ok(!providers.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 

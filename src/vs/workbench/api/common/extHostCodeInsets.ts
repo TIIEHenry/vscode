@@ -119,7 +119,7 @@ export class ExtHostEditorInsets implements ExtHostEditorInsetsShape {
 			}
 		};
 
-		this._proxy.$createEditorInset(handle, apiEditor.id, apiEditor.value.document.uri, line + 1, height, options || {}, extension.identifier, extension.extensionLocation).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._proxy.$createEditorInset(handle, apiEditor.id, apiEditor.value.document.uri, line + 1, height, options || {}, extension.identifier, extension.extensionLocation).catch(onUnexpectedError);
 		this._insets.set(handle, { editor, inset, onDidReceiveMessage });
 
 		return inset;

@@ -132,13 +132,13 @@ export class ChatAgentResponseStream {
 								} else {
 									send(typeConvert.ChatResponseReferencePart.from(<vscode.ChatResponseReferencePart>p), myHandle);
 								}
-							}).catch(onUnexpectedError).catch(onUnexpectedError);
+							}).catch(onUnexpectedError);
 						}
 					};
 
 					Promise.all([progressReporterPromise, task(progressReporter)]).then(([_void, res]) => {
 						send(typeConvert.ChatTaskResult.from(res), myHandle);
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				} else {
 					send(progress);
 				}
@@ -447,7 +447,7 @@ export class ChatAgentResponseStream {
 						}
 					} else if (part instanceof extHostTypes.ChatResponseExternalEditPart) {
 						const p = this.externalEdit(part.uris, part.callback);
-						void Promise.resolve(p).then((value) => part.didGetApplied(value)).catch(onUnexpectedError).catch(onUnexpectedError);
+						void Promise.resolve(p).then((value) => part.didGetApplied(value)).catch(onUnexpectedError);
 						return this;
 					} else {
 						const dto = typeConvert.ChatResponsePart.from(part, that._commandsConverter, that._sessionDisposables);

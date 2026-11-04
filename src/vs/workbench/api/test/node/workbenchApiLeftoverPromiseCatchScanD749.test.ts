@@ -52,6 +52,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 const leftoverFiles = [INSET_REL, SPEECH_REL, COMMENTS_REL];
 const lockedLeftoverFiles = [WINDOW_REL, TABS_REL, TREES_REL, CONFIG_REL, SEARCH_REL, TOOLS_REL, WORKSPACE_REL, LOGGER_REL, DEBUG_REL, EXT_SERVICE_REL, OUTPUT_REL, KERNELS_REL, TELEMETRY_REL, CHAT_SESSIONS_REL];
 
@@ -60,10 +61,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async ') || signature.includes('Thenable<') || signature.includes('CancelablePromise<'));
 }
 
-function assertDoubleThen(source: string, call: string, catchChain: string = doubleCatch): void {
-	assert.ok(source.includes(`${call}${catchChain};`), `missing double-chain: ${call}`);
+function assertDoubleThen(source: string, call: string, catchChain: string = singleCatch): void {
+	assert.ok(source.includes(`${call}${catchChain};`), `missing catch-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 	assert.ok(!source.includes(`${call}.catch(errors.onUnexpectedError);`));
 }
 
@@ -82,9 +83,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D749)', () => 
 		for (const rel of leftoverFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 0);
 	});
 
 	test('inset leftover $createEditorInset is Promise double-chain; sync void $disposeEditorInset stays skipped', () => {
@@ -194,9 +195,11 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D749)', () => 
 
 		let lockedSites = 0;
 		for (const rel of lockedLeftoverFiles) {
-			lockedSites += countDoubleChains(fs.readFileSync(resolveSource(rel), 'utf8'));
+			const source = fs.readFileSync(resolveSource(rel), 'utf8');
+			lockedSites += countDoubleChains(source);
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.strictEqual(lockedSites, 12);
+		assert.strictEqual(lockedSites, 0);
 		const tabsSource = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
 		assert.ok(!tabsSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		const searchSource = fs.readFileSync(resolveSource(SEARCH_REL), 'utf8');

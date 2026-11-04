@@ -326,7 +326,7 @@ export class ExtHostTelemetryLogger {
 		if (this._sender?.flush) {
 			let tempSender: vscode.TelemetrySender | undefined = this._sender;
 			this._sender = undefined;
-			Promise.resolve(tempSender.flush!()).then(tempSender = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			Promise.resolve(tempSender.flush!()).then(tempSender = undefined).catch(onUnexpectedError);
 			this._apiObject = undefined;
 		} else {
 			this._sender = undefined;

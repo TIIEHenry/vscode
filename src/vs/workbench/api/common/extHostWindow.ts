@@ -57,7 +57,7 @@ export class ExtHostWindow implements ExtHostWindowShape {
 		this._proxy.$getInitialState().then(({ isFocused, isActive }) => {
 			this.onDidChangeWindowProperty('focused', isFocused);
 			this.onDidChangeWindowProperty('active', isActive);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	get nativeHandle(): Uint8Array | undefined {

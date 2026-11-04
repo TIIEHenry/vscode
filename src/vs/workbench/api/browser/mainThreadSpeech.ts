@@ -27,6 +27,7 @@ type KeywordRecognitionSession = {
 @extHostNamedCustomer(MainContext.MainThreadSpeech)
 export class MainThreadSpeech implements MainThreadSpeechShape {
 
+	private _isDisposed = false;
 	private readonly proxy: ExtHostSpeechShape;
 
 	private readonly providerRegistrations = new Map<number, IDisposable>();
@@ -58,13 +59,16 @@ export class MainThreadSpeech implements MainThreadSpeechShape {
 				const disposables = new DisposableStore();
 				const session = Math.random();
 
-				this.proxy.$createSpeechToTextSession(handle, session, options?.language).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.proxy.$createSpeechToTextSession(handle, session, options?.language).catch(onUnexpectedError);
 
 				const onDidChange = disposables.add(new Emitter<ISpeechToTextEvent>());
 				this.speechToTextSessions.set(session, { onDidChange });
 
 				disposables.add(token.onCancellationRequested(() => {
-					this.proxy.$cancelSpeechToTextSession(session).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._isDisposed) {
+						return;
+					}
+					this.proxy.$cancelSpeechToTextSession(session).catch(onUnexpectedError);
 					this.speechToTextSessions.delete(session);
 					disposables.dispose();
 				}));
@@ -84,13 +88,16 @@ export class MainThreadSpeech implements MainThreadSpeechShape {
 				const disposables = new DisposableStore();
 				const session = Math.random();
 
-				this.proxy.$createTextToSpeechSession(handle, session, options?.language).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.proxy.$createTextToSpeechSession(handle, session, options?.language).catch(onUnexpectedError);
 
 				const onDidChange = disposables.add(new Emitter<ITextToSpeechEvent>());
 				this.textToSpeechSessions.set(session, { onDidChange });
 
 				disposables.add(token.onCancellationRequested(() => {
-					this.proxy.$cancelTextToSpeechSession(session).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._isDisposed) {
+						return;
+					}
+					this.proxy.$cancelTextToSpeechSession(session).catch(onUnexpectedError);
 					this.textToSpeechSessions.delete(session);
 					disposables.dispose();
 				}));
@@ -118,13 +125,16 @@ export class MainThreadSpeech implements MainThreadSpeechShape {
 				const disposables = new DisposableStore();
 				const session = Math.random();
 
-				this.proxy.$createKeywordRecognitionSession(handle, session).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.proxy.$createKeywordRecognitionSession(handle, session).catch(onUnexpectedError);
 
 				const onDidChange = disposables.add(new Emitter<IKeywordRecognitionEvent>());
 				this.keywordRecognitionSessions.set(session, { onDidChange });
 
 				disposables.add(token.onCancellationRequested(() => {
-					this.proxy.$cancelKeywordRecognitionSession(session).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._isDisposed) {
+						return;
+					}
+					this.proxy.$cancelKeywordRecognitionSession(session).catch(onUnexpectedError);
 					this.keywordRecognitionSessions.delete(session);
 					disposables.dispose();
 				}));
@@ -165,6 +175,7 @@ export class MainThreadSpeech implements MainThreadSpeechShape {
 	}
 
 	dispose(): void {
+		this._isDisposed = true;
 		this.providerRegistrations.forEach(disposable => disposable.dispose());
 		this.providerRegistrations.clear();
 

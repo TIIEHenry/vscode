@@ -27,8 +27,8 @@ suite('ExtHostDocumentContentProviders leftover fire-and-forget catch scan (D666
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('virtual-document then leftover site is double-chain + finally; single-chain gone in this file only', () => {
-		// $provideTextDocumentContent returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('virtual-document then leftover site is single-chain + finally; double-chain gone', () => {
+		// $provideTextDocumentContent returns Promise; deduplicated to single catch with finally.
 		const source = fs.readFileSync(extHostDocumentContentProvidersSourcePath(), 'utf8');
 		const doubleCatchFinally = `})
 					.catch(onUnexpectedError)
@@ -47,12 +47,13 @@ suite('ExtHostDocumentContentProviders leftover fire-and-forget catch scan (D666
 					});`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\.\$provideTextDocumentContent\(handle, uri\)/g) ?? []).length, 1);
-		assert.ok(source.includes(doubleCatchFinally));
-		assert.ok(!source.includes(singleCatchFinally));
+		assert.ok(source.includes(singleCatchFinally));
+		assert.ok(!source.includes(doubleCatchFinally));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('if (lastEvent === thisEvent)'));
 		assert.ok(source.includes('lastEvent = undefined;'));
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 2);
-		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/\.catch\(/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/\.finally\(/g) ?? []).length, 1);
 	});
 });

@@ -59,7 +59,7 @@ class Logger extends AbstractMessageLogger {
 			.then(() => {
 				this.doLog(this.buffer);
 				this.isLoggerCreated = true;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 	}
 
 	protected log(level: LogLevel, message: string) {

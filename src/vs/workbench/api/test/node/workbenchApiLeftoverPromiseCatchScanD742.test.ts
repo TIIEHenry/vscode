@@ -44,6 +44,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 const leftoverFiles = [SCM_REL, QUICKDIFF_REL, TUNNEL_EXT_REL, TUNNEL_NODE_REL, GIT_REL];
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -51,10 +52,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async ') || signature.includes('Thenable<') || signature.includes('CancelablePromise<'));
 }
 
-function assertDoubleThen(source: string, call: string, catchChain: string = doubleCatch): void {
-	assert.ok(source.includes(`${call}${catchChain};`), `missing double-chain: ${call}`);
+function assertDoubleThen(source: string, call: string, catchChain: string = singleCatch): void {
+	assert.ok(source.includes(`${call}${catchChain};`), `missing catch-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 	assert.ok(!source.includes(`${call}.catch(errors.onUnexpectedError);`));
 }
 
@@ -73,8 +74,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D742)', () => 
 		for (const rel of leftoverFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.strictEqual(sites, 7);
+		assert.strictEqual(sites, 0);
 		const nodeTunnelSource = fs.readFileSync(resolveSource(TUNNEL_NODE_REL), 'utf8');
 		assert.ok(!nodeTunnelSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});

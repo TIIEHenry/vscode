@@ -447,7 +447,7 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 		this._activeCustomExecutions2 = new Map<string, types.CustomExecution>();
 		this._logService = logService;
 		this._deprecationService = deprecationService;
-		this._proxy.$registerSupportedExecutions(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._proxy.$registerSupportedExecutions(true).catch(onUnexpectedError);
 	}
 
 	public registerTaskProvider(extension: IExtensionDescription, type: string, provider: vscode.TaskProvider): vscode.Disposable {
@@ -456,10 +456,10 @@ export abstract class ExtHostTaskBase implements ExtHostTaskShape, IExtHostTask 
 		}
 		const handle = this.nextHandle();
 		this._handlers.set(handle, { type, provider, extension });
-		this._proxy.$registerTaskProvider(handle, type).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._proxy.$registerTaskProvider(handle, type).catch(onUnexpectedError);
 		return new types.Disposable(() => {
 			this._handlers.delete(handle);
-			this._proxy.$unregisterTaskProvider(handle).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._proxy.$unregisterTaskProvider(handle).catch(onUnexpectedError);
 		});
 	}
 

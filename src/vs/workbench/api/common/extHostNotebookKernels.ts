@@ -853,7 +853,7 @@ class TimeoutBasedCollector<T> {
 			this.startedTimer = Date.now();
 			timeout(this.delay).then(() => {
 				return this.flush();
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 
 		// This can be called by the extension repeatedly for a long time before the timeout is able to run.

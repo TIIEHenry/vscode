@@ -82,7 +82,6 @@ export class ExtHostDocumentContentProvider implements ExtHostDocumentContentPro
 						}
 					})
 					.catch(onUnexpectedError)
-					.catch(onUnexpectedError)
 					.finally(() => {
 						if (lastEvent === thisEvent) {
 							lastEvent = undefined;

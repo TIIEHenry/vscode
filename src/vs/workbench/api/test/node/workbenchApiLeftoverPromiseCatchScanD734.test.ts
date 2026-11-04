@@ -58,6 +58,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 const leftoverFiles = [TERMINAL_REL, SOCKETS_REL, PROFILE_REL, NOTEBOOK_REL, TREES_REL];
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -65,11 +66,11 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async ') || signature.includes('Thenable<') || signature.includes('CancelablePromise<'));
 }
 
-function assertDoubleThen(source: string, call: string, catchChain: string = doubleCatch): void {
-	assert.ok(source.includes(`${call}${catchChain};`), `missing double-chain: ${call}`);
+function assertDoubleThen(source: string, call: string, catchChain: string = singleCatch): void {
+	assert.ok(source.includes(`${call}${catchChain};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-	assert.ok(!source.includes(`${call}.catch(errors.onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 function countDoubleChains(source: string): number {
@@ -87,9 +88,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D734)', () => 
 		for (const rel of leftoverFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.ok(sites >= 4 && sites <= 8, `expected 4-8 leftover sites, got ${sites}`);
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 0);
 	});
 
 	test('terminal leftover getEnvironment then is Promise double-chain; processReady Pty stays skipped', () => {
@@ -231,29 +232,29 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D734)', () => 
 		});`));
 		assert.ok(!tunnel.includes(doubleCatch));
 
-		assert.ok(windowSource.includes(doubleCatch));
+		assert.ok(!windowSource.includes(doubleCatch));
 		assert.ok(!tabs.includes(doubleCatch));
-		assert.ok(trees.includes(doubleCatch));
-		assert.ok(config.includes(doubleCatch));
+		assert.ok(!trees.includes(doubleCatch));
+		assert.ok(!config.includes(doubleCatch));
 		assert.ok(!search.includes(doubleCatch));
-		assert.ok(tools.includes(doubleCatch));
-		assert.ok(workspace.includes(doubleCatch));
-		assert.ok(logger.includes(doubleCatch));
-		assert.ok(debug.includes(doubleCatch));
-		assert.ok(extService.includes('.catch(errors.onUnexpectedError).catch(errors.onUnexpectedError)'));
+		assert.ok(!tools.includes(doubleCatch));
+		assert.ok(!workspace.includes(doubleCatch));
+		assert.ok(!logger.includes(doubleCatch));
+		assert.ok(!debug.includes(doubleCatch));
+		assert.ok(!extService.includes('.catch(errors.onUnexpectedError).catch(errors.onUnexpectedError)'));
 		assert.ok(!output.includes(doubleCatch));
-		assert.ok(notebook.includes(doubleCatch));
-		assert.ok(telemetry.includes(doubleCatch));
-		assert.ok(chatSessions.includes(doubleCatch));
+		assert.ok(!notebook.includes(doubleCatch));
+		assert.ok(!telemetry.includes(doubleCatch));
+		assert.ok(!chatSessions.includes(doubleCatch));
 		assert.ok(!decorations.includes(doubleCatch));
-		assert.ok(chatAgents.includes(doubleCatch));
-		assert.ok(mcp.includes(doubleCatch));
+		assert.ok(!chatAgents.includes(doubleCatch));
+		assert.ok(!mcp.includes(doubleCatch));
 		assert.ok(!nodeAuth.includes(doubleCatch));
-		assert.ok(auth.includes(doubleCatch));
-		assert.ok(task.includes(doubleCatch));
+		assert.ok(!auth.includes(doubleCatch));
+		assert.ok(!task.includes(doubleCatch));
 		assert.ok(!nodeTask.includes(doubleCatch));
 		assert.ok(!nodeLogger.includes(doubleCatch));
-		assert.ok(urls.includes(doubleCatch));
+		assert.ok(!urls.includes(doubleCatch));
 
 		for (const source of [windowSource, tabs, trees, config, search, tools, workspace, logger, debug, extService, output, notebook, telemetry, chatSessions]) {
 			assert.ok(!source.includes('acknowledge('));

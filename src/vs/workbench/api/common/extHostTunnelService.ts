@@ -164,7 +164,7 @@ export class ExtHostTunnelService extends Disposable implements IExtHostTunnelSe
 			protocol: information.tunnelFeatures.protocol === undefined ? true : information.tunnelFeatures.protocol,
 		} : undefined;
 
-		this._proxy.$setTunnelProvider(tunnelFeatures, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._proxy.$setTunnelProvider(tunnelFeatures, true).catch(onUnexpectedError);
 		return Promise.resolve(toDisposable(() => {
 			this._forwardPortProvider = undefined;
 			this._proxy.$setTunnelProvider(undefined, false);

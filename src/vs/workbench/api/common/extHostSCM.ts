@@ -880,7 +880,7 @@ class ExtHostSourceControl implements vscode.SourceControl {
 			this._groups.set(group.handle, group);
 		}
 
-		this.#proxy.$registerGroups(this.handle, groups, splices).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.#proxy.$registerGroups(this.handle, groups, splices).catch(onUnexpectedError);
 		this.createdResourceGroups.clear();
 	}
 

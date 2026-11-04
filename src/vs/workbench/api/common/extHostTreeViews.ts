@@ -156,7 +156,7 @@ export class ExtHostTreeViews extends Disposable implements ExtHostTreeViewsShap
 				// registration may have already updated _treeViews before this async dispose runs.
 				if (this._treeViews.get(viewId) === treeView) {
 					this._treeViews.delete(viewId);
-					this._proxy.$disposeTree(viewId).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._proxy.$disposeTree(viewId).catch(onUnexpectedError);
 				}
 				treeView.dispose();
 			}

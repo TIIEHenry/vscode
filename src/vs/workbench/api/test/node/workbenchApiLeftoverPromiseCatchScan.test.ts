@@ -40,6 +40,7 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -47,9 +48,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => {
@@ -62,8 +64,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			doubleSites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.strictEqual(doubleSites, 6);
+		assert.strictEqual(doubleSites, 0);
 		const tabsSource = fs.readFileSync(resolveSource(TABS_REL), 'utf8');
 		assert.ok(!tabsSource.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		const searchSource = fs.readFileSync(resolveSource(SEARCH_REL), 'utf8');
@@ -101,6 +104,9 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 		assertPromiseSignature(extensions, 'whenInstalledExtensionsRegistered(): Promise<boolean>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		const thenCall = `this.extensionService.whenInstalledExtensionsRegistered().then(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const dataProvider = new TreeViewDataProvider(treeViewId, this._proxy, this.notificationService);
 			const disposables = new DisposableStore();
 			this._dataProviders.set(treeViewId, { dataProvider, dispose: () => disposables.dispose() });
@@ -171,7 +177,13 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 		const workspace = fs.readFileSync(resolveSource(WORKSPACE_IFACE_REL), 'utf8');
 		assertPromiseSignature(workspace, 'getCompleteWorkspace(): Promise<IWorkspace>;');
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this._contextService.getCompleteWorkspace().then(workspace => this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted()))');
+		const thenCall = `this._contextService.getCompleteWorkspace().then(workspace => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this._proxy.$initializeWorkspace(this.getWorkspaceData(workspace), this.isWorkspaceTrusted());
+			})`;
+		assertDoubleThen(source, thenCall);
 	});
 
 	test('extHostLoggerService leftover $createLogger then is Promise double-chain', () => {
@@ -208,7 +220,7 @@ suite('workbench/api leftover Promise fire-and-forget catch scan (D708)', () => 
 		assert.ok(!/this\._openerService\.open\([^;]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(mainWindow));
 
 		assert.ok(providers.includes(`					.catch(onUnexpectedError)
-					.catch(onUnexpectedError)`));
+					.finally(() => {`));
 		assert.ok(!providers.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 
 		assert.ok(dataChannels.includes('void this._proxy.$createLinkPresentationWatcher(handle, providerHandle, resource).then('));

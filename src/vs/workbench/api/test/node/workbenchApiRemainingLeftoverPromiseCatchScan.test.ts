@@ -46,6 +46,8 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 const errorsDoubleCatch = '.catch(errors.onUnexpectedError).catch(errors.onUnexpectedError)';
+const singleCatch = '.catch(onUnexpectedError)';
+const errorsSingleCatch = '.catch(errors.onUnexpectedError)';
 const leftoverFiles = [DEBUG_REL, EXT_SERVICE_REL, OUTPUT_REL, NOTEBOOK_REL, TELEMETRY_REL, CHAT_SESSIONS_REL];
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -53,11 +55,12 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async ') || signature.includes('Thenable<') || signature.includes('CancelablePromise<'));
 }
 
-function assertDoubleThen(source: string, call: string, catchChain: string = doubleCatch): void {
-	assert.ok(source.includes(`${call}${catchChain};`), `missing double-chain: ${call}`);
+function assertDoubleThen(source: string, call: string, catchChain: string = singleCatch): void {
+	assert.ok(source.includes(`${call}${catchChain};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-	assert.ok(!source.includes(`${call}.catch(errors.onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
+	assert.ok(!source.includes(`${call}${errorsDoubleCatch};`));
+	assert.ok(!source.includes(doubleCatch));
 }
 
 function countDoubleChains(source: string): number {
@@ -75,8 +78,9 @@ suite('workbench/api remaining leftover Promise fire-and-forget catch scan (D712
 		for (const rel of leftoverFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += countDoubleChains(source);
+			assert.ok(!source.includes(doubleCatch));
 		}
-		assert.strictEqual(sites, 6);
+		assert.strictEqual(sites, 0);
 	});
 
 	test('debug registry leftover getExtensionRegistry then is Promise double-chain', () => {
@@ -85,6 +89,9 @@ suite('workbench/api remaining leftover Promise fire-and-forget catch scan (D712
 		assertPromiseSignature(extService, 'getExtensionRegistry(): Promise<ExtensionDescriptionRegistry>;');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		const thenCall = `this._extensionService.getExtensionRegistry().then((extensionRegistry: ExtensionDescriptionRegistry) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._register(extensionRegistry.onDidChange(_ => {
 				this.registerAllDebugTypes(extensionRegistry);
 			}));
@@ -101,9 +108,10 @@ suite('workbench/api remaining leftover Promise fire-and-forget catch scan (D712
 		const thenCall = `Promise.race([eagerExtensionsActivation, timeout(10000)]).then(() => {
 			this._activateAllStartupFinished();
 		})`;
-		assertDoubleThen(source, thenCall, errorsDoubleCatch);
+		assertDoubleThen(source, thenCall, errorsSingleCatch);
+		assert.ok(!source.includes(errorsDoubleCatch));
 		assert.ok(source.includes('Promise.race([timeout(5000), extensionsDeactivated]).finally(() => {'));
-		assert.ok(!/Promise\.race\(\[timeout\(5000\), extensionsDeactivated\]\)\.finally\([^;]+\)\.catch\(errors\.onUnexpectedError\)\.catch\(errors\.onUnexpectedError\)/.test(source));
+		assert.ok(!/Promise\.race\(\[timeout\(5000\), extensionsDeactivated\]\)\.finally\([^;]+\)\.catch\(errors\.onUnexpectedError\)/.test(source));
 	});
 
 	test('output channelPromise setup and API calls route through withChannel and are single-chain', () => {
@@ -177,7 +185,8 @@ suite('workbench/api remaining leftover Promise fire-and-forget catch scan (D712
 		assert.ok(mainWindow.includes('async $openUri(uriComponents: UriComponents, uriString: string | undefined, options: IOpenUriOptions): Promise<boolean> {'));
 		assert.ok(!/this\._openerService\.open\([^;]+\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(mainWindow));
 
-		assert.ok(providers.includes(`					.catch(onUnexpectedError)
+		assert.ok(providers.includes(`					.catch(onUnexpectedError)`));
+		assert.ok(!providers.includes(`					.catch(onUnexpectedError)
 					.catch(onUnexpectedError)`));
 		assert.ok(!providers.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 

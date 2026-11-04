@@ -295,7 +295,7 @@ export class ExtHostGitExtensionService extends Disposable implements IExtHostGi
 
 	private _setRepositoryStateChangeListener(handle: number, repository: Repository): void {
 		this._repositoryStateChangeListeners.set(handle, repository.state.onDidChange(() => {
-			this._proxy.$onDidChangeRepository(handle).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._proxy.$onDidChangeRepository(handle).catch(onUnexpectedError);
 		}));
 	}
 

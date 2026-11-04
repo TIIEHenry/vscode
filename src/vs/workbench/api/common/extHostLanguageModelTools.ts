@@ -91,7 +91,7 @@ export class ExtHostLanguageModelTools implements ExtHostLanguageModelToolsShape
 			for (const tool of tools) {
 				this._allTools.set(tool.id, new Tool(revive(tool)));
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	async $countTokensForInvocation(callId: string, input: string, token: CancellationToken): Promise<number> {

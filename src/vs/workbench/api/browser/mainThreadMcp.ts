@@ -68,7 +68,7 @@ export class MainThreadMcp extends Disposable implements MainThreadMcpShape {
 		@ISecretStorageService private readonly _secretStorageService: ISecretStorageService,
 	) {
 		super();
-		this._register(_authenticationService.onDidChangeSessions(e => this._onDidChangeAuthSessions(e.providerId, e.label).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(_authenticationService.onDidChangeSessions(e => this._onDidChangeAuthSessions(e.providerId, e.label).catch(onUnexpectedError)));
 		const proxy = this._proxy = _extHostContext.getProxy(ExtHostContext.ExtHostMcp);
 		this._register(this._mcpRegistry.registerDelegate({
 			// Prefer Node.js extension hosts when they're available. No CORS issues etc.
@@ -470,6 +470,9 @@ export class MainThreadMcp extends Disposable implements MainThreadMcpShape {
 	}
 
 	private async _onDidChangeAuthSessions(providerId: string, providerLabel: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const serversUsingProvider = this._serverAuthTracking.get(providerId);
 		if (!serversUsingProvider) {
 			return;

@@ -73,7 +73,7 @@ export class ExtHostAgentEditorComments implements ExtHostAgentEditorCommentsSha
 		const handle = ExtHostAgentEditorComments.handlePool++;
 		const provider = new ExtHostAgentEditorCommentsProvider(handle, this.proxy, h => this.providers.delete(h));
 		this.providers.set(handle, provider);
-		this.proxy.$createAgentEditorComments(handle, uri).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.proxy.$createAgentEditorComments(handle, uri).catch(onUnexpectedError);
 		return provider;
 	}
 

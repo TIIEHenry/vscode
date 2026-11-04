@@ -48,11 +48,11 @@ export class ExtHostManagedSockets implements IExtHostManagedSockets {
 		}
 		// Unregister previous factory
 		if (this._factory) {
-			this._proxy.$unregisterSocketFactory(this._factory.socketFactoryId).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._proxy.$unregisterSocketFactory(this._factory.socketFactoryId).catch(onUnexpectedError);
 		}
 
 		this._factory = new ManagedSocketFactory(socketFactoryId, makeConnection);
-		this._proxy.$registerSocketFactory(this._factory.socketFactoryId).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._proxy.$registerSocketFactory(this._factory.socketFactoryId).catch(onUnexpectedError);
 	}
 
 	makeConnection(): Promise<vscode.ManagedMessagePassing> {

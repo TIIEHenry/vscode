@@ -159,11 +159,14 @@ export abstract class ExtHostDebugServiceBase extends DisposableCls implements I
 		this._breakpoints = new Map<string, vscode.Breakpoint>();
 
 		this._extensionService.getExtensionRegistry().then((extensionRegistry: ExtensionDescriptionRegistry) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._register(extensionRegistry.onDidChange(_ => {
 				this.registerAllDebugTypes(extensionRegistry);
 			}));
 			this.registerAllDebugTypes(extensionRegistry);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._telemetryProxy = extHostRpcService.getProxy(MainContext.MainThreadTelemetry);
 	}
