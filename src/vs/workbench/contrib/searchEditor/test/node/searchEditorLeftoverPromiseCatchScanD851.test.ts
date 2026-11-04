@@ -44,6 +44,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -60,9 +61,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `redundant double-chain remains: ${call}`);
 }
 
 const delayCall = 'this.triggerSearch({ delay })';
@@ -96,6 +97,9 @@ const researchCall = 'this.research()';
 const updateCall = 'this._update()';
 const switchProfileCall = 'this.switchProfile(profileToUse)';
 const ongoingThenCall = `newInput.ongoingSearchOperation.then(complete => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.onSearchComplete(complete, existingConfig, newInput);
 			})`;
 
@@ -120,7 +124,7 @@ suite('leftover remaining unused searchEditor leftover remaining unused Promise 
 		assertPromiseSignature(source, 'async triggerSearch(_options?: { resetCursor?: boolean; delay?: number; focusResults?: boolean }) {');
 		let sites = 0;
 		for (const [, call, count] of d851Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -129,13 +133,13 @@ suite('leftover remaining unused searchEditor leftover remaining unused Promise 
 		assert.ok(!source.includes('D851'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on searchEditor triggerSearch', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on searchEditor triggerSearch', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d851Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -143,19 +147,19 @@ suite('leftover remaining unused searchEditor leftover remaining unused Promise 
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SEARCH_EDITOR_REL) ?? ''), 9);
+		assert.strictEqual(countDoubleChains(seen.get(SEARCH_EDITOR_REL) ?? ''), 0);
 	});
 
-	test('searchEditor leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('searchEditor leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_EDITOR_REL), 'utf8');
 		assertPromiseSignature(source, 'async triggerSearch(_options?: { resetCursor?: boolean; delay?: number; focusResults?: boolean }) {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, delayCall);
 		assertWrapped(source, resetCursorCall);
 		assertWrapped(source, delayResetCall);
-		assert.strictEqual(countIncludes(source, `${delayCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${resetCursorCall}${doubleCatch}`), 5);
-		assert.strictEqual(countIncludes(source, `${delayResetCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${delayCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${resetCursorCall}${singleCatch}`), 5);
+		assert.strictEqual(countIncludes(source, `${delayResetCall}${singleCatch}`), 2);
 		assert.ok(!source.includes('\t\tthis._register(this.queryEditorWidget.onSearchSubmit(({ delay }) => this.triggerSearch({ delay })));\n'));
 		assert.ok(!source.includes('\t\t\tthis._register(this.queryEditorWidget.searchInput.onDidOptionChange(() => this.triggerSearch({ resetCursor: false })));\n'));
 		assert.ok(!source.includes('\t\tthis._register(this.queryEditorWidget.onDidToggleContext(() => this.triggerSearch({ resetCursor: false })));\n'));
@@ -166,7 +170,8 @@ suite('leftover remaining unused searchEditor leftover remaining unused Promise 
 		assert.ok(!source.includes(`this.triggerSearch()${doubleCatch}`));
 		assert.ok(source.includes('await this.triggerSearch();'));
 		assert.ok(!source.includes(`await this.triggerSearch()${doubleCatch}`));
-		assert.ok(source.includes(`${ongoingThenCall}${doubleCatch};`));
+		assert.ok(source.includes(`${ongoingThenCall}${singleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -264,16 +269,24 @@ suite('leftover remaining unused searchEditor leftover remaining unused Promise 
 		assert.ok(profileModel.includes(`${initializeCall};`));
 		assert.ok(!profileModel.includes(`${initializeCall}${doubleCatch}`));
 
-		assert.ok(searchWidget.includes(`${delayMultiplierCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(comments, `${refreshCall}${doubleCatch}`), 5);
+		assert.ok(searchWidget.includes(`${delayMultiplierCall}${singleCatch}`));
+		assert.ok(!searchWidget.includes(`${delayMultiplierCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(comments, `${refreshCall}${singleCatch}`), 5);
+		assert.ok(!comments.includes(`${refreshCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
-		assert.ok(debugService.includes(`${launchCall}${doubleCatch}`));
-		assert.ok(debugEditor.includes(`this.toggleExceptionWidget()${doubleCatch}`));
-		assert.ok(findModel.includes(`${researchCall}${doubleCatch}`));
-		assert.ok(unification.includes(`${updateCall}${doubleCatch}`));
-		assert.ok(mgmt.includes(`${switchProfileCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(debugService.includes(`${launchCall}${singleCatch}`));
+		assert.ok(!debugService.includes(`${launchCall}${doubleCatch}`));
+		assert.ok(debugEditor.includes(`this.toggleExceptionWidget()${singleCatch}`));
+		assert.ok(!debugEditor.includes(`this.toggleExceptionWidget()${doubleCatch}`));
+		assert.ok(findModel.includes(`${researchCall}${singleCatch}`));
+		assert.ok(!findModel.includes(`${researchCall}${doubleCatch}`));
+		assert.ok(unification.includes(`${updateCall}${singleCatch}`));
+		assert.ok(!unification.includes(`${updateCall}${doubleCatch}`));
+		assert.ok(mgmt.includes(`${switchProfileCall}${singleCatch}`));
+		assert.ok(!mgmt.includes(`${switchProfileCall}${doubleCatch}`));
 
 		for (const [rel, file] of [
 			[COMMENTS_VIEW_REL, comments],

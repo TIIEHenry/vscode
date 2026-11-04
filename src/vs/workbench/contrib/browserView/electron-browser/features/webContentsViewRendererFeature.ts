@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../../nls.js';
-import { $, addDisposableListener, EventType, registerExternalFocusChecker } from '../../../../../base/browser/dom.js';
+import { $, addDisposableListener, clearNode, EventType, registerExternalFocusChecker } from '../../../../../base/browser/dom.js';
 import { getZoomFactor } from '../../../../../base/browser/browser.js';
 import { StandardKeyboardEvent } from '../../../../../base/browser/keyboardEvent.js';
 import { encodeBase64, VSBuffer } from '../../../../../base/common/buffer.js';
@@ -167,7 +167,7 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 				return;
 			}
 			if (this._model?.visible) {
-				void this._model.focus().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._model.focus().catch(onUnexpectedError);
 			} else {
 				this.editor.ensureBrowserFocus();
 			}
@@ -181,18 +181,18 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 		this._model = model;
 		this._setBackgroundImage(model.screenshot);
 
-		store.add(model.onDidChangeVisibility(() => void this._doScreenshot().catch(onUnexpectedError).catch(onUnexpectedError)));
-		store.add(model.onDidKeyCommand(keyEvent => void this._handleKeyEvent(keyEvent).catch(onUnexpectedError).catch(onUnexpectedError)));
+		store.add(model.onDidChangeVisibility(() => void this._doScreenshot().catch(onUnexpectedError)));
+		store.add(model.onDidKeyCommand(keyEvent => void this._handleKeyEvent(keyEvent).catch(onUnexpectedError)));
 		store.add(model.onDidNavigate(() => this._refresh()));
 		store.add(model.onDidChangeLoadingState(() => this._refresh()));
 
 		this._refresh();
-		void this._doScreenshot().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._doScreenshot().catch(onUnexpectedError);
 	}
 
 	override onModelDetached(): void {
 		if (this._model) {
-			void this._model.setVisible(false).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._model.setVisible(false).catch(onUnexpectedError);
 		}
 		this._model = undefined;
 		this._screenshotHandle.clear();
@@ -202,7 +202,14 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._cancelFocusTimeout();
+		clearNode(this._placeholderScreenshot);
+		this._placeholderScreenshot.remove();
+		clearNode(this._overlayPauseEl);
+		this._overlayPauseEl.remove();
 		super.dispose();
 	}
 
@@ -237,19 +244,22 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 			return;
 		}
 		if (show) {
-			void this._model.setVisible(true).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._model.setVisible(true).catch(onUnexpectedError);
 			// If the editor container is focused, ensure the WCV gets focus too.
 			const ownerDoc = this._container?.ownerDocument;
 			if (ownerDoc?.hasFocus() && ownerDoc.activeElement === this._container) {
 				this.tryFocus();
 			}
 		} else {
-			void this._doScreenshot().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._doScreenshot().catch(onUnexpectedError);
 			// Defer the hide one frame so the latest screenshot has a chance to paint first.
 			this.editor.window.requestAnimationFrame(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				// Double check that we should still hide the page.
 				if (this._model && !this._shouldShowPage()) {
-					void this._model.setVisible(false).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this._model.setVisible(false).catch(onUnexpectedError);
 				}
 			});
 		}
@@ -270,6 +280,9 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 	}
 
 	private async _doScreenshot(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this._screenshotGeneration;
 		const model = this._model;
 		if (!model) {
@@ -281,17 +294,17 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 		}
 		try {
 			const screenshot = await model.captureScreenshot({ quality: 80 });
-			if (generation !== this._screenshotGeneration || this._model !== model) {
+			if (this._store.isDisposed || generation !== this._screenshotGeneration || this._model !== model) {
 				return;
 			}
 			this._setBackgroundImage(screenshot);
 		} catch (error) {
 			this.logService.error('Failed to capture browser view screenshot', error);
 		}
-		if (generation !== this._screenshotGeneration || this._model !== model) {
+		if (this._store.isDisposed || generation !== this._screenshotGeneration || this._model !== model) {
 			return;
 		}
-		const handle = setTimeout(() => void this._doScreenshot().catch(onUnexpectedError).catch(onUnexpectedError), 1000);
+		const handle = setTimeout(() => void this._doScreenshot().catch(onUnexpectedError), 1000);
 		this._screenshotHandle.value = toDisposable(() => clearTimeout(handle));
 	}
 
@@ -305,7 +318,7 @@ class WebContentsViewRendererFeature extends BrowserEditorContribution {
 	}
 
 	private async _handleKeyEvent(keyEvent: IBrowserViewKeyDownEvent): Promise<void> {
-		if (!this._container) {
+		if (this._store.isDisposed || !this._container) {
 			return;
 		}
 		try {

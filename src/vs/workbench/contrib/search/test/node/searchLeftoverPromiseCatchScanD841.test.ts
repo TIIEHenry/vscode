@@ -36,6 +36,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -52,9 +53,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `redundant double-chain remains: ${call}`);
 }
 
 const delayMultiplierCall = 'this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod * delayMultiplier)';
@@ -104,7 +105,7 @@ suite('leftover remaining unused searchWidget leftover remaining unused Promise 
 		assertPromiseSignature(source, 'private async submitSearch(triggeredOnType = false, delay: number = 0): Promise<void> {');
 		let sites = 0;
 		for (const [, call, count] of d841Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
 			sites += wrapped;
 		}
@@ -113,13 +114,13 @@ suite('leftover remaining unused searchWidget leftover remaining unused Promise 
 		assert.ok(!source.includes('D841'));
 	});
 
-	test('this knife covers four leftover Promise double-chain sites after leftover remaining unused stayed on searchWidget', () => {
+	test('this knife covers four leftover Promise single-chain sites after leftover remaining unused stayed on searchWidget', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d841Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -127,23 +128,24 @@ suite('leftover remaining unused searchWidget leftover remaining unused Promise 
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SEARCH_WIDGET_REL) ?? ''), 4);
+		assert.strictEqual(countDoubleChains(seen.get(SEARCH_WIDGET_REL) ?? ''), 0);
 	});
 
-	test('searchWidget leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('searchWidget leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const source = fs.readFileSync(resolveSource(SEARCH_WIDGET_REL), 'utf8');
 		assertPromiseSignature(source, 'private async submitSearch(triggeredOnType = false, delay: number = 0): Promise<void> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(source, delayMultiplierCall);
 		assertWrapped(source, debounceCall);
 		assertWrapped(source, submitCall);
-		assert.strictEqual(countIncludes(source, `${delayMultiplierCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${debounceCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${submitCall}${doubleCatch}`), 2);
+		assert.strictEqual(countIncludes(source, `${delayMultiplierCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${debounceCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(source, `${submitCall}${singleCatch}`), 2);
 		assert.ok(!source.includes('\t\t\t\t\tthis.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod * delayMultiplier);\n'));
 		assert.ok(!source.includes('\t\t\t\tthis.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod);\n'));
 		assert.ok(!source.includes('\t\t\tthis.submitSearch();\n'));
 		assert.ok(!source.includes('await this.submitSearch'));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
@@ -217,18 +219,25 @@ suite('leftover remaining unused searchWidget leftover remaining unused Promise 
 		assert.ok(textModel.includes(`${updateDiffSeqCall};`) || textModel.includes(`\t\t\tthis._updateDiffInfoSeq();\n`));
 		assert.ok(!textModel.includes(`${updateDiffSeqCall}${doubleCatch}`));
 
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
-		assert.strictEqual(countIncludes(comments, `${refreshCall}${doubleCatch}`), 5);
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
+		assert.strictEqual(countIncludes(comments, `${refreshCall}${singleCatch}`), 5);
+		assert.ok(!comments.includes(`${refreshCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${registerListenersCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${maybeDisableCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${maybeEnableCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectPrevLaunchCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectPrevNameCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedUndefinedCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
-		assert.ok(unification.includes(`${updateCall}${doubleCatch}`));
-		assert.ok(mgmt.includes(`${switchProfileCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectPrevLaunchCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectPrevLaunchCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectPrevNameCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectPrevNameCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedUndefinedCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectUndefinedUndefinedCall}${doubleCatch}`));
+		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
+		assert.ok(!debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));
+		assert.ok(unification.includes(`${updateCall}${singleCatch}`));
+		assert.ok(!unification.includes(`${updateCall}${doubleCatch}`));
+		assert.ok(mgmt.includes(`${switchProfileCall}${singleCatch}`));
+		assert.ok(!mgmt.includes(`${switchProfileCall}${doubleCatch}`));
 
 		for (const [rel, file] of [
 			[COMMENTS_VIEW_REL, comments],

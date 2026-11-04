@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../../nls.js';
-import { $, addDisposableListener, AnimationFrameScheduler, EventType, isHTMLInputElement } from '../../../../../base/browser/dom.js';
+import { $, addDisposableListener, AnimationFrameScheduler, clearNode, EventType, isHTMLInputElement } from '../../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../../base/browser/keyboardEvent.js';
 import { getDefaultHoverDelegate } from '../../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
@@ -192,6 +192,15 @@ export class BrowserUrlBarWidget extends Disposable {
 	clear(): void {
 		this._renderUrl();
 		this._picker.value?.hide();
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 
 	mountContributions(contributions: readonly BrowserEditorContribution[]): void {
@@ -501,7 +510,7 @@ export class BrowserUrlBarWidget extends Disposable {
 		const primaryItems = this._host.getPrimaryActions?.(trimmed);
 		const defaultItem = primaryItems?.[0];
 		if (defaultItem?.apply) {
-			void Promise.resolve(defaultItem.apply(input)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(defaultItem.apply(input)).catch(onUnexpectedError);
 		} else {
 			input.navigate(trimmed);
 		}
@@ -748,11 +757,14 @@ export class BrowserUrlBarWidget extends Disposable {
 		// preemptively rendered the destination, or a button mutated state).
 		let actionTaken = false;
 		disposables.add(picker.onDidTriggerButton(button => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			actionTaken = true;
 			const action = button as IBrowserUrlPickerAction;
 			const input = this._host.input;
 			if (typeof action.run === 'function' && input) {
-				void Promise.resolve(action.run(input)).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(action.run(input)).catch(onUnexpectedError);
 			}
 		}));
 
@@ -761,22 +773,31 @@ export class BrowserUrlBarWidget extends Disposable {
 		// Unlike onDidTriggerButton this does NOT count as "the user accepted the suggestion"
 		// — the picker stays open and the action runs in-place.
 		disposables.add(picker.onDidTriggerItemButton(({ button }) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const action = button as IBrowserUrlSuggestionAction;
 			const input = this._host.input;
 			if (typeof action.run === 'function' && input) {
-				void Promise.resolve(action.run(input)).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(action.run(input)).catch(onUnexpectedError);
 			}
 		}));
 		// Per-group separator button. Routed the same way as per-item buttons
 		// (the IBrowserUrlSuggestionAction was attached directly to the separator).
 		disposables.add(picker.onDidTriggerSeparatorButton(({ button }) => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const action = button as IBrowserUrlSuggestionAction;
 			const input = this._host.input;
 			if (typeof action.run === 'function' && input) {
-				void Promise.resolve(action.run(input)).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(action.run(input)).catch(onUnexpectedError);
 			}
 		}));
 		disposables.add(picker.onDidAccept(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			actionTaken = true;
 			const active = picker.activeItems[0];
 			const fallbackUrl = picker.value;
@@ -784,7 +805,7 @@ export class BrowserUrlBarWidget extends Disposable {
 			picker.hide();
 			if (active?.apply) {
 				if (input) {
-					void Promise.resolve(active.apply(input)).catch(onUnexpectedError).catch(onUnexpectedError);
+					void Promise.resolve(active.apply(input)).catch(onUnexpectedError);
 				}
 				return;
 			}

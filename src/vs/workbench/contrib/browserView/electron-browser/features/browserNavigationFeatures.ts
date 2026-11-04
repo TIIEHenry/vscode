@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize, localize2 } from '../../../../../nls.js';
-import { $ } from '../../../../../base/browser/dom.js';
+import { $, clearNode } from '../../../../../base/browser/dom.js';
 import { disposableTimeout } from '../../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
@@ -162,6 +162,15 @@ class BrowserNavigationBar extends Disposable {
 	openUrlPicker(): void { this._urlBar.openUrlPicker(); }
 	clear(): void { this._urlBar.clear(); }
 
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		clearNode(this.element);
+		this.element.remove();
+		super.dispose();
+	}
+
 	mountContributions(contributions: readonly BrowserEditorContribution[]): void {
 		this._contributions = contributions;
 		this._contributionListeners.clear();
@@ -206,7 +215,7 @@ class BrowserNavigationBar extends Disposable {
 			id: 'browser.configureSearchEngine',
 			iconClass: ThemeIcon.asClassName(Codicon.settingsGear),
 			tooltip: localize('browser.configureSearchEngine', "Configure Search Engine"),
-			run: () => void this._preferencesService.openSettings({ query: `@id:${BrowserSearchEngineSettingId}` }).catch(onUnexpectedError).catch(onUnexpectedError),
+			run: () => void this._preferencesService.openSettings({ query: `@id:${BrowserSearchEngineSettingId}` }).catch(onUnexpectedError),
 		};
 		const search: IUrlPickerItem = {
 			id: text,

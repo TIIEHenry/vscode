@@ -138,7 +138,7 @@ export async function findInFilesCommand(accessor: ServicesAccessor, _args: IFin
 			}
 
 			openedView.searchAndReplaceWidget.focus(undefined, updatedText, updatedText);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	} else {
 		if (generation !== SearchView.getSearchCommandGeneration()) {
 			return;

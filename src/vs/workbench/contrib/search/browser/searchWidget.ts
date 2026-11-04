@@ -685,12 +685,12 @@ export class SearchWidget extends Widget {
 								10; // only things matching empty string
 
 
-					this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod * delayMultiplier).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod * delayMultiplier).catch(onUnexpectedError);
 				} catch {
 					// pass
 				}
 			} else {
-				this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.submitSearch(true, this.searchConfiguration.searchOnTypeDebouncePeriod).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -703,7 +703,7 @@ export class SearchWidget extends Widget {
 
 		if (keyboardEvent.equals(KeyCode.Enter)) {
 			this.searchInput?.onSearchSubmit();
-			this.submitSearch().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.submitSearch().catch(onUnexpectedError);
 			keyboardEvent.preventDefault();
 		}
 
@@ -791,7 +791,7 @@ export class SearchWidget extends Widget {
 		}
 
 		if (keyboardEvent.equals(KeyCode.Enter)) {
-			this.submitSearch().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.submitSearch().catch(onUnexpectedError);
 			keyboardEvent.preventDefault();
 		}
 
@@ -824,6 +824,9 @@ export class SearchWidget extends Widget {
 	}
 
 	private async submitSearch(triggeredOnType = false, delay: number = 0): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.searchInput?.validate();
 		if (!this.searchInput?.inputBox.isInputValid()) {
 			return;
@@ -833,6 +836,9 @@ export class SearchWidget extends Widget {
 		const useGlobalFindBuffer = this.searchConfiguration.globalFindClipboard;
 		if (value && useGlobalFindBuffer) {
 			await this.clipboardServce.writeFindText(value);
+		}
+		if (this._store.isDisposed) {
+			return;
 		}
 		this._onSearchSubmit.fire({ triggeredOnType, delay });
 	}
@@ -854,7 +860,14 @@ export class SearchWidget extends Widget {
 	}
 
 	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.setReplaceAllActionState(false);
+		if (this.domNode) {
+			dom.clearNode(this.domNode);
+			this.domNode.remove();
+		}
 		super.dispose();
 	}
 

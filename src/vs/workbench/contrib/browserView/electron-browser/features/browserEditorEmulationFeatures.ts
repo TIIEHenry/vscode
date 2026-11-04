@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, EventType, getWindow } from '../../../../../base/browser/dom.js';
+import { $, addDisposableListener, clearNode, EventType, getWindow } from '../../../../../base/browser/dom.js';
 import { ActionBar } from '../../../../../base/browser/ui/actionbar/actionbar.js';
 import { IHoverDelegate } from '../../../../../base/browser/ui/hover/hoverDelegate.js';
 import { ISashEvent, Orientation, OrthogonalEdge, Sash, SashState } from '../../../../../base/browser/ui/sash/sash.js';
@@ -290,7 +290,7 @@ class BrowserEmulationToolbar extends Disposable {
 		if (device.width === width && device.height === height) {
 			return;
 		}
-		void model.setDevice({ ...device, width, height }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice({ ...device, width, height }).catch(onUnexpectedError);
 	}
 
 	private _onDprInput(): void {
@@ -304,7 +304,7 @@ class BrowserEmulationToolbar extends Disposable {
 		if (device.deviceScaleFactor === next) {
 			return;
 		}
-		void model.setDevice({ ...device, deviceScaleFactor: next }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice({ ...device, deviceScaleFactor: next }).catch(onUnexpectedError);
 	}
 
 	private _createNumberInput(parent: HTMLElement, contextViewService: IContextViewService, ariaLabel: string, min: number, max: number, inputMode: 'numeric' | 'decimal' = 'numeric'): InputBox {
@@ -323,6 +323,15 @@ class BrowserEmulationToolbar extends Disposable {
 			input.inputElement.step = '0.5';
 		}
 		return input;
+	}
+
+	override dispose(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		clearNode(this.element);
+		this.element.remove();
+		super.dispose();
 	}
 }
 
@@ -507,12 +516,12 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		const model = this.editor.model;
 		if (visible) {
 			if (model && !model.device) {
-				void model.setDevice({ ...lastSettings.device }).catch(onUnexpectedError).catch(onUnexpectedError);
+				void model.setDevice({ ...lastSettings.device }).catch(onUnexpectedError);
 				this.setScale(lastSettings.scale);
 			}
 			this._setToolbarVisible(true);
 		} else {
-			void Promise.resolve(model?.setDevice(undefined)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(model?.setDevice(undefined)).catch(onUnexpectedError);
 			this._setToolbarVisible(false);
 		}
 	}
@@ -523,7 +532,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		if (!model) {
 			return;
 		}
-		void model.setDevice(preset.device ?? {}).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice(preset.device ?? {}).catch(onUnexpectedError);
 	}
 
 	/** Reset all device + scale overrides to defaults while keeping emulation engaged. */
@@ -532,7 +541,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		if (!model) {
 			return;
 		}
-		void model.setDevice({}).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice({}).catch(onUnexpectedError);
 		this.setScale(undefined);
 	}
 
@@ -547,7 +556,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		if (device?.userAgent === next) {
 			return;
 		}
-		void model.setDevice({ ...(device ?? {}), userAgent: next }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice({ ...(device ?? {}), userAgent: next }).catch(onUnexpectedError);
 	}
 
 	/** The current device's user agent, if any. */
@@ -562,7 +571,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		if (!model || !device || (!device.width && !device.height)) {
 			return;
 		}
-		void model.setDevice({ ...device, width: device.height, height: device.width }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice({ ...device, width: device.height, height: device.width }).catch(onUnexpectedError);
 	}
 
 	/** Flip the mobile flag on the current device (drives touch + pointer media). Engages emulation if not already active. */
@@ -572,7 +581,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 			return;
 		}
 		const device = model.device;
-		void model.setDevice({ ...(device ?? {}), mobile: !device?.mobile }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setDevice({ ...(device ?? {}), mobile: !device?.mobile }).catch(onUnexpectedError);
 	}
 
 	// -- Internal helpers ---------------------------------------------------
@@ -661,16 +670,16 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		};
 
 		const onChange = (axis: 'x' | 'y', evt: ISashEvent) => {
-			if (!drag) {
+			if (this._store.isDisposed || !drag) {
 				return;
 			}
 			const device = this.editor.model?.device ?? {};
 			if (axis === 'x') {
 				const w = Math.max(50, Math.min(drag.paneW, drag.startContainerW + (evt.currentX - evt.startX) * 2));
-				void Promise.resolve(this.editor.model?.setDevice({ ...device, width: Math.max(50, Math.round(w / drag.scale)) })).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(this.editor.model?.setDevice({ ...device, width: Math.max(50, Math.round(w / drag.scale)) })).catch(onUnexpectedError);
 			} else {
 				const h = Math.max(50, Math.min(drag.paneH, drag.startContainerH + (evt.currentY - evt.startY) * 2));
-				void Promise.resolve(this.editor.model?.setDevice({ ...device, height: Math.max(50, Math.round(h / drag.scale)) })).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(this.editor.model?.setDevice({ ...device, height: Math.max(50, Math.round(h / drag.scale)) })).catch(onUnexpectedError);
 			}
 		};
 
@@ -693,6 +702,9 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 	}
 
 	private _resetAxis(axis: 'x' | 'y'): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const model = this.editor.model;
 		if (!model?.device) {
 			return;
@@ -700,7 +712,7 @@ export class BrowserEditorEmulationSupport extends BrowserEditorContribution {
 		const device = model.device;
 		void model.setDevice(axis === 'x'
 			? { ...device, width: undefined }
-			: { ...device, height: undefined }).catch(onUnexpectedError).catch(onUnexpectedError);
+			: { ...device, height: undefined }).catch(onUnexpectedError);
 	}
 }
 

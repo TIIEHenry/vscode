@@ -72,7 +72,7 @@ export class BrowserPermissionsFeature extends BrowserEditorContribution {
 			if (e.device) {
 				this._onDidRequestDevice(e.origin, e.device);
 			} else {
-				void this._onDidRequestPermission(e.origin, e.category).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._onDidRequestPermission(e.origin, e.category).catch(onUnexpectedError);
 			}
 		}));
 		// Close any open device choosers when the model goes away.
@@ -107,6 +107,9 @@ export class BrowserPermissionsFeature extends BrowserEditorContribution {
 	}
 
 	private async _onDidRequestPermission(origin: string, category: PermissionCategory): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const model = this._model;
 		if (!model) {
 			return;
@@ -131,12 +134,15 @@ export class BrowserPermissionsFeature extends BrowserEditorContribution {
 			// late answer here is harmless.
 			cancelButton: true,
 		});
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (result === 'allow' || result === 'deny') {
-			void model.setPermissions(origin, [{ category, state: result }]).catch(onUnexpectedError).catch(onUnexpectedError);
+			void model.setPermissions(origin, [{ category, state: result }]).catch(onUnexpectedError);
 		} else {
 			// Signal an explicit cancel so the pending page request rejects
 			// immediately without recording a persisted decision.
-			void model.setPermissions(origin, [{ category, state: null }]).catch(onUnexpectedError).catch(onUnexpectedError);
+			void model.setPermissions(origin, [{ category, state: null }]).catch(onUnexpectedError);
 		}
 	}
 
@@ -215,7 +221,7 @@ function showDevicePicker(quickInputService: IQuickInputService, model: IBrowser
 			return;
 		}
 		resolved = true;
-		void model.selectDevice(request.requestId, deviceId).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.selectDevice(request.requestId, deviceId).catch(onUnexpectedError);
 	};
 
 	const setDevices = (devices: readonly { deviceId: string; label: string; detail?: string }[]) => {
@@ -341,7 +347,7 @@ function showPermissionsPicker(quickInputService: IQuickInputService, model: IBr
 			return;
 		}
 		const grants = [...edits].map(([category, state]) => ({ category, state }));
-		void model.setPermissions(origin, grants).catch(onUnexpectedError).catch(onUnexpectedError);
+		void model.setPermissions(origin, grants).catch(onUnexpectedError);
 		picker.hide();
 	}));
 

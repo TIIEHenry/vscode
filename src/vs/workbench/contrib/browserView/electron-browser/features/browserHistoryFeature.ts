@@ -246,19 +246,19 @@ function showHistoryPicker(quickInputService: IQuickInputService, model: IBrowse
 
 	disposables.add(picker.onDidTriggerButton(button => {
 		if (button === clearAllButton) {
-			void model.deleteHistory().catch(onUnexpectedError).catch(onUnexpectedError);
+			void model.deleteHistory().catch(onUnexpectedError);
 		}
 	}));
 
 	disposables.add(picker.onDidTriggerSeparatorButton(({ button, separator }) => {
 		if (button === clearDayButton) {
-			void model.deleteHistory((separator as HistorySeparator).entryIds).catch(onUnexpectedError).catch(onUnexpectedError);
+			void model.deleteHistory((separator as HistorySeparator).entryIds).catch(onUnexpectedError);
 		}
 	}));
 
 	disposables.add(picker.onDidTriggerItemButton(({ button, item }) => {
 		if (button === removeEntryButton) {
-			void model.deleteHistory([item.entryId]).catch(onUnexpectedError).catch(onUnexpectedError);
+			void model.deleteHistory([item.entryId]).catch(onUnexpectedError);
 		}
 	}));
 

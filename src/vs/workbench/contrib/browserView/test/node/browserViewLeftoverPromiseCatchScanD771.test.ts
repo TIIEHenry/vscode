@@ -43,6 +43,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -51,13 +52,17 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `redundant double-chain remains: ${call}`);
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+}
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 const deleteHistoryBare = 'void model.deleteHistory()';
@@ -77,7 +82,12 @@ const zoomForce = `void this.setBrowserZoomIndex(
 			)`;
 const destroyView = 'void this.browserViewService.destroyBrowserView(this.id)';
 const closeEditorLike = 'void Promise.resolve(this.group?.closeEditor(this.input))';
-const stylesThen = 'whenContainerStylesLoaded.then(() => this.layoutBrowserContainer())';
+const stylesThen = `whenContainerStylesLoaded.then(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.layoutBrowserContainer();
+			})`;
 const modelLayout = `void this._model.layout({
 			windowId: this.group.windowId,
 			x: wrapperRect.left + left,
@@ -168,7 +178,7 @@ suite('browserView leftover remaining Promise fire-and-forget catch scan (D771)'
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers thirty-eight leftover Promise double-chain sites', () => {
+	test('this knife covers thirty-eight leftover Promise single-chain sites with 0 double catches', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d771Calls) {
@@ -181,9 +191,13 @@ suite('browserView leftover remaining Promise fire-and-forget catch scan (D771)'
 		}
 		assert.strictEqual(sites, 38);
 		assert.ok(sites >= 4);
+
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0, 'expected 0 double catches in scanned source');
+		}
 	});
 
-	test('leftover deleteHistory / permission / Promise.resolve fire-and-forgets are Promise double-chain', () => {
+	test('leftover deleteHistory / permission / Promise.resolve fire-and-forgets are Promise single-chain', () => {
 		const history = fs.readFileSync(resolveSource(HISTORY_REL), 'utf8');
 		const permissions = fs.readFileSync(resolveSource(PERMISSIONS_REL), 'utf8');
 		const urlbar = fs.readFileSync(resolveSource(URLBAR_REL), 'utf8');
@@ -211,7 +225,7 @@ suite('browserView leftover remaining Promise fire-and-forget catch scan (D771)'
 		assertWrapped(urlbar, applyActive);
 	});
 
-	test('leftover zoom / destroy / layout / styles then / updateWindow / openSettings fire-and-forgets are Promise double-chain', () => {
+	test('leftover zoom / destroy / layout / styles then / updateWindow / openSettings fire-and-forgets are Promise single-chain', () => {
 		const model = fs.readFileSync(resolveSource(BROWSER_VIEW_REL), 'utf8');
 		const editor = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
 		const workbench = fs.readFileSync(resolveSource(WORKBENCH_REL), 'utf8');
@@ -240,7 +254,7 @@ suite('browserView leftover remaining Promise fire-and-forget catch scan (D771)'
 		assertWrapped(nav, openSettings);
 	});
 
-	test('leftover share / comments / area / setDevice fire-and-forgets are Promise double-chain', () => {
+	test('leftover share / comments / area / setDevice fire-and-forgets are Promise single-chain', () => {
 		const chat = fs.readFileSync(resolveSource(CHAT_REL), 'utf8');
 		const emulation = fs.readFileSync(resolveSource(EMULATION_REL), 'utf8');
 		const model = fs.readFileSync(resolveSource(BROWSER_VIEW_REL), 'utf8');
@@ -329,8 +343,10 @@ suite('browserView leftover remaining Promise fire-and-forget catch scan (D771)'
 		assert.ok(tools.includes('void this.playwrightService.disposeSession(resource.toString()).catch(() => { });'));
 		assert.ok(!tools.includes(`void this.playwrightService.disposeSession(resource.toString())${doubleCatch}`));
 
-		assert.ok(reload.includes(`this._model.reload()${doubleCatch};`));
-		assert.ok(webcontents.includes(`void this._doScreenshot()${doubleCatch}`));
+		assert.ok(reload.includes(`this._model.reload()${singleCatch};`));
+		assert.ok(!reload.includes(`this._model.reload()${doubleCatch}`));
+		assert.ok(webcontents.includes(`void this._doScreenshot()${singleCatch}`));
+		assert.ok(!webcontents.includes(`void this._doScreenshot()${doubleCatch}`));
 		assert.ok(history.includes('run: () => model.deleteHistory([entry.id]),'));
 		assert.ok(!history.includes(`run: () => model.deleteHistory([entry.id])${doubleCatch}`));
 	});

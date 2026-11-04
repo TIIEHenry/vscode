@@ -847,10 +847,17 @@ export class SearchView extends ViewPane {
 		};
 
 		this.dialogService.confirm(confirmation).then(res => {
+			if (this.isDisposed) {
+				progressComplete();
+				return;
+			}
 			if (res.confirmed) {
 				this.searchWidget.setReplaceAllActionState(false);
 				this.viewModel.searchResult.replaceAll(progressReporter).then(() => {
 					progressComplete();
+					if (this.isDisposed) {
+						return;
+					}
 					const messageEl = this.clearMessage();
 					dom.append(messageEl, afterReplaceAllMessage);
 					this.reLayout();
@@ -862,7 +869,7 @@ export class SearchView extends ViewPane {
 			} else {
 				progressComplete();
 			}
-		}).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
+		}).catch(errors.onUnexpectedError);
 	}
 
 	private buildAfterReplaceAllMessage(occurrences: number, fileCount: number, replaceValue?: string) {
@@ -2428,7 +2435,12 @@ export class SearchView extends ViewPane {
 			const changedMatches = matches.filter(m => e.contains(m.resource));
 			if (changedMatches.length && this.searchConfig.sortOrder === SearchSortOrder.Modified) {
 				// No matches need to be removed, but modified files need to have their file stat updated.
-				this.updateFileStats(changedMatches).then(async () => this.refreshTreeController.queue()).catch(errors.onUnexpectedError).catch(errors.onUnexpectedError);
+				this.updateFileStats(changedMatches).then(async () => {
+					if (this.isDisposed) {
+						return;
+					}
+					return this.refreshTreeController.queue();
+				}).catch(errors.onUnexpectedError);
 			}
 		}
 	}
@@ -2550,8 +2562,15 @@ export class SearchView extends ViewPane {
 	}
 
 	override dispose(): void {
+		if (this.isDisposed) {
+			return;
+		}
 		this.isDisposed = true;
 		this.saveState();
+		if (this.container) {
+			dom.clearNode(this.container);
+			this.container.remove();
+		}
 		super.dispose();
 	}
 }
@@ -2582,6 +2601,14 @@ class SearchLinkButton extends Disposable {
 				event.stopPropagation();
 			}
 		}));
+	}
+
+	override dispose(): void {
+		if (this.element) {
+			dom.clearNode(this.element);
+			this.element.remove();
+		}
+		super.dispose();
 	}
 }
 

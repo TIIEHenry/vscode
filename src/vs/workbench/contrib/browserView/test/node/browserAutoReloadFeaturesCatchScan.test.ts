@@ -27,15 +27,16 @@ suite('BrowserAutoReloadFeatures leftover fire-and-forget catch scan (D658)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this._model.reload() is double-chain; bare / single-chain gone in this file only', () => {
-		// reload returns Promise; a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('this._model.reload() is single-chain; double-chain count is strictly 0', () => {
 		const source = fs.readFileSync(browserAutoReloadFeaturesSourcePath(), 'utf8');
+		const singleCatch = '.catch(onUnexpectedError)';
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'this._model.reload()';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/this\._model\.reload\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.ok(source.includes(`${call}${singleCatch};`));
 		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.ok(!source.includes(doubleCatch));
 	});
 });

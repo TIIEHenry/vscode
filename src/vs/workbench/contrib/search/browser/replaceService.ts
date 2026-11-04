@@ -198,7 +198,7 @@ export class ReplaceService implements IReplaceService {
 			if (replacePreviewUpdateQueues.get(key) === next) {
 				replacePreviewUpdateQueues.delete(key);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		return next;
 	}
 
