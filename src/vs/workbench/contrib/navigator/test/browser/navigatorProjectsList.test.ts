@@ -1609,7 +1609,7 @@ suite('NavigatorProjectsView', () => {
 			const answer = new DeferredPromise<{ confirmed: boolean }>();
 			const dialogService = { confirm: () => answer.p } as unknown as IDialogService;
 			const fixture = await mountHoldView({ dialogService });
-			fixture.sessionAction('codicon-trash')?.click();
+			void fixture.sessionAction(1).run();
 			if (change === 'engine') { fixture.state.engineIdentityId = 'engine-b'; }
 			if (change === 'link') { fixture.state.linkId = 2; }
 			if (change === 'disconnect-return') {

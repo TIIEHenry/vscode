@@ -56,17 +56,24 @@ suite('PreviewCategoryIsolation', () => {
 		const parent = $('.switcher-test-container');
 		document.body.appendChild(parent);
 		const switcher = disposables.add(new PreviewCategorySwitcher(parent, undefined, previewCategoryService));
+		assert.strictEqual(switcher.domNode.getAttribute('role'), 'tablist');
+		assert.strictEqual(switcher.domNode.getAttribute('aria-orientation'), 'horizontal');
 
 		const codeTab = switcher.domNode.querySelector('[data-category="code"]') as HTMLElement;
+		const terminalTab = switcher.domNode.querySelector('[data-category="terminal"]') as HTMLElement;
+		const overviewTab = switcher.domNode.querySelector('[data-category="overview"]') as HTMLElement;
 		const artifactsTab = switcher.domNode.querySelector('[data-category="artifacts"]') as HTMLElement;
 		const planningTab = switcher.domNode.querySelector('[data-category="planning"]') as HTMLElement;
+		const webTab = switcher.domNode.querySelector('[data-category="web"]') as HTMLElement;
 
 		assert.ok(codeTab, 'code tab exists');
 		assert.ok(artifactsTab, 'artifacts tab exists');
 		assert.ok(planningTab, 'planning tab exists');
 
 		assert.strictEqual(codeTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(codeTab.tabIndex, 0);
 		assert.strictEqual(artifactsTab.getAttribute('aria-selected'), 'false');
+		assert.strictEqual(artifactsTab.tabIndex, -1);
 
 		// Update counts
 		previewCategoryService.setCategoryCounts({
@@ -100,11 +107,51 @@ suite('PreviewCategoryIsolation', () => {
 		artifactsTab.click();
 		assert.strictEqual(previewCategoryService.activeCategory, PreviewCategory.Artifacts);
 		assert.strictEqual(artifactsTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(artifactsTab.tabIndex, 0);
 		assert.strictEqual(codeTab.getAttribute('aria-selected'), 'false');
+		assert.strictEqual(codeTab.tabIndex, -1);
 
-		codeTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+		const arrowRightEvent = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+		codeTab.dispatchEvent(arrowRightEvent);
 		assert.strictEqual(previewCategoryService.activeCategory, PreviewCategory.Artifacts);
 		assert.strictEqual(document.activeElement, switcher.domNode.querySelector('[data-category="web"]'));
+		assert.strictEqual(webTab.tabIndex, 0);
+		assert.strictEqual(codeTab.tabIndex, -1);
+		assert.strictEqual(arrowRightEvent.defaultPrevented, true);
+
+		const homeEvent = new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true });
+		webTab.dispatchEvent(homeEvent);
+		assert.strictEqual(document.activeElement, overviewTab);
+		assert.strictEqual(overviewTab.tabIndex, 0);
+		assert.strictEqual(homeEvent.defaultPrevented, true);
+
+		const endEvent = new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true });
+		codeTab.dispatchEvent(endEvent);
+		assert.strictEqual(document.activeElement, artifactsTab);
+		assert.strictEqual(artifactsTab.tabIndex, 0);
+		assert.strictEqual(endEvent.defaultPrevented, true);
+
+		webTab.focus();
+		webTab.dispatchEvent(new FocusEvent('focus'));
+		const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+		webTab.dispatchEvent(enterEvent);
+		assert.strictEqual(previewCategoryService.activeCategory, PreviewCategory.Web);
+		assert.strictEqual(webTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(webTab.tabIndex, 0);
+		assert.strictEqual(artifactsTab.getAttribute('aria-selected'), 'false');
+		assert.strictEqual(artifactsTab.tabIndex, -1);
+		assert.strictEqual(enterEvent.defaultPrevented, true);
+
+		// An external category change while the switcher is unfocused must move
+		// the roving tab stop to the newly active category.
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		outside.focus();
+		previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
+		assert.strictEqual(terminalTab.getAttribute('aria-selected'), 'true');
+		assert.strictEqual(terminalTab.tabIndex, 0);
+		assert.strictEqual(webTab.tabIndex, -1);
+		outside.remove();
 		parent.remove();
 	});
 

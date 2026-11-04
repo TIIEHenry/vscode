@@ -15,7 +15,7 @@
 	border-left: 1px solid var(--vscode-sideBar-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .part.editor:not(.conversation-editor-part-container):not(.auxiliary) {
+.monaco-workbench:is(.hc-black, .hc-light) .part.editor:not(.conversation-editor-part-container):not(.auxiliary) {
 	border-left-color: var(--vscode-contrastBorder);
 }
 
@@ -557,6 +557,11 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: 1px;
+}
+
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:hover {

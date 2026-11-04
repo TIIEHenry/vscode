@@ -64,7 +64,7 @@
 
 .monaco-workbench .part.editor.preview-categorized .preview-category-tab:hover {
 	color: var(--vscode-foreground);
-	background-color: var(--vscode-toolbar-hoverBackground);
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
 }
 
 .monaco-workbench .part.editor.preview-categorized .preview-category-tab:active {
@@ -82,7 +82,7 @@
 }
 
 .monaco-workbench .part.editor.preview-categorized .preview-category-tab.drag-over {
-	background-color: var(--vscode-toolbar-hoverBackground);
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
 	outline: 1px dashed var(--vscode-focusBorder);
 }
 

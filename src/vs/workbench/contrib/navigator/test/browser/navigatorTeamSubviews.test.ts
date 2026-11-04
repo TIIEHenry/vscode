@@ -481,10 +481,16 @@ suite('Navigator Team subviews', () => {
 
 		assert.ok(statusBar);
 		assert.strictEqual(statusBar?.style.display, 'flex');
+		assert.strictEqual(statusBar?.getAttribute('role'), 'group');
+		assert.strictEqual(statusBar?.getAttribute('aria-label'), 'Task status filters');
+		assert.strictEqual(summary?.getAttribute('role'), 'status');
 		assert.strictEqual(summary?.textContent, '5 tasks · 1 active · 1 blocked · 1 completed · 2 failed');
 		assert.strictEqual(tasksList.length, 5);
 		assert.strictEqual(allButton?.getAttribute('aria-pressed'), 'true');
 		assert.ok(blockedButton);
+		assert.strictEqual(blockedButton?.type, 'button');
+		blockedButton!.focus();
+		assert.strictEqual(document.activeElement, blockedButton);
 
 		blockedButton!.click();
 

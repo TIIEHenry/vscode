@@ -52,6 +52,16 @@
 	color: var(--vscode-breadcrumb-focusForeground);
 }
 
+.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench.hc-black .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible,
+.monaco-workbench.hc-light .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder);
+}
+
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type > .label {
 	overflow: hidden;
 	white-space: nowrap;

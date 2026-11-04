@@ -31,7 +31,7 @@ import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAg
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { isConversationSessionNotReady } from '../../conversation/browser/conversationSessionAvailability.js';
+import { getConversationSessionReadiness, isConversationSessionNotReady } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService, IUniverseAgentConnectionOwner } from '../common/agentInspect.js';
@@ -70,6 +70,13 @@ const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
 const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
 const TEAM_UNSUPPORTED_COPY = localize('navigatorTeam.unsupported', "Current engine does not provide Team");
 const TASK_STATUS_FILTERS: readonly NavigatorTeamTaskStatusFilter[] = ['all', 'active', 'blocked', 'completed', 'failed'];
+const TASK_STATUS_FILTER_LABELS: Readonly<Record<NavigatorTeamTaskStatusFilter, string>> = {
+	all: localize('navigatorTeamTasks.filter.all', "All"),
+	active: localize('navigatorTeamTasks.filter.active', "Active"),
+	blocked: localize('navigatorTeamTasks.filter.blocked', "Blocked"),
+	completed: localize('navigatorTeamTasks.filter.completed', "Completed"),
+	failed: localize('navigatorTeamTasks.filter.failed', "Failed"),
+};
 
 /** List identity includes the manager so shared member or task ids stay two rows. */
 function teamListRowId(kind: 'member' | 'task', managerAgentId: string, rowId: string): string {
@@ -207,6 +214,7 @@ export class NavigatorTeamView extends ViewPane {
 	private taskStatusBar: HTMLElement | undefined;
 	private taskStatusSummary: HTMLElement | undefined;
 	private taskStatusFilter: NavigatorTeamTaskStatusFilter = 'all';
+	private readonly taskStatusFilterButtons = new Map<NavigatorTeamTaskStatusFilter, HTMLButtonElement>();
 	private tasksEmpty: HTMLElement | undefined;
 	private tasksHonestEmpty = TEAM_TASKS_EMPTY_COPY;
 	private tasksNote: HTMLElement | undefined;
@@ -427,14 +435,20 @@ export class NavigatorTeamView extends ViewPane {
 		this.ensureMembersList();
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
-		this.taskStatusBar = dom.append(this.tasksBody, $('.navigator-team-status-bar'));
-		this.taskStatusSummary = dom.append(this.taskStatusBar, $('.navigator-team-status-summary'));
+		this.taskStatusBar = dom.append(this.tasksBody, $('.navigator-team-status-bar', {
+			role: 'group',
+			'aria-label': localize('navigatorTeamTaskStatusFilters', "Task status filters")
+		}));
+		this.taskStatusSummary = dom.append(this.taskStatusBar, $('.navigator-team-status-summary', {
+			role: 'status'
+		}));
 		for (const filter of TASK_STATUS_FILTERS) {
 			const button = dom.append(this.taskStatusBar, $('button.navigator-team-status-filter')) as HTMLButtonElement;
 			button.type = 'button';
-			button.textContent = localize(`navigatorTeamTasks.filter.${filter}`, filter[0].toUpperCase() + filter.slice(1));
+			button.textContent = TASK_STATUS_FILTER_LABELS[filter];
 			button.dataset.statusFilter = filter;
 			button.setAttribute('aria-pressed', String(filter === this.taskStatusFilter));
+			this.taskStatusFilterButtons.set(filter, button);
 			button.addEventListener('click', () => {
 				this.taskStatusFilter = filter;
 				this.applyFilterToTasks();
@@ -921,9 +935,9 @@ export class NavigatorTeamView extends ViewPane {
 		}
 		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, this.taskStatusFilter) && matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
 		list.splice(0, list.length, filtered);
-		this.taskStatusBar?.querySelectorAll<HTMLButtonElement>('.navigator-team-status-filter').forEach(button => {
-			button.setAttribute('aria-pressed', String(button.dataset.statusFilter === this.taskStatusFilter));
-		});
+		for (const [filter, button] of this.taskStatusFilterButtons) {
+			button.setAttribute('aria-pressed', String(filter === this.taskStatusFilter));
+		}
 		if (this.taskStatusSummary) {
 			const counts = TASK_STATUS_FILTERS.map(filter => this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, filter)).length);
 			this.taskStatusSummary.textContent = localize('navigatorTeamTasks.statusSummary', "{0} tasks · {1} active · {2} blocked · {3} completed · {4} failed", counts[0], counts[1], counts[2], counts[3], counts[4]);

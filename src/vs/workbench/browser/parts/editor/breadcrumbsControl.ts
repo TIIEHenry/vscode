@@ -641,6 +641,9 @@ export class BreadcrumbsControl {
 		this._editorTypeNode = document.createElement('div');
 		this._editorTypeNode.classList.add('breadcrumbs-editor-type');
 		this._editorTypeNode.setAttribute('role', 'button');
+		this._editorTypeNode.setAttribute('aria-haspopup', 'menu');
+		this._editorTypeNode.setAttribute('aria-expanded', 'false');
+		this._editorTypeNode.tabIndex = 0;
 		this._editorTypeLabel = document.createElement('span');
 		this._editorTypeLabel.classList.add('label');
 		this._editorTypeNode.appendChild(this._editorTypeLabel);
@@ -652,6 +655,12 @@ export class BreadcrumbsControl {
 		this._editorTypeDisposables.add(dom.addDisposableListener(this._editorTypeNode, dom.EventType.CLICK, e => {
 			dom.EventHelper.stop(e, true);
 			this._showEditorTypePicker();
+		}));
+		this._editorTypeDisposables.add(dom.addDisposableListener(this._editorTypeNode, dom.EventType.KEY_DOWN, e => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				dom.EventHelper.stop(e, true);
+				this._showEditorTypePicker();
+			}
 		}));
 		return { label: this._editorTypeLabel, hover: this._editorTypeHover };
 	}
@@ -676,8 +685,10 @@ export class BreadcrumbsControl {
 		const actions = createEditorTypeActions(available, this._editorResolverService, this._commandService, this._editorService);
 		this._contextMenuService.showContextMenu({
 			getAnchor: () => editorTypeNode,
-			getActions: () => actions
+			getActions: () => actions,
+			onHide: () => editorTypeNode.setAttribute('aria-expanded', 'false')
 		});
+		editorTypeNode.setAttribute('aria-expanded', 'true');
 	}
 
 	private _onFocusEvent(event: IBreadcrumbsItemEvent): void {

@@ -114,7 +114,7 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-item:not(.disabled) > .action-label.add-tab-action:hover {
-	background-color: var(--vscode-toolbar-hoverBackground);
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
 }
 
@@ -128,7 +128,7 @@
 	opacity: 0.6;
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
+.monaco-workbench:is(.hc-black, .hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
 	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 

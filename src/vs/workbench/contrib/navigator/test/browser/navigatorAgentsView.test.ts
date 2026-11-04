@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { INavigatorAgentsHierarchyNode } from '../../common/navigatorAgentHierarchy.js';
 import { AgentsHierarchyRenderer, IAgentsHierarchyTemplateData } from '../../browser/navigatorAgentsView.js';
 import { ProjectNodeRenderer, IProjectNodeTemplateData } from '../../browser/navigatorProjectsList.js';
@@ -122,7 +123,11 @@ suite('NavigatorAgentsView template lifecycle', () => {
 
 	test('ProjectNodeRenderer tracks and disposes action container listeners', () => {
 		const renderer = new ProjectNodeRenderer(
-			() => true,
+			{} as IContextMenuService,
+			() => { },
+			() => ({ engineIdentityId: undefined, linkId: undefined, revision: 0 }),
+			() => ({ tone: 'idle', pending: 0 }),
+			() => false,
 			() => { },
 			() => { },
 			() => false,

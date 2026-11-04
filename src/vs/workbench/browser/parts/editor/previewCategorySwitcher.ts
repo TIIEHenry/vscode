@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/previewCategoryBar.css';
-import { $, append, addDisposableListener, EventType, DisposableResizeObserver, getWindow, scheduleAtNextAnimationFrame } from "../../../../base/browser/dom.js";
+import { $, append, addDisposableListener, EventHelper, EventType, DisposableResizeObserver, getWindow, scheduleAtNextAnimationFrame } from "../../../../base/browser/dom.js";
 import { Disposable } from "../../../../base/common/lifecycle.js";
+import { KeyCode, KeyCodeUtils } from "../../../../base/common/keyCodes.js";
 import { Codicon } from "../../../../base/common/codicons.js";
 import { ThemeIcon } from "../../../../base/common/themables.js";
 import { localize } from "../../../../nls.js";
@@ -37,6 +38,7 @@ export class PreviewCategorySwitcher extends Disposable {
 	private readonly hints = new Map<PreviewCategory, HTMLElement>();
 	private readonly labels = new Map<PreviewCategory, string>();
 	private fitScheduled = false;
+	private focusedCategory: PreviewCategory | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -47,6 +49,7 @@ export class PreviewCategorySwitcher extends Disposable {
 
 		this.element = $(".preview-category-switcher", {
 			role: "tablist",
+			"aria-orientation": "horizontal",
 			"aria-label": localize("previewCategories", "Preview Categories")
 		});
 
@@ -85,7 +88,7 @@ export class PreviewCategorySwitcher extends Disposable {
 	private createCategoryTab(category: PreviewCategory, labelText: string): void {
 		const tab = append(this.element, $(".preview-category-tab", {
 			role: "tab",
-			tabIndex: 0,
+			tabIndex: -1,
 			"data-category": category,
 			"aria-label": labelText,
 			title: labelText
@@ -108,17 +111,27 @@ export class PreviewCategorySwitcher extends Disposable {
 		this._register(addDisposableListener(tab, EventType.CLICK, () => {
 			this.previewCategoryService.setActiveCategory(category);
 		}));
+		this._register(addDisposableListener(tab, EventType.FOCUS, () => {
+			this.focusedCategory = category;
+			this.updateTabStops();
+		}));
 
 		this._register(addDisposableListener(tab, EventType.KEY_DOWN, (e: KeyboardEvent) => {
 			if (e.key === "Enter" || e.key === " ") {
-				e.preventDefault();
+				EventHelper.stop(e, true);
 				this.previewCategoryService.setActiveCategory(category);
 			} else if (e.key === "ArrowRight") {
-				e.preventDefault();
 				this.focusAdjacentCategory(category, 1);
+				EventHelper.stop(e, true);
 			} else if (e.key === "ArrowLeft") {
-				e.preventDefault();
 				this.focusAdjacentCategory(category, -1);
+				EventHelper.stop(e, true);
+			} else if (e.key === KeyCodeUtils.toString(KeyCode.Home)) {
+				this.focusCategory(PREVIEW_CATEGORIES[0]);
+				EventHelper.stop(e, true);
+			} else if (e.key === KeyCodeUtils.toString(KeyCode.End)) {
+				this.focusCategory(PREVIEW_CATEGORIES[PREVIEW_CATEGORIES.length - 1]);
+				EventHelper.stop(e, true);
 			}
 		}));
 
@@ -165,7 +178,20 @@ export class PreviewCategorySwitcher extends Disposable {
 		}
 
 		const nextCategory = PREVIEW_CATEGORIES[(idx + direction + PREVIEW_CATEGORIES.length) % PREVIEW_CATEGORIES.length];
-		this.tabs.get(nextCategory)?.focus();
+		this.focusCategory(nextCategory);
+	}
+
+	private focusCategory(category: PreviewCategory): void {
+		const tab = this.tabs.get(category);
+		if (!tab) {
+			return;
+		}
+
+		// Keep the roving tab stop in sync even in hosts where programmatic focus
+		// does not dispatch a focus event synchronously.
+		this.focusedCategory = category;
+		this.updateTabStops();
+		tab.focus();
 	}
 
 	private updateActiveTab(): void {
@@ -174,6 +200,17 @@ export class PreviewCategorySwitcher extends Disposable {
 			const isSelected = category === active;
 			tab.classList.toggle("selected", isSelected);
 			tab.setAttribute("aria-selected", isSelected ? "true" : "false");
+		}
+		if (!this.element.contains(this.element.ownerDocument.activeElement)) {
+			this.focusedCategory = active;
+		}
+		this.updateTabStops();
+	}
+
+	private updateTabStops(): void {
+		const tabStop = this.focusedCategory ?? this.previewCategoryService.activeCategory;
+		for (const [category, tab] of this.tabs) {
+			tab.tabIndex = category === tabStop ? 0 : -1;
 		}
 	}
 

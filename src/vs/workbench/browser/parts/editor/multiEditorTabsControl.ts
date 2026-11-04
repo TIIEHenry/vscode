@@ -240,6 +240,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// Tabs Container
 		this.tabsContainer = $('.tabs-container', {
 			role: 'tablist',
+			'aria-orientation': 'horizontal',
 			'aria-multiselectable': 'true',
 			draggable: true
 		});

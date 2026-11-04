@@ -546,6 +546,10 @@ export function renderEditorTabBarFixture(ctx: ComponentFixtureContext, options:
 
 	titleControl.openEditors(model.getEditors(EditorsOrder.SEQUENTIAL));
 	titleControl.setActive(isGroupActive);
+	const tabsContainer = titleContainer.querySelector<HTMLElement>('.tabs-container');
+	if (tabsContainer?.getAttribute('aria-orientation') !== 'horizontal') {
+		throw new Error('Editor tab bar must expose a horizontal tablist orientation.');
+	}
 	const tabs = titleContainer.querySelectorAll<HTMLElement>('.tabs-container > .tab');
 	if (options.dropTargetBetweenTabs) {
 		tabs[1]?.classList.add('drop-target-left');

@@ -44,14 +44,23 @@
 	cursor: pointer;
 }
 
+.monaco-workbench .navigator-team-status-filter:hover {
+	background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .navigator-team-status-filter[aria-pressed="true"] {
-	background: var(--vscode-toolbar-activeBackground);
+	background: var(--vscode-toolbar-activeBackground, var(--vscode-list-activeSelectionBackground));
 	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .navigator-team-status-filter:focus-visible {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .navigator-team-status-filter:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder);
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row,
