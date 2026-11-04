@@ -22,7 +22,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentAgentProfileSummary, UniverseAgentCapabilitySupport, UniverseAgentToolInfoResult, UniverseAgentToolSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -691,7 +691,7 @@ export class EngineToolsSection extends Disposable {
 						void this.loadToolInfo(entry.tool.name).catch(onUnexpectedError).catch(onUnexpectedError);
 					} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hasLeftoverToolInfo()) {
 						this.infoHost.style.display = '';
-					} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo())) {
+					} else if (keepLeftoverCatalogForPairingHold(this.hasLeftoverToolInfo(), this.connection)) {
 						this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 					} else {
 						this.clearToolInfo();
@@ -703,10 +703,6 @@ export class EngineToolsSection extends Disposable {
 			}));
 		}
 		return this.list;
-	}
-
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
 
 	private relayoutLeftoverList(): void {
@@ -740,7 +736,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);

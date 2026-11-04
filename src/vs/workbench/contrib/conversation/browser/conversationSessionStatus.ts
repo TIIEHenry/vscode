@@ -65,6 +65,14 @@ export function isConversationPairingHold(ua: IConversationPairingHoldSource | u
 }
 
 /**
+ * Keep a catalog that was already live while pairing-hold is on.
+ * A catalog that was never live, and a true disconnect, still drop the rows.
+ */
+export function keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean, connection: IConversationPairingHoldSource | undefined): boolean {
+	return hadLiveCatalog && isConversationPairingHold(connection);
+}
+
+/**
  * D292 session-id guard shared by chat `bindLiveTreeLease` and roster
  * `bindLiveTreeObservationLease`. Pairing-hold leftover stays only when the
  * held lease already belongs to the active session.

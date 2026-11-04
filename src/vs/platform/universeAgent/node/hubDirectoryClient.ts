@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { HubDevicePresence, HubEngineStatus } from '../common/hub.js';
 import { normalizeHttpsUrl } from './hub/host-normalize.js';
-
-export type HubDevicePresence = 'ONLINE' | 'OFFLINE';
-export type HubEngineStatus = 'SERVING' | 'NOT_SERVING';
 
 export type HubDevice = {
 	readonly id: string;

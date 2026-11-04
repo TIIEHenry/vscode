@@ -26,7 +26,7 @@ import type {
 	UniverseAgentPluginSummary,
 	UniverseAgentScanNewPluginsResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import {
 	type EngineCatalogPaneMode,
@@ -444,7 +444,7 @@ export class EnginePluginsSection extends Disposable {
 					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
-				} else if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks())) {
+				} else if (keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks(), this.connection)) {
 					this.keepLeftoverHooksDisconnected();
 				} else {
 					this.clearInfoPresentation();
@@ -454,12 +454,8 @@ export class EnginePluginsSection extends Disposable {
 		return this.list;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);

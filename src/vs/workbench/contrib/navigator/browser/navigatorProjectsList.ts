@@ -44,7 +44,7 @@ import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { confirmDeleteConversationSession } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
-import { conversationSessionHoldReason, getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
+import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from '../../conversation/browser/conversationSessionAvailability.js';
 import { conversationLensDockEngineNotConnected } from '../../conversation/browser/conversationLensDockStrings.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone, sessionRosterGlyph, type SessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
@@ -694,7 +694,7 @@ export class NavigatorProjectsView extends ViewPane {
 				const sessionListCapabilityNow = getNavigatorCapability(this.uaConnection, 'sessionList');
 				const sessionListCanStayLive = engineStillConnected
 					&& sessionListCapabilityNow !== 'UNKNOWN'
-					&& !this.isKeepLeftoverListFailWrite();
+					&& !isConversationSessionNotReady(this.rosterService);
 				if (!sessionListCanStayLive) {
 					this.markLeftoverSessionSwitchClosed();
 					this.setRecentsStatus(recentsFailureCopy);
@@ -750,7 +750,7 @@ export class NavigatorProjectsView extends ViewPane {
 			}), suppressRecentsFailureNote ? undefined : recentsFailureCopy);
 			this.leftoverSessionSwitchClosed = !engineConnected
 				|| sessionListCapability === 'UNKNOWN'
-				|| this.isKeepLeftoverListFailWrite();
+				|| isConversationSessionNotReady(this.rosterService);
 
 			this.filterBox?.setVisible(this.treeNodes.length > 0);
 			this.applyFilterToTree();
@@ -776,18 +776,13 @@ export class NavigatorProjectsView extends ViewPane {
 		}
 	}
 
-	/** KEEP leftover list-fail (D455): connected but roster not ready is not a live session-switch surface. */
-	private isKeepLeftoverListFailWrite(): boolean {
-		return getConversationSessionReadiness(this.rosterService) !== 'ready';
-	}
-
 	/**
 	 * Session actions are live only on a connected, paired, ready engine. Pairing and connection are read here,
 	 * not taken from the flag the async rebuild sets, so a Delete confirmation that outlives a disconnect is refused.
 	 */
 	private isProjectsSessionSwitchLive(): boolean {
 		return !this.leftoverSessionSwitchClosed
-			&& !this.isKeepLeftoverListFailWrite()
+			&& !isConversationSessionNotReady(this.rosterService)
 			&& !isConversationPairingHold(this.uaConnection)
 			&& this.rosterService.isEngineConnected();
 	}

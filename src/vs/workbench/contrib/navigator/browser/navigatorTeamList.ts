@@ -30,7 +30,7 @@ import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAg
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
+import { isConversationSessionNotReady } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
@@ -288,7 +288,7 @@ export class NavigatorTeamView extends ViewPane {
 
 	refresh(): void {
 		const sessionId = this.rosterService.getActiveSessionId();
-		if (!isConversationPairingHold(this.uaConnection) && !this.isKeepLeftoverListFailWrite() && this.rosterService.isEngineConnected() && sessionId) {
+		if (!isConversationPairingHold(this.uaConnection) && !isConversationSessionNotReady(this.rosterService) && this.rosterService.isEngineConnected() && sessionId) {
 			this.uaConnection.requestAgentTreeRefresh(sessionId);
 		}
 		this.scheduleRefresh();
@@ -836,22 +836,17 @@ export class NavigatorTeamView extends ViewPane {
 		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
 	}
 
-	/** KEEP leftover list-fail (D457): connected but roster not ready is not a live Inspect/row-open surface. */
-	private isKeepLeftoverListFailWrite(): boolean {
-		return getConversationSessionReadiness(this.rosterService) !== 'ready';
-	}
-
 	private updateEngineConnectedContextKey(): void {
 		this.engineConnectedContextKey.set(
 			!isConversationPairingHold(this.uaConnection)
 			&& this.rosterService.isEngineConnected()
-			&& !this.isKeepLeftoverListFailWrite(),
+			&& !isConversationSessionNotReady(this.rosterService),
 		);
 	}
 
 	private syncKeepLeftoverListFailInspect(): void {
 		this.updateEngineConnectedContextKey();
-		if (!this.isKeepLeftoverListFailWrite()) {
+		if (!isConversationSessionNotReady(this.rosterService)) {
 			return;
 		}
 		const sessionId = this.publishedTeamSession();
@@ -860,7 +855,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private isTeamRowActionLive(): boolean {
-		return !this.leftoverRowActionsClosed && !this.isKeepLeftoverListFailWrite();
+		return !this.leftoverRowActionsClosed && !isConversationSessionNotReady(this.rosterService);
 	}
 
 	private markLeftoverRowActionsClosed(): void {

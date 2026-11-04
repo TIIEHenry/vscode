@@ -9,6 +9,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IConversationPartService, IConversationPartWindowSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { IConversationEditorPart, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { ConversationEditorPaneId, conversationSessionLeafPrimaryClass, conversationSessionLeafSecondaryClass } from '../common/conversationSessionWindow.js';
@@ -119,6 +120,7 @@ suite('ConversationSessionWindowService', () => {
 			rosterService,
 			new NullLogService(),
 			{ error: () => { } } as unknown as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		await timeout(0);
@@ -191,6 +193,7 @@ suite('ConversationSessionWindowService', () => {
 			rosterService,
 			new NullLogService(),
 			{ error: () => { } } as unknown as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		await timeout(0);
@@ -257,6 +260,7 @@ suite('ConversationSessionWindowService', () => {
 			rosterService,
 			new NullLogService(),
 			{ error: () => { } } as unknown as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		try {
@@ -326,6 +330,7 @@ suite('ConversationSessionWindowService', () => {
 			rosterService,
 			new NullLogService(),
 			{ error: () => { } } as unknown as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		await timeout(0);
@@ -390,6 +395,7 @@ suite('ConversationSessionWindowService', () => {
 			rosterService,
 			new NullLogService(),
 			{ error: () => { } } as unknown as INotificationService,
+			undefined as unknown as IStorageService,
 		));
 
 		await timeout(0);

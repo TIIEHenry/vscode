@@ -25,7 +25,7 @@ import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedL
 import { evaluateEngineWrite, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -697,10 +697,6 @@ export class EngineSkillsSection extends Disposable {
 		this.showBodyStatus(localize('ua.engineSkillBodyDraftRecovery', "Draft kept. Use Refresh skills on the original engine to keep editing it."));
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private hasLeftoverSkillBody(): boolean {
 		return !!(this.loadedBodyText || this.bodyInput.value);
 	}
@@ -732,7 +728,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.listContainer.style.display = '';
@@ -1208,7 +1204,7 @@ export class EngineSkillsSection extends Disposable {
 			if ((this.mode === 'failed' || this.mode === 'loading') && hasLeftoverBody) {
 				return;
 			}
-			if (this.keepLeftoverCatalogForPairingHold(hasLeftoverBody)) {
+			if (keepLeftoverCatalogForPairingHold(hasLeftoverBody, this.connection)) {
 				this.showBodyStatus(getEngineSectionDisconnectedCopy());
 				return;
 			}

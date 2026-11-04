@@ -26,7 +26,7 @@ import type {
 	UniverseAgentProviderPreset,
 	UniverseAgentProviderStatus,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { isSameEngineWriteLink } from './engineWriteGate.js';
 import {
@@ -973,12 +973,8 @@ export class EngineModelsSection extends Disposable {
 		void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedModelsRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.sessionHint.style.display = 'none';
 			this.modelList.style.display = '';
 			this.modelListPhase = { kind: 'none' };

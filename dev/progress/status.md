@@ -4,11 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-05
-summary: "UI 审查收口：焦点环、主题色、z-index 层级与 hidden 显隐已改，窗口实测未做；工作区三主题已按 GPT 视觉复刻 / 设置页视觉对齐 / 审查收口拆三笔提交；U1 活态半成品新增 5 条 DisposeGate 红已记 D17。钉死引擎换到干净 027ab7ed03 构建；真实引擎/窗口/打包验收与既有验证债仍保持。"
+summary: "可见会话叶写入 conversation.sessionWindows.v1；Engine 写链路与导航未就绪判断收口；D17 名单改单份 JSON。UI 焦点环与层级已提交，窗口实测未做。真实引擎/窗口/打包验收与既有验证债仍保持。"
 ---
 
 # Development Progress
 
+- **会话叶与写闸（2026-11-05）**：可见会话叶写入 `conversation.sessionWindows.v1`（工作区、本机），名册仍在时恢复主叶和并排叶，隐藏叶不自动打开。Engine 分区写链路改走 `captureEngineWriteLink`，导航在会话未就绪时不再当成活表面。Hub 设备状态类型改从 common 引用。D17 不可加载 `test/node` 名单收进 `d17-ua-node-unloadable.json`。2026-11-04 六份审查方案登记为草案，未实施。本笔未新跑 compile。
 - **UI 审查收口（2026-11-05）**：chat / sessions / conversation 三路只读审查后，由 Cursor CLI（含 Grok 4.7）改 CSS 与少量 TS。键盘焦点环补齐 `:focus-visible` 与 `.hc-*` 的 `contrastActiveBorder`；浅色主题下失效的白色回退、写死遮罩和阴影改用 `color-mix` / `--vscode-widget-shadow`；sessions 新增 `--sessions-z-*` 层级变量（`workbench.css`），紧凑壳层保留字面量以满足 `compactDesktopShellCssScan`；删除无引用的 `hostPickerDropdown.css`；`style.display` 改 `hidden` 属性并配 `[hidden]` 规则；轨迹概览加滚动包裹层让 12px 分段的点击区生效；折叠动画补减少动效；`mobileOverlayViews.css` 的 token 替换已还原为原 hex。验证：`typecheck-client` 0 错误，`conversationSessionsView` 46 过、`conversationTimelineScroll` 19 过；sessions node 扫描 105 过 2 败（D1322/D1330 catch 扫描）、conversation node 76 过 3 败（nav-row 22px 两条、region-chrome 28px 一条），5 条均为改动前已红。未做：拆分 `conversationLens.css`、清理约 229 处 `!important`、手机发送按钮 44px 命中区（被 `overflow: hidden` 裁掉）、真实窗口与高对比实测。
 - **工作区三主题提交（2026-11-04）**：按主题拆三笔入库——① GPT 参考图视觉复刻（会话/导航/活动栏/图标/菜单/Composer，随行未登记的 U1 活态半成品 `conversationLivePhase.ts`）② 设置页视觉对齐（Engine/Connection/Client）③ 审查收口、决定与文档状态行。U1 半成品使 `conversationLensDisposeGate` 新增 5 条红（166 过/5 败，方案 §14 点名不能当已签收实现），连同 CSS 2 红记入 [D17](deferred-gaps.md)；compile-client 0 错误、docs-health / wiki check 0 错误。红测只挡 plan/PRD 升 implemented，真实引擎与默认窗验收仍欠、未推送。
 - **默认窗口GPT参考图视觉（2026-11-02）**：最终导航30px/14px、活动栏44px步距；输入框按用户追加图修正24px圆角/14px文字/40px底栏，活动空稿实测98px、首屏122px。UA功能门控保持。Terra完成对比C0/I0/M0，旧路径Minor关闭。 §27追加圆头SVG图标/行尾圆底与padding校准，当前轮238组件过5pending，浅深/强制颜色实拍和Terra复审通过；原SVG像素一致不作保证。 §28菜单壳/行/图标/内衬同参考校准，原生操作与焦点恢复保持；238组件过5pending，Terra复审无待修问题。compile-client通过、272组件过/5pending，CSS41过2处Engine旧断言记D17；隔离默认窗浅深/窄栏取样，无真引擎验收、未提交。见[证据](conversation-gpt-visual-evidence/verification.md)。

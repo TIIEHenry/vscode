@@ -32,7 +32,7 @@ import {
 	type EngineContextVariableListRow,
 } from './engineContextVariableList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 
 import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
@@ -226,14 +226,10 @@ export class EngineContextVariableSection extends Disposable {
 		}
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): void {
 		++this.readGeneration;
 		this.updateReadAction();
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),

@@ -25,7 +25,7 @@ import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedL
 import { captureEngineWriteLink, EngineRefreshGate, evaluateEngineWrite, type EngineWriteLink } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -1051,10 +1051,6 @@ export class EngineMcpSection extends Disposable {
 		this.layoutPanels();
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private closeLeftoverRowToggleChrome(): void {
 		// D425 / D427: leftover KEEP / UNKNOWN / list-fail must close leftover
 		// row toggle chrome on refresh; do not wait for another selectServer.
@@ -1069,7 +1065,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.listContainer.style.display = '';

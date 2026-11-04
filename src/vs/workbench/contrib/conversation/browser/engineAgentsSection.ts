@@ -20,7 +20,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentAgentProfileSource,
@@ -36,8 +36,8 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
-import { isSameEngineWriteLink } from './engineWriteGate.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { captureEngineWriteLink, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
@@ -68,8 +68,6 @@ const $ = DOM.$;
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
-
-type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 export const ENGINE_AGENTS_CREATE_SUCCESS_COPY = localize('ua.engineAgentsCreateSuccess', "Created.");
 export const ENGINE_AGENTS_DELETE_SUCCESS_COPY = localize('ua.engineAgentsDeleteSuccess', "Deleted.");
@@ -695,10 +693,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private publishedWriteLink(): EngineWriteLink | undefined {
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+		return captureEngineWriteLink(this.connection);
 	}
 
 	/** Published identity and link. Disconnect and pairing-hold still drop the result; catalog mode does not. */
@@ -1176,7 +1171,7 @@ export class EngineAgentsSection extends Disposable {
 			this.connection.isEngineConnected()
 			&& (this.mode === 'failed' || this.mode === 'loading')
 			&& this.hasLeftoverAgentDetail()
-		) || this.keepLeftoverCatalogForPairingHold(this.hasLeftoverAgentDetail());
+		) || keepLeftoverCatalogForPairingHold(this.hasLeftoverAgentDetail(), this.connection);
 		const show = (canShowCatalogRows(this.mode) && !!this.selectedProfile) || keepLeftoverDetail;
 		this.detailHost.style.display = show ? '' : 'none';
 		if (show) {
@@ -1472,7 +1467,7 @@ export class EngineAgentsSection extends Disposable {
 			if (this.agentTools.length === 0) {
 				return;
 			}
-		} else if (this.keepLeftoverCatalogForPairingHold(this.agentTools.length > 0)) {
+		} else if (keepLeftoverCatalogForPairingHold(this.agentTools.length > 0, this.connection)) {
 			this.toolsStatus.render({
 				mode: 'disconnected',
 				featureLabel: AGENT_TOOLS_FEATURE,
@@ -1563,10 +1558,6 @@ export class EngineAgentsSection extends Disposable {
 		return ok;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private closeLeftoverAgentsEditorChrome(): void {
 		// D433: UNKNOWN leftover / list-fail leftover must close leftover
 		// user AGENTS.md Save chrome on refresh; do not wait for another
@@ -1596,7 +1587,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.hideCatalogWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();
@@ -1788,13 +1779,13 @@ export class EngineAgentsSection extends Disposable {
 					this.connection.isEngineConnected()
 					&& (this.mode === 'failed' || this.mode === 'loading')
 					&& hasLeftoverMarkdown
-				) || this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown);
+				) || keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown, this.connection);
 				if (!keepLeftoverMarkdown) {
 					this.agentsEditorContainer.style.display = 'none';
 					this.agentsEditorInput.value = '';
 					this.agentsEditorInput.inputElement.readOnly = true;
 					this.agentsEditorSaveButton.enabled = false;
-				} else if (this.keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown)) {
+				} else if (keepLeftoverCatalogForPairingHold(hasLeftoverMarkdown, this.connection)) {
 					this.updateAgentsEditorChrome();
 					this.showAgentsEditorStatus(getEngineSectionDisconnectedCopy(), 'error');
 				}

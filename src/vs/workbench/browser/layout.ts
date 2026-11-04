@@ -318,6 +318,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	private notificationService!: INotificationService;
 	private themeService!: IThemeService;
 	private statusBarService!: IStatusbarService;
+	private conversationPartService!: IConversationPartService;
+	private sourcesPartService!: ISourcesPartService;
 	private logService!: ILogService;
 	private telemetryService!: ITelemetryService;
 	private auxiliaryWindowService!: IAuxiliaryWindowService;
@@ -358,8 +360,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this.notificationService = accessor.get(INotificationService);
 		this.statusBarService = accessor.get(IStatusbarService);
 		accessor.get(IBannerService);
-		accessor.get(IConversationPartService);
-		accessor.get(ISourcesPartService);
+		this.conversationPartService = accessor.get(IConversationPartService);
+		this.sourcesPartService = accessor.get(ISourcesPartService);
 
 		// Listeners
 		this.registerLayoutListeners();
@@ -1340,10 +1342,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				this.editorGroupService.getPart(container).activeGroup.focus();
 				break;
 			case Parts.CONVERSATION_PART:
-				(this.getPart(Parts.CONVERSATION_PART) as unknown as IConversationPartService).focus();
+				this.conversationPartService.focus();
 				break;
 			case Parts.SOURCES_PART:
-				(this.getPart(Parts.SOURCES_PART) as unknown as ISourcesPartService).focus();
+				this.sourcesPartService.focus();
 				break;
 			case Parts.PANEL_PART: {
 				this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel)?.focus();

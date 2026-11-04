@@ -23,7 +23,7 @@ import type {
 	UniverseAgentMcpServerStatus,
 	UniverseAgentMcpToolDefinition,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import {
 	type EngineCatalogPaneMode,
@@ -289,7 +289,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				if ((this.mode === 'failed' || this.mode === 'loading') && hadLivePaint) {
 					return;
 				}
-				if (this.keepLeftoverCatalogForPairingHold(this.hasLeftoverRuntimeTools() || hadLivePaint)) {
+				if (keepLeftoverCatalogForPairingHold(this.hasLeftoverRuntimeTools() || hadLivePaint, this.connection)) {
 					this.toolsStatus.render({
 						mode: 'disconnected',
 						featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
@@ -303,12 +303,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 		return this.list;
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.refreshButton.enabled = false;

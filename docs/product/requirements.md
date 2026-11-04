@@ -293,7 +293,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 - PRD-017.1 重启后会话列表、当前会话与各会话回合与重启前一致。
 - PRD-017.2 Conversation 显隐、session 窗口叶与 chat tab 结构恢复（PRD-016 验收 2 的跨重启版）。
 - PRD-017.3 无引擎时不出现远端同步文案；引擎接通后本地缓存不得冒充引擎回报。
-- **依赖或未决**：D13 已实施。无引擎时本地会话（标题、回合、权限记录）存 `IStorageService` 的工作区、本机目标（随工作区、不随 Settings Sync 漫游）。session 窗口布局沿用 PRD-016 已有的 Layout 持久化。引擎接通后不把本地存储迁成引擎权威：本地只保留 stub 会话与「最后一次 UA 快照」缓存（供 PRD-007 断连只读），缓存不得冒充引擎回报。证据见 [traceability.md](traceability.md) PRD-017。
+- **依赖或未决**：D13 已实施。无引擎时本地会话（标题、回合、权限记录）存 `IStorageService` 的工作区、本机目标（随工作区、不随 Settings Sync 漫游）。Part 显隐沿用 PRD-016 的 Layout 持久化。可见 session 叶另记 `conversation.sessionWindows.v1`（同样是工作区、本机目标）：重启后恢复仍在名册里的主叶和并排叶；隐藏叶不自动打开。叶内 chat tab 按该 `sessionKey` 的编辑器网格记忆恢复。引擎接通后不把本地存储迁成引擎权威：本地只保留 stub 会话与「最后一次 UA 快照」缓存（供 PRD-007 断连只读），缓存不得冒充引擎回报。证据见 [traceability.md](traceability.md) PRD-017。
 
 ### PRD-018 键盘可达与辅助功能
 

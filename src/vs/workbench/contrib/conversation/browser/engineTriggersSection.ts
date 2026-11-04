@@ -44,7 +44,7 @@ import {
 	formatEngineTriggerListLabel,
 } from './engineTriggerList.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import type { ConnectionStatusTone } from './connectionPreferencesPaneLabels.js';
 
@@ -363,10 +363,6 @@ export class EngineTriggersSection extends Disposable {
 		writeStatus(this.upsertStatus, '');
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connection);
-	}
-
 	private isTriggerWritePairingHold(): boolean {
 		return isConversationPairingHold(this.connection);
 	}
@@ -408,7 +404,7 @@ export class EngineTriggersSection extends Disposable {
 		++this._deleteGeneration;
 		++this._upsertGeneration;
 		this.updateWriteActions();
-		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
+		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
