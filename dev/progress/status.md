@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-05
-summary: "Wave 25 与团队刷新、任务筛选已在 merge 槽；agent-ide 的会话叶、写闸、D17 名单和 SGLang 探针记录一并合入。真实引擎、默认窗口和打包验收仍未完成。"
+summary: "Wave 25、团队刷新与任务筛选、agent-ide 的会话叶/写闸/D17/SGLang 记录，以及 EvoFlow 只读筛选和真实编辑器联测证据已合入 merge 槽。真实引擎、默认窗口和打包验收仍未完成。"
 ---
 
 # Development Progress
@@ -102,6 +102,9 @@ summary: "Wave 25 与团队刷新、任务筛选已在 merge 槽；agent-ide 的
 
 - **其余设置页视觉（2026-11-02）**：Connection/Client/其余Engine三路组合完成，浅灰导航、居中分组与字段分层；Client原生虚拟行几何保持。Engine832过，Connection/样式/Client269过4pending；目标类型20文件0诊断、lint0错17警告；47张受控组件截图无横向溢出。见[证据](preferences-visual-alignment-evidence/verification.md)。未full compile/真实引擎窗口验收，PRD不升，未提交推送。 用户截图追补修正外层切换栏对称内缩与断连条安全边距，新增盒测量；定向50过4pending。
 - **Engine 设置视觉（2026-11-02）**：按用户 ChatGPT 参考图调整浅灰导航、居中白底分组、Tools 双行/右侧开关与单列表滚动；保留保存协议，不加搜索筛选。定向 Electron 48过，五种组件渲染与键盘/受控保存检查通过；[证据](engine-settings-visual-evidence/verification.md)。真实引擎默认窗口未验，方案 accepted/PRD不升；未提交未推送。
+- **EvoFlow 参考 UI 增量**：独立集成分支 `codex/evoflow-ui-integration` 合入 Team Tasks 的 All / Active / Blocked / Completed / Failed 只读筛选与数量摘要，以及连接态保护的 Team ViewTitle 手动 Refresh；Team Tasks 不增加 TaskUpdate / TaskCancel 等写操作。当时集成分支 transpile 退出 0；Team 浏览器测试 49/49、inline filter 测试 5/5。
+- **Codex 确定性跨边界场景（2026-10-31）**：`conversationStreamScripts.test.ts` 覆盖 `submitInput` 回执，以及 `workspace.list` pending → running → completed、`workspace.write` pending → failed 和助手行顺序。
+- **UniverseAgent 真实编辑器联测（2026-10-31）**：`universe-agent-real-editor` 在隔离 profile 上 4/4 步通过。该证据只覆盖那条客户端链路，默认窗口视觉和人工验收仍未完成。
 - **当前组合源**：真三路24e/58972保留双方实现及作者1246原生键盘增量；固定 `58972a2f679b125f97fd488e823961491dee4bc3` 的49 TS + 1 CSS已fresh，50份source/output hash运行后复查相同。
 - **当前实际验证**：Electron13文件521/0 exit0，含真实双Host composer归属；Node五文件97过2败 exit1，其中UA四suite58/0。两败与10/27原日志同CSS断言，本轮未重跑旧HEAD。49目标语义0；lint0error/44warning，未逐条基线差分，订阅八TS0warning。[准确范围/日志](session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。
 - **钉死引擎换版（2026-11-01）**：按 EIR-2 决定从旧 `10635d612dac` 换到干净 detached `027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`；重编 `grpc-api`、`grpc-server`、`remote-agent-server`、`hook-jvm`，`engine/VERSION` 标记 `source_dirty=false`，`engine/lib.SHA256SUMS` 固定模块清单。首次启动因遗漏两个运行时模块触发 `NoSuchMethodError`，补齐后 50061 已稳定监听；重启后 IDE 能力探测自动到达，`AgentService/GetQueue` 返回 `INVALID_ARGUMENT`，未做 RPC 反射、手工业务调用或默认窗口验收。

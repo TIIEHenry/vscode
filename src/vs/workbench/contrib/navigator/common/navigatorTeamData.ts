@@ -72,6 +72,28 @@ export function matchesNavigatorTeamTaskStatus(status: string, filter: Navigator
 	return normalized === 'pending' || normalized === 'in_progress' || normalized === 'in-progress' || normalized === 'running' || normalized === 'active';
 }
 
+export type NavigatorTeamTaskStatusFilter = 'all' | 'active' | 'blocked' | 'completed' | 'failed';
+
+export function matchesNavigatorTeamTaskStatus(status: string | undefined, filter: NavigatorTeamTaskStatusFilter): boolean {
+	if (filter === 'all') {
+		return true;
+	}
+	if (!status) {
+		return false;
+	}
+	const normalized = status.toLowerCase();
+	if (filter === 'blocked') {
+		return normalized === 'blocked';
+	}
+	if (filter === 'completed') {
+		return normalized === 'completed' || normalized === 'done' || normalized === 'succeeded';
+	}
+	if (filter === 'failed') {
+		return normalized === 'failed' || normalized === 'cancelled' || normalized === 'canceled';
+	}
+	return normalized === 'pending' || normalized === 'in_progress' || normalized === 'in-progress' || normalized === 'running' || normalized === 'active';
+}
+
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 /** Team capability still UNKNOWN — not “no members yet”, and not the agent-tree loading sentence. */
