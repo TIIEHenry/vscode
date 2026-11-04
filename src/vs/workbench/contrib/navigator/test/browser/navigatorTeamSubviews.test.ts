@@ -36,6 +36,7 @@ import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLease
 import { NavigatorTeamInlineFilterBox } from '../../browser/navigatorTeamInlineFilterBox.js';
 import {
 	INavigatorTeamMember,
+	NAVIGATOR_TEAM_REFRESH_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID,
 	NavigatorTeamView,
@@ -234,10 +235,12 @@ suite('Navigator Team subviews', () => {
 		const membersItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID);
 		const tasksItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID);
 		const inspectItem = viewTitleItems.find(item => item.command.id === OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
+		const refreshItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_REFRESH_COMMAND_ID);
 
 		assert.ok(membersItem, 'Team ViewTitle must expose Members');
 		assert.ok(tasksItem, 'Team ViewTitle must expose Tasks');
 		assert.ok(inspectItem, 'Team ViewTitle must still expose Inspect');
+		assert.ok(refreshItem, 'Team ViewTitle must expose Refresh');
 	});
 
 	test('Team ViewTitle does not register engine-mutating commands (PRD-022 验收 6)', () => {

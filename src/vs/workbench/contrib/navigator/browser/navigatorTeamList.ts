@@ -86,6 +86,7 @@ export const NAVIGATOR_TEAM_REFRESH_COMMAND_ID = 'workbench.action.navigatorTeam
 
 export const NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.members', true);
 export const NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.tasks', false);
+export const NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY = new RawContextKey<boolean>('navigatorTeamRefreshAvailable', false);
 
 export interface INavigatorTeamMember {
 	readonly id: string;
@@ -184,6 +185,7 @@ export class NavigatorTeamView extends ViewPane {
 	private readonly membersContextKey: IContextKey<boolean>;
 	private readonly tasksContextKey: IContextKey<boolean>;
 	private readonly engineConnectedContextKey: IContextKey<boolean>;
+	private readonly refreshAvailableContextKey: IContextKey<boolean>;
 	private readonly leaseHolder: NavigatorSessionLeaseHolder;
 	private readonly refreshScheduler: RunOnceScheduler;
 
@@ -236,6 +238,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.membersContextKey = NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY.bindTo(this.scopedContextKeyService);
 		this.tasksContextKey = NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY.bindTo(this.scopedContextKeyService);
 		this.engineConnectedContextKey = UA_ENGINE_CONNECTED_KEY.bindTo(this.scopedContextKeyService);
+		this.refreshAvailableContextKey = NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.bindTo(this.scopedContextKeyService);
 		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
 			this.rosterService,
 			() => {
@@ -261,6 +264,7 @@ export class NavigatorTeamView extends ViewPane {
 			if (this._store.isDisposed) {
 				return;
 			}
+			this.updateRefreshAvailability();
 			this.scheduleRefresh();
 		}));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => {
@@ -268,6 +272,7 @@ export class NavigatorTeamView extends ViewPane {
 				return;
 			}
 			this.updateEngineConnectedContextKey();
+			this.updateRefreshAvailability();
 			this.scheduleRefresh();
 		}));
 		// D457: KEEP list-fail flips via roster session events, not connection.
@@ -282,6 +287,7 @@ export class NavigatorTeamView extends ViewPane {
 				return;
 			}
 			this.updateEngineConnectedContextKey();
+			this.updateRefreshAvailability();
 			this.scheduleRefresh();
 		}));
 
@@ -296,6 +302,7 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.updateSubviewContextKeys();
 		this.updateEngineConnectedContextKey();
+		this.updateRefreshAvailability();
 	}
 
 	override setVisible(visible: boolean): void {
@@ -453,6 +460,25 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 		this.refreshScheduler.schedule();
+	}
+
+	refreshTeamTree(): void {
+		const sessionId = this.rosterService.getActiveSessionId();
+		if (this.isRefreshAvailable() && sessionId) {
+			this.uaConnection.requestAgentTreeRefresh(sessionId);
+		}
+		this.scheduleRefresh();
+	}
+
+	private isRefreshAvailable(): boolean {
+		return !isConversationPairingHold(this.uaConnection)
+			&& this.uaConnection.getConnectionPhase().kind === 'connected'
+			&& this.rosterService.isEngineConnected()
+			&& getConversationSessionReadiness(this.rosterService) === 'ready';
+	}
+
+	private updateRefreshAvailability(): void {
+		this.refreshAvailableContextKey.set(this.isRefreshAvailable());
 	}
 
 	private ensureMembersList(): WorkbenchList<INavigatorTeamMemberEntry> {
@@ -1153,5 +1179,27 @@ registerAction2(class NavigatorTeamOpenInspectAction extends ViewAction<Navigato
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
 		view.inspectFocusedTitleAction();
+	}
+});
+
+registerAction2(class NavigatorTeamRefreshAction extends ViewAction<NavigatorTeamView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_TEAM_REFRESH_COMMAND_ID,
+			viewId: NAVIGATOR_TEAM_VIEW_ID,
+			title: localize2('navigatorTeamView.refresh', "Refresh"),
+			icon: Codicon.refresh,
+			precondition: NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 0,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		view.refreshTeamTree();
 	}
 });
