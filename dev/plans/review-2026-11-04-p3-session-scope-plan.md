@@ -1,15 +1,16 @@
 ---
 title: "设计审查 2026-11-04 p3：会话作用域与会话状态归属"
 type: plan
-status: draft
+status: accepted
 phase: N/A
 updated: 2026-11-05
-summary: "叶子只认自己的会话 id；权限与模型选择收到按会话串行的一处；会话列表归属待拍板；共享接口留在 conversation/common，不改 roster token。"
+summary: "叶子只认自己的会话 id；权限与模型选择收到按会话串行的一处；两份会话列表都留并抽共享行（切片待补写）；共享接口留在 conversation/common，不改 roster token。"
 ---
 
 # 设计审查 2026-11-04 p3：会话作用域与会话状态归属
 
-状态：草案。
+状态：执行中。
+签收：签（收窄）。签收人：agent:cursor（用户委托），日期：2026-11-05。p3-3 与 attribution 类型已拍板但切片未写，补写并过规则 16 后才实施，见「待定项」。
 覆盖需求：无（正文未引用需求编号）。
 
 叶子里的读写用该叶的会话 id。全局活动会话只留给名单、状态条、启动恢复和命令面板这类没有叶子的入口。权限模式和模型选择按会话 id 收成一份，两套视图订阅同一份。不新 RPC，不新快照字段。
@@ -24,7 +25,7 @@ summary: "叶子只认自己的会话 id；权限与模型选择收到按会话�
 |:-----|:-----------|
 | p3-1 | `conversationLens.ts`、`conversationLensSessionBar.ts`、`conversationSessionWindowService.ts`（只删 `focusin` 里的第二笔 `switchSession`）；`.eslint-plugin-local` 与 `eslint.config.js`。不改 `editorParts.ts` 的 `mapPartToInstantiationService`。`conversationLeafSessionBar.ts` 保持「活动 id 已是目标则不调用」。History / Inbox / Snapshots 的未注入回退不改 |
 | p3-2 | `conversationLens.ts`、`conversationLensComposer.ts`、`conversationLensComposerChrome.ts`、`conversation.contribution.ts`；新增会话选择服务。与 [r11-3](review-2026-10-30-r11-conversation-plan.md) 同一套 epoch 符号 |
-| p3-3 | 待拍板。推荐路径会碰 `navigatorProjectsList.ts`、`conversationSessionsView.ts`、`conversationSessionsViewStrings.ts`。删除确认已在 `conversationDeleteSessionConfirm.ts`，不重写 |
+| p3-3 | 已拍板选 A，切片待补写并过规则 16。会碰 `navigatorProjectsList.ts`、`conversationSessionsView.ts`、`conversationSessionsViewStrings.ts`。删除确认已在 `conversationDeleteSessionConfirm.ts`，不重写 |
 | p3-4 | `navigator` 生产文件里指向 `conversation/browser` 的 import；`navigatorStubView.ts`、`navigatorStub.css`、`navigator.contribution.ts`。roster 接口整份搬迁见该条，不进 `workbench/services` |
 | p3-5 | `services/agentSession/common/agentSessionContext.ts`；`contrib/conversation/browser/agentSessionContext.ts`；把该方法当可选的测试替身 |
 
@@ -35,10 +36,10 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 1. p3-1a 已绑定透镜不再用活动会话填 id；会话栏三条回退改走绑定 id。不新增 DI 作用域
 2. p3-1b 窗口服务获焦只留一笔写回。叶栏保持相等则不调用。History / Inbox / Snapshots 的未注入回退不改
 3. p3-1c eslint 规则，允许名单等于 1b 之后仍合法的调用方。files 排除 `*.test.ts`
-4. p3-2 会话选择服务（宿主见待定项 1）。2a 与 2b 同一次合入：两份透镜都订阅之前，不单独合入只持有 map 的 2a
-5. p3-5 会话上下文方法改为必填并补齐替身。attribution 类型见待定项 3，本片不动
+4. p3-2 会话选择服务（待定项 1 已选新服务）。2a 与 2b 同一次合入：两份透镜都订阅之前，不单独合入只持有 map 的 2a
+5. p3-5 会话上下文方法改为必填并补齐替身。attribution 类型已选 `ItemAttribution`（待定项 3），改法随 p3-3 补写，本片不动
 6. p3-4 共享符号下沉与 Navigator 的 Stub 改名。decorator id 不改
-7. p3-3 等待定项 2
+7. p3-3 已选两份都留；切片补写并过规则 16 后再排
 
 ## 与已签收合同
 
@@ -163,7 +164,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 
 要动的符号与文件：`getSessionConfig`、`setSessionConfig`、`applySessionModelIndex`、`drainSessionModel`、`sessionPermissionEpoch`、`sessionModelEpoch`、两份 `WeakMap`。文件见冲突域。宿主是待定项 1。推荐新的 `IConversationSessionChoiceService`，按 `sessionId` 保存选择和 epoch，并提供 `onDidChangeSessionChoice`。透镜改为注入它，删掉两个实例字段。
 
-改法（按待定项 1 的推荐）：
+改法（待定项 1 已选 A）：
 
 1. **p3-2a。** 服务持有现在 host 上的两张 map 和两套 epoch。`sessionModelEpoch` 在该 `sessionId` 已有记录时直接返回，不用后来的 host 的 `modelSelectedIndex` 当 confirmed 或 rollback。还没有记录时，用调用方当时的下标记一笔，之后只由 `applySessionModelIndex` / `drainSessionModel` 按活码更新。两处 drain 的判断改读写服务，分支各自保持现状。`drainSessionModel`：`:1330` 过期且不可写，`:1340` 过期且可写时 `continue`，不写 confirmed。`drainSessionPermission`：过期且可写、`result.ok` 时先把 `confirmedIndex` 写成 `sentIndex` 再 `continue`（`:1256-1259`）；catch 里过期且可写则 `:1285` `continue`。不要把模型的 `:1340` 当成权限分支。host 只负责把事件画到自己的下拉；画之前看 host 未 dispose，且画的 `sessionId` 仍是该视图的绑定 id。
 2. **p3-2b。** 编辑器页透镜与 overlay 透镜都订阅同一服务。catalog 刷新回选时，以服务里该会话已接受的 id 为准；服务还没有时保持今天的回选（[conversation-bound-session](conversation-bound-session.md) S2：`setOptions` 前快照，不把成功刷新写成下标 0）。
@@ -205,7 +206,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 | Sessions 的删除取的是活动会话，不是列表焦点行 | `conversationSessionsView.ts:354` |
 | 规格已写明栏、Sessions 标题、Projects 行共用一个确认函数 | [session-windows](../../docs/systems/conversation/session-windows.md) |
 
-归属见待定项 2。在拍板前不抽组件、不合并视图。
+归属已按待定项 2 选 A：两处都留，抽共享行。切片补写并审查前不抽组件、不合并视图。
 
 不变量（两条都保留的前提下）：
 
@@ -213,13 +214,13 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 - 确认文案仍走现有 `confirmDeleteConversationSession`。
 - 高亮仍是 `getActiveSessionId()`，与叶获焦写回的那一个 id 相同。
 
-要动的符号与文件：拍板后才定。推荐只抽「一行会话」的语气、图标、副标题和行内按钮的启用理由；树和列表各自留着。
+要动的符号与文件：随切片补写。只抽「一行会话」的语气、图标、副标题和行内按钮的启用理由；树和列表各自留着。
 
-改法：待定项 2 选定之前没有切片。
+改法：待定项 2 已选 A，切片尚未写。补写后先过规则 16 只读审查，再实施。
 
 明确不改什么：不改 `getSessions()` 的数据源，不另存一份会话目录，不改删除确认文案。
 
-本地验证：拍板后补。锚点是 `navigatorProjectsList.test.ts` 的 suite `NavigatorProjectsView` 与 `conversationSessionsView.test.ts`。副标题没有单独的测试名，不要用「副标题」当 `--grep`。
+本地验证：随切片补写。锚点是 `navigatorProjectsList.test.ts` 的 suite `NavigatorProjectsView` 与 `conversationSessionsView.test.ts`。副标题没有单独的测试名，不要用「副标题」当 `--grep`。
 
 风险与回退：若把 Sessions 的删除改成「焦点行」，会改变今天「删活动会话」的行为。推荐路径不改这一点。
 
@@ -316,6 +317,8 @@ attribution 放哪见待定项 3。本片不改 `:18` 的类型。
 
 ## 待定项
 
+2026-11-05 用户拍板，三项都按推荐：1 选 A，新建 `IConversationSessionChoiceService`；2 选 A，两份列表都留，抽共享行；3 选 A，改用 `ItemAttribution`。p3-2 按正文实施。2 和 3 的切片还没写，补写后先过规则 16 只读审查再实施，签收按「收窄」计。下面的选项留作记录。
+
 ### 1. 会话选择放在哪
 
 - **A. 新的 `IConversationSessionChoiceService`（推荐）。** 选择和 epoch 是客户端串行状态，不是引擎目录，也不是 stub 夹具。roster 的两套实现不用各写一遍。与 ADR-003「catalog 不进 roster」一致。
@@ -329,7 +332,7 @@ attribution 放哪见待定项 3。本片不改 `:18` 的类型。
 - **B. 只留 Sessions。** Projects 树不再列会话。侧栏里看会话要换视图。
 - **C. 只留 Projects 树。** 去掉 Sessions 视图。今天 Sessions 的排序、过滤和「删活动会话」要改道或删掉。
 
-未拍板前不做 p3-3。
+已选 A。切片补写并审查前不做 p3-3。
 
 ### 3. `IAgentSessionViewLease.attribution` 的值类型
 
@@ -337,7 +340,7 @@ attribution 放哪见待定项 3。本片不改 `:18` 的类型。
 - **B. 维持 `ReadonlyMap<string, unknown>`。** 边界最窄，调用处继续断言。
 - **C. 在 `agentSessionContext.ts` 再定义一个只含 role / agentId / toolCallId 的类型。** 与 `ItemAttribution`、`IReviewItemAttribution` 并列第三份，不推荐。
 
-p3-5 不依赖这一项。选定之前不改 `:18`。
+已选 A。p3-5 不依赖这一项；`:18` 的改法随 p3-3 一起补写并审查，之前不改。
 
 ## 审查
 

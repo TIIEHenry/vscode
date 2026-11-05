@@ -1,15 +1,16 @@
 ---
 title: "设计审查 2026-11-04 p4：conversation 大类拆分"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-05
 summary: "名册写路径先收成路由再改组合，连接面板把拨号流程与五分区拆开，Composer 只收镜头内编辑态；代次不并进刷新闸。"
 ---
 
 # 设计审查 2026-11-04 p4：conversation 大类拆分
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:cursor（用户委托），日期：2026-11-05。
 覆盖需求：无（正文未引用需求编号）。
 
 本稿只写拆分顺序。不改产品行为的切片保持现有返回值；已签收、尚未落地的行为变化仍归原来的方案。行号是 2026-11-04 工作区里读到的。`conversationEngineRosterService.ts`、`connectionPreferencesPane.ts`、`conversationLensComposer.ts`、`conversationLensComposerChrome.ts` 不在当日未提交清单里。

@@ -1,15 +1,16 @@
 ---
 title: "设计审查 2026-11-04 p6：测试放置、源码扫描测试与过程证据"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-05
 summary: "把 conversation 并列测试收进 test/browser 并进 unit-custom；源码文本扫描改成规则或往返；D17 装载白名单清零；连接 stub 抽共享 builder；新证据不入库。规则分级等待拍板。"
 ---
 
 # 设计审查 2026-11-04 p6：测试放置、源码扫描测试与过程证据
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:cursor（用户委托），日期：2026-11-05。待定项的决定见文末「待定项」。
 覆盖需求：无（正文未引用需求编号）。
 
 本稿只写方案。统计对着当前 `agent-ide` HEAD `20a1875017e` 与工作区活码。工作区里已有别人的未提交改动（含 D17 名单抽文件、conversation 源码与测试）。实施时只改本片点名的文件，不还原、不暂存别人的改动。
@@ -24,8 +25,8 @@ summary: "把 conversation 并列测试收进 test/browser 并进 unit-custom；
 | p6-2 源码扫描 | `src/vs/platform/universeAgent/test/node/*Wire*.test.ts` 为主；另见 §p6-2 的目录批次。可能新增 `.eslint-plugin-local/` 规则并在 `eslint.config.js` 挂上 | 与 p6-3 相交的只有名单上的 `grpcQueueSkillWire.test.ts`、`grpcSessionWrites.test.ts`。这两份等 p6-3 判定完 runner 再改断言 |
 | p6-3 D17 名单 | 工作区未提交的 `test/unit/electron/d17-ua-node-unloadable.json`；`test/unit/electron/renderer.js` 的 glob 分支与 `isD17UnloadableUniverseAgentNodeTest`；`scripts/run-unit-custom.sh` 的 universeAgent 收集（位置参数，不走 glob）；上述 17 个 `src/vs/platform/universeAgent/test/node/<name>.test.ts`；它们 import 到的生产文件（仅当判定允许改生产）；`dev/progress/test-baseline-failures.txt` 头部；`dev/progress/health-gates.md` 里「十一份」和并不存在的 `--excludeRunGlob` 那句 | 先调查再改。名单抽取的未提交 diff 视为已有接线，不回退，不另建第二份名单 |
 | p6-4 连接 stub | `src/vs/workbench/contrib/conversation/test/common/conversationConnectionTestStub.ts`；`test/browser/` 下 8 个仍自带可变 stub 的测试 | 与 [p1](review-2026-11-04-p1-capability-write-gate-plan.md) 的顺序见该节。p1 要改其中 `engineMcpRuntimePanel.test.ts` 与 `engineCatalogSections.test.ts` |
-| p6-5 新证据 | `docs/DOCUMENTATION.md` 规则 4、规则 7 第 4 条；`docs/principles/document-system.md` 加一句指针 | 历史重写见待定项，默认不做 |
-| p6-6 流程负担 | 无实施切片，见待定项 | 等拍板 |
+| p6-5 新证据 | `docs/DOCUMENTATION.md` 规则 4、规则 7 第 4 条；`docs/principles/document-system.md` 加一句指针 | 待定项已选不改写历史 |
+| p6-6 流程负担 | 按待定项选定的 B 改句子：`docs/DOCUMENTATION.md` 规则 13 旁（accepted 满 90 天由人决定）、规则 16（措辞修订免审）、`docs/guides/doc-style-guide.md` 与规则 4（不写通过数） | 无 |
 
 p6-1 与 p6-4 可以并行：p6-1 对同名 section 测试只新增 `*.beside.test.ts`，不改已有 `test/browser/engine{Tools,Plugins,Preferences,ProviderModel,McpRuntime}*` 的函数体。p6-2 的 wire 批次与 p6-1、p6-4、p6-5 并行。p6-3 的调查与其它片并行；改那两个 Wire 测试文件之前要等判定。
 
@@ -316,7 +317,7 @@ p6-1 与 p6-4 可以并行：p6-1 对同名 section 测试只新增 `*.beside.te
 
 明确不改什么：
 
-- 不跑 `git-filter-repo`，不 `filter-branch`。见待定项。
+- 不跑 `git-filter-repo`，不 `filter-branch`。待定项已选不改写历史。
 - 不把现有证据目录归档到 `archive/` 或 `dev/archive/`。
 - 不改 `docs-burden-reduction.md` 的归档标准。
 - 不把 CI artifact 写成现行出口。托管 CI 已关，没有这条通道。
@@ -334,7 +335,7 @@ p6-1 与 p6-4 可以并行：p6-1 对同名 section 测试只新增 `*.beside.te
 
 ## 待定项
 
-下面各项不由本稿替用户定。未拍板前不改对应规则，不开实施提交。
+2026-11-05 用户拍板，四项都按推荐：历史选 A，不改写；accepted 时限选 B，满 90 天由人决定，不自动降级，不写进脚本；规则 16 选 B，纯措辞修订免审；通过数选 B，叙述里不写，基线头的 `min_cases` 与 `max_skipped` 照旧。后三项的句子归 p6-6 一片提交。下面的选项留作记录。
 
 ### 已入库证据要不要改写历史
 
@@ -376,7 +377,7 @@ p6-1 与 p6-4 可以并行：p6-1 对同名 section 测试只新增 `*.beside.te
 - 不改生产 RPC、快照字段、连接服务的公开行为。
 - 不重开 GitHub Actions，不把关闭写成缺口。
 - 不把 `valid-layers-check` 恢复为门禁。
-- 不执行待定项里的历史改写和规则分级。
+- 不改写 Git 历史。规则 16 只按待定项选定的 B 写明措辞修订免审，不按行数分级。
 - 不更新 `dev/plans/INDEX.md`。索引由父 agent 统一改。
 
 ## 审查处理

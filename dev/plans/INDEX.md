@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-11-02
+updated: 2026-11-05
 summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -378,11 +378,11 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [十六路审查 r16：入口与其余扩展方案](review-2026-10-30-r16-entry-extensions-plan.md) | `accepted` | 核对后 hold 4 条、weaken 1 条、drop 0 条。 |
 | [十六路审查 2026-10-30](review-2026-10-30.md) | `accepted` | 71 条发现：hold 54，weaken 12，drop 5。2026-11-01 受托签收，16 份方案 accepted；r08-2、r08-4 不实施，r02-3、r09-1 要重写。未实施。 |
 | [2026-10-30 默认窗口视觉审查收口](ui-visual-review-2026-10-30.md) | `accepted` | 直接修复已随 98aa1b2140f 提交。2026-11-01 按 D18 定下 V1–V8：S1、S3、S4 签收，S2 不做（保留 Input needed），回合间距回到 16px。 |
-| [设计审查 2026-11-04 p1：能力判断与写闸收口](review-2026-11-04-p1-capability-write-gate-plan.md) | `draft` | 能力判断改读已有快照；断开刷新骨架与剩余分区刷新代次收口；Navigator 与 Sources 两套写入口不合并。 |
-| [设计审查 2026-11-04 p2：上游侵入收拢为扩展点](review-2026-11-04-p2-upstream-seams-plan.md) | `draft` | 编辑器路由、会话叶可见性、chat 打开出口、水印、样式与主题收成注册点；Copilot 门闩与 sessions 依赖 UA 待拍板。 |
-| [设计审查 2026-11-04 p3：会话作用域与会话状态归属](review-2026-11-04-p3-session-scope-plan.md) | `draft` | 叶子只认自己的会话 id；权限与模型选择按会话收到一处；两份会话列表归属待拍板。 |
-| [设计审查 2026-11-04 p4：conversation 大类拆分](review-2026-11-04-p4-conversation-class-split-plan.md) | `draft` | 名册写路径先收成后端路由再改组合；连接面板拆流程与五分区；Composer 收成模型；不抽通用代次原语。 |
-| [设计审查 2026-11-04 p5：universeAgent 平台层边界](review-2026-11-04-p5-universe-agent-platform-plan.md) | `draft` | 连接服务不拆类；宿主不重复拉起同一 link；配对对话框移出主进程；能力哨兵与预设迁出待拍板。 |
-| [设计审查 2026-11-04 p6：测试放置、源码扫描测试与过程证据](review-2026-11-04-p6-tests-and-process-plan.md) | `draft` | 并列测试收进 test/browser；源码文本扫描改规则或往返测试；D17 名单清零；共享连接 stub；新证据不入库。 |
+| [设计审查 2026-11-04 p1：能力判断与写闸收口](review-2026-11-04-p1-capability-write-gate-plan.md) | `accepted` | 能力判断改读已有快照；断开刷新骨架与剩余分区刷新代次收口；Navigator 与 Sources 两套写入口不合并。 |
+| [设计审查 2026-11-04 p2：上游侵入收拢为扩展点](review-2026-11-04-p2-upstream-seams-plan.md) | `accepted` | 编辑器路由、会话叶可见性、chat 打开出口、水印、样式与主题收成注册点；Copilot 门闩保留 `when`，`vs/sessions` 冻结。 |
+| [设计审查 2026-11-04 p3：会话作用域与会话状态归属](review-2026-11-04-p3-session-scope-plan.md) | `accepted` | 叶子只认自己的会话 id；权限与模型选择按会话收到一处；两份会话列表都留，共享行切片待补写。 |
+| [设计审查 2026-11-04 p4：conversation 大类拆分](review-2026-11-04-p4-conversation-class-split-plan.md) | `accepted` | 名册写路径先收成后端路由再改组合；连接面板拆流程与五分区；Composer 收成模型；不抽通用代次原语。 |
+| [设计审查 2026-11-04 p5：universeAgent 平台层边界](review-2026-11-04-p5-universe-agent-platform-plan.md) | `accepted` | 连接服务不拆类；宿主不重复拉起同一 link；配对对话框移出主进程；Web 哨兵改稳定记号，预设留在连接服务。 |
+| [设计审查 2026-11-04 p6：测试放置、源码扫描测试与过程证据](review-2026-11-04-p6-tests-and-process-plan.md) | `accepted` | 并列测试收进 test/browser；源码文本扫描改规则或往返测试；D17 名单清零；共享连接 stub；新证据不入库。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

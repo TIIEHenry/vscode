@@ -1,15 +1,16 @@
 ---
 title: "设计审查 2026-11-04 p2：上游侵入收拢为扩展点"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-05
 summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主题样式从上游文件收成注册点；布局中心列与会话窗启用逻辑保持不动。"
 ---
 
 # 设计审查 2026-11-04 p2：上游侵入收拢为扩展点
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:cursor（用户委托），日期：2026-11-05。待定项的决定见文末「待定项」。
 覆盖需求：无（正文未引用需求编号）。
 
 本稿是方案，不是实施。不改生产代码。
@@ -36,7 +37,7 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 | p2-6 样式与主题 | `style.ts`、`productAccessibility.css`、新建 `productShell.contribution.ts`、`workbench.common.main.ts`、`sessions.common.main.ts`、`themes.contribution.ts`、`workbenchThemeService.ts`、`themeConfiguration.ts`、两个 `theme_picker*.ts` | 与 p2-1 无共享文件。6a 先建模块并让两个入口加载。6b 往同一模块加主题覆盖，不和 6a 并行改这个新文件 |
 | p2-4 打开出口与设置画像 | `chatShellRouting.ts`、打开 chat 的调用点、`settingsEditor2.ts`、`settingsLayout.ts`、`aiCustomization/aiCustomizationManagementEditor.ts` | 4a 只注册在 conversation 贡献上，可与 6a 并行。4c 的画像服务写进 p2-6 的 `productShell.contribution.ts`，等 6a 建好该文件。`openChatSessionWithPrompt` 与 Editor 位置的 `BugIndicatingError` 本波不动 |
 | p2-3 布局 | 不改 `layout.ts` | 工作区该文件已有未提交改动（`focusPart` 两处断言已去掉）。本条只评估 |
-| p2-7、p2-8 | 待定项决定前不改 | — |
+| p2-7、p2-8 | 已拍板不改：p2-7 保留 `when`，p2-8 冻结 `src/vs/sessions` | — |
 
 `layout.ts` 未提交 diff 只做了一件事：构造时记下 `IConversationPartService` / `ISourcesPartService`，`focusPart` 改为直接 `focus()`，不再 `as unknown as`。后续切片不要把这两处改回去。
 
@@ -241,7 +242,7 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 
 - `scripts/test.sh --grep "openChatSession|isDefaultCodeWindow|isUaClientSettingsView"`
 - 文件：`chatShellRouting.test.ts`、`settingsEditor2.test.ts`。
-- 4a 之后，`openChatSession fails fast for default-window Editor` 仍抛 `BugIndicatingError`，除非待定项改了它。`openChatSessionWithPrompt does not load or send in the default Code window` 仍不加载、不发送。
+- 4a 之后，`openChatSession fails fast for default-window Editor` 仍抛 `BugIndicatingError`（待定项 1 已选保持抛错）。`openChatSessionWithPrompt does not load or send in the default Code window` 仍不加载、不发送。
 
 风险与回退：服务没注册时，`focusConversationPart` 返回 false，不聚焦。会话窗本来就不注册，这是预期。默认窗若漏了 conversation 贡献上的注册，会短暂走出 chat 打开，并且 `chatShellRouting.test.ts:236-251` 在补上测试内注册之前会失败。回退恢复 helper 里的直接聚焦，签名回到 `void`。
 
@@ -353,7 +354,7 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 
 预计减少的冲突面：`style.ts` 的 +2 行整段消失。`workbench.common.main.ts` 与 `sessions.common.main.ts` 各增加一行 import。`productAccessibility.css` 128 行离开 `workbench/browser/media/`。`ua-common.css` 203 行仍在 A 表。6b 只让两行常量回到上游，色表 diff 还在。6c 做完后，`workbenchThemeService.ts` 里这张色表回到基线；文件里其余通知逻辑仍可能留下，不以「+386 行全部消失」计。
 
-## p2-7 Copilot 门闩（待定，本波不改代码）
+## p2-7 Copilot 门闩（已拍板保留 `when`，不改代码）
 
 问题类：扩展清单用 `isSessionsWindow` 把大量命令和菜单限制在会话窗。有人会想改成核心按窗口类型过滤贡献，再把扩展改回原样。
 
@@ -365,11 +366,11 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 - 该文件相对基线的 diff 是 `onUnexpectedError` 和 `ExtensionsManager` 的初始化重试，不是这个谓词。不要借本条去改它。
 - 默认窗真正禁用内置 chat 的路径是另一段：`ensureChatExtensionInitialDisabledState` 第 156–159 行在会话窗直接 return，在默认窗才跑迁移。那是基线上就有的逻辑，本条不动。
 
-这会改默认窗行为，选项见「待定项」。决定前不改 `package.json`，也不改启用服务。
+这会改默认窗行为，选项见「待定项」。已选 A：不改 `package.json`，也不改启用服务。
 
 预计减少的冲突面：若选「核心过滤并还原扩展」，copilot `package.json` 相对 `main` 的约 149 行 `when` 可以回到上游。代价是默认窗重新出现这些命令，除非核心过滤与这 149 条逐条等价。本波按 0 行计。
 
-## p2-8 sessions 对 Universe Agent 的依赖（待定，本波不改代码）
+## p2-8 sessions 对 Universe Agent 的依赖（已拍板冻结，不改代码）
 
 问题类：Agents Window 的 Changes 与 Agent Host changeset 注入了本仓连接服务。愿景把这个窗口排除在产品使用之外。
 
@@ -382,13 +383,15 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 - 测试锁着：`changesViewService.test.ts:519` 起 `writes held while loading or pairing hold`（第 529–531 行配对挂起时 `writesHeldObs` 为真）。`agentHostSessionChangesets.test.ts:441-444` 锁 `changesetInvokeBlock` 的三态；第 459–462 行锁源码里 `changesetInvokeBlock` 出现在 `confirm` 与 `invokeChangesetOperation` 之前。
 - 已落地的 [sessions-window-connection-registration](sessions-window-connection-registration.md) 之所以在 `sessions.desktop.main.ts` / `sessions.web.main.ts` 侧载连接服务，是因为这两处构造函数已经注入它。写闸来自 [ui-gap-closeout-2026-10-01](ui-gap-closeout-2026-10-01.md)。撤掉注入等于撤回这两份已落地行为的前提。
 
-选项与推荐见「待定项」。本波不改 `src/vs/sessions`。
+选项见「待定项」。已选 C 冻结：不改 `src/vs/sessions`。
 
 预计减少的冲突面：选「撤掉依赖」时，上述两个生产文件去掉连接 import 与注入，`sessions.*.main.ts` 的侧载也可以一起拿掉，Changes 与 changeset 回到不认识本仓连接的形状。选「冻结」则本波 0 行，冲突留在下次合上游 sessions 时。
 
 ## 待定项
 
-1–3 留给用户。未选之前，对应切片按正文「本波不动」执行，不挡住 p2-1、p2-2、p2-5、p2-6 和 p2-4 里已经写死的部分。第 4 项与 p2-3 是同一个选择。
+2026-11-05 用户拍板，四项都按推荐：1 选 A，继续抛错；2 选 A，保留 `package.json` 里的 `when`；3 选 C，冻结 `src/vs/sessions`；4 选 A，禅模式本波不抽。对应切片都按正文「本波不动」执行。下面的选项留作记录。
+
+核对补充：Editor 位置在默认窗的命令面板里点不到。`chatSessions.contribution.ts` 的 `openNewSessionEditor.<type>` 前置条件含 `IsSessionsWindowContext`；只有 `electron-browser/chat.contribution.ts` 里给评测用、没有前置条件的 `CommandsRegistry` 命令能经 `executeCommand` 走到抛错。
 
 ### 1. 默认窗打开 Chat 的 Editor 位置，继续抛错还是改道
 
@@ -397,7 +400,7 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 - 选项 A：保持抛错。调用方是编程错误。推荐。它不增加一条静默路径，测试不用改语义。
 - 选项 B：改成与其它位置一样，聚焦 Conversation 并 return。用户从命令面板点到 Editor 位置时不再看到开发期错误。这是行为变化，要改 `chatShellRouting.test.ts` 第 85 行那条。
 
-未选之前，p2-4a 不动这两处。
+已选 A，p2-4a 不动这两处。
 
 ### 2. 要不要在核心按窗口类型过滤 chat 扩展，换回扩展原样
 

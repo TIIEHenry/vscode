@@ -1,15 +1,16 @@
 ---
 title: "设计审查 2026-11-04 p5：universeAgent 平台层边界"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-11-04
-summary: "连接服务不拆类；已连接且 link 未变时宿主不再重复拉起；去掉主进程配对对话框。能力哨兵是否改记号、预设是否迁出仍待拍板。"
+updated: 2026-11-05
+summary: "连接服务不拆类；已连接且 link 未变时宿主不再重复拉起；去掉主进程配对对话框。能力哨兵改用稳定记号 `unsupported_environment`，预设与 harness 导入留在连接服务。"
 ---
 
 # 设计审查 2026-11-04 p5：universeAgent 平台层边界
 
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:cursor（用户委托），日期：2026-11-05。待定项的决定见文末「待定项」。
 覆盖需求：无（正文未引用需求编号）。
 
 > **本稿是方案，不是实施。**
@@ -24,7 +25,7 @@ summary: "连接服务不拆类；已连接且 link 未变时宿主不再重复�
 |:-----|:-----|:-----------|:-----|
 | S1 | 2 | `node/sessionViewHost.ts`；`test/node/sessionViewHostReopen.test.ts`；`docs/modules/platform/overview.md` 的 UniverseAgent 段加一段代次表 | 无 |
 | S2 | 5 对话框 | `node/universeAgentConnectionService.ts`；`electron-main/universeAgentMainService.ts`；`test/node/universeAgentConnection.test.ts`；`test/node/universeAgentMainDialogWindowScan.test.ts` | 无。不与 S1 抢文件 |
-| S3 | 4 | 待定项 1 拍板且选 B 之后才做。`common/universeAgentRendererSync.ts`；`browser/webUnsupported.ts`；`engineSectionChrome.ts`（含横幅 `getUnsupportedEnvironmentCopy`）；`engineCatalog.ts` 的状态文案；`engineOverviewSection.ts`；`engineTriggersSection.ts`；协议面 Web 表那一格；两份 E2-1（`connectionPreferencesPane.test.ts`、`enginePreferencesPane.test.ts`） | 待定项 1。`engineOverviewSection.ts` 与 `engineTriggersSection.ts` 上已有别人的未提交改动，不要 stash / restore |
+| S3 | 4 | 待定项 1 已选 B，按第 4 节做。`common/universeAgentRendererSync.ts`；`browser/webUnsupported.ts`；`engineSectionChrome.ts`（含横幅 `getUnsupportedEnvironmentCopy`）；`engineCatalog.ts` 的状态文案；`engineOverviewSection.ts`；`engineTriggersSection.ts`；协议面 Web 表那一格；两份 E2-1（`connectionPreferencesPane.test.ts`、`enginePreferencesPane.test.ts`） | 待定项 1。`engineOverviewSection.ts` 与 `engineTriggersSection.ts` 上已有别人的未提交改动，不要 stash / restore |
 | S4 | 6 | 先 `common/hub.ts`（别名仍在时）；再按 RPC 只动对应的 `*UnaryWire.ts` 与 `grpcClientMappersSession.ts` / `grpcClientMappersCatalog.ts` | 无。Usage 那片要注意现有 import 方向，见该条 |
 | S5 | 3 | 按下面三批提交。每一批含 `common/universeAgentTypes.ts` 里该批接口，以及因此编不过的调用方。不能只交类型文件 | 无。不与 S3 并行改同一文件；S3 选 B 时不改这个文件 |
 
@@ -33,6 +34,10 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 条目 1 没有切片。
 
 ## 待定项
+
+2026-11-05 用户拍板，两项都按推荐：1 选 B，不加字段，Web 哨兵的 `reason` 改成 `unsupported_environment`，S3 按第 4 节做；2 选 A，预设目录和 harness 导入留在连接服务。下面的选项留作记录。
+
+选 B 的代价：`reason` 里同时有机器记号（Web 哨兵）和给人看的句子（探测失败）。直接显示 `reason` 的地方都要先经过记号映射。
 
 ### 1. 能力条目要不要新字段
 
@@ -222,11 +227,11 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 
 - 桌面快照不得带上 Web 哨兵。空闲快照也不得带。
 - `phase.code === 'unsupported_environment'` 继续表示环境不支持，不依赖能力句子。
-- 不新增快照字段，除非待定项 1 选 A。
+- 不新增快照字段（待定项 1 已选 B）。
 
-要动的符号与文件：见 S3。待定项 1 未选 B 之前不动。
+要动的符号与文件：见 S3。
 
-改法（仅当待定项 1 选 B）：
+改法（待定项 1 已选 B）：
 
 1. 常量改为记号 `unsupported_environment`。比较和剥离认记号，不认中文句子，也不认本地化后的句子。`WEB_UNSUPPORTED_REASON` 与能力哨兵是同一个常量，所以 `connectProfile` / `probeConnectionProfile` / `probeEngine` 的 `reason`，以及 `UniverseAgentUnsupportedEnvironmentError.message`，一起变成记号。它们不再是中文句子，也不是界面那句英文。
 2. `engineSectionChrome.ts` 删掉第二份中文字面量，改用这个常量。`phase.code` 判断保留。
@@ -268,7 +273,7 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 - 用户看见的确认仍是窗格里的那一次。平台不再打开 `showMessageBox`。
 - 不传 `userConfirmed` 时视为未批准，返回编排器现有的 `sas_cancelled` 或 `recover_cancelled`，不打开对话框。这是行为变化：以前省略标志会弹出主进程框。
 - `pairingPending` 仍在现有快照上。不新增状态字段，不改 `confirmPairing` / `cancelPairing` 的方法名。
-- 预设和 harness 本方案不搬（待定项 2 推荐 A）。
+- 预设和 harness 本方案不搬（待定项 2 已选 A）。
 
 要动的符号与文件：
 

@@ -1,14 +1,15 @@
 ---
 title: "设计审查 2026-11-04 p1：能力判断与写闸收口"
 type: plan
-status: draft
+status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-05
 summary: "能力判断改读已有快照，引擎设置的断开刷新与刷新代次收口；不新造 RPC 或快照字段，也不并掉 Navigator 与 Sources 两套写入口。"
 ---
 
 # 设计审查 2026-11-04 p1：能力判断与写闸收口
-状态：草案。
+状态：执行中。
+签收：签。签收人：agent:cursor（用户委托），日期：2026-11-05。待定项的决定见文末「待定项」。
 覆盖需求：无（正文未引用需求编号）。
 
 行号按 2026-11-04 工作区（含未提交改动）。产品面是默认编辑器窗口里的 Engine 设置、Navigator、Sources。[产品愿景](../../docs/product/vision.md) 不把 Agents Window 当交付面。分层见 [架构概览](../../docs/architecture/overview.md)。Engine 页节与能力键的现况见 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)。会话就绪见 [stub-and-fixtures](../../docs/systems/conversation/stub-and-fixtures.md)。
@@ -87,7 +88,7 @@ summary: "能力判断改读已有快照，引擎设置的断开刷新与刷新�
 - `listProviderPresetCatalog` 是桌面拉取 models.dev，不是引擎 RPC（engine-catalog）。网页类没有该方法，按钮因此不出现。这处 `typeof` 留下。
 - `probeEngine` 的 `typeof` 留下（`connectionPreferencesPane.ts:2196`、`enginePreferencesPane.ts:330`）。它是客户端探测。
 - Clipboard / Triggers / Context 已经按 `conversationEntryCapability` 或对应写键决定，`typeof` 只是 SUPPORTED 之后的调用前检查（`engineClipboardSection.ts:197`、`engineTriggersSection.ts:282` 与 `518`、`engineContextVariableSection.ts:155`）。不改。
-- Memory、Token Usage、以及上列网页没有的写方法，在待定项 1 通过前不改。
+- Memory、Token Usage、以及上列网页没有的写方法，在待定项 1 的另开合同签收前不改。
 
 要动的符号与文件：
 
@@ -287,7 +288,7 @@ Hooks 靠 `pairing-hold still paints disconnected`、`true disconnect still pain
 
 ## 待定项
 
-未拍板的不做。推荐只表示作者倾向。
+2026-11-05 用户拍板，四项都按推荐：1 选 A，专用快照字段另开合同（[D1399](../progress/deferred-gaps.md)），合同签收前按 C 保留 `typeof`；2 本稿不做；3 选 C，不新增服务；4 不新增 `LatestRequest`。下面的选项留作记录。
 
 ### 1. Memory、Token Usage，以及网页类没有的写方法
 
