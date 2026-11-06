@@ -149,18 +149,6 @@ function mapTestModelProfile(wire: TestModelProfileResponseWire): UniverseAgentT
 	};
 }
 
-
-
-function extractOpenWatchConfigStream(source: string): string {
-	const start = source.indexOf('\topenWatchConfigStream(');
-	assert.ok(start >= 0, 'missing openWatchConfigStream(');
-	const nextMethod = source.indexOf('\n\tasync ', start + 1);
-	const nextOpen = source.indexOf('\n\topen', start + 1);
-	const candidates = [nextMethod, nextOpen].filter(index => index >= 0);
-	const end = candidates.length > 0 ? Math.min(...candidates) : source.length;
-	return source.slice(start, end);
-}
-
 function protoMessages(encoded: Uint8Array, fieldNumber: number): Uint8Array[] {
 	const values: Uint8Array[] = [];
 	for (const field of readProtoFields(encoded)) {

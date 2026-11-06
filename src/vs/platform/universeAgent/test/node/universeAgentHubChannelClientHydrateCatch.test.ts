@@ -34,7 +34,7 @@ suite('UniverseAgentHubChannelClient fire-and-forget leftover catch', () => {
 			proto.hydrate = () => Promise.reject(new Error('hydrate-boom'));
 			try {
 				const channel: IChannel = {
-					call: () => Promise.resolve([]),
+					call: <T>(): Promise<T> => Promise.resolve([] as unknown as T),
 					listen: () => Event.None,
 				};
 				store.add(new UniverseAgentHubChannelClient(channel));
@@ -49,11 +49,11 @@ suite('UniverseAgentHubChannelClient fire-and-forget leftover catch', () => {
 	test('setActiveHubBaseUrl remote void is single-caught; hydrate single-catch stays (D562)', async () => {
 		const seen = await captureUnexpectedErrors(async () => {
 			const channel: IChannel = {
-				call: (command: string) => {
+				call: <T>(command: string): Promise<T> => {
 					if (command === 'setActiveHubBaseUrl') {
 						return Promise.reject(new Error('set-hub-boom'));
 					}
-					return Promise.resolve(undefined);
+					return Promise.resolve(undefined as T);
 				},
 				listen: () => Event.None,
 			};

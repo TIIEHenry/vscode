@@ -93,7 +93,7 @@ suite('Queue readback and skill content protocol', () => {
 		};
 		const client = Object.create(GrpcUniverseAgentClient.prototype) as GrpcUniverseAgentClient;
 		Reflect.set(client, '_channel', channel);
-		assert.strictEqual((await client.connect({ workDir: '/ws' })).workDir, '/ws');
+		assert.strictEqual((await client.connect({ clientId: 'c1', protocolVersion: '1', workDir: '/ws' })).workDir, '/ws');
 		assert.strictEqual((await client.resolveTurn({ sessionId: 's1', turnId: 't1', currentLeafTurnId: 'l1' })).kind, 'hit');
 		assert.ok((await client.resolveAnchor({ anchor: { sessionId: 's1', envelopeId: 'e1' }, scope: 'ANCHOR_RESOLVE_SCOPE_ACTIVE' })).hit);
 		for (const call of unaryCalls) {
@@ -106,7 +106,7 @@ suite('Queue readback and skill content protocol', () => {
 		assert.deepStrictEqual(watchEvents, ['theme']);
 		const uploaded: string[] = [];
 		const upload = client.openUploadAttachmentStream(res => uploaded.push(res.filePath));
-		upload.write({ chunk: Uint8Array.from([0x00, 0xff, 0x7b]) });
+		upload.write({ chunk: Uint8Array.from([0x00, 0xff, 0x7b]), offset: 0 });
 		assert.strictEqual(clientStreamSer, asUnaryProtoBytes);
 		assert.notStrictEqual(writtenChunks[0]?.[0], 0x7b);
 		clientStreamCb?.(null, clientStreamDeser?.(encodeStringField(2, '/tmp/att-1')));

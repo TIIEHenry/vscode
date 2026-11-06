@@ -46,11 +46,11 @@ suite('UniverseAgentConnectionChannelClient fire-and-forget scan', () => {
 	test('requestAgentTreeRefresh remote void is single-caught (D561)', async () => {
 		const seen = await captureUnexpectedErrors(async () => {
 			const channel: IChannel = {
-				call: (command: string) => {
+				call: <T>(command: string): Promise<T> => {
 					if (command === 'requestAgentTreeRefresh') {
 						return Promise.reject(new Error('refresh-tree-boom'));
 					}
-					return Promise.resolve(undefined);
+					return Promise.resolve(undefined as T);
 				},
 				listen: () => Event.None,
 			};

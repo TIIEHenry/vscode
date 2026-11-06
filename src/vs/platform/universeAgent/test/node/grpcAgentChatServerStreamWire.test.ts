@@ -135,7 +135,7 @@ suite('grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-st
 			'ContinueGeneration',
 			buffer => ({ n: buffer[0] ?? 0 }),
 		);
-		const reqBytes = encodeContinueGenerationRequest({ sessionId: 'sess-1' });
+		const reqBytes = encodeContinueGenerationRequest({ sessionId: 'sess-1', agentId: 'agent-9', turnId: 'turn-3', messageId: 'msg-4' });
 		const sub1 = bytesStream(reqBytes, () => { });
 		sub1.dispose();
 		assert.strictEqual(bytesSerialize, asUnaryProtoBytes);

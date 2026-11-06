@@ -132,17 +132,6 @@ function requiredInt64(value: number | string | undefined): number {
 	return Number.isFinite(n) ? n : 0;
 }
 
-
-function extractGetUploadProgress(source: string): string {
-	const start = source.indexOf('\tasync getUploadProgress(');
-	assert.ok(start >= 0, 'missing async getUploadProgress(');
-	const end = source.indexOf('\n\topenUploadAttachmentStream(', start + 1);
-	assert.ok(end >= 0, 'missing openUploadAttachmentStream after getUploadProgress');
-	return source.slice(start, end);
-}
-
-
-
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
 	for (const field of readProtoFields(encoded)) {

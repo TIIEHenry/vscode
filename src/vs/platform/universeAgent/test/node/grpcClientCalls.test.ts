@@ -124,7 +124,7 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 	});
 
 	test('openUploadAttachmentStream wires makeClientStreamBytesClient and Connect/ResolveTurn/ResolveAnchor/Watch use proto bytes', async () => {
-		const chunkBytes = encodeUploadChunk({ chunk: BINARY_CHUNK });
+		const chunkBytes = encodeUploadChunk({ chunk: BINARY_CHUNK, offset: 0 });
 		assert.notStrictEqual(chunkBytes[0], 0x7b);
 		const uploadWire = decodeUploadResponse(Buffer.concat([
 			encodeStringField(2, '/tmp/att-1'),
@@ -194,7 +194,7 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 			const client = Object.create(GrpcUniverseAgentClient.prototype) as InstanceType<typeof GrpcUniverseAgentClient>;
 			Reflect.set(client, '_channel', fakeChannel);
 
-			const conn = await client.connect({ workDir: '/ws' });
+			const conn = await client.connect({ clientId: 'c1', protocolVersion: '1', workDir: '/ws' });
 			assert.strictEqual(conn.workDir, '/ws');
 			const turn = await client.resolveTurn({ sessionId: 's1', turnId: 't1', currentLeafTurnId: 'l1' });
 			assert.strictEqual(turn.kind, 'hit');
@@ -215,7 +215,7 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 
 			const uploadResults: UniverseAgentUploadAttachmentResult[] = [];
 			const uploadStream = client.openUploadAttachmentStream(res => uploadResults.push(res));
-			uploadStream.write({ chunk: BINARY_CHUNK });
+			uploadStream.write({ chunk: BINARY_CHUNK, offset: 0 });
 			assert.strictEqual(clientStreamSer, asUnaryProtoBytes);
 			assert.strictEqual(writtenChunks.length, 1);
 			assert.notStrictEqual(writtenChunks[0][0], 0x7b);
