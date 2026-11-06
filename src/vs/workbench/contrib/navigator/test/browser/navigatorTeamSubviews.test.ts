@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
@@ -465,6 +466,9 @@ suite('Navigator Team subviews', () => {
 
 	test('task status controls filter rows and expose a read-only summary', () => {
 		const view = mountTeamView();
+		// Focus only lands on a connected element.
+		document.body.appendChild(view.element);
+		store.add(toDisposable(() => view.element.remove()));
 		setTaskEntries(view, [
 			{ id: 'active', label: 'Active task', status: 'IN_PROGRESS' },
 			{ id: 'blocked', label: 'Blocked task', status: 'BLOCKED' },
