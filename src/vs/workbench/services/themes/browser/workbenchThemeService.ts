@@ -6,13 +6,14 @@
 import * as nls from '../../../../nls.js';
 import * as types from '../../../../base/common/types.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
-import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme, NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../common/workbenchThemeService.js';
+import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme, NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../common/workbenchThemeService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService, ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
 import { ColorThemeData } from '../common/colorThemeData.js';
+import { getInitialColorTheme } from '../common/initialColorThemes.js';
 import { IColorTheme, Extensions as ThemingExtensions, IThemingRegistry } from '../../../../platform/theme/common/themeService.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
 import { registerFileIconThemeSchemas } from '../common/fileIconThemeSchema.js';
@@ -151,7 +152,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 			themeData = undefined;
 		}
 
-		const defaultColorMap = colorThemeSetting === getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT) ? COLOR_THEME_LIGHT_INITIAL_COLORS : colorThemeSetting === getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK) ? COLOR_THEME_DARK_INITIAL_COLORS : undefined;
+		const defaultColorMap = getInitialColorTheme(colorThemeSetting);
 		if (!themeData) {
 			const initialColorTheme = environmentService.options?.initialColorTheme;
 			if (initialColorTheme) {

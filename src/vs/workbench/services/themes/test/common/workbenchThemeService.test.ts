@@ -10,6 +10,7 @@ import * as json from '../../../../../base/common/json.js';
 import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ThemeConfiguration } from '../../common/themeConfiguration.js';
+import { getInitialColorTheme, registerInitialColorTheme } from '../../common/initialColorThemes.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IHostColorSchemeService } from '../../common/hostColorSchemeService.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -22,9 +23,6 @@ const readJson = (relPath: string) => json.parse(fs.readFileSync(require.resolve
 const themeDefaultsManifest = readJson('../../../../../../../extensions/theme-defaults/package.json');
 const productLightTheme = readJson('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-light.json');
 const productDarkTheme = readJson('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-dark.json');
-const lightModern = readJson('../../../../../../../extensions/theme-defaults/themes/light_modern.json');
-const darkModern = readJson('../../../../../../../extensions/theme-defaults/themes/dark_modern.json');
-const light2026 = readJson('../../../../../../../extensions/theme-defaults/themes/2026-light.json');
 const dark2026 = readJson('../../../../../../../extensions/theme-defaults/themes/2026-dark.json');
 
 class TestHostColorSchemeService implements IHostColorSchemeService {
@@ -278,64 +276,37 @@ suite('WorkbenchThemeService', () => {
 		]);
 	});
 
-	test('initial placeholder colors match merged product default themes and depart from old Modern values', () => {
-		const mergedLight: Record<string, string> = Object.assign({}, lightModern.colors, light2026.colors, productLightTheme.colors);
-		const mergedDark: Record<string, string> = Object.assign({}, darkModern.colors, dark2026.colors, productDarkTheme.colors);
+	suite('initial color themes', () => {
 
-		for (const [key, value] of Object.entries(COLOR_THEME_LIGHT_INITIAL_COLORS)) {
-			if (key in mergedLight) {
-				assert.strictEqual(value, mergedLight[key], `Light initial color for ${key} should match merged default`);
-			}
-		}
-
-		for (const [key, value] of Object.entries(COLOR_THEME_DARK_INITIAL_COLORS)) {
-			if (key in mergedDark) {
-				assert.strictEqual(value, mergedDark[key], `Dark initial color for ${key} should match merged default`);
-			}
-		}
-
-		// Verify key colors align with Universe defaults and depart from old Modern values
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F6F6F6');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F8F8F8');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#000000');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#005FB8');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#FAFAFA');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F8F8F8');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['statusBar.background'], '#F6F6F6');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#1F1F1F');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#0069CC');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['panel.background'], '#F6F6F6');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusBackground'], '#00000014');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusForeground'], '#202020');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusForeground'], '#FFFFFF');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['menu.selectionBackground'], '#00000014');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['list.hoverBackground'], '#00000014');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['widget.shadow'], '#0000001A');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['widget.shadow'], '#00000000');
-
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.background'], '#191A1B');
-		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.background'], '#181818');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.activeBorder'], '#bfbfbf');
-		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.activeBorder'], '#0078D4');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#191A1B');
-		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#181818');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#F3F3F3');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.foreground'], '#1F1F1F');
-		assert.deepStrictEqual({
-			background: darkModern.colors['button.background'],
-			foreground: darkModern.colors['button.foreground'],
-			border: darkModern.colors['button.border'],
-			hoverBackground: darkModern.colors['button.hoverBackground'],
-		}, {
-			background: '#F3F3F3',
-			foreground: '#1F1F1F',
-			border: '#F3F3F3',
-			hoverBackground: '#FFFFFF',
+		test('without a registration only the built-in light / dark defaults have placeholder colors', () => {
+			assert.strictEqual(getInitialColorTheme(ThemeSettingDefaults.COLOR_THEME_DARK), COLOR_THEME_DARK_INITIAL_COLORS);
+			assert.strictEqual(getInitialColorTheme(ThemeSettingDefaults.COLOR_THEME_LIGHT), COLOR_THEME_LIGHT_INITIAL_COLORS);
+			assert.strictEqual(getInitialColorTheme(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK))?.['activityBar.background'], '#181818');
+			assert.strictEqual(getInitialColorTheme(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT))?.['activityBar.background'], '#F8F8F8');
+			assert.deepStrictEqual(
+				['UniverseAgentStudio Dark', 'UniverseAgentStudio Light', ThemeSettingDefaults.COLOR_THEME_HC_DARK, ThemeSettingDefaults.COLOR_THEME_HC_LIGHT, 'Some Custom Theme'].map(getInitialColorTheme),
+				[undefined, undefined, undefined, undefined, undefined]
+			);
 		});
-		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#297AA0');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['quickInputList.focusForeground'], '#bfbfbf');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['menu.selectionBackground'], '#FFFFFF14');
-		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['widget.shadow'], '#00000000');
+
+		test('a registered table wins for its settings id until disposed', () => {
+			const custom = { 'activityBar.background': '#123456' };
+			const override = { 'activityBar.background': '#654321' };
+
+			const registration = registerInitialColorTheme('Some Custom Theme', custom);
+			assert.strictEqual(getInitialColorTheme('Some Custom Theme'), custom);
+
+			const builtInOverride = registerInitialColorTheme(ThemeSettingDefaults.COLOR_THEME_DARK, override);
+			assert.strictEqual(getInitialColorTheme(ThemeSettingDefaults.COLOR_THEME_DARK), override);
+			builtInOverride.dispose();
+			assert.strictEqual(getInitialColorTheme(ThemeSettingDefaults.COLOR_THEME_DARK), COLOR_THEME_DARK_INITIAL_COLORS);
+
+			const replacement = registerInitialColorTheme('Some Custom Theme', override);
+			registration.dispose();
+			assert.strictEqual(getInitialColorTheme('Some Custom Theme'), override, 'disposing a replaced registration keeps the newer table');
+			replacement.dispose();
+			assert.strictEqual(getInitialColorTheme('Some Custom Theme'), undefined);
+		});
 	});
 
 	test('2026-dark.json disabled, placeholder, and invalid item foreground contrast and are not overridden by product dark theme', () => {
