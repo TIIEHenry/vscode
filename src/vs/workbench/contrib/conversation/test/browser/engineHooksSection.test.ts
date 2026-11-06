@@ -30,10 +30,13 @@ suite('EngineHooksSection', () => {
 		looksLive?: boolean;
 		hooksSupport?: UniverseAgentCapabilitySupport;
 		hooksReason?: string;
+		linkId?: number;
 		listHookPoints?: () => Promise<UniverseAgentListHookPointsResult>;
 	} = {}): IUniverseAgentConnection & {
 		setPairingPending(value: boolean): void;
 		setConnected(value: boolean): void;
+		/** Republish the link without firing onDidChangeConnection, so no refresh() runs. */
+		setLinkIdSilently(value: number): void;
 	} {
 		const capabilities = {
 			...createEmptyTestCapabilitySnapshot(),
@@ -44,6 +47,7 @@ suite('EngineHooksSection', () => {
 		};
 		let connected = options.connected ?? true;
 		let pairingPending = options.pairingPending ?? false;
+		let linkId = options.linkId;
 		const looksLive = options.looksLive ?? false;
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -53,6 +57,7 @@ suite('EngineHooksSection', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			...(linkId !== undefined ? { engineIdentityId: 'test-engine', linkId } : {}),
 		});
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => connected && (looksLive || !pairingPending),
@@ -70,6 +75,9 @@ suite('EngineHooksSection', () => {
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setLinkIdSilently(value: number) {
+				linkId = value;
 			},
 		});
 	}
@@ -165,6 +173,30 @@ suite('EngineHooksSection', () => {
 		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		parent.remove();
+	});
+
+	test('late list after the published link changed without a refresh does not paint hook points', async () => {
+		let resolveList!: (result: UniverseAgentListHookPointsResult) => void;
+		const connection = createMutableHooksConnection({
+			connected: true,
+			pairingPending: false,
+			hooksSupport: 'SUPPORTED',
+			linkId: 1,
+			listHookPoints: () => new Promise<UniverseAgentListHookPointsResult>(resolve => { resolveList = resolve; }),
+		});
+		const { section, parent } = mountSection(connection);
+		await timeout(0);
+		const status = catalogStatus(section.getDomNode());
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+
+		connection.setLinkIdSilently(2);
+		resolveList({ points: [{ id: 'p1', family: 'session', methodName: 'onTurn', installedCount: 1 }], catalogRevision: 'r1' });
+		await timeout(0);
+		assert.deepStrictEqual(
+			{ mode: status.dataset['catalogMode'], count: section.getListEntryCount(), rows: section.getDomNode().querySelectorAll('.engine-hooks-row').length },
+			{ mode: 'loading', count: 0, rows: 0 },
+		);
 		parent.remove();
 	});
 

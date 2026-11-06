@@ -20,6 +20,7 @@ import {
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { EngineRefreshGate } from './engineWriteGate.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
@@ -46,7 +47,7 @@ export class EngineHooksSection extends Disposable {
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private listPhase: EngineCatalogListPhase = { kind: 'none' };
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 
 	constructor(
 		parent: HTMLElement,
@@ -55,6 +56,7 @@ export class EngineHooksSection extends Disposable {
 	) {
 		super();
 
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-hooks-section'));
 		this.container.style.display = 'none';
 
@@ -83,7 +85,7 @@ export class EngineHooksSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.clearPresentation();
 		DOM.clearNode(this.container);
 		this.container.remove();
@@ -163,7 +165,7 @@ export class EngineHooksSection extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const connected = this.connection.isEngineConnected();
 		const hooksMetadata = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'hooksMetadata');
 
@@ -209,7 +211,7 @@ export class EngineHooksSection extends Disposable {
 
 		try {
 			const result = await this.connection.listHookPoints!();
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -229,7 +231,7 @@ export class EngineHooksSection extends Disposable {
 				this.clearPresentation();
 			}
 		} catch (error) {
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return;
 			}
 			const hadLivePaint = this.pointCount > 0;
