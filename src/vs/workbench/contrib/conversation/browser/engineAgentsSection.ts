@@ -307,6 +307,8 @@ export class EngineAgentsSection extends Disposable {
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	/** Last write-path `refresh()` listed result (D219 helper; markdown Save second paint). */
 	private lastWriteRefreshListed = false;
+	/** Bumps on every catalog write-notice paint or clear; a late clear only wins while its own paint is still the latest. */
+	private catalogWriteStatusGeneration = 0;
 	private listEntries: EngineAgentListEntry[] = [];
 	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
 	/** Owner of the successful List that supplied the selected DTO; never recaptured from a row. */
@@ -1351,31 +1353,37 @@ export class EngineAgentsSection extends Disposable {
 		this.resetButton.element.style.display = canWrite && selected && selected.source === 'built_in' ? '' : 'none';
 	}
 
-	private hideCatalogWriteStatus(): void {
+	private hideCatalogWriteStatus(): number {
 		this.catalogWriteStatus.style.display = 'none';
 		writeStatus(this.catalogWriteStatus, '');
 		this.applyListViewport();
+		return ++this.catalogWriteStatusGeneration;
 	}
 
-	private showCatalogWriteStatus(message: string, tone: 'success' | 'error' | 'neutral' = 'success'): void {
+	private showCatalogWriteStatus(message: string, tone: 'success' | 'error' | 'neutral' = 'success'): number {
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, tone);
 		this.applyListViewport();
+		return ++this.catalogWriteStatusGeneration;
 	}
 
 	private async restoreCatalogWriteSuccessAfterRefresh(copy: string, link: EngineWriteLink, isContextCurrent: () => boolean = () => true): Promise<boolean> {
 		if (this._store.isDisposed || !this.sameWriteLink(link) || !isContextCurrent()) {
 			return false;
 		}
-		this.showCatalogWriteStatus(copy);
+		const noticeGeneration = this.showCatalogWriteStatus(copy);
 		const listed = await this.refresh(isContextCurrent);
 		if (this._store.isDisposed) {
 			return false;
 		}
 		if (!this.sameWriteLink(link)) {
 			// The refresh gate drops a list that returns after the link changed,
-			// so nothing else clears the pre-refresh notice; it belongs to the old link.
-			this.hideCatalogWriteStatus();
+			// so nothing else clears the pre-refresh notice; it belongs to the old
+			// link. Only clear while that paint is still the latest: a newer link
+			// may already have painted or cleared its own notice here.
+			if (this.catalogWriteStatusGeneration === noticeGeneration) {
+				this.hideCatalogWriteStatus();
+			}
 			return false;
 		}
 		// A failed follow-up List is not a rejected write. An invalidated

@@ -4908,6 +4908,64 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		}
 	});
 
+	test('Agents: an old-link create refresh that returns late does not clear the newer link\'s success notice', async () => {
+		let listCalls = 0;
+		let releaseOldList!: () => void;
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listCalls++;
+				if (listCalls === 2) {
+					// The post-create List of the first (old-link) write stays in flight.
+					await new Promise<void>(resolve => { releaseOldList = resolve; });
+					return { profiles: [] };
+				}
+				return { profiles: saves.map(save => ({ id: save.profile.id, name: save.profile.name, source: 'user' as const })) };
+			},
+			saveAgentProfile: async request => {
+				saves.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const { section, dialog } = mountAgentsWritable(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		dialog.setInputResult({ confirmed: true, values: ['Named', 'Real new instructions\nSecond line'] });
+		const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
+		assert.ok(button);
+		button.click();
+		await flushMicrotasks();
+		assert.strictEqual(saves.length, 1);
+		assert.strictEqual(listCalls, 2, 'old-link write refresh is pending');
+
+		// Link changes and the connection announces it: the new-link refresh completes first.
+		swapAgentsPublishedLink(connection, 'link');
+		connection.setAgentProfilesSupport('SUPPORTED');
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 3);
+		assert.strictEqual(section.getMode(), 'ready');
+		assertAgentsTextOmits(section, [ENGINE_AGENTS_CREATE_SUCCESS_COPY]);
+
+		// A second create succeeds on the new link and paints its own notice.
+		dialog.setInputResult({ confirmed: true, values: ['Second', 'Real new instructions\nSecond line'] });
+		button.click();
+		await flushMicrotasks();
+		assert.strictEqual(saves.length, 2);
+		assert.strictEqual(listCalls, 4);
+		assert.ok((section.getDomNode().textContent ?? '').includes(ENGINE_AGENTS_CREATE_SUCCESS_COPY), 'new-link create painted its notice');
+
+		// The oldest refresh finally returns; its link is gone, but the notice on screen is not its own.
+		releaseOldList();
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 4, 'a dropped stale List is not a refresh');
+		assert.ok((section.getDomNode().textContent ?? '').includes(ENGINE_AGENTS_CREATE_SUCCESS_COPY), 'late old-link refresh must not clear the newer link\'s notice');
+		assertAgentsTextOmits(section, ['Unable to create:']);
+		section.getDomNode().parentElement?.remove();
+	});
+
 	test('Agents: saveAgentsMarkdown does not paint failure when the link changes before the result', async () => {
 		for (const outcome of ['ok', 'throw'] as const) {
 			for (const kind of ['link', 'identity'] as const) {
