@@ -134,9 +134,10 @@ suite('Sources - tabs host docking', () => {
 		switchSession('sess-b');
 		assert.deepStrictEqual({
 			hasSessionListener: sessionChanges.hasListeners(),
+			tabs: part.tabHost!.childElementCount,
 			selected: selectedTab(),
 			savedA: storage.get(sourcesSelectedTabStorageKey('sess-a'), StorageScope.WORKSPACE),
-		}, { hasSessionListener: false, selected: SourcesTabId.Changes, savedA: SourcesTabId.Files });
+		}, { hasSessionListener: false, tabs: 0, selected: undefined, savedA: SourcesTabId.Files });
 	});
 
 	test('filterSlot docks Files actions only when Files tab is active', () => {
