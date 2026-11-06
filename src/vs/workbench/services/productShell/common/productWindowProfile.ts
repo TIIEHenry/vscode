@@ -9,8 +9,8 @@ export const IProductWindowProfile = createDecorator<IProductWindowProfile>('pro
 
 /**
  * What the product window looks like to Settings and Customizations. Registered by
- * `productShell.contribution.ts`, which both window entries load, so the Agents
- * window can resolve it too.
+ * `preferences/browser/productWindowProfile.contribution.ts`, which `preferences.contribution.ts`
+ * pulls in for both window entries, so the Agents window can resolve it too.
  */
 export interface IProductWindowProfile {
 	readonly _serviceBrand: undefined;
