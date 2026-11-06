@@ -424,6 +424,23 @@ export default defineConfig(
 			],
 		}
 	},
+	{
+		files: [
+			'src/vs/platform/universeAgent/**/*.ts',
+			'src/vs/workbench/**/*.ts',
+			'src/vs/sessions/**/*.ts',
+		],
+		ignores: [
+			'src/**/test/**',
+			'src/**/*.test.ts',
+		],
+		plugins: {
+			'local': pluginLocal,
+		},
+		rules: {
+			'local/code-agent-import-boundaries': 'error',
+		}
+	},
 	// Strict no explicit `any`
 	{
 		files: [
