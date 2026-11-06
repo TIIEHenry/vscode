@@ -11,7 +11,7 @@ summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定
 # Loop 健康检查 Gate
 
 > **项目专属：命令**。冷却 / verify-only 策略见 [`dev/loop/health-gates.md`](../loop/health-gates.md)。  
-> 集成分支当前为 **`agent-ide`**（M0 拓扑手术在途；日后若切回 `main` 须同步更新本文与 [`worktree-pool.md`](worktree-pool.md)）。
+> 集成走 merge 槽：字母槽分支经 merge 槽的 **`codex/merge`** 真三路合入并在那里跑门禁；人类工位的 **`agent-ide`** 不直接接收字母槽提交，只 `merge --ff-only` 跟随 `codex/merge`。流程见 [`worktrees.md`](../loop/worktrees.md) 与 [`worktree-pool.md`](worktree-pool.md)；日后集成分支再变须同步更新本文。
 
 ## 开发继续规则
 
