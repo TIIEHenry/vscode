@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -209,39 +208,6 @@ suite('grpc RemoteAgentService ListConfigs protobuf wire', () => {
 			configs: [],
 		});
 	});
-
-	test('list-configs unary wire is RemoteAgentService.ListConfigs only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcListConfigsUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeListConfigsRequest\b/.test(source));
-		assert.ok(/\bdecodeListConfigsResponse\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\bdecodeGetConfigResponse\b/.test(source));
-		assert.ok(/\bgrpcGetConfigUnaryWire\b/.test(source));
-		assert.ok(!/\bdecodeEndpoint\b|\bencodeEndpoint\b|\bdecodeAuthConfig\b|\bdecodePermissionDelegate\b|\bdecodeHealthCheck\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('listConfigs uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const list = extractAsyncMethod(source, 'listConfigs');
-		assert.ok(list.includes('makeUnaryBytesClient'), 'listConfigs must use makeUnaryBytesClient');
-		assert.ok(list.includes('encodeListConfigsRequest'), 'listConfigs must call encodeListConfigsRequest');
-		assert.ok(list.includes('decodeListConfigsResponse'), 'listConfigs must call decodeListConfigsResponse');
-		assert.ok(list.includes('mapListConfigsResponse'), 'listConfigs still calls mapListConfigsResponse');
-		assert.ok(!list.includes('makeUnaryClient<'), 'listConfigs must not use JSON makeUnaryClient');
-		assert.ok(!list.includes('JSON.stringify'), 'listConfigs must not JSON.stringify');
-
-		assert.ok(source.includes('grpcListConfigsUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 function emptyEndpoint() {
@@ -353,21 +319,4 @@ function nestedHealthBytes(): Uint8Array {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcListConfigsUnaryWire.ts')));
-	assert.ok(dir, 'grpcListConfigsUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}

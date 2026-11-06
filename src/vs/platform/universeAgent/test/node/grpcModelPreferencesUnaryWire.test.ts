@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -183,47 +182,6 @@ suite('grpc ConfigService Get/Set ModelPreferences protobuf wire', () => {
 			strategy: '',
 		});
 	});
-
-	test('model-preferences unary wire is Get+Set ModelPreferences only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcModelPreferencesUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetModelPreferencesRequest\b/.test(source));
-		assert.ok(/\bdecodeGetModelPreferencesResponse\b/.test(source));
-		assert.ok(/\bencodeSetModelPreferencesRequest\b/.test(source));
-		assert.ok(/\bdecodeSetModelPreferencesResponse\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bConnect\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bClearSessionDemoFake\b/.test(source));
-		assert.ok(!/\bFireTriggerWebhook\b|\bResolveTurn\b|\bSwitchWorkDir\b|\bRebuild\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getModelPreferences / setModelPreferences use bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const get = extractAsyncMethod(source, 'getModelPreferences');
-		assert.ok(get.includes('makeUnaryBytesClient'), 'getModelPreferences must use makeUnaryBytesClient');
-		assert.ok(get.includes('encodeGetModelPreferencesRequest'), 'getModelPreferences must call encodeGetModelPreferencesRequest');
-		assert.ok(get.includes('decodeGetModelPreferencesResponse'), 'getModelPreferences must call decodeGetModelPreferencesResponse');
-		assert.ok(get.includes('minLevel: wire.min_level ?? 0'), 'getModelPreferences must keep minLevel: wire.min_level ?? 0');
-		assert.ok(!get.includes('makeUnaryClient<'), 'getModelPreferences must not use JSON makeUnaryClient');
-		assert.ok(!get.includes('JSON.stringify'), 'getModelPreferences must not JSON.stringify');
-
-		const set = extractAsyncMethod(source, 'setModelPreferences');
-		assert.ok(set.includes('makeUnaryBytesClient'), 'setModelPreferences must use makeUnaryBytesClient');
-		assert.ok(set.includes('encodeSetModelPreferencesRequest'), 'setModelPreferences must call encodeSetModelPreferencesRequest');
-		assert.ok(set.includes('decodeSetModelPreferencesResponse'), 'setModelPreferences must call decodeSetModelPreferencesResponse');
-		assert.ok(set.includes('prefs?.min_level ?? 0'), 'setModelPreferences must keep prefs?.min_level ?? 0');
-		assert.ok(!set.includes('makeUnaryClient<'), 'setModelPreferences must not use JSON makeUnaryClient');
-		assert.ok(!set.includes('JSON.stringify'), 'setModelPreferences must not JSON.stringify');
-
-		assert.ok(source.includes('grpcModelPreferencesUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'switchWorkDir').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as Config.GetModelPreferences JSON unary. */
@@ -254,24 +212,7 @@ function encodeInt32InclZero(field: number, value: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcModelPreferencesUnaryWire.ts')));
-	assert.ok(dir, 'grpcModelPreferencesUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

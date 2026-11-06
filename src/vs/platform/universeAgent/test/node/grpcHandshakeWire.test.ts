@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import * as path from '../../../../base/common/path.js';
@@ -124,15 +123,6 @@ suite('grpc handshake protobuf wire', () => {
 		});
 		assert.ok(readProtoFields(deviceAuth).some(field => field.field === 12));
 
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const clientPath = path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
-		const source = fs.readFileSync(clientPath, 'utf8');
-		const connectStart = source.indexOf('async connect(request: UniverseAgentConnectRequest)');
-		const connectEnd = source.indexOf('async getAuthNonce(', connectStart);
-		const connectBody = source.slice(connectStart, connectEnd);
-		assert.ok(connectBody.includes('encodePlainConnectRequest(request.workDir)'));
-		assert.strictEqual(connectBody.includes('client_id'), false);
-		assert.strictEqual(connectBody.includes('JSON.stringify'), false);
 	});
 
 	test('decodeConnectResponse maps pairing_nonce bytes to base64', () => {

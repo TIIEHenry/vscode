@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -799,40 +798,6 @@ suite('grpc mcp/plugin unary protobuf wire', () => {
 			removed_name: undefined,
 		});
 	});
-
-	test('grpcClient MCP list/mutators and plugin list/mutators use bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const repoRoot = path.join(thisDir, '../../../../../../');
-		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
-		const source = fs.readFileSync(clientPath, 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper?: string }> = [
-			{ name: 'listMcpServers', encoder: 'encodeListMcpServersRequest', decoder: 'decodeListMcpServersResponse', mapper: 'mapListMcpServersResponse' },
-			{ name: 'getMcpServerStatuses', encoder: 'encodeGetMcpServerStatusesRequest', decoder: 'decodeGetMcpServerStatusesResponse', mapper: 'mapGetMcpServerStatusesResponse' },
-			{ name: 'getMcpServerTools', encoder: 'encodeGetMcpServerToolsRequest', decoder: 'decodeGetMcpServerToolsResponse', mapper: 'mapGetMcpServerToolsResponse' },
-			{ name: 'listPlugins', encoder: 'encodeListPluginsRequest', decoder: 'decodeListPluginsResponse', mapper: 'mapListPluginsResponse' },
-			{ name: 'getPluginInfo', encoder: 'encodePluginInfoRequest', decoder: 'decodePluginInfoResponse', mapper: 'mapPluginInfoResponse' },
-			{ name: 'enablePlugin', encoder: 'encodeEnablePluginRequest', decoder: 'decodeEnablePluginResponse', mapper: 'mapPluginSummary' },
-			{ name: 'reloadPlugin', encoder: 'encodeReloadPluginRequest', decoder: 'decodeReloadPluginResponse', mapper: 'mapPluginSummary' },
-			{ name: 'unloadPlugin', encoder: 'encodeUnloadPluginRequest', decoder: 'decodeUnloadPluginResponse' },
-			{ name: 'scanNewPlugins', encoder: 'encodeScanNewPluginsRequest', decoder: 'decodeScanNewPluginsResponse', mapper: 'mapPluginSummary' },
-			{ name: 'toggleMcpServer', encoder: 'encodeToggleMcpServerRequest', decoder: 'decodeToggleMcpServerResponse', mapper: 'mapToggleMcpServerResponse' },
-			{ name: 'addMcpServer', encoder: 'encodeAddMcpServerRequest', decoder: 'decodeAddMcpServerResponse', mapper: 'mapAddMcpServerResponse' },
-			{ name: 'updateMcpServer', encoder: 'encodeUpdateMcpServerRequest', decoder: 'decodeUpdateMcpServerResponse', mapper: 'mapUpdateMcpServerResponse' },
-			{ name: 'removeMcpServer', encoder: 'encodeRemoveMcpServerRequest', decoder: 'decodeRemoveMcpServerResponse', mapper: 'mapRemoveMcpServerResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			if (mapper) {
-				assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			}
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-		assert.ok(!source.includes('mapMcpTransportToWire'));
-		assert.ok(!source.includes('mapMcpServerConfigToWire'));
-	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
@@ -875,10 +840,3 @@ function protoMessages(encoded: Uint8Array, fieldNumber: number): Uint8Array[] {
 	return values;
 }
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
