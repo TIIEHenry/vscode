@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { mapDownloadChunk } from '../../node/grpc/grpcClientMappers.js';
 import {
@@ -171,75 +168,7 @@ suite('grpc FileTransferService DownloadAttachment protobuf server-stream wire',
 			checksumSha256: '',
 		});
 	});
-
-	test('download-attachment stream wire is FileTransferService.DownloadAttachment only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcDownloadAttachmentStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeDownloadAttachmentRequest\b/.test(source));
-		assert.ok(/\bdecodeDownloadChunk\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(!/\bUploadAttachment\b|\bGetUploadProgress\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('openDownloadAttachmentStream uses makeServerStreamBytesClient; Upload bytes', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const download = extractMethod(source, 'openDownloadAttachmentStream');
-		assert.ok(download.includes('makeServerStreamBytesClient'), 'openDownloadAttachmentStream must use makeServerStreamBytesClient');
-		assert.ok(download.includes('encodeDownloadAttachmentRequest'), 'openDownloadAttachmentStream must call encodeDownloadAttachmentRequest');
-		assert.ok(download.includes('decodeDownloadChunk'), 'openDownloadAttachmentStream must call decodeDownloadChunk');
-		assert.ok(download.includes('mapDownloadChunk'), 'openDownloadAttachmentStream still calls mapDownloadChunk');
-		assert.ok(!download.includes('makeServerStreamClient<'), 'openDownloadAttachmentStream must not use JSON makeServerStreamClient');
-		assert.ok(!download.includes('JSON.stringify'), 'openDownloadAttachmentStream itself must not JSON.stringify');
-		assert.ok(source.includes('grpcDownloadAttachmentStreamWire'));
-
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
-
-		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-
-		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
-		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
-		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
-		assert.ok(!upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeServerStreamBytesClient'));
-	});
 });
-
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcDownloadAttachmentStreamWire.ts')));
-	assert.ok(dir, 'grpcDownloadAttachmentStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
-
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

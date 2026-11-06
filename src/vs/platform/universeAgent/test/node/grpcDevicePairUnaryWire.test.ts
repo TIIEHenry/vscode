@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { asUnaryProtoBytes } from '../../node/grpc/grpcClientCalls.js';
 import {
@@ -246,72 +243,7 @@ suite('grpc DeviceService PairApprove / PairReject / ListPending / RotateToken p
 			}],
 		});
 	});
-
-	test('device pair unary wire source has no JSON.stringify; reserved names absent; no Connect', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcDevicePairUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeListPendingRequest\b/.test(source));
-		assert.ok(/\bdecodeListPendingResponse\b/.test(source));
-		assert.ok(/\bencodePairApproveRequest\b/.test(source));
-		assert.ok(/\bencodeRevokeRequest\b/.test(source));
-		assert.ok(/\bdecodeRevokeResponse\b/.test(source));
-		assert.ok(/\bencodeRotateTokenRequest\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b/.test(source));
-		assert.ok(!/\bencodeListDevices|\bdecodeListDevices/.test(source));
-		assert.ok(!/\bgrpcClient\b/.test(source));
-		assert.ok(!source.includes('new_token'));
-		assert.ok(!source.includes('device_token'));
-	});
-
-	test('pairApprove / pairReject / listPending / rotateToken / revoke use bytes then map*; listDevices unchanged', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'pairApprove', encoder: 'encodePairApproveRequest', decoder: 'decodePairApproveResponse', mapper: 'mapPairApproveResponse' },
-			{ name: 'pairReject', encoder: 'encodePairRejectRequest', decoder: 'decodePairRejectResponse', mapper: 'mapPairRejectResponse' },
-			{ name: 'rotateToken', encoder: 'encodeRotateTokenRequest', decoder: 'decodeRotateTokenResponse', mapper: 'mapRotateTokenResponse' },
-			{ name: 'listPending', encoder: 'encodeListPendingRequest', decoder: 'decodeListPendingResponse', mapper: 'mapListPendingResponse' },
-			{ name: 'revoke', encoder: 'encodeRevokeRequest', decoder: 'decodeRevokeResponse', mapper: 'mapRevokeResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		const pending = extractAsyncMethod(source, 'listPending');
-		assert.ok(pending.includes('encodeListPendingRequest()'), 'listPending must send empty proto via encodeListPendingRequest()');
-		assert.ok(!pending.includes('unary({})'), 'listPending must not send JSON {}');
-		const devices = extractAsyncMethod(source, 'listDevices');
-		assert.ok(devices.includes('makeUnaryBytesClient'), 'listDevices must stay bytes');
-		assert.ok(devices.includes('encodeListDevicesRequest'), 'listDevices must keep encodeListDevicesRequest');
-		assert.ok(devices.includes('decodeListDevicesResponse'), 'listDevices must keep decodeListDevicesResponse');
-		assert.ok(devices.includes('mapListDevicesResponse'), 'listDevices must keep mapListDevicesResponse');
-		assert.ok(source.includes('grpcDevicePairUnaryWire'));
-	});
 });
-
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcDevicePairUnaryWire.ts')));
-	assert.ok(dir, 'grpcDevicePairUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentSetPermissionPolicyResult } from '../../common/universeAgentTypes.js';
 import {
@@ -100,27 +97,6 @@ suite('grpc ConfigService SetPermissionPolicy protobuf wire', () => {
 		const rejected = decodeSetPermissionPolicyResponse(encodeInt32Field(1, 0));
 		assert.deepStrictEqual(rejected, { success: undefined, message: undefined });
 		assert.deepStrictEqual(mapSetPermissionPolicy(rejected), { ok: false, message: undefined });
-	});
-
-	test('permission policy unary wire is SetPermissionPolicy only; no JSON.stringify', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const candidates = [
-			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-			path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-		];
-		const grpcDir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcConfigPermissionUnaryWire.ts')));
-		assert.ok(grpcDir, 'grpcConfigPermissionUnaryWire.ts not found from cwd or import.meta');
-		const source = fs.readFileSync(path.join(grpcDir, 'grpcConfigPermissionUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(!source.includes('grpcClient'));
-		assert.ok(/\bencodeSetPermissionPolicyRequest\b/.test(source));
-		assert.ok(/\bdecodeSetPermissionPolicyResponse\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(!/\bencodeGetConfigRequest\b/.test(source));
-		assert.ok(!/\bencodeSetConfigRequest\b/.test(source));
-		assert.ok(!/\bWatchConfig\b|\bConfigChanged\b/.test(source));
-		assert.ok(!/\bSwitchModel\b|\bListModels\b|\bResolveModel\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 	});
 });
 

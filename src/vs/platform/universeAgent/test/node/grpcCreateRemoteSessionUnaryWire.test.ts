@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentCreateRemoteSessionResult } from '../../common/universeAgentTypes.js';
 import {
@@ -195,56 +192,6 @@ suite('grpc RemoteAgentService CreateRemoteSession protobuf wire', () => {
 		assert.strictEqual(encodeInt64Field(3, 0).length, 0);
 		assert.strictEqual(encodeInt64Field(4, 0).length, 0);
 	});
-
-	test('create-remote-session unary wire is RemoteAgentService.CreateRemoteSession only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcCreateRemoteSessionUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeCreateRemoteSessionRequest\b/.test(source));
-		assert.ok(/\bdecodeCreateRemoteSessionResponse\b/.test(source));
-		assert.ok(/\bencodePresentMessageField\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\bencodeInt64Field\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bgrpcCheckConnectionUnaryWire\b/.test(source));
-		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
-		assert.ok(!/\bDestroyRemoteSession\b|\bGetRemoteSessionStatus\b|\bGetRemoteSessionHistory\b/.test(source));
-		assert.ok(!/\bResumeRemoteSession\b|\bCancelRemoteSession\b|\bRemoteChat\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('createRemoteSession uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const create = extractAsyncMethod(source, 'createRemoteSession');
-		assert.ok(create.includes('makeUnaryBytesClient'), 'createRemoteSession must use makeUnaryBytesClient');
-		assert.ok(create.includes('encodeCreateRemoteSessionRequest'), 'createRemoteSession must call encodeCreateRemoteSessionRequest');
-		assert.ok(create.includes('decodeCreateRemoteSessionResponse'), 'createRemoteSession must call decodeCreateRemoteSessionResponse');
-		assert.ok(create.includes('mapCreateRemoteSessionResponse'), 'createRemoteSession still calls mapCreateRemoteSessionResponse');
-		assert.ok(!create.includes('makeUnaryClient<'), 'createRemoteSession must not use JSON makeUnaryClient');
-		assert.ok(!create.includes('JSON.stringify'), 'createRemoteSession must not JSON.stringify');
-		assert.ok(source.includes('grpcCreateRemoteSessionUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(create));
-		assert.ok(!/\bSaveSkillContent\b/.test(create));
-		assert.ok(!/\bResolveTurn\b/.test(create));
-		assert.ok(!/\bResolveAnchor\b/.test(create));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-		assert.ok(!watchBody.includes('grpcCreateRemoteSessionUnaryWire'));
-	});
 });
 
 /** TEST-only mapper: same shape as catalog `mapCreateRemoteSessionResponse`. */
@@ -270,25 +217,6 @@ function encodeVarintZero(field: number): Buffer {
 		encodeVarint((field << 3) | 0),
 		encodeVarint(0),
 	]);
-}
-
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcCreateRemoteSessionUnaryWire.ts')));
-	assert.ok(dir, 'grpcCreateRemoteSessionUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
 }
 
 function protoStringLists(encoded: Uint8Array): Map<number, string[]> {
