@@ -5,16 +5,20 @@
 
 import { escape } from '../../../../../base/common/strings.js';
 import { localize } from '../../../../../nls.js';
-import { ThemeSettingDefaults } from '../../../../services/themes/common/workbenchThemeService.js';
+import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
+import { getDefaultColorThemeSettingsIdForColorScheme, ThemeSettingDefaults } from '../../../../services/themes/common/workbenchThemeService.js';
 
-export default () => `
+export default () => {
+	const darkThemeId = getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK);
+	const lightThemeId = getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT);
+	return `
 <checklist>
 	<div class="theme-picker-row">
-		<checkbox when-checked="setTheme:${ThemeSettingDefaults.COLOR_THEME_DARK}" checked-on="config.workbench.colorTheme == '${ThemeSettingDefaults.COLOR_THEME_DARK}'">
+		<checkbox when-checked="setTheme:${darkThemeId}" checked-on="config.workbench.colorTheme == '${darkThemeId}'">
 			<img width="150" src="./dark.png"/>
 			${escape(localize('dark', "Dark Modern"))}
 		</checkbox>
-		<checkbox when-checked="setTheme:${ThemeSettingDefaults.COLOR_THEME_LIGHT}" checked-on="config.workbench.colorTheme == '${ThemeSettingDefaults.COLOR_THEME_LIGHT}'">
+		<checkbox when-checked="setTheme:${lightThemeId}" checked-on="config.workbench.colorTheme == '${lightThemeId}'">
 			<img width="150" src="./light.png"/>
 			${escape(localize('light', "Light Modern"))}
 		</checkbox>
@@ -31,3 +35,4 @@ export default () => `
 	</div>
 </checklist>
 `;
+};

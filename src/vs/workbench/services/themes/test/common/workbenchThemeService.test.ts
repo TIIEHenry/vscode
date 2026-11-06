@@ -40,7 +40,7 @@ suite('WorkbenchThemeService', () => {
 
 	suite('getDefaultColorThemeSettingsIdForColorScheme', () => {
 
-		test('maps each ColorScheme tier to the product default theme settings id', () => {
+		test('without the product shell module each tier maps to the built-in default theme settings id', () => {
 			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT), ThemeSettingDefaults.COLOR_THEME_LIGHT);
 			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK), ThemeSettingDefaults.COLOR_THEME_DARK);
 			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.HIGH_CONTRAST_DARK), ThemeSettingDefaults.COLOR_THEME_HC_DARK);
@@ -213,11 +213,9 @@ suite('WorkbenchThemeService', () => {
 		});
 	});
 
-	test('product default themes are registered and are not Light 2026', () => {
-		assert.strictEqual(ThemeSettingDefaults.COLOR_THEME_LIGHT, 'UniverseAgentStudio Light');
-		assert.notStrictEqual(ThemeSettingDefaults.COLOR_THEME_LIGHT, 'Light 2026');
-		assert.strictEqual(ThemeSettingDefaults.COLOR_THEME_DARK, 'UniverseAgentStudio Dark');
-		assert.notStrictEqual(ThemeSettingDefaults.COLOR_THEME_DARK, 'Dark 2026');
+	test('built-in default themes keep the upstream names and the product themes are registered', () => {
+		assert.strictEqual(ThemeSettingDefaults.COLOR_THEME_LIGHT, 'Light 2026');
+		assert.strictEqual(ThemeSettingDefaults.COLOR_THEME_DARK, 'Dark 2026');
 		assert.strictEqual(ThemeSettingDefaults.COLOR_THEME_HC_DARK, 'Default High Contrast');
 		assert.strictEqual(ThemeSettingDefaults.COLOR_THEME_HC_LIGHT, 'Default High Contrast Light');
 
@@ -229,8 +227,8 @@ suite('WorkbenchThemeService', () => {
 		assert.strictEqual(properties[ThemeSettings.PREFERRED_HC_LIGHT_THEME].default, ThemeSettingDefaults.COLOR_THEME_HC_LIGHT);
 
 		const themes = themeDefaultsManifest.contributes.themes;
-		const light = themes.find((theme: IThemeExtensionPoint) => theme.id === ThemeSettingDefaults.COLOR_THEME_LIGHT);
-		const dark = themes.find((theme: IThemeExtensionPoint) => theme.id === ThemeSettingDefaults.COLOR_THEME_DARK);
+		const light = themes.find((theme: IThemeExtensionPoint) => theme.id === 'UniverseAgentStudio Light');
+		const dark = themes.find((theme: IThemeExtensionPoint) => theme.id === 'UniverseAgentStudio Dark');
 		assert.ok(light);
 		assert.strictEqual(light.uiTheme, 'vs');
 		assert.strictEqual(light.path, './themes/universe-agent-studio-light.json');

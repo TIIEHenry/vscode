@@ -6,7 +6,7 @@
 import * as nls from '../../../../nls.js';
 import * as types from '../../../../base/common/types.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
-import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, ThemeSettingDefaults, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme, NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../common/workbenchThemeService.js';
+import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme, NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../common/workbenchThemeService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -151,7 +151,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 			themeData = undefined;
 		}
 
-		const defaultColorMap = colorThemeSetting === ThemeSettingDefaults.COLOR_THEME_LIGHT ? COLOR_THEME_LIGHT_INITIAL_COLORS : colorThemeSetting === ThemeSettingDefaults.COLOR_THEME_DARK ? COLOR_THEME_DARK_INITIAL_COLORS : undefined;
+		const defaultColorMap = colorThemeSetting === getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT) ? COLOR_THEME_LIGHT_INITIAL_COLORS : colorThemeSetting === getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK) ? COLOR_THEME_DARK_INITIAL_COLORS : undefined;
 		if (!themeData) {
 			const initialColorTheme = environmentService.options?.initialColorTheme;
 			if (initialColorTheme) {
@@ -306,7 +306,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 			if (!this.settings.isDefaultColorTheme()) {
 				return;
 			}
-			if (![ThemeSettingDefaults.COLOR_THEME_DARK, ThemeSettingDefaults.COLOR_THEME_LIGHT].includes(this.settings.colorTheme)) {
+			if (![getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK), getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT)].includes(this.settings.colorTheme)) {
 				return;
 			}
 		} finally {

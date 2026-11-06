@@ -9,7 +9,7 @@ import { MenuRegistry, MenuId, Action2, registerAction2, ISubmenuItem } from '..
 import { equalsIgnoreCase } from '../../../../base/common/strings.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
-import { IWorkbenchThemeService, IWorkbenchTheme, ThemeSettingTarget, IWorkbenchColorTheme, IWorkbenchFileIconTheme, IWorkbenchProductIconTheme, ThemeSettings, ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
+import { IWorkbenchThemeService, IWorkbenchTheme, ThemeSettingTarget, IWorkbenchColorTheme, IWorkbenchFileIconTheme, IWorkbenchProductIconTheme, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme } from '../../../services/themes/common/workbenchThemeService.js';
 import { IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
 import { IExtensionGalleryService, IExtensionManagementService, IGalleryExtension } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IColorRegistry, Extensions as ColorRegistryExtensions } from '../../../../platform/theme/common/colorRegistry.js';
@@ -587,7 +587,7 @@ registerAction2(class extends Action2 {
 
 		const previousTheme = themeService.getColorTheme();
 		const allThemes = await themeService.getColorThemes();
-		const newThemeSettingsIds = new Set([ThemeSettingDefaults.COLOR_THEME_LIGHT, ThemeSettingDefaults.COLOR_THEME_DARK]);
+		const newThemeSettingsIds = new Set([getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT), getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK)]);
 		const themes = allThemes.filter(t => newThemeSettingsIds.has(t.settingsId));
 
 		const items: IQuickPickItem[] = themes.map(t => ({
@@ -602,7 +602,7 @@ registerAction2(class extends Action2 {
 		picker.placeholder = localize('pickNewTheme', "Pick a new default theme");
 		picker.canSelectMany = false;
 
-		const preferredId = (previousTheme.type === ColorScheme.LIGHT || previousTheme.type === ColorScheme.HIGH_CONTRAST_LIGHT) ? ThemeSettingDefaults.COLOR_THEME_LIGHT : ThemeSettingDefaults.COLOR_THEME_DARK;
+		const preferredId = (previousTheme.type === ColorScheme.LIGHT || previousTheme.type === ColorScheme.HIGH_CONTRAST_LIGHT) ? getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT) : getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK);
 		const activeItem = items.find(i => themes.find(t => t.id === i.id)?.settingsId === preferredId);
 		if (activeItem) {
 			picker.activeItems = [activeItem];
@@ -630,8 +630,8 @@ registerAction2(class extends Action2 {
 			(async () => {
 				try {
 					await themeService.setColorTheme(theme, 'auto');
-					await configurationService.updateValue(ThemeSettings.PREFERRED_LIGHT_THEME, ThemeSettingDefaults.COLOR_THEME_LIGHT);
-					await configurationService.updateValue(ThemeSettings.PREFERRED_DARK_THEME, ThemeSettingDefaults.COLOR_THEME_DARK);
+					await configurationService.updateValue(ThemeSettings.PREFERRED_LIGHT_THEME, getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT));
+					await configurationService.updateValue(ThemeSettings.PREFERRED_DARK_THEME, getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK));
 				} catch (error) {
 					if (!isCancellationError(error)) {
 						onUnexpectedError(error);
@@ -700,10 +700,12 @@ function isItem(i: QuickPickInput<ThemeItem>): i is ThemeItem {
 	return (<any>i)['type'] !== 'separator';
 }
 
-const defaultThemeDescriptions: Record<string, string> = {
-	[ThemeSettingDefaults.COLOR_THEME_LIGHT]: localize('defaultLight', "Default Light"),
-	[ThemeSettingDefaults.COLOR_THEME_DARK]: localize('defaultDark', "Default Dark"),
-};
+function getDefaultThemeDescriptions(): Record<string, string> {
+	return {
+		[getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT)]: localize('defaultLight', "Default Light"),
+		[getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK)]: localize('defaultDark', "Default Dark"),
+	};
+}
 
 function toEntry(theme: IWorkbenchTheme): ThemeItem {
 	const settingId = theme.settingsId ?? undefined;
@@ -711,7 +713,7 @@ function toEntry(theme: IWorkbenchTheme): ThemeItem {
 		id: theme.id,
 		theme: theme,
 		label: theme.label,
-		description: defaultThemeDescriptions[settingId ?? ''] ?? theme.description ?? (theme.label === settingId ? undefined : settingId),
+		description: getDefaultThemeDescriptions()[settingId ?? ''] ?? theme.description ?? (theme.label === settingId ? undefined : settingId),
 	};
 	if (theme.extensionData) {
 		item.buttons = [configureButton];
@@ -720,7 +722,7 @@ function toEntry(theme: IWorkbenchTheme): ThemeItem {
 }
 
 function toEntries(themes: Array<IWorkbenchTheme>, label?: string): QuickPickInput<ThemeItem>[] {
-	const pinnedIds = new Set([ThemeSettingDefaults.COLOR_THEME_DARK, ThemeSettingDefaults.COLOR_THEME_LIGHT]);
+	const pinnedIds = new Set([getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK), getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT)]);
 	const sorter = (t1: ThemeItem, t2: ThemeItem) => {
 		const pin1 = pinnedIds.has(t1.theme?.settingsId ?? '');
 		const pin2 = pinnedIds.has(t2.theme?.settingsId ?? '');

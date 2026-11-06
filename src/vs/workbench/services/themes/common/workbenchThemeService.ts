@@ -11,6 +11,8 @@ import { ConfigurationTarget } from '../../../../platform/configuration/common/c
 import { isBoolean, isString } from '../../../../base/common/types.js';
 import { IconContribution, IconDefinition } from '../../../../platform/theme/common/iconRegistry.js';
 import { ColorScheme, ThemeTypeSelector } from '../../../../platform/theme/common/theme.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
+import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 
 export const IWorkbenchThemeService = refineServiceDecorator<IThemeService, IWorkbenchThemeService>(IThemeService);
 
@@ -39,8 +41,8 @@ export enum ThemeSettings {
 }
 
 export namespace ThemeSettingDefaults {
-	export const COLOR_THEME_DARK = 'UniverseAgentStudio Dark';
-	export const COLOR_THEME_LIGHT = 'UniverseAgentStudio Light';
+	export const COLOR_THEME_DARK = 'Dark 2026';
+	export const COLOR_THEME_LIGHT = 'Light 2026';
 	export const COLOR_THEME_HC_DARK = 'Default High Contrast';
 	export const COLOR_THEME_HC_LIGHT = 'Default High Contrast Light';
 
@@ -61,10 +63,10 @@ export function migrateThemeSettingsId(settingsId: string): string {
 		case 'Default Light+': return 'Light+';
 		case 'Experimental Dark':
 		case 'VS Code Dark':
-			return ThemeSettingDefaults.COLOR_THEME_DARK;
+			return getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK);
 		case 'Experimental Light':
 		case 'VS Code Light':
-			return ThemeSettingDefaults.COLOR_THEME_LIGHT;
+			return getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT);
 	}
 	return settingsId;
 }
@@ -108,7 +110,7 @@ export function isNewDefaultThemeNotificationEligible(input: {
 	if (!input.isDefaultColorTheme) {
 		return false;
 	}
-	return input.colorTheme === ThemeSettingDefaults.COLOR_THEME_DARK || input.colorTheme === ThemeSettingDefaults.COLOR_THEME_LIGHT;
+	return input.colorTheme === getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK) || input.colorTheme === getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT);
 }
 
 export const enum NewDefaultThemeNotificationDecisionKind {
@@ -193,14 +195,25 @@ export function decideNewDefaultThemeNotification(input: {
 }
 
 /**
- * Built-in default color theme settings id for each {@link ColorScheme} tier.
+ * The default of a theme setting as it stands in the configuration registry, so a
+ * product that registers its own default configuration for the setting is honored.
+ */
+function getEffectiveColorThemeSettingDefault(settingId: ThemeSettings, fallback: string): string {
+	const defaultValue = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).getConfigurationProperties()[settingId]?.default;
+	return isString(defaultValue) ? defaultValue : fallback;
+}
+
+/**
+ * Default color theme settings id for each {@link ColorScheme} tier. Light and dark
+ * are the effective defaults (the product may override them through default
+ * configuration); the high contrast tiers are the built-in constants.
  */
 export function getDefaultColorThemeSettingsIdForColorScheme(colorScheme: ColorScheme): string {
 	switch (colorScheme) {
 		case ColorScheme.LIGHT:
-			return ThemeSettingDefaults.COLOR_THEME_LIGHT;
+			return getEffectiveColorThemeSettingDefault(ThemeSettings.PREFERRED_LIGHT_THEME, ThemeSettingDefaults.COLOR_THEME_LIGHT);
 		case ColorScheme.DARK:
-			return ThemeSettingDefaults.COLOR_THEME_DARK;
+			return getEffectiveColorThemeSettingDefault(ThemeSettings.PREFERRED_DARK_THEME, ThemeSettingDefaults.COLOR_THEME_DARK);
 		case ColorScheme.HIGH_CONTRAST_DARK:
 			return ThemeSettingDefaults.COLOR_THEME_HC_DARK;
 		case ColorScheme.HIGH_CONTRAST_LIGHT:
