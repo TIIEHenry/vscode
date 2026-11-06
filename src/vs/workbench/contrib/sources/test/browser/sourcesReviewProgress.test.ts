@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -151,6 +153,40 @@ suite('Sources - review progress service', () => {
 
 		assert.strictEqual(service.isReviewed(key), false);
 	});
+
+	for (const type of [FileChangeType.UPDATED, FileChangeType.ADDED]) {
+		test(`a rejected invalidation for a ${type === FileChangeType.UPDATED ? 'changed' : 'added'} file reaches onUnexpectedError once and does not leak`, async function () {
+			const resource = toResource.call(this, '/project/a.ts');
+			const boom = new Error('scm lookup boom');
+			let failing = false;
+			const service = createService({
+				repositoryFor: () => {
+					if (failing) {
+						throw boom;
+					}
+					return { rootUri: toResource.call(this, '/project') };
+				},
+			});
+			const key = await service.resolveKey({ resource });
+			service.markReviewed(key);
+
+			const unexpected: unknown[] = [];
+			const unhandledRejections: unknown[] = [];
+			const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+			process.on('unhandledRejection', onUnhandledRejection);
+			const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+			setUnexpectedErrorHandler(error => unexpected.push(error));
+			try {
+				failing = true;
+				service.fileChangeEmitter.fire(new FileChangesEvent([{ resource, type }], false));
+				await timeout(0);
+				assert.deepStrictEqual({ unexpected, unhandledRejections }, { unexpected: [boom], unhandledRejections: [] });
+			} finally {
+				setUnexpectedErrorHandler(originalErrorHandler);
+				process.off('unhandledRejection', onUnhandledRejection);
+			}
+		});
+	}
 
 	test('file change does not stat when nothing is reviewed', async function () {
 		const resource = toResource.call(this, '/project/a.ts');
