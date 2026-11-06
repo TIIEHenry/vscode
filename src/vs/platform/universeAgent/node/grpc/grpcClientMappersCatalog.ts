@@ -165,6 +165,7 @@ import type { CreateRemoteSessionResponseWire } from './grpcCreateRemoteSessionU
 import type { DeleteRemoteAgentConfigResponseWire } from './grpcDeleteConfigUnaryWire.js';
 import type { DestroyRemoteSessionResponseWire } from './grpcDestroyRemoteSessionUnaryWire.js';
 import type { ExitMaintenanceResponseWire } from './grpcExitMaintenanceUnaryWire.js';
+import type { GetRemoteSessionStatusResponseWire, RemotePendingPermissionWire, RemotePendingQuestionWire } from './grpcGetRemoteSessionStatusUnaryWire.js';
 import type { UploadProgressResponseWire } from './grpcGetUploadProgressUnaryWire.js';
 import type { ResetErrorResponseWire } from './grpcResetErrorUnaryWire.js';
 import type { ResumeRemoteSessionResponseWire } from './grpcResumeRemoteSessionUnaryWire.js';
@@ -175,6 +176,7 @@ export type { CreateRemoteSessionResponseWire } from './grpcCreateRemoteSessionU
 export type { DeleteRemoteAgentConfigResponseWire } from './grpcDeleteConfigUnaryWire.js';
 export type { DestroyRemoteSessionResponseWire } from './grpcDestroyRemoteSessionUnaryWire.js';
 export type { ExitMaintenanceResponseWire } from './grpcExitMaintenanceUnaryWire.js';
+export type { GetRemoteSessionStatusResponseWire, RemotePendingPermissionWire, RemotePendingQuestionWire } from './grpcGetRemoteSessionStatusUnaryWire.js';
 export type { UploadProgressResponseWire } from './grpcGetUploadProgressUnaryWire.js';
 export type { ResetErrorResponseWire } from './grpcResetErrorUnaryWire.js';
 export type { ResumeRemoteSessionResponseWire } from './grpcResumeRemoteSessionUnaryWire.js';
@@ -1735,31 +1737,6 @@ export function mapReloadRemoteAgentsResponse(wire: ReloadRemoteAgentsResponseWi
 		errors: (wire.errors ?? []).map(id => id ?? ''),
 		durationMs: requiredInt64(wire.duration_ms),
 	};
-}
-
-export interface RemotePendingPermissionWire {
-	request_id?: string;
-	tool_name?: string;
-	path?: string;
-	command?: string;
-	arguments_json?: string;
-	danger_level?: string;
-	bubble_target?: string;
-}
-
-export interface RemotePendingQuestionWire {
-	question_id?: string;
-	questions_json?: string;
-}
-
-export interface GetRemoteSessionStatusResponseWire {
-	status?: string;
-	call_id?: string;
-	progress?: string;
-	elapsed_ms?: number | string;
-	expires_at?: number | string;
-	pending_permissions?: RemotePendingPermissionWire[];
-	pending_questions?: RemotePendingQuestionWire[];
 }
 
 export function mapRemotePendingPermission(wire: RemotePendingPermissionWire): UniverseAgentRemotePendingPermission {

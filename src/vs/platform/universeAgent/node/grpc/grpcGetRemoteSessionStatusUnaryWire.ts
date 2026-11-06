@@ -27,12 +27,12 @@ export interface GetRemoteSessionStatusResponseWire {
 	readonly progress?: string;
 	readonly elapsed_ms?: number | string;
 	readonly expires_at?: number | string;
-	readonly pending_permissions?: RemotePendingPermissionJsonWire[];
-	readonly pending_questions?: RemotePendingQuestionJsonWire[];
+	readonly pending_permissions?: RemotePendingPermissionWire[];
+	readonly pending_questions?: RemotePendingQuestionWire[];
 }
 
 /** RemotePendingPermission — proto fields 1–7. Unknown nested unread. */
-export interface RemotePendingPermissionJsonWire {
+export interface RemotePendingPermissionWire {
 	readonly request_id?: string;
 	readonly tool_name?: string;
 	readonly path?: string;
@@ -43,7 +43,7 @@ export interface RemotePendingPermissionJsonWire {
 }
 
 /** RemotePendingQuestion — proto fields 1–2. Unknown nested unread. */
-export interface RemotePendingQuestionJsonWire {
+export interface RemotePendingQuestionWire {
 	readonly question_id?: string;
 	readonly questions_json?: string;
 }
@@ -83,7 +83,7 @@ export function decodeGetRemoteSessionStatusResponse(bytes: Uint8Array): GetRemo
 	};
 }
 
-function decodeRemotePendingPermission(bytes: Uint8Array): RemotePendingPermissionJsonWire {
+function decodeRemotePendingPermission(bytes: Uint8Array): RemotePendingPermissionWire {
 	const fields = readProtoFields(bytes);
 	return {
 		request_id: lastString(fields, 1),
@@ -96,7 +96,7 @@ function decodeRemotePendingPermission(bytes: Uint8Array): RemotePendingPermissi
 	};
 }
 
-function decodeRemotePendingQuestion(bytes: Uint8Array): RemotePendingQuestionJsonWire {
+function decodeRemotePendingQuestion(bytes: Uint8Array): RemotePendingQuestionWire {
 	const fields = readProtoFields(bytes);
 	return {
 		question_id: lastString(fields, 1),
