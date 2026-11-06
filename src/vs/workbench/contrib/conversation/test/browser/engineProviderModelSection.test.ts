@@ -7,7 +7,6 @@ import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationError, errorHandler, isCancellationError, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
 import { hasKey } from '../../../../../base/common/types.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot, PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -15,13 +14,10 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
-	UniverseAgentConnectionSnapshot,
 	UniverseAgentListModelsResult,
 	UniverseAgentListProviderStatusResult,
 	UniverseAgentUpsertModelRequest,
 	UniverseAgentProviderPresetCatalog,
-	UniverseAgentSessionEvent,
-	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IDialogService, type IInput, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
@@ -30,6 +26,7 @@ import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy,
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineModelsSection, EngineProvidersSection } from '../../browser/engineProviderModelSection.js';
+import { createMutableConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
 const MODEL_FEATURE = 'model registry';
@@ -77,124 +74,56 @@ suite('Engine providers and models sections', () => {
 			models: modelsCapability,
 			providerConfig: providerCapability,
 		};
-		let connected = options.connected ?? true;
-		let pairingPending = options.pairingPending ?? false;
-		let engineIdentityId: string | undefined = 'engine-test';
-		let linkId: number | undefined = 1;
-		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
-
-		const snapshot = (): UniverseAgentConnectionSnapshot => ({
-			transport: connected ? 'ok' : 'idle',
-			authenticated: connected,
-			pairingPending,
-			channelAlive: connected,
-			sharedFsRootSent: false,
+		const stub = createMutableConversationConnectionTestStub({
+			connected: options.connected ?? true,
+			pairingPending: options.pairingPending ?? false,
+			looksLive: options.looksLive ?? false,
 			capabilities,
-			engineIdentityId,
-			linkId,
-		});
-
-		return {
-			_serviceBrand: undefined,
-			isEngineConnected: () => options.looksLive ? connected : (connected && !pairingPending),
-			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
-			getTransportState: () => (connected ? 'ok' : 'idle'),
-			getConnectionSnapshot: snapshot,
-			getCapabilitySnapshot: () => capabilities,
-			onDidChangeConnection: onDidChangeConnection.event,
-			onDidFileMutation: Event.None,
-			onDidTurnSettle: Event.None,
-			onDidChangeTeamRuntime: Event.None,
-			requestAgentTreeRefresh: () => { },
-			getNavigatorCapability: () => 'UNKNOWN' as const,
-			isAgentTreeFetchFailed: () => false,
-			team: {
-				memberStatus: async () => [],
-				taskList: async () => [],
-				teamInfo: async () => undefined,
+			engineIdentityId: 'engine-test',
+			linkId: 1,
+			publishedLink: 'always',
+			overrides: {
+				listModels: options.listModels ?? (async () => ({ models: [] })),
+				listProviderStatus: options.listProviderStatus,
+				upsertProviderCredentials: options.upsertProviderCredentials as IUniverseAgentConnection['upsertProviderCredentials'],
+				clearProviderCredentials: options.clearProviderCredentials as IUniverseAgentConnection['clearProviderCredentials'],
+				previewHarnessProviderImport: options.previewHarnessProviderImport as IUniverseAgentConnection['previewHarnessProviderImport'],
+				importHarnessProviders: options.importHarnessProviders as IUniverseAgentConnection['importHarnessProviders'],
+				listProviderPresetCatalog: options.listProviderPresetCatalog,
+				upsertModel: options.upsertModel as IUniverseAgentConnection['upsertModel'],
+				deleteModel: options.deleteModel as IUniverseAgentConnection['deleteModel'],
+				setModelEnabled: options.setModelEnabled as IUniverseAgentConnection['setModelEnabled'],
+				testModelProfile: options.testModelProfile as IUniverseAgentConnection['testModelProfile'],
 			},
-			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			cancelPairing: async () => { },
-			probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			renameSession: async () => ({ ok: false, message: 'stub' }),
-			cancelGeneration: async () => ({ ok: false, message: 'stub' }),
-			enqueueQueueItem: async () => ({ ok: false, error: 'stub' }),
-			pauseQueue: async () => ({ ok: false, error: 'stub' }),
-			resumeQueue: async () => ({ ok: false, error: 'stub' }),
-			clearQueue: async () => ({ ok: false, error: 'stub' }),
-			holdQueueItem: async () => ({ ok: false, error: 'stub' }),
-			releaseQueueItemHold: async () => ({ ok: false, error: 'stub' }),
-			editQueueItem: async () => ({ ok: false, error: 'stub' }),
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: (
-				_sessionId: string,
-				_listener: (event: UniverseAgentSessionEvent) => void,
-				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-			) => ({ dispose: () => { } }),
-			chat: async () => { },
-			listSkills: async () => ({ skills: [] }),
-			setSkillEnabled: async () => ({ ok: true }),
-			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
-			listAgentProfiles: async () => ({ profiles: [] }),
-			saveAgentProfile: async (request) => ({ profile: request.profile }),
-			deleteAgentProfile: async () => ({ ok: true }),
-			resetAgentProfile: async () => ({ ok: true }),
-			listMcpServers: async () => ({ servers: [] }),
-			getMcpServerStatuses: async () => ({ statuses: [] }),
-			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: async () => ({ plugins: [] }),
-			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
-			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			unloadPlugin: async () => ({ removedHookCount: 0 }),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
-			addMcpServer: async () => ({ ok: true }),
-			updateMcpServer: async () => ({ ok: true }),
-			removeMcpServer: async () => ({ ok: true }),
-			listTools: async () => ({ tools: [] }),
-			listModels: options.listModels ?? (async () => ({ models: [] })),
-			listProviderStatus: options.listProviderStatus,
-			upsertProviderCredentials: options.upsertProviderCredentials as IUniverseAgentConnection['upsertProviderCredentials'],
-			clearProviderCredentials: options.clearProviderCredentials as IUniverseAgentConnection['clearProviderCredentials'],
-			previewHarnessProviderImport: options.previewHarnessProviderImport as IUniverseAgentConnection['previewHarnessProviderImport'],
-			importHarnessProviders: options.importHarnessProviders as IUniverseAgentConnection['importHarnessProviders'],
-			listProviderPresetCatalog: options.listProviderPresetCatalog,
-			upsertModel: options.upsertModel as IUniverseAgentConnection['upsertModel'],
-			deleteModel: options.deleteModel as IUniverseAgentConnection['deleteModel'],
-			setModelEnabled: options.setModelEnabled as IUniverseAgentConnection['setModelEnabled'],
-			testModelProfile: options.testModelProfile as IUniverseAgentConnection['testModelProfile'],
-			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
+		});
+		const { state } = stub;
+
+		return Object.assign(stub.connection, {
 			setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				modelsCapability.support = support;
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				providerCapability.support = support;
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setConnected(next: boolean) {
-				connected = next;
-				onDidChangeConnection.fire(snapshot());
+				state.connected = next;
+				stub.notify();
 			},
 			setPairingPending(value: boolean) {
-				pairingPending = value;
-				onDidChangeConnection.fire(snapshot());
+				state.pairingPending = value;
+				stub.notify();
 			},
 			setPublishedLink(identity: string | undefined, serial: number | undefined, notify = true) {
-				engineIdentityId = identity;
-				linkId = serial;
-				if (notify) { onDidChangeConnection.fire(snapshot()); }
+				state.engineIdentityId = identity;
+				state.linkId = serial;
+				if (notify) { stub.notify(); }
 			},
 			setLinkId(value: number) {
-				linkId = value;
+				state.linkId = value;
 			},
-		};
+		});
 	}
 
 	function mountModels(connection: IUniverseAgentConnection, dialog?: IDialogService): EngineModelsSection {
