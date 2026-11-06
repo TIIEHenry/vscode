@@ -36,12 +36,12 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 
 export interface IConversationLeafPaneAccessors {
 	writeComposerDraft(sessionId: string, text: string): void;
 	deleteComposerDraftsForSession(sessionId: string): void;
-	readonly composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
-	readonly composeDraftSnapshot: string;
+	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'>;
 	getDockTextarea(): HTMLTextAreaElement | undefined;
 	getReadingColumn(): HTMLElement | undefined;
 	getVisualizeOverlay(): ConversationVisualizeOverlay | undefined;
@@ -266,12 +266,8 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		void this.switchLeafSession(sessionId).catch(onUnexpectedError);
 	}
 
-	get composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {
-		return this.accessors.composerPolicy;
-	}
-
-	get composeDraftSnapshot(): string {
-		return this.accessors.composeDraftSnapshot;
+	get composerModel(): Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'> {
+		return this.accessors.composerModel;
 	}
 
 	writeComposerDraft(sessionId: string, text: string): void {

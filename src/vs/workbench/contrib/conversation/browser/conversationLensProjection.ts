@@ -28,6 +28,7 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
 import { conversationTimelineEmptyKind, engineQueueEditMustKeepHold, getConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
@@ -62,7 +63,7 @@ export interface IConversationLensProjectionHost {
 	filterAgentId: string | undefined;
 	inputMaximized: boolean;
 	conversationPhase: 'prefirst' | 'active' | undefined;
-	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
+	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'editingQueueItemId' | 'queueEditSettlementItemId'>;
 	lastAttachedEntries: readonly ConversationTimelineEntry[];
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	relayoutReadingSurfaces(): void;
@@ -95,8 +96,6 @@ export interface IConversationLensProjectionHost {
 	applyConversationDensity(): void;
 	renderInboxStatus(): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
-	editingQueueItemId?: string;
-	queueEditSettlementItemId?: string;
 	updateSessionConfigVisibility(preFirst: boolean): void;
 	updateGateRow(): void;
 }
@@ -235,8 +234,8 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		const readiness = getConversationSessionReadiness(host.stubService);
 		host.timelineTree?.setEmptyStateKind?.(conversationTimelineEmptyKind(readiness));
 		const preFirst = isPreFirst(host);
-		if (preFirst && host.composerPolicy !== 'compose') {
-			host.exitComposerEdit(true, !engineQueueEditMustKeepHold(host, host.editingQueueItemId));
+		if (preFirst && host.composerModel.policy !== 'compose') {
+			host.exitComposerEdit(true, !engineQueueEditMustKeepHold(host, host.composerModel.editingQueueItemId));
 		}
 		const nextPhase = preFirst ? 'prefirst' : 'active';
 		if (host.conversationPhase === nextPhase) {

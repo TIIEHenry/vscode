@@ -84,11 +84,9 @@ suite('ConversationSessionReadinessSurface', () => {
 		const host = {
 			composerModel: createTestComposerModel(store),
 			isDisposed: false,
-			composerPolicy: 'compose',
 			conversationPhase: 'active',
 			filterAgentId: undefined,
 			lastAttachedEntries: [],
-			postFailureVisible: false,
 			readingColumn,
 			prefirstHero,
 			gateRow,

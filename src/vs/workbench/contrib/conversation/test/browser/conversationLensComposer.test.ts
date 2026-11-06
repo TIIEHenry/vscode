@@ -74,7 +74,6 @@ suite('conversationLensComposer', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
 			composerModel: createTestComposerModel(disposables),
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: undefined,
 			catalogModelIds: [''],
@@ -133,7 +132,6 @@ suite('conversationLensComposer', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
 			composerModel: createTestComposerModel(disposables),
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: undefined,
 			catalogModelIds: [''],

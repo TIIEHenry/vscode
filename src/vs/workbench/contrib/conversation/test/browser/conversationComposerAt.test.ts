@@ -45,7 +45,6 @@ suite('Conversation composer @ (browser)', () => {
 			composerRefRow: document.createElement('div'),
 			composerAtSuggest: document.createElement('div'),
 			composerRefResources: [],
-			composerPolicy: 'compose' as const,
 			dockTextarea: textarea,
 			stubService: {
 				getSessions: () => [{ id: 's1', title: 'Alpha' }],

@@ -1480,7 +1480,6 @@ suite('conversationSessionView (S1)', () => {
 		const posted: ConversationWriteMessage[] = [];
 		const host = {
 			composerModel: createTestComposerModel(store),
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: 'agent-sub',
 			catalogModelIds: [''],

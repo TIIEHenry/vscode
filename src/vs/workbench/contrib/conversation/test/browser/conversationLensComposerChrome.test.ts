@@ -41,8 +41,6 @@ suite('ConversationLensComposerChrome', () => {
 		let editHostReady = false;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'turn-1',
 			composer,
 			composerCluster,
 			dockRoot,
@@ -76,7 +74,6 @@ suite('ConversationLensComposerChrome', () => {
 		let sessionReady = false;
 		const host = {
 			composerModel: createTestComposerModel(store),
-			postFailureVisible: false,
 			gateRow,
 			gateLabel,
 			stubService: {
@@ -117,7 +114,6 @@ suite('ConversationLensComposerChrome', () => {
 		gateRow.append(gateLabel);
 		const host = {
 			composerModel: createTestComposerModel(store),
-			postFailureVisible: false,
 			gateRow,
 			gateLabel,
 			stubService: {
@@ -161,7 +157,6 @@ suite('ConversationLensComposerChrome', () => {
 		let readiness: 'ready' | 'loading' | 'unavailable' = 'ready';
 		const host = {
 			composerModel: createTestComposerModel(store),
-			postFailureVisible: false,
 			dockRoot,
 			agentContainer,
 			permissionSelectBox: selectBox,
@@ -232,8 +227,6 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'turn-1',
 			composer,
 			composerCluster,
 			dockRoot,
@@ -276,8 +269,6 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'turn-1',
 			composer,
 			composerCluster,
 			dockRoot,
@@ -318,8 +309,6 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-gone' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'turn-gone',
 			composer,
 			composerCluster,
 			composerEditHeader,
@@ -369,8 +358,6 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'turn-1',
 			composer,
 			composerCluster,
 			dockRoot,

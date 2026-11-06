@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
-import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
+import type { ComposerPolicy } from '../../browser/conversationComposerModel.js';
 import { cancelQueueEdit, exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { saveQueueEdit, saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
@@ -20,7 +20,7 @@ suite('ConversationComposerEditDraft', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function deleteHost(options: {
-		composerPolicy: IConversationLensSessionBarHost['composerPolicy'];
+		composerPolicy: ComposerPolicy;
 		composeDraftSnapshot: string;
 		textarea: string;
 		deleteResult: boolean;
@@ -34,8 +34,6 @@ suite('ConversationComposerEditDraft', () => {
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: options.composerPolicy, composeDraftSnapshot: options.composeDraftSnapshot }),
 			isDisposed: false,
-			composerPolicy: options.composerPolicy,
-			composeDraftSnapshot: options.composeDraftSnapshot,
 			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
 			dockTextarea: { value: options.textarea },
 			getBoundSessionId: () => 'sess-a',
@@ -70,7 +68,7 @@ suite('ConversationComposerEditDraft', () => {
 	}
 
 	function historyHost(options: {
-		composerPolicy: IConversationLensComposerChromeHost['composerPolicy'];
+		composerPolicy: ComposerPolicy;
 		textarea: string;
 		selectionStart?: number;
 		selectionEnd?: number;
@@ -94,8 +92,6 @@ suite('ConversationComposerEditDraft', () => {
 		const engineConnected = options.engineConnected ?? false;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: options.composerPolicy }),
-			composerPolicy: options.composerPolicy,
-			inputHistoryBrowse: createInputHistoryBrowseState(),
 			dockTextarea: textarea,
 			sendButton,
 			getBoundSessionId: () => 'sess-a',
@@ -271,8 +267,6 @@ suite('ConversationComposerEditDraft', () => {
 		const written: { sessionId: string; turnId: string; text: string; agentId?: string }[] = [];
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'e1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -349,8 +343,6 @@ suite('ConversationComposerEditDraft', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'e1',
 			dockTextarea: textarea,
 			composerRefResources,
 			getBoundSessionId: () => 'sess-1',
@@ -392,8 +384,6 @@ suite('ConversationComposerEditDraft', () => {
 		const sendButton = { enabled: true };
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'e1',
 			dockTextarea: { value: 'edited body' },
 			sendButton,
 			getBoundSessionId: () => 'sess-1',
@@ -420,8 +410,6 @@ suite('ConversationComposerEditDraft', () => {
 		const sendButton = { enabled: true };
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: 'e1',
 			dockTextarea: textarea,
 			composerRefResources,
 			sendButton,
@@ -456,7 +444,6 @@ suite('ConversationComposerEditDraft', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'hello' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'hello' }),
@@ -503,7 +490,6 @@ suite('ConversationComposerEditDraft', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: textarea,
 			composerRefResources,
 			getBoundSessionId: () => 'sess-1',
@@ -551,7 +537,6 @@ suite('ConversationComposerEditDraft', () => {
 		const failures: string[] = [];
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
@@ -585,9 +570,6 @@ suite('ConversationComposerEditDraft', () => {
 		let released = 0;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1', queueEditSettlementItemId: 'q1' }),
-			composerPolicy: 'queueEdit' as const,
-			editingQueueItemId: 'q1',
-			queueEditSettlementItemId: 'q1',
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -620,13 +602,9 @@ suite('ConversationComposerEditDraft', () => {
 		textarea.value = 'keep me';
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit' as const,
-			editingQueueItemId: 'q1',
 			dockTextarea: textarea,
 			gateRow,
 			gateLabel,
-			postFailureVisible: false,
-			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
 				isEngineConnected: () => false,
@@ -667,10 +645,6 @@ suite('ConversationComposerEditDraft', () => {
 		textarea.value = 'edited';
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1', composeDraftSnapshot: 'compose draft' }),
-			composerPolicy: 'queueEdit' as const,
-			editingQueueItemId: 'q1',
-			editingTurnId: undefined as string | undefined,
-			composeDraftSnapshot: 'compose draft',
 			dockTextarea: textarea,
 			composerRefResources: [] as string[],
 			composer,
@@ -681,8 +655,6 @@ suite('ConversationComposerEditDraft', () => {
 			prefirstHero,
 			inputMaximized: false,
 			lastReadingWidth: 0,
-			postFailureVisible: false,
-			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			gateRow: document.createElement('div'),
 			gateLabel: document.createElement('div'),
 			sendButton: { enabled: true, setTitle() { }, setAriaLabel() { } },
@@ -729,7 +701,6 @@ suite('ConversationComposerEditDraft', () => {
 		let released = 0;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
@@ -766,7 +737,6 @@ suite('ConversationComposerEditDraft', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
@@ -809,8 +779,6 @@ suite('ConversationComposerEditDraft', () => {
 		const sendButton = { enabled: true };
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit' as const,
-			editingQueueItemId: 'q1',
 			dockTextarea: textarea,
 			composerRefResources,
 			sendButton,

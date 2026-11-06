@@ -1003,8 +1003,6 @@ suite('conversationComposerCatalog', () => {
 		let sessionReady = true;
 		const host = {
 			composerModel: createTestComposerModel(store),
-			postFailureVisible: false,
-			sendFailureTimeout: undefined,
 			gateRow,
 			gateLabel,
 			stubService: {
@@ -1258,8 +1256,6 @@ suite('conversationComposerCatalog', () => {
 			sessionConfigBySessionId,
 			gateRow,
 			gateLabel,
-			postFailureVisible: false,
-			sendFailureTimeout: undefined,
 			dockRoot,
 			dockTextarea: { value: 'some draft' },
 			sendButton: { enabled: true },
@@ -1409,7 +1405,6 @@ function createSubmitDraftHost(
 	const pairingPending = options?.pairingPending ?? false;
 	return {
 		composerModel: createTestComposerModel(moduleStore),
-		composerPolicy: 'compose',
 		submitInFlight: false,
 		filterAgentId: undefined,
 		catalogModelIds: ['', 'claude-code'],
@@ -1488,8 +1483,6 @@ function createLoadCatalogHost(
 		catalogToolNames: [] as string[],
 		catalogModelIds: [''] as string[],
 		modelSelectedIndex: 0,
-		composerPolicy: 'compose' as const,
-		postFailureVisible: false,
 		dockTextarea: { value: 'draft' },
 		sendButton,
 		gateRow,

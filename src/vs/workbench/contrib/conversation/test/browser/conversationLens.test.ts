@@ -3664,7 +3664,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 
 		lens.beginTurnEdit(userTurn.id);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.dockTextarea.value = 'B-typed';
@@ -3707,7 +3707,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 
 		lens.beginQueueEdit('q-edit');
-		assert.strictEqual(lens.composerPolicy, 'queueEdit');
+		assert.strictEqual(lens.composerModel.policy, 'queueEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.switchToSession(sessionB);
@@ -3724,7 +3724,7 @@ suite('ConversationLens', () => {
 		const sessionB = stubService.createSession();
 		stubService.switchSession(sessionA);
 
-		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.composerModel.policy, 'compose');
 		getDockTextarea(slots).value = 'live compose';
 		lens.switchToSession(sessionB);
 
@@ -3743,7 +3743,7 @@ suite('ConversationLens', () => {
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 
 		lens.beginTurnEdit(userTurn.id);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.createNewSession();
@@ -3770,7 +3770,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
 
 		lens.beginTurnEdit(userTurn.id);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
@@ -3834,7 +3834,7 @@ suite('ConversationLens', () => {
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 
 		lens.beginTurnEdit(userTurn.id);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
@@ -3856,7 +3856,7 @@ suite('ConversationLens', () => {
 		const { part, lens } = mountLens({ stubService: roster });
 		const slots = getLensSlots(part);
 		const sessionId = roster.getActiveSessionId();
-		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.composerModel.policy, 'compose');
 		getDockTextarea(slots).value = 'live compose';
 
 		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
@@ -3879,7 +3879,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 
 		lens.beginTurnEdit(userTurn.id);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.dockTextarea.value = '';
@@ -3904,7 +3904,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 
 		lens.beginTurnEdit(userTurn.id);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
 		lens.dockTextarea.value = '';
@@ -3912,16 +3912,16 @@ suite('ConversationLens', () => {
 		lens.dockTextarea.selectionEnd = 0;
 		dispatchDockKeydown(lens.dockTextarea, KeyCode.UpArrow);
 		assert.strictEqual(lens.dockTextarea.value, 'B');
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 
 		dispatchDockKeydown(lens.dockTextarea, KeyCode.Escape);
-		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, '');
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 
 		dispatchDockKeydown(lens.dockTextarea, KeyCode.Escape);
-		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.composerModel.policy, 'compose');
 		assert.strictEqual(lens.dockTextarea.value, 'A');
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 	});
@@ -3933,7 +3933,7 @@ suite('ConversationLens', () => {
 		const userTurn = stubService.appendUserTurn(sessionA, 'sent history');
 		assert.ok(userTurn);
 
-		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.composerModel.policy, 'compose');
 		getDockTextarea(slots).value = '';
 		assert.ok(lens.navigateInputHistory('older'));
 		assert.strictEqual(getDockTextarea(slots).value, 'sent history');

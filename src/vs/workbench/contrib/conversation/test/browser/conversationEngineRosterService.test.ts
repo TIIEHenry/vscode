@@ -4850,7 +4850,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const failures: string[] = [];
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited body' },
 			getBoundSessionId: () => 'ua-only',
 			getEditingQueueItem: () => service.getMessageQueueState('ua-only').items.find(row => row.id === 'q1'),
@@ -4921,7 +4920,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const failures: string[] = [];
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited body' },
 			getBoundSessionId: () => 'ua-only',
 			getEditingQueueItem: () => service.getMessageQueueState('ua-only').items.find(row => row.id === 'q1'),

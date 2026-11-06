@@ -41,7 +41,6 @@ import type { ConversationComposerModel } from './conversationComposerModel.js';
 export interface IConversationLensComposerHost {
 	readonly composerModel: ConversationComposerModel;
 	filterAgentId: string | undefined;
-	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight: boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
@@ -55,8 +54,6 @@ export interface IConversationLensComposerHost {
 	/** Enabled registry ids from the last successful model list. */
 	enabledModelIds?: readonly string[];
 	drafts: Map<string, string>;
-	editingTurnId: string | undefined;
-	editingQueueItemId: string | undefined;
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	dockTextarea: HTMLTextAreaElement;
 	sendButton: Button;
@@ -77,8 +74,6 @@ export interface IConversationLensComposerHost {
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	resetInputHistoryBrowse(): void;
 	renderInboxStatus(): void;
-	/** Item whose Hold, Edit, or Release is still waiting for an explicit engine answer. */
-	queueEditSettlementItemId?: string;
 	readComposerDraft(sessionId: string): string;
 	updateConversationPhase(): void;
 }

@@ -112,7 +112,7 @@ export function samePublishedEngineLink(host: PublishedEngineLinkHost | undefine
  * Stub queues (no readState) stay on the synchronous local hold.
  */
 export function engineQueueEditMustKeepHold(host: {
-	queueEditSettlementItemId?: string;
+	readonly composerModel: { readonly queueEditSettlementItemId: string | undefined };
 	stubService: {
 		isEngineConnected(): boolean;
 		isEngineSessionReady?(): boolean;
@@ -122,7 +122,7 @@ export function engineQueueEditMustKeepHold(host: {
 	uaConnection?: IConversationPairingHoldSource;
 	getBoundSessionId(): string;
 }, itemId: string | undefined): boolean {
-	if (itemId && host.queueEditSettlementItemId === itemId) {
+	if (itemId && host.composerModel.queueEditSettlementItemId === itemId) {
 		return true;
 	}
 	const state = host.stubService.getMessageQueueState?.(host.getBoundSessionId());

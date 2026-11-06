@@ -57,7 +57,6 @@ import { ENGINE_MODELS_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_
 import {
 	buildSessionUserInputHistory,
 	exitInputHistoryBrowse as exitInputHistoryBrowseModel,
-	InputHistoryBrowseState,
 	InputHistoryDirection,
 	inputHistoryCaretAfterRecall,
 	inputHistoryCaretAllowsBrowse,
@@ -119,19 +118,11 @@ export interface ConversationSessionConfigSelection {
 
 export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	readonly composerModel: ConversationComposerModel;
-	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight?: boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
 	displayMode?: () => ConversationDisplayMode;
-	editingTurnId: string | undefined;
-	editingQueueItemId: string | undefined;
-	/** Item whose Hold, Edit, or Release is still waiting for an explicit engine answer. */
-	queueEditSettlementItemId?: string;
-	composeDraftSnapshot: string;
 	inputMaximized: boolean;
-	postFailureVisible: boolean;
-	sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 	lastReadingWidth: number;
 	catalogToolNames: readonly string[];
 	readonly commandService: ICommandService;
@@ -142,12 +133,9 @@ export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
 	modelProfileIdBySessionId?: Map<string, string>;
 	modelSelectBox: SelectBox;
-	inputHistoryBrowse: InputHistoryBrowseState;
 	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
 	addButton: Button;
 	addContextView: IOpenContextView | undefined;
-	tuneContextView: IOpenContextView | undefined;
-	moreContextView: IOpenContextView | undefined;
 	dockTextarea: HTMLTextAreaElement;
 	sendButton: Button;
 	tuneButton: Button;

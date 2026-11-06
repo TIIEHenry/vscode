@@ -62,8 +62,6 @@ suite('ConversationDeleteSessionConfirm', () => {
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', composeDraftSnapshot: 'draft' }),
 			isDisposed: false,
-			composerPolicy: 'turnEdit',
-			composeDraftSnapshot: 'draft',
 			getBoundSessionId: () => 's1',
 			listSessionId: () => 's1',
 			writeComposerDraft: () => { draftWrites++; },

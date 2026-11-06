@@ -31,6 +31,7 @@ import {
 } from './conversationComposerRefs.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationTimelineLinkHit, resolveConversationTimelineLink } from './resolveConversationTimelineLink.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 
 const conversationComposerAtEmpty = localize('conversation.composerAtEmpty', "No matching sessions");
 const conversationComposerAtList = localize('conversation.composerAtList', "Matching sessions");
@@ -43,7 +44,7 @@ export interface IComposerAtHost extends IComposerSurfaceHost {
 	composerRefRow: HTMLElement;
 	composerAtSuggest: HTMLElement;
 	composerRefResources: string[];
-	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
+	readonly composerModel: Pick<ConversationComposerModel, 'policy'>;
 	dockTextarea: HTMLTextAreaElement;
 	readonly stubService: IConversationRosterService;
 	readonly instantiationService: IInstantiationService;
@@ -179,7 +180,7 @@ export function addComposerContextRef(host: IComposerAtHost, resource: string): 
 	}
 	host.composerRefResources.push(resource);
 	renderComposerRefChipRow(host);
-	if (host.composerPolicy === 'compose') {
+	if (host.composerModel.policy === 'compose') {
 		host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 	}
 	host.updateSendEnabled();
@@ -322,7 +323,7 @@ export function renderComposerRefChipRow(host: IComposerAtHost, binding = bindin
 				host.composerRefResources.splice(index, 1);
 			}
 			renderComposerRefChipRow(host, binding);
-			if (host.composerPolicy === 'compose') {
+			if (host.composerModel.policy === 'compose') {
 				host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 			}
 			host.updateSendEnabled();
@@ -467,7 +468,7 @@ function selectComposerAtCandidate(host: IComposerAtHost, binding: IComposerAtBi
 	host.composerRefResources.splice(0, host.composerRefResources.length, ...next.refs);
 	closeComposerAtSuggest(host, binding);
 	renderComposerRefChipRow(host, binding);
-	if (host.composerPolicy === 'compose') {
+	if (host.composerModel.policy === 'compose') {
 		host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 	}
 	host.updateSendEnabled();

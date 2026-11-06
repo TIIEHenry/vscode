@@ -56,7 +56,6 @@ suite('Conversation composer @ chips', () => {
 			dockTextarea: textarea,
 			composerRefResources,
 			drafts,
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			catalogModelIds: ['model-a'],
 			modelSelectedIndex: 0,
@@ -126,8 +125,6 @@ suite('Conversation composer @ chips', () => {
 		saveTurnEdit({
 			...editing.base,
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'u1' }),
-			composerPolicy: 'turnEdit',
-			editingTurnId: 'u1',
 			stubService: {
 				isEngineConnected: () => true,
 				isEngineSessionReady: () => true,
@@ -145,7 +142,6 @@ suite('Conversation composer @ chips', () => {
 		saveQueueEdit({
 			...queueEdit.base,
 			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
-			composerPolicy: 'queueEdit',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'old' }),
 			stubService: {
 				isEngineConnected: () => true,

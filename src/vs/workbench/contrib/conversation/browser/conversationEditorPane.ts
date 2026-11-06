@@ -33,6 +33,7 @@ import { IConversationSessionWindowService } from './conversationSessionWindowSe
 import { shouldAutoFocusComposer } from '../common/uaClientSettingsHelpers.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 
 export class ConversationEditorPane extends EditorPane implements IConversationLeafPaneAccessors {
 
@@ -285,12 +286,8 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		syncLease();
 	}
 
-	get composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {
-		return this.lens?.composerPolicy ?? 'compose';
-	}
-
-	get composeDraftSnapshot(): string {
-		return this.lens?.composeDraftSnapshot ?? '';
+	get composerModel(): Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'> {
+		return this.lens?.composerModel ?? { policy: 'compose', composeDraftSnapshot: '' };
 	}
 
 	writeComposerDraft(sessionId: string, text: string): void {

@@ -112,21 +112,12 @@ suite('conversation lens dispose gate', () => {
 		});
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			composerPolicy: 'compose' as const,
-			inputHistoryBrowse: { browseIndex: -1, savedDraft: '' },
 			modelSelectedIndex: 0,
 			catalogToolNames: [],
 			catalogModelIds: [''],
 			sessionConfigBySessionId: new Map(),
-			postFailureVisible: false,
-			sendFailureTimeout: undefined,
 			lastReadingWidth: 800,
 			inputMaximized: false,
-			composeDraftSnapshot: '',
-			editingTurnId: undefined,
-			editingQueueItemId: undefined,
-			tuneContextView: undefined,
-			moreContextView: undefined,
 			configurationService: { getValue: () => undefined },
 			instantiationService: {
 				createInstance: () => ({ dispose() { } }),
@@ -197,21 +188,12 @@ suite('conversation lens dispose gate', () => {
 		});
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			composerPolicy: 'compose' as const,
-			inputHistoryBrowse: { browseIndex: -1, savedDraft: '' },
 			modelSelectedIndex: 0,
 			catalogToolNames: [],
 			catalogModelIds: ['', 'gpt-test'],
 			sessionConfigBySessionId: new Map([['sess-1', { agentIndex: 0, permissionIndex: 0 }]]),
-			postFailureVisible: false,
-			sendFailureTimeout: undefined,
 			lastReadingWidth: 800,
 			inputMaximized: false,
-			composeDraftSnapshot: '',
-			editingTurnId: undefined,
-			editingQueueItemId: undefined,
-			tuneContextView: undefined,
-			moreContextView: undefined,
 			configurationService: { getValue: () => undefined },
 			instantiationService: {
 				createInstance: () => ({ dispose() { } }),
@@ -800,7 +782,6 @@ suite('conversation lens dispose gate', () => {
 			isDisposed: false,
 			lensId: 'conversation' as const,
 			filterAgentId: undefined,
-			composerPolicy: 'compose' as const,
 			conversationPhase: 'prefirst' as const,
 			lastAttachedEntries: [],
 			sessionViewLease: leftoverLeaseSnapshot(leftover),
@@ -1551,6 +1532,7 @@ suite('conversation lens dispose gate', () => {
 		};
 		lifetime.add(lifetimeMarker);
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			isDisposed: false,
 			sessionViewLifetime: lifetime,
 			sessionViewLease: priorLease,
@@ -2339,10 +2321,7 @@ suite('conversation lens dispose gate', () => {
 		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0 };
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { editingTurnId: 'turn-1', editingQueueItemId: 'q1' }),
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
-			editingTurnId: 'turn-1',
-			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
 			getBoundSessionId: () => 'sess-leftover',
@@ -2451,15 +2430,12 @@ suite('conversation lens dispose gate', () => {
 		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0, exited: 0 };
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { editingTurnId: 'turn-1', editingQueueItemId: 'q1' }),
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: undefined,
 			catalogModelIds: [''],
 			modelSelectedIndex: 0,
 			drafts: new Map<string, string>(),
 			configurationService: { getValue: () => false },
-			editingTurnId: 'turn-1',
-			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
 			getBoundSessionId: () => 'sess-leftover',
@@ -2709,10 +2685,7 @@ suite('conversation lens dispose gate', () => {
 	} {
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			composerPolicy: 'compose' as const,
 			submitInFlight: false,
-			editingTurnId: undefined as string | undefined,
-			editingQueueItemId: undefined as string | undefined,
 			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
 			getBoundSessionId: () => 'sess-leftover',
@@ -2925,8 +2898,6 @@ suite('conversation lens dispose gate', () => {
 			sessionTitleEditing: false,
 			sessionTitleEditSnapshot: 'A',
 			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
-			composerPolicy: 'compose',
-			composeDraftSnapshot: 'Saved compose snapshot must not replace the live draft',
 			dockTextarea: { value: 'leftover draft' },
 			getBoundSessionId: () => 'ua-a',
 			listSessionId: () => 'ua-a',
@@ -3183,15 +3154,11 @@ suite('conversation lens dispose gate', () => {
 			modelSelectedIndex: options?.modelSelectedIndex ?? 0,
 			sessionConfigBySessionId,
 			lastReadingWidth: options?.lastReadingWidth ?? 300,
-			postFailureVisible: false,
-			tuneContextView: undefined as { close(): void } | undefined,
-			moreContextView: undefined as { close(): void } | undefined,
 			dockRoot,
 			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
 			gateRow,
 			gateLabel,
-			composerPolicy: 'compose' as const,
 			permissionSelectBox: {
 				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
 				setAriaLabel() { },
@@ -3467,13 +3434,10 @@ suite('conversation lens dispose gate', () => {
 			modelSelectedIndex: 0,
 			sessionConfigBySessionId,
 			lastReadingWidth: 300,
-			tuneContextView: undefined as { close(): void } | undefined,
-			moreContextView: undefined as { close(): void } | undefined,
 			dockRoot,
 			sendButton: { enabled: true },
 			gateRow,
 			gateLabel,
-			composerPolicy: 'compose' as const,
 			dockTextarea: { value: '' },
 			permissionSelectBox: {
 				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
@@ -3922,11 +3886,9 @@ suite('conversation lens dispose gate', () => {
 			modelSelectedIndex: 1,
 			modelProfileIdBySessionId,
 			sessionConfigBySessionId: new Map<string, { agentIndex: number; permissionIndex: number }>(),
-			postFailureVisible: false,
 			gateRow,
 			gateLabel,
 			sendButton: { enabled: true },
-			composerPolicy: 'compose' as const,
 			dockTextarea: { value: '' },
 			permissionSelectBox: { select() { } },
 			agentSelectBox: { select() { } },
@@ -4006,9 +3968,7 @@ suite('conversation lens dispose gate', () => {
 			modelSelectedIndex: 0,
 			modelProfileIdBySessionId,
 			sessionConfigBySessionId: new Map<string, { agentIndex: number; permissionIndex: number }>(),
-			postFailureVisible: false,
 			submitInFlight: false,
-			composerPolicy: 'compose' as const,
 			drafts: new Map<string, string>(),
 			dockTextarea: { value: 'hello' },
 			sendButton: { enabled: true },
@@ -4220,8 +4180,6 @@ suite('conversation lens dispose gate', () => {
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
 			sessionConfigBySessionId,
-			postFailureVisible: false,
-			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			permissionSelectBox: {
 				setEnabled() { },
 				setAriaLabel() { },
@@ -4558,7 +4516,6 @@ suite('conversation lens dispose gate', () => {
 		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			composerPolicy: 'compose',
 			submitInFlight: false,
 			modelSelectedIndex: 0,
 			dockTextarea: { value: 'hello' },
@@ -4885,8 +4842,6 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit',
-			editingTurnId: 'turn-1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4915,8 +4870,6 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit',
-			editingTurnId: 'turn-1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4944,8 +4897,6 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
-			composerPolicy: 'turnEdit',
-			editingTurnId: 'turn-1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4976,8 +4927,6 @@ suite('conversation lens dispose gate', () => {
 		const written: { sessionId: string; turnId: string; text: string }[] = [];
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: options.editingTurnId }),
-			composerPolicy: 'turnEdit' as const,
-			editingTurnId: options.editingTurnId,
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -5049,10 +4998,6 @@ suite('conversation lens dispose gate', () => {
 		dockTextarea.value = 'draft';
 		const chromeHost = {
 			composerModel: createTestComposerModel(suiteStore),
-			composerPolicy: 'compose' as const,
-			editingTurnId: undefined as string | undefined,
-			editingQueueItemId: undefined as string | undefined,
-			composeDraftSnapshot: '',
 			dockTextarea,
 			sendButton: { enabled: true, setTitle() { }, setAriaLabel() { } },
 			composer,
@@ -5091,8 +5036,6 @@ suite('conversation lens dispose gate', () => {
 		let renderedInbox = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit',
-			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
@@ -5126,8 +5069,6 @@ suite('conversation lens dispose gate', () => {
 		let released = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit',
-			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
@@ -5160,8 +5101,6 @@ suite('conversation lens dispose gate', () => {
 		let renderedInbox = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
-			composerPolicy: 'queueEdit',
-			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
@@ -5522,8 +5461,6 @@ suite('conversation lens dispose gate', () => {
 		gateRow.appendChild(gateLabel);
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			postFailureVisible: false,
-			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			gateRow,
 			gateLabel,
 		} as unknown as IConversationLensComposerChromeHost;
@@ -5553,8 +5490,6 @@ suite('conversation lens dispose gate', () => {
 		gateRow.appendChild(gateLabel);
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			postFailureVisible: false,
-			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			gateRow,
 			gateLabel,
 		} as unknown as IConversationLensComposerChromeHost;

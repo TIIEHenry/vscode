@@ -30,7 +30,7 @@ import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, 
 import type { SessionViewSnapshot, SyncChrome, TimelineItemSummary } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { conversationLensInputMaximizedClass, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
-import { InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
+import { InputHistoryDirection } from './conversationInputHistory.js';
 import { ConversationComposerModel } from './conversationComposerModel.js';
 import { findFirstInboxPendingConfirmationTurnId, scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
@@ -144,7 +144,6 @@ import {
 	updateSendEnabled,
 	updateSessionConfigVisibility,
 	updateComposerSingleLineLayout,
-	type ComposerPolicy,
 	type ConversationSessionConfigSelection,
 } from './conversationLensComposerChrome.js';
 
@@ -281,16 +280,6 @@ export class ConversationLens extends Disposable {
 	inputMaximized = false;
 	conversationPhase: 'prefirst' | 'active' | undefined;
 	readonly composerModel = this._register(new ConversationComposerModel());
-	get composerPolicy(): ComposerPolicy { return this.composerModel.policy; }
-	get editingTurnId(): string | undefined { return this.composerModel.editingTurnId; }
-	get editingQueueItemId(): string | undefined { return this.composerModel.editingQueueItemId; }
-	get queueEditSettlementItemId(): string | undefined { return this.composerModel.queueEditSettlementItemId; }
-	get composeDraftSnapshot(): string { return this.composerModel.composeDraftSnapshot; }
-	get inputHistoryBrowse(): InputHistoryBrowseState { return this.composerModel.inputHistoryBrowse; }
-	get tuneContextView(): IOpenContextView | undefined { return this.composerModel.tuneContextView; }
-	get moreContextView(): IOpenContextView | undefined { return this.composerModel.moreContextView; }
-	get postFailureVisible(): boolean { return this.composerModel.postFailureVisible; }
-	get sendFailureTimeout(): ReturnType<typeof setTimeout> | undefined { return this.composerModel.sendFailureTimeout; }
 
 	readonly drafts = new Map<string, string>();
 	readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
@@ -418,8 +407,8 @@ export class ConversationLens extends Disposable {
 
 		this._register(toDisposable(() => {
 			this.addContextView?.close();
-			this.tuneContextView?.close();
-			this.moreContextView?.close();
+			this.composerModel.tuneContextView?.close();
+			this.composerModel.moreContextView?.close();
 			if (slots.sessionBar) {
 				reset(slots.sessionBar);
 			}
@@ -440,7 +429,7 @@ export class ConversationLens extends Disposable {
 		if (this.boundSessionId === next) {
 			return;
 		}
-		if (this.dockTextarea && this.composerPolicy === 'compose') {
+		if (this.dockTextarea && this.composerModel.policy === 'compose') {
 			this.writeComposerDraft(this.getBoundSessionId(), composerDraftText(this));
 		}
 		this.boundSessionId = next;
@@ -480,7 +469,7 @@ export class ConversationLens extends Disposable {
 		if (this.filterAgentId === agentId) {
 			return;
 		}
-		if (this.dockTextarea && this.composerPolicy === 'compose') {
+		if (this.dockTextarea && this.composerModel.policy === 'compose') {
 			this.writeComposerDraft(this.getBoundSessionId(), composerDraftText(this));
 		}
 		this.filterAgentId = agentId;

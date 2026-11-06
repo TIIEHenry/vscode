@@ -26,7 +26,6 @@ suite('ConversationLensProjection', () => {
 			isDisposed: false,
 			lensId: 'conversation' as const,
 			filterAgentId: undefined,
-			composerPolicy: 'compose' as const,
 			conversationPhase: 'active' as const,
 			lastAttachedEntries: [],
 			getBoundSessionId: () => 'sess-B',

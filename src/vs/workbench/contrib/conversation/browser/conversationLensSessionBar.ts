@@ -39,6 +39,7 @@ import type { ConversationComposerPostFailureReason } from './conversationLensDo
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText, composerDraftText } from './conversationComposerRefs.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 
 export interface IConversationLensSessionBarHost {
 	readonly isDisposed: boolean;
@@ -63,8 +64,7 @@ export interface IConversationLensSessionBarHost {
 	engineHistoryList: ConversationEngineHistoryList | undefined;
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
 	dockTextarea: HTMLTextAreaElement;
-	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
-	composeDraftSnapshot: string;
+	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'>;
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly dialogService: IDialogService;
@@ -668,7 +668,7 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 }
 
 function outgoingComposerDraftText(host: IConversationLensSessionBarHost): string {
-	return host.composerPolicy !== 'compose' ? host.composeDraftSnapshot : composerDraftText(host);
+	return host.composerModel.policy !== 'compose' ? host.composerModel.composeDraftSnapshot : composerDraftText(host);
 }
 
 export function createNewSession(host: IConversationLensSessionBarHost): void {

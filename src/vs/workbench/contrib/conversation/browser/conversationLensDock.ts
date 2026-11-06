@@ -38,7 +38,6 @@ import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelp
 import { noteComposerAtInput, onComposerAtKeyDown, toggleComposerAddContext, wireComposerAt } from './conversationComposerAt.js';
 import { COMPOSER_IME_COMMIT_GUARD_MS, isComposerImeBlockedEnter, isComposerImeCommitGuardEnter } from './conversationComposerIme.js';
 import { composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
-import { InputHistoryBrowseState } from './conversationInputHistory.js';
 import type { ConversationComposerModel } from './conversationComposerModel.js';
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
@@ -98,8 +97,6 @@ export interface IConversationLensDockHost {
 	maximizeInputButton: Button;
 	sendButton: Button;
 	readonly composerModel: ConversationComposerModel;
-	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
-	inputHistoryBrowse: InputHistoryBrowseState;
 	readonly stubService: IConversationRosterService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
