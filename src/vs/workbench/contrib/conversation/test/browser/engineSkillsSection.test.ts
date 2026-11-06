@@ -7,18 +7,14 @@ import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationError, errorHandler, isCancellationError, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import type {
-	UniverseAgentConnectionSnapshot,
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentListSkillsResult,
 	UniverseAgentSaveSkillContentRequest,
-	UniverseAgentSessionEvent,
-	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
@@ -30,6 +26,7 @@ import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy 
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { getSkillsUnsupportedCopy } from '../../browser/engineSkillCatalog.js';
 import { localize } from '../../../../../nls.js';
+import { createMutableConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 const SKILLS_FEATURE = localize('ua.engineSkillsFeatureLabel', "a skills API");
 const SKILLS_EMPTY_COPY = localize('ua.engineSkillsEmpty', "No skills yet.");
@@ -65,112 +62,47 @@ suite('EngineSkillsSection (E1)', () => {
 			...createEmptyCapabilitySnapshot(),
 			skills: skillsCapability,
 		};
-		let connected = options.connected ?? false;
-		let pairingPending = false;
-		let looksLive = options.looksLive ?? false;
-		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
-
-		let engineIdentityId = 'engine-test';
-		let linkId = 1;
-		const snapshot = (): UniverseAgentConnectionSnapshot => ({
-			transport: connected ? 'ok' : 'idle',
-			authenticated: connected,
-			pairingPending,
-			channelAlive: connected,
-			sharedFsRootSent: false,
-			capabilities, engineIdentityId, linkId,
-		});
-
-		return {
-			_serviceBrand: undefined,
-			isEngineConnected: () => connected && (looksLive || !pairingPending),
-			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
-			getTransportState: () => (connected ? 'ok' : 'idle'),
-			getConnectionSnapshot: snapshot,
-			getCapabilitySnapshot: () => capabilities,
-			onDidChangeConnection: onDidChangeConnection.event,
-			onDidFileMutation: Event.None,
-			onDidTurnSettle: Event.None,
-			onDidChangeTeamRuntime: Event.None,
-			requestAgentTreeRefresh: () => { },
-			getNavigatorCapability: () => 'UNKNOWN' as const,
-			isAgentTreeFetchFailed: () => false,
-			team: {
-				memberStatus: async () => [],
-				taskList: async () => [],
-				teamInfo: async () => undefined,
+		const stub = createMutableConversationConnectionTestStub({
+			connected: options.connected ?? false,
+			pairingPending: false,
+			looksLive: options.looksLive ?? false,
+			capabilities,
+			engineIdentityId: 'engine-test',
+			linkId: 1,
+			publishedLink: 'always',
+			overrides: {
+				listSkills: options.listSkills ?? (async () => ({
+					skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+				})),
+				setSkillEnabled: options.setSkillEnabled ?? (async () => ({ ok: true })),
+				getSkillInfo: options.getSkillInfo ?? (async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true })),
+				saveSkillContent: options.saveSkillContent ?? (async () => ({ ok: true })),
 			},
-			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			cancelPairing: async () => { },
-			probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			renameSession: async () => ({ ok: false, message: 'stub' }),
-			cancelGeneration: async () => ({ ok: false, message: 'stub' }),
-			enqueueQueueItem: async () => ({ ok: false, error: 'stub' }),
-			pauseQueue: async () => ({ ok: false, error: 'stub' }),
-			resumeQueue: async () => ({ ok: false, error: 'stub' }),
-			clearQueue: async () => ({ ok: false, error: 'stub' }),
-			holdQueueItem: async () => ({ ok: false, error: 'stub' }),
-			releaseQueueItemHold: async () => ({ ok: false, error: 'stub' }),
-			editQueueItem: async () => ({ ok: false, error: 'stub' }),
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: (
-				_sessionId: string,
-				_listener: (event: UniverseAgentSessionEvent) => void,
-				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-			) => ({ dispose: () => { } }),
-			chat: async () => { },
-			listSkills: options.listSkills ?? (async () => ({
-				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
-			})),
-			setSkillEnabled: options.setSkillEnabled ?? (async () => ({ ok: true })),
-			getSkillInfo: options.getSkillInfo ?? (async () => ({ name: 'demo-skill', content: '# Demo', source: 'bundled', enabled: true })),
-			saveSkillContent: options.saveSkillContent ?? (async () => ({ ok: true })),
-			listAgentProfiles: async () => ({ profiles: [] }),
-			saveAgentProfile: async (request) => ({ profile: request.profile }),
-			deleteAgentProfile: async () => ({ ok: true }),
-			resetAgentProfile: async () => ({ ok: true }),
-			listMcpServers: async () => ({ servers: [] }),
-			getMcpServerStatuses: async () => ({ statuses: [] }),
-			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: async () => ({ plugins: [] }),
-			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
-			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			unloadPlugin: async () => ({ removedHookCount: 0 }),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
-			addMcpServer: async () => ({ ok: true }),
-			updateMcpServer: async () => ({ ok: true }),
-			removeMcpServer: async () => ({ ok: true }),
-			listTools: async () => ({ tools: [] }),
-			listModels: async () => ({ models: [] }),
-			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
-			setPublishedLink(identity: string, link: number) { engineIdentityId = identity; linkId = link; onDidChangeConnection.fire(snapshot()); },
-			setPublishedLinkQuiet(identity: string, link: number) { engineIdentityId = identity; linkId = link; },
+		});
+		const { state } = stub;
+
+		return Object.assign(stub.connection, {
+			setPublishedLink(identity: string, link: number) { state.engineIdentityId = identity; state.linkId = link; stub.notify(); },
+			setPublishedLinkQuiet(identity: string, link: number) { state.engineIdentityId = identity; state.linkId = link; },
 			setConnected(value: boolean) {
-				connected = value;
-				onDidChangeConnection.fire(snapshot());
+				state.connected = value;
+				stub.notify();
 			},
 			setPairingPending(value: boolean) {
-				pairingPending = value;
-				onDidChangeConnection.fire(snapshot());
+				state.pairingPending = value;
+				stub.notify();
 			},
 			setPairingPendingQuiet(value: boolean) {
-				pairingPending = value;
+				state.pairingPending = value;
 			},
 			setLooksLive(value: boolean) {
-				looksLive = value;
+				state.looksLive = value;
 			},
 			setSkillsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				skillsCapability.support = support;
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
-		};
+		});
 	}
 
 	function mountSection(connection: IUniverseAgentConnection, dialog?: IDialogService): EngineSkillsSection {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
@@ -130,4 +130,76 @@ export function createConversationConnectionTestStub(
 		probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 		...overrides,
 	};
+}
+
+export interface IMutableConversationConnectionTestStubState {
+	connected: boolean;
+	pairingPending: boolean;
+	looksLive: boolean;
+	engineIdentityId: string | undefined;
+	linkId: number | undefined;
+}
+
+export interface IMutableConversationConnectionTestStubInit {
+	readonly connected: boolean;
+	readonly pairingPending: boolean;
+	readonly looksLive: boolean;
+	/** Held by reference: the caller mutates the capability entries it keeps, then calls `notify()`. */
+	readonly capabilities: UniverseAgentCapabilitySnapshot;
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number | undefined;
+	/** Which connection snapshots carry the published engine identity and link serial. */
+	readonly publishedLink: 'always' | 'whenConnected' | 'never';
+	/** Applied last. Accessors keep working because the property descriptors are copied. */
+	readonly overrides?: Partial<IUniverseAgentConnection>;
+}
+
+export interface IMutableConversationConnectionTestStub {
+	readonly connection: IUniverseAgentConnection;
+	/** Not disposed here. The test registers it where it used to create it. */
+	readonly onDidChangeConnectionEmitter: Emitter<UniverseAgentConnectionSnapshot>;
+	/** Quiet mutation. Call `notify()` to publish. */
+	readonly state: IMutableConversationConnectionTestStubState;
+	snapshot(): UniverseAgentConnectionSnapshot;
+	notify(): void;
+}
+
+/**
+ * Switchable connection for the engine section tests. Every default (connected,
+ * pairing, capability support, published link) comes from the caller so each
+ * test file keeps its own. `isEngineConnected` follows the production pairing-hold rule.
+ */
+export function createMutableConversationConnectionTestStub(init: IMutableConversationConnectionTestStubInit): IMutableConversationConnectionTestStub {
+	const state: IMutableConversationConnectionTestStubState = {
+		connected: init.connected,
+		pairingPending: init.pairingPending,
+		looksLive: init.looksLive,
+		engineIdentityId: init.engineIdentityId,
+		linkId: init.linkId,
+	};
+	const onDidChangeConnectionEmitter = new Emitter<UniverseAgentConnectionSnapshot>();
+	const snapshot = (): UniverseAgentConnectionSnapshot => ({
+		transport: state.connected ? 'ok' : 'idle',
+		authenticated: state.connected,
+		pairingPending: state.pairingPending,
+		channelAlive: state.connected,
+		sharedFsRootSent: false,
+		capabilities: init.capabilities,
+		...(init.publishedLink === 'always' ? { engineIdentityId: state.engineIdentityId, linkId: state.linkId }
+			: init.publishedLink === 'whenConnected' && state.connected ? { engineIdentityId: state.engineIdentityId, linkId: state.linkId }
+				: {}),
+	});
+	const connection = createConversationConnectionTestStub({
+		isEngineConnected: () => state.connected && (state.looksLive || !state.pairingPending),
+		getConnectionPhase: () => ({ kind: state.connected ? 'connected' : 'disconnected', path: 'loopback' }),
+		getTransportState: () => (state.connected ? 'ok' : 'idle'),
+		getConnectionSnapshot: snapshot,
+		getCapabilitySnapshot: () => init.capabilities,
+		onDidChangeConnection: onDidChangeConnectionEmitter.event,
+		disconnect: async () => { state.connected = false; onDidChangeConnectionEmitter.fire(snapshot()); },
+	});
+	if (init.overrides) {
+		Object.defineProperties(connection, Object.getOwnPropertyDescriptors(init.overrides));
+	}
+	return { connection, onDidChangeConnectionEmitter, state, snapshot, notify: () => onDidChangeConnectionEmitter.fire(snapshot()) };
 }
