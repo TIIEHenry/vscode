@@ -30,6 +30,7 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { EngineCatalogSectionController } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { EngineRefreshGate } from './engineWriteGate.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -152,6 +153,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	private toolsTotal: number | undefined;
 	private toolsCachedAt: number | undefined;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 	private toolsGeneration = 0;
 	private ignoreSelection = false;
 	private leftoverCatalogToolsFailReason: string | undefined;
@@ -166,6 +168,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		super();
 
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 		this.container = DOM.append(parent, $('.engine-mcp-runtime-panel.engine-catalog-section'));
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
@@ -330,7 +333,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.refreshButton.enabled = false;
@@ -341,11 +344,11 @@ export class EngineMcpRuntimePanel extends Disposable {
 			if (this.hasLeftoverRuntimeTools()) {
 				this.keepLeftoverRuntimeToolsDisconnected();
 			}
-			return;
-		}
-		this.clearRuntimePresentation();
-		this.mode = resolveEngineCatalogPaneMode(false, support);
-		this.renderStatus();
+		}, () => {
+			this.clearRuntimePresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+		});
 	}
 
 	private async refresh(options?: { readonly forceTools?: boolean }): Promise<void> {
