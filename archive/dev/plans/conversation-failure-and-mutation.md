@@ -12,8 +12,8 @@ summary: "§1、§2、§4 为明确不做改动/行为验证通过（explicit no
 覆盖需求：无（正文未引用需求编号）。
 
 
-> **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G8、G9、G12、G13、G14、G18。
-> **不推翻：** [engine-gap-queue-send-attachments](engine-gap-queue-send-attachments.md) 的生成中禁用 Send。不签收 G-CORE-2 的 S5。不升 PRD。
+> **触发：** [功能缺口审查 2026-10-16](../../../dev/plans/review-2026-10-16-feature-gaps.md) G8、G9、G12、G13、G14、G18。
+> **不推翻：** [engine-gap-queue-send-attachments](../../../dev/plans/engine-gap-queue-send-attachments.md) 的生成中禁用 Send。不签收 G-CORE-2 的 S5。不升 PRD。
 > **落地：** `status: implemented`。§1（Kill 与 Continue）、§2（失败不回滚）、§4（mailbox 与 AutoDrive 空列表）明确为不做改动与行为验证（explicit no-op decisions/verifications）；§3（缺字段的 file_mutation 累加 unattributedDropCount 计数）已于 `83ef402a254`（Slot B）落地合入。不升 PRD。
 
 ## 1. Kill 与 Continue
@@ -58,7 +58,7 @@ summary: "§1、§2、§4 为明确不做改动/行为验证通过（explicit no
 
 ## 4. mailbox 与 AutoDrive
 
-`streamReopenSkipReason` 在 `failClosedSessions` 含该会话时返回 `'fail_closed'`（`sessionViewHost.ts:1914-1915`）。`scheduleStreamReopen` 与 `fireStreamReopen` 遇到该原因就计数并返回，不 `postAndDrain(connectionUp)`（`:1937-1940`、`:1961-1964`）。[engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) 的 G-CORE-2 已写明溢出后停在 closed，要第二次 `connectionUp` 才开流。S5 未签收。
+`streamReopenSkipReason` 在 `failClosedSessions` 含该会话时返回 `'fail_closed'`（`sessionViewHost.ts:1914-1915`）。`scheduleStreamReopen` 与 `fireStreamReopen` 遇到该原因就计数并返回，不 `postAndDrain(connectionUp)`（`:1937-1940`、`:1961-1964`）。[engine-protocol-surface](../../../docs/reference/universe-agent/engine-protocol-surface.md) 的 G-CORE-2 已写明溢出后停在 closed，要第二次 `connectionUp` 才开流。S5 未签收。
 
 **本切片不改跳过条件，不改条幅。** closed 继续表示未重开。
 

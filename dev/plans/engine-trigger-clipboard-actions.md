@@ -13,7 +13,7 @@ summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 sta
 
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G4、G15、G16。
-> **不推翻：** [对话入口按广告探测](conversation-entry-capability.md) 对其余入口的 UNKNOWN 退路。不发明 Trigger 或 Clipboard 字段。不升 PRD。
+> **不推翻：** [对话入口按广告探测](../../archive/dev/plans/conversation-entry-capability.md) 对其余入口的 UNKNOWN 退路。不发明 Trigger 或 Clipboard 字段。不升 PRD。
 > **落地：** `status: implemented`。已于 `05a17c38879` 与 `1a4c4295b45`（Slot B）落地合入。
 
 ## 1. 现状
@@ -26,7 +26,7 @@ summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 sta
 
 三节列表用 `conversationEntryHookPresent`。该函数在 `UNSUPPORTED` 时关闭，在 `SUPPORTED` 时开放，在 `UNKNOWN` 时改看方法是不是函数（`universeAgentCapabilities.ts:149-155`、`:180-187`）。桌面代理上方法恒为函数，所以能力未知仍会拉列表。`hook.call` 在 Triggers `:261`、Clipboard `:219`、Context Variables `:181`。门闩判断在这三次调用之前。
 
-[conversation-entry-capability](conversation-entry-capability.md) 写明 UNKNOWN 退路是给替身和其余入口用的。本切片不改这个共享函数。
+[conversation-entry-capability](../../archive/dev/plans/conversation-entry-capability.md) 写明 UNKNOWN 退路是给替身和其余入口用的。本切片不改这个共享函数。
 
 ## 2. 本切片
 
@@ -73,7 +73,7 @@ summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 sta
 
 frontmatter `summary` 第 7 行里，Triggers、Clipboard、Context Variables 各只有一处「接通 + hook」，写在整组 RPC 的同一个括号里。Triggers 括号罩住 `listTriggers` / `fireTrigger` / `setTriggerEnabled` / `deleteTrigger` / `upsertTrigger`；Clipboard 罩住 `listClipboard` / `readClipboard` / `writeClipboard` / `clearClipboard`；Context Variables 罩住 `listContextVariable` / `readContextVariable`。空载荷三句照删：「Add 发空 TriggerDto」「Edit 无选中行仍发空 TriggerDto」「Write 始终发 TEXT + 空字段」。括号里的「接通 + hook」只从 `listTriggers`、`listClipboard`、`listContextVariable` 收成接通且对应键为 `SUPPORTED`。同括号里的 Fire、Set、Delete、Upsert、Read、Write、Clear、`readContextVariable` 仍留「接通 + hook」。摘要其余部分不动。
 
-[conversation-entry-capability](conversation-entry-capability.md) 在本切片落地时，把第 23 行的三节列表 UNKNOWN 例外写成已经生效，并把第 49 行「已有对话单测不填该字段仍走今天的 hook」收窄到这三节列表以外。落地前该文保持「例外尚未实施，三节列表仍走共享函数的 UNKNOWN 退路」。其余入口的 UNKNOWN 退路不改。
+[conversation-entry-capability](../../archive/dev/plans/conversation-entry-capability.md) 在本切片落地时，把第 23 行的三节列表 UNKNOWN 例外写成已经生效，并把第 49 行「已有对话单测不填该字段仍走今天的 hook」收窄到这三节列表以外。落地前该文保持「例外尚未实施，三节列表仍走共享函数的 UNKNOWN 退路」。其余入口的 UNKNOWN 退路不改。
 
 ## 4. 明确不改
 

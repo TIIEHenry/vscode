@@ -12,11 +12,11 @@ summary: "D1376：Catalog 十套件 294 passing，MCP 原14场景全部保留且
 覆盖需求：无（正文未引用需求编号）。
 
 
-基线 `e2442d8b3ec`；诊断以 [followup-compile-client.log](../progress/ui-visual-review-2026-10-26-evidence/followup-compile-client.log) 为起点，最终结果以 merge 新编译为准。范围只在 Engine Catalog，不扫 review/split/terminal/ExtHostOutput。
+基线 `e2442d8b3ec`；诊断以 [followup-compile-client.log](../../../dev/progress/ui-visual-review-2026-10-26-evidence/followup-compile-client.log) 为起点，最终结果以 merge 新编译为准。范围只在 Engine Catalog，不扫 review/split/terminal/ExtHostOutput。
 
 ## 事实与原则
 
-[Engine catalog SSOT](../../docs/systems/workbench/engine-catalog.md) 已明确 MCP Add/Update 走 `IDialogService.input`，含 name/transport/command/url/args/env。旧 `engineMcpSection.test.ts` 仍调用已删除的内联表单 test API，且用按钮文字定位已经改成图标的工具栏。这属于覆盖滞后，不是要求恢复旧 UI。沿用已签收产品行为，真实 DOM 工具栏触发公共对话框服务，检验校验、取消、无改动、字段保留与 RPC；不新增生产 test-only API，不删除或 skip 场景。
+[Engine catalog SSOT](../../../docs/systems/workbench/engine-catalog.md) 已明确 MCP Add/Update 走 `IDialogService.input`，含 name/transport/command/url/args/env。旧 `engineMcpSection.test.ts` 仍调用已删除的内联表单 test API，且用按钮文字定位已经改成图标的工具栏。这属于覆盖滞后，不是要求恢复旧 UI。沿用已签收产品行为，真实 DOM 工具栏触发公共对话框服务，检验校验、取消、无改动、字段保留与 RPC；不新增生产 test-only API，不删除或 skip 场景。
 
 其余诊断来自能力 snapshot readonly、事件应携带 `UniverseAgentConnectionSnapshot`、Triggers 列表能力实际为 `conversationEntryCapability.listTriggers`（不是 catalog capability key）、工作根不再是只有 `workDir` 的对象、通用 TestDialogService 实现未声明 input 参数、回调赋值被控制流窄化为 never，以及废弃生产 import/helper。修复测试事实模型，保持 UNKNOWN/UNSUPPORTED/SUPPORTED 明确且 fail-closed，不把空能力夹具整体改为支持。
 
@@ -39,8 +39,8 @@ J 于 2026-10-26 对照生产 MCP/Dialogs/Triggers 只读审查：Critical 0、I
 
 ## 实施进度
 
-2026-10-26 原三提交已合入 merge；当前唯一 compile-client 中本切片旧映射85条均消失。首次十套件287过/7败，按真实合同补修后官方Electron十套件294 passing，MCP精确20 passing，旧14场景全部保留；真实共享对话框DOM已运行。初始static与实际运行分开保留于[场景映射/结果](../progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。
+2026-10-26 原三提交已合入 merge；当前唯一 compile-client 中本切片旧映射85条均消失。首次十套件287过/7败，按真实合同补修后官方Electron十套件294 passing，MCP精确20 passing，旧14场景全部保留；真实共享对话框DOM已运行。初始static与实际运行分开保留于[场景映射/结果](../../../dev/progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。
 
-集成补修包括：Agents四处body重复Open Connection入口违背既有[SSOT §2](../../docs/systems/workbench/engine-catalog.md#2-状态机)，现恢复页级banner拥有连接CTA，原无CTA断言保持；MCP用真实禁用说明aria-label定位并同时断言disabled、无对话框/无写入及选中后恢复；Triggers断言预分配状态容器隐藏且空、显示引擎真实returned enabled并保持错误tone、catch路径明确选择触发器且验证发送请求。没有删测、skip或恢复旧form API。
+集成补修包括：Agents四处body重复Open Connection入口违背既有[SSOT §2](../../../docs/systems/workbench/engine-catalog.md#2-状态机)，现恢复页级banner拥有连接CTA，原无CTA断言保持；MCP用真实禁用说明aria-label定位并同时断言disabled、无对话框/无写入及选中后恢复；Triggers断言预分配状态容器隐藏且空、显示引擎真实returned enabled并保持错误tone、catch路径明确选择触发器且验证发送请求。没有删测、skip或恢复旧form API。
 
 Astra独立只读复核生产补修Critical0/Important0，页级banner仍在EnginePreferencesPane中。当前全仓编译原始结果仍exit1、59条/37文件；唯一新增MainThread夹具诊断已在另一切片定向修正，11个集成补修文件语义0；未再全量编译，不把定向0写成全仓绿。D1376按范围闭合，不升PRD。

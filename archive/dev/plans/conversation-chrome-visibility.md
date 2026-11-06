@@ -14,7 +14,7 @@ summary: "D403/D404 已闭：Maximize 不再 hide gate/Stop；窄宽 Back 迁出
 
 > **slice_id**：`conversation-chrome-visibility`  
 > **冲突域**：D403 = lens dock CSS；D404 = Connection pane 布局。  
-> **状态**：`implemented`。[D403](../progress/deferred-gaps.md) / [D404](../progress/deferred-gaps.md) 已闭。2026-09-17 UA chrome 审查波补完：Maximize 改藏阅读列而不是整槽 `.conversation-timeline`；`PreferencesEditor` 用 `paneCache` 切 tab 不 dispose Connection pane；`getNavHeight` 为 live SAS 留高、`onDidShow` 滚入视口并 focus，SAS `aria-modal` trap Tab。2026-09-18 审查 follow-up：Maximize / 切会话关 History·Snapshots·Visualize；Connect 在 in-flight / pairing-hold / live SAS 禁写且 pairing-hold 首拉不回填 Hub 目录；Conversation Diff 开 `CONVERSATION_SIDE_GROUP`。
+> **状态**：`implemented`。[D403](../../../dev/progress/deferred-gaps.md) / [D404](../../../dev/progress/deferred-gaps.md) 已闭。2026-09-17 UA chrome 审查波补完：Maximize 改藏阅读列而不是整槽 `.conversation-timeline`；`PreferencesEditor` 用 `paneCache` 切 tab 不 dispose Connection pane；`getNavHeight` 为 live SAS 留高、`onDidShow` 滚入视口并 focus，SAS `aria-modal` trap Tab。2026-09-18 审查 follow-up：Maximize / 切会话关 History·Snapshots·Visualize；Connect 在 in-flight / pairing-hold / live SAS 禁写且 pairing-hold 首拉不回填 Hub 目录；Conversation Diff 开 `CONVERSATION_SIDE_GROUP`。
 
 ## Problem class
 
@@ -28,7 +28,7 @@ summary: "D403/D404 已闭：Maximize 不再 hide gate/Stop；窄宽 Back 迁出
 | 证据 | 事实 |
 |:-----|:-----|
 | `conversationLens.css` L2268–2274 | Maximize 无条件 `display:none` gate-row；无可见 pending 时 hide 整段 inbox overlay（Stop 在 overlay 右簇） |
-| [conversation-empty-hero](conversation-empty-hero.md) §3.4 | 已实施句：「Maximize 输入时隐藏浮层」。本切片**取代**该 hide，使 Stop 仍可见 |
+| [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md) §3.4 | 已实施句：「Maximize 输入时隐藏浮层」。本切片**取代**该 hide，使 Stop 仍可见 |
 | `conversationLensDisposeGate.test.ts` L2136–2153 | `showPostFailure('failed')` 只锁 `gateRow.hidden === false`，不锁 Maximize |
 | `conversationLens.test.ts` L2222–2253 | Maximize 只锁 class toggle，不锁 gate / Stop 可见 |
 | `conversationLensCssScan.test.ts` L18–23 | 只锁 D42 trajectory hide，**不**扫 maximize→gate/overlay |
@@ -48,7 +48,7 @@ summary: "D403/D404 已闭：Maximize 不再 hide gate/Stop；窄宽 Back 迁出
 
 ## 选定设计与不变量
 
-**D403。** Maximize **只**放大输入区，**不得**有 `.conversation-lens-input-maximized` 规则对 `.conversation-lens-dock-gate-row` 或 `.conversation-lens-inbox-overlay` 写 `display:none`。Gate 空态仍走 `updateGateRow` / `showPostFailure` 的 `hidden`。空 overlay（queue / goal / pending / disabled Stop；HEAD **无** Task chip）露出是本切片接受的 UX；**不用** `:has` 例外。本切片**取代** [conversation-empty-hero](conversation-empty-hero.md) §3.4「Maximize 输入时隐藏浮层」，两份 accepted/implemented 方案不得 silently 冲突。
+**D403。** Maximize **只**放大输入区，**不得**有 `.conversation-lens-input-maximized` 规则对 `.conversation-lens-dock-gate-row` 或 `.conversation-lens-inbox-overlay` 写 `display:none`。Gate 空态仍走 `updateGateRow` / `showPostFailure` 的 `hidden`。空 overlay（queue / goal / pending / disabled Stop；HEAD **无** Task chip）露出是本切片接受的 UX；**不用** `:has` 例外。本切片**取代** [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md) §3.4「Maximize 输入时隐藏浮层」，两份 accepted/implemented 方案不得 silently 冲突。
 
 **D404 remount 所有权。** 拆 `syncPairingConfirmHostParent()`：**只**按当前 chrome 旗 remount，**禁止**调用 `selectZone`。今日 `attachPairingConfirmHostToVisibleZone` 以 `this.selectZone(this.activeZoneId)` 开头（L1372–1373）；宽 <600 时 `selectZone` 会把 `narrowShowingDetail=true` 并再露 detail——若从 Back / `showNarrowNav` 调 attach，会撤销 Back，打红既有 L1002–1015。Connect 起步仍可 `selectZone` **再** `sync`。`sync` 的调用点：`applyNarrowChrome` 与 `selectZone` **在 chrome 旗写完之后**；attach 在可选的 `selectZone` 之后。不变量：host **live**（含 `.connection-pairing-confirm` 或 `style.display !== 'none'`）且窄宽且 `!is-showing-detail` → parent 是 pane 根 / body 子且在 `.connection-preferences-detail` **外**；否则保持 zone sibling（`activeZone.nextElementSibling === host`）。按 host **liveness** remount，不按 `sasCode`。recoverTrust 共用此 host；「不改 recoverTrust」= 不改 confirm / cancel / fingerprint API，**不是**把 host 留在被藏的 detail 里。不改 Connect / Test / pairing 产品流。不需要 ADR。
 

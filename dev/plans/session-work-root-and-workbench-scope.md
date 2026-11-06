@@ -261,7 +261,7 @@ S2 清单（每项一条验证）：
 
 - 签收范围排除 S5 的实施许可。S5 只有验收清单和「PRD-027 P3 后另写设计、走规则 16」，没有具体改法，P3 也没做。
 - 落地注记与 summary 里的 `b6bccf8ff2c` 是错号：那是 2026-10-05 的 Sources 能力快照提交，早于本稿。S1–S4 只在 `4615d3aa990`；S6 在 `279f2c18f08`（2026-10-25），注记里没记。§3.5 与 §6 还写着「见开放问题 1」，§7 已不再编号。
-- S2 的后续补修 [conversation-review-root-invalidation](conversation-review-root-invalidation.md) 与叶级身份条（D1386，对应 PRD-029.12）都已 `implemented`，本稿没有引用。
+- S2 的后续补修 [conversation-review-root-invalidation](../../archive/dev/plans/conversation-review-root-invalidation.md) 与叶级身份条（D1386，对应 PRD-029.12）都已 `implemented`，本稿没有引用。
 
 PRD-029 是否升 `accepted` 由用户定：原 S0 写的是「用户签收后 PRD-029 accepted」，本次是 agent 受托签收，维持 agent:codex 的保守处理。
 

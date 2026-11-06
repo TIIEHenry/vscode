@@ -14,7 +14,7 @@ summary: "全量compile-client45→3→0；27文件正式合同修复，Electron
 
 ## 事实与目标
 
-唯一 merge 槽在 `c968c0627e7` 运行 `rtk proxy npm run compile-client`，实际 exit 1、45 诊断 / 27 文件。[本次原始日志](../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log)与[来源清单](../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json)独立保存，不覆盖旧45/27证据。目标是同一既定全量命令 exit 0，以恢复并行开发基线；不把定向通过扩大为全仓通过。
+唯一 merge 槽在 `c968c0627e7` 运行 `rtk proxy npm run compile-client`，实际 exit 1、45 诊断 / 27 文件。[本次原始日志](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log)与[来源清单](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json)独立保存，不覆盖旧45/27证据。目标是同一既定全量命令 exit 0，以恢复并行开发基线；不把定向通过扩大为全仓通过。
 
 ## 修复边界
 
@@ -66,4 +66,4 @@ summary: "全量compile-client45→3→0；27文件正式合同修复，Electron
 
 - [x] 规则16：Astra 独立只读审查 Critical 0 / Important 0，Assessment 允许独立方案提交后实施；Strengths 为初始45/27逐项一致、三生产窄类型边界真实、保留竞态/断言及禁止诊断逃逸、单车道与按环境测试可行。Minor 两项已落实到修复边界：URI局部捕获且缺失回退、焦点用元素身份findIndex而不用跨window instanceof。审查回执由父 agent 转达，本执行者没有冒称独立审查。
 - [x] 实施修复，既定全量compile-client实际exit0；修复27文件，无编译范围/配置/诊断逃逸。
-- [x] [验证证据](../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)：Electron325过/3既有红（精确旧测试复现三红）、Node10过，ESLint0errors/20warnings。Astra实施审查C0/I0；产品PRD与D17不升。
+- [x] [验证证据](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)：Electron325过/3既有红（精确旧测试复现三红）、Node10过，ESLint0errors/20warnings。Astra实施审查C0/I0；产品PRD与D17不升。

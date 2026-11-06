@@ -14,13 +14,13 @@ summary: "D1382已闭合：自动37过、五TS语义0，独立默认编辑器aft
 
 ## 事实与范围
 
-基线为 C 工位 `4963799b1e95`。产品范围仅默认编辑器；`src/vs/sessions/` 不参与实施或验收。相关合同见 [Conversation 系统](../../docs/systems/conversation/INDEX.md)、[透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)、[会话工作根方案](session-work-root-and-workbench-scope.md)。
+基线为 C 工位 `4963799b1e95`。产品范围仅默认编辑器；`src/vs/sessions/` 不参与实施或验收。相关合同见 [Conversation 系统](../../../docs/systems/conversation/INDEX.md)、[透镜与轨迹](../../../docs/systems/conversation/lens-and-trajectory.md)、[会话工作根方案](../../../dev/plans/session-work-root-and-workbench-scope.md)。
 
 `ConversationReviewNavService` 是 delayed singleton。默认 `ConversationLens` 构造时订阅其 `onDidChange`，回调通过 `applySessionViewTimeline(..., { sidecarOnly: true })` 重算已绑定会话的审阅行。服务 getter 每次读 `IAgentSessionContext.getWorkRoot`，但现有通知只有 mutation、settle、活动会话和连接变化。
 
-`AgentSessionContext.getWorkRoot` 即时读 roster、workspace 与 SCM 根；`onDidChangeSession`、工作区目录变化和仓库增减都能改变结果。透镜自己的 roster session 通知只刷新标题、Inbox、门闩及轨迹，不重算 Conversation 的审阅 sidecar；工作区与 SCM 通知也没有上层重建透镜。因此静止的活动叶或非活动并列叶会保留旧审阅路径或旧行，直到另一次无关通知发生。这是合入前的源码可达链。merge 随后对旧生产得到 7 项路径断言失败，刷新生产后通过，见[自动证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)。
+`AgentSessionContext.getWorkRoot` 即时读 roster、workspace 与 SCM 根；`onDidChangeSession`、工作区目录变化和仓库增减都能改变结果。透镜自己的 roster session 通知只刷新标题、Inbox、门闩及轨迹，不重算 Conversation 的审阅 sidecar；工作区与 SCM 通知也没有上层重建透镜。因此静止的活动叶或非活动并列叶会保留旧审阅路径或旧行，直到另一次无关通知发生。这是合入前的源码可达链。merge 随后对旧生产得到 7 项路径断言失败，刷新生产后通过，见[自动证据](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)。
 
-原 [compile 日志](../progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log) 中本域还有 18 条当前静态诊断；本稿只覆盖 ReviewNav 的可选 DI 参数、ReviewNav/ReviewEntry 工作根替身及 AgentSessionContext 的两个 WorkspaceFolder 替身。其余 ComposerPicker、Lens switchModel、SessionSplit API 漂移留给各自内聚合同，不由类型错误推断运行故障。
+原 [compile 日志](../../../dev/progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log) 中本域还有 18 条当前静态诊断；本稿只覆盖 ReviewNav 的可选 DI 参数、ReviewNav/ReviewEntry 工作根替身及 AgentSessionContext 的两个 WorkspaceFolder 替身。其余 ComposerPicker、Lens switchModel、SessionSplit API 漂移留给各自内聚合同，不由类型错误推断运行故障。
 
 ## 设计与取舍
 
@@ -70,6 +70,6 @@ C 工位只做静态 diff、ESLint 与文档检查，禁止编译、transpile、
 
 ## 独立 after 与范围内闭合
 
-2026-10-26 非作者 D 在隔离默认编辑器中完成真实 Review 行、工作区/SCM 增删、连接回退、非活动并列叶、点击及 Enter 的 `sources.review.showForPaths` 参数检查，ReviewNav 范围 Critical 0 / Important 0。四主题、225/226px 并列叶与612px单叶有截图和 DOM；见[原始 after 与签收注记](../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。自动37过与五TS语义0沿用先前运行，未重复。D1382 closed，本稿 implemented。上文“未实拍/仍accepted”的过程记录保留为当阶段事实。
+2026-10-26 非作者 D 在隔离默认编辑器中完成真实 Review 行、工作区/SCM 增删、连接回退、非活动并列叶、点击及 Enter 的 `sources.review.showForPaths` 参数检查，ReviewNav 范围 Critical 0 / Important 0。四主题、225/226px 并列叶与612px单叶有截图和 DOM；见[原始 after 与签收注记](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。自动37过与五TS语义0沿用先前运行，未重复。D1382 closed，本稿 implemented。上文“未实拍/仍accepted”的过程记录保留为当阶段事实。
 
 加载模块与后续磁盘 JS 整文件摘要不同，仅去 source map 正文一致，不扩大为整棵 out 同构建。实拍使用本地 Stub/内存SCM与通知夹具，没有真实 git diff，没有折叠展开后再根失效，没有独立720px叶宽，只测浅色按钮对比。SCM子根/workspace gate归因未改；芯片归属另记D1386 Important/open，`1 files`独立Minor。本轮唯一全量仍为source `3e63f9e` 的 exit1、46诊断/28文件，未再全量。

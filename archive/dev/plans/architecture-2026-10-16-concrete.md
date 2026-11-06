@@ -12,7 +12,7 @@ summary: "换 profile 复位 agent tree 探测，diff URI 带会话，设置列�
 覆盖需求：无（正文未引用需求编号）。
 
 
-> **触发：** [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) B1–B4、B6、B7 与 §4 文档偏差。功能缺口 G17 与 B1 同一类，收在第一节。
+> **触发：** [架构设计审查 2026-10-16](../../../dev/plans/review-2026-10-16-architecture.md) B1–B4、B6、B7 与 §4 文档偏差。功能缺口 G17 与 B1 同一类，收在第一节。
 > **不选定** 该审查 §6 的 Q1–Q7。不升 PRD。
 > **落地：** `status: implemented`。§1（B1、G17）落入 `4fa4f3eab56`；§2（B2）落入 `99bd6829c11`；§3（B3）落入 `1a4c4295b45`；§4（B4）落入 `83ef402a254`；§5（B6、B7）落入 `68308db93b5`；§6（Docs）落入 `cc6e17a9d8f`。
 
@@ -38,7 +38,7 @@ summary: "换 profile 复位 agent tree 探测，diff URI 带会话，设置列�
 
 **要动的符号：** `sourcesGitDiffModelUri` 增加 `sessionId: string`。放在 URI 的 query `session` 上，path 形状保持。`applySourcesGitFileDiffIfNeeded` 传入 `entry.sessionId ?? ''`。store 仍以完整 URI 为键。
 
-**明确不改：** 不新造 scheme。不改 [sources-review-open-identity](sources-review-open-identity.md) 的打开顺序。
+**明确不改：** 不新造 scheme。不改 [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md) 的打开顺序。
 
 **验证：** `sourcesGitDiffContent.test.ts`。同一 path 与 indexState、不同 sessionId 的两次 `begin` / 写入，后一次不改变前一个 URI 的文本。`sourcesChangesList.test.ts:777-778` 与 `:3418-3419` 的三参数调用改成带上该行的 `sessionId`；没有会话的调用传 `''`。
 
@@ -52,7 +52,7 @@ summary: "换 profile 复位 agent tree 探测，diff URI 带会话，设置列�
 
 **要动的符号：** `EngineMcpSection` 订阅已注入的 `onDidChangeActiveSession`。`onDidChangeActiveWorkRoot` 存在时也订阅。回调走现有 `refresh`。`engineMcpSection.test.ts:136-146` 的桩今天只有 `getActiveWorkRoot`，新用例要补上这个事件。`activeComposerProjectPath` 在 host 能给出绑定会话 id、且 `getWorkRoot` 存在时用那份 `workDir`。
 
-**明确不改：** 不改存储落在 WORKSPACE 还是 PROFILE。不把 Files 改成 `getWorkRoot`（仍归 [session-work-root-and-workbench-scope](session-work-root-and-workbench-scope.md)）。
+**明确不改：** 不改存储落在 WORKSPACE 还是 PROFILE。不把 Files 改成 `getWorkRoot`（仍归 [session-work-root-and-workbench-scope](../../../dev/plans/session-work-root-and-workbench-scope.md)）。
 
 **验证：** `engineMcpSection.test.ts`：活动工作根从 A 变到 B 后再刷新，下一次 `listMcpServers` 的 `workDir` 是 B。透镜测试：绑定会话的 workDir 与活动工作根不同时，`listAgentProfiles` 的 `projectPath` 是绑定会话那份。
 
@@ -86,10 +86,10 @@ summary: "换 profile 复位 agent tree 探测，diff URI 带会话，设置列�
 
 实施时改叙述，不改这些方案的 `status`。
 
-- [giant-file-split](giant-file-split.md) 摘要里的门面 783 行、以及「每文件 ≤800」读起来像已经满足。核对 `wc -l`：`conversationLens.ts` 954，`conversationLensComposerChrome.ts` 1067，`grpcClient.ts` 3404，`grpcClientMappersCatalog.ts` 2773。摘要改成这四个数，并写明 800 上限尚未达到。
-- [lens-and-trajectory](../../docs/systems/conversation/lens-and-trajectory.md) 第 79 行写对话页时间线、overlay、座位与轨迹页共用 `passesTrajectoryAgentFilter`。时间线在调用这条过滤之前，会为 permission 行和工具行从 `pendingActions` 借 `agentId`（`conversationSessionView.ts:386-424`、`:444-456`）。轨迹直接调用该过滤（`conversationTrajectoryModel.ts:198`）。overlay 仍把 `filterAgentId` 交给透镜（`conversationSubAgentOverlay.ts:211`）。替换句写成：时间线、overlay、座位与轨迹页仍用这条过滤；时间线在过滤前为 permission 行和工具行借 `agentId`。不在本稿合并两套投影。
-- [conversation overview](../../docs/systems/conversation/overview.md) 第 74 行写：只借 `chatContentParts/**` 渲染函数，经 `IConversationTurnContentAdapter` 单点入参；`chatShellRouting.ts` 把默认窗的 Chat 入口转到本 Part。fork、kill、snapshot 三份贡献文件还直接引用 chat 的 action、会话服务或 `chatShellRouting`。在 §5 落地前，在这句后面补上这三份文件的直接引用。保留句中已有的 content parts 与 `chatShellRouting` 转向。§5 落地后，再按那时的导入改这一句。
-- [session-work-root](session-work-root-and-workbench-scope.md) §1 第 30 行仍列 `sourcesGitNormalizedRoot` 与 `sourcesFilesNormalizedRoot`。仓库里已没有这两个函数。`sourcesChangesGitRead.ts:168` 现在是 `sourcesGitChangeResource`，走 `normalizePath`（`:169-170`）。仍在用的是 `sourcesFilesWorkDirIsWorkspaceRoot`（`sourcesFilesEngineRead.ts:51`）、`normalizeReviewPath` 与 `isWorkDirCompatible`（`sourcesReviewAttribution.ts`）、`normalizeNavigatorWorkDirKey`、`normalizeAgentWorkDirKey`。`normalizeEnginePath`（`sourcesFilesEngineRead.ts:205`）是文件私有的斜杠规范化，不写进这句。不改该方案的实施切片。
+- [giant-file-split](../../../dev/plans/giant-file-split.md) 摘要里的门面 783 行、以及「每文件 ≤800」读起来像已经满足。核对 `wc -l`：`conversationLens.ts` 954，`conversationLensComposerChrome.ts` 1067，`grpcClient.ts` 3404，`grpcClientMappersCatalog.ts` 2773。摘要改成这四个数，并写明 800 上限尚未达到。
+- [lens-and-trajectory](../../../docs/systems/conversation/lens-and-trajectory.md) 第 79 行写对话页时间线、overlay、座位与轨迹页共用 `passesTrajectoryAgentFilter`。时间线在调用这条过滤之前，会为 permission 行和工具行从 `pendingActions` 借 `agentId`（`conversationSessionView.ts:386-424`、`:444-456`）。轨迹直接调用该过滤（`conversationTrajectoryModel.ts:198`）。overlay 仍把 `filterAgentId` 交给透镜（`conversationSubAgentOverlay.ts:211`）。替换句写成：时间线、overlay、座位与轨迹页仍用这条过滤；时间线在过滤前为 permission 行和工具行借 `agentId`。不在本稿合并两套投影。
+- [conversation overview](../../../docs/systems/conversation/overview.md) 第 74 行写：只借 `chatContentParts/**` 渲染函数，经 `IConversationTurnContentAdapter` 单点入参；`chatShellRouting.ts` 把默认窗的 Chat 入口转到本 Part。fork、kill、snapshot 三份贡献文件还直接引用 chat 的 action、会话服务或 `chatShellRouting`。在 §5 落地前，在这句后面补上这三份文件的直接引用。保留句中已有的 content parts 与 `chatShellRouting` 转向。§5 落地后，再按那时的导入改这一句。
+- [session-work-root](../../../dev/plans/session-work-root-and-workbench-scope.md) §1 第 30 行仍列 `sourcesGitNormalizedRoot` 与 `sourcesFilesNormalizedRoot`。仓库里已没有这两个函数。`sourcesChangesGitRead.ts:168` 现在是 `sourcesGitChangeResource`，走 `normalizePath`（`:169-170`）。仍在用的是 `sourcesFilesWorkDirIsWorkspaceRoot`（`sourcesFilesEngineRead.ts:51`）、`normalizeReviewPath` 与 `isWorkDirCompatible`（`sourcesReviewAttribution.ts`）、`normalizeNavigatorWorkDirKey`、`normalizeAgentWorkDirKey`。`normalizeEnginePath`（`sourcesFilesEngineRead.ts:205`）是文件私有的斜杠规范化，不写进这句。不改该方案的实施切片。
 - 不改 `sessionCore/SYNC.md`。`writeSyncDoc`（`scripts/sync-universe-agent-session-core.ts:269-284`）用固定模板整文件覆盖。自 `a4ab1a3e754` 之后有 24 个提交改过该目录（核对命令 `git log --oneline a4ab1a3e754..HEAD -- src/vs/platform/universeAgent/node/sessionCore`）。协议面 G-CORE-2 已点本地提交 `37a13e74d7b`，钉点仍是 `0dd3146cd`。实施时在该协议行补上这笔数和核对命令，保留已有的 `37a13e74d7b`。不决定分叉还是先改上游。
 
 ## 7. 不在本稿

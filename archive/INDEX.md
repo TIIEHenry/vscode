@@ -39,3 +39,13 @@
 | [Agents 窗口登记引擎连接服务](dev/plans/sessions-window-connection-registration.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [Sources 编译基线合同修复](dev/plans/sources-compile-contracts.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [Sources 文件列表按广告探测](dev/plans/sources-files-list-capability.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [架构审查 2026-10-16：可单独实施的缺陷](dev/plans/architecture-2026-10-16-concrete.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Conversation chrome 可见性](dev/plans/conversation-chrome-visibility.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [对话入口按广告探测](dev/plans/conversation-entry-capability.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [对话动作失败、未归因变更与空任务列表](dev/plans/conversation-failure-and-mutation.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Conversation 审阅导航随工作根刷新](dev/plans/conversation-review-root-invalidation.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [本地工具状态投影与缓存兼容](dev/plans/conversation-tool-status-projection.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [当前 TypeScript 编译合同基线](dev/plans/current-typescript-contract-baseline.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [默认编辑器视觉状态修复与续审](dev/plans/default-editor-visual-state-followup.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Engine Catalog 测试合同基线修复](dev/plans/engine-catalog-test-contracts.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [MCP 定义：Add / Update 先有表单](dev/plans/engine-mcp-definition-form.md) | 已完成方案，过程已结束，归档保留原文。 |

@@ -127,4 +127,4 @@ summary: "六路只读架构审查。根因是派生状态与判断规则没有�
 
 ## 7. 方案
 
-B1–B4、B6、B7 与 §4 的文档偏差在 [architecture-2026-10-16-concrete](architecture-2026-10-16-concrete.md) 中已全部实施合入（提交 `4fa4f3eab56`、`99bd6829c11`、`1a4c4295b45`、`83ef402a254`、`68308db93b5`、`cc6e17a9d8f`）。G17 与 B1 同收在该稿第一节。Q1–Q7、A1–A5、B5 仍不在该稿里选定，维持原状待确认。
+B1–B4、B6、B7 与 §4 的文档偏差在 [architecture-2026-10-16-concrete](../../archive/dev/plans/architecture-2026-10-16-concrete.md) 中已全部实施合入（提交 `4fa4f3eab56`、`99bd6829c11`、`1a4c4295b45`、`83ef402a254`、`68308db93b5`、`cc6e17a9d8f`）。G17 与 B1 同收在该稿第一节。Q1–Q7、A1–A5、B5 仍不在该稿里选定，维持原状待确认。

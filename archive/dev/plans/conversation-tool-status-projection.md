@@ -12,7 +12,7 @@ summary: "D1380：旧生产red1过5败；新投影/三桶兼容七套138过，�
 覆盖需求：无（正文未引用需求编号）。
 
 
-基线 `330b68911b5`，工位 D。问题证据在主工位 `.build/visual-review-astra/followup825/review.md` 与 `unknown-frame-evidence.json`：真实默认编辑器中模型工具没有 toolStatus，展开后却有完成勾。`conversationSessionView.ts` 的 Stub→snapshot 使用 `toolStatus ?? 'completed'`；renderer 已经只在明确 completed 时画勾，不能继续修 renderer 掩盖上游。依据 [过程折 SSOT](../../docs/systems/conversation/lens-and-trajectory.md#4-过程折overlay不是列表身份) 与 [本轮视觉方案](default-editor-visual-state-followup.md)。
+基线 `330b68911b5`，工位 D。问题证据在主工位 `.build/visual-review-astra/followup825/review.md` 与 `unknown-frame-evidence.json`：真实默认编辑器中模型工具没有 toolStatus，展开后却有完成勾。`conversationSessionView.ts` 的 Stub→snapshot 使用 `toolStatus ?? 'completed'`；renderer 已经只在明确 completed 时画勾，不能继续修 renderer 掩盖上游。依据 [过程折 SSOT](../../../docs/systems/conversation/lens-and-trajectory.md#4-过程折overlay不是列表身份) 与 [本轮视觉方案](default-editor-visual-state-followup.md)。
 
 ## 边界与机制
 
@@ -38,4 +38,4 @@ summary: "D1380：旧生产red1过5败；新投影/三桶兼容七套138过，�
 - [x] J于2026-10-26只读技术审查：Critical 0 / Important 0。两项Minor已纳入：同ID状态往返与伪sidecar负向；旧三桶迁移后局部更新的编码标记保护。可独立提交方案并实施。
 - [x] merge技术peer对最终七份TS只读复核Critical 0 / Important 0；直接轨迹消费者使用共用guard。已知tool轨迹的callId仍沿用原attribution/item-id回退，本地未知用sidecar callId，往返测试显式记录此既有边界；本次不改已知tool协议映射。
 - [x] 本地投影/codec实现与六条受控回归已落；D目标七份TS ESLint 0 errors / 5 warnings，diff-check通过。此为D交付时静态记录，当时未编译/运行；其后merge真实结果如下。
-- [x] merge先核验旧330四生产正文，再仅fresh三测试red1 passing/5 failing；唯一全量后七完整套件138 passing，六新增全执行。新RosterStorage回调TS7006由D独立bfe492正式类型补修，JS正文无行为变化，14改动TS定向语义0。独立四主题/两叶宽40组未知/完成/返回/取消/混合及实际轨迹Inspector通过，D1380 closed；[最终证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)。原55/36全量失败与后修定向0分开保留，不宣称全仓通过。
+- [x] merge先核验旧330四生产正文，再仅fresh三测试red1 passing/5 failing；唯一全量后七完整套件138 passing，六新增全执行。新RosterStorage回调TS7006由D独立bfe492正式类型补修，JS正文无行为变化，14改动TS定向语义0。独立四主题/两叶宽40组未知/完成/返回/取消/混合及实际轨迹Inspector通过，D1380 closed；[最终证据](../../../dev/parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)。原55/36全量失败与后修定向0分开保留，不宣称全仓通过。

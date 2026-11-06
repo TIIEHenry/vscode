@@ -29,7 +29,7 @@ summary: "能力判断改读已有快照，引擎设置的断开刷新与刷新�
 
 - `12b096615dc`：FireTrigger、剪贴板、上下文读、快照恢复/删除、`readGitChanges` 改看能力快照。
 - `c7d53074df5`：[Sources Git 写能力](sources-git-write-capability.md)，字段 `gitWriteCapability`。
-- `3cb1f1055bb`：[对话入口](conversation-entry-capability.md)，字段 `conversationEntryCapability`。
+- `3cb1f1055bb`：[对话入口](../../archive/dev/plans/conversation-entry-capability.md)，字段 `conversationEntryCapability`。
 - `b6bccf8ff2c`：[Sources 文件列表](../../archive/dev/plans/sources-files-list-capability.md)，字段 `listFilesCapability`。
 
 这三份方案还锁住：`UNSUPPORTED` 即使方法是函数也关闭；`UNKNOWN` 或字段缺失时仍看方法是否安装；`SUPPORTED` 时 `isAdvertisedEngineRpcSupport` 直接为真，调用前若不是函数则不发 RPC。`isAdvertisedEngineRpc` 的这三态本稿不改。Hooks / Rules / Provider 列表上的 `typeof`、`probeEngine()` 的 `typeof`，对话入口方案明确留在那一刀之外。本稿只处理它没覆盖、且不用新字段就能改的部分；要新字段的写在待定项。

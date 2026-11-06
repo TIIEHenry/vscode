@@ -12,7 +12,7 @@ summary: "原五项修复与D1380/D1381直接缺口已闭合：当前自动回�
 覆盖需求：PRD-025、PRD-028。
 
 
-用户已授权「修复后继续」。依据 [PRD-025 / PRD-028](../../docs/product/requirements.md)、[UI 规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 与 [产品范围](../../docs/product/vision.md)。本轮只使用默认编辑器窗口；Agents Window 仅作对照。既有 D1371–D1373 已修问题不重复计入。
+用户已授权「修复后继续」。依据 [PRD-025 / PRD-028](../../../docs/product/requirements.md)、[UI 规范](../../../docs/architecture/cross-cutting/ui-design-principles.md) 与 [产品范围](../../../docs/product/vision.md)。本轮只使用默认编辑器窗口；Agents Window 仅作对照。既有 D1371–D1373 已修问题不重复计入。
 
 ## 问题、机制与验收
 
@@ -43,13 +43,13 @@ summary: "原五项修复与D1380/D1381直接缺口已闭合：当前自动回�
 - [x] V2 会话列表失焦修复及回归；真实焦点复验补修选中行背景过渡的短暂低对比，普通悬停过渡保留，尊重主题图标前景。
 - [x] V2b 续审 Sources 引擎文件列表同根因修复及回归（独立短审后实施）。
 - [x] V5 过程折状态修复及回归；状态摘要不随步骤名省略，未知工具不画完成勾，取消与混合状态原位更新。
-- [x] 新产物针对性验证、续审与文档收尾；八套件 Electron 350 passing / 14 个真实焦点 pending，官方 Chrome 补验该十四项全部通过且零 pending；定向九份 TS 与 HEAD 同为九条既有诊断，无新增。详见 [验证证据](../progress/default-editor-visual-state-followup-evidence/verification.md)。
+- [x] 新产物针对性验证、续审与文档收尾；八套件 Electron 350 passing / 14 个真实焦点 pending，官方 Chrome 补验该十四项全部通过且零 pending；定向九份 TS 与 HEAD 同为九条既有诊断，无新增。详见 [验证证据](../../../dev/progress/default-editor-visual-state-followup-evidence/verification.md)。
 - [x] 最终独立只读复核：`timeline_visual_audit` 确认代码/文档边界与验证数量一致，Critical / Important 无；Minor 已收窄 Back 焦点环仅条件核对的证据措辞。
 
-协作与最终证据统一记入 [本轮看板](../parallel/active/default-editor-visual-state-followup.md)。不提升 PRD-025 / PRD-028 总体状态。
+协作与最终证据统一记入 [本轮看板](../../../dev/parallel/active/default-editor-visual-state-followup.md)。不提升 PRD-025 / PRD-028 总体状态。
 
 ## 合成后独立实拍续审
 
-原825提交的350+14与上述完成勾选是当时组件/主题夹具证据，保留不改写。source330b689的merge聚焦287+14与九TS语义0之后，真实默认窗口又证实D1380未知Stub投影及D1381 Provider兄弟badge碰撞；两项与V4/V5原验收直接相关，当时状态回到accepted（已接受方案但剩余边界待实施/复验）。父已分别委派D/C独立根因修，方案与最终复验见[当前集成看板](../parallel/active/ui-visual-review-2026-10-26.md#新轮默认编辑器视觉源码三路合成)；未修前不宣布整轮视觉通过，旧测试与实拍证据不互换。
+原825提交的350+14与上述完成勾选是当时组件/主题夹具证据，保留不改写。source330b689的merge聚焦287+14与九TS语义0之后，真实默认窗口又证实D1380未知Stub投影及D1381 Provider兄弟badge碰撞；两项与V4/V5原验收直接相关，当时状态回到accepted（已接受方案但剩余边界待实施/复验）。父已分别委派D/C独立根因修，方案与最终复验见[当前集成看板](../../../dev/parallel/active/ui-visual-review-2026-10-26.md#新轮默认编辑器视觉源码三路合成)；未修前不宣布整轮视觉通过，旧测试与实拍证据不互换。
 
-后续D1380投影/缓存与D1381内容预算两局部方案已按规则16审查、分别工位提交后真三路合入；受控red/green、14TS定向语义0与独立默认窗口after均已完成，Critical0/Important0。两项closed，本视觉方案恢复implemented；Provider窄宽自然增高是已先写入PRD/UI的局部密度取舍，不再坚持原单行24px限制。历史失败与原阶段证据保留，[最终证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)限定范围；PRD025/028总体状态不提升。
+后续D1380投影/缓存与D1381内容预算两局部方案已按规则16审查、分别工位提交后真三路合入；受控red/green、14TS定向语义0与独立默认窗口after均已完成，Critical0/Important0。两项closed，本视觉方案恢复implemented；Provider窄宽自然增高是已先写入PRD/UI的局部密度取舍，不再坚持原单行24px限制。历史失败与原阶段证据保留，[最终证据](../../../dev/parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)限定范围；PRD025/028总体状态不提升。

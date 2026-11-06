@@ -94,7 +94,7 @@ summary: "六路只读复查默认编辑器窗口的功能缺口（协议消费�
 ## 7. 核对后不是缺口
 
 - 附件上传 UI、语音、Route、Team 写操作（PRD-022.6）、Hook 定义写、model discovery、高级 Memory：PRD 明确排除。
-- Kill 只有 F1 命令、没有主动 Continue：[conversation-failure-and-mutation](conversation-failure-and-mutation.md) §1 已定为不改动。
+- Kill 只有 F1 命令、没有主动 Continue：[conversation-failure-and-mutation](../../archive/dev/plans/conversation-failure-and-mutation.md) §1 已定为不改动。
 - H6 GUA 直连：PRD-024 写明不在 v1。同时连接多个引擎：PRD-029 写明不在本条。
 - 状态栏文案守住 PRD-024.6。遗留函数 `getConversationEngineStatusText(true)` 仍能产出 "Engine connected"，但没有调用方（`conversationSessionStatus.ts:99-104`）。
 - PRD-026 九个键都有真实消费点，七组都不空。

@@ -118,7 +118,7 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 
 ### 3.4 Inbox 浮层（仅 Active）
 
-独立芯片，**无**共用背景条，**不**与 Composer 连底。Maximize 时 overlay 与可见 gate **留在文档流**，禁止 `display:none`（已被 [conversation-chrome-visibility](conversation-chrome-visibility.md) D403 取代）。
+独立芯片，**无**共用背景条，**不**与 Composer 连底。Maximize 时 overlay 与可见 gate **留在文档流**，禁止 `display:none`（已被 [conversation-chrome-visibility](../../archive/dev/plans/conversation-chrome-visibility.md) D403 取代）。
 
 ```text
 左： [Task] [MessageQueue] [Goal]          右： [Stop?] [ctx 环]

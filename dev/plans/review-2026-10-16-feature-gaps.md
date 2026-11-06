@@ -80,11 +80,11 @@ G1、G2 即 [engine-gap-queue-send-attachments](engine-gap-queue-send-attachment
 发现稿保持 `draft`。条目归宿与落地情况：
 
 - G1、G2、G5、G7、G10、G11、G19、G20、P2 → [feature-gaps-2026-10-16-boundary](feature-gaps-2026-10-16-boundary.md)
-- G3、D1 → [engine-mcp-definition-form](engine-mcp-definition-form.md)（已于 `05a17c38879` 实施）
+- G3、D1 → [engine-mcp-definition-form](../../archive/dev/plans/engine-mcp-definition-form.md)（已于 `05a17c38879` 实施）
 - G4、G15、G16 → [engine-trigger-clipboard-actions](engine-trigger-clipboard-actions.md)（已于 `05a17c38879`、`1a4c4295b45`、`f342680627e` 实施）
 - G6 → [composer-agent-picker](composer-agent-picker.md)（已于 `2e785907611` 实施）
-- G8、G9、G12、G13、G14、G18 → [conversation-failure-and-mutation](conversation-failure-and-mutation.md)（其中 G8 路径键盘符与 Kill 动作已于 `83ef402a254` 实施；G9、G12、G13、G14、G18 待后续迭代）
-- G17 → [architecture-2026-10-16-concrete](architecture-2026-10-16-concrete.md) §1（断链清理能力快照已于 `4fa4f3eab56` 实施）
+- G8、G9、G12、G13、G14、G18 → [conversation-failure-and-mutation](../../archive/dev/plans/conversation-failure-and-mutation.md)（其中 G8 路径键盘符与 Kill 动作已于 `83ef402a254` 实施；G9、G12、G13、G14、G18 待后续迭代）
+- G17 → [architecture-2026-10-16-concrete](../../archive/dev/plans/architecture-2026-10-16-concrete.md) §1（断链清理能力快照已于 `4fa4f3eab56` 实施）
 - D2、D3 → 文档与代码偏差已于 `cc6e17a9d8f` 实施纠正
 
 落地状态总括：G3/D1（`05a17c38879`）、G4/G15/G16（`05a17c38879`、`1a4c4295b45`、`f342680627e`）、G6（`2e785907611`）、G8（`83ef402a254`）、G17（`4fa4f3eab56`）、D2/D3（`cc6e17a9d8f`）均已实施。其余缺口方案推进中。

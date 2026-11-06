@@ -12,8 +12,8 @@ summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具�
 覆盖需求：PRD-025。
 
 
-> **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G3、D1。
-> **不推翻：** [engine-catalog](../../docs/systems/workbench/engine-catalog.md) 的 List / Toggle / Remove 与 Runtime tab。不改 `UniverseAgentMcpServerConfig` 的字段。不升 PRD-025。
+> **触发：** [功能缺口审查 2026-10-16](../../../dev/plans/review-2026-10-16-feature-gaps.md) G3、D1。
+> **不推翻：** [engine-catalog](../../../docs/systems/workbench/engine-catalog.md) 的 List / Toggle / Remove 与 Runtime tab。不改 `UniverseAgentMcpServerConfig` 的字段。不升 PRD-025。
 > **落地：** `status: implemented`。已于 `05a17c38879`（Slot B）落地合入。
 >
 > **2026-10-19：** 设置页新建已改成 `IDialogService.input`，不在列表下展开内联表单。§2 的内联表单没有按原文实施。点击 Add / Update 打开输入对话框，字段顺序是 name、transport、command、url。判定、无改动不写回、`addServer(config)` 和无参 `updateSelectedServer()` 仍供测试调用，这些与 §2 相同。方案仍 `draft`。
@@ -24,7 +24,7 @@ summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具�
 
 **Update** 在有选中项时把选中项原字段填进 `UniverseAgentMcpServerConfig` 再 `updateMcpServer`（`:433-461`）。没有编辑表单，点击等于原样写回。
 
-[engine-catalog](../../docs/systems/workbench/engine-catalog.md) MCP 行把写工具栏写成 Add / Update / Remove，备注是「定义 CRUD」（约第 75 行）。Add 无配置即失败，Update 无编辑，这句与代码不符。
+[engine-catalog](../../../docs/systems/workbench/engine-catalog.md) MCP 行把写工具栏写成 Add / Update / Remove，备注是「定义 CRUD」（约第 75 行）。Add 无配置即失败，Update 无编辑，这句与代码不符。
 
 `UniverseAgentMcpServerConfig`（`universeAgentTypes.ts:1955-1964`）字段是 `id?`、`name`、`transport`、`command?`、`args?`、`env?`、`url?`、`enabled?`。`transport` 为 `'stdio' | 'sse' | 'streamable_http' | 'unknown'`（`:1918`）。Add 的 scope 今天写死 `'global'`（`engineMcpSection.ts:413`）。
 
@@ -50,14 +50,14 @@ summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具�
 
 ## 3. 文档
 
-同一实施切片改 [engine-catalog](../../docs/systems/workbench/engine-catalog.md) 第 75 行备注。保留「list + toggle @ `4833c008`」。后半改为：Add 与 Update 要先提交本表单，无配置不发 `AddMcpServer`，无改动不发 `UpdateMcpServer`。删掉「定义 CRUD @ `7f10e65c` / `f49615a1`」。不改第 17 行、第 114 行，不改 Runtime 行。
+同一实施切片改 [engine-catalog](../../../docs/systems/workbench/engine-catalog.md) 第 75 行备注。保留「list + toggle @ `4833c008`」。后半改为：Add 与 Update 要先提交本表单，无配置不发 `AddMcpServer`，无改动不发 `UpdateMcpServer`。删掉「定义 CRUD @ `7f10e65c` / `f49615a1`」。不改第 17 行、第 114 行，不改 Runtime 行。
 
 ## 4. 明确不改
 
 - 不新增 proto 字段，不改 `isCompleteMcpAddConfig` 的判定。
 - 不改 MCP Runtime、`mcpRuntime` 能力键、Toggle、Remove。
 - 不改 Add 的 scope，不加 project/global 选择。
-- 不改会话工作根（G5 仍归 [session-work-root-and-workbench-scope](session-work-root-and-workbench-scope.md)）。
+- 不改会话工作根（G5 仍归 [session-work-root-and-workbench-scope](../../../dev/plans/session-work-root-and-workbench-scope.md)）。
 - 不升 PRD-025，不改 Engine Overview。
 
 ## 5. 本地验证

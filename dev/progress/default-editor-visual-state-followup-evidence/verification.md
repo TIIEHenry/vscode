@@ -9,7 +9,7 @@ summary: "五项视觉修复及同根因续审：Electron 350 passing，14 个�
 
 # 结果与边界
 
-[方案](../../plans/default-editor-visual-state-followup.md) · [协作看板](../../parallel/active/default-editor-visual-state-followup.md)。本轮仅修改默认编辑器产品面，Agents Window 仅作对照。
+[方案](../../../archive/dev/plans/default-editor-visual-state-followup.md) · [协作看板](../../parallel/active/default-editor-visual-state-followup.md)。本轮仅修改默认编辑器产品面，Agents Window 仅作对照。
 
 已完成：状态正文对比、会话列表活动/失焦前景、三类设置列表选择与悬停区分、Provider 启用状态改可见只读文字、过程折真实取消状态。同根因续审另外收敛 Sources 引擎文件列表的名称选择色、两份首选项 CSS 的高对比根类选择器、会话列表选中行背景过渡导致的瞬时低对比，以及过程折状态被长名称挤掉和未知工具假完成勾。
 

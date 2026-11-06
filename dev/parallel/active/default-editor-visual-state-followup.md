@@ -9,7 +9,7 @@ summary: "默认编辑器五项视觉修复与同根因续审完成：Electron 3
 
 # 默认编辑器视觉状态修复
 
-[方案](../../plans/default-editor-visual-state-followup.md) · [当前迭代](../../progress/status.md)。基线 `e2442d8b3ec`，当前分支 `agent-ide`；保留上一轮六份产品范围文档修正，非 loop / worktree 波次。
+[方案](../../../archive/dev/plans/default-editor-visual-state-followup.md) · [当前迭代](../../progress/status.md)。基线 `e2442d8b3ec`，当前分支 `agent-ide`；保留上一轮六份产品范围文档修正，非 loop / worktree 波次。
 
 | 角色 | 独占范围 | 状态 |
 | --- | --- | --- |

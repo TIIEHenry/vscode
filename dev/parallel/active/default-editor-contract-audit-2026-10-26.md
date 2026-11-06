@@ -78,7 +78,7 @@ D1387原两机制已按555c旧生产+不可变J23f两新测试实际0过14红（
 
 本轮父 agent 仅调度。merge / baseline_executor 独占编译、类型检查、转译与 out 写入，并负责记录行动文档；J与E按上表分别实施各自模块，D / Sources 独立只读核查已有 J 提交，Astra 只读整体核查和设计决策，其余工位不写本轮代码。主分支实际为 `agent-ide`，不以 Microsoft origin/main 替换基线、不 push、不丢 WIP。
 
-c968 最新全量已实际 exit1、45诊断/27文件，见[原始本次日志](../../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log)。先在 merge 按[当前基线方案](../../plans/current-typescript-contract-baseline.md)修复正式类型合同，恢复绿基线后再开展字母槽实施。D1387已有J实现提交由独立审查者核查，不在本次基线中提前合入或重复实现。
+c968 最新全量已实际 exit1、45诊断/27文件，见[原始本次日志](../../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log)。先在 merge 按[当前基线方案](../../../archive/dev/plans/current-typescript-contract-baseline.md)修复正式类型合同，恢复绿基线后再开展字母槽实施。D1387已有J实现提交由独立审查者核查，不在本次基线中提前合入或重复实现。
 
 ## 当前 D1385 范围纠正
 
