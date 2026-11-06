@@ -10,6 +10,7 @@ import { readLocalHarnessProviderDrafts } from './harnessProviderImport.js';
 import { loadProviderPresetCatalog } from './providerPresetCatalog.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, combinedDisposable, type IDisposable } from '../../../base/common/lifecycle.js';
+import { NullLogService, type ILogService } from '../../log/common/log.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
@@ -465,6 +466,8 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly autoConnectLocalEngine?: boolean;
 	readonly findLocalEngine?: () => Promise<LocalEngineTarget | undefined>;
 	readonly openLocalEngineTransport?: (target: LocalEngineTarget) => GrpcUniverseAgentClient;
+	/** Defaults to a silent logger; electron-main passes the main log. */
+	readonly logService?: ILogService;
 }
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
@@ -594,9 +597,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private readonly _setTimeoutFn: UniverseAgentSetTimeoutFn;
 	private readonly _clearTimeoutFn: UniverseAgentClearTimeoutFn;
 	private readonly _readHarnessProviderDrafts: () => readonly HarnessProviderDraft[];
+	private readonly _logService: ILogService;
 
 	constructor(options: UniverseAgentConnectionServiceOptions = {}) {
 		super();
+		this._logService = options.logService ?? new NullLogService();
 		this._hub = this._register(new UniverseAgentHubService(options));
 		this._createTransport = options.createTransport ?? createGrpcUniverseAgentClient;
 		this._readHarnessProviderDrafts = options.readHarnessProviderDrafts ?? readLocalHarnessProviderDrafts;
@@ -2729,7 +2734,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._suppressLocalEngineDiscovery = true;
 		this._connectionPhase = { kind: 'disconnected' };
 		this._fireSnapshotChanged();
-		console.info('UniverseAgent local engine requires authentication; automatic discovery suppressed');
+		this._logService.info('UniverseAgent local engine requires authentication; automatic discovery suppressed');
 		return false;
 	}
 

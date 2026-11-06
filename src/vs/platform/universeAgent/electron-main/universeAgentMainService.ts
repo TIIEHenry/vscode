@@ -5,6 +5,7 @@
 
 import { promises as dnsPromises } from 'node:dns';
 import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
+import { ILogService } from '../../log/common/log.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { ClientIdentityStore } from '../node/clientIdentityStore.js';
 import { ConnectionProfileStore } from '../node/connectionProfileStore.js';
@@ -22,6 +23,7 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 	constructor(
 		@IEncryptionMainService encryptionService: IEncryptionMainService,
 		@IApplicationStorageMainService applicationStorage: IApplicationStorageMainService,
+		@ILogService logService: ILogService,
 	) {
 		const hubSessionStore = new HubSessionStore(encryptionService, applicationStorage);
 		const clientIdentityStore = new ClientIdentityStore(encryptionService, applicationStorage);
@@ -45,6 +47,7 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 				},
 			}),
 			autoConnectLocalEngine: true,
+			logService,
 		});
 	}
 }
