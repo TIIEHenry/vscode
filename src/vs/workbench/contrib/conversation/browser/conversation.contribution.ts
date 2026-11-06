@@ -20,7 +20,7 @@ import './uaPreferencesPanes.contribution.js';
 import './universeAgentDeepLink.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
-import { registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
@@ -45,9 +45,12 @@ import { IAgentSessionContext } from '../../../services/agentSession/common/agen
 import { AgentSessionContext } from './agentSessionContext.js';
 import { ConversationEngineRosterService } from './conversationEngineRosterService.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { IProductChatOpenRoute } from '../../../services/chat/common/productChatOpenRoute.js';
+import { ProductChatOpenRoute } from './productChatOpenRoute.js';
 
 registerSingleton(IConversationRosterService, new SyncDescriptor(ConversationEngineRosterService, [], true));
 registerSingleton(IAgentSessionContext, new SyncDescriptor(AgentSessionContext, [], true));
+registerSingleton(IProductChatOpenRoute, ProductChatOpenRoute, InstantiationType.Delayed);
 
 export const CONVERSATION_SESSIONS_CONTAINER_ID = 'workbench.view.sessions';
 

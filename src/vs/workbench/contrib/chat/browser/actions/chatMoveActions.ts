@@ -22,7 +22,7 @@ import { ChatViewId, IChatWidgetService } from '../chat.js';
 import { ChatEditor, IChatEditorOptions } from '../widgetHosts/editor/chatEditor.js';
 import { ChatEditorInput } from '../widgetHosts/editor/chatEditorInput.js';
 import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';
-import { CHAT_CATEGORY, focusConversationPart, isDefaultCodeWindow } from './chatActions.js';
+import { CHAT_CATEGORY, focusConversationPart } from './chatActions.js';
 
 enum MoveToNewLocation {
 	Editor = 'Editor',
@@ -48,8 +48,7 @@ export function registerMoveActions() {
 		}
 
 		async run(accessor: ServicesAccessor, ...args: unknown[]) {
-			if (isDefaultCodeWindow(accessor)) {
-				focusConversationPart(accessor);
+			if (focusConversationPart(accessor)) {
 				return;
 			}
 			const context = args[0];

@@ -42,7 +42,7 @@ import { ChatEntitlement, IChatEntitlementService } from '../../../../services/c
 import { ACTIVE_GROUP, AUX_WINDOW_GROUP, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
-import { focusConversationPart, isDefaultCodeWindow } from '../chatShellRouting.js';
+import { focusConversationPart } from '../chatShellRouting.js';
 import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { EXTENSIONS_CATEGORY, IExtensionsWorkbenchService } from '../../../extensions/common/extensions.js';
@@ -230,8 +230,7 @@ abstract class OpenChatGlobalAction extends Action2 {
 	override async run(accessor: ServicesAccessor, opts?: string | IChatViewOpenOptions): Promise<IChatAgentResult & { type?: 'confirmation' } | undefined> {
 		opts = typeof opts === 'string' ? { query: opts } : opts;
 
-		if (isDefaultCodeWindow(accessor)) {
-			focusConversationPart(accessor);
+		if (focusConversationPart(accessor)) {
 			return undefined;
 		}
 
@@ -647,8 +646,7 @@ export function registerChatActions() {
 	}
 
 	async function openNewChatEditorSession(accessor: ServicesAccessor, target: typeof ACTIVE_GROUP | typeof SIDE_GROUP | typeof AUX_WINDOW_GROUP, options?: IChatEditorOptions): Promise<void> {
-		if (isDefaultCodeWindow(accessor)) {
-			focusConversationPart(accessor);
+		if (focusConversationPart(accessor)) {
 			return;
 		}
 		const widgetService = accessor.get(IChatWidgetService);
@@ -686,8 +684,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			if (isDefaultCodeWindow(accessor)) {
-				focusConversationPart(accessor);
+			if (focusConversationPart(accessor)) {
 				return;
 			}
 
@@ -845,8 +842,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			if (isDefaultCodeWindow(accessor)) {
-				focusConversationPart(accessor);
+			if (focusConversationPart(accessor)) {
 				return;
 			}
 			await openNewChatEditorSession(accessor, SIDE_GROUP);
@@ -875,8 +871,7 @@ export function registerChatActions() {
 		}
 
 		async run(accessor: ServicesAccessor) {
-			if (isDefaultCodeWindow(accessor)) {
-				focusConversationPart(accessor);
+			if (focusConversationPart(accessor)) {
 				return;
 			}
 			const widgetService = accessor.get(IChatWidgetService);

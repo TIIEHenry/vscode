@@ -28,6 +28,9 @@ import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import type { Turn } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { ProductChatOpenRoute } from '../../../conversation/browser/productChatOpenRoute.js';
+import type { ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IProductChatOpenRoute } from '../../../../services/chat/common/productChatOpenRoute.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -46,6 +49,10 @@ class AgentsWindowEnvironmentService extends BrowserWorkbenchEnvironmentService 
 	override get isSessionsWindow(): boolean {
 		return true;
 	}
+}
+
+function productChatOpenRoute(openInstead: boolean): IProductChatOpenRoute {
+	return { _serviceBrand: undefined, openInstead: () => openInstead };
 }
 
 const testEnvOptions = Object.create(null);
@@ -119,6 +126,7 @@ suite('chatShellRouting (M5 slice 1)', () => {
 		let focusCalled = false;
 		const instantiationService = workbenchInstantiationService({}, store);
 		instantiationService.stub(IWorkbenchEnvironmentService, new DefaultCodeWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService));
+		instantiationService.stub(IProductChatOpenRoute, productChatOpenRoute(true));
 		instantiationService.stub(IChatService, {
 			acquireOrLoadSession: async () => {
 				acquireCount++;
@@ -192,6 +200,7 @@ suite('chatShellRouting (M5 slice 1)', () => {
 		let focusCalled = false;
 		const instantiationService = workbenchInstantiationService({}, store);
 		instantiationService.stub(IWorkbenchEnvironmentService, new DefaultCodeWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService));
+		instantiationService.stub(IProductChatOpenRoute, productChatOpenRoute(true));
 
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
 		conversationPart.create(document.createElement('div'));
@@ -236,6 +245,7 @@ suite('chatShellRouting (M5 slice 1)', () => {
 	test('focusConversationPart shows and focuses ConversationPart', async () => {
 		const instantiationService = workbenchInstantiationService({}, store);
 		instantiationService.stub(IWorkbenchEnvironmentService, new DefaultCodeWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService));
+		instantiationService.stub(IProductChatOpenRoute, productChatOpenRoute(true));
 
 		let focusCalled = false;
 		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
@@ -247,7 +257,41 @@ suite('chatShellRouting (M5 slice 1)', () => {
 		};
 		instantiationService.stub(IConversationPartService, conversationPart);
 
-		await instantiationService.invokeFunction(accessor => focusConversationPart(accessor));
+		assert.strictEqual(instantiationService.invokeFunction(accessor => focusConversationPart(accessor)), true);
 		assert.strictEqual(focusCalled, true);
+	});
+
+	test('focusConversationPart does nothing and returns false when the route declines', () => {
+		const instantiationService = workbenchInstantiationService({}, store);
+		let focusCalled = false;
+		instantiationService.stub(IProductChatOpenRoute, productChatOpenRoute(false));
+		instantiationService.stub(IConversationPartService, { focus: () => { focusCalled = true; } } as unknown as IConversationPartService);
+
+		assert.strictEqual(instantiationService.invokeFunction(accessor => focusConversationPart(accessor)), false);
+		assert.strictEqual(focusCalled, false);
+	});
+
+	test('focusConversationPart returns false without throwing when no route is registered (strict accessor)', () => {
+		const instantiationService = workbenchInstantiationService({}, store);
+		let focusCalled = false;
+		instantiationService.stub(IConversationPartService, { focus: () => { focusCalled = true; } } as unknown as IConversationPartService);
+
+		const strictAccessor: ServicesAccessor = {
+			get: <T>(id: ServiceIdentifier<T>): T => {
+				if (id === IProductChatOpenRoute) {
+					throw new Error(`[invokeFunction] unknown service '${id}'`);
+				}
+				return instantiationService.invokeFunction(accessor => accessor.get(id));
+			}
+		};
+		assert.strictEqual(focusConversationPart(strictAccessor), false);
+		assert.strictEqual(focusCalled, false);
+	});
+
+	test('ProductChatOpenRoute opens Conversation only in the default window', () => {
+		const defaultEnv = new DefaultCodeWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService);
+		const agentsEnv = new AgentsWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService);
+		assert.strictEqual(new ProductChatOpenRoute(defaultEnv).openInstead(), true);
+		assert.strictEqual(new ProductChatOpenRoute(agentsEnv).openInstead(), false);
 	});
 });

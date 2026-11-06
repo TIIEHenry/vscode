@@ -975,8 +975,7 @@ export class OpenAgentSessionInEditorGroupAction extends BaseOpenAgentSessionAct
 	}
 
 	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
-		if (isDefaultCodeWindow(accessor)) {
-			focusConversationPart(accessor);
+		if (focusConversationPart(accessor)) {
 			return;
 		}
 		await super.runWithSessions(_sessions, accessor);
@@ -1017,8 +1016,7 @@ export class OpenAgentSessionInNewEditorGroupAction extends BaseOpenAgentSession
 	}
 
 	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
-		if (isDefaultCodeWindow(accessor)) {
-			focusConversationPart(accessor);
+		if (focusConversationPart(accessor)) {
 			return;
 		}
 		await super.runWithSessions(_sessions, accessor);
@@ -1053,8 +1051,7 @@ export class OpenAgentSessionInNewWindowAction extends BaseOpenAgentSessionActio
 	}
 
 	override async runWithSessions(_sessions: IAgentSession[], accessor: ServicesAccessor): Promise<void> {
-		if (isDefaultCodeWindow(accessor)) {
-			focusConversationPart(accessor);
+		if (focusConversationPart(accessor)) {
 			return;
 		}
 		await super.runWithSessions(_sessions, accessor);

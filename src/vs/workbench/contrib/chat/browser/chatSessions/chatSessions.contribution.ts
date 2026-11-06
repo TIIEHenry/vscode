@@ -1751,8 +1751,7 @@ export async function openChatSession(accessor: ServicesAccessor, openOptions: N
 		throw new BugIndicatingError('Default Code window must not open ChatEditorInput sessions');
 	}
 
-	if (isDefaultCodeWindow(accessor)) {
-		focusConversationPart(accessor);
+	if (focusConversationPart(accessor)) {
 		return;
 	}
 
