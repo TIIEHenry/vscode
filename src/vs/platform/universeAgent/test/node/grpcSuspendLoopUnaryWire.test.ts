@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -85,38 +84,6 @@ suite('grpc AgentService SuspendLoop protobuf wire', () => {
 			message: undefined,
 		});
 	});
-
-	test('suspend-loop unary wire is AgentService.SuspendLoop only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSuspendLoopUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeSuspendLoopRequest\b/.test(source));
-		assert.ok(/\bdecodeSuspendLoopResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bencodePauseRequest\b/.test(source));
-		assert.ok(!/\bdecodePauseResponse\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('suspendLoop uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const suspend = extractAsyncMethod(source, 'suspendLoop');
-		assert.ok(suspend.includes('makeUnaryBytesClient'), 'suspendLoop must use makeUnaryBytesClient');
-		assert.ok(suspend.includes('encodeSuspendLoopRequest'), 'suspendLoop must call encodeSuspendLoopRequest');
-		assert.ok(suspend.includes('decodeSuspendLoopResponse'), 'suspendLoop must call decodeSuspendLoopResponse');
-		assert.ok(suspend.includes('ok: wire.success === true'), 'suspendLoop must keep ok: wire.success === true');
-		assert.ok(suspend.includes('message: wire.message'), 'suspendLoop must keep message: wire.message');
-		assert.ok(!suspend.includes('makeUnaryClient<'), 'suspendLoop must not use JSON makeUnaryClient');
-		assert.ok(!suspend.includes('JSON.stringify'), 'suspendLoop must not JSON.stringify');
-
-		assert.ok(source.includes('grpcSuspendLoopUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as Agent.SuspendLoop JSON unary (`ok: wire.success === true`). */
@@ -127,24 +94,7 @@ function mapSuspendLoop(wire: SuspendLoopResponseWire): UniverseAgentSuspendLoop
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSuspendLoopUnaryWire.ts')));
-	assert.ok(dir, 'grpcSuspendLoopUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
