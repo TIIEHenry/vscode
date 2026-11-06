@@ -1,5 +1,5 @@
 # baseline_sha: d2abb648c0e7fdded291abe36b58d77c36e34c88
-# min_cases: conversation=799 sources=89 universeAgent=190 universeAgentNode=418 sourcesNode=59
+# min_cases: conversation=3245 sources=89 universeAgent=190 universeAgentNode=418 sourcesNode=59
 # max_skipped: conversation=1 sources=0 universeAgent=0 universeAgentNode=0 sourcesNode=0
 # 格式：<classname>::<name>
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
@@ -11,3 +11,4 @@
 # 2026-11-01 接替工位：conversation 19 红基线。权威依据=干净树全 glob 跑批（外部改动前，test-results/linux-x64-conversation-results.xml @ 09:26 产物：1671 passing / 19 failing / 1 skip，与 S5 归类一致），供治理「人审」核验。外部 10:06 重编译后的 21 红隔离跑仅作污染参考，未采信。
 # 2026-11-01 收口：隔离 worktree final-verify（agent-ide @ a5044687652 + S2 修复 9d6e43bc05f，官方 glob `**/vs/workbench/contrib/conversation/test/**/*.test.js`）终跑 2914 passing / 5 pending / 21 failing。原 19 红全绿（S2 两红由 getWindow(anchor).getComputedStyle 修复转绿；S5 after-each 两行随 openSessionBeside 转绿；其余 17 条在本 SHA 既绿）。本名单清空。
 # 仍红（名单外既有，基线 XML 09:26 产物 94 套件未覆盖这 10 个套件，共 21 条，非本批引入、不入本名单）：conversationTimelineProjection(1) / ConversationTrajectory(2) / ConversationTrajectoryUi(7) / Page access schemes slice 5(2) / leftover scan D710(3) D716(2) D721(1) / UA chrome review(1) / Conversation lens keyboard focus ring(1) / D1319 engine provider-model scan(1)。主因两类：stub 缺 IEngineModelCatalog 等依赖（onDidChangeOffer undefined，14 条）；源码扫描断言与现行 import/binding 不符（7 条）。
+# 2026-11-06 工位 G：p6-1 把 59 个并列测试搬入 conversation/test/browser 后实测 conversation Electron 单 glob（排除 conversationSessionsFocus 与全部 warn-then-rethrows 标题）3231 passing / 1 pending / 13 failing = 3245 条，min_cases 由 799 抬到 3245（只升不降，是下限：被排除的 warn-then-rethrows 用例未计入）。13 条红与 warn-then-rethrows 红均为 codex/merge 既有（e5c06d19c55 去掉双 catch 等），不在本切片内修，也未加 skip。
