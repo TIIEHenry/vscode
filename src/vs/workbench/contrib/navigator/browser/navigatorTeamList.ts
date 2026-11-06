@@ -1218,25 +1218,3 @@ registerAction2(class NavigatorTeamOpenInspectAction extends ViewAction<Navigato
 		view.inspectFocusedTitleAction();
 	}
 });
-
-registerAction2(class NavigatorTeamRefreshAction extends ViewAction<NavigatorTeamView> {
-	constructor() {
-		super({
-			id: NAVIGATOR_TEAM_REFRESH_COMMAND_ID,
-			viewId: NAVIGATOR_TEAM_VIEW_ID,
-			title: localize2('navigatorTeamView.refresh', "Refresh"),
-			icon: Codicon.refresh,
-			precondition: NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY,
-			menu: {
-				id: MenuId.ViewTitle,
-				group: 'navigation',
-				order: 0,
-				when: ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
-			},
-		});
-	}
-
-	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
-		view.refreshTeamTree();
-	}
-});
