@@ -13,7 +13,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 export GITHUB_WORKSPACE="${GITHUB_WORKSPACE:-$REPO_ROOT}"
 
-# universeAgent test/node basenames that require the Node runner (top-level node:* module graph).
+# universeAgent test/node basenames that must stay on the Node runner (reasons per file in D17).
 # Single source: test/unit/electron/d17-ua-node-unloadable.json
 # (renderer.js filters the same list in its glob branch before import()).
 # Basename match applies only under test/node/ so

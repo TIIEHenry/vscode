@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-11-06
+updated: 2026-11-07
 summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定，非缺口）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
@@ -43,7 +43,7 @@ summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定
 | `eslint` | `npm run eslint` |
 | `test-placement` | `python3 scripts/check-test-placement.py`：`src/vs` 下任一 `*.test.ts` 的路径里没有名为 `test` 的目录段就退出 1；这类并列测试不在 unit-custom 的 `**/test/**` glob 里，本地门禁收不到 |
 | `docs-health` | `python3 scripts/check-docs-health.py`；`python3 scripts/wiki/wiki.py check --root .`；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 与 `python3 -m unittest scripts/tests/test_docs_status.py`（docs-burden S1 已合入） |
-| `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh)（conversation / sources 官方 glob；universeAgent 在收集阶段把 Node 专跑的 `test/node` 拆给 `universeAgentNode`、其余作为位置参数交给 Electron，无参数或 glob Electron 则在 [`test/unit/electron/renderer.js`](../../test/unit/electron/renderer.js) 的 glob 分支 `import()` 前排除，两处都不吞装载失败并共用唯一名单 [`test/unit/electron/d17-ua-node-unloadable.json`](../../test/unit/electron/d17-ua-node-unloadable.json)）再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
+| `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh) 依次跑五个 JUnit 域：conversation（Electron 官方 glob，`--excludeRunGlob` 只排除要真实焦点的 `conversationSessionsFocus.test.js`）、sources（Electron，`test/browser` glob）、sourcesNode（Node runner 跑脚本里点名的两份 `test/node` 扫描测试）、universeAgent（Electron，收集到的文件作位置参数）、universeAgentNode（Node runner）。universeAgent 在收集阶段按名单 [`test/unit/electron/d17-ua-node-unloadable.json`](../../test/unit/electron/d17-ua-node-unloadable.json) 把 `test/node` 下点名的文件拆给 universeAgentNode；不带 `--run` 的 Electron 跑批在 [`test/unit/electron/renderer.js`](../../test/unit/electron/renderer.js) 的 glob 分支 `import()` 之前按同一名单排除。两处都不吞装载失败，任何 `import()` 失败都让 Electron runner 退 1。[`renderer.html`](../../test/unit/electron/renderer.html) 的 importmap 给 Node 内置模块同时登记 `node:<name>`，名单因此只剩装得上但在 Electron 不绿的文件，逐文件原因见 [D17](deferred-gaps.md#d17-三域基线红切片-3--d2abb648c0e)。五域跑完再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
 
 规格见 [test-baseline-ci](../plans/test-baseline-ci.md)。
 

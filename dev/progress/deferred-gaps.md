@@ -888,7 +888,39 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | 门禁 | `check-test-baseline.sh` 域列表从三域改为四域；`test-baseline-failures.txt` 头部加 `universeAgentNode=418` / `max_skipped=0` |
 | 反向验证 | XML 缺失 → 报 missing 并退 1；用例数降到 417 → 报 `below min_cases=418` 并退 1 |
 
-**未做**：这 11 个在 Electron 下为何 `Failed to fetch dynamically imported module` 仍未查（Node runner 能跑不代表 Electron 侧的加载问题消失）。该问题只影响 Electron 采集路径，不再影响这批测试是否被执行。
+Electron 侧装载失败的原因已在下节查清，名单从 17 个收到 1 个。
+
+### Electron 装载根因与名单收缩（2026-11-07，工位 G / `wave28/G`）
+
+依据 [p6-3](../plans/review-2026-11-04-p6-tests-and-process-plan.md#p6-3-d17-白名单)。17 个文件在 Electron 里报的都是同一句 `TypeError: Failed to fetch dynamically imported module`，Chromium 不给下层原因。沿 `out/` 的 ESM 图逐文件追到底，17 个文件图里唯一解析不了的裸说明符都是带 `node:` 前缀的内置模块；`@grpc/grpc-js` 等包与不带前缀的内置模块都已在 importmap 里。importmap 按字面匹配，[`renderer.html`](../../test/unit/electron/renderer.html) 原来只登记 `crypto`，没有登记 `node:crypto`。
+
+改法：importmap 给每个内置模块同时登记 `node:<name>`，指向同一个 blob。没有改生产 import，也没有改测试。改后每个文件各跑一次 `scripts/test.sh --run <ts>` 与 `node test/unit/node/index.js --run <ts>`。下表的条数是两个 runner 打出的 passing 数，各含一条 runner 自带用例（Electron 的 `assertCleanState`，Node 的 `should not have unexpected errors`）；除这条以外，两边的用例标题逐条相同。
+
+| 文件 | 修前第一份装不上的模块（`node:` 说明符） | Electron 修后 | Node | 去留 |
+|:-----|:-----|:-----|:-----|:-----|
+| `connectionIpcSecretBoundary` | 下游 `node/universeAgentHubService.js`、`connectionProfileStore.js` 等（`node:crypto` / `node:url` / `node:net` / `node:tls` / `node:fs` 等） | 6 过 | 6 过 | 回 Electron |
+| `connectionProfileStore` | 下游 `node/connectionProfileStore.js`、`deviceGrant/tls-pin.js`（`node:crypto`） | 3 过 | 3 过 | 回 Electron |
+| `connectionResolver` | 测试自身与 `node/connectionResolver.js`（`node:crypto`）；`hub/host-normalize.js`（`node:url`） | 26 过 | 26 过 | 回 Electron |
+| `deviceAuthHandshake` | 测试自身与 `deviceGrant/device-grant-crypto.js`（`node:crypto`） | 10 过 | 10 过 | 回 Electron |
+| `deviceGrantCrypto` | 测试自身与 `deviceGrant/device-grant-crypto.js`（`node:crypto`） | 3 过 | 3 过 | 回 Electron |
+| `grpcClientSessionToken` | 下游 `node/pinnedTlsChannel.js`（`node:tls`）、`deviceGrant/observe-candidate-leaf.js`（`node:net`） | 5 过 | 5 过 | 回 Electron |
+| `grpcQueueSkillWire` | 同上（`node:tls` / `node:net` / `node:crypto`） | 6 过 | 6 过 | 回 Electron |
+| `grpcSessionWrites` | 同上（`node:tls` / `node:net` / `node:crypto`） | 2 过 | 2 过 | 回 Electron |
+| `hubControlPlane` | 下游 `hub/host-normalize.js`（`node:url`） | 7 过 | 7 过 | 回 Electron |
+| `hubDirectoryClient` | 下游 `hub/host-normalize.js`（`node:url`） | 5 过 | 5 过 | 回 Electron |
+| `hubSessionStore` | 下游 `hub/host-normalize.js`（`node:url`）、`clientIdentityStore.js`（`node:crypto`） | 22 过 | 22 过 | 回 Electron |
+| `localEngineDiscovery` | 测试自身（`node:child_process` / `node:fs/promises` / `node:net` / `node:os` / `node:path` / `node:crypto`） | 装得上；12 过 1 败后中止 | 31 过 | **留 Node** |
+| `observeCandidateLeaf` | 测试自身与 `deviceGrant/observe-candidate-leaf.js`（`node:net` / `node:tls`） | 4 过 | 4 过 | 回 Electron |
+| `pairingOrchestrator` | 测试自身（`node:crypto`）；下游 `observe-candidate-leaf.js`（`node:net` / `node:tls`） | 23 过 | 23 过 | 回 Electron |
+| `universeAgentChannel` | 测试自身（`node:crypto` / `node:child_process` / `node:fs` / `node:os` / `node:tls`） | 3 过 | 3 过 | 回 Electron |
+| `universeAgentConnection` | 测试自身与 `node/connectionResolver.js`（`node:crypto`）等 | 697 过 | 697 过 | 回 Electron |
+| `universeAgentHubService` | 测试自身与 `node/universeAgentHubService.js`（`node:crypto`）；`hub/host-normalize.js`（`node:url`） | 26 过 | 26 过 | 回 Electron |
+
+`localEngineDiscovery` 留在 Node 专跑名单，原因已经不是装载：用例 `Session/List UNAUTHENTICATED does not commit and suppresses discovery` 走到生产 [`universeAgentConnectionService.ts`](../../src/vs/platform/universeAgent/node/universeAgentConnectionService.ts) 里直接调用的 `console.info('UniverseAgent local engine requires authentication; automatic discovery suppressed')`。Electron renderer 的 teardown 把测试期间的 console 输出判红（`Error: Unexpected console output in test run`），挂在 `"after each" hook` 上，该文件其余 19 条不再跑。Node runner 没有这道检查，31 条全过。修法是生产改走 `ILogService`（或测试注入可替换的日志出口），属于 `src/` 改动，不在本次 runner 包的范围内。修好后从 [`d17-ua-node-unloadable.json`](../../test/unit/electron/d17-ua-node-unloadable.json) 删掉这一行，名单与两处读取（`run-unit-custom.sh` 收集、`renderer.js` glob 分支）可以一起删除。
+
+护栏：在 `out/` 里临时放两份装不上的测试（一份 import `node:` 下不存在的内置模块，一份 import 不存在的相对模块），`--run` 单跑、`--runGlob` 跑、与能装载的 `deviceGrantCrypto` 混在同一次 `--run` 里跑，四次 Electron runner 都退 1。验证完已删除。
+
+16 个文件回到 Electron 之后，universeAgentNode 只剩 `localEngineDiscovery` 的 31 条，低于 [test-baseline-failures.txt](test-baseline-failures.txt) 头部的 `universeAgentNode=418`；universeAgent 的 Electron 条数相应增加。`min_cases` 与头部「11 个」注释按实测重算，留给 p6-3 第二阶段，在此之前 `check-test-baseline.sh` 会报 universeAgentNode 低于 `min_cases`。
 
 ## 维护规则
 

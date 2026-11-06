@@ -93,6 +93,7 @@
 		// Electron does not support vm in renderers; repl and playwright-core load it internally.
 		const unsupportedRendererModules = new Set(['playwright-core', 'repl', 'vm']);
 		const builtin = require('module').builtinModules.filter(mod => !mod.startsWith('_') && !mod.startsWith('electron/js2c/')).sort();
+		const builtinSet = new Set(builtin);
 		const dependencies = Object.keys(require('../../../package.json').dependencies).sort();
 		const optionalDependencies = Object.keys(require('../../../package.json').optionalDependencies).sort();
 		const dependenciesRemote = Object.keys(require('../../../remote/package.json').dependencies).sort();
@@ -107,6 +108,10 @@
 			}
 
 			importMap.imports[name] = url;
+			// Import maps match specifiers literally, so `node:crypto` needs its own entry.
+			if (builtinSet.has(name) && !name.startsWith('node:')) {
+				importMap.imports[`node:${name}`] = url;
+			}
 		}
 
 		//2: CSS modules
