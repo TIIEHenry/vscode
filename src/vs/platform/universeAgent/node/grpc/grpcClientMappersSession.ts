@@ -66,6 +66,7 @@ import type {
 import type { UniverseAgentAuthNonceResult } from './grpcTransport.js';
 import type { BackResponseWire } from './grpcBackUnaryWire.js';
 import type { BranchResponseWire } from './grpcBranchUnaryWire.js';
+import type { ContextSourceUsageWire, FetchToolUsageDetailResponseWire } from './grpcFetchToolUsageDetailUnaryWire.js';
 import type { ListLoopSnapshotsResponseWire, LoopSnapshotRecordWire } from './grpcListLoopSnapshotsUnaryWire.js';
 import type { PruneResponseWire } from './grpcPruneUnaryWire.js';
 import type { AgentInfoWire, StatusResponseWire } from './grpcStatusUnaryWire.js';
@@ -102,6 +103,7 @@ export type {
 } from './grpcUsageUnaryWire.js';
 export type { BackResponseWire } from './grpcBackUnaryWire.js';
 export type { BranchResponseWire } from './grpcBranchUnaryWire.js';
+export type { ContextSourceUsageWire, FetchToolUsageDetailResponseWire } from './grpcFetchToolUsageDetailUnaryWire.js';
 export type { ListLoopSnapshotsResponseWire, LoopSnapshotRecordWire } from './grpcListLoopSnapshotsUnaryWire.js';
 export type { PruneResponseWire } from './grpcPruneUnaryWire.js';
 export type { AgentInfoWire, StatusResponseWire } from './grpcStatusUnaryWire.js';
@@ -257,21 +259,6 @@ const ContextSourceTypeByNumber: Record<number, string> = {
 	5: 'CONTEXT_SOURCE_TYPE_TOOL_RESULT',
 	6: 'CONTEXT_SOURCE_TYPE_SYSTEM',
 };
-
-export interface ContextSourceUsageWire {
-	source_type?: string | number;
-	source_agent_id?: string;
-	source_scope_id?: string;
-	message_id?: string;
-	estimated_tokens?: number | string;
-}
-
-export interface FetchToolUsageDetailResponseWire {
-	success?: boolean;
-	tool_call_id?: string;
-	context_sources?: ContextSourceUsageWire[];
-	error_message?: string;
-}
 
 const FireTriggerWebhookStatusByNumber: Record<number, string> = {
 	0: 'FIRE_TRIGGER_WEBHOOK_STATUS_UNSPECIFIED',

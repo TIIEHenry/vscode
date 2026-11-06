@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentFetchToolUsageDetailRequest } from '../../common/universeAgentTypes.js';
-import type { ContextSourceUsageWire } from './grpcClientMappersSession.js';
 import {
 	allLengthDelimited,
 	encodeStringField,
@@ -16,13 +15,21 @@ import {
 /**
  * JSON-shaped decode of AgentService.FetchToolUsageDetailResponse.
  * Mapper: `mapFetchToolUsageDetailResponse` (`ok: wire.success === true`).
- * `context_sources` matches mapper `ContextSourceUsageWire` (`source_type` varint number).
+ * Decode fills `source_type` with the varint number; the mapper also accepts the enum name.
  */
 export interface FetchToolUsageDetailResponseWire {
 	readonly success?: boolean;
 	readonly tool_call_id?: string;
 	readonly context_sources?: ContextSourceUsageWire[];
 	readonly error_message?: string;
+}
+
+export interface ContextSourceUsageWire {
+	source_type?: string | number;
+	source_agent_id?: string;
+	source_scope_id?: string;
+	message_id?: string;
+	estimated_tokens?: number | string;
 }
 
 /**
