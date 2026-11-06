@@ -45,8 +45,8 @@ import {
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
-	isSourcesKeepLeftoverWrite,
-	sourcesEngineSessionReady,
+	type ISourcesDiffSessionFacts,
+	sourcesDiffSessionFacts,
 	sourcesGitEmptyStagePathMessage,
 	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
@@ -63,7 +63,7 @@ import {
 	sourcesGitAcceptCursorFromEditors,
 	sourcesGitHunkPatchAtCursor,
 } from '../common/sourcesGitHunkPatch.js';
-import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
+import { ISourcesChangesModel, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import {
 	ISourcesDiffWriteCollapse,
 	ISourcesDiffWriteFacts,
@@ -381,19 +381,12 @@ export class SourcesDiffPanelView extends ViewPane {
 		return sourcesChangesWriteSessionId(snapshot, matches, this.session.getActiveSessionId());
 	}
 
-	private getEngineSessionReady(): boolean {
-		return sourcesEngineSessionReady(this.session);
-	}
-
-	private isReadFailed(): boolean {
-		return isSourcesChangesReadFailed(this.changesModel.getSnapshot().state);
-	}
-
-	private isSourcesKeepLeftoverWrite(): boolean {
-		return isSourcesKeepLeftoverWrite(
+	private sessionFacts(): ISourcesDiffSessionFacts {
+		return sourcesDiffSessionFacts(
 			this.uaConnection.isEngineConnected(),
 			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
-			this.getEngineSessionReady(),
+			this.session,
+			this.changesModel.getSnapshot().state,
 		);
 	}
 
@@ -480,8 +473,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 		const fallbackSessionId = this.getGitSessionId();
 		const pairingHold = this.session.isPairingHold();
-		const readFailed = this.isReadFailed();
-		const engineSessionReady = this.getEngineSessionReady();
+		const { readFailed, engineSessionReady, keepLeftover } = this.sessionFacts();
 		const pinnedSessionId = ref.sessionId ?? '';
 		return {
 			identity: {
@@ -516,7 +508,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 			pairingHold,
-			keepLeftover: this.isSourcesKeepLeftoverWrite(),
+			keepLeftover,
 			patches: [],
 			collapse: this.writeCollapse,
 		};
@@ -537,6 +529,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		const generation = ++this._stageGeneration;
 		const hook = this.uaConnection.writeGitStagePaths;
 		try {
+			const readiness = this.sessionFacts();
 			const attempt = plan.kind === 'skip-engine'
 				? { kind: 'fallback' as const }
 				: await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
@@ -545,8 +538,8 @@ export class SourcesDiffPanelView extends ViewPane {
 					plan.sessionId,
 					[plan.path],
 					this.session.isPairingHold(),
-					this.isReadFailed(),
-					this.getEngineSessionReady(),
+					readiness.readFailed,
+					readiness.engineSessionReady,
 				));
 			if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
 				return;
@@ -648,7 +641,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				path,
 				SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
 				this.session.isPairingHold(),
-				this.isReadFailed(),
+				this.sessionFacts().readFailed,
 			);
 			if (!isCurrent()) {
 				return;
@@ -679,6 +672,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				return;
 			}
 			const hook = this.uaConnection.writeGitApplyHunks;
+			const readiness = this.sessionFacts();
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
@@ -686,8 +680,8 @@ export class SourcesDiffPanelView extends ViewPane {
 				SOURCES_GIT_APPLY_CACHED_ARGV,
 				[patch],
 				this.session.isPairingHold(),
-				this.isReadFailed(),
-				this.getEngineSessionReady(),
+				readiness.readFailed,
+				readiness.engineSessionReady,
 			));
 			if (!isCurrent()) {
 				return;

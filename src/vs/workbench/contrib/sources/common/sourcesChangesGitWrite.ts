@@ -58,6 +58,33 @@ export function isSourcesKeepLeftoverWrite(connected: boolean, pairingPending: b
 	return connected && !pairingPending && !engineSessionReady;
 }
 
+/** The three session facts both Diff views feed their write controller. */
+export interface ISourcesDiffSessionFacts {
+	readonly engineSessionReady: boolean;
+	readonly readFailed: boolean;
+	readonly keepLeftover: boolean;
+}
+
+/**
+ * Assemble the Diff views' session facts from what each view already reads:
+ * `isEngineConnected()`, the snapshot's `pairingPending` (not pairing-hold,
+ * which also covers `connecting`), the session context and the changes
+ * read state. The write hold (`isWriteClosed()`) stays in the view.
+ */
+export function sourcesDiffSessionFacts(
+	connected: boolean,
+	pairingPending: boolean,
+	session: SourcesEngineSession,
+	state: SourcesChangesReadState,
+): ISourcesDiffSessionFacts {
+	const engineSessionReady = sourcesEngineSessionReady(session);
+	return {
+		engineSessionReady,
+		readFailed: isSourcesChangesReadFailed(state),
+		keepLeftover: isSourcesKeepLeftoverWrite(connected, pairingPending, engineSessionReady),
+	};
+}
+
 export interface ISourcesChangesWriteFacts {
 	readonly phaseConnected: boolean;
 	readonly pairingPending: boolean;
