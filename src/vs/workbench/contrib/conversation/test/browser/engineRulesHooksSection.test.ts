@@ -4,24 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
-	UniverseAgentConnectionSnapshot,
 	UniverseAgentListHookPointsResult,
 	UniverseAgentListProjectRulesRequest,
 	UniverseAgentListProjectRulesResult,
 	UniverseAgentProjectRule,
-	UniverseAgentSessionEvent,
-	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { EngineHooksSection } from '../../browser/engineHooksSection.js';
 import { EngineRulesSection } from '../../browser/engineRulesSection.js';
+import { createMutableConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 const RULES_FEATURE = 'rules catalog';
 const HOOKS_FEATURE = 'hook metadata';
@@ -58,89 +55,26 @@ suite('Engine Rules / Hooks list (G-ENG-2/3)', () => {
 			projectRules: { support: options.rulesSupport ?? 'UNSUPPORTED' },
 			hooksMetadata: { support: options.hooksSupport ?? 'UNSUPPORTED' },
 		};
-		let connected = options.connected ?? true;
-		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
-		const snapshot = (): UniverseAgentConnectionSnapshot => ({
-			transport: connected ? 'ok' : 'idle',
-			authenticated: connected,
+		const stub = createMutableConversationConnectionTestStub({
+			connected: options.connected ?? true,
 			pairingPending: false,
-			channelAlive: connected,
-			sharedFsRootSent: false,
+			looksLive: false,
 			capabilities,
+			engineIdentityId: undefined,
+			linkId: undefined,
+			publishedLink: 'never',
+			overrides: {
+				listProjectRules: options.listProjectRules,
+				listHookPoints: options.listHookPoints,
+			},
 		});
-		return {
-			_serviceBrand: undefined,
-			isEngineConnected: () => connected,
-			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
-			getTransportState: () => (connected ? 'ok' : 'idle'),
-			getConnectionSnapshot: snapshot,
-			getCapabilitySnapshot: () => capabilities,
-			onDidChangeConnection: onDidChangeConnection.event,
-			onDidFileMutation: Event.None,
-			onDidTurnSettle: Event.None,
-			onDidChangeTeamRuntime: Event.None,
-			requestAgentTreeRefresh: () => { },
-			getNavigatorCapability: () => 'UNKNOWN' as const,
-			isAgentTreeFetchFailed: () => false,
-			team: {
-				memberStatus: async () => [],
-				taskList: async () => [],
-				teamInfo: async () => undefined,
-			},
-			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			cancelPairing: async () => { },
-			probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			renameSession: async () => ({ ok: false, message: 'stub' }),
-			cancelGeneration: async () => ({ ok: false, message: 'stub' }),
-			enqueueQueueItem: async () => ({ ok: false, error: 'stub' }),
-			pauseQueue: async () => ({ ok: false, error: 'stub' }),
-			resumeQueue: async () => ({ ok: false, error: 'stub' }),
-			clearQueue: async () => ({ ok: false, error: 'stub' }),
-			holdQueueItem: async () => ({ ok: false, error: 'stub' }),
-			releaseQueueItemHold: async () => ({ ok: false, error: 'stub' }),
-			editQueueItem: async () => ({ ok: false, error: 'stub' }),
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: (
-				_sessionId: string,
-				_listener: (event: UniverseAgentSessionEvent) => void,
-				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-			) => ({ dispose: () => { } }),
-			chat: async () => { },
-			listSkills: async () => ({ skills: [] }),
-			setSkillEnabled: async () => ({ ok: true }),
-			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
-			listAgentProfiles: async () => ({ profiles: [] }),
-			saveAgentProfile: async (request) => ({ profile: request.profile }),
-			deleteAgentProfile: async () => ({ ok: true }),
-			resetAgentProfile: async () => ({ ok: true }),
-			listMcpServers: async () => ({ servers: [] }),
-			getMcpServerStatuses: async () => ({ statuses: [] }),
-			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: async () => ({ plugins: [] }),
-			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
-			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			unloadPlugin: async () => ({ removedHookCount: 0 }),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
-			addMcpServer: async () => ({ ok: true }),
-			updateMcpServer: async () => ({ ok: true }),
-			removeMcpServer: async () => ({ ok: true }),
-			listTools: async () => ({ tools: [] }),
-			listModels: async () => ({ models: [] }),
-			listProjectRules: options.listProjectRules,
-			listHookPoints: options.listHookPoints,
-			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
+
+		return Object.assign(stub.connection, {
 			setConnected(next: boolean) {
-				connected = next;
-				onDidChangeConnection.fire(snapshot());
+				stub.state.connected = next;
+				stub.notify();
 			},
-		};
+		});
 	}
 
 	async function flushMicrotasks(): Promise<void> {
