@@ -4,22 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import { fileURLToPath } from 'url';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { MarshalledId } from '../../../../base/common/marshallingIds.js';
+import * as path from '../../../../base/common/path.js';
 import { ProxyChannel, type IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { universeAgentHubChannelName } from '../../common/hub.js';
 import { universeAgentConnectionChannelName } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentConnectionIpcChannel, UniverseAgentHubIpcChannel, UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES } from '../../common/universeAgentConnectionIpcChannel.js';
-import { IUniverseAgentHostConnection } from '../../common/universeAgentHostConnection.js';
 import {
 	navigatorTeamInfoCommand,
 	navigatorTeamMemberStatusCommand,
 	navigatorTeamTaskListCommand,
 } from '../../common/universeAgentNavigatorTeamIpc.js';
+
+const thisDir = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.join(thisDir, '../../../../../../');
 
 class FakeWindowService {
 	readonly forwarded: string[] = [];
@@ -416,13 +421,19 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 	});
 
 	test('registration source keeps the allowlist, hub name, and host token', () => {
-		assert.strictEqual(universeAgentConnectionChannelName, 'universeAgentConnection');
+		const app = fs.readFileSync(path.join(REPO_ROOT, 'src/vs/code/electron-main/app.ts'), 'utf8');
+		const hub = fs.readFileSync(path.join(REPO_ROOT, 'src/vs/platform/universeAgent/common/hub.ts'), 'utf8');
+		const sessionView = fs.readFileSync(path.join(REPO_ROOT, 'src/vs/platform/universeAgent/electron-main/universeAgentSessionViewService.ts'), 'utf8');
 		assert.strictEqual(universeAgentHubChannelName, 'universeAgentHub');
 		assert.notStrictEqual(universeAgentHubChannelName, universeAgentConnectionChannelName);
-		assert.strictEqual(IUniverseAgentHostConnection.toString(), 'universeAgentHostConnection');
-
-		const { connection, hub } = open();
-		assert.ok(connection instanceof UniverseAgentConnectionIpcChannel);
-		assert.ok(hub instanceof UniverseAgentHubIpcChannel);
+		assert.ok(app.includes('new UniverseAgentConnectionIpcChannel(universeAgentConnection, universeAgentInnerChannel)'));
+		assert.ok(app.includes('registerChannel(universeAgentConnectionChannelName, universeAgentConnectionChannel)'));
+		assert.ok(app.includes('new UniverseAgentHubIpcChannel(universeAgentInnerChannel)'));
+		assert.ok(app.includes('registerChannel(universeAgentHubChannelName, universeAgentHubChannel)'));
+		assert.ok(app.includes('services.set(IUniverseAgentHostConnection, new SyncDescriptor(UniverseAgentHostConnectionAdapter, undefined, false /* main-only host token */));'));
+		assert.ok(!app.includes('registerChannel(universeAgentConnectionChannelName, ProxyChannel'));
+		assert.ok(hub.includes("export const universeAgentHubChannelName = 'universeAgentHub';"));
+		assert.ok(sessionView.includes('@IUniverseAgentHostConnection hostConnection: IUniverseAgentHostConnection'));
+		assert.ok(!sessionView.includes('as unknown as'));
 	});
 });
