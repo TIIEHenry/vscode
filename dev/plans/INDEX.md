@@ -280,13 +280,10 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r01：base](review-2026-10-11-r01-base.md) | `draft` | 5 条；恢复库改名失败后改走空内存库，关闭时同名键会覆盖磁盘上的原值。 |
 | [方案 r01：base](review-2026-10-11-r01-base-plan.md) | `accepted` | hold 3，weaken 2。r01-1、r01-3、r01-4 已由 4a9b148e287 落地。2026-11-01 签收剩下的 r01-2（收窄）与 r01-5，未实施。 |
 | [审查 r02：agent-host-node](review-2026-10-11-r02-agent-host-node.md) | `draft` | 3 条；归档会话时 git status 失败会被当成工作区干净，随后强制删除 worktree。 |
-| [方案 r02：agent-host-node](review-2026-10-11-r02-agent-host-node-plan.md) | `implemented` | hold 3。r02-1 到 r02-3 三项缺陷已随提交 8fa74ccdaa326f2bd898459f868bd62c2daf8524 落地合入，单测全绿。 |
 | [审查 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest.md) | `draft` | 5 条；SSH 连接表在读失败或条目被滤掉之后，会被下一次保存整表覆盖。 |
 | [方案 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest-plan.md) | `draft` | hold 4，weaken 1。r03-1 至 r03-3 已落地；r03-4 按 D20 不实施；r03-5 缺并存证据，不签。 |
 | [审查 r04：platform](review-2026-10-11-r04-platform.md) | `draft` | 4 条；设置文件读失败会被当成空设置，远端未变时把删除同步到云端。 |
-| [方案 r04：platform](review-2026-10-11-r04-platform-plan.md) | `implemented` | hold 4。r04-1 到 r04-4 四条平台缺陷（读文件非缺失错误原样抛出、submitInput 返回 writeId、addHubDeviceProfile 账号与状态过滤、confirmSas 退出分支始终 close）及单测已全绿落地合入。 |
 | [审查 r05：editor](review-2026-10-11-r05-editor.md) | `draft` | 4 条；差异计算尚未跟上编辑就把旧 diff 标成最新，回退会按旧行号改修改稿。 |
-| [方案 r05：editor](review-2026-10-11-r05-editor-plan.md) | `implemented` | hold 4。r05-1 到 r05-4 四项缺陷已随提交 528b09279ac 落地合入，单测全绿。 |
 | [审查 r06：sessions](review-2026-10-11-r06-sessions.md) | `draft` | 4 条；宿主拒绝审批级别变更后，界面仍显示新级别。 |
 | [方案 r06：sessions](review-2026-10-11-r06-sessions-plan.md) | `draft` | hold 3，weaken 1。r06-2、r06-4 已落地；r06-1 按 2026-10-30 r06-3 实施。2026-11-01 不签：r06-3 方案自相矛盾，要重写。 |
 | [审查 r07：workbench-shell](review-2026-10-11-r07-workbench-shell.md) | `draft` | 4 条；createOnly 在没有文件提供者时仍会覆盖已打开的可写文本。 |
@@ -294,19 +291,13 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r08：chat](review-2026-10-11-r08-chat.md) | `draft` | 5 条；反序列化任一请求失败会把整段会话当成空会话。 |
 | [方案 r08：chat](review-2026-10-11-r08-chat-plan.md) | `accepted` | hold 4，weaken 1。r08-1 至 r08-4 已由 452c2c43e27 落地。2026-11-01 签收 r08-5（补 startExternalEdit 回滚），未实施。 |
 | [审查 r09：conversation](review-2026-10-11-r09-conversation.md) | `draft` | 4 条；重叠的权限切换会让引擎停在比界面更宽的工具权限上。 |
-| [方案 r09：conversation](review-2026-10-11-r09-conversation-plan.md) | `implemented` | hold 4。四条已由 fb38b39d40d、5cbba3b78d3 落地，之后被 ADR-012 改写；回滚点残留归 2026-10-30 r11-3。2026-11-01 只读核对，未重跑测试。 |
 | [审查 r10：notebook-terminal](review-2026-10-11-r10-notebook-terminal.md) | `draft` | 5 条；原始笔记本引用归零时会 dispose 仍在编辑的文档。 |
-| [方案 r10：notebook-terminal](review-2026-10-11-r10-notebook-terminal-plan.md) | `implemented` | hold 4，weaken 1。r10-2 至 r10-5 已落地；r10-1 没有调用方，不实施；r10-2 留一个问题等用户决定。2026-11-01 只读核对，未重跑测试。 |
 | [审查 r11：debug-scm](review-2026-10-11-r11-debug-scm.md) | `draft` | 5 条；未保存的评论草稿在合并时被拼成 [object Object]。 |
-| [方案 r11：debug-scm](review-2026-10-11-r11-debug-scm-plan.md) | `implemented` | hold 5。五条已由 07bb54d68b3、281589a56b1 落地。2026-11-01 只读核对，未重跑测试。 |
 | [审查 r12：editor-features](review-2026-10-11-r12-editor-features.md) | `draft` | 5 条；网页下载取消或读失败时仍 close 可写流，同名目标会被空文件盖掉。 |
 | [方案 r12：editor-features](review-2026-10-11-r12-editor-features-plan.md) | `accepted` | hold 3，drop 1，weaken 1。r12-1、r12-2、r12-4 已落地，目录残余归 2026-10-30 r14-2。2026-11-01 签收 r12-5（收窄，低优先），未实施。 |
 | [审查 r13：contrib-rest](review-2026-10-11-r13-contrib-rest.md) | `draft` | 5 条；后启动的 MCP 沙箱会带上此前各服务器的工作目录写权限。 |
-| [方案 r13：contrib-rest](review-2026-10-11-r13-contrib-rest-plan.md) | `implemented` | hold 5。五条已由 61d41c66e3b、eed430010dd、404799773e7 落地（原摘要误贴了 2026-10-24 r11 的内容，已更正）。2026-11-01 只读核对，未重跑测试。 |
 | [审查 r14：copilot-extension](review-2026-10-11-r14-copilot-extension.md) | `draft` | 5 条；云端删除失败仍会删掉本地会话并丢掉云端任务映射。 |
-| [方案 r14：copilot-extension](review-2026-10-11-r14-copilot-extension-plan.md) | `implemented` | hold 5。五条已由 86961f4d2f0、281589a56b1 落地。2026-11-01 只读核对，未重跑测试。 |
 | [审查 r15：copilot-rest](review-2026-10-11-r15-copilot-rest.md) | `draft` | 3 条；仓库远程地址读失败时，内容排除会把文件记成允许。 |
-| [方案 r15：copilot-rest](review-2026-10-11-r15-copilot-rest-plan.md) | `implemented` | hold 2，weaken 1。三条已由 281589a56b1、9379d3e72df 落地。2026-11-01 只读核对，未重跑测试。 |
 | [审查 r16：extensions-entry](review-2026-10-11-r16-extensions-entry.md) | `draft` | 4 条；屏幕采集回调不核对请求方就把整屏交给调用者。 |
 | [方案 r16：extensions-entry](review-2026-10-11-r16-extensions-entry-plan.md) | `draft` | hold 1，drop 1，weaken 2。r16-4 已落地，r16-3 按 2026-10-30 r16-4 实施，r16-2 维持 drop。2026-11-01 不签：r16-1 缺能跑的验证路径。 |
 | [十六路审查 2026-10-11](review-2026-10-11.md) | `accepted` | 发现 70 条。核查后 hold 55，weaken 13，drop 2。2026-11-01 签收核对：多数条目已落地，r09/r10/r11/r13/r14/r15 改 implemented；仍开的 5 条签收，r03、r06、r16 不签。 |

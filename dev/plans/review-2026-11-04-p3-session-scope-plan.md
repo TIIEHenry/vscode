@@ -48,7 +48,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 - [conversation-bound-session](conversation-bound-session.md)：已经绑定的表面用绑定 id，禁止再包一层 `getBoundSessionId()` 把空值退回 roster。本稿收的是它没改掉的回退和叶子里剩下的 `getActiveSessionId()`。
 - [conversation-timeline-session-pills](conversation-timeline-session-pills.md) 与 [session-windows](../../docs/systems/conversation/session-windows.md)：叶获焦仍 `switchSession`，让名单和命令面板的全局活动会话跟上焦点叶。本稿不删这笔写回。
 - [2026-10-26-leaf-session-root-identity](2026-10-26-leaf-session-root-identity.md)：已绑定身份条用该叶的工作根；真正未绑定的宿主才沿用活动根。本稿不删未绑定这条。
-- [r09 方案](review-2026-10-11-r09-conversation-plan.md) 的 r09-2 已落地，残留由 [r11-3](review-2026-10-30-r11-conversation-plan.md) 承接。r11-3 已签收、未实施。活码仍在进入在飞判断之前把 rollback 写成被盖掉的乐观值（`conversationLensComposerChrome.ts:1514-1515`，`inFlight` 在 `:1521`）。过期且仍可写的成功在 `:1340` 直接 `continue`，不把 `sentModelId` 写入 confirmed。本稿只搬存放处，不实现 r11-3 的目标代数。
+- [r09 方案](../../archive/dev/plans/review-2026-10-11-r09-conversation-plan.md) 的 r09-2 已落地，残留由 [r11-3](review-2026-10-30-r11-conversation-plan.md) 承接。r11-3 已签收、未实施。活码仍在进入在飞判断之前把 rollback 写成被盖掉的乐观值（`conversationLensComposerChrome.ts:1514-1515`，`inFlight` 在 `:1521`）。过期且仍可写的成功在 `:1340` 直接 `continue`，不把 `sentModelId` 写入 confirmed。本稿只搬存放处，不实现 r11-3 的目标代数。
 - [engine-write-gate-unification](engine-write-gate-unification.md) 的写闸不在本稿。
 
 ## p3-1 叶子会话作用域

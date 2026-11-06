@@ -20,3 +20,12 @@
 | [方案 r14：sessions](dev/plans/review-2026-10-24-r14-sessions-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [方案 r15：copilot](dev/plans/review-2026-10-24-r15-copilot-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [方案 r16：extensions-entry](dev/plans/review-2026-10-24-r16-extensions-entry-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r02：agent-host-node](dev/plans/review-2026-10-11-r02-agent-host-node-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r04：platform](dev/plans/review-2026-10-11-r04-platform-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r05：editor](dev/plans/review-2026-10-11-r05-editor-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r09：conversation](dev/plans/review-2026-10-11-r09-conversation-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r10：notebook-terminal](dev/plans/review-2026-10-11-r10-notebook-terminal-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r11：debug-scm](dev/plans/review-2026-10-11-r11-debug-scm-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r13：contrib-rest](dev/plans/review-2026-10-11-r13-contrib-rest-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r14：copilot-extension](dev/plans/review-2026-10-11-r14-copilot-extension-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r15：copilot-rest](dev/plans/review-2026-10-11-r15-copilot-rest-plan.md) | 已完成方案，过程已结束，归档保留原文。 |

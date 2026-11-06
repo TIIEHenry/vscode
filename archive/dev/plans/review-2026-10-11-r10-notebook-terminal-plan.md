@@ -139,6 +139,6 @@ agent:kiro 受用户委托做签收审查，只读核对到 HEAD `38c867b5268`�
 
 ## 按设计原则的决定（2026-11-01）
 
-用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../../docs/decisions/ui-review-decisions-2026-11-01.md)。
 
 - r10-2 残留：沙箱自动批准开启时，命中拒绝规则或写到工作区外仍要确认（D20）。本稿已 implemented，残留另写方案实施。
