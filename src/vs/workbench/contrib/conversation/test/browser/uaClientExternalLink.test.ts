@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { URI } from '../../../../base/common/uri.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IConfirmation, IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { IOpenerService } from '../../../../platform/opener/common/opener.js';
-import { openUaClientExternalLink } from './uaClientExternalLink.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { openUaClientExternalLink } from '../../browser/uaClientExternalLink.js';
 
 suite('uaClientExternalLink (unit)', () => {
 

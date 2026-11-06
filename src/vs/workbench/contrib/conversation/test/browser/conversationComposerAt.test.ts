@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../base/common/event.js';
-import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
-import { IComposerAtHost, noteComposerAtInput, onComposerAtKeyDown, wireComposerAt } from './conversationComposerAt.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { Event } from '../../../../../base/common/event.js';
+import { KeyCode } from '../../../../../base/common/keyCodes.js';
+import { IDisposable } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
+import { IComposerAtHost, noteComposerAtInput, onComposerAtKeyDown, wireComposerAt } from '../../browser/conversationComposerAt.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
 
 suite('Conversation composer @ (browser)', () => {
 

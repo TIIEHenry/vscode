@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getErrorMessage } from '../../../../base/common/errors.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ConversationSessionChatService } from './conversationSessionChatService.js';
-import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const SESSION_KEY = 'ua-bind-fail';
 

@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
-import { regenerateTurn, retryError, type IConversationLensSessionBindingHost } from './conversationLensSessionBinding.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
+import { regenerateTurn, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 
 suite('conversationLensSessionBinding (browser)', () => {
 

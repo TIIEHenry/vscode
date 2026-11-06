@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { EnginePreferencesSectionBase } from './engineSectionChrome.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { EnginePreferencesSectionBase } from '../../browser/engineSectionChrome.js';
 
 class TestEnginePreferencesSection extends EnginePreferencesSectionBase {
 	layout(_width: number, _height: number): void {

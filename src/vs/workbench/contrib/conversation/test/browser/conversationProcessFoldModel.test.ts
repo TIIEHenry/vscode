@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { projectProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from './conversationProcessFoldModel.js';
-import { ConversationStubTurn } from './conversationStubModel.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { projectProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
+import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
 suite('conversationProcessFoldModel (browser unit)', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();

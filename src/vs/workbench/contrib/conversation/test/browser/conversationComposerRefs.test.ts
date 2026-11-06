@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { getConversationChatResource } from '../common/conversationChatInput.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
 import {
 	CONVERSATION_REFS_MARKER,
 	composeConversationPayload,
 	composerSubmitText,
 	type IComposerSurfaceHost,
-} from './conversationComposerRefs.js';
+} from '../../browser/conversationComposerRefs.js';
 
 suite('conversationComposerRefs (unit)', () => {
 

@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import { TestStorageService } from '../../../test/common/workbenchTestServices.js';
-import { entriesToLegacyTurns, projectSnapshotToEntries } from './conversationSessionView.js';
-import { ConversationStubTurn } from './conversationStubModel.js';
-import { ConversationStubService } from './conversationStubService.js';
-import { CONVERSATION_ROSTER_STORAGE_KEY, ConversationRosterStorageV1, loadConversationRosterStorage, saveConversationRosterStorage, withEngineCache } from './conversationRosterStorage.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
+import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
+import { ConversationStubService } from '../../browser/conversationStubService.js';
+import { CONVERSATION_ROSTER_STORAGE_KEY, ConversationRosterStorageV1, loadConversationRosterStorage, saveConversationRosterStorage, withEngineCache } from '../../browser/conversationRosterStorage.js';
 
 suite('conversationRosterStorage (browser)', () => {
 

@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { conversationIdentityStripClass } from './conversationIdentityStrip.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import {
 	applyConnectionPaneIdentityStripReservation,
 	connectionPaneIdentityReservationHostClass,
 	connectionPaneIdentityReservedTopVar,
-} from './connectionPaneIdentityStripReservation.js';
+} from '../../browser/connectionPaneIdentityStripReservation.js';
 
 suite('connectionPaneIdentityStripReservation (browser)', () => {
 

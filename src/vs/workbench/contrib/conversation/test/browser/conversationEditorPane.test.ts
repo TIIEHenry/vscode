@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { Event } from '../../../../base/common/event.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
-import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { Event } from '../../../../../base/common/event.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 
 class TrackingRosterService extends ConversationStubService {
 	renameCalls = 0;
@@ -19,19 +19,19 @@ class TrackingRosterService extends ConversationStubService {
 		return super.renameSession(sessionId, title);
 	}
 }
-import { ConversationChatInput, getDefaultConversationChatResource } from '../common/conversationChatInput.js';
-import { conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason, conversationLensInputMaximizedClass } from './conversationLensDockStrings.js';
-import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
-import { ConversationEditorPane } from './conversationEditorPane.js';
-import { IVisibleEditorPane } from '../../../common/editor.js';
-import { TestEditorGroupView, workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
+import { ConversationChatInput, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
+import { conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason, conversationLensInputMaximizedClass } from '../../browser/conversationLensDockStrings.js';
+import type { ConversationSessionReadiness } from '../../browser/conversationSessionAvailability.js';
+import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
+import { IVisibleEditorPane } from '../../../../common/editor.js';
+import { TestEditorGroupView, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import {
 	createNoopConversationSessionWindowService,
 	stubConversationLensRuntimeServices,
 	stubConversationTimelineLinkServices,
-} from '../test/browser/conversationTimelineLinkTestStubs.js';
-import { installConversationLensResizeObserverHarness } from '../test/browser/conversationLensLayoutHarness.js';
+} from './conversationTimelineLinkTestStubs.js';
+import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 suite('ConversationEditorPane', () => {
 

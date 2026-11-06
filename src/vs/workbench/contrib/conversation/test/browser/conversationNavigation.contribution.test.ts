@@ -4,19 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
-import { TestConfigurationService } from '../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
-import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../services/history/common/history.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ConversationNavigationContribution } from './conversationNavigation.contribution.js';
-import { IConversationNavigationService } from './conversationNavigationService.js';
-import { IConversationSessionChatService } from './conversationSessionChatService.js';
-import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
-import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from '../test/browser/conversationTimelineLinkTestStubs.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../../services/history/common/history.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationNavigationContribution } from '../../browser/conversationNavigation.contribution.js';
+import { IConversationNavigationService } from '../../browser/conversationNavigationService.js';
+import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
 
 const SESSION_KEY = 'session-mouse-nav';
 
@@ -27,7 +27,7 @@ suite('ConversationNavigationContribution', () => {
 		readonly configurationService: TestConfigurationService;
 		readonly layoutService: IWorkbenchLayoutService;
 		readonly goBackCalls: number;
-		readonly contribution: ConversationNavigationContribution;
+		disposeContribution: () => void;
 		dispatchMouseBack: () => void;
 	} {
 		const sessionBar = document.createElement('div');
@@ -37,6 +37,8 @@ suite('ConversationNavigationContribution', () => {
 		store.add({ dispose: () => { sessionBar.remove(); sessionWindow.remove(); } });
 
 		let goBackCalls = 0;
+		let leafSessionKeys: string[] = [SESSION_KEY];
+		const visibleWindowsEmitter = store.add(new Emitter<void>());
 		const configurationService = new TestConfigurationService({
 			[MOUSE_BACK_FORWARD_NAVIGATION_SETTING]: options?.enabled ?? true,
 		});
@@ -60,7 +62,8 @@ suite('ConversationNavigationContribution', () => {
 		});
 		instantiationService.stub(IConversationSessionWindowService, {
 			...createNoopConversationSessionWindowService(),
-			getAllLeafSessionKeys: () => [SESSION_KEY],
+			onDidChangeVisibleWindows: visibleWindowsEmitter.event,
+			getAllLeafSessionKeys: () => leafSessionKeys,
 			getLeafSlots: () => ({
 				sessionKey: SESSION_KEY,
 				container: sessionBar,
@@ -75,6 +78,19 @@ suite('ConversationNavigationContribution', () => {
 		});
 
 		const contribution = instantiationService.createInstance(ConversationNavigationContribution);
+		// The contribution keeps one store per mounted leaf and only releases it
+		// when that leaf disappears, so tear down by closing the leaf first.
+		let contributionDisposed = false;
+		const disposeContribution = () => {
+			if (contributionDisposed) {
+				return;
+			}
+			contributionDisposed = true;
+			leafSessionKeys = [];
+			visibleWindowsEmitter.fire();
+			contribution.dispose();
+		};
+		store.add({ dispose: disposeContribution });
 
 		const dispatchMouseBack = () => {
 			layoutService.mainContainer.dispatchEvent(new MouseEvent('mousedown', {
@@ -88,7 +104,7 @@ suite('ConversationNavigationContribution', () => {
 			configurationService,
 			layoutService,
 			get goBackCalls() { return goBackCalls; },
-			contribution,
+			disposeContribution,
 			dispatchMouseBack,
 		};
 	}
@@ -115,7 +131,7 @@ suite('ConversationNavigationContribution', () => {
 
 	test('mouse back does not navigate after contribution dispose', () => {
 		const harness = mountMouseNavigation();
-		harness.contribution.dispose();
+		harness.disposeContribution();
 		harness.dispatchMouseBack();
 		assert.strictEqual(harness.goBackCalls, 0);
 	});

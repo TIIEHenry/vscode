@@ -4,20 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { InMemoryStorageService } from '../../../../platform/storage/common/storage.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	loadUaClientComposerDraft,
 	removeUaClientComposerDraftsForSession,
 	storeUaClientComposerDraft,
-} from './uaClientComposerDrafts.js';
+} from '../../browser/uaClientComposerDrafts.js';
 
 suite('uaClientComposerDrafts (unit)', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('removeUaClientComposerDraftsForSession drops drafts whose chatId contains slashes', () => {
-		const storageService = new InMemoryStorageService();
+		const storageService = store.add(new InMemoryStorageService());
 		storeUaClientComposerDraft(storageService, 'sess-1', 'team/worker', 'sub-agent draft');
 
 		removeUaClientComposerDraftsForSession(storageService, 'sess-1');

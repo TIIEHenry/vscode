@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	conversationLensDockAgentUnavailable,
 	conversationLensDockEngineCapabilityUnsupported,
@@ -17,8 +17,8 @@ import {
 	updateModelSelectEnabled,
 	updatePermissionSelectEnabled,
 	type IConversationLensComposerChromeHost,
-} from './conversationLensComposerChrome.js';
-import { conversationLensDockEditingMessage, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from './conversationLensDockStrings.js';
+} from '../../browser/conversationLensComposerChrome.js';
+import { conversationLensDockEditingMessage, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from '../../browser/conversationLensDockStrings.js';
 
 suite('ConversationLensComposerChrome', () => {
 

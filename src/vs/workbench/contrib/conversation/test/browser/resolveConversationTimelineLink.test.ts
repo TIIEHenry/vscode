@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { getConversationChatResource } from '../common/conversationChatInput.js';
-import { resolveConversationTimelineLink } from './resolveConversationTimelineLink.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
+import { resolveConversationTimelineLink } from '../../browser/resolveConversationTimelineLink.js';
 
 suite('resolveConversationTimelineLink (browser)', () => {
 

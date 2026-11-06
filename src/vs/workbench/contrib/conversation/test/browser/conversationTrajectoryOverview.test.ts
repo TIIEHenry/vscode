@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
-import { buildTrajectoryOverviewSegments, TRAJECTORY_OVERVIEW_MAX_SEGMENTS } from './conversationTrajectoryOverview.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
+import { buildTrajectoryOverviewSegments, TRAJECTORY_OVERVIEW_MAX_SEGMENTS } from '../../browser/conversationTrajectoryOverview.js';
 
 suite('conversationTrajectoryOverview', () => {
 

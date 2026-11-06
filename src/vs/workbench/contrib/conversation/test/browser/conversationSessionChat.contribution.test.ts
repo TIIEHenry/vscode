@@ -4,19 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
-import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
-import { ConversationSessionChatContribution } from './conversationSessionChat.contribution.js';
-import { ConversationSessionChatService, IConversationSessionChatService } from './conversationSessionChatService.js';
-import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
-import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
-import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from '../test/browser/conversationTimelineLinkTestStubs.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { ConversationSessionChatContribution } from '../../browser/conversationSessionChat.contribution.js';
+import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
 
 const SESSION_KEY = 'session-chat-contribution';
 
@@ -64,7 +64,7 @@ suite('ConversationSessionChatContribution', () => {
 			},
 		});
 
-		const contribution = instantiationService.createInstance(ConversationSessionChatContribution);
+		const contribution = store.add(instantiationService.createInstance(ConversationSessionChatContribution));
 
 		return {
 			contribution,
