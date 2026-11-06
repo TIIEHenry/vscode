@@ -3,7 +3,7 @@ title: "A11y / RWD L1 源码复核记录"
 type: progress
 status: in_progress
 phase: M7
-updated: 2026-10-05
+updated: 2026-11-06
 summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-motion 源码合同 pass（chevron transition 仅 `.ua-motion`）；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 

@@ -3,7 +3,7 @@ title: "主题与 token"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-22
+updated: 2026-11-06
 summary: "本仓颜色/尺寸 token 经 IThemeService 落成 --vscode-* CSS 变量；尺寸以 baseSizes.ts 为唯一来源；产品默认主题是自有 UniverseAgentStudio Light / Dark（include 上游 2026 两套，只覆盖少量 id，默认浅色，PRD-028）；Modern UI 是实验 chrome，B2 spike 不迁 Desktop ADR-003"
 ---
 
