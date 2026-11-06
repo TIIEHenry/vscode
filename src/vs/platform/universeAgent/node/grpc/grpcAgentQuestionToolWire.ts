@@ -57,10 +57,9 @@ function encodeQuestionAnswersMap(answers: Readonly<Record<string, UniverseAgent
  */
 export function decodeRespondQuestionResponse(bytes: Uint8Array): UniverseAgentRespondQuestionResult {
 	const fields = readProtoFields(bytes);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
-		message: lastString(fields, 2),
-	};
+	return lastVarint(fields, 1) === 1n
+		? { ok: true, message: lastString(fields, 2) }
+		: { ok: false, message: lastString(fields, 2) };
 }
 
 /**
@@ -104,10 +103,9 @@ function encodeCanvasRefs(refs: readonly UniverseAgentCanvasRef[] | undefined): 
  */
 export function decodeSendClientToolResponseResponse(bytes: Uint8Array): UniverseAgentSendClientToolResponseResult {
 	const fields = readProtoFields(bytes);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
-		message: lastString(fields, 2),
-	};
+	return lastVarint(fields, 1) === 1n
+		? { ok: true, message: lastString(fields, 2) }
+		: { ok: false, message: lastString(fields, 2) };
 }
 
 function encodeRepeatedString(field: number, values: readonly string[]): Buffer {

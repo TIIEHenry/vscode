@@ -166,11 +166,11 @@ export function decodeForkAgentResponse(bytes: Uint8Array): UniverseAgentForkAge
 	const fields = readProtoFields(bytes);
 	const agentId = lastString(fields, 2)?.trim();
 	const message = lastString(fields, 4);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
+	const payload = {
 		...(agentId ? { agentId } : {}),
 		...(message ? { message } : {}),
 	};
+	return lastVarint(fields, 1) === 1n ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 /**
@@ -204,12 +204,12 @@ export function decodeDeleteMessageResponse(bytes: Uint8Array): UniverseAgentDel
 	const message = lastString(fields, 2);
 	const currentTurnId = lastString(fields, 3)?.trim();
 	const removedTurnCount = lastVarint(fields, 4);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
+	const payload = {
 		...(message ? { message } : {}),
 		...(currentTurnId ? { currentTurnId } : {}),
 		...(removedTurnCount !== undefined ? { removedTurnCount: Number(removedTurnCount) } : {}),
 	};
+	return lastVarint(fields, 1) === 1n ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 /**
@@ -343,10 +343,9 @@ export function decodeResumeSessionResponse(bytes: Uint8Array): UniverseAgentRes
 	const fields = readProtoFields(bytes);
 	const success = lastVarint(fields, 1);
 	const message = lastString(fields, 2);
-	return {
-		ok: success === 1n,
-		...(message ? { message } : {}),
-	};
+	return success === 1n
+		? { ok: true, ...(message ? { message } : {}) }
+		: { ok: false, ...(message ? { message } : {}) };
 }
 
 /**

@@ -179,11 +179,17 @@ export interface UniverseAgentResumeSessionRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentResumeSessionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	readonly rootAgent?: UniverseAgentAgentTreeNode;
-}
+export type UniverseAgentResumeSessionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		readonly rootAgent?: UniverseAgentAgentTreeNode;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		readonly rootAgent?: UniverseAgentAgentTreeNode;
+	};
 
 /** SessionService.Prewarm — explicit session restore batch (≠ Resume / Shelve / Unshelve / List). */
 export interface UniverseAgentPrewarmSessionsRequest {
@@ -207,30 +213,45 @@ export interface UniverseAgentShelveSessionRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentShelveSessionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentShelveSessionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** SessionService.Unshelve — restore a shelved session to the listed set (≠ Shelve / Resume / Delete). */
 export interface UniverseAgentUnshelveSessionRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentUnshelveSessionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentUnshelveSessionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** SessionService.Purge — permanently erase a session (≠ Delete / Shelve / Unshelve / Export). */
 export interface UniverseAgentPurgeSessionRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentPurgeSessionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentPurgeSessionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** SessionService.Export — dump a session as markdown/json (≠ Shelve / Unshelve / Resume / Delete). */
 export interface UniverseAgentExportSessionRequest {
@@ -318,15 +339,25 @@ export interface UniverseAgentTodoResult {
 	readonly items: readonly UniverseAgentTodoItem[];
 }
 
-export interface UniverseAgentCompactResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	readonly tokensBefore?: number;
-	readonly tokensAfter?: number;
-	/** CompactOutcomeProto name, e.g. `COMPACT_OUTCOME_SUCCEEDED`. */
-	readonly outcome?: string;
-	readonly rejectReason?: string;
-}
+export type UniverseAgentCompactResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		readonly tokensBefore?: number;
+		readonly tokensAfter?: number;
+		/** CompactOutcomeProto name, e.g. `COMPACT_OUTCOME_SUCCEEDED`. */
+		readonly outcome?: string;
+		readonly rejectReason?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		readonly tokensBefore?: number;
+		readonly tokensAfter?: number;
+		/** CompactOutcomeProto name, e.g. `COMPACT_OUTCOME_SUCCEEDED`. */
+		readonly outcome?: string;
+		readonly rejectReason?: string;
+	};
 
 /** SessionService.ResolveAnchor — record-layer envelope anchor (ADR-317 §7.2; ≠ ResolveTurn / GetHistory). */
 export interface UniverseAgentEnvelopeAnchor {
@@ -558,10 +589,15 @@ export interface UniverseAgentPauseAgentRequest {
 	readonly agentId: string;
 }
 
-export interface UniverseAgentPauseAgentResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentPauseAgentResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.Back — revert to parent turn / delete current leaf (≠ Pause / PauseQueue / Prune / DeleteMessage). */
 export interface UniverseAgentBackRequest {
@@ -570,11 +606,17 @@ export interface UniverseAgentBackRequest {
 	readonly operationId: string;
 }
 
-export interface UniverseAgentBackResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	readonly currentTurnId?: string;
-}
+export type UniverseAgentBackResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		readonly currentTurnId?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		readonly currentTurnId?: string;
+	};
 
 /** AgentService.Prune — drop inactive conversation branches (≠ Reset / Back / Compact). */
 export interface UniverseAgentPruneRequest {
@@ -582,11 +624,17 @@ export interface UniverseAgentPruneRequest {
 	readonly agentId: string;
 }
 
-export interface UniverseAgentPruneResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	readonly removedCount: number;
-}
+export type UniverseAgentPruneResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		readonly removedCount: number;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		readonly removedCount: number;
+	};
 
 /** AgentService.Reset — reset conversation tree (≠ ResetAgentProfile / Prune / Branch / Back). */
 export interface UniverseAgentResetAgentRequest {
@@ -596,10 +644,15 @@ export interface UniverseAgentResetAgentRequest {
 	readonly clearProfileOnly?: boolean;
 }
 
-export interface UniverseAgentResetAgentResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentResetAgentResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.Branch — switch conversation branch / list when branchIndex = -1 (≠ Reset / Back / Prune / EditMessage / Fork). */
 export interface UniverseAgentBranchRequest {
@@ -611,14 +664,23 @@ export interface UniverseAgentBranchRequest {
 	readonly turnId: string;
 }
 
-export interface UniverseAgentBranchResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	/** 1-based current active branch index. */
-	readonly currentBranch: number;
-	readonly totalBranches: number;
-	readonly currentTurnId?: string;
-}
+export type UniverseAgentBranchResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		/** 1-based current active branch index. */
+		readonly currentBranch: number;
+		readonly totalBranches: number;
+		readonly currentTurnId?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		/** 1-based current active branch index. */
+		readonly currentBranch: number;
+		readonly totalBranches: number;
+		readonly currentTurnId?: string;
+	};
 
 /** AgentService.SuspendLoop — hang loop control-flow (≠ Pause / PauseQueue / Cancel / Resume / ResumeLoop / Branch / StopLoop). */
 export interface UniverseAgentSuspendLoopRequest {
@@ -626,10 +688,15 @@ export interface UniverseAgentSuspendLoopRequest {
 	readonly agentId: string;
 }
 
-export interface UniverseAgentSuspendLoopResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentSuspendLoopResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.ResumeLoop — resume hung loop control-flow (≠ Pause / PauseQueue / Cancel / Resume / ResumeQueue / Session.Resume / SuspendLoop / Branch / StopLoop). */
 export interface UniverseAgentResumeLoopRequest {
@@ -637,10 +704,15 @@ export interface UniverseAgentResumeLoopRequest {
 	readonly agentId: string;
 }
 
-export interface UniverseAgentResumeLoopResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentResumeLoopResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.StopLoop — terminate loop control-flow (≠ Pause / Cancel / SuspendLoop / Resume / ResumeLoop / Branch). */
 export interface UniverseAgentStopLoopRequest {
@@ -650,10 +722,15 @@ export interface UniverseAgentStopLoopRequest {
 	readonly detail: string;
 }
 
-export interface UniverseAgentStopLoopResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentStopLoopResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.Rename request; empty `title` clears a custom session title. */
 export interface UniverseAgentRenameSessionRequest {
@@ -661,10 +738,15 @@ export interface UniverseAgentRenameSessionRequest {
 	readonly title: string;
 }
 
-export interface UniverseAgentRenameSessionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentRenameSessionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.Cancel request; session-turn stop (Inbox Stop). Distinct from CancelToolCall. */
 export interface UniverseAgentCancelGenerationRequest {
@@ -672,10 +754,15 @@ export interface UniverseAgentCancelGenerationRequest {
 	readonly agentId: string;
 }
 
-export interface UniverseAgentCancelGenerationResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentCancelGenerationResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.CancelToolCall — per-tool cancel (≠ session-turn Cancel). */
 export interface UniverseAgentCancelToolCallRequest {
@@ -685,10 +772,15 @@ export interface UniverseAgentCancelToolCallRequest {
 	readonly toolCallId: string;
 }
 
-export interface UniverseAgentCancelToolCallResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentCancelToolCallResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.RunToolInBackground — mid-flight sync→async promote (≠ CancelToolCall / StopShellTask / Cancel / Resume). */
 export interface UniverseAgentRunToolInBackgroundRequest {
@@ -697,12 +789,19 @@ export interface UniverseAgentRunToolInBackgroundRequest {
 	readonly toolCallId: string;
 }
 
-export interface UniverseAgentRunToolInBackgroundResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	/** Proto `reason_code`; empty when success. */
-	readonly reasonCode?: string;
-}
+export type UniverseAgentRunToolInBackgroundResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		/** Proto `reason_code`; empty when success. */
+		readonly reasonCode?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		/** Proto `reason_code`; empty when success. */
+		readonly reasonCode?: string;
+	};
 
 /** AgentService.StopShellTask — stop ShellTask / subprocess after promote (≠ CancelToolCall / RunToolInBackground / Cancel / StopLoop). */
 export interface UniverseAgentStopShellTaskRequest {
@@ -710,10 +809,15 @@ export interface UniverseAgentStopShellTaskRequest {
 	readonly taskId: string;
 }
 
-export interface UniverseAgentStopShellTaskResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentStopShellTaskResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.SendShellSessionClientControl — SHELL_SESSION_BUFFER CONTROL upstream (resize / detach / resync) (≠ StopShellTask / SubscribeToolDetail / FetchToolUsageDetail / CancelToolCall / RunToolInBackground). */
 export interface UniverseAgentSendShellSessionClientControlRequest {
@@ -725,14 +829,23 @@ export interface UniverseAgentSendShellSessionClientControlRequest {
 	readonly controlPayloadJson: string;
 }
 
-export interface UniverseAgentSendShellSessionClientControlResult {
-	readonly ok: boolean;
-	/** Proto `error_message`. */
-	readonly message?: string;
-	readonly errorCode?: string;
-	readonly debounced?: boolean;
-	readonly deliveredToSubscribe?: boolean;
-}
+export type UniverseAgentSendShellSessionClientControlResult =
+	| {
+		readonly ok: true;
+		/** Proto `error_message`. */
+		readonly message?: string;
+		readonly errorCode?: string;
+		readonly debounced?: boolean;
+		readonly deliveredToSubscribe?: boolean;
+	}
+	| {
+		readonly ok: false;
+		/** Proto `error_message`. */
+		readonly message?: string;
+		readonly errorCode?: string;
+		readonly debounced?: boolean;
+		readonly deliveredToSubscribe?: boolean;
+	};
 
 /** AgentService.FetchToolUsageDetail — on-demand context-source usage (≠ FetchToolDetail / SubscribeToolDetail / Usage / Compact). */
 export interface UniverseAgentFetchToolUsageDetailRequest {
@@ -749,13 +862,21 @@ export interface UniverseAgentContextSourceUsage {
 	readonly estimatedTokens: number;
 }
 
-export interface UniverseAgentFetchToolUsageDetailResult {
-	readonly ok: boolean;
-	readonly toolCallId: string;
-	readonly contextSources: readonly UniverseAgentContextSourceUsage[];
-	/** Proto `error_message`. */
-	readonly message?: string;
-}
+export type UniverseAgentFetchToolUsageDetailResult =
+	| {
+		readonly ok: true;
+		readonly toolCallId: string;
+		readonly contextSources: readonly UniverseAgentContextSourceUsage[];
+		/** Proto `error_message`. */
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly toolCallId: string;
+		readonly contextSources: readonly UniverseAgentContextSourceUsage[];
+		/** Proto `error_message`. */
+		readonly message?: string;
+	};
 
 /** AgentService.FireTriggerWebhook — D-TF-1 webhook ingress (≠ FetchToolUsageDetail / SubscribeToolDetail / SwitchWorkDir). */
 export interface UniverseAgentFireTriggerWebhookRequest {
@@ -783,24 +904,38 @@ export interface UniverseAgentInstallSessionDemoFakeRequest {
 	readonly playbookId: string;
 }
 
-export interface UniverseAgentInstallSessionDemoFakeResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	/** Proto `reason_code`. */
-	readonly reasonCode: string;
-}
+export type UniverseAgentInstallSessionDemoFakeResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		/** Proto `reason_code`. */
+		readonly reasonCode: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		/** Proto `reason_code`. */
+		readonly reasonCode: string;
+	};
 
 /** AgentService.ClearSessionDemoFake — ADR-264 session-scoped Demo Fake LLM clear (≠ InstallSessionDemoFake / FireTriggerWebhook / ChatSync / SyncInputDelivery). */
 export interface UniverseAgentClearSessionDemoFakeRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentClearSessionDemoFakeResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	/** Proto `reason_code`. */
-	readonly reasonCode: string;
-}
+export type UniverseAgentClearSessionDemoFakeResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		/** Proto `reason_code`. */
+		readonly reasonCode: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		/** Proto `reason_code`. */
+		readonly reasonCode: string;
+	};
 
 /** AgentService.SwitchWorkDir — change agent work dir (≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir). */
 export interface UniverseAgentSwitchWorkDirRequest {
@@ -810,12 +945,19 @@ export interface UniverseAgentSwitchWorkDirRequest {
 	readonly newWorkDir: string;
 }
 
-export interface UniverseAgentSwitchWorkDirResult {
-	readonly ok: boolean;
-	readonly previousWorkDir: string;
-	readonly currentWorkDir: string;
-	readonly message?: string;
-}
+export type UniverseAgentSwitchWorkDirResult =
+	| {
+		readonly ok: true;
+		readonly previousWorkDir: string;
+		readonly currentWorkDir: string;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly previousWorkDir: string;
+		readonly currentWorkDir: string;
+		readonly message?: string;
+	};
 
 /** AgentService.TestModelProfile — model-profile connectivity probe (≠ SwitchWorkDir / ListModels / SwitchModel / Config.Get / Config.Set). */
 export interface UniverseAgentTestModelProfileRequest {
@@ -830,11 +972,17 @@ export interface UniverseAgentTestModelProfileRequest {
 	readonly params: Readonly<Record<string, string>>;
 }
 
-export interface UniverseAgentTestModelProfileResult {
-	readonly ok: boolean;
-	/** Proto `error_message`. */
-	readonly message?: string;
-}
+export type UniverseAgentTestModelProfileResult =
+	| {
+		readonly ok: true;
+		/** Proto `error_message`. */
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		/** Proto `error_message`. */
+		readonly message?: string;
+	};
 
 /** ConfigService.Set — generic KV write (≠ Get / Watch / ListModels / SwitchModel). */
 export interface UniverseAgentSetConfigRequest {
@@ -847,11 +995,17 @@ export interface UniverseAgentSetConfigRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentSetConfigResult {
-	readonly ok: boolean;
-	/** Proto `message`. */
-	readonly message?: string;
-}
+export type UniverseAgentSetConfigResult =
+	| {
+		readonly ok: true;
+		/** Proto `message`. */
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		/** Proto `message`. */
+		readonly message?: string;
+	};
 
 /** ConfigService.SetModelPreferences — session model-strategy write (≠ GetModelPreferences / ResolveModel / SwitchModel / ListModels / Get / Set). */
 export interface UniverseAgentSetModelPreferencesRequest {
@@ -880,20 +1034,30 @@ export interface UniverseAgentSetSessionGoalRequest {
 	readonly goal: string;
 }
 
-export interface UniverseAgentSetSessionGoalResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentSetSessionGoalResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** PermissionService.CancelSessionGoal request. */
 export interface UniverseAgentCancelSessionGoalRequest {
 	readonly sessionId: string;
 }
 
-export interface UniverseAgentCancelSessionGoalResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentCancelSessionGoalResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** PermissionService.Respond — unary permission reply (connected roster forwards; stub still uses Chat-arm permissionRespond). */
 export interface UniverseAgentRespondPermissionRequest {
@@ -904,10 +1068,15 @@ export interface UniverseAgentRespondPermissionRequest {
 	readonly metadataJson?: string;
 }
 
-export interface UniverseAgentRespondPermissionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentRespondPermissionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** PermissionService.SyncPermissionRule — session-scoped tool rule upsert (≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules / SetPermissionMode). */
 export type UniverseAgentPermissionRuleAction = 'RULE_ACTION_UNSPECIFIED' | 'ALLOW' | 'DENY';
@@ -975,10 +1144,15 @@ export interface UniverseAgentSetPermissionModeRequest {
 	readonly mode: UniverseAgentSessionToolPermissionMode;
 }
 
-export interface UniverseAgentSetPermissionModeResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentSetPermissionModeResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** PermissionService.SetClientToolProfile; UNSPECIFIED is never an editable profile. */
 export type UniverseAgentClientToolProfile = 'CLIENT_TOOL_PROFILE_ALL' | 'CLIENT_TOOL_PROFILE_READ_ONLY' | 'CLIENT_TOOL_PROFILE_NONE';
@@ -1004,10 +1178,15 @@ export interface UniverseAgentTaskUpdateRequest {
 	readonly message: string;
 }
 
-export interface UniverseAgentTaskUpdateResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentTaskUpdateResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** TeamService.TaskCancel — Manager cancel of blackboard task (≠ TaskList / TaskUpdate / MemberStatus / TeamInfo / SetPermissionMode). */
 export interface UniverseAgentTaskCancelRequest {
@@ -1016,10 +1195,15 @@ export interface UniverseAgentTaskCancelRequest {
 	readonly taskId: string;
 }
 
-export interface UniverseAgentTaskCancelResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentTaskCancelResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** TeamService.MessageMember — Manager→Member mailbox (≠ TaskUpdate / TaskList / TaskCancel / MemberStatus / TeamInfo / CreateTeam). */
 export interface UniverseAgentMessageMemberRequest {
@@ -1031,10 +1215,15 @@ export interface UniverseAgentMessageMemberRequest {
 	readonly content: string;
 }
 
-export interface UniverseAgentMessageMemberResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentMessageMemberResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** TeamService.CreateTeam — create Task Group (≠ TaskList / TaskUpdate / TaskCancel / MessageMember / MemberStatus / TeamInfo / StartMember). */
 export interface UniverseAgentCreateTeamRequest {
@@ -1081,10 +1270,15 @@ export interface UniverseAgentKillMemberRequest {
 	readonly memberName: string;
 }
 
-export interface UniverseAgentKillMemberResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentKillMemberResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** TeamService.Abort — abort entire Team (≠ KillMember / CreateTeam / StartMember / MessageMember / TaskCancel / TeamInfo). */
 export interface UniverseAgentAbortTeamRequest {
@@ -1096,12 +1290,19 @@ export interface UniverseAgentAbortTeamRequest {
 	readonly reason: string;
 }
 
-export interface UniverseAgentAbortTeamResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	/** Proto `stopped_members`. Empty list sent as-is. */
-	readonly stoppedMembers: readonly string[];
-}
+export type UniverseAgentAbortTeamResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		/** Proto `stopped_members`. Empty list sent as-is. */
+		readonly stoppedMembers: readonly string[];
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		/** Proto `stopped_members`. Empty list sent as-is. */
+		readonly stoppedMembers: readonly string[];
+	};
 
 /** One item answer for AgentService.RespondQuestion (QuestionAnswer.selected_labels). */
 export interface UniverseAgentQuestionAnswer {
@@ -1116,10 +1317,15 @@ export interface UniverseAgentRespondQuestionRequest {
 	readonly customText?: string;
 }
 
-export interface UniverseAgentRespondQuestionResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentRespondQuestionResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 export interface UniverseAgentGetQueueRequest { readonly sessionId: string }
 
@@ -1255,12 +1461,19 @@ export interface UniverseAgentForkAgentRequest {
 	readonly systemPrompt?: string;
 }
 
-export interface UniverseAgentForkAgentResult {
-	readonly message?: string;
-	readonly ok: boolean;
-	/** New SubAgent id (e.g. `sub:name`) when `ok`. */
-	readonly agentId?: string;
-}
+export type UniverseAgentForkAgentResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		/** New SubAgent id (e.g. `sub:name`) when `ok`. */
+		readonly agentId?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		/** New SubAgent id (e.g. `sub:name`) when `ok`. */
+		readonly agentId?: string;
+	};
 
 /** AgentService.Kill — terminate a SubAgent. Distinct from Cancel / CancelToolCall. */
 export interface UniverseAgentKillAgentRequest {
@@ -1271,10 +1484,15 @@ export interface UniverseAgentKillAgentRequest {
 	readonly force?: boolean;
 }
 
-export interface UniverseAgentKillAgentResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentKillAgentResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.DeleteMessage — delete a turn and its subtree (≠ session Delete). */
 export interface UniverseAgentDeleteMessageRequest {
@@ -1286,12 +1504,19 @@ export interface UniverseAgentDeleteMessageRequest {
 	readonly operationId?: string;
 }
 
-export interface UniverseAgentDeleteMessageResult {
-	readonly ok: boolean;
-	readonly message?: string;
-	readonly currentTurnId?: string;
-	readonly removedTurnCount?: number;
-}
+export type UniverseAgentDeleteMessageResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+		readonly currentTurnId?: string;
+		readonly removedTurnCount?: number;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+		readonly currentTurnId?: string;
+		readonly removedTurnCount?: number;
+	};
 
 /** AgentService.EditMessage — edit a user turn's content (≠ EditQueueItem). */
 export interface UniverseAgentEditMessageRequest {
@@ -1304,10 +1529,15 @@ export interface UniverseAgentEditMessageRequest {
 	readonly operationId?: string;
 }
 
-export interface UniverseAgentEditMessageResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentEditMessageResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** Canvas ref on AgentService.SendClientToolResponse (ClientToolResponse.canvas_refs). */
 export interface UniverseAgentCanvasRef {
@@ -1327,10 +1557,15 @@ export interface UniverseAgentSendClientToolResponseRequest {
 	readonly canvasRefs?: readonly UniverseAgentCanvasRef[];
 }
 
-export interface UniverseAgentSendClientToolResponseResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentSendClientToolResponseResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** One row from AgentService.ListSnapshots (SessionSnapshotInfo). */
 export interface UniverseAgentSessionSnapshotInfo {
@@ -1386,11 +1621,17 @@ export interface UniverseAgentCreateSnapshotRequest {
 	readonly description?: string;
 }
 
-export interface UniverseAgentCreateSnapshotResult {
-	readonly ok: boolean;
-	readonly snapshot?: UniverseAgentSessionSnapshotInfo;
-	readonly message?: string;
-}
+export type UniverseAgentCreateSnapshotResult =
+	| {
+		readonly ok: true;
+		readonly snapshot?: UniverseAgentSessionSnapshotInfo;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly snapshot?: UniverseAgentSessionSnapshotInfo;
+		readonly message?: string;
+	};
 
 /** AgentService.RestoreSnapshot — restore a session checkpoint (≠ ListSnapshots / SessionBar History). */
 export interface UniverseAgentRestoreSnapshotRequest {
@@ -1398,10 +1639,15 @@ export interface UniverseAgentRestoreSnapshotRequest {
 	readonly snapshotId: string;
 }
 
-export interface UniverseAgentRestoreSnapshotResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentRestoreSnapshotResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /** AgentService.DeleteSnapshot — drop a session checkpoint (≠ ListSnapshots / SessionBar History). */
 export interface UniverseAgentDeleteSnapshotRequest {
@@ -1409,10 +1655,15 @@ export interface UniverseAgentDeleteSnapshotRequest {
 	readonly snapshotId: string;
 }
 
-export interface UniverseAgentDeleteSnapshotResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentDeleteSnapshotResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 export interface UniverseAgentGetHistoryRequest {
 	readonly sessionId: string;
@@ -3959,10 +4210,15 @@ export interface UniverseAgentSetPermissionPolicyRequest {
 	readonly policy: UniverseAgentPermissionPolicy;
 }
 
-export interface UniverseAgentSetPermissionPolicyResult {
-	readonly ok: boolean;
-	readonly message?: string;
-}
+export type UniverseAgentSetPermissionPolicyResult =
+	| {
+		readonly ok: true;
+		readonly message?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly message?: string;
+	};
 
 /**
  * ConfigService.ListModels registry row. Wire fields only — no invented

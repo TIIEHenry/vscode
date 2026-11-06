@@ -119,11 +119,11 @@ export function encodeAbortTeamRequest(request: UniverseAgentAbortTeamRequest): 
  */
 export function decodeAbortTeamResponse(bytes: Uint8Array): UniverseAgentAbortTeamResult {
 	const fields = readProtoFields(bytes);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
+	const payload = {
 		message: lastString(fields, 2),
 		stoppedMembers: decodeRepeatedUtf8(fields, 3),
 	};
+	return lastVarint(fields, 1) === 1n ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 /**
@@ -180,12 +180,14 @@ export function decodeMessageMemberResponse(bytes: Uint8Array): UniverseAgentMes
 	return decodeSuccessMessage(bytes);
 }
 
-function decodeSuccessMessage(bytes: Uint8Array): { readonly ok: boolean; readonly message: string | undefined } {
+function decodeSuccessMessage(bytes: Uint8Array):
+	| { readonly ok: true; readonly message: string | undefined }
+	| { readonly ok: false; readonly message: string | undefined } {
 	const fields = readProtoFields(bytes);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
-		message: lastString(fields, 2),
-	};
+	const message = lastString(fields, 2);
+	return lastVarint(fields, 1) === 1n
+		? { ok: true, message }
+		: { ok: false, message };
 }
 
 function encodeRepeatedString(field: number, values: readonly string[]): Buffer {

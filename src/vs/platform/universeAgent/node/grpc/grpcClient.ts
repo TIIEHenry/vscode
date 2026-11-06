@@ -1494,10 +1494,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodePauseResponse,
 		);
 		const wire = await unary(encodePauseRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async back(request: UniverseAgentBackRequest): Promise<UniverseAgentBackResult> {
@@ -1528,10 +1527,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeResetResponse,
 		);
 		const wire = await unary(encodeResetRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async branch(request: UniverseAgentBranchRequest): Promise<UniverseAgentBranchResult> {
@@ -1552,10 +1550,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeSuspendLoopResponse,
 		);
 		const wire = await unary(encodeSuspendLoopRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async resumeLoop(request: UniverseAgentResumeLoopRequest): Promise<UniverseAgentResumeLoopResult> {
@@ -1566,10 +1563,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeResumeLoopResponse,
 		);
 		const wire = await unary(encodeResumeLoopRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async stopLoop(request: UniverseAgentStopLoopRequest): Promise<UniverseAgentStopLoopResult> {
@@ -1580,10 +1576,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeStopLoopResponse,
 		);
 		const wire = await unary(encodeStopLoopRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult> {
@@ -1624,11 +1619,11 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeRunToolInBackgroundResponse,
 		);
 		const wire = await unary(encodeRunToolInBackgroundRequest(request));
-		return {
-			ok: wire.success === true,
+		const payload = {
 			message: wire.message,
 			reasonCode: wire.reason_code,
 		};
+		return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 	}
 
 	async stopShellTask(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult> {
@@ -1639,10 +1634,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeStopShellTaskResponse,
 		);
 		const wire = await unary(encodeStopShellTaskRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async sendShellSessionClientControl(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult> {
@@ -1653,13 +1647,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeSendShellSessionClientControlResponse,
 		);
 		const wire = await unary(encodeSendShellSessionClientControlRequest(request));
-		return {
-			ok: wire.success === true,
+		const payload = {
 			message: wire.error_message,
 			errorCode: wire.error_code,
 			debounced: wire.debounced,
 			deliveredToSubscribe: wire.delivered_to_subscribe,
 		};
+		return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 	}
 
 	async fetchToolUsageDetail(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult> {
@@ -1695,11 +1689,11 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeInstallSessionDemoFakeResponse,
 		);
 		const wire = await unary(encodeInstallSessionDemoFakeRequest(request));
-		return {
-			ok: wire.success === true,
+		const payload = {
 			message: wire.message,
 			reasonCode: wire.reason_code ?? '',
 		};
+		return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 	}
 
 	async clearSessionDemoFake(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult> {
@@ -1710,11 +1704,11 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeClearSessionDemoFakeResponse,
 		);
 		const wire = await unary(encodeClearSessionDemoFakeRequest(request));
-		return {
-			ok: wire.success === true,
+		const payload = {
 			message: wire.message,
 			reasonCode: wire.reason_code ?? '',
 		};
+		return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 	}
 
 	async switchWorkDir(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult> {
@@ -1725,12 +1719,12 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeSwitchWorkDirResponse,
 		);
 		const wire = await unary(encodeSwitchWorkDirRequest(request));
-		return {
-			ok: wire.success === true,
+		const payload = {
 			previousWorkDir: wire.previous_work_dir ?? '',
 			currentWorkDir: wire.current_work_dir ?? '',
 			message: wire.message,
 		};
+		return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 	}
 
 	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
@@ -1741,10 +1735,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeTestModelProfileResponse,
 		);
 		const wire = await unary(encodeTestModelProfileRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.error_message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.error_message }
+			: { ok: false, message: wire.error_message };
 	}
 
 
@@ -3143,10 +3136,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeSetPermissionPolicyResponse,
 		);
 		const wire = await unary(encodeSetPermissionPolicyRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async listModels(): Promise<UniverseAgentListModelsResult> {
@@ -3227,10 +3219,9 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeSetConfigResponse,
 		);
 		const wire = await unary(encodeSetConfigRequest(request));
-		return {
-			ok: wire.success === true,
-			message: wire.message,
-		};
+		return wire.success === true
+			? { ok: true, message: wire.message }
+			: { ok: false, message: wire.message };
 	}
 
 	async switchModel(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult> {

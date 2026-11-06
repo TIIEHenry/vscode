@@ -530,10 +530,9 @@ export function mapSessionInfoResponse(wire: SessionInfoResponseWire): UniverseA
 }
 
 export function mapShelveSessionResponse(wire: ShelveSessionResponseWire): UniverseAgentShelveSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-	};
+	return wire.success === true
+		? { ok: true, message: wire.message }
+		: { ok: false, message: wire.message };
 }
 
 export function mapListSessionsResponse(wire: ListSessionsResponseWire): UniverseAgentListSessionsResult {
@@ -596,19 +595,19 @@ export function mapListLoopSnapshotsResponse(wire: ListLoopSnapshotsResponseWire
 
 export function mapCreateSnapshotResponse(wire: CreateSnapshotResponseWire): UniverseAgentCreateSnapshotResult {
 	const snapshot = wire.snapshot ? mapSessionSnapshotInfo(wire.snapshot) : undefined;
-	return {
-		ok: wire.success === true,
+	const payload = {
 		message: wire.error_message,
 		...(snapshot ? { snapshot } : {}),
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export function mapResumeSessionResponse(wire: ResumeSessionResponseWire): UniverseAgentResumeSessionResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		message: wire.message,
 		rootAgent: mapAgentTreeNode(wire.root_agent),
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 const PrewarmSessionOutcomeByNumber: Record<number, string> = {
@@ -644,17 +643,15 @@ export function mapPrewarmSessionsResponse(wire: PrewarmSessionsResponseWire): U
 }
 
 export function mapUnshelveSessionResponse(wire: UnshelveSessionResponseWire): UniverseAgentUnshelveSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-	};
+	return wire.success === true
+		? { ok: true, message: wire.message }
+		: { ok: false, message: wire.message };
 }
 
 export function mapPurgeSessionResponse(wire: PurgeSessionResponseWire): UniverseAgentPurgeSessionResult {
-	return {
-		ok: wire.success === true,
-		message: wire.message,
-	};
+	return wire.success === true
+		? { ok: true, message: wire.message }
+		: { ok: false, message: wire.message };
 }
 
 export function mapExportSessionResponse(wire: ExportSessionResponseWire): UniverseAgentExportSessionResult {
@@ -817,37 +814,35 @@ export function mapConfigChangedEvent(wire: ConfigChangedEventWire): UniverseAge
 }
 
 export function mapFetchToolUsageDetailResponse(wire: FetchToolUsageDetailResponseWire): UniverseAgentFetchToolUsageDetailResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		toolCallId: wire.tool_call_id ?? '',
 		contextSources: (wire.context_sources ?? []).map(item => mapContextSourceUsage(item)),
 		message: wire.error_message,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export function mapCompactResponse(wire: CompactResponseWire): UniverseAgentCompactResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		message: wire.message,
 		tokensBefore: wire.tokens_before,
 		tokensAfter: wire.tokens_after,
 		outcome: mapCompactOutcome(wire.outcome),
 		rejectReason: wire.reject_reason,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export function mapRestoreSnapshotResponse(wire: RestoreSnapshotResponseWire): UniverseAgentRestoreSnapshotResult {
-	return {
-		ok: wire.success === true,
-		message: wire.error_message,
-	};
+	return wire.success === true
+		? { ok: true, message: wire.error_message }
+		: { ok: false, message: wire.error_message };
 }
 
 export function mapDeleteSnapshotResponse(wire: DeleteSnapshotResponseWire): UniverseAgentDeleteSnapshotResult {
-	return {
-		ok: wire.success === true,
-		message: wire.error_message,
-	};
+	return wire.success === true
+		? { ok: true, message: wire.error_message }
+		: { ok: false, message: wire.error_message };
 }
 
 export function mapTodoItem(item: TodoItemWire | undefined): UniverseAgentTodoItem {
@@ -1161,21 +1156,21 @@ export function mapHistoryResponse(wire: HistoryResponseWire): UniverseAgentAgen
 }
 
 export function mapPruneResponse(wire: PruneResponseWire): UniverseAgentPruneResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		message: wire.message,
 		removedCount: wire.removed_count ?? 0,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export function mapBranchResponse(wire: BranchResponseWire): UniverseAgentBranchResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		message: wire.message,
 		currentBranch: wire.current_branch ?? 0,
 		totalBranches: wire.total_branches ?? 0,
 		currentTurnId: wire.current_turn_id,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 
@@ -1323,10 +1318,10 @@ export function mapListAgentsResponse(wire: ListAgentsResponseWire): UniverseAge
 }
 
 export function mapBackResponse(wire: BackResponseWire): UniverseAgentBackResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		message: wire.message,
 		currentTurnId: wire.current_turn_id,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
