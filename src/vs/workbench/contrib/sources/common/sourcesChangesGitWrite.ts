@@ -13,12 +13,25 @@ import type {
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import {
 	isSourcesChangeRevertible,
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from './sourcesChangesGit.js';
 import { isSourcesChangesReadFailed, SourcesChangesOrigin, SourcesChangesReadState } from './sourcesChangesModel.js';
+
+/** The session shape the Sources readiness probe reads. */
+export type SourcesEngineSession = Parameters<typeof conversationSessionReadinessProbe>[0];
+
+/**
+ * Sources session-ready fact. Sources ANDs transport connected and pairing on
+ * its own write door, so the probe forces `isEngineConnected` true and lets
+ * the session's explicit tri-state win. Not the Navigator roster rule.
+ */
+export function sourcesEngineSessionReady(session: SourcesEngineSession): boolean {
+	return getConversationSessionReadiness(conversationSessionReadinessProbe(session)) === 'ready';
+}
 
 /**
  * Desktop IPC makes every connection method a function. UNSUPPORTED closes

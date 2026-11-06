@@ -13,7 +13,6 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { sourcesRepositoryRootUris } from './sourcesChangesGit.js';
@@ -25,7 +24,7 @@ import {
 	sourcesGitReadFailureMessage,
 	tryLoadSourcesGitChangeEntries,
 } from './sourcesChangesGitRead.js';
-import { isSourcesChangesWriteClosed } from './sourcesChangesGitWrite.js';
+import { isSourcesChangesWriteClosed, sourcesEngineSessionReady } from './sourcesChangesGitWrite.js';
 import {
 	collectSourcesChangeEntries,
 	initialSourcesChangesSnapshot,
@@ -169,7 +168,7 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 			phaseConnected: facts.phaseConnected,
 			pairingPending: facts.pairingPending,
 			engineConnected: facts.engineConnected,
-			engineSessionReady: getConversationSessionReadiness(conversationSessionReadinessProbe(this.session)) === 'ready',
+			engineSessionReady: sourcesEngineSessionReady(this.session),
 		});
 	}
 

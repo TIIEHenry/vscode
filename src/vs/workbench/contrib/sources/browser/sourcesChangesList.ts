@@ -31,7 +31,6 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
-import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -76,19 +75,20 @@ const ghostActionButtonStyles: IButtonStyles = {
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
-	sourcesGitWriteHookPresent,
 	isSourcesEngineStageButtonBlocked,
 	isSourcesEngineWriteSessionBlocked,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
 	isSourcesKeepLeftoverWrite,
 	resolveSourcesChangesRowAction,
+	sourcesEngineSessionReady,
 	sourcesGitCommitNotAcceptedMessage,
 	sourcesGitEmptyStagePathMessage,
 	sourcesGitSessionChangedMessage,
 	sourcesGitStageNotAcceptedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
+	sourcesGitWriteHookPresent,
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
@@ -800,7 +800,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private getEngineSessionReady(): boolean {
-		return getConversationSessionReadiness(conversationSessionReadinessProbe(this.session)) === 'ready';
+		return sourcesEngineSessionReady(this.session);
 	}
 
 	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */
