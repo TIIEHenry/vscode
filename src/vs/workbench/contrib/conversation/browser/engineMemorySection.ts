@@ -21,6 +21,7 @@ import { writeStatus } from './connectionPreferencesPane.js';
 import { canPerformCatalogWriteLive, type EngineCatalogPaneMode } from './engineCatalog.js';
 import { captureEngineWriteLink, classifyEngineWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, EngineRefreshGate, type EngineWriteLink } from './engineWriteGate.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
@@ -230,15 +231,7 @@ export class EngineMemorySection extends Disposable {
 
 	private showLinkNotice(message: string): void {
 		this.linkNotice = message;
-		this.paintLinkNotice();
-	}
-
-	private paintLinkNotice(): void {
-		if (this._store.isDisposed || !this.linkNotice) {
-			return;
-		}
-		this.writeStatus.style.display = '';
-		writeStatus(this.writeStatus, this.linkNotice, 'neutral');
+		paintEngineLinkNotice(this._store.isDisposed, this.writeStatus, this.linkNotice);
 	}
 
 	/** @returns true when the caller must stop. A disposed view stays silent. */
@@ -258,7 +251,7 @@ export class EngineMemorySection extends Disposable {
 		try {
 			return await this.refreshAfterHide();
 		} finally {
-			this.paintLinkNotice();
+			paintEngineLinkNotice(this._store.isDisposed, this.writeStatus, this.linkNotice);
 		}
 	}
 

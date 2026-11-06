@@ -29,6 +29,7 @@ import type {
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -514,7 +515,7 @@ export class EnginePluginsSection extends Disposable {
 		try {
 			return await this.refreshListed();
 		} finally {
-			this.paintLinkNotice();
+			paintEngineLinkNotice(this._store.isDisposed, this.catalogWriteStatus, this.linkNotice);
 		}
 	}
 
@@ -926,15 +927,7 @@ export class EnginePluginsSection extends Disposable {
 
 	private showLinkNotice(message: string): void {
 		this.linkNotice = message;
-		this.paintLinkNotice();
-	}
-
-	private paintLinkNotice(): void {
-		if (this._store.isDisposed || !this.linkNotice) {
-			return;
-		}
-		this.catalogWriteStatus.style.display = '';
-		writeStatus(this.catalogWriteStatus, this.linkNotice, 'neutral');
+		paintEngineLinkNotice(this._store.isDisposed, this.catalogWriteStatus, this.linkNotice);
 	}
 
 	private showCatalogWriteStatus(message: string): void {

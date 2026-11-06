@@ -30,6 +30,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -231,7 +232,7 @@ export class EngineRulesSection extends Disposable {
 		try {
 			return await this.refreshAfterHide();
 		} finally {
-			this.paintLinkNotice();
+			paintEngineLinkNotice(this._store.isDisposed, this.writeStatus, this.linkNotice);
 		}
 	}
 
@@ -375,15 +376,7 @@ export class EngineRulesSection extends Disposable {
 
 	private showLinkNotice(message: string): void {
 		this.linkNotice = message;
-		this.paintLinkNotice();
-	}
-
-	private paintLinkNotice(): void {
-		if (this._store.isDisposed || !this.linkNotice) {
-			return;
-		}
-		this.writeStatus.style.display = '';
-		writeStatus(this.writeStatus, this.linkNotice, 'neutral');
+		paintEngineLinkNotice(this._store.isDisposed, this.writeStatus, this.linkNotice);
 	}
 
 	private rejectStaleWrite(link: UniverseAgentPublishedLinkOwner, sent: boolean): boolean {

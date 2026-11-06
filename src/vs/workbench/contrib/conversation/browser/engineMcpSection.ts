@@ -35,6 +35,7 @@ import {
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote } from './engineSectionChrome.js';
 import { EngineMcpRuntimePanel } from './engineMcpRuntimePanel.js';
@@ -1106,15 +1107,7 @@ export class EngineMcpSection extends Disposable {
 
 	private showLinkNotice(message: string): void {
 		this.linkNotice = message;
-		this.paintLinkNotice();
-	}
-
-	private paintLinkNotice(): void {
-		if (this.isDisposed || this._store.isDisposed || !this.linkNotice) {
-			return;
-		}
-		this.catalogWriteStatus.style.display = '';
-		writeStatus(this.catalogWriteStatus, this.linkNotice, 'neutral');
+		paintEngineLinkNotice(this.isDisposed || this._store.isDisposed, this.catalogWriteStatus, this.linkNotice);
 	}
 
 	private showCatalogWriteStatus(message: string): void {
@@ -1226,7 +1219,7 @@ export class EngineMcpSection extends Disposable {
 		try {
 			return await this.refreshListed();
 		} finally {
-			this.paintLinkNotice();
+			paintEngineLinkNotice(this.isDisposed || this._store.isDisposed, this.catalogWriteStatus, this.linkNotice);
 			this.syncAddButton();
 		}
 	}

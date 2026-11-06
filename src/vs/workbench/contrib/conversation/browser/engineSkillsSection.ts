@@ -28,6 +28,7 @@ import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -813,7 +814,7 @@ export class EngineSkillsSection extends Disposable {
 		try {
 			return await this.refreshListed(recoverDirtyBody, expectedOwner);
 		} finally {
-			this.paintLinkNotice();
+			paintEngineLinkNotice(this._store.isDisposed, this.writeStatus, this.linkNotice);
 		}
 	}
 
@@ -1065,15 +1066,7 @@ export class EngineSkillsSection extends Disposable {
 
 	private showLinkNotice(message: string): void {
 		this.linkNotice = message;
-		this.paintLinkNotice();
-	}
-
-	private paintLinkNotice(): void {
-		if (this._store.isDisposed || !this.linkNotice) {
-			return;
-		}
-		this.writeStatus.style.display = '';
-		writeStatus(this.writeStatus, this.linkNotice, 'neutral');
+		paintEngineLinkNotice(this._store.isDisposed, this.writeStatus, this.linkNotice);
 	}
 
 	private paintSkillCreateFailed(): void {
