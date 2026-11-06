@@ -5,17 +5,18 @@
 
 import { Event } from '../../../../base/common/event.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import type { ItemAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/types.js';
 import type { IAgentWorkRoot } from './agentWorkRoot.js';
 
 /**
  * Lease the Sources read model and attribution can hold without importing
- * conversation contrib. `attribution` values stay untyped so this service
- * does not depend on review chip types.
+ * conversation contrib. `attribution` uses the platform `ItemAttribution`
+ * type so this service does not depend on review chip types.
  */
 export interface IAgentSessionViewLease {
 	readonly snapshot: SessionViewSnapshot;
-	readonly attribution: ReadonlyMap<string, unknown>;
+	readonly attribution: ReadonlyMap<string, ItemAttribution>;
 	dispose(): void;
 }
 

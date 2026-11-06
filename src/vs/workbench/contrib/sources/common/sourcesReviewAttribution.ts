@@ -12,7 +12,7 @@ import type { SessionViewSnapshot } from '../../../../platform/universeAgent/com
 import type { IFileMutationRecord } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { localize } from '../../../../nls.js';
 
-/** Attribution fields needed for Turn n; superset of `ItemAttribution` once M6-A2 adds `toolCallId`. */
+/** Attribution fields needed for Turn n; structural subset of platform `ItemAttribution`. */
 export interface IReviewItemAttribution {
 	readonly role: 'user' | 'assistant' | 'system' | 'tool';
 	readonly agentId?: string;

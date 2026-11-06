@@ -19,7 +19,6 @@ import {
 	engineReviewPathKey,
 	getWorkspaceFolderRoots,
 	IReviewAttributionChipDisplay,
-	IReviewItemAttribution,
 	isWorkDirCompatible,
 	ISourcesReviewAttributionService,
 	normalizeReviewPath,
@@ -158,7 +157,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		let lease: ReturnType<IAgentSessionContext['acquireSessionView']> | undefined;
 		try {
 			lease = this.session.acquireSessionView(this.activeSessionId);
-			return resolveRevealItemId(lease.attribution as ReadonlyMap<string, IReviewItemAttribution>, toolCallId);
+			return resolveRevealItemId(lease.attribution, toolCallId);
 		} catch (error) {
 			this.notificationService.error(getErrorMessage(error));
 			return undefined;
@@ -184,7 +183,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		try {
 			lease = this.session.acquireSessionView(this.activeSessionId);
 			const snapshot = lease.snapshot;
-			const attribution = lease.attribution as ReadonlyMap<string, IReviewItemAttribution>;
+			const attribution = lease.attribution;
 			for (const entry of entries) {
 				const key = this.entryPathKey(entry, facts);
 				if (!key) {
