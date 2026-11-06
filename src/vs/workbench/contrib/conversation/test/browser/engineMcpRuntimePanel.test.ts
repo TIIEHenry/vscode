@@ -542,6 +542,77 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		assert.ok(toolsStatus);
 	});
 
+	test('late getMcpServerStatuses after the published link changed without a refresh does not paint server rows', async () => {
+		type StatusesResult = Awaited<ReturnType<IUniverseAgentConnection['getMcpServerStatuses']>>;
+		let statusCalls = 0;
+		let releaseStatuses!: (value: StatusesResult) => void;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: () => {
+				statusCalls++;
+				return new Promise<StatusesResult>(resolve => { releaseStatuses = resolve; });
+			},
+		});
+		// The Runtime wrapper publishes no link; pin one here so the refresh gate has a serial to compare.
+		const baseSnapshot = connection.getConnectionSnapshot;
+		let linkId = 1;
+		connection.getConnectionSnapshot = () => ({ ...baseSnapshot(), engineIdentityId: 'engine-test', linkId });
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+		assert.strictEqual(statusCalls, 1);
+		assert.strictEqual(panel.getMode(), 'loading');
+
+		// Quiet: the serial moves but no connection event fires, so no refresh() runs.
+		linkId = 2;
+		releaseStatuses({ statuses: [{ serverId: RUNTIME_SERVER_ID, status: 'connected' }] });
+		await flushMicrotasks();
+
+		assert.strictEqual(statusCalls, 1, 'a quiet link change is not a refresh');
+		assert.deepStrictEqual(
+			{ mode: panel.getMode(), rows: panel.getListEntryCount() },
+			{ mode: 'loading', rows: 0 },
+			'the statuses that answered the old link must not paint',
+		);
+	});
+
+	test('pairing-hold with server rows skips getMcpServerStatuses and KEEP closes the leftover tools write chrome', async () => {
+		let statusCalls = 0;
+		let toolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			getMcpServerStatuses: async () => {
+				statusCalls++;
+				return { statuses: [{ serverId: LEFTOVER_RUNTIME_SERVER_ID, status: 'connected' }] };
+			},
+			getMcpServerTools: async () => {
+				toolsCalls++;
+				return { tools: [{ name: LEFTOVER_TOOL_NAME, description: 'keep me' }] };
+			},
+		});
+		const panel = mountPanel(connection);
+		await flushMicrotasks();
+		assert.ok(panel.selectServerForTest(LEFTOVER_RUNTIME_SERVER_ID));
+		await flushMicrotasks();
+		assert.strictEqual(panel.getMode(), 'ready');
+		const leftoverRows = panel.getListEntryCount();
+		assert.ok(leftoverRows > 0);
+		assertRefreshChrome(panel, true);
+		const statusCallsAfterLoad = statusCalls;
+		const toolsCallsAfterLoad = toolsCalls;
+
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(statusCalls, statusCallsAfterLoad, 'pairing-hold with server rows must not call getMcpServerStatuses');
+		assert.strictEqual(toolsCalls, toolsCallsAfterLoad, 'KEEP must not call getMcpServerTools');
+		assert.strictEqual(panel.getMode(), 'disconnected');
+		assert.strictEqual(panel.getListEntryCount(), leftoverRows);
+		assertRefreshChrome(panel, false);
+		assertLeftoverToolsLooksLiveDisconnected(panel, 1);
+	});
+
 	test('pairing-hold refresh paints leftover tools honesty without reselect', async () => {
 		let toolsCalls = 0;
 		const connection = createConnectionStub({

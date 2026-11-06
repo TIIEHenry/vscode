@@ -423,6 +423,33 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
 	});
 
+	test('late listTools after the published link changed without a refresh does not paint tool rows', async () => {
+		const listed = new DeferredPromise<UniverseAgentListToolsResult>();
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			listTools: () => {
+				listToolsCalls++;
+				return listed.p;
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listToolsCalls, 1);
+		assert.strictEqual(section.getMode(), 'loading');
+
+		// Quiet: the published link serial moves but no connection event fires, so no refresh() runs.
+		connection.setLinkId(2);
+		await listed.complete({ tools: [leftoverBashTool()] });
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsCalls, 1, 'a quiet link change is not a refresh');
+		assert.deepStrictEqual(
+			{ mode: section.getMode(), rows: section.getListEntryCount(), toggles: leftoverToolsRowToggles(section).length },
+			{ mode: 'loading', rows: 0, toggles: 0 },
+			'the list that answered the old link must not paint',
+		);
+	});
+
 	test('capability UNKNOWN leftover closes leftover row toggle chrome without reselect', async () => {
 		const leftover = leftoverBashTool();
 		const saveCalls: UniverseAgentSaveAgentProfileRequest[] = [];

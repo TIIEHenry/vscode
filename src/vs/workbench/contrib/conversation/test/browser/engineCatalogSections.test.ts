@@ -558,6 +558,37 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 0);
 	});
 
+	test('Agents: late listAgentProfiles after the published link changed without a refresh does not paint rows', async () => {
+		let listAgentProfilesCalls = 0;
+		let releaseList!: () => void;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				await new Promise<void>(resolve => { releaseList = resolve; });
+				return { profiles: [{ id: 'late', name: 'Late Agent', source: 'user' as const }] };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		assert.strictEqual(listAgentProfilesCalls, 1);
+		assert.strictEqual(section.getMode(), 'loading');
+
+		// Quiet: the published link serial moves but no connection event fires, so no refresh() runs.
+		connection.setPublishedLink('test-engine', 2);
+		releaseList();
+		await flushMicrotasks();
+
+		assert.strictEqual(listAgentProfilesCalls, 1, 'a quiet link change is not a refresh');
+		assert.deepStrictEqual(
+			{ mode: section.getMode(), rows: section.getListEntryCount() },
+			{ mode: 'loading', rows: 0 },
+			'the list that answered the old link must not paint',
+		);
+	});
+
 	function longAgentProfiles(): Array<{ id: string; name: string; source: 'user'; summary?: string }> {
 		return [
 			{ id: 'explore', name: 'explore', source: 'user' },

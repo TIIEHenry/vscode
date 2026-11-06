@@ -328,6 +328,37 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('late-after-dispose'));
 	});
 
+	test('late listSkills after the published link changed without a refresh does not paint skill rows', async () => {
+		let listCalls = 0;
+		let releaseList: ((value: UniverseAgentListSkillsResult) => void) | undefined;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: () => {
+				listCalls++;
+				return new Promise(resolve => { releaseList = resolve; });
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(section.getMode(), 'loading');
+
+		// Quiet: the published link serial moves but no connection event fires, so no refresh() runs.
+		connection.setPublishedLinkQuiet('engine-test', 2);
+		releaseList!({ skills: [{ name: 'late-after-link', source: 'bundled', enabled: true }] });
+		await flushMicrotasks();
+
+		assert.strictEqual(listCalls, 1, 'a quiet link change is not a refresh');
+		assert.deepStrictEqual(
+			{ mode: section.getMode(), rows: section.getListEntryCount() },
+			{ mode: 'loading', rows: 0 },
+			'the list that answered the old link must not paint',
+		);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('late-after-link'));
+	});
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
