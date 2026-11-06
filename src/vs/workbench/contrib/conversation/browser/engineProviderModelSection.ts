@@ -28,7 +28,7 @@ import type {
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
-import { isSameEngineWriteLink } from './engineWriteGate.js';
+import { EngineRefreshGate, isSameEngineWriteLink } from './engineWriteGate.js';
 import {
 	canPerformCatalogWriteLive,
 	type EngineCatalogListPhase,
@@ -45,10 +45,10 @@ const MODEL_FEATURE = localize('ua.engineModelFeatureLabel', "model registry");
 
 type EngineCatalogWriteLink = UniverseAgentExpectedOwner;
 
-interface EngineCatalogRefreshResult {
-	readonly kind: 'applied' | 'failed' | 'discarded';
-	readonly generation: number;
-}
+type EngineCatalogRefreshResult =
+	| { readonly kind: 'applied' | 'failed'; readonly generation: number }
+	/** No token exists before `begin()`; callers must not feed a discarded result to `owns*Result`. */
+	| { readonly kind: 'discarded'; readonly generation?: number };
 
 function readWriteLink(connection: IUniverseAgentConnection): EngineCatalogWriteLink | undefined {
 	const snapshot = connection.getConnectionSnapshot();
@@ -210,7 +210,7 @@ export class EngineProvidersSection extends Disposable {
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private providerListPhase: EngineCatalogListPhase = { kind: 'none' };
-	private providerRefreshGeneration = 0;
+	private readonly providerRefreshGate: EngineRefreshGate;
 
 	constructor(
 		parent: HTMLElement,
@@ -222,6 +222,7 @@ export class EngineProvidersSection extends Disposable {
 	) {
 		super();
 
+		this.providerRefreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-providers-section'));
 		this.container.style.display = 'none';
 
@@ -278,7 +279,7 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.providerRefreshGeneration++;
+		this.providerRefreshGate.invalidate();
 		this.catalogGeneration++;
 		this.clearProviderPresentation();
 		DOM.clearNode(this.container);
@@ -369,13 +370,13 @@ export class EngineProvidersSection extends Disposable {
 
 	private async refreshProviders(expectedOwner?: EngineCatalogWriteLink): Promise<EngineCatalogRefreshResult> {
 		if (this._store.isDisposed) {
-			return { kind: 'discarded', generation: this.providerRefreshGeneration };
+			return { kind: 'discarded' };
 		}
 		const link = expectedOwner ?? readWriteLink(this.connection);
 		if (expectedOwner && !sameWriteLink(expectedOwner, readWriteLink(this.connection))) {
-			return { kind: 'discarded', generation: this.providerRefreshGeneration };
+			return { kind: 'discarded' };
 		}
-		const generation = ++this.providerRefreshGeneration;
+		const generation = this.providerRefreshGate.begin();
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'providerConfig');
 
@@ -423,7 +424,7 @@ export class EngineProvidersSection extends Disposable {
 
 		try {
 			const result = await this.connection.listProviderStatus!(link);
-			if (generation !== this.providerRefreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+			if (!this.providerRefreshGate.isCurrent(generation) || !sameWriteLink(link, readWriteLink(this.connection))) {
 				return { kind: 'discarded', generation };
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -440,7 +441,7 @@ export class EngineProvidersSection extends Disposable {
 			if (!this.ownsProviderResult(link, generation)) { return { kind: 'discarded', generation }; }
 			return { kind: 'applied', generation };
 		} catch (error) {
-			if (isCancellationError(error) || generation !== this.providerRefreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+			if (isCancellationError(error) || !this.providerRefreshGate.isCurrent(generation) || !sameWriteLink(link, readWriteLink(this.connection))) {
 				return { kind: 'discarded', generation };
 			}
 			const hadLivePaint = this.providerCount > 0;
@@ -622,7 +623,7 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private ownsProviderResult(link: EngineCatalogWriteLink, generation: number): boolean {
-		return generation === this.providerRefreshGeneration && !this._store.isDisposed
+		return this.providerRefreshGate.isCurrent(generation)
 			&& this.connection.isEngineConnected() && !isConversationPairingHold(this.connection)
 			&& sameWriteLink(link, readWriteLink(this.connection));
 	}
@@ -944,7 +945,7 @@ export class EngineModelsSection extends Disposable {
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 
 	constructor(
 		parent: HTMLElement,
@@ -955,6 +956,7 @@ export class EngineModelsSection extends Disposable {
 	) {
 		super();
 
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-models-section'));
 		this.container.style.display = 'none';
 
@@ -985,7 +987,7 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.clearModelPresentation();
 		DOM.clearNode(this.container);
 		this.container.remove();
@@ -1054,13 +1056,13 @@ export class EngineModelsSection extends Disposable {
 
 	private async refreshModels(expectedOwner?: EngineCatalogWriteLink): Promise<EngineCatalogRefreshResult> {
 		if (this._store.isDisposed) {
-			return { kind: 'discarded', generation: this.refreshGeneration };
+			return { kind: 'discarded' };
 		}
 		const link = expectedOwner ?? readWriteLink(this.connection);
 		if (expectedOwner && !sameWriteLink(expectedOwner, readWriteLink(this.connection))) {
-			return { kind: 'discarded', generation: this.refreshGeneration };
+			return { kind: 'discarded' };
 		}
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'models');
 
@@ -1102,7 +1104,7 @@ export class EngineModelsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listModels(link);
-			if (generation !== this.refreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+			if (!this.refreshGate.isCurrent(generation) || !sameWriteLink(link, readWriteLink(this.connection))) {
 				return { kind: 'discarded', generation };
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -1120,7 +1122,7 @@ export class EngineModelsSection extends Disposable {
 			this.sessionHint.style.display = (mode === 'ready' || mode === 'empty') ? '' : 'none';
 			return { kind: 'applied', generation };
 		} catch (error) {
-			if (isCancellationError(error) || generation !== this.refreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+			if (isCancellationError(error) || !this.refreshGate.isCurrent(generation) || !sameWriteLink(link, readWriteLink(this.connection))) {
 				return { kind: 'discarded', generation };
 			}
 			const hadLivePaint = this.modelCount > 0;
@@ -1262,7 +1264,7 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private ownsModelResult(link: EngineCatalogWriteLink, generation: number): boolean {
-		return generation === this.refreshGeneration && !this._store.isDisposed
+		return this.refreshGate.isCurrent(generation)
 			&& this.connection.isEngineConnected() && !isConversationPairingHold(this.connection)
 			&& sameWriteLink(link, readWriteLink(this.connection));
 	}
