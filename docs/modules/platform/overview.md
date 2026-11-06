@@ -137,12 +137,12 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 |:-----|:-------|:---------|
 | `_connectEpoch`（连接服务） | 用户拨号、断开、dispose | 不取消 Hub 目录，不代替 `linkId`。见 [拨号 generation](../../../dev/plans/connection-dial-generation.md) |
 | `_connectedEpoch`（连接服务） | 不是取消令牌，记下赢家那一代 | 同代重连不得拆赢家 |
-| `_publishedLinkSerial` / `_publishedLinkId`（连接服务） | 不是拨号取消令牌，标识已提交链路 | 同 transport / profile / identity 不加号，相位变化不加号。见 [已发布链路](../../../dev/plans/published-link-identity.md) |
+| `_publishedLinkSerial` / `_publishedLinkId`（连接服务） | 不是拨号取消令牌，标识已提交链路 | 同 transport / profile / identity 不加号，相位变化不加号。见 [已发布链路](../../../archive/dev/plans/published-link-identity.md) |
 | `pairingGeneration`（`pairingOrchestrator`） | 新的配对、确认、放弃、dispose | 与 `_connectEpoch` 各算各的 |
 | `_directoryGeneration`（`UniverseAgentHubService`） | 换 Hub、登录、目录刷新、启动恢复、dispose，以及 `logout` | 不表示引擎 link。活码在 `logout` 入口和 `await` 之后各加一次；收尾条件以 [r04](../../../dev/plans/review-2026-10-30-r04-universe-agent-plan.md) 为准，活码尚未落地 |
 | `connectionGeneration`（`sessionViewHost`） | 宿主每次把已发布链路拉起 | 不是 `linkId`。同 link 从断开回到已连接必须加一，否则 [写入闸](../../../dev/plans/engine-write-gate-unification.md) §3.7 的同传输恢复不会重开流 |
 
-[已发布链路](../../../dev/plans/published-link-identity.md) 里「只改相位不制造断开边沿」已被写入闸 §3.7 的 `transport_lost` 拆流覆盖：同 link 离开已连接时宿主先 `releasePublishedLink`，恢复后再拉起并加 `connectionGeneration`。已连接且身份和 link 都没变时，再来一次快照（如能力更新）不再拉起、不加代；失败的绑定因此不由下一次快照重试，改由 `whenEngineSessionReady`、新租约或链路先释放再恢复来重绑。
+[已发布链路](../../../archive/dev/plans/published-link-identity.md) 里「只改相位不制造断开边沿」已被写入闸 §3.7 的 `transport_lost` 拆流覆盖：同 link 离开已连接时宿主先 `releasePublishedLink`，恢复后再拉起并加 `connectionGeneration`。已连接且身份和 link 都没变时，再来一次快照（如能力更新）不再拉起、不加代；失败的绑定因此不由下一次快照重试，改由 `whenEngineSessionReady`、新租约或链路先释放再恢复来重绑。
 
 **AHP 仍非 UA 会话权威**；引擎 gRPC 面见 [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md)；Hub 控制面见 [hub-control-plane-surface](../../reference/universe-agent/hub-control-plane-surface.md)；本机调试用钉死 HeadlessServer 见 [钉死引擎调试](../../guides/debug-engine.md)；系统边界见 [agent-host overview](../../systems/agent-host/overview.md)。
 
