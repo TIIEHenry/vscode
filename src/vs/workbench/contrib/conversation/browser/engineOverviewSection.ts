@@ -15,6 +15,7 @@ import { getConnectionPhaseStatusBarText, isConversationPairingHold, keepLeftove
 import { formatCapabilityReason } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
+import { EngineRefreshGate } from './engineWriteGate.js';
 import type {
 	UniverseAgentCapabilityKey,
 	UniverseAgentCapabilitySupport,
@@ -132,7 +133,7 @@ export class EngineOverviewSection extends Disposable {
 	private sectionActive = false;
 	private modelDataLoaded = false;
 	private lastGoodModelSummary: string | undefined;
-	private renderGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 
 	constructor(
 		parent: HTMLElement,
@@ -141,6 +142,7 @@ export class EngineOverviewSection extends Disposable {
 	) {
 		super();
 
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-overview-section'));
 		this.container.style.display = 'none';
 
@@ -160,7 +162,7 @@ export class EngineOverviewSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.renderGeneration++;
+		this.refreshGate.invalidate();
 		DOM.clearNode(this.summaryGrid);
 		this.summaryGrid.style.display = 'none';
 		DOM.clearNode(this.container);
@@ -270,7 +272,7 @@ export class EngineOverviewSection extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		const generation = ++this.renderGeneration;
+		const generation = this.refreshGate.begin();
 		// A successful model count is leftover. The in-flight "Reading models…" grid is not
 		// (Models keeps only modelCount > 0). Pairing-hold must not freeze that placeholder.
 		const hadLiveCatalog = !!this.lastGoodModelSummary;
@@ -314,7 +316,7 @@ export class EngineOverviewSection extends Disposable {
 		};
 		try {
 			const result = await this.connection.listModels(owner);
-			if (generation !== this.renderGeneration || this._store.isDisposed || !ownsRead()) {
+			if (!this.refreshGate.isCurrent(generation) || !ownsRead()) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -326,7 +328,7 @@ export class EngineOverviewSection extends Disposable {
 			this.lastGoodModelSummary = summary;
 			modelRow = { value: summary };
 		} catch (error) {
-			if (isCancellationError(error) || generation !== this.renderGeneration || this._store.isDisposed || !ownsRead()) {
+			if (isCancellationError(error) || !this.refreshGate.isCurrent(generation) || !ownsRead()) {
 				return;
 			}
 			const reason = error instanceof Error ? error.message : String(error);

@@ -109,6 +109,20 @@ suite('EngineOverviewSection', () => {
 		});
 	}
 
+	test('late listModels after the published link id changed without a refresh does not paint the model count', async () => {
+		const pending = new DeferredPromise<{ models: UniverseAgentModelEntry[] }>();
+		const connection = createMutableOverviewConnection({ modelsSupport: 'SUPPORTED', listModels: () => pending.p });
+		const parent = document.createElement('div');
+		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiation.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		connection.setPublishedOwner({ engineIdentityId: 'engine-test', linkId: 2 });
+		await pending.complete({ models });
+		await flushOverview();
+		assert.ok(!section.getDomNode().textContent?.includes('3 models'), section.getDomNode().textContent ?? '');
+	});
+
 	test('expected owner: Overview skips the model read without a published owner', async () => {
 		let reads = 0;
 		const connection = createMutableOverviewConnection({ modelsSupport: 'SUPPORTED', listModels: async () => { reads++; return { models }; } });
