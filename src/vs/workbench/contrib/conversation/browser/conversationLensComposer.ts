@@ -37,6 +37,7 @@ import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { ensureSessionModelProfileIds, isComposerStreaming, isSessionSwitchAgentAvailable, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 import type { ConversationComposerModel } from './conversationComposerModel.js';
+import type { IConversationSessionChoiceService } from './conversationSessionChoiceService.js';
 
 export interface IConversationLensComposerHost {
 	readonly composerModel: ConversationComposerModel;
@@ -47,7 +48,7 @@ export interface IConversationLensComposerHost {
 	displayMode?: () => import('./conversationLivePhase.js').ConversationDisplayMode;
 	modelSelectedIndex: number;
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
-	modelProfileIdBySessionId?: Map<string, string>;
+	readonly sessionChoiceService: IConversationSessionChoiceService;
 	composerCatalogGeneration: number;
 	catalogToolNames: readonly string[];
 	catalogModelIds: readonly string[];

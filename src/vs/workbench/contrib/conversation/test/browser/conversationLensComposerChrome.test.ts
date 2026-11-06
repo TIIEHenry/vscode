@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
+import { createTestSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 import {
 	conversationLensDockAgentUnavailable,
 	conversationLensDockEngineCapabilityUnsupported,
@@ -41,6 +42,7 @@ suite('ConversationLensComposerChrome', () => {
 		let editHostReady = false;
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			composer,
 			composerCluster,
 			dockRoot,
@@ -74,6 +76,7 @@ suite('ConversationLensComposerChrome', () => {
 		let sessionReady = false;
 		const host = {
 			composerModel: createTestComposerModel(store),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			gateRow,
 			gateLabel,
 			stubService: {
@@ -114,6 +117,7 @@ suite('ConversationLensComposerChrome', () => {
 		gateRow.append(gateLabel);
 		const host = {
 			composerModel: createTestComposerModel(store),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			gateRow,
 			gateLabel,
 			stubService: {
@@ -164,7 +168,7 @@ suite('ConversationLensComposerChrome', () => {
 				setEnabled() { },
 				setAriaLabel(label: string) { aria.model = label; },
 			},
-			sessionConfigBySessionId: new Map(),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
 				isEngineConnected: () => connected,
@@ -227,6 +231,7 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			composer,
 			composerCluster,
 			dockRoot,
@@ -269,6 +274,7 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			composer,
 			composerCluster,
 			dockRoot,
@@ -309,6 +315,7 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-gone' }),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			composer,
 			composerCluster,
 			composerEditHeader,
@@ -358,6 +365,7 @@ suite('ConversationLensComposerChrome', () => {
 
 		const host = {
 			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			composer,
 			composerCluster,
 			dockRoot,

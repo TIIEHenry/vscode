@@ -32,6 +32,7 @@ import { conversationLensInputMaximizedClass, type ConversationComposerPostFailu
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
 import { InputHistoryDirection } from './conversationInputHistory.js';
 import { ConversationComposerModel } from './conversationComposerModel.js';
+import { IConversationSessionChoiceService } from './conversationSessionChoiceService.js';
 import { findFirstInboxPendingConfirmationTurnId, scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
@@ -129,6 +130,7 @@ import {
 	getSessionConfig,
 	getSessionInputHistory,
 	navigateInputHistory,
+	paintSessionChoice,
 	resetInputHistoryBrowse,
 	setSessionConfig,
 	showPostFailure,
@@ -282,8 +284,6 @@ export class ConversationLens extends Disposable {
 	readonly composerModel = this._register(new ConversationComposerModel());
 
 	readonly drafts = new Map<string, string>();
-	readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
-	readonly modelProfileIdBySessionId = new Map<string, string>();
 	suppressSessionSelect = false;
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
@@ -317,6 +317,7 @@ export class ConversationLens extends Disposable {
 		@ICommandService public readonly commandService: ICommandService,
 		@IUniverseAgentConnection public readonly uaConnection: IUniverseAgentConnection,
 		@IDialogService public readonly dialogService: IDialogService,
+		@IConversationSessionChoiceService public readonly sessionChoiceService: IConversationSessionChoiceService,
 	) {
 		super();
 
@@ -403,6 +404,7 @@ export class ConversationLens extends Disposable {
 			this.updateSessionBarWriteChrome();
 			this.timelineTree.refreshPresentation();
 		}));
+		this._register(this.sessionChoiceService.onDidChangeSessionChoice(sessionId => paintSessionChoice(this, sessionId)));
 		this.refreshComposerCatalogs();
 
 		this._register(toDisposable(() => {

@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { IContextViewDelegate, IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
 import { toggleComposerAddContext } from '../../browser/conversationComposerAt.js';
@@ -47,7 +48,7 @@ suite('Conversation composer popup dismissal', () => {
 			dockTextarea: textarea,
 			getBoundSessionId: () => sessionId,
 			lastReadingWidth: 375,
-			sessionConfigBySessionId: new Map(), catalogToolNames: [] as string[],
+			sessionChoiceService: createTestSessionChoiceService(disposables), catalogToolNames: [] as string[],
 			stubService: { isEngineConnected: () => false, getSessions: () => Array.from({ length: 10 }, (_, i) => ({ id: 's' + i, title: 'Session ' + i })) },
 			commandService: { executeCommand: async () => { destination.focus(); } },
 		} as unknown as IConversationLensComposerChromeHost;

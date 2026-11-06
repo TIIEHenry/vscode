@@ -51,6 +51,7 @@ import {
 } from './conversationLensDockStrings.js';
 import { getContextViewEventTarget, isContextViewClick, registerComposerPopupEscape } from './conversationContextViewEvent.js';
 import { ConversationComposerModel, type ComposerPolicy } from './conversationComposerModel.js';
+import type { ConversationSessionConfigSelection, IConversationSessionChoiceService, SessionChoiceEpochWait, SessionModelEpoch, SessionPermissionEpoch } from './conversationSessionChoiceService.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
 import { ENGINE_MODELS_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -111,10 +112,7 @@ export const conversationLensDockModelFailed = localize(
 
 export type { ComposerPolicy };
 
-export interface ConversationSessionConfigSelection {
-	agentIndex: number;
-	permissionIndex: number;
-}
+export type { ConversationSessionConfigSelection };
 
 export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	readonly composerModel: ConversationComposerModel;
@@ -130,10 +128,8 @@ export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	/** Enabled registry ids from the last successful model list. */
 	enabledModelIds?: readonly string[];
 	modelSelectedIndex: number;
-	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
-	modelProfileIdBySessionId?: Map<string, string>;
+	readonly sessionChoiceService: IConversationSessionChoiceService;
 	modelSelectBox: SelectBox;
-	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
 	addButton: Button;
 	addContextView: IOpenContextView | undefined;
 	dockTextarea: HTMLTextAreaElement;
@@ -1003,14 +999,14 @@ export function createComposerSelectBox(host: IConversationLensComposerChromeHos
 
 export function getSessionConfig(host: IConversationLensComposerChromeHost, sessionId: string): ConversationSessionConfigSelection {
 
-		return host.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, permissionIndex: 0 };
+		return host.sessionChoiceService.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, permissionIndex: 0 };
 	
 }
 
 export function setSessionConfig(host: IConversationLensComposerChromeHost, sessionId: string, patch: Partial<ConversationSessionConfigSelection>): void {
 
 		const current = getSessionConfig(host, sessionId);
-		host.sessionConfigBySessionId.set(sessionId, { ...current, ...patch });
+		host.sessionChoiceService.sessionConfigBySessionId.set(sessionId, { ...current, ...patch });
 	
 }
 
@@ -1140,33 +1136,6 @@ export function updateComposerSessionSelectsEnabled(host: IConversationLensCompo
 	
 }
 
-interface SessionChoiceEpochWait {
-	inFlight: boolean;
-	waiters: Array<() => void>;
-}
-
-interface SessionPermissionEpoch extends SessionChoiceEpochWait {
-	generation: number;
-	targetIndex: number;
-	/** Last mode the engine accepted. Not the optimistic index of an in-flight choice. */
-	confirmedIndex: number;
-}
-
-interface SessionModelEpoch extends SessionChoiceEpochWait {
-	generation: number;
-	targetIndex: number;
-	targetModelId: string;
-	/** Index and id captured when the current target was accepted. */
-	rollbackIndex: number;
-	rollbackId: string;
-	/** Last model the engine accepted. Not the optimistic index of an in-flight choice. */
-	confirmedIndex: number;
-	confirmedId: string;
-}
-
-const sessionPermissionEpochs = new WeakMap<IConversationLensComposerChromeHost, Map<string, SessionPermissionEpoch>>();
-const sessionModelEpochs = new WeakMap<IConversationLensComposerChromeHost, Map<string, SessionModelEpoch>>();
-
 function resolveSessionEpochWaiters(waiters: Array<() => void>): void {
 	const pending = waiters.splice(0, waiters.length);
 	for (const resolve of pending) {
@@ -1184,50 +1153,12 @@ function waitForSessionEpochIdle(epoch: SessionChoiceEpochWait): Promise<void> {
 }
 
 function sessionPermissionEpoch(host: IConversationLensComposerChromeHost, sessionId: string): SessionPermissionEpoch {
-	let sessions = sessionPermissionEpochs.get(host);
-	if (!sessions) {
-		sessions = new Map();
-		sessionPermissionEpochs.set(host, sessions);
-	}
-	let epoch = sessions.get(sessionId);
-	if (!epoch) {
-		const confirmedIndex = getSessionConfig(host, sessionId).permissionIndex;
-		epoch = {
-			generation: 0,
-			targetIndex: confirmedIndex,
-			confirmedIndex,
-			inFlight: false,
-			waiters: [],
-		};
-		sessions.set(sessionId, epoch);
-	}
-	return epoch;
+	return host.sessionChoiceService.permissionEpoch(sessionId, getSessionConfig(host, sessionId).permissionIndex);
 }
 
 function sessionModelEpoch(host: IConversationLensComposerChromeHost, sessionId: string): SessionModelEpoch {
-	let sessions = sessionModelEpochs.get(host);
-	if (!sessions) {
-		sessions = new Map();
-		sessionModelEpochs.set(host, sessions);
-	}
-	let epoch = sessions.get(sessionId);
-	if (!epoch) {
-		const confirmedIndex = host.modelSelectedIndex;
-		const confirmedId = (host.catalogModelIds[confirmedIndex] ?? '').trim();
-		epoch = {
-			generation: 0,
-			targetIndex: confirmedIndex,
-			targetModelId: confirmedId,
-			rollbackIndex: confirmedIndex,
-			rollbackId: confirmedId,
-			confirmedIndex,
-			confirmedId,
-			inFlight: false,
-			waiters: [],
-		};
-		sessions.set(sessionId, epoch);
-	}
-	return epoch;
+	const confirmedIndex = host.modelSelectedIndex;
+	return host.sessionChoiceService.modelEpoch(sessionId, confirmedIndex, (host.catalogModelIds[confirmedIndex] ?? '').trim());
 }
 
 /**
@@ -1235,24 +1166,18 @@ function sessionModelEpoch(host: IConversationLensComposerChromeHost, sessionId:
  * or leave its mode on the engine; the newest target is sent next.
  */
 async function drainSessionPermission(host: IConversationLensComposerChromeHost, sessionId: string, epoch: SessionPermissionEpoch): Promise<void> {
-	if ((host as { isDisposed?: boolean }).isDisposed) {
-		return;
-	}
 	const setPermissionMode = host.uaConnection.setPermissionMode;
 	if (!setPermissionMode) {
 		restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 		return;
 	}
 	while (true) {
-		if ((host as { isDisposed?: boolean }).isDisposed) {
-			return;
-		}
 		const sentGeneration = epoch.generation;
 		const sentIndex = epoch.targetIndex;
 		const mode = SESSION_TOOL_PERMISSION_MODES[sentIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
 		try {
 			const result = await setPermissionMode.call(host.uaConnection, { sessionId, mode });
-			if ((host as { isDisposed?: boolean }).isDisposed) {
+			if (!host.sessionChoiceService.isCurrentPermissionEpoch(sessionId, epoch)) {
 				return;
 			}
 			if (epoch.generation !== sentGeneration) {
@@ -1286,11 +1211,14 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
 				return;
 			}
 			restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
-			if (host.getBoundSessionId() === sessionId) {
+			if (!isComposerHostDisposed(host) && host.getBoundSessionId() === sessionId) {
 				showGateNotice(host, result.message?.trim() || conversationLensDockPermissionFailed);
 			}
 			return;
 		} catch (error) {
+			if (!host.sessionChoiceService.isCurrentPermissionEpoch(sessionId, epoch)) {
+				return;
+			}
 			if (epoch.generation !== sentGeneration) {
 				if (!isComposerSessionWriteLive(host)) {
 					restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
@@ -1299,7 +1227,7 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
 				continue;
 			}
 			restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
-			if (host.getBoundSessionId() === sessionId) {
+			if (!isComposerHostDisposed(host) && host.getBoundSessionId() === sessionId) {
 				const detail = error instanceof Error ? error.message.trim() : '';
 				showGateNotice(host, detail || conversationLensDockPermissionFailed);
 			}
@@ -1313,18 +1241,12 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
  * A stale result must not restore or keep its modelId.
  */
 async function drainSessionModel(host: IConversationLensComposerChromeHost, sessionId: string, epoch: SessionModelEpoch): Promise<void> {
-	if ((host as { isDisposed?: boolean }).isDisposed) {
-		return;
-	}
 	const switchModel = host.uaConnection.switchModel;
 	if (!switchModel) {
 		restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
 		return;
 	}
 	while (true) {
-		if ((host as { isDisposed?: boolean }).isDisposed) {
-			return;
-		}
 		const sentGeneration = epoch.generation;
 		const sentIndex = epoch.targetIndex;
 		const sentModelId = epoch.targetModelId;
@@ -1340,7 +1262,7 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 				modelType: '',
 				modelId: sentModelId,
 			});
-			if ((host as { isDisposed?: boolean }).isDisposed) {
+			if (!host.sessionChoiceService.isCurrentModelEpoch(sessionId, epoch)) {
 				return;
 			}
 			if (epoch.generation !== sentGeneration) {
@@ -1377,7 +1299,7 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 			}
 			if (!result.resolvedModelId.trim()) {
 				restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
-				if (host.getBoundSessionId() === sessionId) {
+				if (!isComposerHostDisposed(host) && host.getBoundSessionId() === sessionId) {
 					showGateNotice(host, conversationLensDockModelFailed);
 				}
 				return;
@@ -1389,6 +1311,9 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 			ensureSessionModelProfileIds(host).set(sessionId, sentModelId);
 			return;
 		} catch (error) {
+			if (!host.sessionChoiceService.isCurrentModelEpoch(sessionId, epoch)) {
+				return;
+			}
 			if (epoch.generation !== sentGeneration) {
 				if (!epoch.targetModelId) {
 					return;
@@ -1400,7 +1325,7 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 				continue;
 			}
 			restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
-			if (host.getBoundSessionId() === sessionId) {
+			if (!isComposerHostDisposed(host) && host.getBoundSessionId() === sessionId) {
 				const detail = error instanceof Error ? error.message.trim() : '';
 				showGateNotice(host, detail || conversationLensDockModelFailed);
 			}
@@ -1409,18 +1334,30 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 	}
 }
 
+function isComposerHostDisposed(host: IConversationLensComposerChromeHost): boolean {
+	return (host as { isDisposed?: boolean }).isDisposed === true;
+}
+
 function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): void {
 	setSessionConfig(host, sessionId, { permissionIndex });
-	if (host.getBoundSessionId() === sessionId) {
+	if (!isComposerHostDisposed(host) && host.getBoundSessionId() === sessionId) {
 		host.permissionSelectBox.select(permissionIndex);
 		syncComposerPermissionWarning(host);
 	}
 }
 
 export async function applySessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): Promise<void> {
-	if ((host as { isDisposed?: boolean }).isDisposed) {
+	if (isComposerHostDisposed(host)) {
 		return;
 	}
+	try {
+		await applySessionPermissionIndexToEpoch(host, sessionId, permissionIndex);
+	} finally {
+		host.sessionChoiceService.fireSessionChoiceChanged(sessionId);
+	}
+}
+
+async function applySessionPermissionIndexToEpoch(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): Promise<void> {
 	const epoch = sessionPermissionEpoch(host, sessionId);
 	const previous = getSessionConfig(host, sessionId).permissionIndex;
 	if (permissionIndex === previous && !epoch.inFlight) {
@@ -1477,15 +1414,12 @@ export function updateModelSelectEnabled(host: IConversationLensComposerChromeHo
 	
 }
 
-export function ensureSessionModelProfileIds(host: { modelProfileIdBySessionId?: Map<string, string> }): Map<string, string> {
-	if (!host.modelProfileIdBySessionId) {
-		host.modelProfileIdBySessionId = new Map();
-	}
-	return host.modelProfileIdBySessionId;
+export function ensureSessionModelProfileIds(host: { readonly sessionChoiceService: Pick<IConversationSessionChoiceService, 'modelProfileIdBySessionId'> }): Map<string, string> {
+	return host.sessionChoiceService.modelProfileIdBySessionId;
 }
 
-export function sessionModelProfileId(host: { modelProfileIdBySessionId?: Map<string, string> }, sessionId: string): string {
-	return host.modelProfileIdBySessionId?.get(sessionId)?.trim() ?? '';
+export function sessionModelProfileId(host: { readonly sessionChoiceService: Pick<IConversationSessionChoiceService, 'modelProfileIdBySessionId'> }, sessionId: string): string {
+	return host.sessionChoiceService.modelProfileIdBySessionId.get(sessionId)?.trim() ?? '';
 }
 
 function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number, previousId: string): void {
@@ -1499,7 +1433,7 @@ function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, ses
 	} else {
 		map.delete(sessionId);
 	}
-	if (host.getBoundSessionId() !== sessionId) {
+	if (isComposerHostDisposed(host) || host.getBoundSessionId() !== sessionId) {
 		return;
 	}
 	host.modelSelectedIndex = modelIndex;
@@ -1508,9 +1442,17 @@ function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, ses
 }
 
 export async function applySessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
-	if ((host as { isDisposed?: boolean }).isDisposed) {
+	if (isComposerHostDisposed(host)) {
 		return;
 	}
+	try {
+		await applySessionModelIndexToEpoch(host, sessionId, modelIndex);
+	} finally {
+		host.sessionChoiceService.fireSessionChoiceChanged(sessionId);
+	}
+}
+
+async function applySessionModelIndexToEpoch(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
 	const epoch = sessionModelEpoch(host, sessionId);
 	const previous = host.modelSelectedIndex;
 	const previousId = (host.catalogModelIds[previous] ?? '').trim();
@@ -1606,6 +1548,37 @@ export function syncSessionConfigSelects(host: IConversationLensComposerChromeHo
 		host.modelSelectedIndex = modelIndex;
 		host.modelSelectBox.select(modelIndex);
 	
+}
+
+/**
+ * Repaints this view's selects from the shared session choice after another
+ * view (or a closed one) settled it. Skips a model index that already shows
+ * the recorded id, so an in-place empty slot is not moved, and leaves an
+ * in-flight model choice to settle first.
+ */
+export function paintSessionChoice(host: IConversationLensComposerChromeHost, sessionId: string): void {
+	if (isComposerHostDisposed(host) || host.getBoundSessionId() !== sessionId) {
+		return;
+	}
+	if (host.permissionSelectBox) {
+		host.permissionSelectBox.select(getSessionConfig(host, sessionId).permissionIndex);
+		syncComposerPermissionWarning(host);
+	}
+	const map = ensureSessionModelProfileIds(host);
+	if (!host.modelSelectBox || !map.has(sessionId) || host.sessionChoiceService.isModelChoiceInFlight(sessionId)) {
+		return;
+	}
+	const recorded = sessionModelProfileId(host, sessionId);
+	if ((host.catalogModelIds[host.modelSelectedIndex] ?? '').trim() === recorded) {
+		return;
+	}
+	const modelIndex = host.catalogModelIds.findIndex(id => id.trim() === recorded);
+	if (modelIndex < 0) {
+		return;
+	}
+	host.modelSelectedIndex = modelIndex;
+	host.modelSelectBox.select(modelIndex);
+	updateSendEnabled(host);
 }
 
 export function updateSessionConfigVisibility(host: IConversationLensComposerChromeHost, preFirst: boolean): void {

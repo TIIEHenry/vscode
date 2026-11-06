@@ -13,6 +13,7 @@ import { mainWindow } from '../../../../../base/browser/window.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
@@ -115,7 +116,7 @@ suite('conversation lens dispose gate', () => {
 			modelSelectedIndex: 0,
 			catalogToolNames: [],
 			catalogModelIds: [''],
-			sessionConfigBySessionId: new Map(),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			lastReadingWidth: 800,
 			inputMaximized: false,
 			configurationService: { getValue: () => undefined },
@@ -191,7 +192,7 @@ suite('conversation lens dispose gate', () => {
 			modelSelectedIndex: 0,
 			catalogToolNames: [],
 			catalogModelIds: ['', 'gpt-test'],
-			sessionConfigBySessionId: new Map([['sess-1', { agentIndex: 0, permissionIndex: 0 }]]),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore, { sessionConfigBySessionId: new Map([['sess-1', { agentIndex: 0, permissionIndex: 0 }]]) }),
 			lastReadingWidth: 800,
 			inputMaximized: false,
 			configurationService: { getValue: () => undefined },
@@ -779,6 +780,7 @@ suite('conversation lens dispose gate', () => {
 		dockRoot.appendChild(inboxOverlayElement);
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			isDisposed: false,
 			lensId: 'conversation' as const,
 			filterAgentId: undefined,
@@ -1533,6 +1535,7 @@ suite('conversation lens dispose gate', () => {
 		lifetime.add(lifetimeMarker);
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			isDisposed: false,
 			sessionViewLifetime: lifetime,
 			sessionViewLease: priorLease,
@@ -2321,6 +2324,7 @@ suite('conversation lens dispose gate', () => {
 		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0 };
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { editingTurnId: 'turn-1', editingQueueItemId: 'q1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			submitInFlight: false,
 			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
@@ -2430,6 +2434,7 @@ suite('conversation lens dispose gate', () => {
 		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0, exited: 0 };
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { editingTurnId: 'turn-1', editingQueueItemId: 'q1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			submitInFlight: false,
 			filterAgentId: undefined,
 			catalogModelIds: [''],
@@ -2685,6 +2690,7 @@ suite('conversation lens dispose gate', () => {
 	} {
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			submitInFlight: false,
 			dockTextarea: { value: 'leftover draft' },
 			sendButton: { enabled: true },
@@ -2891,6 +2897,7 @@ suite('conversation lens dispose gate', () => {
 		titleLive.textContent = 'A';
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { composeDraftSnapshot: 'Saved compose snapshot must not replace the live draft' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			isDisposed: false,
 			sessionTitleButton: titleButton,
 			sessionTitleInput: titleInput,
@@ -3152,7 +3159,7 @@ suite('conversation lens dispose gate', () => {
 			catalogToolNames: options?.catalogToolNames ?? ['bash'],
 			catalogModelIds: options?.catalogModelIds ?? ['', 'gpt-test'],
 			modelSelectedIndex: options?.modelSelectedIndex ?? 0,
-			sessionConfigBySessionId,
+			sessionChoiceService: createTestSessionChoiceService(suiteStore, { sessionConfigBySessionId }),
 			lastReadingWidth: options?.lastReadingWidth ?? 300,
 			dockRoot,
 			dockTextarea: { value: 'leftover draft' },
@@ -3264,7 +3271,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls, []);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 
 			fixture.permissionSelect.disabled = false;
@@ -3281,7 +3288,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls, []);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 		} finally {
 			fixture.dispose();
@@ -3310,7 +3317,7 @@ suite('conversation lens dispose gate', () => {
 			await Promise.resolve();
 			assert.deepStrictEqual(fixture.permissionCalls, []);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 		} finally {
 			fixture.dispose();
 		}
@@ -3432,7 +3439,7 @@ suite('conversation lens dispose gate', () => {
 			catalogToolNames: ['bash'],
 			catalogModelIds: ['', 'gpt-test'],
 			modelSelectedIndex: 0,
-			sessionConfigBySessionId,
+			sessionChoiceService: createTestSessionChoiceService(suiteStore, { sessionConfigBySessionId }),
 			lastReadingWidth: 300,
 			dockRoot,
 			sendButton: { enabled: true },
@@ -3494,7 +3501,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(modelCalls.length, 1);
 			assert.strictEqual(permissionSelect.selectedIndex, 2);
 			assert.strictEqual(modelSelect.selectedIndex, 1);
-			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(typedHost.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
 			assert.strictEqual(typedHost.modelSelectedIndex, 1);
 
 			pairingPending = true;
@@ -3510,9 +3517,9 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
 			assert.strictEqual(permissionSelect.selectedIndex, 2);
 			assert.strictEqual(modelSelect.selectedIndex, 1);
-			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(typedHost.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
 			assert.strictEqual(typedHost.modelSelectedIndex, 1);
-			assert.strictEqual(typedHost.modelProfileIdBySessionId?.get('sess-leftover'), 'gpt-test');
+			assert.strictEqual(typedHost.sessionChoiceService.modelProfileIdBySessionId.get('sess-leftover'), 'gpt-test');
 
 			updateComposerSessionSelectsEnabled(typedHost);
 			updateGateRow(typedHost);
@@ -3562,7 +3569,7 @@ suite('conversation lens dispose gate', () => {
 			await ask;
 			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), ['SESSION_TOOL_PERMISSION_MODE_PERMIT']);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 2);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
 			updateComposerSessionSelectsEnabled(fixture.host);
 			assert.strictEqual(fixture.permissionSelect.disabled, true);
 		} finally {
@@ -3594,7 +3601,7 @@ suite('conversation lens dispose gate', () => {
 			releasePermit!({ ok: false, message: 'engine rejected permit' });
 			await apply;
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
 		} finally {
@@ -3630,7 +3637,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 1);
-			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), 'gpt-a');
+			assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-leftover'), 'gpt-a');
 			updateComposerSessionSelectsEnabled(fixture.host);
 			assert.strictEqual(fixture.modelSelect.disabled, true);
 		} finally {
@@ -3661,7 +3668,7 @@ suite('conversation lens dispose gate', () => {
 			await apply;
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
-			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
+			assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-leftover'), undefined);
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
 		} finally {
@@ -3696,7 +3703,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
-			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
+			assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-leftover'), undefined);
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
@@ -3730,7 +3737,7 @@ suite('conversation lens dispose gate', () => {
 			await agent;
 			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), ['SESSION_TOOL_PERMISSION_MODE_PERMIT']);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
@@ -3764,7 +3771,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
-			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
+			assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-leftover'), undefined);
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
@@ -3801,7 +3808,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls, []);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 
 			fixture.permissionSelect.disabled = false;
@@ -3821,7 +3828,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls, []);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 		} finally {
 			fixture.dispose();
@@ -3854,7 +3861,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.modelCalls, [{ sessionId: 'sess-leftover', modelId: 'gpt-test' }]);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 2);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 1);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 1);
 		} finally {
 			fixture.dispose();
@@ -3884,8 +3891,7 @@ suite('conversation lens dispose gate', () => {
 			composerModel: createTestComposerModel(suiteStore),
 			catalogModelIds,
 			modelSelectedIndex: 1,
-			modelProfileIdBySessionId,
-			sessionConfigBySessionId: new Map<string, { agentIndex: number; permissionIndex: number }>(),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore, { modelProfileIdBySessionId }),
 			gateRow,
 			gateLabel,
 			sendButton: { enabled: true },
@@ -3966,8 +3972,7 @@ suite('conversation lens dispose gate', () => {
 			composerModel: createTestComposerModel(suiteStore),
 			catalogModelIds,
 			modelSelectedIndex: 0,
-			modelProfileIdBySessionId,
-			sessionConfigBySessionId: new Map<string, { agentIndex: number; permissionIndex: number }>(),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore, { modelProfileIdBySessionId }),
 			submitInFlight: false,
 			drafts: new Map<string, string>(),
 			dockTextarea: { value: 'hello' },
@@ -4047,13 +4052,13 @@ suite('conversation lens dispose gate', () => {
 		releaseFirst!(new Error('stale model failed'));
 		await secondEntered;
 		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
-		assert.notStrictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-a');
+		assert.notStrictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-model'), 'gpt-a');
 		releaseSecond!({ resolvedModelId: 'gpt-b' });
 		await first;
 		await second;
 		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
 		assert.strictEqual(fixture.host.modelSelectedIndex, 2);
-		assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-b');
+		assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-model'), 'gpt-b');
 		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a', 'gpt-b']);
 		await submitDraft(fixture.host as unknown as IConversationLensComposerHost);
 		assert.deepStrictEqual(fixture.posted, [{
@@ -4085,8 +4090,8 @@ suite('conversation lens dispose gate', () => {
 		await first;
 		await second;
 		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
-		assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-b');
-		assert.notStrictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-a');
+		assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-model'), 'gpt-b');
+		assert.notStrictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-model'), 'gpt-a');
 		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a', 'gpt-b']);
 		await submitDraft(fixture.host as unknown as IConversationLensComposerHost);
 		assert.deepStrictEqual(fixture.posted, [{
@@ -4112,7 +4117,7 @@ suite('conversation lens dispose gate', () => {
 		await apply;
 		assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 		assert.strictEqual(fixture.host.modelSelectedIndex, 0);
-		assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), undefined);
+		assert.strictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-model'), undefined);
 		await submitDraft(fixture.host as unknown as IConversationLensComposerHost);
 		assert.deepStrictEqual(fixture.posted, [{ kind: 'submitInput', text: 'hello' }]);
 	});
@@ -4138,7 +4143,7 @@ suite('conversation lens dispose gate', () => {
 		await second;
 		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
 		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
-		assert.notStrictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-a');
+		assert.notStrictEqual(fixture.host.sessionChoiceService.modelProfileIdBySessionId.get('sess-model'), 'gpt-a');
 	});
 
 	function permissionApplyBoundSessionHost(): {
@@ -4179,7 +4184,7 @@ suite('conversation lens dispose gate', () => {
 		});
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
-			sessionConfigBySessionId,
+			sessionChoiceService: createTestSessionChoiceService(suiteStore, { sessionConfigBySessionId }),
 			permissionSelectBox: {
 				setEnabled() { },
 				setAriaLabel() { },
@@ -4222,14 +4227,14 @@ suite('conversation lens dispose gate', () => {
 		try {
 			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
 			await fixture.permissionEntered;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 2);
 			fixture.bindBWithSyncedSelect();
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			fixture.releasePermission({ ok: false, message: 'engine rejected permit' });
 			await apply;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
@@ -4247,8 +4252,8 @@ suite('conversation lens dispose gate', () => {
 			fixture.bindBWithSyncedSelect();
 			fixture.releasePermission(new Error('setPermissionMode boom'));
 			await apply;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
@@ -4267,8 +4272,8 @@ suite('conversation lens dispose gate', () => {
 			fixture.setPairingPending(true);
 			fixture.releasePermission({ ok: true });
 			await apply;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
@@ -4284,12 +4289,12 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
 			await fixture.permissionEntered;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			fixture.releasePermission({ ok: true });
 			await apply;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
 		} finally {
@@ -4309,7 +4314,7 @@ suite('conversation lens dispose gate', () => {
 			uaConnection.setPermissionMode = async () => ({ ok: false, message: 'engine rejected permit' });
 			await applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.gateRow.hidden, false);
 			assert.ok(fixture.host.gateLabel.textContent?.includes('engine rejected permit'));
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, true);
@@ -4350,7 +4355,7 @@ suite('conversation lens dispose gate', () => {
 			await permit;
 			await ask;
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), [
 				'SESSION_TOOL_PERMISSION_MODE_PERMIT',
 				'SESSION_TOOL_PERMISSION_MODE_ASK',
@@ -4394,7 +4399,7 @@ suite('conversation lens dispose gate', () => {
 			releaseFirst!({ ok: false, message: 'stale permit failed' });
 			await secondEntered;
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 1);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 1);
 			// The stale Permit failure must not paint a notice or roll the select back.
 			// gateRow starts visible; the failure flag and label are the notice signal.
 			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
@@ -4405,7 +4410,7 @@ suite('conversation lens dispose gate', () => {
 			// Latest failure rolls back to the last engine-confirmed mode (Ask), not the
 			// unconfirmed Permit index this request started from.
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionChoiceService.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), [
 				'SESSION_TOOL_PERMISSION_MODE_PERMIT',
 				'SESSION_TOOL_PERMISSION_MODE_AGENT',
@@ -4516,6 +4521,7 @@ suite('conversation lens dispose gate', () => {
 		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			submitInFlight: false,
 			modelSelectedIndex: 0,
 			dockTextarea: { value: 'hello' },
@@ -4842,6 +4848,7 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4870,6 +4877,7 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4897,6 +4905,7 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4927,6 +4936,7 @@ suite('conversation lens dispose gate', () => {
 		const written: { sessionId: string; turnId: string; text: string }[] = [];
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: options.editingTurnId }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
@@ -4998,6 +5008,7 @@ suite('conversation lens dispose gate', () => {
 		dockTextarea.value = 'draft';
 		const chromeHost = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea,
 			sendButton: { enabled: true, setTitle() { }, setAriaLabel() { } },
 			composer,
@@ -5036,6 +5047,7 @@ suite('conversation lens dispose gate', () => {
 		let renderedInbox = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
@@ -5069,6 +5081,7 @@ suite('conversation lens dispose gate', () => {
 		let released = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
@@ -5101,6 +5114,7 @@ suite('conversation lens dispose gate', () => {
 		let renderedInbox = 0;
 		const host = {
 			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			dockTextarea: { value: 'revised later' },
 			getBoundSessionId: () => 'sess-1',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'queued' }),
@@ -5461,6 +5475,7 @@ suite('conversation lens dispose gate', () => {
 		gateRow.appendChild(gateLabel);
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			gateRow,
 			gateLabel,
 		} as unknown as IConversationLensComposerChromeHost;
@@ -5490,6 +5505,7 @@ suite('conversation lens dispose gate', () => {
 		gateRow.appendChild(gateLabel);
 		const host = {
 			composerModel: createTestComposerModel(suiteStore),
+			sessionChoiceService: createTestSessionChoiceService(suiteStore),
 			gateRow,
 			gateLabel,
 		} as unknown as IConversationLensComposerChromeHost;

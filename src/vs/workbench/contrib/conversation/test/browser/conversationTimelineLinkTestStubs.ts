@@ -12,6 +12,7 @@ import { IConversationSessionWindowService } from '../../browser/conversationSes
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
+import { stubConversationSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 
 export function createNoopConversationSessionWindowService(): IConversationSessionWindowService {
 	return {
@@ -83,6 +84,7 @@ export function createEmptyConversationSessionChatService(): IConversationSessio
 export function stubConversationTimelineLinkServices(instantiationService: TestInstantiationService): void {
 	instantiationService.stub(IConversationSessionWindowService, createNoopConversationSessionWindowService());
 	instantiationService.stub(IConversationSessionChatService, createEmptyConversationSessionChatService());
+	stubConversationSessionChoiceService(instantiationService);
 }
 
 /**
@@ -91,6 +93,7 @@ export function stubConversationTimelineLinkServices(instantiationService: TestI
  * `createConversationEditorPart` so `void openEditor` can settle a lens.
  */
 export function stubConversationLensRuntimeServices(instantiationService: TestInstantiationService): void {
+	stubConversationSessionChoiceService(instantiationService);
 	instantiationService.stub(IConversationTimelineRevealService, {
 		_serviceBrand: undefined,
 		registerLens: () => ({ dispose: () => { } }),

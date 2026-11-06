@@ -7,6 +7,7 @@ import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -308,12 +309,12 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.modelSelectedIndex, 0);
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'other-model');
 		assert.strictEqual(modelSelect.selectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'other-model');
+		assert.strictEqual(host.sessionChoiceService.modelProfileIdBySessionId.get('s1'), 'other-model');
 
 		await loadConnectedComposerCatalogs(host, 1);
 
 		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'other-model');
+		assert.strictEqual(host.sessionChoiceService.modelProfileIdBySessionId.get('s1'), 'other-model');
 	});
 
 	test('loadConnectedComposerCatalogs prefers the bound session recorded model id over a stale index', async () => {
@@ -343,7 +344,8 @@ suite('conversationComposerCatalog', () => {
 		});
 
 		await loadConnectedComposerCatalogs(host, 1);
-		host.modelProfileIdBySessionId = new Map([['s1', 'gpt-b']]);
+		host.sessionChoiceService.modelProfileIdBySessionId.clear();
+		host.sessionChoiceService.modelProfileIdBySessionId.set('s1', 'gpt-b');
 		host.modelSelectedIndex = 0;
 
 		await loadConnectedComposerCatalogs(host, 1);
@@ -351,7 +353,7 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-b');
 		assert.strictEqual(host.modelSelectedIndex, 2);
 		assert.strictEqual(modelSelect.selectedIndex, 2);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-b');
+		assert.strictEqual(host.sessionChoiceService.modelProfileIdBySessionId.get('s1'), 'gpt-b');
 	});
 
 	test('loadConnectedComposerCatalogs defaults to the first enabled model and ignores a stuffed index-0 catalog id', async () => {
@@ -379,21 +381,22 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.modelSelectedIndex, 0);
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-test');
 		assert.strictEqual(modelSelect.selectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-test');
+		assert.strictEqual(host.sessionChoiceService.modelProfileIdBySessionId.get('s1'), 'gpt-test');
 
-		host.modelProfileIdBySessionId = new Map([['s1', '']]);
+		host.sessionChoiceService.modelProfileIdBySessionId.clear();
+		host.sessionChoiceService.modelProfileIdBySessionId.set('s1', '');
 		await loadConnectedComposerCatalogs(host, 1);
 		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-stuffed');
+		assert.strictEqual(host.sessionChoiceService.modelProfileIdBySessionId.get('s1'), 'gpt-stuffed');
 
 		host.catalogModelIds = ['gpt-stuffed'];
 		host.modelSelectedIndex = 0;
-		host.modelProfileIdBySessionId = new Map();
+		host.sessionChoiceService.modelProfileIdBySessionId.clear();
 		await loadConnectedComposerCatalogs(host, 1);
 		assert.strictEqual(host.modelSelectedIndex, 0);
 		assert.strictEqual(host.catalogModelIds[0], 'gpt-stuffed');
 		assert.strictEqual(host.catalogModelIds[1], 'gpt-test');
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-stuffed');
+		assert.strictEqual(host.sessionChoiceService.modelProfileIdBySessionId.get('s1'), 'gpt-stuffed');
 		assert.strictEqual(modelSelect.selectedIndex, 0);
 	});
 
@@ -1003,6 +1006,7 @@ suite('conversationComposerCatalog', () => {
 		let sessionReady = true;
 		const host = {
 			composerModel: createTestComposerModel(store),
+			sessionChoiceService: createTestSessionChoiceService(store),
 			gateRow,
 			gateLabel,
 			stubService: {
@@ -1253,7 +1257,7 @@ suite('conversationComposerCatalog', () => {
 			catalogToolNames: ['bash', 'read'],
 			catalogModelIds: ['', 'gpt-test'],
 			modelSelectedIndex: 0,
-			sessionConfigBySessionId,
+			sessionChoiceService: createTestSessionChoiceService(store, { sessionConfigBySessionId }),
 			gateRow,
 			gateLabel,
 			dockRoot,
@@ -1405,6 +1409,7 @@ function createSubmitDraftHost(
 	const pairingPending = options?.pairingPending ?? false;
 	return {
 		composerModel: createTestComposerModel(moduleStore),
+		sessionChoiceService: createTestSessionChoiceService(moduleStore),
 		submitInFlight: false,
 		filterAgentId: undefined,
 		catalogModelIds: ['', 'claude-code'],
@@ -1479,6 +1484,7 @@ function createLoadCatalogHost(
 	const sendButton = { enabled: true };
 	const host = {
 		composerModel: createTestComposerModel(moduleStore),
+		sessionChoiceService: createTestSessionChoiceService(moduleStore),
 		composerCatalogGeneration: 1,
 		catalogToolNames: [] as string[],
 		catalogModelIds: [''] as string[],

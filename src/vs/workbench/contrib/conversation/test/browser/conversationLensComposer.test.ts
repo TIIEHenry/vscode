@@ -7,6 +7,7 @@ import assert from 'assert';
 import { InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
+import { createTestSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
@@ -74,6 +75,7 @@ suite('conversationLensComposer', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
 			composerModel: createTestComposerModel(disposables),
+			sessionChoiceService: createTestSessionChoiceService(disposables),
 			submitInFlight: false,
 			filterAgentId: undefined,
 			catalogModelIds: [''],
@@ -132,6 +134,7 @@ suite('conversationLensComposer', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
 			composerModel: createTestComposerModel(disposables),
+			sessionChoiceService: createTestSessionChoiceService(disposables),
 			submitInFlight: false,
 			filterAgentId: undefined,
 			catalogModelIds: [''],

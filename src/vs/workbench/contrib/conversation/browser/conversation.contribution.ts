@@ -21,6 +21,7 @@ import './universeAgentDeepLink.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { ConversationSessionChoiceService, IConversationSessionChoiceService } from './conversationSessionChoiceService.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
@@ -51,6 +52,7 @@ import { ProductChatOpenRoute } from './productChatOpenRoute.js';
 registerSingleton(IConversationRosterService, new SyncDescriptor(ConversationEngineRosterService, [], true));
 registerSingleton(IAgentSessionContext, new SyncDescriptor(AgentSessionContext, [], true));
 registerSingleton(IProductChatOpenRoute, ProductChatOpenRoute, InstantiationType.Delayed);
+registerSingleton(IConversationSessionChoiceService, ConversationSessionChoiceService, InstantiationType.Delayed);
 
 export const CONVERSATION_SESSIONS_CONTAINER_ID = 'workbench.view.sessions';
 
