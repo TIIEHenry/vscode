@@ -5,95 +5,51 @@
 
 import './media/connectionPreferencesPane.css';
 import * as DOM from '../../../../base/browser/dom.js';
-import { Button } from '../../../../base/browser/ui/button/button.js';
-import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
-import { Toggle } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
-import { type ConnectionProfileProjection, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
-import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
-import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConversationEntryCapability, UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectProfileResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { type ConnectionProfileProjection, type HubDeviceProjection, IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { onDidRevealConnectionProfiles } from '../common/uaPreferencesPanes.js';
-import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { asConnectionProfileList, isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import {
-	canSendConnectionDeviceRotateToken,
-	CONNECTION_DEVICE_LIST_FEATURE,
-	CONNECTION_DEVICE_ROTATE_TOKEN_LABEL,
-	connectionDeviceListFailureMessage,
-	connectionDeviceRevokeFailureMessage,
-	connectionDeviceRotateTokenFailureMessage,
-	connectionDeviceRotateTokenIds,
-	toConnectionPairedDevice,
-} from './connectionDeviceList.js';
-import {
-	canSendConnectionDevicePairRequest,
-	CONNECTION_DEVICE_PAIR_REJECT_LABEL,
-	CONNECTION_DEVICE_PENDING_EMPTY_COPY,
-	CONNECTION_DEVICE_PENDING_HEADING,
-	CONNECTION_DEVICE_PENDING_LIST_FEATURE,
-	connectionDevicePairIds,
-	connectionDevicePendingListFailureMessage,
-	formatConnectionPendingPairLabel,
-} from './connectionDevicePair.js';
-import {
-	canSendConnectionDeviceRevokeRequest,
-	connectionDeviceRevokeIds,
-} from './connectionDeviceRevoke.js';
-import {
-	canConnectHubDevice,
-	getConnectionPhasePaneLabel,
 	getConnectionPhaseTone,
-	getHubAuthStatusLabel,
-	getHubAuthStatusTone,
-	getHubDeviceRowStatusLabel,
-	getHubDirectoryBannerLabel,
-	getHubMustChangePasswordHint,
-	HUB_CHANGE_PASSWORD_BUTTON_LABEL,
-	HUB_CURRENT_PASSWORD_FIELD_LABEL,
-	HUB_LOGIN_BUTTON_LABEL,
-	HUB_NEW_PASSWORD_FIELD_LABEL,
-	HUB_PASSWORD_FIELD_LABEL,
 	readHandshakeSasCode,
 	isRecoverTrustConnectResult,
 	readRecoverTrustLeafFingerprint,
-	hubAccountSignedInActions,
 	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmInPane, promptSasConfirmInPane } from './connectionPreferencesPaneSas.js';
+import { ConnectionPreferencesDevices } from './connectionPreferencesDevices.js';
+import { ConnectionPreferencesDirect } from './connectionPreferencesDirect.js';
+import { ConnectionPreferencesHub } from './connectionPreferencesHub.js';
+import { ConnectionPreferencesProfiles } from './connectionPreferencesProfiles.js';
+import { ConnectionPreferencesTest } from './connectionPreferencesTest.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
-	getEngineSectionApiUnavailableCopy,
-	getEngineSectionDisconnectedCopy,
 	getUnsupportedEnvironmentCopy,
 	PREFERENCES_PANE_COMPACT_WIDTH,
 	PREFERENCES_PANE_NARROW_WIDTH,
-	shouldDrawDesktopConnectionControls,
 } from './engineSectionChrome.js';
+import {
+	getConnectionTestStatusText,
+	shouldDrawDesktopConnectionZones,
+	writeStatus,
+} from './connectionPreferencesZone.js';
 
 const $ = DOM.$;
 
-/** Every status line in the pane is written through here so tone and copy never drift apart. */
-export function writeStatus(element: HTMLElement, text: string, tone: ConnectionStatusTone = 'neutral'): void {
-	const copy = text.trim();
-	element.textContent = copy;
-	element.classList.toggle('is-success', tone === 'success');
-	element.classList.toggle('is-pending', tone === 'pending');
-	element.classList.toggle('is-warning', tone === 'warning');
-	element.classList.toggle('is-error', tone === 'error');
-}
+export type { IConnectionProfileEntry } from './connectionPreferencesProfiles.js';
+export { formatConnectionProbeStatus, getConnectionEmptyCopy, getConnectionRemoteIoHintCopy, getConnectionTestStatusText, writeStatus } from './connectionPreferencesZone.js';
 
 export type ConnectionZoneId = 'hub' | 'devices' | 'direct' | 'profiles' | 'test';
 
@@ -145,12 +101,6 @@ class ConnectionNavAccessibilityProvider implements IListAccessibilityProvider<t
 	getAriaLabel(entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number]): string {
 		return entry.label;
 	}
-}
-
-export interface IConnectionProfileEntry {
-	readonly id: string;
-	readonly label: string;
-	readonly stateLabel: string;
 }
 
 /** Canonical direct-address label when the user leaves Name empty. */
@@ -272,199 +222,16 @@ export function formatConnectProfileStatusText(
 	return localize('ua.connectionHandshakeSucceeded', "Profile accepted — pairing is complete.");
 }
 
-/** Test Connection 结果与 StatusBar / Engine 共用 H4b 文案。 */
-export function getConnectionTestStatusText(phase?: ConnectionPhase, pairingPending = false): string {
-	return getConnectionPhaseStatusBarText(phase ?? { kind: 'disconnected' }, pairingPending);
-}
-
-export function formatConnectionProbeStatus(result: ConnectionProbeResult): string;
-export function formatConnectionProbeStatus(result: UniverseAgentProbeEngineResult, phaseText: string): string;
-export function formatConnectionProbeStatus(
-	result: ConnectionProbeResult | UniverseAgentProbeEngineResult,
-	phaseText?: string,
-): string {
-	if (phaseText !== undefined) {
-		const engine = result as UniverseAgentProbeEngineResult;
-		return engine.ok
-			? localize('ua.connectionEngineTestOk', "Reachable — {0}", phaseText)
-			: localize('ua.connectionTestFailed', "Unreachable — {0}", engine.reason);
-	}
-	const profile = result as ConnectionProbeResult;
-	if (profile.ok) {
-		return localize('ua.connectionTestOk', "Reachable · {0} · {1} ms", profile.path, profile.latencyMs);
-	}
-	return profile.reason;
-}
-
-export function getConnectionEmptyCopy(): string {
-	return localize('ua.connectionEmptyWelcome', "No connection profiles yet");
-}
-
-export function getConnectionRemoteIoHintCopy(): string {
-	return localize(
-		'ua.connectionRemoteIoHint',
-		"When this window talks to a remote Engine, files and the terminal still run on this computer.",
-	);
-}
-
-class ConnectionProfilesDelegate implements IListVirtualDelegate<IConnectionProfileEntry> {
-	getHeight(): number {
-		return 32;
-	}
-
-	getTemplateId(): string {
-		return 'connectionProfileEntry';
-	}
-}
-
-interface IConnectionProfileTemplateData {
-	readonly label: HTMLElement;
-	readonly state: HTMLElement;
-}
-
-class ConnectionProfilesRenderer implements IListRenderer<IConnectionProfileEntry, IConnectionProfileTemplateData> {
-	static readonly TEMPLATE_ID = 'connectionProfileEntry';
-
-	readonly templateId = ConnectionProfilesRenderer.TEMPLATE_ID;
-
-	renderTemplate(container: HTMLElement): IConnectionProfileTemplateData {
-		return { label: DOM.append(container, $('.connection-profile-label')), state: DOM.append(container, $('.connection-profile-state')) };
-	}
-
-	renderElement(entry: IConnectionProfileEntry, _index: number, templateData: IConnectionProfileTemplateData): void {
-		templateData.label.textContent = entry.label;
-		templateData.state.textContent = entry.stateLabel;
-	}
-
-	disposeTemplate(): void {
-		// noop
-	}
-}
-
-class ConnectionProfilesAccessibilityProvider implements IListAccessibilityProvider<IConnectionProfileEntry> {
-	getWidgetAriaLabel(): string {
-		return localize('ua.connectionProfilesList', "Connection profiles");
-	}
-
-	getAriaLabel(entry: IConnectionProfileEntry): string {
-		return `${entry.label}, ${entry.stateLabel}`;
-	}
-}
-
-class HubDevicesDelegate implements IListVirtualDelegate<HubDeviceProjection> {
-	getHeight(): number {
-		return 32;
-	}
-
-	getTemplateId(): string {
-		return 'hubDeviceEntry';
-	}
-}
-
-interface IHubDeviceTemplateData {
-	readonly row: HTMLElement;
-	readonly name: HTMLElement;
-	readonly status: HTMLElement;
-	readonly connectButton: Button;
-	device: HubDeviceProjection | undefined;
-	readonly connectDisposable: { dispose(): void };
-}
-
-class HubDevicesRenderer implements IListRenderer<HubDeviceProjection, IHubDeviceTemplateData> {
-	static readonly TEMPLATE_ID = 'hubDeviceEntry';
-
-	readonly templateId = HubDevicesRenderer.TEMPLATE_ID;
-
-	constructor(
-		private readonly onConnect: (device: HubDeviceProjection) => void,
-		private readonly canConnect: (device: HubDeviceProjection) => boolean,
-	) { }
-
-	renderTemplate(container: HTMLElement): IHubDeviceTemplateData {
-		const row = DOM.append(container, $('.connection-hub-device-row'));
-		const name = DOM.append(row, $('.connection-hub-device-name'));
-		const status = DOM.append(row, $('.connection-hub-device-status'));
-		const connectButton = new Button(row, defaultButtonStyles);
-		connectButton.label = localize('ua.connectionDeviceConnect', "Connect");
-		const templateData: IHubDeviceTemplateData = {
-			row,
-			name,
-			status,
-			connectButton,
-			device: undefined,
-			connectDisposable: connectButton.onDidClick(() => {
-				if (templateData.device && this.canConnect(templateData.device)) {
-					this.onConnect(templateData.device);
-				}
-			}),
-		};
-		return templateData;
-	}
-
-	renderElement(device: HubDeviceProjection, _index: number, templateData: IHubDeviceTemplateData): void {
-		templateData.device = device;
-		templateData.name.textContent = device.name;
-		templateData.status.textContent = getHubDeviceRowStatusLabel(device);
-		const showConnect = this.canConnect(device);
-		templateData.connectButton.element.style.display = showConnect ? '' : 'none';
-		templateData.connectButton.enabled = showConnect;
-	}
-
-	disposeTemplate(templateData: IHubDeviceTemplateData): void {
-		templateData.connectDisposable.dispose();
-		templateData.connectButton.dispose();
-	}
-}
-
-class HubDevicesAccessibilityProvider implements IListAccessibilityProvider<HubDeviceProjection> {
-	getWidgetAriaLabel(): string {
-		return localize('ua.connectionDevicesList', "Hub devices");
-	}
-
-	getAriaLabel(device: HubDeviceProjection): string {
-		return `${device.name}, ${getHubDeviceRowStatusLabel(device)}`;
-	}
-}
-
 export class ConnectionPreferencesPane extends Disposable implements IPreferencesEditorPane {
 
 	private readonly container: HTMLElement;
-	private readonly hubAccountSection: HTMLElement;
-	private readonly hubAuthBadge: HTMLElement;
-	private readonly hubDeviceCodeStatus: HTMLElement;
-	private readonly hubConnectStatus: HTMLElement;
-	private readonly hubDirectoryBanner: HTMLElement;
-	private readonly hubDevicesSection: HTMLElement;
-	private readonly hubDevicesListContainer: HTMLElement;
-	private readonly hubDevicesList: WorkbenchList<HubDeviceProjection>;
-	private readonly deviceActionsRow: HTMLElement;
-	private readonly renameDeviceButton: Button;
-	private readonly revokeDeviceButton: Button;
-	private readonly rotateTokenButton: Button;
-	private readonly confirmDeviceCodeInput: InputBox;
-	private readonly confirmDeviceCodeButton: Button;
-	private readonly rejectDevicePairButton: Button;
-	private readonly pendingPairsHeading: HTMLElement;
-	private readonly pendingPairsEmpty: HTMLElement;
-	private readonly pendingPairsList: HTMLElement;
-	private readonly devicesConnectStatus: HTMLElement;
-	private readonly directAddressSection: HTMLElement;
-	private readonly directHostInput: InputBox;
-	private readonly directPortInput: InputBox;
-	private readonly directNameInput: InputBox;
-	private readonly directAllowPrivateCheckbox: Toggle;
-	private readonly directAddressStatus: HTMLElement;
-	private readonly profilesSection: HTMLElement;
-	private readonly emptyWelcome: HTMLElement;
-	private readonly listContainer: HTMLElement;
-	private readonly list: WorkbenchList<IConnectionProfileEntry>;
-	private readonly profileActionsRow: HTMLElement;
-	private readonly connectionPhaseLabel: HTMLElement;
-	private readonly profilesConnectStatus: HTMLElement;
-	private readonly testStatus: HTMLElement;
+	private readonly hub: ConnectionPreferencesHub;
+	private readonly direct: ConnectionPreferencesDirect;
+	private readonly profiles: ConnectionPreferencesProfiles;
+	private readonly devices: ConnectionPreferencesDevices;
 	/** In-pane pairing confirm host — attached to the Connect-initiating zone, not profiles-only. */
 	private readonly pairingConfirmHost: HTMLElement;
-	private readonly testSection: HTMLElement;
+	private readonly test: ConnectionPreferencesTest;
 	private readonly environmentNotice: HTMLElement;
 	private readonly backButton: HTMLButtonElement;
 	private readonly navHost: HTMLElement;
@@ -477,42 +244,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private lastLayoutHeight = 480;
 	private narrowShowingDetail = false;
 	private syncingNav = false;
-	private syncingProfiles = false;
 	private activeZoneId: ConnectionZoneId = 'hub';
-	private entries: IConnectionProfileEntry[] = [];
-	private hubDevices: HubDeviceProjection[] = [];
-	private enginePairedDevices: UniverseAgentDeviceInfo[] | undefined;
-	private engineDevicesListFailed: string | undefined;
-	/** Hub `refreshDirectory` leftover-fail (D447): leftover rows stay; Connect is not live. */
-	private hubDirectoryListFailed: string | undefined;
-	private pendingPairs: UniverseAgentPendingPairInfo[] = [];
-	private pendingPairsListFailed: string | undefined;
-	private engineDevicesRefreshGeneration = 0;
-	private hubDirectoryRefreshGeneration = 0;
-	private enginePendingRefreshGeneration = 0;
-	private selectedPending: UniverseAgentPendingPairInfo | undefined;
-	private readonly pendingRowDisposables = this._register(new DisposableStore());
-	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
-	private testGeneration = 0;
-	/** `testGeneration` of the most recent Test click; selection changes bump the generation but start no run. */
-	private latestTestRunGeneration = 0;
 	/** Profile this pane settled a connect for. Not the list selection and not a snapshot field. */
 	private connectedProfileId: string | undefined;
 	/** True while the engine-switch warning is open, so a second click cannot dial. */
 	private engineSwitchPromptOpen = false;
 	private _forgetProfileGeneration = 0;
 
-	private readonly hubBaseUrlInput: InputBox;
-	private readonly hubEmailInput: InputBox;
-	private readonly hubPasswordLabel: HTMLElement;
-	private readonly hubPasswordInput: InputBox;
-	private readonly hubNewPasswordInput: InputBox;
-	private readonly hubLoginButton: Button;
-	private readonly hubLogoutButton: Button;
-	private readonly hubRefreshButton: Button;
-	private readonly connectDirectButton: Button;
-	private readonly connectProfileButton: Button;
 	private connectInFlight = false;
 	/**
 	 * Direct Connect add / replaced-profile forget. Dropped synchronously before
@@ -522,7 +261,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
-		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IUniverseAgentHubService private readonly hubService: IUniverseAgentHubService,
 		@IUniverseAgentConnection private readonly connectionService: IUniverseAgentConnection,
 		@IDialogService private readonly dialogService: IDialogService,
@@ -573,250 +311,49 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.scrollBody = DOM.append(this.detail, $('.connection-preferences-detail-body'));
 
 		// Zone 1 — Hub account
-		this.hubAccountSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-hub-account'));
-		this.hubAuthBadge = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-auth-badge'));
-		this.hubAuthBadge.setAttribute('role', 'status');
-
-		this.hubBaseUrlInput = this.createFieldInput(this.hubAccountSection, localize('ua.connectionHubBaseUrl', "Hub URL"), {
-			type: 'url',
-			placeholder: 'https://hub.example.com',
-			description: localize('ua.connectionHubBaseUrlDescription', "Endpoint URL for the Universe Agent Hub management service."),
-		}).input;
-		this.hubEmailInput = this.createFieldInput(this.hubAccountSection, localize('ua.connectionHubEmail', "Email"), {
-			type: 'email',
-			placeholder: 'you@example.com',
-			description: localize('ua.connectionHubEmailDescription', "User email address registered with your Hub organization."),
-		}).input;
-		const passwordField = this.createFieldInput(this.hubAccountSection, HUB_PASSWORD_FIELD_LABEL, {
-			type: 'password',
-			description: localize('ua.connectionHubPasswordDescription', "Account password used for authentication."),
-		});
-		this.hubPasswordLabel = passwordField.label;
-		this.hubPasswordInput = passwordField.input;
-		const newPasswordField = this.createFieldInput(this.hubAccountSection, HUB_NEW_PASSWORD_FIELD_LABEL, {
-			type: 'password',
-			rowClass: 'connection-hub-new-password-row',
-		});
-		this.hubNewPasswordInput = newPasswordField.input;
-		this.hubNewPasswordInput.inputElement.autocomplete = 'new-password';
-
-		const hubMustChangeHint = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-must-change-hint'));
-		hubMustChangeHint.setAttribute('role', 'status');
-		hubMustChangeHint.textContent = getHubMustChangePasswordHint();
-
-		const hubActions = DOM.append(this.hubAccountSection, DOM.$('.connection-actions.connection-hub-actions'));
-		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
-		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
-		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError)));
-		this._register(this.hubBaseUrlInput.onDidChange(() => this.updateHubLoginState()));
-		this._register(this.hubEmailInput.onDidChange(() => this.updateHubLoginState()));
-		this._register(this.hubPasswordInput.onDidChange(() => this.updateHubLoginState()));
-		this._register(this.hubNewPasswordInput.onDidChange(() => this.updateHubLoginState()));
-
-		this.hubLogoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
-		this.hubLogoutButton.label = localize('ua.connectionHubLogout', "Sign out");
-		this._register(this.hubLogoutButton.onDidClick(() => void this.handleLogout().catch(onUnexpectedError)));
-
-		this.hubRefreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
-		this.hubRefreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
-		this._register(this.hubRefreshButton.onDidClick(() => void this.refreshHubDirectory().catch(onUnexpectedError)));
-
-		this.hubConnectStatus = DOM.append(this.hubAccountSection, DOM.$('.connection-status.connection-hub-connect-status'));
-		this.hubConnectStatus.setAttribute('role', 'status');
-		this.hubConnectStatus.setAttribute('aria-live', 'polite');
+		this.hub = this._register(instantiationService.createInstance(ConnectionPreferencesHub, this.scrollBody, {
+			renderHubAccount: () => this.renderHubAccount(),
+			refreshHubDirectory: () => this.refreshHubDirectory(),
+		}));
 
 		// Zone 2 — Device list
-		this.hubDevicesSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-hub-devices'));
-		this.hubDirectoryBanner = DOM.append(this.hubDevicesSection, DOM.$('.connection-hub-directory-banner'));
-		this.hubDirectoryBanner.setAttribute('role', 'alert');
-		this.hubDevicesListContainer = DOM.append(this.hubDevicesSection, DOM.$('.connection-hub-devices-list'));
-		this.hubDevicesList = this._register(instantiationService.createInstance(
-			WorkbenchList,
-			'HubDevices',
-			this.hubDevicesListContainer,
-			new HubDevicesDelegate(),
-			[new HubDevicesRenderer(device => void this.handleConnectDevice(device).catch(onUnexpectedError), device => this.canConnectDevice(device))],
-			{
-				identityProvider: { getId: (device: HubDeviceProjection) => device.id },
-				accessibilityProvider: new HubDevicesAccessibilityProvider(),
-			},
-		)) as WorkbenchList<HubDeviceProjection>;
-		this._register(this.hubDevicesList.onDidChangeSelection(() => this.updateDeviceActions()));
-
-		this.deviceActionsRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-actions.connection-hub-device-actions'));
-		this.renameDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
-		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError)));
-		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.revokeDeviceButton.element.classList.add('is-danger');
-		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
-		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError)));
-		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.rotateTokenButton.label = CONNECTION_DEVICE_ROTATE_TOKEN_LABEL;
-		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken().catch(onUnexpectedError)));
-
-		this.devicesConnectStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-devices-status'));
-		this.devicesConnectStatus.setAttribute('role', 'status');
-		this.devicesConnectStatus.setAttribute('aria-live', 'polite');
-
-		this.pendingPairsHeading = DOM.append(this.hubDevicesSection, DOM.$('h4.connection-engine-pending-heading'));
-		this.pendingPairsHeading.textContent = CONNECTION_DEVICE_PENDING_HEADING;
-		this.pendingPairsEmpty = DOM.append(this.hubDevicesSection, DOM.$('.connection-engine-pending-empty'));
-		this.pendingPairsEmpty.setAttribute('role', 'status');
-		this.pendingPairsEmpty.textContent = CONNECTION_DEVICE_PENDING_EMPTY_COPY;
-		this.pendingPairsList = DOM.append(this.hubDevicesSection, DOM.$('.connection-engine-pending-list'));
-		this.pendingPairsList.setAttribute('role', 'list');
-
-		const deviceCodeRow = DOM.append(this.hubDevicesSection, DOM.$('.connection-field-row.connection-hub-device-code'));
-		DOM.append(deviceCodeRow, DOM.$('label')).textContent = localize('ua.connectionConfirmDeviceCodeLabel', "Device code");
-		const deviceCodeHost = DOM.append(deviceCodeRow, $('.connection-field-input'));
-		this.confirmDeviceCodeInput = this._register(new InputBox(deviceCodeHost, this.contextViewService, {
-			placeholder: localize('ua.connectionConfirmDeviceCodePlaceholder', "Device code"),
-			ariaLabel: localize('ua.connectionConfirmDeviceCodeAria', "Confirm device code"),
-			inputBoxStyles: defaultInputBoxStyles,
+		this.devices = this._register(instantiationService.createInstance(ConnectionPreferencesDevices, this.scrollBody, {
+			isConnectWriteHeld: () => this.isConnectWriteHeld(),
+			writeHoldReason: () => this.writeHoldReason(),
+			handleConnectDevice: device => this.handleConnectDevice(device),
+			renderHubAccount: () => this.renderHubAccount(),
+			renderProfiles: () => this.renderProfiles(),
+			layoutLists: () => this.layoutLists(),
+			applyNarrowChrome: () => this.applyNarrowChrome(),
 		}));
-		const deviceCodeActions = DOM.append(deviceCodeRow, $('.connection-actions'));
-		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeActions, defaultButtonStyles));
-		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
-		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError)));
-		this.rejectDevicePairButton = this._register(new Button(deviceCodeActions, { ...defaultButtonStyles, secondary: true }));
-		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
-		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError)));
-		this.hubDeviceCodeStatus = DOM.append(this.hubDevicesSection, DOM.$('.connection-status.connection-hub-device-code-status'));
-		this.hubDeviceCodeStatus.setAttribute('role', 'status');
 
 		// Zone 2b — Direct Address (debug / fallback; no Hub ticket)
-		this.directAddressSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-direct-address'));
-		const directHint = DOM.append(this.directAddressSection, DOM.$('.connection-direct-address-hint'));
-		directHint.textContent = localize(
-			'ua.connectionDirectAddressHint',
-			"Enter a host and port. Private networks stay blocked unless you allow them.",
-		);
-
-		this.directHostInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectHost', "Host"), {
-			placeholder: '127.0.0.1',
-			description: localize('ua.connectionDirectHostDescription', "Hostname or IP address of the Universe Agent engine."),
-			layout: 'setting-row',
-		}).input;
-		this.directHostInput.value = '127.0.0.1';
-		this.directPortInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectPort', "Port"), {
-			type: 'number',
-			placeholder: '50061',
-			description: localize('ua.connectionDirectPortDescription', "Port number where the engine is listening (1-65535)."),
-			layout: 'setting-row',
-		}).input;
-		this.directPortInput.inputElement.min = '1';
-		this.directPortInput.inputElement.max = '65535';
-		this.directPortInput.value = '50061';
-		this.directNameInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectDisplayName', "Name"), {
-			placeholder: localize('ua.connectionDirectDisplayNamePlaceholder', "Local Engine"),
-			description: localize('ua.connectionDirectDisplayNameDescription', "A friendly label to identify this engine connection profile."),
-			layout: 'setting-row',
-		}).input;
-		this.directNameInput.value = 'Local Engine';
-
-		const allowPrivateLabelText = localize('ua.connectionAllowPrivateNetwork', "Allow private / loopback networks");
-		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row.connection-toggle-row.ua-setting-row'));
-		const toggleDetails = DOM.append(directAllowRow, DOM.$('.connection-toggle-details.ua-setting-copy'));
-		const allowLabel = DOM.append(toggleDetails, DOM.$('span.connection-toggle-label'));
-		allowLabel.textContent = allowPrivateLabelText;
-		allowLabel.id = 'connection-allow-private-network-label';
-		const allowDesc = DOM.append(toggleDetails, DOM.$('span.connection-toggle-description'));
-		allowDesc.id = 'connection-allow-private-network-description';
-		allowDesc.textContent = localize('ua.connectionAllowPrivateNetworkDescription', "Permit connections to private subnets, localhost, and loopback addresses.");
-		const toggleCheckbox = () => {
-			this.directAllowPrivateCheckbox.checked = !this.directAllowPrivateCheckbox.checked;
-			this.directAllowPrivateCheckbox.focus();
-		};
-		this.directAllowPrivateCheckbox = this._register(new Toggle({
-			title: allowPrivateLabelText,
-			isChecked: true,
-			inputActiveOptionBackground: 'var(--ua-connection-switch-track)',
-			inputActiveOptionForeground: undefined,
-			inputActiveOptionBorder: 'transparent',
+		this.direct = this._register(instantiationService.createInstance(ConnectionPreferencesDirect, this.scrollBody, {
+			handleConnectDirectAddress: () => this.handleConnectDirectAddress(),
+			handleAddDirectAddress: () => this.handleAddDirectAddress(),
 		}));
-		this.directAllowPrivateCheckbox.domNode.setAttribute('role', 'switch');
-		this.directAllowPrivateCheckbox.domNode.id = 'connection-allow-private-network';
-		this.directAllowPrivateCheckbox.domNode.setAttribute('aria-labelledby', allowLabel.id);
-		this.directAllowPrivateCheckbox.domNode.setAttribute('aria-describedby', allowDesc.id);
-		DOM.append(directAllowRow, this.directAllowPrivateCheckbox.domNode);
-		this._register(DOM.addDisposableListener(allowLabel, DOM.EventType.CLICK, toggleCheckbox));
-		this._register(DOM.addDisposableListener(allowDesc, DOM.EventType.CLICK, toggleCheckbox));
-
-		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-actions.connection-direct-actions'));
-		this.connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
-		this.connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
-		this._register(this.connectDirectButton.onDidClick(() => void this.handleConnectDirectAddress().catch(onUnexpectedError)));
-
-		const addDirectButton = this._register(new Button(directActions, { ...defaultButtonStyles, secondary: true }));
-		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
-		this._register(addDirectButton.onDidClick(() => void this.handleAddDirectAddress().catch(onUnexpectedError)));
-
-		this.directAddressStatus = DOM.append(this.directAddressSection, DOM.$('.connection-status.connection-direct-address-status'));
-		this.directAddressStatus.setAttribute('role', 'status');
 
 		// Zone 3 — Connection profiles
-		this.profilesSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-profiles'));
-		this.connectionPhaseLabel = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-phase-label'));
-		this.connectionPhaseLabel.setAttribute('role', 'status');
-		this.emptyWelcome = DOM.append(this.profilesSection, DOM.$('.connection-empty-welcome'));
-		this.emptyWelcome.textContent = getConnectionEmptyCopy();
-		this.listContainer = DOM.append(this.profilesSection, DOM.$('.connection-list'));
-		this.list = this._register(instantiationService.createInstance(
-			WorkbenchList,
-			'ConnectionProfiles',
-			this.listContainer,
-			new ConnectionProfilesDelegate(),
-			[new ConnectionProfilesRenderer()],
-			{
-				identityProvider: { getId: (entry: IConnectionProfileEntry) => entry.id },
-				accessibilityProvider: new ConnectionProfilesAccessibilityProvider(),
+		this.profiles = this._register(instantiationService.createInstance(ConnectionPreferencesProfiles, this.scrollBody, {
+			getActiveProfileId: () => this.activeProfileId,
+			selectActiveProfile: profileId => {
+				this.activeProfileId = profileId;
+				this.test.invalidateProfileProbe();
 			},
-		)) as WorkbenchList<IConnectionProfileEntry>;
-
-		this.profileActionsRow = DOM.append(this.profilesSection, DOM.$('.connection-actions.connection-profile-actions'));
-		this.connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
-		this.connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
-		this._register(this.connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError)));
-
-		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
-		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
-		this._register(disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError)));
-
-		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
-		forgetButton.element.classList.add('is-danger');
-		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
-		this._register(forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError)));
-
-		this.profilesConnectStatus = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-profiles-status'));
-		this.profilesConnectStatus.setAttribute('role', 'status');
-		this.profilesConnectStatus.setAttribute('aria-live', 'polite');
-
-		this._register(this.list.onDidChangeSelection(e => {
-			if (this.syncingProfiles) {
-				return;
-			}
-			const selected = e.elements[0];
-			// Re-selecting the same profile must not invalidate an in-flight Test Connection.
-			if (selected && selected.id !== this.activeProfileId) {
-				this.activeProfileId = selected.id;
-				this.testGeneration++;
-			}
+			setActiveProfileId: profileId => {
+				this.activeProfileId = profileId;
+			},
+			getConnectedProfileId: () => this.connectedProfileId,
+			layoutLists: () => this.layoutLists(),
+			handleConnectSelectedProfile: () => this.handleConnectSelectedProfile(),
+			handleDisconnect: () => this.handleDisconnect(),
+			handleForgetSelectedProfile: () => this.handleForgetSelectedProfile(),
 		}));
 
 		// Zone 4 — Test Connection + Remote I/O hint
-		this.testSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-test-section'));
-		const testSection = this.testSection;
-		const testRow = DOM.append(testSection, DOM.$('.connection-test-row'));
-		const testButton = this._register(new Button(testRow, { ...defaultButtonStyles, secondary: true }));
-		testButton.label = localize('ua.connectionTestActiveProfile', "Test active profile");
-		this.testStatus = DOM.append(testRow, DOM.$('.connection-status.connection-test-status'));
-		this.testStatus.setAttribute('role', 'status');
-		this.testStatus.setAttribute('aria-live', 'polite');
-		this._register(testButton.onDidClick(() => void this.handleTestConnection().catch(onUnexpectedError)));
-
-		const remoteIoHint = DOM.append(testSection, DOM.$('.connection-remote-io-hint'));
-		remoteIoHint.textContent = getConnectionRemoteIoHintCopy();
+		this.test = this._register(instantiationService.createInstance(ConnectionPreferencesTest, this.scrollBody, {
+			getActiveProfileId: () => this.activeProfileId,
+		}));
 
 		// Sibling of zones so inactive-zone `display:none` cannot swallow the SAS box.
 		this.pairingConfirmHost = DOM.append(this.scrollBody, DOM.$('.connection-pairing-confirm-host'));
@@ -860,7 +397,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderHubAccount();
 			this.applyDesktopConnectionControlVisibility();
 		}));
-		this._register(this.hubService.onDidChangeDirectory(() => this.renderHubDirectory()));
+		this._register(this.hubService.onDidChangeDirectory(() => this.devices.renderHubDirectory()));
 		this._register(this.hubService.onDidChangeProfiles(() => this.renderProfiles()));
 		this._register(this.connectionService.onDidChangeConnection(() => {
 			this.renderConnectionPhase();
@@ -871,8 +408,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}));
 
 		this.renderHubAccount();
-		this.renderHubDirectory();
-		this.updateDeviceActions();
+		this.devices.renderHubDirectory();
+		this.devices.updateDeviceActions();
 		this.renderProfiles();
 		this.renderConnectionPhase();
 		this.applyDesktopConnectionControlVisibility();
@@ -892,43 +429,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		));
 		this._register(resizeObserver.observe(this.navHost));
 		this._register(resizeObserver.observe(this.scrollBody));
-		void this.initializeState().catch(onUnexpectedError);
+		void this.hub.initializeState().catch(onUnexpectedError);
 		void this.refreshEngineDeviceLists().catch(onUnexpectedError);
-	}
-
-	private createFieldInput(
-		parent: HTMLElement,
-		labelText: string,
-		options: { readonly type?: string; readonly placeholder?: string; readonly ariaLabel?: string; readonly rowClass?: string; readonly description?: string; readonly layout?: 'setting-row' },
-	): { readonly row: HTMLElement; readonly label: HTMLElement; readonly input: InputBox } {
-		const row = DOM.append(parent, $(options.rowClass ? `.connection-field-row.${options.rowClass}` : '.connection-field-row'));
-		if (options.layout === 'setting-row') {
-			row.classList.add('ua-setting-row', 'connection-input-row');
-		}
-		const copy = options.layout === 'setting-row' ? DOM.append(row, $('.ua-setting-copy')) : row;
-		const label = DOM.append(copy, $('label'));
-		label.textContent = labelText;
-		if (options.description) {
-			const description = DOM.append(copy, $('.connection-field-description'));
-			description.textContent = options.description;
-		}
-		const host = DOM.append(row, $('.connection-field-input'));
-		const input = this._register(new InputBox(host, this.contextViewService, {
-			type: options.type,
-			placeholder: options.placeholder,
-			ariaLabel: options.ariaLabel ?? labelText,
-			inputBoxStyles: defaultInputBoxStyles,
-		}));
-		return { row, label, input };
 	}
 
 	private getZoneElement(id: ConnectionZoneId): HTMLElement {
 		switch (id) {
-			case 'hub': return this.hubAccountSection;
-			case 'devices': return this.hubDevicesSection;
-			case 'direct': return this.directAddressSection;
-			case 'profiles': return this.profilesSection;
-			case 'test': return this.testSection;
+			case 'hub': return this.hub.element;
+			case 'devices': return this.devices.element;
+			case 'direct': return this.direct.element;
+			case 'profiles': return this.profiles.element;
+			case 'test': return this.test.element;
 		}
 	}
 
@@ -1037,65 +548,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.syncPairingConfirmHostParent();
 	}
 
-	private desktopConnectionControlContext() {
-		return {
-			phase: this.connectionService.getConnectionPhase(),
-			snapshot: this.connectionService.getConnectionSnapshot(),
-			capabilities: ensureCapabilitySnapshot(this.connectionService.getCapabilitySnapshot()),
-		};
-	}
-
 	private applyDesktopConnectionControlVisibility(): void {
-		const drawDesktop = shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext());
-		this.hubAccountSection.style.display = drawDesktop ? '' : 'none';
-		this.directAddressSection.style.display = drawDesktop ? '' : 'none';
-		this.testSection.style.display = drawDesktop ? '' : 'none';
+		const drawDesktop = shouldDrawDesktopConnectionZones(this.connectionService);
+		this.hub.element.style.display = drawDesktop ? '' : 'none';
+		this.direct.element.style.display = drawDesktop ? '' : 'none';
+		this.test.element.style.display = drawDesktop ? '' : 'none';
 		this.environmentNotice.style.display = drawDesktop ? 'none' : '';
-		this.syncProfileActionsVisibility();
+		this.profiles.syncProfileActionsVisibility();
 		if (!drawDesktop) {
-			this.hubDevicesSection.style.display = 'none';
+			this.devices.hide();
 			this.applyNarrowChrome();
 			return;
 		}
-		this.syncHubDevicesSectionVisibility();
-	}
-
-	/** Signed-in Hub, live pair seat, or pairing-hold leftover devices / pending rows. */
-	private shouldShowHubDevicesSection(): boolean {
-		if (!shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
-			return false;
-		}
-		const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
-		// D362 leftover-looks-live: pairing-hold-first. KEEP is not only `isEngineConnected()`.
-		const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
-		const pairingHoldCatalog = this.keepLeftoverCatalogForPairingHold(
-			!!this.enginePairedDevices?.length || this.pendingPairs.length > 0,
-		);
-		return hubSignedIn || enginePairSeat || pairingHoldCatalog;
-	}
-
-	private syncHubDevicesSectionVisibility(): void {
-		const display = this.shouldShowHubDevicesSection() ? '' : 'none';
-		if (this.hubDevicesSection.style.display === display) {
-			return;
-		}
-		this.hubDevicesSection.style.display = display;
-		this.applyNarrowChrome();
-	}
-
-	private async initializeState(): Promise<void> {
-		if (this._store.isDisposed) {
-			return;
-		}
-		await this.hubService.isEncryptionAvailable().then(available => {
-			if (this._store.isDisposed) {
-				return;
-			}
-			if (!available) {
-				const hint = DOM.append(this.hubAccountSection, DOM.$('.connection-hub-encryption-hint'));
-				hint.textContent = localize('ua.connectionHubEncryptionUnavailable', "Secure storage unavailable — sign in again after restart.");
-			}
-		}).catch(() => undefined);
+		this.devices.syncHubDevicesSectionVisibility();
 	}
 
 	getDomNode(): HTMLElement {
@@ -1205,22 +670,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private layoutLists(): void {
 		const budget = Math.max(32, Math.min(224, this.getDetailHeight() - 120));
-		const layoutList = <T>(list: WorkbenchList<T>, host: HTMLElement): void => {
-			const height = Math.min(budget, Math.max(32, list.length * 32));
-			const width = DOM.getContentWidth(host) || Math.max(0, this.getDetailWidth() - 34);
-			host.style.height = `${height}px`;
-			list.layout(height, width);
-		};
-		layoutList(this.hubDevicesList, this.hubDevicesListContainer);
-		layoutList(this.list, this.listContainer);
-		this.hubBaseUrlInput.layout();
-		this.hubEmailInput.layout();
-		this.hubPasswordInput.layout();
-		this.hubNewPasswordInput.layout();
-		this.confirmDeviceCodeInput.layout();
-		this.directHostInput.layout();
-		this.directPortInput.layout();
-		this.directNameInput.layout();
+		this.devices.layout(budget, () => this.getDetailWidth());
+		this.profiles.layoutList(budget, () => this.getDetailWidth());
+		this.hub.layout();
+		this.direct.layout();
 	}
 
 	search(_text: string): void {
@@ -1229,9 +682,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	override dispose(): void {
 		this.container.remove();
-		this.engineDevicesRefreshGeneration++;
-		this.hubDirectoryRefreshGeneration++;
-		this.enginePendingRefreshGeneration++;
 		super.dispose();
 	}
 
@@ -1239,399 +689,27 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return this.connectInFlight
 			|| this.directProfileWriteInFlight
 			|| this.engineSwitchPromptOpen
-			|| this.isDeviceWritePairingHold()
+			|| this.devices.isDeviceWritePairingHold()
 			|| this.isPairingConfirmHostLive();
 	}
 
 	private updateConnectGates(): void {
 		const held = this.isConnectWriteHeld();
-		this.presentAction(this.connectDirectButton, !held, this.writeHoldReason());
-		this.presentAction(
-			this.connectProfileButton,
+		this.direct.presentConnectGate(!held, this.writeHoldReason());
+		this.profiles.presentConnectGate(
 			!held && !!this.activeProfileId,
 			held
 				? this.writeHoldReason()
 				: localize('ua.connectionProfileSelectFirst', "Select a profile first."),
 		);
-		if (this.hubDevices.length > 0) {
-			this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
-		}
-	}
-
-	private canConnectDevice(device: HubDeviceProjection): boolean {
-		if (this.isConnectWriteHeld() || this.hubDirectoryListFailed) {
-
-			return false;
-		}
-		return canConnectHubDevice(device, this.hubService.getDirectoryStatus());
-	}
-
-	private async handleLogin(): Promise<void> {
-		if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
-			await this.handleChangePassword();
-			return;
-		}
-		const hubBaseUrl = this.hubBaseUrlInput.value.trim();
-		const email = this.hubEmailInput.value.trim();
-		const password = this.hubPasswordInput.value;
-		try {
-			const result = await this.hubService.login(hubBaseUrl, email, password);
-			if (!result.ok) {
-				writeStatus(this.hubAuthBadge, result.reason, 'error');
-				return;
-			}
-			this.renderHubAccount();
-			if (this.hubService.getAuthStatus().kind === 'mustChangePassword') {
-				return;
-			}
-			this.hubPasswordInput.value = '';
-			this.hubNewPasswordInput.value = '';
-		} catch (error) {
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubAuthBadge, reason, 'error');
-		}
-	}
-
-	private async handleChangePassword(): Promise<void> {
-		const oldPassword = this.hubPasswordInput.value;
-		const newPassword = this.hubNewPasswordInput.value;
-		try {
-			const result = await this.hubService.changePassword(oldPassword, newPassword);
-			if (!result.ok) {
-				writeStatus(this.hubAuthBadge, result.reason, 'error');
-				return;
-			}
-			this.hubPasswordInput.value = '';
-			this.hubNewPasswordInput.value = '';
-			this.renderHubAccount();
-		} catch (error) {
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubAuthBadge, reason, 'error');
-		}
-	}
-
-	private async handleLogout(): Promise<void> {
-		try {
-			await this.hubService.logout();
-			this.hubPasswordInput.value = '';
-			this.hubNewPasswordInput.value = '';
-			this.renderHubAccount();
-		} catch (error) {
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubAuthBadge, reason, 'error');
-		}
-	}
-
-	private async refreshHubDirectory(): Promise<void> {
-		const listed = await this.refreshDirectoryListed();
-		if (!listed) {
-			return;
-		}
-		await this.refreshEngineDeviceLists();
-	}
-
-	private engineDeviceListsListed(): boolean {
-		return this.engineDevicesListFailed === undefined && this.pendingPairsListFailed === undefined;
-	}
-
-	private async refreshEngineDeviceLists(): Promise<boolean> {
-		await this.refreshEngineDevices();
-		await this.refreshEnginePending();
-		return this.engineDeviceListsListed();
-	}
-
-	/** Pair write-success stays only after ListDevices + ListPending listed (D212 sibling). */
-	private restorePairWriteSuccessIfListed(message: string): void {
-		if (this.engineDeviceListsListed()) {
-			writeStatus(this.hubDeviceCodeStatus, message, 'success');
-			return;
-		}
-		writeStatus(this.hubDeviceCodeStatus, '', 'neutral');
-	}
-
-	private hubDirectoryRefreshListed(status: HubDirectoryStatus): boolean {
-		return status.kind === 'ok';
-	}
-
-	private applyHubDirectoryRefreshFailure(reason: string): void {
-		this.hubDirectoryListFailed = reason;
-		writeStatus(this.hubDirectoryBanner, reason, 'error');
-		this.hubDirectoryBanner.style.display = '';
-		// Keep leftover hubDevices (D248). Splice so Connect closes without reselect (D447).
-		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
-		this.updateDeviceActions();
-	}
-
-	/** Hub write-success stays only after refreshDirectory listed (D221 sibling). */
-	private async refreshDirectoryListed(): Promise<boolean | undefined> {
-		const generation = ++this.hubDirectoryRefreshGeneration;
-		try {
-			const status = await this.hubService.refreshDirectory();
-			if (generation !== this.hubDirectoryRefreshGeneration) {
-				return undefined;
-			}
-			if (this.hubDirectoryRefreshListed(status)) {
-				this.hubDirectoryListFailed = undefined;
-				this.renderHubDirectory();
-				return true;
-			}
-			const banner = getHubDirectoryBannerLabel(status);
-			this.applyHubDirectoryRefreshFailure(
-				banner
-				?? (status.kind === 'error' || status.kind === 'unreachable' ? status.reason : status.kind),
-			);
-			return false;
-		} catch (error) {
-			if (generation !== this.hubDirectoryRefreshGeneration) {
-				return undefined;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.applyHubDirectoryRefreshFailure(reason);
-			return false;
-		}
-	}
-
-	private restoreHubDeviceCodeSuccessIfListed(listed: boolean, message: string): void {
-		if (listed) {
-			writeStatus(this.hubDeviceCodeStatus, message, 'success');
-			return;
-		}
-		writeStatus(this.hubDeviceCodeStatus, '', 'neutral');
-	}
-
-	private restoreHubDirectoryWriteSuccessIfListed(listed: boolean, message: string): void {
-		if (listed) {
-			writeStatus(this.hubDirectoryBanner, message, message.trim() ? 'success' : 'neutral');
-			this.hubDirectoryBanner.style.display = message.trim() ? '' : 'none';
-			return;
-		}
-	}
-
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connectionService);
-	}
-
-	private isDeviceWritePairingHold(): boolean {
-		return isConversationPairingHold(this.connectionService);
-	}
-
-	/** Catalog leftover contract: devices / Hub directory list-fail leftover is not a live write surface. */
-	private isDeviceWriteListFailed(): boolean {
-		return this.engineDevicesListFailed !== undefined || this.hubDirectoryListFailed !== undefined;
-	}
-
-	/** Catalog leftover contract: pending list-fail leftover is not a live pair-write surface. */
-	private isPendingWriteListFailed(): boolean {
-		return this.pendingPairsListFailed !== undefined;
-	}
-
-	private applyDisconnectedDevicesRefresh(): void {
-		if (this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length)) {
-			this.renderHubDirectory();
-			writeStatus(this.devicesConnectStatus, getEngineSectionDisconnectedCopy(), 'warning');
-			return;
-		}
-		// Disconnect still clears engine leftover (History/Clipboard contract).
-		this.enginePairedDevices = undefined;
-		this.engineDevicesListFailed = undefined;
-		this.hubDevices = [];
-		this.renderHubDirectory();
-		if (isConversationPairingHold(this.connectionService)) {
-			writeStatus(this.devicesConnectStatus, getEngineSectionDisconnectedCopy(), 'warning');
-			return;
-		}
-		writeStatus(this.devicesConnectStatus, '', 'neutral');
-	}
-
-	private applyDisconnectedPendingRefresh(): void {
-		if (this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0)) {
-			this.renderPendingPairs();
-			return;
-		}
-		// Disconnect still clears pending leftover (History/Clipboard contract).
-		this.pendingPairs = [];
-		this.pendingPairsListFailed = undefined;
-		this.selectedPending = undefined;
-		this.renderPendingPairs();
-	}
-
-	private async refreshEngineDevices(): Promise<void> {
-		const generation = ++this.engineDevicesRefreshGeneration;
-		const hook = this.connectionService.listDevices;
-		const connected = this.connectionService.isEngineConnected();
-		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
-		if (isConversationPairingHold(this.connectionService) || !connected) {
-			this.applyDisconnectedDevicesRefresh();
-			return;
-		}
-		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
-		if (!this.conversationEntryPresent('listDevices', hook) || typeof hook !== 'function') {
-			if (!this.enginePairedDevices?.length) {
-				this.enginePairedDevices = undefined;
-			}
-			this.engineDevicesListFailed = undefined;
-			this.renderHubDirectory();
-			writeStatus(
-				this.devicesConnectStatus,
-				getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE),
-				'warning',
-			);
-			return;
-		}
-		try {
-			const result = await hook.call(this.connectionService);
-			if (generation !== this.engineDevicesRefreshGeneration) {
-				return;
-			}
-			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
-				this.applyDisconnectedDevicesRefresh();
-				return;
-			}
-			this.enginePairedDevices = [...result.devices];
-			const hadFail = this.engineDevicesListFailed !== undefined;
-			const hadUnsupported = this.devicesConnectStatus.textContent === getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_LIST_FEATURE);
-			this.engineDevicesListFailed = undefined;
-			this.renderHubDirectory();
-			if (hadFail || hadUnsupported) {
-				writeStatus(this.devicesConnectStatus, '', 'neutral');
-			}
-		} catch (error) {
-			if (generation !== this.engineDevicesRefreshGeneration) {
-				return;
-			}
-			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
-				this.applyDisconnectedDevicesRefresh();
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.engineDevicesListFailed = reason;
-			this.renderHubDirectory();
-			writeStatus(this.devicesConnectStatus, connectionDeviceListFailureMessage(reason), 'error');
-		}
-	}
-
-	private rebindSelectedPendingAfterListRefresh(previous: UniverseAgentPendingPairInfo | undefined): void {
-		if (!previous?.pairingCode) {
-			this.selectedPending = undefined;
-			return;
-		}
-		const matches = this.pendingPairs.filter(p => p.pairingCode === previous.pairingCode);
-		if (matches.length === 0) {
-			this.selectedPending = undefined;
-			return;
-		}
-		if (matches.length === 1) {
-			this.selectedPending = matches[0];
-			return;
-		}
-		const byDisplayName = matches.filter(p => p.displayName === previous.displayName);
-		if (byDisplayName.length === 1) {
-			this.selectedPending = byDisplayName[0];
-			return;
-		}
-		this.selectedPending = undefined;
-	}
-
-	private async refreshEnginePending(): Promise<void> {
-		const generation = ++this.enginePendingRefreshGeneration;
-		const hook = this.connectionService.listPending;
-		const connected = this.connectionService.isEngineConnected();
-		// D341 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
-		if (isConversationPairingHold(this.connectionService) || !connected) {
-			this.applyDisconnectedPendingRefresh();
-			return;
-		}
-		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
-		if (!this.conversationEntryPresent('listPending', hook) || typeof hook !== 'function') {
-			if (this.pendingPairs.length === 0) {
-				this.pendingPairs = [];
-				this.selectedPending = undefined;
-			}
-			this.pendingPairsListFailed = undefined;
-			this.renderPendingPairs();
-			return;
-		}
-		try {
-			const result = await hook.call(this.connectionService);
-			if (generation !== this.enginePendingRefreshGeneration) {
-				return;
-			}
-			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
-				this.applyDisconnectedPendingRefresh();
-				return;
-			}
-			const previousSelected = this.selectedPending;
-			this.pendingPairs = [...result.pending];
-			this.pendingPairsListFailed = undefined;
-			this.rebindSelectedPendingAfterListRefresh(previousSelected);
-		} catch (error) {
-			if (generation !== this.enginePendingRefreshGeneration) {
-				return;
-			}
-			if (isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected()) {
-				this.applyDisconnectedPendingRefresh();
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.pendingPairsListFailed = reason;
-		}
-		if (generation !== this.enginePendingRefreshGeneration) {
-			return;
-		}
-		this.renderPendingPairs();
-	}
-
-	private renderPendingPairs(): void {
-		const hook = this.connectionService.listPending;
-		const connected = this.connectionService.isEngineConnected();
-		const pendingListed = this.conversationEntryPresent('listPending', hook);
-		const canList = canSendConnectionDevicePairRequest(connected, pendingListed);
-		const showUnsupported = connected && !pendingListed;
-		const pairingHoldLeftover = this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0);
-		const showPending = canList || showUnsupported || pairingHoldLeftover;
-		this.pendingPairsHeading.style.display = showPending ? '' : 'none';
-		this.pendingPairsList.style.display = showPending && this.pendingPairs.length > 0 ? '' : 'none';
-		this.pendingPairsEmpty.style.display = showPending && (this.pendingPairs.length === 0 || !!this.pendingPairsListFailed || showUnsupported || pairingHoldLeftover) ? '' : 'none';
-		if (showUnsupported) {
-			writeStatus(
-				this.pendingPairsEmpty,
-				getEngineSectionApiUnavailableCopy(CONNECTION_DEVICE_PENDING_LIST_FEATURE),
-				'warning',
-			);
-		} else if (canList && this.pendingPairsListFailed) {
-			writeStatus(this.pendingPairsEmpty, connectionDevicePendingListFailureMessage(this.pendingPairsListFailed), 'error');
-		} else if (pairingHoldLeftover) {
-			writeStatus(this.pendingPairsEmpty, getEngineSectionDisconnectedCopy(), 'warning');
-		} else {
-			writeStatus(this.pendingPairsEmpty, CONNECTION_DEVICE_PENDING_EMPTY_COPY, 'neutral');
-		}
-		this.pendingRowDisposables.clear();
-		DOM.clearNode(this.pendingPairsList);
-		if (showPending) {
-			for (const pending of this.pendingPairs) {
-				const row = DOM.append(this.pendingPairsList, DOM.$('.connection-engine-pending-row'));
-				row.setAttribute('role', 'listitem');
-				row.tabIndex = 0;
-				row.textContent = formatConnectionPendingPairLabel(pending);
-				if (pending === this.selectedPending) {
-					row.classList.add('selected');
-					row.setAttribute('aria-current', 'true');
-				}
-				this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'click', () => {
-					this.selectedPending = pending;
-					this.renderPendingPairs();
-				}));
-			}
-		}
-		// D441: pending list-fail leftover must close Confirm/Reject without reselect.
-		this.renderHubAccount();
+		this.devices.refreshConnectButtons();
 	}
 
 	private readDirectAddressForm(): { host: string; port: number } | undefined {
-		const host = this.directHostInput.value.trim();
-		const port = readDirectAddressPort(this.directPortInput.value);
+		const host = this.direct.directHostInput.value.trim();
+		const port = readDirectAddressPort(this.direct.directPortInput.value);
 		if (!host || port === undefined) {
-			writeStatus(this.directAddressStatus, localize('ua.connectionDirectInvalid', "Enter a valid host and port."), 'warning');
+			writeStatus(this.direct.status, localize('ua.connectionDirectInvalid', "Enter a valid host and port."), 'warning');
 			return undefined;
 		}
 		return { host, port };
@@ -1643,20 +721,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		const { host, port } = endpoint;
-		const displayName = this.directNameInput.value.trim() || undefined;
-		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
+		const displayName = this.direct.directNameInput.value.trim() || undefined;
+		const allowPrivateNetwork = this.direct.directAllowPrivateCheckbox.checked;
 		try {
 			const result = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
 			if (!result.ok) {
-				writeStatus(this.directAddressStatus, result.reason, 'error');
+				writeStatus(this.direct.status, result.reason, 'error');
 				return;
 			}
 			this.activeProfileId = result.profileId;
-			writeStatus(this.directAddressStatus, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
+			writeStatus(this.direct.status, localize('ua.connectionDirectAdded', "Direct address profile added."), 'success');
 			this.renderProfiles();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.directAddressStatus, reason, 'error');
+			writeStatus(this.direct.status, reason, 'error');
 		}
 	}
 
@@ -1735,10 +813,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			}
 		}
 
-		const displayName = this.directNameInput.value.trim() || undefined;
-		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
+		const displayName = this.direct.directNameInput.value.trim() || undefined;
+		const allowPrivateNetwork = this.direct.directAllowPrivateCheckbox.checked;
 		writeStatus(
-			this.directAddressStatus,
+			this.direct.status,
 			localize('ua.connectionDirectConnecting', "Connecting…"),
 			getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }),
 		);
@@ -1752,7 +830,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.updateConnectGates();
 		}
 		if (!ensured.ok) {
-			writeStatus(this.directAddressStatus, ensured.reason, 'error');
+			writeStatus(this.direct.status, ensured.reason, 'error');
 			return;
 		}
 
@@ -1793,7 +871,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		for (const profileId of profileIds) {
 			const forgot = await this.hubService.forgetConnectionProfile(profileId);
 			if (!forgot.ok) {
-				writeStatus(this.directAddressStatus, forgot.reason, 'error');
+				writeStatus(this.direct.status, forgot.reason, 'error');
 				return;
 			}
 			if (profileId === this.connectedProfileId) {
@@ -1801,7 +879,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 					await this.connectionService.disconnect();
 				} catch (error) {
 					const reason = error instanceof Error && error.message ? error.message : String(error);
-					writeStatus(this.directAddressStatus, reason, 'error');
+					writeStatus(this.direct.status, reason, 'error');
 					return;
 				}
 				if (this.connectedProfileId === profileId) {
@@ -1885,15 +963,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private getVisibleConnectStatusTarget(): HTMLElement {
 		switch (this.activeZoneId) {
 			case 'direct':
-				return this.directAddressStatus;
+				return this.direct.status;
 			case 'devices':
-				return this.devicesConnectStatus;
+				return this.devices.connectStatus;
 			case 'profiles':
-				return this.profilesConnectStatus;
+				return this.profiles.status;
 			case 'hub':
-				return this.hubConnectStatus;
+				return this.hub.connectStatus;
 			case 'test':
-				return this.testStatus;
+				return this.test.status;
 		}
 	}
 
@@ -2107,7 +1185,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleConnectDevice(device: HubDeviceProjection): Promise<void> {
-		if (!this.canConnectDevice(device)) {
+		if (!this.devices.canConnectDevice(device)) {
 
 			return;
 		}
@@ -2129,27 +1207,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
-	private getSelectedDevice(): HubDeviceProjection | undefined {
-		return this.hubDevicesList.getSelectedElements()[0];
-	}
-
-	private conversationEntryPresent(key: keyof UniverseAgentConversationEntryCapability, method: unknown): boolean {
-		return conversationEntryHookPresent(this.connectionService.getConnectionSnapshot(), key, method);
-	}
-
-	private actionTitle(button: Button): string {
-		return typeof button.label === 'string' ? button.label : '';
-	}
-
-	private presentAction(button: Button, enabled: boolean, disabledReason: string): void {
-		button.enabled = enabled;
-		const enabledTitle = this.actionTitle(button);
-		button.setTitle(enabled ? enabledTitle : disabledReason);
-		button.setAriaLabel(enabled ? enabledTitle : `${enabledTitle}. ${disabledReason}`);
-	}
-
 	private writeHoldReason(): string {
-		if (this.isDeviceWritePairingHold()) {
+		if (this.devices.isDeviceWritePairingHold()) {
 			return localize('ua.connectionActionPairingHold', "Engine not connected");
 		}
 		if (this.connectInFlight || this.directProfileWriteInFlight) {
@@ -2161,624 +1220,31 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isPairingConfirmHostLive()) {
 			return localize('ua.connectionActionPairingConfirm', "Finish pairing before this action.");
 		}
-		if (this.isDeviceWriteListFailed() || this.isPendingWriteListFailed()) {
+		if (this.devices.isDeviceWriteListFailed() || this.devices.isPendingWriteListFailed()) {
 			return localize('ua.connectionActionListFailed', "The list is not ready.");
 		}
 		return localize('ua.connectionActionUnavailable', "This action is unavailable right now.");
 	}
 
-	private updateDeviceActions(): void {
-		const device = this.getSelectedDevice();
-		const hasDevice = !!device && !device.revoked;
-		const pairingHold = this.isDeviceWritePairingHold();
-		const listFailed = this.isDeviceWriteListFailed();
-		const deviceReason = pairingHold || listFailed
-			? this.writeHoldReason()
-			: localize('ua.connectionDeviceSelectFirst', "Select a device first.");
-		const deviceEnabled = hasDevice && !pairingHold && !listFailed;
-		this.presentAction(this.renameDeviceButton, deviceEnabled, deviceReason);
-		this.presentAction(this.revokeDeviceButton, deviceEnabled, deviceReason);
-		const rotateEnabled = !listFailed && canSendConnectionDeviceRotateToken(
-			this.connectionService.isEngineConnected(),
-			this.conversationEntryPresent('rotateToken', this.connectionService.rotateToken),
-			pairingHold,
-		);
-		const rotateReason = !rotateEnabled && !listFailed && !pairingHold
-			? localize('ua.connectionRotateUnavailable', "This engine cannot rotate a device token.")
-			: this.writeHoldReason();
-		this.presentAction(this.rotateTokenButton, rotateEnabled, rotateReason);
+	private refreshHubDirectory(): Promise<void> {
+		return this.devices.refreshHubDirectory();
 	}
 
-	/** Device writes settle on the published identity and link captured when the action starts. */
-	private deviceWriteLinkStill(startedEngineIdentityId: string | undefined, startedLinkId: number | undefined): boolean {
-		if (this._store.isDisposed) {
-			return false;
-		}
-		const current = this.connectionService.getConnectionSnapshot();
-		return readPublishedEngineIdentityId(current) === startedEngineIdentityId
-			&& readPublishedLinkId(current) === startedLinkId;
-	}
-
-	/** A discarded test must not leave "Testing…" hanging; a result already painted stays. */
-	private clearStaleTestStatus(testingCopy: string): void {
-		if (this._store.isDisposed || this.testStatus.textContent !== testingCopy) {
-			return;
-		}
-		writeStatus(this.testStatus, '');
-	}
-
-	private async handleTestConnection(): Promise<void> {
-		if (this._store.isDisposed) {
-			return;
-		}
-		const generation = ++this.testGeneration;
-		this.latestTestRunGeneration = generation;
-		const profileAtStart = this.activeProfileId;
-		const startedSnapshot = this.connectionService.getConnectionSnapshot();
-		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
-		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const testingCopy = localize('ua.connectionTestRunning', "Testing…");
-		/** Profile probes settle on generation + profile only; a current-connection reconnect must not discard them. */
-		const profileProbeCurrent = (): boolean =>
-			!this._store.isDisposed && generation === this.testGeneration && profileAtStart === this.activeProfileId;
-		/** The no-profile probe tests this very connection, so its published identity and link stay in the gate. */
-		const engineProbeCurrent = (): boolean => {
-			if (!profileProbeCurrent()) {
-				return false;
-			}
-			const current = this.connectionService.getConnectionSnapshot();
-			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
-		};
-		/**
-		 * Stale but alive: clear a hanging "Testing…" once, then tell the caller to drop the result.
-		 * A newer Test click owns the "Testing…" on screen, so an older run leaves it alone.
-		 */
-		const discarded = (isCurrent: () => boolean): boolean => {
-			if (isCurrent()) {
-				return false;
-			}
-			if (generation === this.latestTestRunGeneration) {
-				this.clearStaleTestStatus(testingCopy);
-			}
-			return true;
-		};
-		if (!this.activeProfileId) {
-			if (typeof this.connectionService.probeEngine === 'function') {
-				writeStatus(this.testStatus, testingCopy);
-				try {
-					const result = await this.connectionService.probeEngine();
-					if (discarded(engineProbeCurrent)) {
-						return;
-					}
-					writeStatus(
-						this.testStatus,
-						formatConnectionProbeStatus(
-							result,
-							getConnectionTestStatusText(
-								this.connectionService.getConnectionPhase(),
-								this.connectionService.getConnectionSnapshot().pairingPending,
-							),
-						),
-						result.ok
-							? getConnectionPhaseTone(
-								this.connectionService.getConnectionPhase(),
-								this.connectionService.getConnectionSnapshot().pairingPending,
-							)
-							: 'error',
-					);
-				} catch (error) {
-					if (discarded(engineProbeCurrent)) {
-						return;
-					}
-					const reason = error instanceof Error && error.message ? error.message : String(error);
-					writeStatus(this.testStatus, reason, 'error');
-				}
-				return;
-			}
-			writeStatus(this.testStatus, getConnectionTestStatusText());
-			return;
-		}
-		writeStatus(this.testStatus, testingCopy);
-		try {
-			const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
-			if (discarded(profileProbeCurrent)) {
-				return;
-			}
-			if (!result.ok && result.code === 'pairing_required') {
-				writeStatus(
-					this.testStatus,
-					localize(
-						'ua.connectionProbePairingRequired',
-						"This profile is not paired yet. Select Connect to complete pairing.",
-					),
-					'neutral',
-				);
-				return;
-			}
-			writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
-		} catch (error) {
-			if (discarded(profileProbeCurrent)) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.testStatus, reason, 'error');
-		}
-	}
-
-	private async handleRenameSelectedDevice(): Promise<void> {
-		const device = this.getSelectedDevice();
-		if (!device || device.revoked) {
-			return;
-		}
-		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
-			return;
-		}
-		const startedSnapshot = this.connectionService.getConnectionSnapshot();
-		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
-		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const input = await this.dialogService.input({
-			type: 'question',
-			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
-			inputs: [{ type: 'text', value: device.name, placeholder: localize('ua.connectionRenameDevicePlaceholder', "Device name") }],
-			primaryButton: localize('ua.connectionRenameDeviceConfirm', "Rename"),
-		});
-		const name = input.confirmed ? input.values?.[0]?.trim() : undefined;
-		if (!name || name === device.name) {
-			return;
-		}
-		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
-			return;
-		}
-		if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-			return;
-		}
-		try {
-			const result = await this.hubService.renameDevice(device.id, name);
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (!result.ok) {
-				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
-				this.hubDirectoryBanner.style.display = '';
-				return;
-			}
-			await this.refreshDirectoryListed();
-		} catch (error) {
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubDirectoryBanner, reason, 'error');
-			this.hubDirectoryBanner.style.display = '';
-		}
-	}
-
-	private async handleRotateSelectedDeviceToken(): Promise<void> {
-		const hook = this.connectionService.rotateToken;
-		if (this.isDeviceWriteListFailed() || !canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), this.conversationEntryPresent('rotateToken', hook), this.isDeviceWritePairingHold()) || !hook) {
-			return;
-		}
-		const startedSnapshot = this.connectionService.getConnectionSnapshot();
-		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
-		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
-		try {
-			const result = await hook.call(this.connectionService, request);
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (!result.success) {
-				writeStatus(this.hubDirectoryBanner, connectionDeviceRotateTokenFailureMessage(result.message), 'error');
-				this.hubDirectoryBanner.style.display = '';
-				return;
-			}
-			const listed = await this.refreshDirectoryListed();
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (listed === undefined) {
-				return;
-			}
-			this.restoreHubDirectoryWriteSuccessIfListed(listed && this.engineDeviceListsListed(), result.message);
-		} catch (error) {
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubDirectoryBanner, reason, 'error');
-			this.hubDirectoryBanner.style.display = '';
-		}
-	}
-
-	private async handleRevokeSelectedDevice(): Promise<void> {
-		const device = this.getSelectedDevice();
-		if (!device || device.revoked) {
-			return;
-		}
-		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
-			return;
-		}
-		const startedSnapshot = this.connectionService.getConnectionSnapshot();
-		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
-		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const confirm = await this.dialogService.confirm({
-			type: 'warning',
-			message: localize('ua.connectionRevokeDeviceTitle', "Revoke {0}?", device.name),
-			detail: localize(
-				'ua.connectionRevokeDeviceDetail',
-				"This device will no longer connect through the Hub. Local paired profiles will be marked as Revoked.",
-			),
-			primaryButton: localize('ua.connectionRevokeDeviceConfirm', "Revoke"),
-		});
-		if (!confirm.confirmed) {
-			return;
-		}
-		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
-			return;
-		}
-		if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-			return;
-		}
-		const pairingHold = this.isDeviceWritePairingHold();
-		const revokeHook = this.connectionService.revoke;
-		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('revoke', revokeHook), pairingHold) && revokeHook) {
-			const request = connectionDeviceRevokeIds(device.id);
-			try {
-				const result = await revokeHook.call(this.connectionService, request);
-				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-					return;
-				}
-				if (!result.success) {
-					writeStatus(this.hubDirectoryBanner, connectionDeviceRevokeFailureMessage(result.message), 'error');
-					this.hubDirectoryBanner.style.display = '';
-					return;
-				}
-				const listed = await this.refreshDirectoryListed();
-				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-					return;
-				}
-				if (listed === undefined) {
-					return;
-				}
-				this.restoreHubDirectoryWriteSuccessIfListed(listed, result.message);
-				this.renderProfiles();
-			} catch (error) {
-				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-					return;
-				}
-				const reason = error instanceof Error && error.message ? error.message : String(error);
-				writeStatus(this.hubDirectoryBanner, reason, 'error');
-				this.hubDirectoryBanner.style.display = '';
-			}
-			return;
-		}
-		if (pairingHold) {
-			return;
-		}
-		try {
-			const result = await this.hubService.revokeDevice(device.id);
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (!result.ok) {
-				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
-				this.hubDirectoryBanner.style.display = '';
-				return;
-			}
-			const listed = await this.refreshDirectoryListed();
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (listed === undefined) {
-				return;
-			}
-			this.renderProfiles();
-		} catch (error) {
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubDirectoryBanner, reason, 'error');
-			this.hubDirectoryBanner.style.display = '';
-		}
-	}
-
-	private async handleConfirmDeviceCode(): Promise<void> {
-		if (this.isPendingWriteListFailed()) {
-			return;
-		}
-		const startedSnapshot = this.connectionService.getConnectionSnapshot();
-		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
-		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const pairingHold = this.isDeviceWritePairingHold();
-		const approveHook = this.connectionService.pairApprove;
-		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairApprove', approveHook), pairingHold) && approveHook) {
-			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
-			try {
-				const result = await approveHook.call(this.connectionService, request);
-				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-					return;
-				}
-				if (!result.success) {
-					writeStatus(this.hubDeviceCodeStatus, result.message, 'error');
-					return;
-				}
-				this.confirmDeviceCodeInput.value = '';
-				await this.refreshEngineDeviceLists();
-				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-					return;
-				}
-				this.restorePairWriteSuccessIfListed(result.message);
-			} catch (error) {
-				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-					return;
-				}
-				const reason = error instanceof Error && error.message ? error.message : String(error);
-				writeStatus(this.hubDeviceCodeStatus, reason, 'error');
-			}
-			return;
-		}
-		if (pairingHold) {
-			return;
-		}
-		const code = this.confirmDeviceCodeInput.value.trim();
-		if (!code) {
-			writeStatus(this.hubDeviceCodeStatus, localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first."), 'warning');
-			return;
-		}
-		if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-			return;
-		}
-		try {
-			const result = await this.hubService.confirmDeviceCode(code);
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (!result.ok) {
-				writeStatus(this.hubDeviceCodeStatus, result.reason, 'error');
-				return;
-			}
-			this.confirmDeviceCodeInput.value = '';
-			const listed = await this.refreshDirectoryListed();
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (listed === undefined) {
-				return;
-			}
-			this.restoreHubDeviceCodeSuccessIfListed(
-				listed,
-				localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed"),
-			);
-		} catch (error) {
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
-		}
-	}
-
-	private async handleRejectDevicePair(): Promise<void> {
-		const rejectHook = this.connectionService.pairReject;
-		if (this.isPendingWriteListFailed() || !canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairReject', rejectHook), this.isDeviceWritePairingHold()) || !rejectHook) {
-			return;
-		}
-		const startedSnapshot = this.connectionService.getConnectionSnapshot();
-		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
-		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
-		try {
-			const result = await rejectHook.call(this.connectionService, request);
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			if (!result.success) {
-				writeStatus(this.hubDeviceCodeStatus, result.message, 'error');
-				return;
-			}
-			this.confirmDeviceCodeInput.value = '';
-			await this.refreshEngineDeviceLists();
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			this.restorePairWriteSuccessIfListed(result.message);
-		} catch (error) {
-			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
-		}
-	}
-
-	private canSubmitHubAccount(): boolean {
-		const status = this.hubService.getAuthStatus();
-		if (status.kind === 'signedIn') {
-			return false;
-		}
-		if (status.kind === 'mustChangePassword') {
-			return this.hubPasswordInput.value.length > 0 && this.hubNewPasswordInput.value.length > 0;
-		}
-		return this.hubBaseUrlInput.value.trim().length > 0
-			&& this.hubEmailInput.value.trim().length > 0
-			&& this.hubPasswordInput.value.length > 0;
-	}
-
-	private updateHubLoginState(): void {
-		const status = this.hubService.getAuthStatus();
-		const enabled = this.canSubmitHubAccount();
-		const label = status.kind === 'mustChangePassword'
-			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
-			: HUB_LOGIN_BUTTON_LABEL;
-		const hint = status.kind === 'mustChangePassword'
-			? localize('ua.connectionHubChangePasswordHint', "Enter your current password and a new password.")
-			: status.kind === 'signedIn'
-				? localize('ua.connectionHubSignInUnavailable', "Sign in is unavailable while signed in.")
-				: localize('ua.connectionHubSignInHint', "Enter the Hub URL, email, and password to sign in.");
-		this.hubLoginButton.enabled = enabled;
-		this.hubLoginButton.secondary = !enabled;
-		this.hubLoginButton.element.setAttribute('aria-label', enabled ? label : `${label}. ${hint}`);
-		if (enabled) {
-			this.hubLoginButton.element.removeAttribute('title');
-		} else {
-			this.hubLoginButton.element.setAttribute('title', hint);
-		}
+	private refreshEngineDeviceLists(): Promise<boolean> {
+		return this.devices.refreshEngineDeviceLists();
 	}
 
 	private renderHubAccount(): void {
-		const status = this.hubService.getAuthStatus();
-		writeStatus(this.hubAuthBadge, getHubAuthStatusLabel(status), getHubAuthStatusTone(status));
-		const mustChangePassword = status.kind === 'mustChangePassword';
-		const signedIn = status.kind === 'signedIn';
-		this.hubAccountSection.classList.toggle('must-change-password', mustChangePassword);
-		this.hubEmailInput.setEnabled(!(signedIn || mustChangePassword));
-		this.hubPasswordInput.setEnabled(!signedIn);
-		this.hubPasswordLabel.textContent = mustChangePassword
-			? HUB_CURRENT_PASSWORD_FIELD_LABEL
-			: HUB_PASSWORD_FIELD_LABEL;
-		this.hubNewPasswordInput.setEnabled(mustChangePassword);
-		this.hubLoginButton.label = mustChangePassword
-			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
-			: HUB_LOGIN_BUTTON_LABEL;
-		this.updateHubLoginState();
-		const signedInActions = hubAccountSignedInActions(status.kind);
-		this.hubLogoutButton.element.style.display = signedInActions.showSignOut ? '' : 'none';
-		this.hubRefreshButton.element.style.display = signedInActions.showRefreshDevices ? '' : 'none';
-		const pairingHold = this.isDeviceWritePairingHold();
-		const pendingListFailed = this.isPendingWriteListFailed();
-		const deviceCodeEnabled = !pairingHold && !pendingListFailed && (signedIn
-			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairApprove', this.connectionService.pairApprove), pairingHold));
-		this.confirmDeviceCodeInput.setEnabled(deviceCodeEnabled);
-		const deviceCodeReason = !deviceCodeEnabled && !pairingHold && !pendingListFailed
-			? localize('ua.connectionDeviceCodeNeedsSignIn', "Sign in before confirming a device code.")
-			: this.writeHoldReason();
-		this.presentAction(this.confirmDeviceCodeButton, deviceCodeEnabled, deviceCodeReason);
-		this.confirmDeviceCodeInput.inputElement.title = deviceCodeEnabled ? '' : deviceCodeReason;
-		const rejectEnabled = !pendingListFailed && canSendConnectionDevicePairRequest(
-			this.connectionService.isEngineConnected(),
-			this.conversationEntryPresent('pairReject', this.connectionService.pairReject),
-			pairingHold,
-		);
-		const rejectReason = pairingHold || pendingListFailed
-			? this.writeHoldReason()
-			: localize('ua.connectionDevicePairCannotReject', "This device request cannot be rejected right now.");
-		this.presentAction(this.rejectDevicePairButton, rejectEnabled, rejectReason);
-	}
-
-	private renderHubDirectory(): void {
-		const directory = this.hubService.getDirectoryStatus();
-		const banner = this.engineDevicesListFailed
-			? connectionDeviceListFailureMessage(this.engineDevicesListFailed)
-			: this.hubDirectoryListFailed
-				? this.hubDirectoryListFailed
-				: getHubDirectoryBannerLabel(directory);
-		if (this.engineDevicesListFailed || this.hubDirectoryListFailed) {
-			writeStatus(this.hubDirectoryBanner, banner ?? '', 'error');
-			this.hubDirectoryBanner.style.display = banner ? '' : 'none';
-		} else if (banner) {
-			writeStatus(this.hubDirectoryBanner, banner, 'error');
-			this.hubDirectoryBanner.style.display = '';
-		} else {
-			writeStatus(this.hubDirectoryBanner, '', 'neutral');
-			this.hubDirectoryBanner.style.display = 'none';
-		}
-
-		if (this.enginePairedDevices !== undefined) {
-			this.hubDevices = this.enginePairedDevices.map(toConnectionPairedDevice);
-		} else if (isConversationPairingHold(this.connectionService)) {
-			this.hubDevices = [];
-		} else if (directory.kind === 'ok') {
-			this.hubDevices = [...directory.devices];
-		}
-		// else: keep leftover (may be [] on first-pull fail)
-		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
-		this.updateDeviceActions();
-		this.syncHubDevicesSectionVisibility();
-		this.updateDeviceActions();
-		this.layoutLists();
+		this.hub.render();
+		this.devices.renderPairActions();
 	}
 
 	private renderProfiles(): void {
-		this.syncingProfiles = true;
-		try {
-			const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
-			this.entries = profiles.map(profile => ({
-				id: profile.profileId,
-				label: profile.displayName,
-				stateLabel: this.getProfileStateLabel(profile),
-			}));
-			this.setEntries(this.entries);
-			if (profiles.length > 0 && !this.activeProfileId) {
-				this.activeProfileId = profiles[0].profileId;
-			}
-			const activeIndex = this.activeProfileId
-			? this.entries.findIndex(entry => entry.id === this.activeProfileId)
-			: -1;
-			if (activeIndex >= 0) {
-				this.list.setFocus([activeIndex]);
-				this.list.setSelection([activeIndex]);
-			} else {
-				this.list.setFocus([]);
-				this.list.setSelection([]);
-			}
-		} finally {
-			this.syncingProfiles = false;
-		}
-	}
-
-	private getProfileStateLabel(profile: ConnectionProfileProjection): string {
-		const snapshot = this.connectionService.getConnectionSnapshot();
-		const phase = this.connectionService.getConnectionPhase();
-		if (
-			profile.profileId === this.connectedProfileId
-			&& isUniverseAgentPhaseConnected(phase)
-			&& !snapshot.pairingPending
-			&& (profile.state === 'pairingPending' || (profile.state === 'active' && !profile.hasTrust))
-		) {
-			return localize('ua.connectionProfilePaired', "Paired");
-		}
-		switch (profile.state) {
-			case 'pairingPending':
-				return localize('ua.connectionProfilePairingPending', "Pairing pending");
-			case 'revoked':
-				return localize('ua.connectionProfileRevoked', "Revoked");
-			case 'disabled':
-				return localize('ua.connectionProfileDisabled', "Disabled");
-			default:
-				return profile.hasTrust
-					? localize('ua.connectionProfilePaired', "Paired")
-					: localize('ua.connectionProfileUnpaired', "Unpaired");
-		}
+		this.profiles.render();
 	}
 
 	private renderConnectionPhase(): void {
-		this.connectionPhase = this.connectionService.getConnectionPhase();
-		const pairingPending = this.connectionService.getConnectionSnapshot().pairingPending;
-		writeStatus(
-			this.connectionPhaseLabel,
-			getConnectionPhasePaneLabel(this.connectionPhase, pairingPending),
-			getConnectionPhaseTone(this.connectionPhase, pairingPending),
-		);
+		this.profiles.renderConnectionPhase();
 		this.updateConnectGates();
-	}
-
-	private setEntries(entries: IConnectionProfileEntry[]): void {
-		this.entries = entries;
-		this.list.splice(0, this.list.length, entries);
-		this.updateEmptyState();
-		this.layoutLists();
-	}
-
-	private updateEmptyState(): void {
-		const isEmpty = this.entries.length === 0;
-		this.emptyWelcome.style.display = isEmpty ? '' : 'none';
-		this.listContainer.style.display = isEmpty ? 'none' : '';
-		this.syncProfileActionsVisibility();
-	}
-
-	private syncProfileActionsVisibility(): void {
-		const drawDesktop = shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext());
-		this.profileActionsRow.style.display = drawDesktop && this.entries.length > 0 ? '' : 'none';
 	}
 }

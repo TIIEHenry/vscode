@@ -3,7 +3,7 @@ title: "Connection Hub 控制面（本仓消费口径）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-11-06
 summary: "Hub HTTPS JSON 端点、AuthSession v1、refresh/身份加密落盘（§3.5）、运行中 withHubAccessRetry（@ 23fd9d70）、设备目录 DTO、relay ticket 与 Hub 失败码闭集；宿主 = electron-main（ADR-003）"
 ---
 
@@ -68,7 +68,7 @@ refresh + csrf 经 `IEncryptionMainService`（`safeStorage`）加密后写 `IApp
 |------|------|
 | refresh | **不落盘**；当前进程内 access 仍可用至过期 |
 | 客户端身份 | `getOrCreateIdentity()` 返回 `encryption_unavailable`，**不 mint、不 persist** |
-| pane | `IUniverseAgentHubService.isEncryptionAvailable()` → 诚实提示「Secure storage unavailable — sign in again after restart.」（`connectionPreferencesPane`） |
+| pane | `IUniverseAgentHubService.isEncryptionAvailable()` → 诚实提示「Secure storage unavailable — sign in again after restart.」（`connectionPreferencesHub`） |
 | 配对 / DeviceAuth | 无可用身份 ⇒ 连接路径 fail-closed（对齐 ADR-261 §5） |
 
 **`refreshIfNeeded` / `withHubAccessRetry`：** store 已实现单飞 refresh（读持久化 secret → `POST /auth/refresh` → 轮换 refresh 写回）。**启动恢复已落 @ `dba63c70`（合入 `17968447`）：** `UniverseAgentHubService` 构造时经 `restorePersistedHubSessionIfNeeded` / `whenStartupRestoreComplete` 扫描 `listPersistedHubBaseUrls()`；有加密 refresh 且 access 过期则调用 `refreshIfNeeded`——成功 → `signedIn` 并 `refreshDirectory`；refresh 401/403 → `authExpired`；无持久化 → `signedOut`（单测见 `universeAgentHubService.test.ts`）。**运行中 refresh 已落 @ `23fd9d70`（合入 `a00fafc7`）：** `withHubAccessRetry`（`hubAuthAccess.ts`）在 access TTL 过期或目录 / ticket / 控制面 mutation 遇 401/403 时调用 `refreshIfNeeded({ force: true })` 后重试一次；成功则继续原请求；refresh 401/403 或无 token → `authExpired` / `hub_auth_expired`（单测见 `connectionResolver.test.ts`、`universeAgentHubService.test.ts`）。

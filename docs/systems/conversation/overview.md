@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-30
+updated: 2026-11-06
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -55,7 +55,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 | `IConversationRosterService` | `conversationStubService.ts`（契约）· `conversationEngineRosterService.ts`（生产） | 同 token；无引擎 stub 帧源，已连接 `IUniverseAgentSessionView` lease（见 [stub-and-fixtures](stub-and-fixtures.md)） |
 | `ConversationSessionsView` | `conversationSessionsView.ts` | Navigator「Sessions」容器（`workbench.view.sessions`）内的 roster |
 | `UniverseAgentDeepLinkHandler` | `universeAgentDeepLink.contribution.ts` | `universe-agent://` URL handler → Settings 页（[page-access-schemes](../../../dev/plans/page-access-schemes.md)） |
-| `ua.connection` / `ua.engine` panes | `connectionPreferencesPane.ts` / `enginePreferencesPane.ts` | vscode Preferences 内的 UA 两页；无引擎诚实空 + Test（[settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)） |
+| `ua.connection` / `ua.engine` panes | `connectionPreferencesPane.ts`（导航与布局；五个分区在 `connectionPreferences{Hub,Devices,Direct,Profiles,Test}.ts`）/ `enginePreferencesPane.ts` | vscode Preferences 内的 UA 两页；无引擎诚实空 + Test（[settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)） |
 
 ## 3. 三套「会话」不要混
 
