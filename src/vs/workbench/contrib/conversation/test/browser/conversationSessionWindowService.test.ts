@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { NullLogService } from '../../../../platform/log/common/log.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { IStorageService } from '../../../../platform/storage/common/storage.js';
-import { IConversationPartService, IConversationPartWindowSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { IConversationEditorPart, IConversationLeafHostState, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
-import { ConversationEditorPaneId, conversationSessionLeafPrimaryClass, conversationSessionLeafSecondaryClass } from '../common/conversationSessionWindow.js';
-import { ConversationSessionWindowService } from './conversationSessionWindowService.js';
-import { ConversationStubService } from './conversationStubService.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { IStorageService } from '../../../../../platform/storage/common/storage.js';
+import { IConversationPartService, IConversationPartWindowSlots } from '../../../../browser/parts/conversation/conversationPart.js';
+import { IConversationEditorPart, IConversationLeafHostState, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { ConversationEditorPaneId, conversationSessionLeafPrimaryClass, conversationSessionLeafSecondaryClass } from '../../common/conversationSessionWindow.js';
+import { ConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { ConversationStubService } from '../../browser/conversationStubService.js';
 
 class QuietRosterService extends ConversationStubService {
 	seedSessionQuietly(): string {
