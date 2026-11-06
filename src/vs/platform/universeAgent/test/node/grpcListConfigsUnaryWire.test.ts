@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { mapListConfigsResponse } from '../../node/grpc/grpcClientMappersCatalog.js';
 import {
@@ -318,5 +316,3 @@ function nestedHealthBytes(): Uint8Array {
 		encodeStringField(8, 'unused-health'),
 	]);
 }
-
-

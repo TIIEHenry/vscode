@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentInstallSessionDemoFakeResult } from '../../common/universeAgentTypes.js';
 import { mapFireTriggerWebhookStatus } from '../../node/grpc/grpcClientMappers.js';

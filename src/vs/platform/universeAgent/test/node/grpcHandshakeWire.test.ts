@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import * as path from '../../../../base/common/path.js';
 import {
 	CONNECT_WIRE_PROTOCOL,
 	decodeAuthNonceResponse,
