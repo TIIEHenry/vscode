@@ -77,6 +77,7 @@ export interface IConversationLensSessionBarHost {
 	getBoundSessionId(): string;
 	/** Bound field when this lens has a sessionKey; leaf bars return their key. Not {@link getBoundSessionId}. */
 	listSessionId(): string;
+	/** Select / delete target. Hosts without it use {@link listSessionId}. Empty selects and deletes nothing. */
 	getSessionBarSelectId?(): string;
 	switchLeafSession?(sessionId: string): Promise<void>;
 	setLensId(lensId: ConversationLensId): void;
@@ -449,10 +450,14 @@ export class SessionSelectBox extends SelectBox {
 	}
 }
 
+function sessionBarSelectId(host: IConversationLensSessionBarHost): string {
+	return host.getSessionBarSelectId ? host.getSessionBarSelectId() : host.listSessionId();
+}
+
 export function createSessionSelectBox(host: IConversationLensSessionBarHost): SelectBox {
 
 		const sessions = host.stubService.getSessions();
-		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+		const selectedId = sessionBarSelectId(host);
 		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
 		return new SessionSelectBox(
 			sessionSwitcherRows(sessions).map(row => ({ text: row.label })),
@@ -471,7 +476,7 @@ export function refreshSessionSelectOptions(host: IConversationLensSessionBarHos
 			return;
 		}
 		const sessions = host.stubService.getSessions();
-		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+		const selectedId = sessionBarSelectId(host);
 		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
 		host.suppressSessionSelect = true;
 		host.sessionSelectBox.setOptions(sessionSwitcherRows(sessions).map(row => ({ text: row.label })), selectedIndex);
@@ -779,7 +784,10 @@ export async function deleteActiveSession(host: IConversationLensSessionBarHost)
 		if (host.isDisposed || rejectDeleteBeforeConfirm(host)) {
 			return;
 		}
-		const sessionId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+		const sessionId = sessionBarSelectId(host);
+		if (!sessionId) {
+			return;
+		}
 		const title = displayedSessionTitle(host, sessionId);
 		const boundSessionId = host.getBoundSessionId();
 		const owner = captureConversationDeleteOwner(host.stubService, host.uaConnection);

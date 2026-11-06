@@ -462,6 +462,11 @@ export class ConversationLens extends Disposable {
 		return this.stubService.getActiveSessionId();
 	}
 
+	/** Session bar select / delete target. Bound lenses return the field without reading the roster. */
+	getSessionBarSelectId(): string {
+		return this.listSessionId();
+	}
+
 	private closeBoundInnerOverlays(): void {
 		this.inboxOverlay.closeListPanel();
 		this.engineHistoryList?.close({ restoreFocus: false });

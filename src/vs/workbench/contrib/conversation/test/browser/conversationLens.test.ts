@@ -2208,6 +2208,31 @@ suite('ConversationLens', () => {
 		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
 	});
 
+	test('bound lens session ids do not read the roster active session', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionB);
+		const bound = mountLens({ stubService, sessionKey: sessionA });
+		const unbound = mountLens({ stubService });
+		const readActive = stubService.getActiveSessionId.bind(stubService);
+		let activeReads = 0;
+		stubService.getActiveSessionId = () => {
+			activeReads++;
+			return readActive();
+		};
+
+		assert.strictEqual(bound.lens.getBoundSessionId(), sessionA);
+		assert.strictEqual(bound.lens.listSessionId(), sessionA);
+		assert.strictEqual(bound.lens.getSessionBarSelectId(), sessionA);
+		assert.strictEqual(activeReads, 0);
+
+		assert.strictEqual(unbound.lens.getBoundSessionId(), sessionB);
+		assert.strictEqual(unbound.lens.listSessionId(), sessionB);
+		assert.strictEqual(unbound.lens.getSessionBarSelectId(), sessionB);
+		assert.strictEqual(activeReads, 3);
+	});
+
 	test('connection change rebinds the bound leaf and not the roster active session', async () => {
 		const stubService = store.add(new ConversationStubService());
 		const sessionA = stubService.getActiveSessionId();
