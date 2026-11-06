@@ -158,6 +158,11 @@ suite('ConnectionPreferencesPane', () => {
 		return ((pane as unknown as { profiles: unknown }).profiles as { list: WorkbenchList<IConnectionProfileEntry> }).list;
 	}
 
+	/** Settled connect id now lives on the pane's profile flow. */
+	function settledFlow(pane: ConnectionPreferencesPane): { settledProfileId?: string } {
+		return (pane as unknown as { flow: { settledProfileId?: string } }).flow;
+	}
+
 	function getPaneEntries(pane: ConnectionPreferencesPane): IConnectionProfileEntry[] {
 		return ((pane as unknown as { profiles: unknown }).profiles as { entries: IConnectionProfileEntry[] }).entries;
 	}
@@ -997,7 +1002,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'office-old';
+		settledFlow(pane).settledProfileId = 'office-old';
 		const hostInput = ((pane as unknown as { direct: unknown }).direct as { directHostInput: { value: string } }).directHostInput;
 		const portInput = ((pane as unknown as { direct: unknown }).direct as { directPortInput: { value: string } }).directPortInput;
 		const nameInput = ((pane as unknown as { direct: unknown }).direct as { directNameInput: { value: string } }).directNameInput;
@@ -1008,7 +1013,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.deepStrictEqual(forgotIds, []);
 		assert.strictEqual(disconnects, 0);
 		assert.strictEqual(addCalls, 1);
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'office-old');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'office-old');
 		container.remove();
 	});
 
@@ -1029,7 +1034,7 @@ suite('ConnectionPreferencesPane', () => {
 				},
 				addDirectAddressProfile: async () => {
 					calls.push('add');
-					assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+					assert.strictEqual(settledFlow(pane).settledProfileId, 'direct-old');
 					return { ok: true, profileId: 'direct-new' };
 				},
 			}, {
@@ -1046,7 +1051,7 @@ suite('ConnectionPreferencesPane', () => {
 			});
 			pane.layout(new Dimension(800, 800));
 			pane.selectZone('direct');
-			(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+			settledFlow(pane).settledProfileId = 'direct-old';
 			((pane as unknown as { direct: unknown }).direct as { directHostInput: { value: string } }).directHostInput.value = '127.0.0.1';
 			((pane as unknown as { direct: unknown }).direct as { directPortInput: { value: string } }).directPortInput.value = '50061';
 			return pane;
@@ -1057,7 +1062,7 @@ suite('ConnectionPreferencesPane', () => {
 		const pane = mountDirect(true, calls);
 		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 		assert.deepStrictEqual(calls, ['add', 'connect', 'forget']);
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-new');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'direct-new');
 		pane.getDomNode().remove();
 
 		// A failed dial keeps the old profile and the current connection.
@@ -1065,7 +1070,7 @@ suite('ConnectionPreferencesPane', () => {
 		const failedPane = mountDirect(false, failedCalls);
 		await (failedPane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 		assert.deepStrictEqual(failedCalls, ['add', 'connect']);
-		assert.strictEqual((failedPane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+		assert.strictEqual(settledFlow(failedPane).settledProfileId, 'direct-old');
 		failedPane.getDomNode().remove();
 	});
 
@@ -1093,7 +1098,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		settledFlow(pane).settledProfileId = 'direct-old';
 		((pane as unknown as { direct: unknown }).direct as { directHostInput: { value: string } }).directHostInput.value = '127.0.0.1';
 		((pane as unknown as { direct: unknown }).direct as { directPortInput: { value: string } }).directPortInput.value = '50061';
 		const actions = pane as unknown as { handleConnectDirectAddress(): Promise<void> };
@@ -1150,6 +1155,48 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('profile flow keeps the previous settled id until a connect settles', async () => {
+		type ConnectResult = Awaited<ReturnType<IUniverseAgentConnection['connectProfile']>>;
+		const dials: DeferredPromise<ConnectResult>[] = [];
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'hub-new',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: () => {
+				const dial = new DeferredPromise<ConnectResult>();
+				dials.push(dial);
+				return dial.p;
+			},
+		});
+		const flow = (pane as unknown as { flow: { getSettledProfileId(): string | undefined; readonly onDidChangeSettledProfile: Event<string | undefined> } }).flow;
+		const connect = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing.bind(pane);
+		settledFlow(pane).settledProfileId = 'hub-old';
+		const settledEvents: (string | undefined)[] = [];
+		store.add(flow.onDidChangeSettledProfile(profileId => settledEvents.push(profileId)));
+
+		const failed = connect('hub-new');
+		await flushPaneWrites();
+		assert.strictEqual(flow.getSettledProfileId(), 'hub-old');
+		dials[0].complete({ ok: false, code: 'transport_failed', reason: 'dial failed' });
+		await failed;
+		assert.strictEqual(flow.getSettledProfileId(), 'hub-old');
+		assert.deepStrictEqual(settledEvents, []);
+
+		const accepted = connect('hub-new');
+		await flushPaneWrites();
+		assert.strictEqual(flow.getSettledProfileId(), 'hub-old');
+		dials[1].complete({ ok: true, path: 'hubRelay', pairingPending: false });
+		await accepted;
+		assert.strictEqual(flow.getSettledProfileId(), 'hub-new');
+		assert.deepStrictEqual(settledEvents, ['hub-new']);
+		pane.getDomNode().remove();
+	});
+
 	test('Direct Address cancel does not call forgetConnectionProfile or disconnect', async () => {
 		let forgets = 0;
 		let disconnects = 0;
@@ -1188,7 +1235,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		settledFlow(pane).settledProfileId = 'direct-old';
 		const hostInput = ((pane as unknown as { direct: unknown }).direct as { directHostInput: { value: string } }).directHostInput;
 		const portInput = ((pane as unknown as { direct: unknown }).direct as { directPortInput: { value: string } }).directPortInput;
 		hostInput.value = '127.0.0.1';
@@ -1235,7 +1282,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		settledFlow(pane).settledProfileId = 'direct-old';
 		const hostInput = ((pane as unknown as { direct: unknown }).direct as { directHostInput: { value: string } }).directHostInput;
 		const portInput = ((pane as unknown as { direct: unknown }).direct as { directPortInput: { value: string } }).directPortInput;
 		hostInput.value = '127.0.0.1';
@@ -1309,7 +1356,7 @@ suite('ConnectionPreferencesPane', () => {
 			});
 			pane.layout(new Dimension(800, 800));
 			pane.selectZone('direct');
-			(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+			settledFlow(pane).settledProfileId = 'direct-old';
 			((pane as unknown as { direct: unknown }).direct as { directHostInput: { value: string } }).directHostInput.value = '127.0.0.1';
 			((pane as unknown as { direct: unknown }).direct as { directPortInput: { value: string } }).directPortInput.value = '50061';
 			return pane;
@@ -1323,7 +1370,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.deepStrictEqual(addFailed.forgotIds, []);
 		assert.strictEqual(addFailed.connects, 0);
 		assert.strictEqual(addFailed.disconnects, 0);
-		assert.strictEqual((addFailedPane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+		assert.strictEqual(settledFlow(addFailedPane).settledProfileId, 'direct-old');
 		const addStatus = addFailedPane.getDomNode().querySelector('.connection-direct-address-status') as HTMLElement;
 		assert.strictEqual(addStatus.textContent, 'add blocked');
 		assert.ok(addStatus.classList.contains('is-error'));
@@ -1471,7 +1518,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-profile-1');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'direct-profile-1');
 		container.remove();
 	});
 
@@ -1493,11 +1540,11 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'already-live';
+		settledFlow(pane).settledProfileId = 'already-live';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'already-live');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'already-live');
 		assert.ok(hubStatus.textContent?.includes('still needs pairing confirmation'));
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.ok(!hubStatus.classList.contains('is-success'));
@@ -2648,8 +2695,8 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = 'profile-1';
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'already-live';
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+		settledFlow(pane).settledProfileId = 'already-live';
 
 		const flow = (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
 		await Promise.resolve();
@@ -2668,7 +2715,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!profilesStatus.classList.contains('is-success'));
 		assert.strictEqual(testStatus.textContent, '');
 		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'already-live');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'already-live');
 		container.remove();
 	});
 
@@ -2787,13 +2834,13 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		const books = pane as unknown as { activeProfileId?: string };
 		books.activeProfileId = 'profile-b';
-		books.connectedProfileId = 'profile-a';
+		settledFlow(pane).settledProfileId = 'profile-a';
 		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
 		assert.deepStrictEqual(forgotIds, ['profile-b']);
 		assert.strictEqual(disconnects, 0);
-		assert.strictEqual(books.connectedProfileId, 'profile-a');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'profile-a');
 		container.remove();
 	});
 
@@ -2822,12 +2869,12 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		const books = pane as unknown as { activeProfileId?: string };
 		books.activeProfileId = 'profile-a';
-		books.connectedProfileId = 'profile-a';
+		settledFlow(pane).settledProfileId = 'profile-a';
 		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
 		assert.deepStrictEqual(calls, ['forget', 'disconnect']);
-		assert.strictEqual(books.connectedProfileId, undefined);
+		assert.strictEqual(settledFlow(pane).settledProfileId, undefined);
 		assert.strictEqual(books.activeProfileId, undefined);
 		container.remove();
 	});
@@ -2844,12 +2891,12 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		const books = pane as unknown as { activeProfileId?: string };
 		books.activeProfileId = 'profile-a';
-		books.connectedProfileId = 'profile-a';
+		settledFlow(pane).settledProfileId = 'profile-a';
 		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
 		assert.strictEqual(disconnects, 0);
-		assert.strictEqual(books.connectedProfileId, 'profile-a');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'profile-a');
 		assert.strictEqual(books.activeProfileId, 'profile-a');
 		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
 		assert.strictEqual(profilesStatus.textContent, 'forget blocked');
@@ -2937,8 +2984,8 @@ suite('ConnectionPreferencesPane', () => {
 			},
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = 'hub-profile-1';
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'keep-live';
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		settledFlow(pane).settledProfileId = 'keep-live';
 		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		const box = await waitForInPanePairingDialog(container);
 		assert.ok(box.textContent?.includes('ABCD-EFGH'));
@@ -2948,7 +2995,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(confirmCalls, 0);
 		assert.strictEqual(cancelCalls, 1);
 		assertNoInPanePairingDialog(container);
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'keep-live');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'keep-live');
 		container.remove();
 	});
 
@@ -3155,11 +3202,11 @@ suite('ConnectionPreferencesPane', () => {
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
-		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = 'hub-profile-1';
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'keep-live';
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		settledFlow(pane).settledProfileId = 'keep-live';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'keep-live');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'keep-live');
 		assert.strictEqual(hubStatus.textContent, missingFingerprintMessage);
 		assert.ok(hubStatus.classList.contains('is-error'));
 		assert.ok(!hubStatus.classList.contains('is-warning'));
@@ -3230,7 +3277,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'hub-profile-1');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'hub-profile-1');
 		container.remove();
 	});
 
@@ -3264,7 +3311,7 @@ suite('ConnectionPreferencesPane', () => {
 			},
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'keep-live';
+		settledFlow(pane).settledProfileId = 'keep-live';
 		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		const box = await waitForInPanePairingDialog(container);
 		assert.ok(box.textContent?.includes(leafFp));
@@ -3272,7 +3319,7 @@ suite('ConnectionPreferencesPane', () => {
 		await flow;
 		assert.strictEqual(confirmCalls, 0);
 		assert.strictEqual(cancelCalls, 1);
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'keep-live');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'keep-live');
 		container.remove();
 	});
 
@@ -3296,8 +3343,8 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = '127.0.0.1:50061';
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = '127.0.0.1:50061';
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		settledFlow(pane).settledProfileId = '127.0.0.1:50061';
 		const label = ((pane as unknown as { profiles: unknown }).profiles as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
 			profileId: '127.0.0.1:50061',
 			displayName: '127.0.0.1:50061',
@@ -3329,8 +3376,8 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = '127.0.0.1:50061';
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = '127.0.0.1:50061';
+		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		settledFlow(pane).settledProfileId = '127.0.0.1:50061';
 		const label = ((pane as unknown as { profiles: unknown }).profiles as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
 			profileId: '127.0.0.1:50061',
 			displayName: '127.0.0.1:50061',
@@ -3354,7 +3401,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 		});
 		const container = pane.getDomNode();
-		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		const books = pane as unknown as { activeProfileId?: string };
 		const labelFor = (profileId: string) => ((pane as unknown as { profiles: unknown }).profiles as {
 			getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string;
 		}).getProfileStateLabel({
@@ -3365,11 +3412,11 @@ suite('ConnectionPreferencesPane', () => {
 			targetKind: 'directAddress',
 		});
 		books.activeProfileId = 'selected-pending';
-		books.connectedProfileId = 'connected-other';
+		settledFlow(pane).settledProfileId = 'connected-other';
 		assert.strictEqual(labelFor('selected-pending'), 'Pairing pending');
-		books.connectedProfileId = 'selected-pending';
+		settledFlow(pane).settledProfileId = 'selected-pending';
 		assert.strictEqual(labelFor('selected-pending'), 'Paired');
-		books.connectedProfileId = undefined;
+		settledFlow(pane).settledProfileId = undefined;
 		assert.strictEqual(labelFor('selected-pending'), 'Pairing pending');
 		container.remove();
 	});
@@ -4320,11 +4367,11 @@ suite('ConnectionPreferencesPane', () => {
 			},
 		});
 		const container = pane.getDomNode();
-		const books = pane as unknown as { connectedProfileId?: string; handleDisconnect(): Promise<void> };
-		books.connectedProfileId = 'profile-a';
+		const books = pane as unknown as { handleDisconnect(): Promise<void> };
+		settledFlow(pane).settledProfileId = 'profile-a';
 		await books.handleDisconnect();
 		assert.strictEqual(disconnects, 1);
-		assert.strictEqual(books.connectedProfileId, undefined);
+		assert.strictEqual(settledFlow(pane).settledProfileId, undefined);
 		container.remove();
 	});
 
@@ -4337,7 +4384,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'profile-a';
+		settledFlow(pane).settledProfileId = 'profile-a';
 
 		const disconnect = [...container.querySelectorAll('.connection-profile-actions .monaco-button')]
 			.find(button => button.textContent === 'Disconnect') as HTMLButtonElement | undefined;
@@ -4349,7 +4396,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(profilesStatus);
 		assert.strictEqual(profilesStatus.textContent, 'boom');
 		assert.ok(profilesStatus.classList.contains('is-error'));
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'profile-a');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'profile-a');
 		container.remove();
 	});
 
@@ -4374,9 +4421,9 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		const books = pane as unknown as { activeProfileId?: string };
 		books.activeProfileId = 'profile-1';
-		books.connectedProfileId = 'profile-1';
+		settledFlow(pane).settledProfileId = 'profile-1';
 
 		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
 
@@ -4384,7 +4431,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(profilesStatus.textContent, 'boom');
 		assert.ok(profilesStatus.classList.contains('is-error'));
 		assert.strictEqual(disconnects, 0);
-		assert.strictEqual(books.connectedProfileId, 'profile-1');
+		assert.strictEqual(settledFlow(pane).settledProfileId, 'profile-1');
 		container.remove();
 	});
 
