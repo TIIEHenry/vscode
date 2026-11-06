@@ -8,7 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
-import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationSessionChatService } from '../../../conversation/common/conversationSessionChat.js';
 import { IConversationSessionWindowService } from '../../../conversation/browser/conversationSessionWindowService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { navigatorRevealSessionNotOpenCopy, revealNavigatorAgentInConversation } from '../../browser/navigatorReveal.js';

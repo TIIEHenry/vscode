@@ -20,7 +20,7 @@ import type { LiveAgentTreeNodeView, SessionViewSnapshot } from '../../../../../
 import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
-import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationSessionChatService } from '../../../conversation/common/conversationSessionChat.js';
 import { IConversationSessionWindowService } from '../../../conversation/browser/conversationSessionWindowService.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
