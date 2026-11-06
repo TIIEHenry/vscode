@@ -14,7 +14,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IConversationLeafHostState, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import {
 	CONVERSATION_SESSION_WINDOW_MAX_LEAVES,
 	ConversationEditorPaneId,
@@ -76,7 +76,13 @@ export interface IRevealSessionWindowResult {
 
 interface IConversationSessionLeaf extends IConversationSessionLeafSlots {
 	hidden: boolean;
+	/** Mirrors the primary / secondary class on `container`; reported to the editor part. */
+	primary: boolean;
 	readonly store: DisposableStore;
+}
+
+function leafHostState(leaf: IConversationSessionLeaf): IConversationLeafHostState {
+	return { visible: !leaf.hidden, primary: leaf.primary };
 }
 
 interface IRevealInFlight {
@@ -604,6 +610,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			sessionWindow,
 			editorPartHost,
 			hidden: false,
+			primary: options.primary,
 			store,
 		};
 		this.leaves.set(sessionKey, leaf);
@@ -616,13 +623,23 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.setFocusedLeaf(sessionKey);
 		}, true));
 
-		this.editorGroupsService.createConversationEditorPart(editorPartHost, sessionKey);
-		const part = this.editorGroupsService.conversationParts.find(candidate => candidate.sessionKey === sessionKey);
-		if (part) {
-			await part.whenReady;
-		}
+		const part = this.editorGroupsService.createConversationEditorPart(editorPartHost, sessionKey);
+		// Report before awaiting readiness: the part defaults to visible / not
+		// primary, and CONVERSATION_GROUP routing reads this state, not the classes.
+		part.setLeafHostState(leafHostState(leaf));
+		await part.whenReady;
 
 		return leaf;
+	}
+
+	/**
+	 * Hands the leaf's visibility and role to its editor part. Called in the
+	 * same synchronous step as every class change on the leaf container so the
+	 * routing state and the styling never disagree.
+	 */
+	private reportLeafHostState(leaf: IConversationSessionLeaf): void {
+		const part = this.editorGroupsService.conversationParts.find(candidate => candidate.sessionKey === leaf.sessionKey);
+		part?.setLeafHostState(leafHostState(leaf));
 	}
 
 	private promoteLeaf(sessionKey: string): void {
@@ -630,8 +647,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		if (!leaf) {
 			return;
 		}
+		leaf.primary = true;
 		leaf.container.classList.remove(conversationSessionLeafSecondaryClass);
 		leaf.container.classList.add(conversationSessionLeafPrimaryClass);
+		this.reportLeafHostState(leaf);
 	}
 
 	private demoteLeaf(sessionKey: string): void {
@@ -639,8 +658,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		if (!leaf) {
 			return;
 		}
+		leaf.primary = false;
 		leaf.container.classList.remove(conversationSessionLeafPrimaryClass);
 		leaf.container.classList.add(conversationSessionLeafSecondaryClass);
+		this.reportLeafHostState(leaf);
 	}
 
 	private setLeafHidden(leaf: IConversationSessionLeaf, hidden: boolean): void {
@@ -651,6 +672,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		} else {
 			leaf.container.removeAttribute('aria-hidden');
 		}
+		this.reportLeafHostState(leaf);
 	}
 
 	private hideSessionWindowWithoutFire(sessionKey: string): void {

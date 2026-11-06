@@ -530,6 +530,12 @@ export function isExcludedFromGlobalEditorAggregation(part: IEditorPart): boolea
 	return part.excludeFromGlobalEditorAggregation === true;
 }
 
+/** Leaf visibility and role as reported by the session-window host. */
+export interface IConversationLeafHostState {
+	readonly visible: boolean;
+	readonly primary: boolean;
+}
+
 export interface IConversationEditorPart extends IEditorPart {
 
 	readonly excludeFromGlobalEditorAggregation: true;
@@ -545,6 +551,26 @@ export interface IConversationEditorPart extends IEditorPart {
 	setGroupHidden(group: IEditorGroup | GroupIdentifier, hidden: boolean): void;
 
 	isGroupHidden(group: IEditorGroup | GroupIdentifier): boolean;
+
+	/**
+	 * Whether the hosting session leaf is currently shown. Reported by the
+	 * session-window host through {@link setLeafHostState}; defaults to `true`
+	 * so a freshly created leaf is not mistaken for a hidden one.
+	 */
+	readonly leafVisible: boolean;
+
+	/**
+	 * Whether the hosting session leaf is the primary leaf. Defaults to `false`.
+	 */
+	readonly leafPrimary: boolean;
+
+	/**
+	 * The session-window host reports leaf visibility and primary role here,
+	 * right after creation and after every change, so
+	 * {@link IEditorGroupsService.getActiveConversationEditorPart} does not
+	 * have to read the host's DOM classes.
+	 */
+	setLeafHostState(state: IConversationLeafHostState): void;
 
 	/**
 	 * Leaf host element, or `undefined` before creation. The owning

@@ -43,6 +43,9 @@ suite('Conversation session window layout restore', () => {
 					sessionKey,
 					whenReady: Promise.resolve(),
 					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+					leafVisible: true,
+					leafPrimary: false,
+					setLeafHostState: () => { },
 				} as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;

@@ -216,7 +216,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 				if (throwOnCreate) {
 					throw new Error('primary bootstrap boom');
 				}
-				const part = { sessionKey, whenReady: Promise.resolve() } as IConversationEditorPart;
+				const part = { sessionKey, whenReady: Promise.resolve(), leafVisible: true, leafPrimary: false, setLeafHostState: () => { } } as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
 			},

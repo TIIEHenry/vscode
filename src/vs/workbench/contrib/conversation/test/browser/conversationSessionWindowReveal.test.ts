@@ -258,7 +258,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 					void rejected.catch(() => { });
 					whenReady = rejected;
 				}
-				const part = { sessionKey, whenReady, activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } } } as unknown as IConversationEditorPart;
+				const part = { sessionKey, whenReady, activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } }, leafVisible: true, leafPrimary: false, setLeafHostState: () => { } } as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
 			},
@@ -1426,7 +1426,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 				if (throwOnCreate) {
 					throw new Error('reveal boom');
 				}
-				const part = { sessionKey, whenReady: Promise.resolve(), activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } } } as unknown as IConversationEditorPart;
+				const part = { sessionKey, whenReady: Promise.resolve(), activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } }, leafVisible: true, leafPrimary: false, setLeafHostState: () => { } } as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
 			},

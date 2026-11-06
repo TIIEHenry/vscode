@@ -11,7 +11,7 @@ import { NullLogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IConversationPartService, IConversationPartWindowSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { IConversationEditorPart, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IConversationEditorPart, IConversationLeafHostState, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { ConversationEditorPaneId, conversationSessionLeafPrimaryClass, conversationSessionLeafSecondaryClass } from '../common/conversationSessionWindow.js';
 import { ConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { ConversationStubService } from './conversationStubService.js';
@@ -84,6 +84,8 @@ suite('ConversationSessionWindowService', () => {
 		const onDidCreateSlots = new Emitter<IConversationPartWindowSlots>();
 		store.add(onDidCreateSlots);
 
+		// p2-2: the host reports leaf state to the part instead of the part reading classes.
+		const hostStates = new Map<string, IConversationLeafHostState>();
 		const conversationParts: IConversationEditorPart[] = [];
 		const editorGroupsService = {
 			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
@@ -91,6 +93,9 @@ suite('ConversationSessionWindowService', () => {
 					sessionKey,
 					whenReady: Promise.resolve(),
 					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+					leafVisible: true,
+					leafPrimary: false,
+					setLeafHostState: (state: IConversationLeafHostState) => { hostStates.set(sessionKey, state); },
 				} as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
@@ -135,6 +140,10 @@ suite('ConversationSessionWindowService', () => {
 		const secondaryLeaf = sessionWindowService.getLeafSlots(secondaryId)!;
 		assert.ok(primaryLeaf.container.classList.contains(conversationSessionLeafPrimaryClass));
 		assert.ok(secondaryLeaf.container.classList.contains(conversationSessionLeafSecondaryClass));
+		assert.deepStrictEqual([hostStates.get(primaryId), hostStates.get(secondaryId)], [
+			{ visible: true, primary: true },
+			{ visible: true, primary: false },
+		]);
 
 		rosterService.fireDeletedSession(primaryId);
 
@@ -142,6 +151,7 @@ suite('ConversationSessionWindowService', () => {
 		assert.ok(!sessionWindowService.getLeafSlots(primaryId));
 		assert.ok(secondaryLeaf.container.classList.contains(conversationSessionLeafPrimaryClass));
 		assert.ok(!secondaryLeaf.container.classList.contains(conversationSessionLeafSecondaryClass));
+		assert.deepStrictEqual(hostStates.get(secondaryId), { visible: true, primary: true });
 	});
 
 	test('onDidDeleteSession clears focused leaf when last window is deleted', async () => {
@@ -160,6 +170,9 @@ suite('ConversationSessionWindowService', () => {
 					sessionKey,
 					whenReady: Promise.resolve(),
 					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+					leafVisible: true,
+					leafPrimary: false,
+					setLeafHostState: () => { },
 				} as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
@@ -231,6 +244,9 @@ suite('ConversationSessionWindowService', () => {
 					sessionKey,
 					whenReady: sessionKey === firstId ? firstReady : Promise.resolve(),
 					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+					leafVisible: true,
+					leafPrimary: false,
+					setLeafHostState: () => { },
 				} as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
@@ -301,6 +317,9 @@ suite('ConversationSessionWindowService', () => {
 					sessionKey,
 					whenReady: Promise.resolve(),
 					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+					leafVisible: true,
+					leafPrimary: false,
+					setLeafHostState: () => { },
 				} as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
@@ -366,6 +385,9 @@ suite('ConversationSessionWindowService', () => {
 					sessionKey,
 					whenReady: Promise.resolve(),
 					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+					leafVisible: true,
+					leafPrimary: false,
+					setLeafHostState: () => { },
 				} as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;

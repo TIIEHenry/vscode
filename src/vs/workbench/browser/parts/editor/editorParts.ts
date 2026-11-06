@@ -27,7 +27,6 @@ import { IAuxiliaryWindowOpenOptions, IAuxiliaryWindowService } from '../../../s
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { ContextKeyValue, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { getActiveElement, getWindow, IDimension, isAncestor, isHTMLElement } from '../../../../base/browser/dom.js';
-import { conversationSessionLeafHiddenClass, conversationSessionLeafPrimaryClass } from '../conversation/conversationPart.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { DeepPartial } from '../../../../base/common/types.js';
@@ -214,38 +213,25 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	getActiveConversationEditorPart(): IConversationEditorPart | undefined {
+		// Leaf visibility and role come from the session-window host via
+		// `setLeafHostState`; the DOM classes stay on the leaf for styling only.
 		const activeElement = getActiveElement();
 		for (const part of this.conversationParts) {
-			const container = (part as ConversationEditorPartImpl).getContainer();
-			const leaf = container?.closest('.conversation-session-leaf') as HTMLElement | null;
-			if (container && !leaf?.classList.contains(conversationSessionLeafHiddenClass) && isAncestor(activeElement, container)) {
+			const container = part.getContainer() as HTMLElement | undefined;
+			if (container && part.leafVisible && isAncestor(activeElement, container)) {
 				return part;
 			}
 		}
 
 		if (this.focusedConversationLeaf) {
 			const focused = this.conversationEditorParts.get(this.focusedConversationLeaf);
-			const leaf = (focused as ConversationEditorPartImpl | undefined)?.getContainer()?.closest('.conversation-session-leaf') as HTMLElement | null;
-			if (focused && !leaf?.classList.contains(conversationSessionLeafHiddenClass)) {
+			if (focused?.leafVisible) {
 				return focused;
 			}
 		}
 
-		for (const part of this.conversationParts) {
-			const leaf = (part as ConversationEditorPartImpl).getContainer()?.closest('.conversation-session-leaf') as HTMLElement | null;
-			if (leaf && !leaf.classList.contains(conversationSessionLeafHiddenClass) && leaf.classList.contains(conversationSessionLeafPrimaryClass)) {
-				return part;
-			}
-		}
-
-		for (const part of this.conversationParts) {
-			const leaf = (part as ConversationEditorPartImpl).getContainer()?.closest('.conversation-session-leaf') as HTMLElement | null;
-			if (leaf && !leaf.classList.contains(conversationSessionLeafHiddenClass)) {
-				return part;
-			}
-		}
-
-		return undefined;
+		return this.conversationParts.find(part => part.leafVisible && part.leafPrimary)
+			?? this.conversationParts.find(part => part.leafVisible);
 	}
 
 	disposeConversationEditorPart(sessionKey: string): void {

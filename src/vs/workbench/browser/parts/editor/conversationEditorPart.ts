@@ -15,7 +15,7 @@ import { EditorPart } from './editorPart.js';
 import { IEditorPartsView, IEditorGroupView } from './editor.js';
 import { GroupIdentifier } from '../../../common/editor.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
-import { IConversationEditorPart, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { IConversationEditorPart, IConversationLeafHostState, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_SIDE_GROUP } from '../../../services/editor/common/editorService.js';
 import { getEditorGroupRoute } from '../../../services/editor/common/editorGroupRoute.js';
 import { IHostService } from '../../../services/host/browser/host.js';
@@ -27,6 +27,19 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 
 	private readonly partOptionsDisposable = this._register(new DisposableStore());
 	private readonly hiddenGroupIds = new Set<GroupIdentifier>();
+
+	// Visible until the host says otherwise, so a leaf that was created but
+	// not yet reported is never treated as hidden.
+	private _leafVisible = true;
+	private _leafPrimary = false;
+
+	get leafVisible(): boolean { return this._leafVisible; }
+	get leafPrimary(): boolean { return this._leafPrimary; }
+
+	setLeafHostState(state: IConversationLeafHostState): void {
+		this._leafVisible = state.visible;
+		this._leafPrimary = state.primary;
+	}
 
 	override readonly sideGroup: IEditorSideGroup = {
 		openEditor: async (editor, options) => {
