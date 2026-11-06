@@ -58,7 +58,8 @@
 	cursor: default;
 }
 
-.monaco-workbench .sources-diff-panel .sources-diff-panel-accept {
+/* Beats the secondary `actions button` rule at rest; keyboard focus keeps the shared focus chrome, as in Conversation Diff. */
+.monaco-workbench .sources-diff-panel .sources-diff-panel-actions .sources-diff-panel-accept {
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
 }
