@@ -22,7 +22,7 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentExpectedOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { evaluateEngineWrite, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
+import { EngineRefreshGate, evaluateEngineWrite, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
@@ -275,7 +275,7 @@ export class EngineSkillsSection extends Disposable {
 	private selectionReadOwner: UniverseAgentExpectedOwner | undefined;
 	private catalogWriteOperation: object | undefined;
 	private linkNotice: string | undefined;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 	private sectionActive = false;
 
 	constructor(
@@ -288,6 +288,7 @@ export class EngineSkillsSection extends Disposable {
 	) {
 		super();
 		this.instantiationService = instantiationService;
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 
 		this.container = DOM.append(parent, $('.engine-skills-section'));
 		this.container.style.display = 'none';
@@ -395,7 +396,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.bodyLoadGeneration++;
 		this.bodyEditRevision++;
 		this.clearCatalogPresentation(false);
@@ -563,7 +564,7 @@ export class EngineSkillsSection extends Disposable {
 	/** A rejected IPC owner revokes local authorization even before its snapshot arrives. */
 	private closeInvalidOwnerChrome(owner?: UniverseAgentExpectedOwner): void {
 		if (owner) { this.invalidatedOwner = owner; }
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.catalogWriteOperation = undefined;
 		const keptDraft = this.suspendBodyDraft();
 		if (!keptDraft) {
@@ -819,7 +820,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private async refreshListed(recoverDirtyBody = false, expectedOwner?: UniverseAgentExpectedOwner): Promise<boolean> {
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
@@ -869,7 +870,7 @@ export class EngineSkillsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listSkills(owner);
-			if (generation !== this.refreshGeneration || !this.sameReadOwner(owner)) {
+			if (!this.refreshGate.isCurrent(generation) || !this.sameReadOwner(owner)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'skill');
@@ -882,14 +883,14 @@ export class EngineSkillsSection extends Disposable {
 				itemCount: result.skills.length,
 			});
 			this.rowRenderer?.updateToggleChrome();
-			if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
+			if (!this.refreshGate.isCurrent(generation) || !this.sameReadableOwner(owner)) { return false; }
 			this.freezeNotice.style.display = '';
 			this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) || this.bodyDraftSuspended ? '' : 'none';
 			this.syncBodyFieldVisibility();
 			this.renderStatus();
-			if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
+			if (!this.refreshGate.isCurrent(generation) || !this.sameReadableOwner(owner)) { return false; }
 			const sameEngine = this.loadedBodyWriteLink?.engineIdentityId === readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
 			const recoverBaseline = recoverDirtyBody && sameEngine && !!this.loadedBodyWriteLink && (this.bodyBaselineNeedsReload || !this.sameWriteLink(this.loadedBodyWriteLink));
 			if (this.selectedSkill && !this.bodySaveOperation && ((!this.bodyDirty && !this.bodyDraftSuspended) || recoverBaseline)) {
@@ -897,7 +898,7 @@ export class EngineSkillsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration || !this.sameReadOwner(owner)) {
+			if (!this.refreshGate.isCurrent(generation) || !this.sameReadOwner(owner)) {
 				return false;
 			}
 			if (isCancellationError(error)) { this.closeInvalidOwnerChrome(owner); return false; }
@@ -1185,9 +1186,9 @@ export class EngineSkillsSection extends Disposable {
 		} finally {
 			this.selectionReadOwner = previousOwner;
 		}
-		if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
+		if (!this.refreshGate.isCurrent(generation) || !this.sameReadableOwner(owner)) { return false; }
 		this.setSkillsCount(skills.length);
-		if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
+		if (!this.refreshGate.isCurrent(generation) || !this.sameReadableOwner(owner)) { return false; }
 		this.catalogReadOwner = owner;
 		this.layoutListViewport();
 		return true;
