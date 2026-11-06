@@ -238,6 +238,10 @@ export function formatConnectProfileDiagnostics(
 	return parts.join(' ');
 }
 
+type DirectAddressEnsureResult =
+	| { readonly ok: true; readonly profileId: string; readonly replacedProfileIds: readonly string[] }
+	| { readonly ok: false; readonly reason: string };
+
 function isConnectPairingPending(result: UniverseAgentConnectProfileResult): boolean {
 	return result.ok && (result.pairingPending || !!readHandshakeSasCode(result));
 }
@@ -510,6 +514,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly connectDirectButton: Button;
 	private readonly connectProfileButton: Button;
 	private connectInFlight = false;
+	/**
+	 * Direct Connect add / replaced-profile forget. Dropped synchronously before
+	 * `connectProfileWithPairing`, which refuses to dial while any hold is set.
+	 */
+	private directProfileWriteInFlight = false;
 
 	constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
@@ -1228,6 +1237,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private isConnectWriteHeld(): boolean {
 		return this.connectInFlight
+			|| this.directProfileWriteInFlight
 			|| this.engineSwitchPromptOpen
 			|| this.isDeviceWritePairingHold()
 			|| this.isPairingConfirmHostLive();
@@ -1732,7 +1742,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			localize('ua.connectionDirectConnecting', "Connecting…"),
 			getConnectionPhaseTone({ kind: 'connecting', reason: 'initial' }),
 		);
-		const ensured = await this.ensureDirectAddressProfileForConnect(host, port, displayName, allowPrivateNetwork);
+		this.directProfileWriteInFlight = true;
+		this.updateConnectGates();
+		let ensured: DirectAddressEnsureResult;
+		try {
+			ensured = await this.ensureDirectAddressProfileForConnect(host, port, displayName, allowPrivateNetwork);
+		} finally {
+			this.directProfileWriteInFlight = false;
+			this.updateConnectGates();
+		}
 		if (!ensured.ok) {
 			writeStatus(this.directAddressStatus, ensured.reason, 'error');
 			return;
@@ -1740,35 +1758,57 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		this.activeProfileId = ensured.profileId;
 		await this.connectProfileWithPairing(ensured.profileId, { skipEngineSwitchConfirm: true });
+		// Old `host:port` profiles go only after the new one settled; a failed or pairing dial keeps them.
+		if (this.connectedProfileId === ensured.profileId) {
+			const replaced = ensured.replacedProfileIds.filter(id => id !== ensured.profileId);
+			this.directProfileWriteInFlight = true;
+			this.updateConnectGates();
+			try {
+				await this.forgetReplacedDirectAddressProfiles(replaced);
+			} finally {
+				this.directProfileWriteInFlight = false;
+				this.updateConnectGates();
+			}
+		}
 		this.renderProfiles();
 	}
 
+	/** Adds the new profile; `replacedProfileIds` are the canonical `host:port` matches seen before the add. */
 	private async ensureDirectAddressProfileForConnect(
 		host: string,
 		port: number,
 		displayName: string | undefined,
 		allowPrivateNetwork: boolean,
-	): Promise<{ ok: true; profileId: string } | { ok: false; reason: string }> {
+	): Promise<DirectAddressEnsureResult> {
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
-		const matches = findDirectAddressProfilesForEndpoint(profiles, host, port, displayName);
-		for (const match of matches) {
-			const forgot = await this.hubService.forgetConnectionProfile(match.profileId);
+		const replacedProfileIds = findDirectAddressProfilesForEndpoint(profiles, host, port, displayName).map(match => match.profileId);
+		const added = await this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
+		if (!added.ok) {
+			return added;
+		}
+		return { ok: true, profileId: added.profileId, replacedProfileIds };
+	}
+
+	private async forgetReplacedDirectAddressProfiles(profileIds: readonly string[]): Promise<void> {
+		for (const profileId of profileIds) {
+			const forgot = await this.hubService.forgetConnectionProfile(profileId);
 			if (!forgot.ok) {
-				return forgot;
+				writeStatus(this.directAddressStatus, forgot.reason, 'error');
+				return;
 			}
-			if (match.profileId === this.connectedProfileId) {
+			if (profileId === this.connectedProfileId) {
 				try {
 					await this.connectionService.disconnect();
 				} catch (error) {
 					const reason = error instanceof Error && error.message ? error.message : String(error);
-					return { ok: false, reason };
+					writeStatus(this.directAddressStatus, reason, 'error');
+					return;
 				}
-				if (this.connectedProfileId === match.profileId) {
+				if (this.connectedProfileId === profileId) {
 					this.connectedProfileId = undefined;
 				}
 			}
 		}
-		return this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
 	}
 
 	private async handleConnectSelectedProfile(): Promise<void> {
@@ -2112,7 +2152,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isDeviceWritePairingHold()) {
 			return localize('ua.connectionActionPairingHold', "Engine not connected");
 		}
-		if (this.connectInFlight) {
+		if (this.connectInFlight || this.directProfileWriteInFlight) {
 			return localize('ua.connectionActionInFlight', "A connection is already in progress.");
 		}
 		if (this.engineSwitchPromptOpen) {

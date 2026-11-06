@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
@@ -1012,8 +1012,67 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Direct Connect forgets a host:port profile and disconnects only after that forget succeeds', async () => {
+	test('Direct Connect forgets a replaced host:port profile only after the new profile dial settles', async () => {
+		const mountDirect = (dialOk: boolean, calls: string[]) => {
+			const pane = mountPane({
+				listConnectionProfiles: () => [{
+					profileId: 'direct-old',
+					displayName: '127.0.0.1:50061',
+					state: 'active',
+					hasTrust: true,
+					targetKind: 'directAddress',
+				}],
+				forgetConnectionProfile: async profileId => {
+					assert.strictEqual(profileId, 'direct-old');
+					calls.push('forget');
+					return { ok: true };
+				},
+				addDirectAddressProfile: async () => {
+					calls.push('add');
+					assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+					return { ok: true, profileId: 'direct-new' };
+				},
+			}, {
+				disconnect: async () => {
+					calls.push('disconnect');
+				},
+				connectProfile: async profileId => {
+					assert.strictEqual(profileId, 'direct-new');
+					calls.push('connect');
+					return dialOk
+						? { ok: true, path: 'direct', pairingPending: false }
+						: { ok: false, code: 'transport_failed', reason: 'dial failed' };
+				},
+			});
+			pane.layout(new Dimension(800, 800));
+			pane.selectZone('direct');
+			(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+			(pane as unknown as { directHostInput: { value: string } }).directHostInput.value = '127.0.0.1';
+			(pane as unknown as { directPortInput: { value: string } }).directPortInput.value = '50061';
+			return pane;
+		};
+
+		// The new profile is live before the old one is forgotten; the new connection is not dropped.
 		const calls: string[] = [];
+		const pane = mountDirect(true, calls);
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(calls, ['add', 'connect', 'forget']);
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-new');
+		pane.getDomNode().remove();
+
+		// A failed dial keeps the old profile and the current connection.
+		const failedCalls: string[] = [];
+		const failedPane = mountDirect(false, failedCalls);
+		await (failedPane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(failedCalls, ['add', 'connect']);
+		assert.strictEqual((failedPane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+		failedPane.getDomNode().remove();
+	});
+
+	test('Direct Connect holds the connect button while the new profile is being added', async () => {
+		let forgets = 0;
+		let adds = 0;
+		const addResult = new DeferredPromise<{ ok: true; profileId: string }>();
 		const pane = mountPane({
 			listConnectionProfiles: () => [{
 				profileId: 'direct-old',
@@ -1022,37 +1081,34 @@ suite('ConnectionPreferencesPane', () => {
 				hasTrust: true,
 				targetKind: 'directAddress',
 			}],
-			forgetConnectionProfile: async profileId => {
-				assert.strictEqual(profileId, 'direct-old');
-				calls.push('forget');
+			forgetConnectionProfile: async () => {
+				forgets++;
 				return { ok: true };
 			},
-			addDirectAddressProfile: async () => {
-				calls.push('add');
-				assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, undefined);
-				return { ok: true, profileId: 'direct-new' };
-			},
-		}, {
-			disconnect: async () => {
-				calls.push('disconnect');
-				assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
-			},
-			connectProfile: async profileId => {
-				assert.strictEqual(profileId, 'direct-new');
-				return { ok: true, path: 'direct', pairingPending: false };
+			addDirectAddressProfile: () => {
+				adds++;
+				return addResult.p;
 			},
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('direct');
 		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
-		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
-		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
-		hostInput.value = '127.0.0.1';
-		portInput.value = '50061';
-		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
-		assert.deepStrictEqual(calls, ['forget', 'disconnect', 'add']);
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-new');
+		(pane as unknown as { directHostInput: { value: string } }).directHostInput.value = '127.0.0.1';
+		(pane as unknown as { directPortInput: { value: string } }).directPortInput.value = '50061';
+		const actions = pane as unknown as { handleConnectDirectAddress(): Promise<void> };
+		const first = actions.handleConnectDirectAddress();
+		await flushPaneWrites();
+		assert.strictEqual(adds, 1);
+		const connectButton = buttonByText(container, '.connection-direct-actions .monaco-button', 'Connect');
+		assert.ok(connectButton.classList.contains('disabled'));
+		await actions.handleConnectDirectAddress();
+		assert.strictEqual(adds, 1);
+		assert.strictEqual(forgets, 0);
+		addResult.complete({ ok: true, profileId: 'direct-new' });
+		await first;
+		assert.strictEqual(forgets, 0, 'default stub dial fails, so the old profile stays');
+		assert.ok(!connectButton.classList.contains('disabled'));
 		container.remove();
 	});
 
@@ -1222,48 +1278,69 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Direct Connect forget failure does not add or disconnect', async () => {
-		let addCalls = 0;
-		let disconnects = 0;
-		const forgotIds: string[] = [];
-		const pane = mountPane({
-			listConnectionProfiles: () => [{
-				profileId: 'direct-old',
-				displayName: '127.0.0.1:50061',
-				state: 'active',
-				hasTrust: true,
-				targetKind: 'directAddress',
-			}],
-			forgetConnectionProfile: async profileId => {
-				forgotIds.push(profileId);
-				return { ok: false, code: 'forget_failed', reason: 'forget blocked' };
-			},
-			addDirectAddressProfile: async () => {
-				addCalls++;
-				return { ok: true, profileId: 'direct-new' };
-			},
-		}, {
-			disconnect: async () => {
-				disconnects++;
-			},
-		});
-		const container = pane.getDomNode();
-		pane.layout(new Dimension(800, 800));
-		pane.selectZone('direct');
-		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
-		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
-		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
-		hostInput.value = '127.0.0.1';
-		portInput.value = '50061';
-		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
-		assert.deepStrictEqual(forgotIds, ['direct-old']);
-		assert.strictEqual(addCalls, 0);
-		assert.strictEqual(disconnects, 0);
-		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
-		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
-		assert.strictEqual(status.textContent, 'forget blocked');
-		assert.ok(status.classList.contains('is-error'));
-		container.remove();
+	test('Direct Connect add failure keeps the old profile and a later forget failure does not disconnect', async () => {
+		const mountDirect = (addOk: boolean, counts: { adds: number; connects: number; disconnects: number; forgotIds: string[] }) => {
+			const pane = mountPane({
+				listConnectionProfiles: () => [{
+					profileId: 'direct-old',
+					displayName: '127.0.0.1:50061',
+					state: 'active',
+					hasTrust: true,
+					targetKind: 'directAddress',
+				}],
+				forgetConnectionProfile: async profileId => {
+					counts.forgotIds.push(profileId);
+					return { ok: false, code: 'forget_failed', reason: 'forget blocked' };
+				},
+				addDirectAddressProfile: async () => {
+					counts.adds++;
+					return addOk
+						? { ok: true, profileId: 'direct-new' }
+						: { ok: false, code: 'add_failed', reason: 'add blocked' };
+				},
+			}, {
+				disconnect: async () => {
+					counts.disconnects++;
+				},
+				connectProfile: async () => {
+					counts.connects++;
+					return { ok: true, path: 'direct', pairingPending: false };
+				},
+			});
+			pane.layout(new Dimension(800, 800));
+			pane.selectZone('direct');
+			(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+			(pane as unknown as { directHostInput: { value: string } }).directHostInput.value = '127.0.0.1';
+			(pane as unknown as { directPortInput: { value: string } }).directPortInput.value = '50061';
+			return pane;
+		};
+
+		// Add failure: nothing is forgotten or disconnected, and the status line is the add reason.
+		const addFailed = { adds: 0, connects: 0, disconnects: 0, forgotIds: [] as string[] };
+		const addFailedPane = mountDirect(false, addFailed);
+		await (addFailedPane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.strictEqual(addFailed.adds, 1);
+		assert.deepStrictEqual(addFailed.forgotIds, []);
+		assert.strictEqual(addFailed.connects, 0);
+		assert.strictEqual(addFailed.disconnects, 0);
+		assert.strictEqual((addFailedPane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+		const addStatus = addFailedPane.getDomNode().querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.strictEqual(addStatus.textContent, 'add blocked');
+		assert.ok(addStatus.classList.contains('is-error'));
+		addFailedPane.getDomNode().remove();
+
+		// Forget failure after the add and dial succeeded: no disconnect.
+		const forgetFailed = { adds: 0, connects: 0, disconnects: 0, forgotIds: [] as string[] };
+		const forgetFailedPane = mountDirect(true, forgetFailed);
+		await (forgetFailedPane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.strictEqual(forgetFailed.adds, 1);
+		assert.strictEqual(forgetFailed.connects, 1);
+		assert.deepStrictEqual(forgetFailed.forgotIds, ['direct-old']);
+		assert.strictEqual(forgetFailed.disconnects, 0);
+		const forgetStatus = forgetFailedPane.getDomNode().querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.strictEqual(forgetStatus.textContent, 'forget blocked');
+		assert.ok(forgetStatus.classList.contains('is-error'));
+		forgetFailedPane.getDomNode().remove();
 	});
 
 	test('Direct Address Add and Connect reject an empty or out-of-range port', async () => {
