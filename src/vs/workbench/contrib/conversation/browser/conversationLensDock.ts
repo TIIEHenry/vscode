@@ -38,7 +38,8 @@ import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelp
 import { noteComposerAtInput, onComposerAtKeyDown, toggleComposerAddContext, wireComposerAt } from './conversationComposerAt.js';
 import { COMPOSER_IME_COMMIT_GUARD_MS, isComposerImeBlockedEnter, isComposerImeCommitGuardEnter } from './conversationComposerIme.js';
 import { composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
-import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conversationInputHistory.js';
+import { InputHistoryBrowseState } from './conversationInputHistory.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
@@ -96,6 +97,7 @@ export interface IConversationLensDockHost {
 	modelSelectedIndex: number;
 	maximizeInputButton: Button;
 	sendButton: Button;
+	readonly composerModel: ConversationComposerModel;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	inputHistoryBrowse: InputHistoryBrowseState;
 	readonly stubService: IConversationRosterService;
@@ -427,12 +429,12 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			}
 			// A recall can run inside turnEdit / queueEdit. The first Escape leaves
 			// that browse and restores the edit text; the next Escape still leaves the edit.
-			if (e.keyCode === KeyCode.Escape && host.inputHistoryBrowse.browseIndex >= 0) {
+			if (e.keyCode === KeyCode.Escape && host.composerModel.inputHistoryBrowse.browseIndex >= 0) {
 				e.preventDefault();
 				host.exitInputHistoryBrowse();
 				return;
 			}
-			if (e.keyCode === KeyCode.Escape && host.composerPolicy !== 'compose') {
+			if (e.keyCode === KeyCode.Escape && host.composerModel.policy !== 'compose') {
 				e.preventDefault();
 				if (host.cancelQueueEdit) {
 					host.cancelQueueEdit();
@@ -508,10 +510,10 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				return;
 			}
 			noteComposerAtInput(host);
-			if (host.inputHistoryBrowse.browseIndex >= 0) {
-				host.inputHistoryBrowse = createInputHistoryBrowseState();
+			if (host.composerModel.inputHistoryBrowse.browseIndex >= 0) {
+				host.composerModel.resetInputHistoryBrowse();
 			}
-			if (host.composerPolicy === 'compose') {
+			if (host.composerModel.policy === 'compose') {
 				host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 			}
 			host.updateSendEnabled();

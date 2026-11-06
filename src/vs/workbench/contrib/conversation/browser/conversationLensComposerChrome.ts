@@ -50,12 +50,12 @@ import {
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import { getContextViewEventTarget, isContextViewClick, registerComposerPopupEscape } from './conversationContextViewEvent.js';
+import { ConversationComposerModel, type ComposerPolicy } from './conversationComposerModel.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
 import { ENGINE_MODELS_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import {
 	buildSessionUserInputHistory,
-	createInputHistoryBrowseState,
 	exitInputHistoryBrowse as exitInputHistoryBrowseModel,
 	InputHistoryBrowseState,
 	InputHistoryDirection,
@@ -110,7 +110,7 @@ export const conversationLensDockModelFailed = localize(
 	'conversationLens.dockModelFailed',
 	"Model was not applied");
 
-export type ComposerPolicy = 'compose' | 'turnEdit' | 'queueEdit';
+export type { ComposerPolicy };
 
 export interface ConversationSessionConfigSelection {
 	agentIndex: number;
@@ -118,6 +118,7 @@ export interface ConversationSessionConfigSelection {
 }
 
 export interface IConversationLensComposerChromeHost extends IComposerAddHost {
+	readonly composerModel: ConversationComposerModel;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight?: boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
@@ -187,12 +188,12 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 		if ((host as { isDisposed?: boolean }).isDisposed || isComposerKeepLeftoverListFailed(host)) {
 			return;
 		}
-		if (host.tuneContextView) {
-			host.tuneContextView.close();
+		if (host.composerModel.tuneContextView) {
+			host.composerModel.tuneContextView.close();
 			return;
 		}
 		const owner = anchor ?? host.tuneButton.element;
-		host.tuneContextView = host.contextViewService.showContextView({
+		host.composerModel.setTuneContextView(host.contextViewService.showContextView({
 			getAnchor: () => owner,
 			// Open rightwards so the popup does not spill over the sidebar.
 			// The More button sits at the right edge, so that path keeps right alignment.
@@ -201,7 +202,7 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 		render: container => {
 			const popup = append(container, $('.conversation-lens-dock-tune-popup'));
 			const store = new DisposableStore();
-			store.add(registerComposerPopupEscape(container, owner, host, () => host.tuneContextView?.close()));
+			store.add(registerComposerPopupEscape(container, owner, host, () => host.composerModel.tuneContextView?.close()));
 			if (host.catalogToolNames.length > 0) {
 				renderTuneToolList(host, popup, store);
 			} else if (isComposerSessionWriteLive(host)) {
@@ -211,21 +212,21 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			}
 			return toDisposable(() => {
 				store.dispose();
-				host.tuneContextView = undefined;
+				host.composerModel.setTuneContextView(undefined);
 			});
 		},
 			onDOMEvent: e => {
 				if (isContextViewClick(e)) {
 					const target = getContextViewEventTarget(e);
 					if (target && !owner.contains(target) && !target.closest('.conversation-lens-dock-tune-popup')) {
-						host.tuneContextView?.close();
+						host.composerModel.tuneContextView?.close();
 					}
 				}
 			},
 			onHide: () => {
-				host.tuneContextView = undefined;
+				host.composerModel.setTuneContextView(undefined);
 			},
-		});
+		}));
 	
 }
 
@@ -246,7 +247,7 @@ function renderTuneToolList(host: IConversationLensComposerChromeHost, popup: HT
 	store.add(addDisposableListener(open, 'click', event => {
 		event.preventDefault();
 		event.stopPropagation();
-		host.tuneContextView?.close();
+		host.composerModel.tuneContextView?.close();
 		if ((host as { isDisposed?: boolean }).isDisposed) {
 			return;
 		}
@@ -341,14 +342,14 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 		if ((host as { isDisposed?: boolean }).isDisposed) {
 			return;
 		}
-		if (host.moreContextView) {
-			host.moreContextView.close();
+		if (host.composerModel.moreContextView) {
+			host.composerModel.moreContextView.close();
 			return;
 		}
 		if (!isConversationLeafNarrow(host.lastReadingWidth)) {
 			return;
 		}
-		host.moreContextView = host.contextViewService.showContextView({
+		host.composerModel.setMoreContextView(host.contextViewService.showContextView({
 			getAnchor: () => host.moreButton.element,
 			anchorAlignment: AnchorAlignment.RIGHT,
 			anchorPosition: AnchorPosition.ABOVE,
@@ -357,13 +358,13 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 				popup.setAttribute('role', 'menu');
 				popup.setAttribute('aria-label', conversationLensDockMoreTitle);
 				const store = new DisposableStore();
-				store.add(registerComposerPopupEscape(container, host.moreButton.element, host, () => host.moreContextView?.close()));
+				store.add(registerComposerPopupEscape(container, host.moreButton.element, host, () => host.composerModel.moreContextView?.close()));
 				const addAction = (label: string, run: () => void) => {
 					const item = appendMoreMenuAction(popup, label);
 					store.add(addDisposableListener(item, 'click', e => {
 						e.preventDefault();
 						e.stopPropagation();
-						host.moreContextView?.close();
+						host.composerModel.moreContextView?.close();
 						if ((host as { isDisposed?: boolean }).isDisposed) {
 							return;
 						}
@@ -393,7 +394,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 					store.add(addDisposableListener(item, 'click', e => {
 						e.preventDefault();
 						e.stopPropagation();
-						host.moreContextView?.close();
+						host.composerModel.moreContextView?.close();
 						if ((host as { isDisposed?: boolean }).isDisposed) {
 							return;
 						}
@@ -403,7 +404,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 				addAction(host.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput, () => toggleInputMaximized(host));
 				return toDisposable(() => {
 					store.dispose();
-					host.moreContextView = undefined;
+					host.composerModel.setMoreContextView(undefined);
 				});
 			},
 			onDOMEvent: e => {
@@ -412,23 +413,23 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 					if (target && (target.closest('.conversation-lens-dock-more-popup') || host.moreButton.element.contains(target))) {
 						return;
 					}
-					host.moreContextView?.close();
+					host.composerModel.moreContextView?.close();
 				}
 			},
 			onHide: () => {
-				host.moreContextView = undefined;
+				host.composerModel.setMoreContextView(undefined);
 			},
-		});
+		}));
 	
 }
 
 export function dismissComposerPopups(host: IConversationLensComposerChromeHost): void {
 	host.addContextView?.close();
 	host.addContextView = undefined;
-	host.tuneContextView?.close();
-	host.tuneContextView = undefined;
-	host.moreContextView?.close();
-	host.moreContextView = undefined;
+	host.composerModel.tuneContextView?.close();
+	host.composerModel.setTuneContextView(undefined);
+	host.composerModel.moreContextView?.close();
+	host.composerModel.setMoreContextView(undefined);
 	host.inboxOverlay?.closeListPanel?.();
 }
 
@@ -452,10 +453,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 			return;
 		}
 		host.inboxOverlay.closeListPanel();
-		host.composeDraftSnapshot = composerDraftText(host);
-		host.composerPolicy = 'turnEdit';
-		host.editingTurnId = turnId;
-		host.editingQueueItemId = undefined;
+		host.composerModel.beginTurnEdit(turnId, composerDraftText(host));
 		applyComposerSurfaceText(host, turn.text);
 		// Hand the node to the row before it renders, so the edit host is not measured empty.
 		host.timelineTree.setEditingTurnId(turnId, host.composer);
@@ -471,7 +469,7 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		if ((host as { isDisposed?: boolean }).isDisposed || isConversationPairingHold(host.uaConnection)) {
 			return;
 		}
-		if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId === itemId) {
+		if (host.composerModel.policy === 'queueEdit' && host.composerModel.editingQueueItemId === itemId) {
 			host.dockTextarea?.focus();
 			return;
 		}
@@ -484,10 +482,7 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 			return;
 		}
 		host.inboxOverlay.closeListPanel();
-		host.composeDraftSnapshot = composerDraftText(host);
-		host.composerPolicy = 'queueEdit';
-		host.editingQueueItemId = itemId;
-		host.editingTurnId = undefined;
+		host.composerModel.beginQueueEdit(itemId, composerDraftText(host));
 		host.timelineTree.setEditingTurnId(undefined);
 		applyComposerSurfaceText(host, item.content);
 		syncComposerPlacement(host);
@@ -518,30 +513,28 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		if ((host as { isDisposed?: boolean }).isDisposed) {
 			return true;
 		}
-		if (host.composerPolicy === 'compose') {
+		if (host.composerModel.policy === 'compose') {
 			return true;
 		}
 		const sessionId = host.getBoundSessionId();
-		const prevPolicy = host.composerPolicy;
-		const prevQueueItemId = host.editingQueueItemId;
+		const prevPolicy = host.composerModel.policy;
+		const prevQueueItemId = host.composerModel.editingQueueItemId;
 		if (prevPolicy === 'queueEdit' && prevQueueItemId && releaseQueueHold && engineQueueEditMustKeepHold(host, prevQueueItemId)) {
-			if (host.queueEditSettlementItemId !== prevQueueItemId) {
+			if (host.composerModel.queueEditSettlementItemId !== prevQueueItemId) {
 				showPostFailure(host, queueEditKeptReason(host));
 			}
 			return false;
 		}
-		host.composerPolicy = 'compose';
-		host.editingTurnId = undefined;
-		host.editingQueueItemId = undefined;
+		host.composerModel.exitEdit();
 		if (prevPolicy === 'queueEdit' && prevQueueItemId && releaseQueueHold) {
 			host.stubService.releaseMessageQueueItemHold(sessionId, prevQueueItemId);
 			host.renderInboxStatus();
 		}
 		host.timelineTree.setEditingTurnId(undefined);
 		applyComposerSurfaceText(host, restoreComposeDraft
-			? (host.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
+			? (host.composerModel.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
 			: '');
-		host.composeDraftSnapshot = '';
+		host.composerModel.clearComposeDraftSnapshot();
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
@@ -554,13 +547,13 @@ export function cancelQueueEdit(host: IConversationLensComposerChromeHost): void
 	if ((host as { isDisposed?: boolean }).isDisposed) {
 		return;
 	}
-	if (host.composerPolicy !== 'queueEdit') {
+	if (host.composerModel.policy !== 'queueEdit') {
 		exitComposerEdit(host);
 		return;
 	}
-	const itemId = host.editingQueueItemId;
+	const itemId = host.composerModel.editingQueueItemId;
 	if (engineQueueEditMustKeepHold(host, itemId)) {
-		if (host.queueEditSettlementItemId !== itemId) {
+		if (host.composerModel.queueEditSettlementItemId !== itemId) {
 			showPostFailure(host, queueEditKeptReason(host));
 		}
 		return;
@@ -569,12 +562,12 @@ export function cancelQueueEdit(host: IConversationLensComposerChromeHost): void
 	const publishedLink = capturePublishedEngineLink(host);
 	const release = itemId ? host.stubService.releaseMessageQueueItemHoldWithSettlement?.(sessionId, itemId) : undefined;
 	if (release?.settlement && itemId) {
-		host.queueEditSettlementItemId = itemId;
+		host.composerModel.setQueueEditSettlementItemId(itemId);
 		void release.settlement.then(accepted => {
-			if (host.queueEditSettlementItemId === itemId) {
-				host.queueEditSettlementItemId = undefined;
+			if (host.composerModel.queueEditSettlementItemId === itemId) {
+				host.composerModel.setQueueEditSettlementItemId(undefined);
 			}
-			if (host.composerPolicy !== 'queueEdit' || host.editingQueueItemId !== itemId) {
+			if (host.composerModel.policy !== 'queueEdit' || host.composerModel.editingQueueItemId !== itemId) {
 				return;
 			}
 			if (!accepted || !samePublishedEngineLink(host, publishedLink) || engineQueueEditMustKeepHold(host, itemId)) {
@@ -583,10 +576,10 @@ export function cancelQueueEdit(host: IConversationLensComposerChromeHost): void
 			}
 			exitComposerEdit(host, true, false);
 		}, error => {
-			if (host.queueEditSettlementItemId === itemId) {
-				host.queueEditSettlementItemId = undefined;
+			if (host.composerModel.queueEditSettlementItemId === itemId) {
+				host.composerModel.setQueueEditSettlementItemId(undefined);
 			}
-			if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId === itemId) {
+			if (host.composerModel.policy === 'queueEdit' && host.composerModel.editingQueueItemId === itemId) {
 				showPostFailure(host, queueEditKeptReason(host));
 			}
 			onUnexpectedError(error);
@@ -602,27 +595,27 @@ export function cancelQueueEdit(host: IConversationLensComposerChromeHost): void
 
 export function getEditingQueueItem(host: IConversationLensComposerChromeHost) {
 
-		if (!host.editingQueueItemId) {
+		if (!host.composerModel.editingQueueItemId) {
 			return undefined;
 		}
 		return host.stubService?.getMessageQueueState?.(host.getBoundSessionId())
-			?.items.find(item => item.id === host.editingQueueItemId);
+			?.items.find(item => item.id === host.composerModel.editingQueueItemId);
 	
 }
 
 function isComposerEditSurfaceLive(host: IConversationLensComposerChromeHost): boolean {
-	if (host.composerPolicy === 'compose') {
+	if (host.composerModel.policy === 'compose') {
 		return false;
 	}
-	if (host.composerPolicy === 'queueEdit') {
+	if (host.composerModel.policy === 'queueEdit') {
 		return getEditingQueueItem(host) !== undefined;
 	}
-	if (host.composerPolicy === 'turnEdit') {
-		if (!host.editingTurnId) {
+	if (host.composerModel.policy === 'turnEdit') {
+		if (!host.composerModel.editingTurnId) {
 			return false;
 		}
 		return host.stubService?.getTurns?.(host.getBoundSessionId())
-			?.some(entry => entry.id === host.editingTurnId && entry.kind === 'user') ?? true;
+			?.some(entry => entry.id === host.composerModel.editingTurnId && entry.kind === 'user') ?? true;
 	}
 	return false;
 }
@@ -632,7 +625,7 @@ export function updateComposerEditChrome(host: IConversationLensComposerChromeHo
 		const isEdit = isComposerEditSurfaceLive(host);
 		host.composerEditHeader.hidden = !isEdit;
 		host.composer.classList.toggle('conversation-lens-composer--edit', isEdit);
-		if (host.composerPolicy === 'queueEdit') {
+		if (host.composerModel.policy === 'queueEdit') {
 			const item = getEditingQueueItem(host);
 			const queuedBody = item ? conversationUserBodyText(item.content) : '';
 			host.composerEditTitle.textContent = item && queuedBody
@@ -642,7 +635,7 @@ export function updateComposerEditChrome(host: IConversationLensComposerChromeHo
 			host.sendButton.setAriaLabel(conversationLensDockSaveQueued);
 			return;
 		}
-		if (host.composerPolicy === 'turnEdit') {
+		if (host.composerModel.policy === 'turnEdit') {
 			host.composerEditTitle.textContent = conversationLensDockEditingMessage;
 		}
 		const sendTitle = localize('conversationLens.send', "Send");
@@ -657,7 +650,7 @@ export interface IConversationLensComposerSingleLineHost {
 	dockRoot: HTMLElement;
 	prefirstHero: HTMLElement;
 	dockTextarea: HTMLTextAreaElement;
-	composerPolicy: ComposerPolicy;
+	readonly composerModel: { readonly policy: ComposerPolicy };
 	inputMaximized: boolean;
 	lastReadingWidth: number;
 	composerRefResources?: readonly unknown[];
@@ -673,7 +666,7 @@ export function isComposerSingleLine(host: IConversationLensComposerSingleLineHo
 	if (host.isPreFirst()) {
 		return false;
 	}
-	if (host.composerPolicy !== 'compose') {
+	if (host.composerModel.policy !== 'compose') {
 		return false;
 	}
 	if (host.inputMaximized) {
@@ -733,14 +726,14 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 
 		// Turn edit moves the one composer into the user row. A disconnected node
 		// goes back to the cluster on this call and is not appended into the edit host.
-		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
+		if (host.composerModel.policy === 'turnEdit' && host.composerModel.editingTurnId && isComposerEditSurfaceLive(host)) {
 			if (!host.composer.isConnected) {
 				host.composer.classList.remove('conversation-lens-composer--in-turn');
 				ensureComposerInCluster(host);
 				placeComposerCluster(host);
 				return;
 			}
-			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
+			const editHost = host.timelineTree.getTurnEditHost(host.composerModel.editingTurnId);
 			if (editHost) {
 				if (host.composer.parentElement !== editHost) {
 					editHost.appendChild(host.composer);
@@ -825,7 +818,7 @@ function setSendButtonCopy(button: { setTitle?(title: string): void; setAriaLabe
 }
 
 function restoreSendButtonCopy(host: IConversationLensComposerChromeHost): void {
-	if (host.composerPolicy === 'queueEdit') {
+	if (host.composerModel.policy === 'queueEdit') {
 		setSendButtonCopy(host.sendButton, conversationLensDockSaveQueued);
 		return;
 	}
@@ -852,15 +845,15 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 		restoreSendButtonCopy(host);
 		const payload = composerSubmitText(host);
 		const hasDraft = payload !== undefined;
-		if (host.composerPolicy === 'queueEdit') {
+		if (host.composerModel.policy === 'queueEdit') {
 			const item = getEditingQueueItem(host);
 			const loaded = item ? turnEditLoadedPayload(item.content) : undefined;
 			host.sendButton.enabled = hasDraft && !!item && payload !== loaded;
 			return;
 		}
-		if (host.composerPolicy === 'turnEdit') {
-			const turn = host.editingTurnId
-				? host.stubService.getTurns(host.getBoundSessionId()).find(entry => entry.id === host.editingTurnId && entry.kind === 'user')
+		if (host.composerModel.policy === 'turnEdit') {
+			const turn = host.composerModel.editingTurnId
+				? host.stubService.getTurns(host.getBoundSessionId()).find(entry => entry.id === host.composerModel.editingTurnId && entry.kind === 'user')
 				: undefined;
 			const loaded = turn ? turnEditLoadedPayload(turn.text) : undefined;
 			host.sendButton.enabled = hasDraft && !!turn && payload !== loaded;
@@ -876,7 +869,7 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		if (!host.gateRow) {
 			return;
 		}
-		if (host.postFailureVisible) {
+		if (host.composerModel.postFailureVisible) {
 			setGateWarning(host, false);
 			host.gateRow.hidden = false;
 			return;
@@ -935,7 +928,7 @@ function showGateStatus(host: IConversationLensComposerChromeHost, message: stri
 
 function showGateNotice(host: IConversationLensComposerChromeHost, message: string): void {
 
-		host.postFailureVisible = true;
+		host.composerModel.showPostFailure();
 		host.gateRow.hidden = false;
 		setGateWarning(host, false);
 		host.gateLabel.textContent = message;
@@ -944,10 +937,6 @@ function showGateNotice(host: IConversationLensComposerChromeHost, message: stri
 		host.gateRow.setAttribute('aria-label', message);
 		host.gateRow.title = message;
 		host.gateLabel.title = message;
-		if (host.sendFailureTimeout) {
-			clearTimeout(host.sendFailureTimeout);
-			host.sendFailureTimeout = undefined;
-		}
 
 }
 
@@ -1639,7 +1628,7 @@ export function updateSessionConfigVisibility(host: IConversationLensComposerChr
 
 export function resetInputHistoryBrowse(host: IConversationLensComposerChromeHost): void {
 
-		host.inputHistoryBrowse = createInputHistoryBrowseState();
+		host.composerModel.resetInputHistoryBrowse();
 	
 }
 
@@ -1659,18 +1648,18 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 		}
 		const result = navigateInputHistoryBrowse(
 			getSessionInputHistory(host),
-			host.inputHistoryBrowse,
+			host.composerModel.inputHistoryBrowse,
 			direction,
 			composerDraftText(host));
 		if (!result.handled || result.textareaValue === undefined) {
 			return result.handled;
 		}
-		host.inputHistoryBrowse = result.state;
+		host.composerModel.setInputHistoryBrowse(result.state);
 		applyComposerSurfaceText(host, result.textareaValue);
 		const caret = inputHistoryCaretAfterRecall(host.dockTextarea.value, direction);
 		host.dockTextarea.selectionStart = caret;
 		host.dockTextarea.selectionEnd = caret;
-		if (host.composerPolicy === 'compose') {
+		if (host.composerModel.policy === 'compose') {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}
 		// Arrow recall writes the textarea without an input event. Send follows the same gate as typing.
@@ -1681,13 +1670,13 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 
 export function exitInputHistoryBrowse(host: IConversationLensComposerChromeHost): void {
 
-		const result = exitInputHistoryBrowseModel(host.inputHistoryBrowse);
+		const result = exitInputHistoryBrowseModel(host.composerModel.inputHistoryBrowse);
 		if (!result.handled || result.textareaValue === undefined) {
 			return;
 		}
-		host.inputHistoryBrowse = result.state;
+		host.composerModel.setInputHistoryBrowse(result.state);
 		applyComposerSurfaceText(host, result.textareaValue);
-		if (host.composerPolicy === 'compose') {
+		if (host.composerModel.policy === 'compose') {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}
 		updateSendEnabled(host);

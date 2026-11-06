@@ -30,7 +30,8 @@ import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, 
 import type { SessionViewSnapshot, SyncChrome, TimelineItemSummary } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { conversationLensInputMaximizedClass, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
-import { createInputHistoryBrowseState, InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
+import { InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
+import { ConversationComposerModel } from './conversationComposerModel.js';
 import { findFirstInboxPendingConfirmationTurnId, scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
@@ -253,12 +254,10 @@ export class ConversationLens extends Disposable {
 	addButton!: Button;
 	addContextView: IOpenContextView | undefined;
 	tuneButton!: Button;
-	tuneContextView: IOpenContextView | undefined;
 	permissionSelectBox!: SelectBox;
 	agentContainer!: HTMLElement;
 	agentSelectBox!: SelectBox;
 	moreButton!: Button;
-	moreContextView: IOpenContextView | undefined;
 	sessionMoreButton!: Button;
 	sessionMoreContextView: IOpenContextView | undefined;
 	modelSelectBox!: SelectBox;
@@ -272,7 +271,6 @@ export class ConversationLens extends Disposable {
 	gateRow!: HTMLElement;
 	gateLabel!: HTMLElement;
 	sessionSyncBadge!: HTMLElement;
-	sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 	composer!: HTMLElement;
 	composerEditHeader!: HTMLElement;
 	composerEditTitle!: HTMLElement;
@@ -282,16 +280,21 @@ export class ConversationLens extends Disposable {
 	readonly slotHosts: IConversationLensSlots;
 	inputMaximized = false;
 	conversationPhase: 'prefirst' | 'active' | undefined;
-	composerPolicy: ComposerPolicy = 'compose';
-	editingTurnId: string | undefined;
-	editingQueueItemId: string | undefined;
-	queueEditSettlementItemId: string | undefined;
-	composeDraftSnapshot = '';
+	readonly composerModel = this._register(new ConversationComposerModel());
+	get composerPolicy(): ComposerPolicy { return this.composerModel.policy; }
+	get editingTurnId(): string | undefined { return this.composerModel.editingTurnId; }
+	get editingQueueItemId(): string | undefined { return this.composerModel.editingQueueItemId; }
+	get queueEditSettlementItemId(): string | undefined { return this.composerModel.queueEditSettlementItemId; }
+	get composeDraftSnapshot(): string { return this.composerModel.composeDraftSnapshot; }
+	get inputHistoryBrowse(): InputHistoryBrowseState { return this.composerModel.inputHistoryBrowse; }
+	get tuneContextView(): IOpenContextView | undefined { return this.composerModel.tuneContextView; }
+	get moreContextView(): IOpenContextView | undefined { return this.composerModel.moreContextView; }
+	get postFailureVisible(): boolean { return this.composerModel.postFailureVisible; }
+	get sendFailureTimeout(): ReturnType<typeof setTimeout> | undefined { return this.composerModel.sendFailureTimeout; }
 
 	readonly drafts = new Map<string, string>();
 	readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
 	readonly modelProfileIdBySessionId = new Map<string, string>();
-	inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	suppressSessionSelect = false;
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
@@ -304,7 +307,6 @@ export class ConversationLens extends Disposable {
 	lastRevealItemId: string | undefined;
 	lastReadingWidth = 0;
 	lastReadingHeight = 0;
-	postFailureVisible = false;
 	composerCatalogGeneration = 0;
 	catalogToolNames: readonly string[] = [];
 	catalogModelIds: readonly string[] = [];

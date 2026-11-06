@@ -9,6 +9,7 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -4848,6 +4849,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const exits: (readonly [boolean | undefined, boolean | undefined])[] = [];
 		const failures: string[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited body' },
 			getBoundSessionId: () => 'ua-only',
@@ -4872,7 +4874,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.holdQueueCalls.length, 1);
 		assert.deepStrictEqual(exits, [[true, false]]);
 		assert.deepStrictEqual(failures, []);
-		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, undefined);
+		assert.strictEqual(host.composerModel.queueEditSettlementItemId, undefined);
 		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
 	});
 
@@ -4918,6 +4920,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const exits: (readonly [boolean | undefined, boolean | undefined])[] = [];
 		const failures: string[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited body' },
 			getBoundSessionId: () => 'ua-only',
@@ -4939,7 +4942,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(connection.releaseQueueCalls, []);
 		assert.deepStrictEqual(exits, []);
 		assert.deepStrictEqual(failures, ['failed']);
-		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, undefined);
+		assert.strictEqual(host.composerModel.queueEditSettlementItemId, undefined);
 		assert.strictEqual(host.dockTextarea.value, 'edited body');
 	});
 

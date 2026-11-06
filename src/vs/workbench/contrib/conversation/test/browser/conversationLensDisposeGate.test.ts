@@ -13,6 +13,7 @@ import { mainWindow } from '../../../../../base/browser/window.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { scheduleConversationMermaidExtensionResolve } from '../../browser/conversationLens.js';
@@ -110,6 +111,7 @@ suite('conversation lens dispose gate', () => {
 			dispose() { },
 		});
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			composerPolicy: 'compose' as const,
 			inputHistoryBrowse: { browseIndex: -1, savedDraft: '' },
 			modelSelectedIndex: 0,
@@ -194,6 +196,7 @@ suite('conversation lens dispose gate', () => {
 			dispose() { },
 		});
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			composerPolicy: 'compose' as const,
 			inputHistoryBrowse: { browseIndex: -1, savedDraft: '' },
 			modelSelectedIndex: 0,
@@ -793,6 +796,7 @@ suite('conversation lens dispose gate', () => {
 		prefirstHero.append(identityStripElement, gateRow);
 		dockRoot.appendChild(inboxOverlayElement);
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			isDisposed: false,
 			lensId: 'conversation' as const,
 			filterAgentId: undefined,
@@ -2334,6 +2338,7 @@ suite('conversation lens dispose gate', () => {
 	} {
 		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0 };
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { editingTurnId: 'turn-1', editingQueueItemId: 'q1' }),
 			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			editingTurnId: 'turn-1',
@@ -2409,24 +2414,24 @@ suite('conversation lens dispose gate', () => {
 	test('saveTurnEdit pairing-hold leftover does not write and stays in edit', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const { host, turnWrites } = pairingHoldComposerWriteHost(failures);
-		host.composerPolicy = 'turnEdit';
+		host.composerModel.beginTurnEdit('turn-1', '');
 		saveTurnEdit(host);
 		assert.strictEqual(turnWrites, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
-		assert.strictEqual(host.editingTurnId, 'turn-1');
-		assert.strictEqual(host.composerPolicy, 'turnEdit');
+		assert.strictEqual(host.composerModel.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerModel.policy, 'turnEdit');
 		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
 	});
 
 	test('saveQueueEdit pairing-hold leftover does not write and stays in edit', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const { host, queueWrites } = pairingHoldComposerWriteHost(failures);
-		host.composerPolicy = 'queueEdit';
+		host.composerModel.beginQueueEdit('q1', '');
 		saveQueueEdit(host);
 		assert.strictEqual(queueWrites, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
-		assert.strictEqual(host.editingQueueItemId, 'q1');
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(host.dockTextarea.value, 'leftover draft');
 	});
 
@@ -2445,6 +2450,7 @@ suite('conversation lens dispose gate', () => {
 	} {
 		const state = { posted: 0, enqueueCalls: 0, turnWrites: 0, queueWrites: 0, exited: 0 };
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { editingTurnId: 'turn-1', editingQueueItemId: 'q1' }),
 			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: undefined,
@@ -2538,13 +2544,13 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
 		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
-		fixture.host.composerPolicy = 'turnEdit';
+		fixture.host.composerModel.beginTurnEdit('turn-1', '');
 		saveTurnEdit(fixture.host);
 		assert.strictEqual(fixture.turnWrites, 0);
 		assert.strictEqual(fixture.exited, 0);
 		assert.deepStrictEqual(failures, ['session_not_ready']);
-		assert.strictEqual(fixture.host.editingTurnId, 'turn-1');
-		assert.strictEqual(fixture.host.composerPolicy, 'turnEdit');
+		assert.strictEqual(fixture.host.composerModel.editingTurnId, 'turn-1');
+		assert.strictEqual(fixture.host.composerModel.policy, 'turnEdit');
 		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
 	});
 
@@ -2560,13 +2566,13 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
 		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
-		fixture.host.composerPolicy = 'queueEdit';
+		fixture.host.composerModel.beginQueueEdit('q1', '');
 		saveQueueEdit(fixture.host);
 		assert.strictEqual(fixture.queueWrites, 0);
 		assert.strictEqual(fixture.exited, 0);
 		assert.deepStrictEqual(failures, ['session_not_ready']);
-		assert.strictEqual(fixture.host.editingQueueItemId, 'q1');
-		assert.strictEqual(fixture.host.composerPolicy, 'queueEdit');
+		assert.strictEqual(fixture.host.composerModel.editingQueueItemId, 'q1');
+		assert.strictEqual(fixture.host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
 	});
 
@@ -2597,7 +2603,7 @@ suite('conversation lens dispose gate', () => {
 			failures,
 		});
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), true);
-		fixture.host.composerPolicy = 'turnEdit';
+		fixture.host.composerModel.beginTurnEdit('turn-1', '');
 		saveTurnEdit(fixture.host);
 		assert.strictEqual(fixture.turnWrites, 0);
 		assert.strictEqual(fixture.exited, 0);
@@ -2613,7 +2619,7 @@ suite('conversation lens dispose gate', () => {
 			failures,
 		});
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), true);
-		fixture.host.composerPolicy = 'queueEdit';
+		fixture.host.composerModel.beginQueueEdit('q1', '');
 		saveQueueEdit(fixture.host);
 		assert.strictEqual(fixture.queueWrites, 0);
 		assert.strictEqual(fixture.exited, 0);
@@ -2649,7 +2655,7 @@ suite('conversation lens dispose gate', () => {
 		});
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
-		fixture.host.composerPolicy = 'turnEdit';
+		fixture.host.composerModel.beginTurnEdit('turn-1', '');
 		saveTurnEdit(fixture.host);
 		assert.strictEqual(fixture.turnWrites, 1);
 		assert.strictEqual(fixture.exited, 1);
@@ -2666,7 +2672,7 @@ suite('conversation lens dispose gate', () => {
 		});
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
-		fixture.host.composerPolicy = 'queueEdit';
+		fixture.host.composerModel.beginQueueEdit('q1', '');
 		saveQueueEdit(fixture.host);
 		assert.strictEqual(fixture.queueWrites, 1);
 		assert.strictEqual(fixture.exited, 1);
@@ -2691,11 +2697,10 @@ suite('conversation lens dispose gate', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const { host } = pairingHoldComposerWriteHost(failures);
 		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
-		chromeHost.composerPolicy = 'compose';
-		chromeHost.editingTurnId = undefined;
+		chromeHost.composerModel.exitEdit();
 		beginTurnEdit(chromeHost, 'turn-1');
-		assert.strictEqual(chromeHost.composerPolicy, 'compose');
-		assert.strictEqual(chromeHost.editingTurnId, undefined);
+		assert.strictEqual(chromeHost.composerModel.policy, 'compose');
+		assert.strictEqual(chromeHost.composerModel.editingTurnId, undefined);
 		assert.deepStrictEqual(failures, []);
 	});
 
@@ -2703,6 +2708,7 @@ suite('conversation lens dispose gate', () => {
 		host: IConversationLensComposerHost;
 	} {
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			editingTurnId: undefined as string | undefined,
@@ -2744,11 +2750,10 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.stubService.isEngineSessionReady(), false);
 		assert.strictEqual(isConversationPairingHold(host.uaConnection), false);
 		assert.strictEqual(isReadingColumnWritesEnabled(chromeHost), false);
-		chromeHost.composerPolicy = 'compose';
-		chromeHost.editingTurnId = undefined;
+		chromeHost.composerModel.exitEdit();
 		beginTurnEdit(chromeHost, 'turn-1');
-		assert.strictEqual(chromeHost.composerPolicy, 'compose');
-		assert.strictEqual(chromeHost.editingTurnId, undefined);
+		assert.strictEqual(chromeHost.composerModel.policy, 'compose');
+		assert.strictEqual(chromeHost.composerModel.editingTurnId, undefined);
 		assert.deepStrictEqual(failures, []);
 	});
 
@@ -2779,11 +2784,10 @@ suite('conversation lens dispose gate', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const { host } = pairingHoldComposerWriteHost(failures);
 		const chromeHost = host as unknown as IConversationLensComposerChromeHost;
-		chromeHost.composerPolicy = 'compose';
-		chromeHost.editingQueueItemId = undefined;
+		chromeHost.composerModel.exitEdit();
 		beginQueueEdit(chromeHost, 'q1');
-		assert.strictEqual(chromeHost.composerPolicy, 'compose');
-		assert.strictEqual(chromeHost.editingQueueItemId, undefined);
+		assert.strictEqual(chromeHost.composerModel.policy, 'compose');
+		assert.strictEqual(chromeHost.composerModel.editingQueueItemId, undefined);
 		assert.deepStrictEqual(failures, []);
 	});
 
@@ -2913,6 +2917,7 @@ suite('conversation lens dispose gate', () => {
 		const titleLive = document.createElement('span');
 		titleLive.textContent = 'A';
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { composeDraftSnapshot: 'Saved compose snapshot must not replace the live draft' }),
 			isDisposed: false,
 			sessionTitleButton: titleButton,
 			sessionTitleInput: titleInput,
@@ -3172,6 +3177,7 @@ suite('conversation lens dispose gate', () => {
 		const gateLabel = document.createElement('span');
 		gateRow.appendChild(gateLabel);
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			catalogToolNames: options?.catalogToolNames ?? ['bash'],
 			catalogModelIds: options?.catalogModelIds ?? ['', 'gpt-test'],
 			modelSelectedIndex: options?.modelSelectedIndex ?? 0,
@@ -3267,8 +3273,8 @@ suite('conversation lens dispose gate', () => {
 				pairingPending = pending;
 			},
 			dispose: () => {
-				host.tuneContextView?.close();
-				host.moreContextView?.close();
+				host.composerModel.tuneContextView?.close();
+				host.composerModel.moreContextView?.close();
 				store.dispose();
 			},
 		};
@@ -3455,6 +3461,7 @@ suite('conversation lens dispose gate', () => {
 			releaseModel = resolve;
 		});
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			catalogToolNames: ['bash'],
 			catalogModelIds: ['', 'gpt-test'],
 			modelSelectedIndex: 0,
@@ -3624,7 +3631,7 @@ suite('conversation lens dispose gate', () => {
 			await apply;
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
 		} finally {
 			fixture.dispose();
@@ -3691,7 +3698,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
 		} finally {
 			fixture.dispose();
@@ -3726,7 +3733,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
 		}
@@ -3760,7 +3767,7 @@ suite('conversation lens dispose gate', () => {
 			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), ['SESSION_TOOL_PERMISSION_MODE_PERMIT']);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
 		}
@@ -3794,7 +3801,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
 			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
 		}
@@ -3910,6 +3917,7 @@ suite('conversation lens dispose gate', () => {
 		gateRow.hidden = true;
 		const gateLabel = document.createElement('span');
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			catalogModelIds,
 			modelSelectedIndex: 1,
 			modelProfileIdBySessionId,
@@ -3960,7 +3968,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(typedHost.modelSelectedIndex, 2);
 			assert.strictEqual(modelProfileIdBySessionId.get('sess-a'), 'gpt-a');
 			assert.strictEqual(modelProfileIdBySessionId.get('sess-b'), 'gpt-b');
-			assert.strictEqual(typedHost.postFailureVisible, false);
+			assert.strictEqual(typedHost.composerModel.postFailureVisible, false);
 			assert.strictEqual(gateRow.hidden, true);
 
 			syncSessionConfigSelects(typedHost, 'sess-b');
@@ -3993,6 +4001,7 @@ suite('conversation lens dispose gate', () => {
 		const gateLabel = document.createElement('span');
 		let respond: ((modelId: string, call: number) => Promise<{ resolvedModelId: string; provider: string; level: number; cost: string; speed: string }>) | undefined;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			catalogModelIds,
 			modelSelectedIndex: 0,
 			modelProfileIdBySessionId,
@@ -4209,6 +4218,7 @@ suite('conversation lens dispose gate', () => {
 			};
 		});
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			sessionConfigBySessionId,
 			postFailureVisible: false,
 			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
@@ -4265,7 +4275,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
 		}
@@ -4284,7 +4294,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 		} finally {
 			fixture.dispose();
 		}
@@ -4344,7 +4354,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
 			assert.strictEqual(fixture.host.gateRow.hidden, false);
 			assert.ok(fixture.host.gateLabel.textContent?.includes('engine rejected permit'));
-			assert.strictEqual(fixture.host.postFailureVisible, true);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, true);
 		} finally {
 			fixture.dispose();
 		}
@@ -4429,7 +4439,7 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 1);
 			// The stale Permit failure must not paint a notice or roll the select back.
 			// gateRow starts visible; the failure flag and label are the notice signal.
-			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, false);
 			assert.strictEqual(fixture.host.gateLabel.textContent, '');
 			releaseSecond!({ ok: false, message: 'agent failed' });
 			await permit;
@@ -4443,7 +4453,7 @@ suite('conversation lens dispose gate', () => {
 				'SESSION_TOOL_PERMISSION_MODE_AGENT',
 			]);
 			assert.strictEqual(fixture.host.gateRow.hidden, false);
-			assert.strictEqual(fixture.host.postFailureVisible, true);
+			assert.strictEqual(fixture.host.composerModel.postFailureVisible, true);
 			assert.ok(fixture.host.gateLabel.textContent?.includes('agent failed'));
 		} finally {
 			fixture.dispose();
@@ -4547,6 +4557,7 @@ suite('conversation lens dispose gate', () => {
 		const rejections: unknown[] = [];
 		const onUnhandled = (reason: unknown) => { rejections.push(reason); };
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			composerPolicy: 'compose',
 			submitInFlight: false,
 			modelSelectedIndex: 0,
@@ -4623,9 +4634,7 @@ suite('conversation lens dispose gate', () => {
 			stubService: IConversationLensComposerHost['stubService'];
 			uaConnection: IConversationLensComposerHost['uaConnection'];
 		};
-		host.composerPolicy = 'turnEdit';
-		host.editingTurnId = 't1';
-		host.composeDraftSnapshot = 'still drafting';
+		host.composerModel.beginTurnEdit('t1', 'still drafting');
 		host.modelSelectedIndex = 0;
 		host.catalogModelIds = [''];
 		host.submitInFlight = false;
@@ -4650,12 +4659,11 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensComposerHost['sessionViewLease'];
 		host.exitComposerEdit = () => {
-			host.composerPolicy = 'compose';
-			host.editingTurnId = undefined;
-			host.dockTextarea.value = host.composeDraftSnapshot;
+			host.composerModel.exitEdit();
+			host.dockTextarea.value = host.composerModel.composeDraftSnapshot;
 		};
 		host.resetInputHistoryBrowse = () => { };
-		host.readComposerDraft = () => host.composeDraftSnapshot;
+		host.readComposerDraft = () => host.composerModel.composeDraftSnapshot;
 		host.showPostFailure = () => { };
 		host.submitDraft = () => submitDraft(host);
 		try {
@@ -4743,20 +4751,17 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensComposerHost['sessionViewLease'];
 		host.exitComposerEdit = () => {
-			host.composerPolicy = 'compose';
-			host.editingTurnId = undefined;
-			host.dockTextarea.value = host.composeDraftSnapshot;
+			host.composerModel.exitEdit();
+			host.dockTextarea.value = host.composerModel.composeDraftSnapshot;
 		};
 		host.resetInputHistoryBrowse = () => { };
-		host.readComposerDraft = () => host.composeDraftSnapshot;
+		host.readComposerDraft = () => host.composerModel.composeDraftSnapshot;
 		host.showPostFailure = () => { };
 		host.submitDraft = () => submitDraft(host);
 		const sendContainer = host.sendButton.element.parentElement;
 		assert.ok(sendContainer);
 		const armTurnEdit = () => {
-			host.composerPolicy = 'turnEdit';
-			host.editingTurnId = 't1';
-			host.composeDraftSnapshot = 'still drafting';
+			host.composerModel.beginTurnEdit('t1', 'still drafting');
 			host.dockTextarea.value = 'edited';
 		};
 		try {
@@ -4778,7 +4783,7 @@ suite('conversation lens dispose gate', () => {
 			await Promise.resolve();
 			assert.deepStrictEqual(updates, []);
 			assert.deepStrictEqual(posted, []);
-			assert.strictEqual(host.composerPolicy, 'turnEdit');
+			assert.strictEqual(host.composerModel.policy, 'turnEdit');
 			assert.strictEqual(host.dockTextarea.value, 'edited');
 		} finally {
 			fixture.dispose();
@@ -4879,6 +4884,7 @@ suite('conversation lens dispose gate', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		let exited = 0;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit',
 			editingTurnId: 'turn-1',
 			dockTextarea: { value: 'revised later' },
@@ -4899,8 +4905,8 @@ suite('conversation lens dispose gate', () => {
 
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 		assert.strictEqual(exited, 0);
-		assert.strictEqual(host.editingTurnId, 'turn-1');
-		assert.strictEqual(host.composerPolicy, 'turnEdit');
+		assert.strictEqual(host.composerModel.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerModel.policy, 'turnEdit');
 		assert.strictEqual(host.dockTextarea.value, 'revised later');
 	});
 
@@ -4908,6 +4914,7 @@ suite('conversation lens dispose gate', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		let exited = 0;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit',
 			editingTurnId: 'turn-1',
 			dockTextarea: { value: 'revised later' },
@@ -4928,14 +4935,15 @@ suite('conversation lens dispose gate', () => {
 
 		assert.deepStrictEqual(failures, ['failed']);
 		assert.strictEqual(exited, 0);
-		assert.strictEqual(host.editingTurnId, 'turn-1');
-		assert.strictEqual(host.composerPolicy, 'turnEdit');
+		assert.strictEqual(host.composerModel.editingTurnId, 'turn-1');
+		assert.strictEqual(host.composerModel.policy, 'turnEdit');
 	});
 
 	test('saveTurnEdit roster true exits edit and does not show post failure', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		let exited = 0;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit',
 			editingTurnId: 'turn-1',
 			dockTextarea: { value: 'revised later' },
@@ -4967,6 +4975,7 @@ suite('conversation lens dispose gate', () => {
 	} {
 		const written: { sessionId: string; turnId: string; text: string }[] = [];
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'turnEdit', editingTurnId: options.editingTurnId }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: options.editingTurnId,
 			dockTextarea: { value: 'revised later' },
@@ -4997,7 +5006,7 @@ suite('conversation lens dispose gate', () => {
 			turns: [{ id: 'e1', kind: 'user', text: 'hello', turnId: 't1' }],
 		});
 		saveTurnEdit(host);
-		assert.strictEqual(host.editingTurnId, 'e1');
+		assert.strictEqual(host.composerModel.editingTurnId, 'e1');
 		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 't1', text: 'revised later' }]);
 	});
 
@@ -5007,7 +5016,7 @@ suite('conversation lens dispose gate', () => {
 			turns: [{ id: 'e1', kind: 'user', text: 'hello' }],
 		});
 		saveTurnEdit(host);
-		assert.strictEqual(host.editingTurnId, 'e1');
+		assert.strictEqual(host.composerModel.editingTurnId, 'e1');
 		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 'e1', text: 'revised later' }]);
 	});
 
@@ -5039,6 +5048,7 @@ suite('conversation lens dispose gate', () => {
 		const dockTextarea = document.createElement('textarea');
 		dockTextarea.value = 'draft';
 		const chromeHost = {
+			composerModel: createTestComposerModel(suiteStore),
 			composerPolicy: 'compose' as const,
 			editingTurnId: undefined as string | undefined,
 			editingQueueItemId: undefined as string | undefined,
@@ -5069,9 +5079,9 @@ suite('conversation lens dispose gate', () => {
 			},
 		};
 		beginTurnEdit(chromeHost as unknown as IConversationLensComposerChromeHost, 'e1');
-		assert.strictEqual(chromeHost.editingTurnId, 'e1');
+		assert.strictEqual(chromeHost.composerModel.editingTurnId, 'e1');
 		assert.deepStrictEqual(highlighted, ['e1']);
-		assert.strictEqual(chromeHost.composerPolicy, 'turnEdit');
+		assert.strictEqual(chromeHost.composerModel.policy, 'turnEdit');
 	});
 
 	test('saveQueueEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
@@ -5080,6 +5090,7 @@ suite('conversation lens dispose gate', () => {
 		let released = 0;
 		let renderedInbox = 0;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit',
 			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'revised later' },
@@ -5104,8 +5115,8 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(released, 0);
 		assert.strictEqual(renderedInbox, 0);
-		assert.strictEqual(host.editingQueueItemId, 'q1');
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(host.dockTextarea.value, 'revised later');
 	});
 
@@ -5114,6 +5125,7 @@ suite('conversation lens dispose gate', () => {
 		let exited = 0;
 		let released = 0;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit',
 			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'revised later' },
@@ -5137,8 +5149,8 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, ['failed']);
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(released, 0);
-		assert.strictEqual(host.editingQueueItemId, 'q1');
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.editingQueueItemId, 'q1');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 	});
 
 	test('saveQueueEdit roster true exits edit and does not show post failure', () => {
@@ -5147,6 +5159,7 @@ suite('conversation lens dispose gate', () => {
 		let released = 0;
 		let renderedInbox = 0;
 		const host = {
+			composerModel: createTestComposerModel(suiteStore, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit',
 			editingQueueItemId: 'q1',
 			dockTextarea: { value: 'revised later' },
@@ -5508,6 +5521,7 @@ suite('conversation lens dispose gate', () => {
 		const gateLabel = document.createElement('span');
 		gateRow.appendChild(gateLabel);
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			postFailureVisible: false,
 			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			gateRow,
@@ -5516,7 +5530,7 @@ suite('conversation lens dispose gate', () => {
 
 		showPostFailure(host, 'failed');
 
-		assert.strictEqual(host.postFailureVisible, true);
+		assert.strictEqual(host.composerModel.postFailureVisible, true);
 		assert.strictEqual(gateRow.hidden, false);
 		assert.strictEqual(gateLabel.textContent, conversationLensPostFailed);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
@@ -5527,9 +5541,8 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(gateLabel.textContent, conversationLensSessionBarTitleEmpty);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailed);
 		assert.ok(!/disconnected/i.test(gateLabel.textContent ?? ''));
-		if (host.sendFailureTimeout) {
-			clearTimeout(host.sendFailureTimeout);
-			host.sendFailureTimeout = undefined;
+		if (host.composerModel.sendFailureTimeout) {
+			clearTimeout(host.composerModel.sendFailureTimeout);
 		}
 	});
 
@@ -5539,6 +5552,7 @@ suite('conversation lens dispose gate', () => {
 		const gateLabel = document.createElement('span');
 		gateRow.appendChild(gateLabel);
 		const host = {
+			composerModel: createTestComposerModel(suiteStore),
 			postFailureVisible: false,
 			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
 			gateRow,
@@ -5547,15 +5561,14 @@ suite('conversation lens dispose gate', () => {
 
 		showPostFailure(host, 'delivery_unknown');
 
-		assert.strictEqual(host.postFailureVisible, true);
+		assert.strictEqual(host.composerModel.postFailureVisible, true);
 		assert.strictEqual(gateRow.hidden, false);
 		assert.strictEqual(gateLabel.textContent, conversationLensPostFailedDeliveryUnknown);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedNoSession);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailed);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
-		if (host.sendFailureTimeout) {
-			clearTimeout(host.sendFailureTimeout);
-			host.sendFailureTimeout = undefined;
+		if (host.composerModel.sendFailureTimeout) {
+			clearTimeout(host.composerModel.sendFailureTimeout);
 		}
 	});
 });

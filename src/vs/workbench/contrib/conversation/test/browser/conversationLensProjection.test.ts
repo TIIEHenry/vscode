@@ -5,13 +5,14 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { applySessionViewTimeline, CONVERSATION_LENS_ID_STORAGE_KEY, conversationLensIdStorageKey, isPreFirst, loadLensId, storeLensId, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 
 suite('ConversationLensProjection', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('applySessionViewTimeline skips projection when sessionViewLease sessionId differs from bound session', () => {
 		let applyEntries = 0;
@@ -21,6 +22,7 @@ suite('ConversationLensProjection', () => {
 		const readingColumn = document.createElement('div');
 		readingColumn.appendChild(banner);
 		const host = {
+			composerModel: createTestComposerModel(store),
 			isDisposed: false,
 			lensId: 'conversation' as const,
 			filterAgentId: undefined,

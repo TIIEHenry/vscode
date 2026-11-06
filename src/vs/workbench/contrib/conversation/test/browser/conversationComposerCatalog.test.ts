@@ -7,6 +7,7 @@ import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
@@ -43,9 +44,11 @@ async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => voi
 	}
 }
 
+let moduleStore: Pick<DisposableStore, 'add'>;
+
 suite('conversationComposerCatalog', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = moduleStore = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('disconnected Agent options are No agent only', () => {
 		assert.deepStrictEqual([...COMPOSER_AGENT_OPTIONS], [conversationLensDockNoAgent]);
@@ -999,6 +1002,7 @@ suite('conversationComposerCatalog', () => {
 		let pairingPending = false;
 		let sessionReady = true;
 		const host = {
+			composerModel: createTestComposerModel(store),
 			postFailureVisible: false,
 			sendFailureTimeout: undefined,
 			gateRow,
@@ -1247,6 +1251,7 @@ suite('conversationComposerCatalog', () => {
 		]);
 
 		const host = {
+			composerModel: createTestComposerModel(store),
 			catalogToolNames: ['bash', 'read'],
 			catalogModelIds: ['', 'gpt-test'],
 			modelSelectedIndex: 0,
@@ -1327,7 +1332,7 @@ suite('conversationComposerCatalog', () => {
 
 			// 4. Toggle tune view is a no-op when session is unavailable
 			toggleTuneContextView(host);
-			assert.strictEqual(host.tuneContextView, undefined, 'toggleTuneContextView must be blocked');
+			assert.strictEqual(host.composerModel.tuneContextView, undefined, 'toggleTuneContextView must be blocked');
 
 			// 5. Restore readiness: gate hides and controls re-enable
 			engineSessionReady = true;
@@ -1403,6 +1408,7 @@ function createSubmitDraftHost(
 	const engineSessionReady = options?.engineSessionReady ?? true;
 	const pairingPending = options?.pairingPending ?? false;
 	return {
+		composerModel: createTestComposerModel(moduleStore),
 		composerPolicy: 'compose',
 		submitInFlight: false,
 		filterAgentId: undefined,
@@ -1477,6 +1483,7 @@ function createLoadCatalogHost(
 	};
 	const sendButton = { enabled: true };
 	const host = {
+		composerModel: createTestComposerModel(moduleStore),
 		composerCatalogGeneration: 1,
 		catalogToolNames: [] as string[],
 		catalogModelIds: [''] as string[],

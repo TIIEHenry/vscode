@@ -13,6 +13,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
 import { IComposerAtHost, noteComposerAtInput, onComposerAtKeyDown, wireComposerAt } from '../../browser/conversationComposerAt.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 
 suite('Conversation composer @ (browser)', () => {
 
@@ -40,6 +41,7 @@ suite('Conversation composer @ (browser)', () => {
 		} as unknown as IConversationSessionChatService);
 		const textarea = document.createElement('textarea');
 		const host = {
+			composerModel: createTestComposerModel(store),
 			composerRefRow: document.createElement('div'),
 			composerAtSuggest: document.createElement('div'),
 			composerRefResources: [],

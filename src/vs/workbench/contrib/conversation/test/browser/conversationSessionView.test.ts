@@ -7,6 +7,7 @@ import assert from 'assert';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { overlayAttributionKey, type ConversationViewFrameApplied, type ConversationWriteMessage, type ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { DetailRef, OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId, TimelineItemView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { findFirstPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
@@ -1478,6 +1479,7 @@ suite('conversationSessionView (S1)', () => {
 	test('submitDraft from a filtered lens posts that agent id', async () => {
 		const posted: ConversationWriteMessage[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store),
 			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: 'agent-sub',

@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
@@ -72,6 +73,7 @@ suite('conversationLensComposer', () => {
 		const boundSessionId = { current: 'sess-A' };
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
+			composerModel: createTestComposerModel(disposables),
 			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: undefined,
@@ -130,6 +132,7 @@ suite('conversationLensComposer', () => {
 		};
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
+			composerModel: createTestComposerModel(disposables),
 			composerPolicy: 'compose' as const,
 			submitInFlight: false,
 			filterAgentId: undefined,
@@ -215,7 +218,7 @@ suite('conversationLensComposer', () => {
 			dockRoot,
 			prefirstHero,
 			dockTextarea: textarea,
-			composerPolicy: 'compose',
+			composerModel: { policy: 'compose' },
 			inputMaximized: false,
 			lastReadingWidth: 500,
 			composerRefResources: [],
@@ -282,12 +285,12 @@ suite('conversationLensComposer', () => {
 		assert.strictEqual(isComposerSingleLine(hostMaximized), false);
 
 		const { host: hostTurnEdit } = createSingleLineTestHost({
-			composerPolicy: 'turnEdit',
+			composerModel: { policy: 'turnEdit' },
 		});
 		assert.strictEqual(isComposerSingleLine(hostTurnEdit), false);
 
 		const { host: hostQueueEdit } = createSingleLineTestHost({
-			composerPolicy: 'queueEdit',
+			composerModel: { policy: 'queueEdit' },
 		});
 		assert.strictEqual(isComposerSingleLine(hostQueueEdit), false);
 	});

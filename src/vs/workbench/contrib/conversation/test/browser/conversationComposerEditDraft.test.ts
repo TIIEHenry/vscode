@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
 import { cancelQueueEdit, exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { saveQueueEdit, saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
@@ -16,7 +17,7 @@ import { deleteActiveSession, type IConversationLensSessionBarHost } from '../..
 
 suite('ConversationComposerEditDraft', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function deleteHost(options: {
 		composerPolicy: IConversationLensSessionBarHost['composerPolicy'];
@@ -31,6 +32,7 @@ suite('ConversationComposerEditDraft', () => {
 		const drafts = new Map<string, string>();
 		const written: string[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: options.composerPolicy, composeDraftSnapshot: options.composeDraftSnapshot }),
 			isDisposed: false,
 			composerPolicy: options.composerPolicy,
 			composeDraftSnapshot: options.composeDraftSnapshot,
@@ -91,6 +93,7 @@ suite('ConversationComposerEditDraft', () => {
 		const sendButton = { enabled: false };
 		const engineConnected = options.engineConnected ?? false;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: options.composerPolicy }),
 			composerPolicy: options.composerPolicy,
 			inputHistoryBrowse: createInputHistoryBrowseState(),
 			dockTextarea: textarea,
@@ -231,7 +234,7 @@ suite('ConversationComposerEditDraft', () => {
 		textarea.selectionEnd = textarea.selectionStart;
 		assert.strictEqual(navigateInputHistory(host, 'older'), false);
 		assert.strictEqual(textarea.value, 'newer\nstill newer');
-		assert.strictEqual(host.inputHistoryBrowse.browseIndex, 0);
+		assert.strictEqual(host.composerModel.inputHistoryBrowse.browseIndex, 0);
 
 		textarea.selectionStart = 0;
 		textarea.selectionEnd = 0;
@@ -261,12 +264,13 @@ suite('ConversationComposerEditDraft', () => {
 
 		assert.strictEqual(navigateInputHistory(host, 'older'), false);
 		assert.strictEqual(textarea.value, '\n\n');
-		assert.strictEqual(host.inputHistoryBrowse.browseIndex, -1);
+		assert.strictEqual(host.composerModel.inputHistoryBrowse.browseIndex, -1);
 	});
 
 	function editHost(turns: readonly { id: string; kind: string; text: string; turnId?: string; agentId?: string; streaming?: boolean }[]): { host: IConversationLensComposerHost; written: { sessionId: string; turnId: string; text: string; agentId?: string }[] } {
 		const written: { sessionId: string; turnId: string; text: string; agentId?: string }[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'e1',
 			dockTextarea: { value: 'revised later' },
@@ -344,6 +348,7 @@ suite('ConversationComposerEditDraft', () => {
 		const written: { text: string }[] = [];
 		let exited = 0;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'e1',
 			dockTextarea: textarea,
@@ -386,6 +391,7 @@ suite('ConversationComposerEditDraft', () => {
 	test('turnEdit send stays disabled when the edited user turn is gone', () => {
 		const sendButton = { enabled: true };
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'e1',
 			dockTextarea: { value: 'edited body' },
@@ -413,6 +419,7 @@ suite('ConversationComposerEditDraft', () => {
 		const composerRefResources: string[] = [];
 		const sendButton = { enabled: true };
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'e1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'e1',
 			dockTextarea: textarea,
@@ -448,6 +455,7 @@ suite('ConversationComposerEditDraft', () => {
 		const written: string[] = [];
 		let exited = 0;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'hello' },
 			getBoundSessionId: () => 'sess-1',
@@ -494,6 +502,7 @@ suite('ConversationComposerEditDraft', () => {
 		const written: { text: string }[] = [];
 		let exited = 0;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: textarea,
 			composerRefResources,
@@ -541,6 +550,7 @@ suite('ConversationComposerEditDraft', () => {
 		let released = 0;
 		const failures: string[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
@@ -561,19 +571,20 @@ suite('ConversationComposerEditDraft', () => {
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(released, 0);
 		assert.deepStrictEqual(failures, []);
-		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, 'q1');
+		assert.strictEqual(host.composerModel.queueEditSettlementItemId, 'q1');
 
 		settle(false);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(released, 0);
 		assert.deepStrictEqual(failures, ['failed']);
-		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, undefined);
+		assert.strictEqual(host.composerModel.queueEditSettlementItemId, undefined);
 	});
 
 	test('cancelQueueEdit during an in-flight edit does not release the hold', () => {
 		let released = 0;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1', queueEditSettlementItemId: 'q1' }),
 			composerPolicy: 'queueEdit' as const,
 			editingQueueItemId: 'q1',
 			queueEditSettlementItemId: 'q1',
@@ -596,7 +607,7 @@ suite('ConversationComposerEditDraft', () => {
 		};
 		cancelQueueEdit(host as unknown as IConversationLensComposerChromeHost);
 		assert.strictEqual(released, 0);
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(host.dockTextarea.value, 'edited');
 	});
 
@@ -608,6 +619,7 @@ suite('ConversationComposerEditDraft', () => {
 		const textarea = document.createElement('textarea');
 		textarea.value = 'keep me';
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit' as const,
 			editingQueueItemId: 'q1',
 			dockTextarea: textarea,
@@ -634,7 +646,7 @@ suite('ConversationComposerEditDraft', () => {
 		};
 		cancelQueueEdit(host as unknown as IConversationLensComposerChromeHost);
 		assert.strictEqual(released, 0);
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(textarea.value, 'keep me');
 		assert.ok(gateRow.classList.contains('is-error'));
 	});
@@ -654,6 +666,7 @@ suite('ConversationComposerEditDraft', () => {
 		const textarea = document.createElement('textarea');
 		textarea.value = 'edited';
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1', composeDraftSnapshot: 'compose draft' }),
 			composerPolicy: 'queueEdit' as const,
 			editingQueueItemId: 'q1',
 			editingTurnId: undefined as string | undefined,
@@ -698,11 +711,11 @@ suite('ConversationComposerEditDraft', () => {
 		};
 		cancelQueueEdit(host as unknown as IConversationLensComposerChromeHost);
 		assert.strictEqual(releaseCalls, 1);
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(textarea.value, 'edited');
 		settle(false);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 		assert.strictEqual(textarea.value, 'edited');
 	});
 
@@ -715,6 +728,7 @@ suite('ConversationComposerEditDraft', () => {
 		let exited = 0;
 		let released = 0;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
@@ -751,6 +765,7 @@ suite('ConversationComposerEditDraft', () => {
 		let released = 0;
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
 			composerPolicy: 'queueEdit' as const,
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
@@ -783,7 +798,7 @@ suite('ConversationComposerEditDraft', () => {
 		assert.deepStrictEqual(failures, ['delivery_unknown']);
 		assert.strictEqual(released, 0);
 		assert.strictEqual(exited, 0);
-		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.composerModel.policy, 'queueEdit');
 	});
 
 	test('queueEdit send stays disabled until the loaded payload changes', () => {
@@ -793,6 +808,7 @@ suite('ConversationComposerEditDraft', () => {
 		const composerRefResources: string[] = [];
 		const sendButton = { enabled: true };
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			composerPolicy: 'queueEdit' as const,
 			editingQueueItemId: 'q1',
 			dockTextarea: textarea,

@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { Event } from '../../../../../base/common/event.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -81,6 +82,7 @@ suite('ConversationSessionReadinessSurface', () => {
 			dockRoot.remove();
 		}));
 		const host = {
+			composerModel: createTestComposerModel(store),
 			isDisposed: false,
 			composerPolicy: 'compose',
 			conversationPhase: 'active',

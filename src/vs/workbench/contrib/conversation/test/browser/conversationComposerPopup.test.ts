@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { IContextViewDelegate, IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
 import { toggleComposerAddContext } from '../../browser/conversationComposerAt.js';
 import { IConversationLensComposerChromeHost, toggleMoreContextView, toggleTuneContextView } from '../../browser/conversationLensComposerChrome.js';
@@ -40,6 +41,7 @@ suite('Conversation composer popup dismissal', () => {
 			},
 		} as unknown as IContextViewService;
 		const host = {
+			composerModel: createTestComposerModel(disposables),
 			contextViewService,
 			addButton: { element: add }, moreButton: { element: more }, tuneButton: { element: tune },
 			dockTextarea: textarea,

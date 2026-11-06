@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationTurnContentAdapter } from '../../browser/conversationTurnContentAdapter.js';
@@ -51,6 +52,7 @@ suite('Conversation composer @ chips', () => {
 		const composerRefResources = [...refs];
 		const drafts = new Map<string, string>();
 		const base = {
+			composerModel: createTestComposerModel(store),
 			dockTextarea: textarea,
 			composerRefResources,
 			drafts,
@@ -123,6 +125,7 @@ suite('Conversation composer @ chips', () => {
 		const editing = composerSurface('  hello  ', [line]);
 		saveTurnEdit({
 			...editing.base,
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'u1' }),
 			composerPolicy: 'turnEdit',
 			editingTurnId: 'u1',
 			stubService: {
@@ -141,6 +144,7 @@ suite('Conversation composer @ chips', () => {
 		const queueEdit = composerSurface('  hello  ', [line]);
 		saveQueueEdit({
 			...queueEdit.base,
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
 			composerPolicy: 'queueEdit',
 			getEditingQueueItem: () => ({ id: 'q1', content: 'old' }),
 			stubService: {

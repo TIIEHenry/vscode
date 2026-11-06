@@ -8,6 +8,7 @@ import { Event } from '../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { IDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
@@ -41,6 +42,7 @@ suite('Conversation composer @ suggest', () => {
 		const textarea = document.createElement('textarea');
 		textarea.setAttribute('aria-label', 'Message');
 		const host = {
+			composerModel: createTestComposerModel(store),
 			composerRefRow: document.createElement('div'),
 			composerAtSuggest: document.createElement('div'),
 			composerRefResources: [],

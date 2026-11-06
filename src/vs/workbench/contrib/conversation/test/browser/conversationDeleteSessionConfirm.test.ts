@@ -9,6 +9,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import type { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from '../../browser/conversationDeleteSessionConfirm.js';
 import { deleteActiveSession, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
@@ -59,6 +60,7 @@ suite('ConversationDeleteSessionConfirm', () => {
 		let confirms = 0;
 		const connected = options?.connected ?? true;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', composeDraftSnapshot: 'draft' }),
 			isDisposed: false,
 			composerPolicy: 'turnEdit',
 			composeDraftSnapshot: 'draft',

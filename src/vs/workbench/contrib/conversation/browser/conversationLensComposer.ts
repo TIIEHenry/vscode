@@ -36,8 +36,10 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { ensureSessionModelProfileIds, isComposerStreaming, isSessionSwitchAgentAvailable, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, turnEditLoadedPayload } from './conversationComposerRefs.js';
+import type { ConversationComposerModel } from './conversationComposerModel.js';
 
 export interface IConversationLensComposerHost {
+	readonly composerModel: ConversationComposerModel;
 	filterAgentId: string | undefined;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight: boolean;
@@ -388,11 +390,11 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		if (host.submitInFlight || isComposerStreaming(host)) {
 			return;
 		}
-		if (host.composerPolicy === 'turnEdit') {
+		if (host.composerModel.policy === 'turnEdit') {
 			saveTurnEdit(host);
 			return;
 		}
-		if (host.composerPolicy === 'queueEdit') {
+		if (host.composerModel.policy === 'queueEdit') {
 			saveQueueEdit(host);
 			return;
 		}
@@ -477,7 +479,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 export function saveTurnEdit(host: IConversationLensComposerHost): void {
 
 		const text = composerSubmitText(host);
-		if (!text || !host.editingTurnId) {
+		if (!text || !host.composerModel.editingTurnId) {
 			return;
 		}
 		if (rejectPairingHoldWrite(host)) {
@@ -487,7 +489,7 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
-		const editingTurnId = host.editingTurnId;
+		const editingTurnId = host.composerModel.editingTurnId;
 		const turn = host.stubService.getTurns(sessionId).find(t => t.id === editingTurnId && t.kind === 'user');
 		const loaded = turn ? turnEditLoadedPayload(turn.text) : undefined;
 		// Same payload the card loaded is not an edit. EditMessage would rerun the turn.
@@ -534,7 +536,7 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const itemId = item.id;
-		if (host.queueEditSettlementItemId === itemId) {
+		if (host.composerModel.queueEditSettlementItemId === itemId) {
 			return;
 		}
 		const publishedLink = capturePublishedEngineLink(host);
@@ -545,11 +547,11 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 			return;
 		}
 		const clearChain = (): void => {
-			if (host.queueEditSettlementItemId === itemId) {
-				host.queueEditSettlementItemId = undefined;
+			if (host.composerModel.queueEditSettlementItemId === itemId) {
+				host.composerModel.setQueueEditSettlementItemId(undefined);
 			}
 		};
-		host.queueEditSettlementItemId = itemId;
+		host.composerModel.setQueueEditSettlementItemId(itemId);
 		const finalize = (): void => {
 			clearChain();
 			host.exitComposerEdit(true, false);
@@ -672,7 +674,7 @@ export function writeComposerDraft(host: IConversationLensComposerHost, sessionI
 
 export function restoreComposerDraftToInput(host: IConversationLensComposerHost): void {
 
-		if (!host.dockTextarea || host.composerPolicy !== 'compose') {
+		if (!host.dockTextarea || host.composerModel.policy !== 'compose') {
 			return;
 		}
 		applyComposerSurfaceText(host, readComposerDraft(host, host.getBoundSessionId()));

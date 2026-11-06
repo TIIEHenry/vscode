@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import {
 	conversationLensDockAgentUnavailable,
 	conversationLensDockEngineCapabilityUnsupported,
@@ -22,7 +23,7 @@ import { conversationLensDockEditingMessage, conversationLensDockSessionLoading,
 
 suite('ConversationLensComposerChrome', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function flushAnimationFrames(): Promise<void> {
 		return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -39,6 +40,7 @@ suite('ConversationLensComposerChrome', () => {
 
 		let editHostReady = false;
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'turn-1',
 			composer,
@@ -73,6 +75,7 @@ suite('ConversationLensComposerChrome', () => {
 		gateRow.append(gateLabel);
 		let sessionReady = false;
 		const host = {
+			composerModel: createTestComposerModel(store),
 			postFailureVisible: false,
 			gateRow,
 			gateLabel,
@@ -113,6 +116,7 @@ suite('ConversationLensComposerChrome', () => {
 		gateLabel.className = 'conversation-lens-dock-gate-label';
 		gateRow.append(gateLabel);
 		const host = {
+			composerModel: createTestComposerModel(store),
 			postFailureVisible: false,
 			gateRow,
 			gateLabel,
@@ -156,6 +160,7 @@ suite('ConversationLensComposerChrome', () => {
 		let pairing = false;
 		let readiness: 'ready' | 'loading' | 'unavailable' = 'ready';
 		const host = {
+			composerModel: createTestComposerModel(store),
 			postFailureVisible: false,
 			dockRoot,
 			agentContainer,
@@ -226,6 +231,7 @@ suite('ConversationLensComposerChrome', () => {
 		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
 
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'turn-1',
 			composer,
@@ -269,6 +275,7 @@ suite('ConversationLensComposerChrome', () => {
 		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
 
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'turn-1',
 			composer,
@@ -310,6 +317,7 @@ suite('ConversationLensComposerChrome', () => {
 		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
 
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-gone' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'turn-gone',
 			composer,
@@ -360,6 +368,7 @@ suite('ConversationLensComposerChrome', () => {
 		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
 
 		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'turnEdit', editingTurnId: 'turn-1' }),
 			composerPolicy: 'turnEdit' as const,
 			editingTurnId: 'turn-1',
 			composer,
