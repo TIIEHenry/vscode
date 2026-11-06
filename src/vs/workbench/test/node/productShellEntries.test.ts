@@ -24,14 +24,21 @@ function importIndex(source: string, specifier: string): number {
  * the settings contributions, but only the default window loads the conversation
  * contribution. Product shell pieces both windows need hang off `productShell.contribution.ts`,
  * which both entries must import after the theme service.
+ *
+ * What those modules register is asserted by importing them (`productShellTheme.test.ts`,
+ * `productWindowProfileRegistration.test.ts`). Only the import edges of the two window
+ * entries stay a source scan: importing an entry evaluates the whole workbench into the
+ * registries every suite in the runner process shares, both entries cannot be evaluated
+ * in one process without registering the same contributions twice, and the Node runner
+ * cannot load the CSS the entries pull in.
  */
 suite('Product shell module is loaded by both window entries', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	const entries = [
-		{ label: 'default window', rel: 'src/vs/workbench/workbench.common.main.ts', themeService: './services/themes/browser/workbenchThemeService.js', productShell: './browser/productShell.contribution.js' },
-		{ label: 'Agents window', rel: 'src/vs/sessions/sessions.common.main.ts', themeService: '../workbench/services/themes/browser/workbenchThemeService.js', productShell: '../workbench/browser/productShell.contribution.js' },
+		{ label: 'default window', rel: 'src/vs/workbench/workbench.common.main.ts', themeService: './services/themes/browser/workbenchThemeService.js', productShell: './browser/productShell.contribution.js', preferences: './contrib/preferences/browser/preferences.contribution.js' },
+		{ label: 'Agents window', rel: 'src/vs/sessions/sessions.common.main.ts', themeService: '../workbench/services/themes/browser/workbenchThemeService.js', productShell: '../workbench/browser/productShell.contribution.js', preferences: '../workbench/contrib/preferences/browser/preferences.contribution.js' },
 	];
 
 	for (const entry of entries) {
@@ -42,35 +49,13 @@ suite('Product shell module is loaded by both window entries', () => {
 			assert.ok(themeIndex >= 0, 'theme service import');
 			assert.ok(productShellIndex > themeIndex, 'product shell import comes after the theme service import');
 		});
+
+		test(`${entry.label} loads the window profile registration through preferences.contribution`, () => {
+			assert.ok(importIndex(readRepoFile(entry.rel), entry.preferences) >= 0, `${entry.rel} loads preferences.contribution`);
+		});
 	}
 
-	test('the product style sheets come from the module, not from style.ts', () => {
-		const style = readRepoFile('src/vs/workbench/browser/style.ts');
-		assert.ok(!style.includes('productAccessibility.css'));
-		assert.ok(!style.includes('ua-common.css'));
-
-		const productShell = readRepoFile('src/vs/workbench/browser/productShell.contribution.ts');
-		assert.ok(productShell.includes(`import './productShell/media/productAccessibility.css';`));
-		assert.ok(productShell.includes(`import './parts/conversation/media/ua-common.css';`));
-		assert.ok(fs.existsSync(path.join(repoRoot, 'src/vs/workbench/browser/productShell/media/productAccessibility.css')));
-	});
-
-	test('the module is not hung off the conversation contribution, which the Agents window does not load', () => {
-		const conversation = readRepoFile('src/vs/workbench/contrib/conversation/browser/conversation.contribution.ts');
-		assert.ok(!conversation.includes('productShell.contribution'));
-	});
-
-	test('the window profile is registered where both entries load it, not on the conversation contribution', () => {
-		for (const entry of [
-			{ rel: 'src/vs/workbench/workbench.common.main.ts', preferences: './contrib/preferences/browser/preferences.contribution.js' },
-			{ rel: 'src/vs/sessions/sessions.common.main.ts', preferences: '../workbench/contrib/preferences/browser/preferences.contribution.js' },
-		]) {
-			assert.ok(importIndex(readRepoFile(entry.rel), entry.preferences) >= 0, `${entry.rel} loads preferences.contribution`);
-		}
-		const preferences = readRepoFile('src/vs/workbench/contrib/preferences/browser/preferences.contribution.ts');
-		assert.ok(preferences.includes(`import './productWindowProfile.contribution.js';`));
-		const registration = readRepoFile('src/vs/workbench/contrib/preferences/browser/productWindowProfile.contribution.ts');
-		assert.ok(registration.includes('registerSingleton(IProductWindowProfile, ProductWindowProfile'));
-		assert.ok(!readRepoFile('src/vs/workbench/contrib/conversation/browser/uaClientSettings.contribution.ts').includes('IProductWindowProfile'));
+	test('preferences.contribution imports the window profile registration', () => {
+		assert.ok(importIndex(readRepoFile('src/vs/workbench/contrib/preferences/browser/preferences.contribution.ts'), './productWindowProfile.contribution.js') >= 0);
 	});
 });
