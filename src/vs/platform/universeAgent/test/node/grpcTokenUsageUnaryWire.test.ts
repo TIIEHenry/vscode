@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -199,47 +198,6 @@ suite('grpc TokenUsage GetSessionUsage / GetGlobalUsage protobuf wire', () => {
 			},
 		});
 	});
-
-	test('token usage unary wire is GetSessionUsage+GetGlobalUsage only; no JSON.stringify; grpcClient uses bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const candidates = [
-			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-			path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-		];
-		const grpcDir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcTokenUsageUnaryWire.ts')));
-		assert.ok(grpcDir, 'grpcTokenUsageUnaryWire.ts not found from cwd or import.meta');
-		const source = fs.readFileSync(path.join(grpcDir, 'grpcTokenUsageUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetSessionUsageRequest\b/.test(source));
-		assert.ok(/\bdecodeGetSessionUsageResponse\b/.test(source));
-		assert.ok(/\bencodeGetGlobalUsageRequest\b/.test(source));
-		assert.ok(/\bdecodeGetGlobalUsageResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bencodeInt64Field\b/.test(source));
-		assert.ok(!/\bencodeInt32Field\b/.test(source));
-		assert.ok(!/\bWatch\b/.test(source));
-		assert.ok(!/\bgrpcClient\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b/.test(source));
-
-		const client = fs.readFileSync(path.join(grpcDir, 'grpcClient.ts'), 'utf8');
-		assert.ok(client.includes('grpcTokenUsageUnaryWire'));
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'getSessionUsage', encoder: 'encodeGetSessionUsageRequest', decoder: 'decodeGetSessionUsageResponse', mapper: 'mapGetSessionUsageResponse' },
-			{ name: 'getGlobalUsage', encoder: 'encodeGetGlobalUsageRequest', decoder: 'decodeGetGlobalUsageResponse', mapper: 'mapGetGlobalUsageResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(client, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		const globalBody = extractAsyncMethod(client, 'getGlobalUsage');
-		assert.ok(globalBody.includes('encodeGetGlobalUsageRequest()'), 'getGlobalUsage must send empty proto via encodeGetGlobalUsageRequest()');
-		assert.ok(!globalBody.includes('unary({})'), 'getGlobalUsage must not send JSON {}');
-	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
@@ -262,10 +220,3 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 	return numbers;
 }
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}

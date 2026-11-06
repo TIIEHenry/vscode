@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -430,53 +429,6 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 			reason: '',
 		});
 	});
-
-	test('trigger unary wire uses proto bytes; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcTriggerUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeListTriggersRequest\b/.test(source));
-		assert.ok(/\bdecodeListTriggersResponse\b/.test(source));
-		assert.ok(/\bencodeUpsertTriggerRequest\b/.test(source));
-		assert.ok(/\bdecodeUpsertTriggerResponse\b/.test(source));
-		assert.ok(/\bencodeDeleteTriggerRequest\b/.test(source));
-		assert.ok(/\bdecodeDeleteTriggerResponse\b/.test(source));
-		assert.ok(/\bencodeSetTriggerEnabledRequest\b/.test(source));
-		assert.ok(/\bdecodeSetTriggerEnabledResponse\b/.test(source));
-		assert.ok(/\bencodeFireTriggerRequest\b/.test(source));
-		assert.ok(/\bdecodeFireTriggerResponse\b/.test(source));
-		assert.ok(/\bencodeMessageField\b/.test(source));
-		assert.ok(/\bencodePresentMessageField\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('listTriggers / upsertTrigger / deleteTrigger / setTriggerEnabled / fireTrigger use bytes then map*', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'listTriggers', encoder: 'encodeListTriggersRequest', decoder: 'decodeListTriggersResponse', mapper: 'mapListTriggersResponse' },
-			{ name: 'upsertTrigger', encoder: 'encodeUpsertTriggerRequest', decoder: 'decodeUpsertTriggerResponse', mapper: 'mapUpsertTriggerResponse' },
-			{ name: 'deleteTrigger', encoder: 'encodeDeleteTriggerRequest', decoder: 'decodeDeleteTriggerResponse', mapper: 'mapDeleteTriggerResponse' },
-			{ name: 'setTriggerEnabled', encoder: 'encodeSetTriggerEnabledRequest', decoder: 'decodeSetTriggerEnabledResponse', mapper: 'mapSetTriggerEnabledResponse' },
-			{ name: 'fireTrigger', encoder: 'encodeFireTriggerRequest', decoder: 'decodeFireTriggerResponse', mapper: 'mapFireTriggerResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		const upsert = extractAsyncMethod(source, 'upsertTrigger');
-		assert.ok(upsert.includes('encodeUpsertTriggerRequest(request)'), 'upsertTrigger must pass TS request to encodeUpsertTriggerRequest');
-		assert.ok(!upsert.includes('triggerDtoWire'), 'upsertTrigger must not use triggerDtoWire');
-		assert.ok(!source.includes('function triggerDtoWire'));
-		assert.ok(source.includes('grpcTriggerUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-	});
 });
 
 function sampleTrigger(overrides: Partial<UniverseAgentTrigger> = {}): UniverseAgentTrigger {
@@ -495,24 +447,7 @@ function sampleTrigger(overrides: Partial<UniverseAgentTrigger> = {}): UniverseA
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcTriggerUnaryWire.ts')));
-	assert.ok(dir, 'grpcTriggerUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

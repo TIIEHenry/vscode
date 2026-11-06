@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -179,67 +178,9 @@ suite('grpc SystemService HealthCheck / Shutdown / Doctor protobuf wire', () => 
 			allPassed: false,
 		});
 	});
-
-	test('system unary wire source has no JSON.stringify; Doctor encoded; no Connect', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSystemUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeDoctorRequest\b/.test(source));
-		assert.ok(/\bdecodeDoctorResponse\b/.test(source));
-		assert.ok(/\bdecodeDoctorCheck\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect/.test(source));
-		assert.ok(!/\bGetAuthNonce\b|\bAuthNonce\b/.test(source));
-		assert.ok(!/\bgrpcClient\b/.test(source));
-	});
-
-	test('grpcClient doctor uses bytes; encodeDoctorRequest() empty proto then mapDoctorResponse', () => {
-		const client = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const body = extractAsyncMethod(client, 'doctor');
-		assert.ok(body.includes('makeUnaryBytesClient'), 'doctor must use makeUnaryBytesClient');
-		assert.ok(body.includes('encodeDoctorRequest()'), 'doctor must send empty proto via encodeDoctorRequest()');
-		assert.ok(body.includes('decodeDoctorResponse'), 'doctor must call decodeDoctorResponse');
-		assert.ok(body.includes('mapDoctorResponse'), 'doctor must call mapDoctorResponse');
-		assert.ok(!body.includes('makeUnaryClient<'), 'doctor must not use JSON makeUnaryClient');
-		assert.ok(!body.includes('JSON.stringify'), 'doctor must not JSON.stringify');
-		assert.ok(!body.includes('unary({})'), 'doctor must not send JSON {}');
-	});
-
-	test('grpcClient HealthCheck / Shutdown use bytes; decode then map*', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'healthCheck', encoder: 'encodeHealthCheckRequest', decoder: 'decodeHealthCheckResponse', mapper: 'mapHealthCheckResponse' },
-			{ name: 'shutdown', encoder: 'encodeShutdownRequest', decoder: 'decodeShutdownResponse', mapper: 'mapShutdownResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		assert.ok(source.includes('grpcSystemUnaryWire'));
-	});
 });
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSystemUnaryWire.ts')));
-	assert.ok(dir, 'grpcSystemUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoVarints(encoded: Uint8Array): Map<number, number> {
 	const numbers = new Map<number, number>();

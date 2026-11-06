@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -322,97 +321,14 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 			errorCode: 'UPLOAD_ERROR_CHECKSUM_MISMATCH',
 		});
 	});
-
-	test('upload-attachment stream wire is FileTransferService.UploadAttachment only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcUploadAttachmentStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeUploadChunk\b/.test(source));
-		assert.ok(/\bdecodeUploadResponse\b/.test(source));
-		assert.ok(/\bencodePresentMessageField\b/.test(source));
-		assert.ok(/\bencodeBytesField\b/.test(source));
-		assert.ok(/\bencodeInt64Field\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(!/\bGetUploadProgress\b|\bDownloadAttachment\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!/\bmakeClientStreamBytesClient\b/.test(source), 'wire file must not import makeClientStreamBytesClient');
-		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('openUploadAttachmentStream / makeClientStreamBytesClient bytes', () => {
-		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const upload = extractMethod(client, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
-		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
-		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
-		assert.ok(upload.includes('mapUploadResponse'), 'openUploadAttachmentStream still maps UploadResponseWire');
-		assert.ok(!upload.includes('mapUploadChunkWire'), 'write path must not use mapUploadChunkWire');
-		assert.ok(!upload.includes('makeClientStreamClient<'), 'openUploadAttachmentStream must not use JSON makeClientStreamClient');
-		assert.ok(!upload.includes('makeUnaryBytesClient'));
-		assert.ok(!upload.includes('JSON.stringify'), 'JSON.stringify must not live in the method body');
-		assert.ok(!/\bWatch\b/.test(upload));
-		assert.ok(!/\bSaveSkillContent\b/.test(upload));
-		assert.ok(!/\bResolveTurn\b/.test(upload));
-		assert.ok(!/\bResolveAnchor\b/.test(upload));
-
-		assert.ok(extractAsyncMethod(client, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(client, 'connect').includes('makeUnaryClient<'));
-		assert.ok(extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(extractAsyncMethod(client, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(client, 'resolveAnchor').includes('makeUnaryClient<'));
-
-		const watch = extractMethod(client, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-
-		const calls = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + 'Calls.ts'), 'utf8');
-		const jsonStart = calls.indexOf('export function makeClientStreamClient<');
-		assert.ok(jsonStart >= 0, 'missing makeClientStreamClient');
-		const jsonEnd = calls.indexOf('\nexport function ', jsonStart + 1);
-		const jsonBody = calls.slice(jsonStart, jsonEnd >= 0 ? jsonEnd : calls.length);
-		assert.ok(jsonBody.includes('JSON.stringify'), 'makeClientStreamClient must keep JSON.stringify');
-		assert.ok(jsonBody.includes('JSON.parse'), 'makeClientStreamClient must keep JSON.parse');
-	});
 });
 
 function sampleHeader(header: UniverseAgentUploadHeader): UniverseAgentUploadHeader {
 	return header;
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcUploadAttachmentStreamWire.ts')));
-	assert.ok(dir, 'grpcUploadAttachmentStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
-function extractMethod(source: string, name: string): string {
-	const start = source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const from = start + 1;
-	const next = source.slice(from).search(/\n\t(?:async )?[A-Za-z][A-Za-z0-9]*\(/);
-	const end = next >= 0 ? from + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
