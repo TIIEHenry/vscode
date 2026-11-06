@@ -29,7 +29,7 @@ import type {
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
-import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
+import { EngineCatalogSectionController, paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -208,6 +208,7 @@ export class EnginePluginsSection extends Disposable {
 	private writeFailedReason: string | undefined;
 	private lastWritePermissionDenied = false;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 	private linkNotice: string | undefined;
 	private enableInFlight = false;
 	private reloadInFlight = false;
@@ -222,6 +223,7 @@ export class EnginePluginsSection extends Disposable {
 	) {
 		super();
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 
 		this.container = DOM.append(parent, $('.engine-plugins-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -468,7 +470,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		return this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.hideCatalogWriteStatus();
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
@@ -487,12 +489,11 @@ export class EnginePluginsSection extends Disposable {
 			if (this.hasLeftoverHooks()) {
 				this.keepLeftoverHooksDisconnected();
 			}
-			return false;
-		}
-		this.clearCatalogPresentation();
-		this.mode = resolveEngineCatalogPaneMode(false, support);
-		this.renderStatus();
-		return false;
+		}, () => {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+		});
 	}
 
 	private closeLeftoverWriteChrome(): void {
