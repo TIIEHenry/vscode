@@ -77,6 +77,7 @@ import type {
 	RecentRequestSpanWire,
 	SessionUsageInfoWire,
 	SystemPromptPartInfoWire,
+	UsageResponseWire,
 } from './grpcUsageUnaryWire.js';
 
 export type {
@@ -92,6 +93,7 @@ export type {
 	RecentRequestSpanWire,
 	SessionUsageInfoWire,
 	SystemPromptPartInfoWire,
+	UsageResponseWire,
 } from './grpcUsageUnaryWire.js';
 
 export interface ConnectResponseWire {
@@ -429,16 +431,6 @@ export interface ResolveAnchorResponseWire {
 	hit?: AnchorHitWire;
 	tombstone?: AnchorTombstoneWire;
 	expired?: AnchorExpiredWire;
-}
-
-export interface UsageResponseWire {
-	total_input_tokens?: number;
-	total_output_tokens?: number;
-	total_turns?: number;
-	agent_usages?: AgentUsageWire[];
-	context_window?: ContextWindowInfoWire;
-	session_usage?: SessionUsageInfoWire;
-	recent_request_spans?: RecentRequestSpanWire[];
 }
 
 export interface HistoryEntryWire {
