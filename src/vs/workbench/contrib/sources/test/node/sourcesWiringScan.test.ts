@@ -743,9 +743,14 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(!readingColumn.includes('sourcesReview.contribution'));
 		assert.ok(readingColumn.includes('sources/common/sourcesReviewCommands'));
 		assert.ok(!finder.includes('contrib/sources'));
-		assert.ok(finder.includes('common/editor/conversationDiffReviewInput'));
-		assert.ok(finder.includes('conversationEditorRouting'));
+		// p2-1: the finder reads the fence through the `editorGroupRoute`
+		// registry; the Diff guard stays in `workbench/common/editor` and is
+		// consumed by the conversation routing module that registers the route.
+		assert.ok(!finder.includes('contrib/conversation'));
+		assert.ok(!finder.includes('conversationEditorRouting'));
+		assert.ok(finder.includes('editorGroupRoute'));
 		assert.ok(!routing.includes('contrib/sources'));
+		assert.ok(routing.includes('registerEditorGroupRoute'));
 		assert.ok(routing.includes('common/editor/conversationDiffReviewInput'));
 		assert.ok(navigation.includes('common/editor/conversationDiffReviewInput'));
 		assert.ok(!attribution.includes('export interface IFileMutationRecord'));
@@ -754,7 +759,8 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(!attributionService.includes('filterRecordsForResource'));
 		assert.ok(attributionService.includes('byPath.get'));
 		assert.ok(attributionService.includes('SOURCES_REVIEW_SESSION_MUTATION_LIMIT = 500'));
-		assert.ok(eslint.includes('conversationEditorRouting.js'));
+		assert.ok(!eslint.includes('conversationEditorRouting.js'));
+		assert.ok(!eslint.includes('conversationChatInput.js'));
 		assert.ok(!eslint.includes('conversationDiffReviewInput.js'));
 		assert.ok(guard.includes('input.typeId === ConversationDiffReviewInputTypeId'));
 		assert.ok(guard.includes('input.resource.scheme === ConversationDiffReviewInputScheme'));

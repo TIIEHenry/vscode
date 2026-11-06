@@ -35,7 +35,7 @@ import { IStatusbarService } from '../../../services/statusbar/browser/statusbar
 import { mainWindow } from '../../../../base/browser/window.js';
 import { IModalEditorPartOptions } from '../../../../platform/editor/common/editor.js';
 import { EditorPartModalVisibleContext } from '../../../common/contextkeys.js';
-import { ConversationChatInput, getDefaultConversationChatResource } from '../../../contrib/conversation/common/conversationChatInput.js';
+import { getEditorGroupRoute } from '../../../services/editor/common/editorGroupRoute.js';
 
 interface IEditorPartsUIState {
 	readonly auxiliary: IAuxiliaryEditorPartState[];
@@ -310,12 +310,13 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		});
 		this.setScopedInstantiationService(editorPart, scopedInstantiationService, disposables);
 
-		const defaultInput = disposables.add(this.instantiationService.createInstance(
-			ConversationChatInput,
-			getDefaultConversationChatResource(sessionKey),
-			{ isDefaultRoot: true },
-		));
-		void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);
+		// The conversation contribution supplies the default root through the
+		// route registry; without it the leaf starts empty.
+		const route = getEditorGroupRoute();
+		if (route) {
+			const defaultInput = disposables.add(route.createDefaultRoot(this.instantiationService, sessionKey));
+			void editorPart.activeGroup.openEditor(defaultInput).catch(onUnexpectedError);
+		}
 
 		this.conversationEditorParts.set(sessionKey, editorPart);
 		disposables.add(toDisposable(() => this.conversationEditorParts.delete(sessionKey)));

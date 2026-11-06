@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-06
 summary: "PRD-016 / ADR-002 的系统规格（2026-10-24 删除会话先确认）：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题；栏上新建 / 删除 / 改名禁用时写出原因"
 ---
 
@@ -57,7 +57,7 @@ CONVERSATION_PART
 
 - 资源：`conversation-chat:/session/<sessionKey>/chat/<chatId>`；`chatId === 'default'` 为根。TypeId `workbench.editors.conversationChatInput`。
 - 根 tab 实现 `IEditorCloseHandler`，用户关闭被拦；编辑器区「关掉延伸标签」调用 `closeNonRootTabs`，不 `closeGroup` 根组，也不关子代理对话框。
-- **围栏**（`common/conversationEditorRouting.ts`）：`isBlockedFromConversationGroup` 对 `ChatEditorInput`、任何非白名单的 `EditorInput`、scheme 不是 `conversation-chat` 的 untyped input 均返回 true；`editorGroupFinder` 把被拦 input 改落主 `EDITOR_PART` 活动组。因此文件 / untitled / Copilot Chat 以及**默认路径**下的 Diff 都在 Preview 打开。
+- **围栏**（`common/conversationEditorRouting.ts`）：`isBlockedFromConversationGroup` 对 `ChatEditorInput`、任何非白名单的 `EditorInput`、scheme 不是 `conversation-chat` 的 untyped input 均返回 true；`editorGroupFinder` 把被拦 input 改落主 `EDITOR_PART` 活动组。因此文件 / untitled / Copilot Chat 以及**默认路径**下的 Diff 都在 Preview 打开。核心不 import 这份 contrib：`conversationEditorRouting.ts` 在模块求值时 `registerEditorGroupRoute`（`services/editor/common/editorGroupRoute.ts`，`classify` 三态 `exclusive` / `foreign` / 未注册，另给 `isExtensionTab` 与 `createDefaultRoot`），`conversationEditor.contribution.ts` 带上该 import；finder、`EditorParts` 默认根与 `ConversationEditorPartImpl` 标签条都问这个注册点。未注册时 finder 不抛「必须点名 Conversation 组」、只靠「排除聚合 part 拨回主 Preview」保住文件围栏，叶不开默认根。
 - **已登记的例外**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) `accepted`，[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1 已落**）：围栏白名单第二类 — **只读 Diff 审阅 input**（`ConversationDiffReviewInput`），只经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`）进入 Conversation 组；**不**放开 tab 拖入（plan §2.6）。默认 `openEditor` / `ACTIVE_GROUP` / `SIDE_GROUP` 仍落 Preview。它是普通延伸 tab：可关、编辑器后退可关、「关掉延伸标签」一起关；`isConversationExtensionTab` 与 fork 延伸 tab 同姿态。
 
 ## 3. chat catalog：root / fork / tool / sideChat

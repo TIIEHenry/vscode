@@ -8,10 +8,9 @@ import { EditorActivation } from '../../../../platform/editor/common/editor.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorInputWithOptions, isEditorInputWithOptions, IUntypedEditorInput, isEditorInput, EditorInputCapabilities } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { isConversationDiffReviewInput } from '../../../common/editor/conversationDiffReviewInput.js';
 import { IEditorGroup, GroupDirection, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
 import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode, isConversationPreferredGroup } from './editorService.js';
-import { isBlockedFromConversationGroup, isConversationChatInput } from '../../../contrib/conversation/common/conversationEditorRouting.js';
+import { EditorGroupRouteKind, getEditorGroupRoute } from './editorGroupRoute.js';
 import { IPreviewCategoryService, PreviewCategory } from './previewCategoryService.js';
 import { IPreviewCategoryRoutingPart, isPreviewCategoryRoutingPart } from './previewCategoryRouting.js';
 
@@ -44,20 +43,22 @@ export function findGroup(accessor: ServicesAccessor, editor: EditorInputWithOpt
 
 function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService, previewCategoryService: IPreviewCategoryService): FindGroupResult {
 	const editorInput = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
+	const routeKind = editorInput ? classifyEditorGroupRoute(editorInput) : undefined;
 
-	const conversationExplicitOpen = !!editorInput
-		&& (isConversationChatInput(editorInput) || isConversationDiffReviewInput(editorInput))
+	const conversationExplicitOpen = routeKind === 'exclusive'
 		&& (isConversationPreferredGroup(preferredGroup) || isExplicitConversationGroupTarget(preferredGroup, group, editorGroupService));
 
+	// Without a registered route nothing is `exclusive`, so a group that
+	// landed in an excluded part is always pulled back to the main Preview.
 	if (isGroupInExcludedPart(group, editorGroupService) && !conversationExplicitOpen) {
 		group = editorGroupService.mainPart.activeGroup;
 	}
 
-	if (editorInput && isBlockedFromConversationGroup(editorInput)) {
+	if (routeKind === 'foreign') {
 		if (isConversationPreferredGroup(preferredGroup) || isGroupInExcludedPart(group, editorGroupService)) {
 			group = editorGroupService.mainPart.activeGroup;
 		}
-	} else if (editorInput && (isConversationChatInput(editorInput) || isConversationDiffReviewInput(editorInput))) {
+	} else if (routeKind === 'exclusive') {
 		if (!isConversationPreferredGroup(preferredGroup) && !isGroupInConversationPart(group, editorGroupService)) {
 			throw new Error('Conversation chat input requires CONVERSATION_GROUP or a conversation editor group');
 		}
@@ -264,14 +265,14 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 	// Fallback to active group if target not valid but avoid
 	// locked editor groups unless editor is already opened there
 	if (!group) {
-		const typedEditor = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
+		const routeKind = classifyEditorGroupRoute(editor);
 
-		if (typedEditor && (isConversationChatInput(typedEditor) || isConversationDiffReviewInput(typedEditor))) {
+		if (isEditorInput(editor) && routeKind === 'exclusive') {
 			throw new Error('Conversation chat input requires an explicit conversation group target');
 		}
 
 		let candidateGroup = editorGroupService.activeGroup;
-		if (isBlockedFromConversationGroup(editor) || isGroupInExcludedPart(candidateGroup, editorGroupService)) {
+		if (routeKind === 'foreign' || isGroupInExcludedPart(candidateGroup, editorGroupService)) {
 			candidateGroup = editorGroupService.mainPart.activeGroup;
 		}
 
@@ -399,6 +400,11 @@ function isGroupInExcludedPart(group: IEditorGroup, editorGroupService: IEditorG
 
 function isGroupInConversationPart(group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {
 	return editorGroupService.conversationParts.some(part => part.groups.includes(group));
+}
+
+/** `undefined` when no route is registered: the fence then neither throws nor exempts anything. */
+function classifyEditorGroupRoute(editor: EditorInput | IUntypedEditorInput): EditorGroupRouteKind | undefined {
+	return getEditorGroupRoute()?.classify(editor);
 }
 
 function isExplicitConversationGroupTarget(preferredGroup: PreferredGroup | undefined, group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {

@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../../base/common/uri.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { isEditorInput, IUntypedEditorInput, isResourceEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { isConversationDiffReviewInput } from '../../../common/editor/conversationDiffReviewInput.js';
-import { ConversationChatInput, ConversationChatInputScheme } from './conversationChatInput.js';
+import { EditorGroupRouteKind, registerEditorGroupRoute } from '../../../services/editor/common/editorGroupRoute.js';
+import { ConversationChatInput, ConversationChatInputScheme, getDefaultConversationChatResource } from './conversationChatInput.js';
 
 export function isConversationChatInput(input: EditorInput | IUntypedEditorInput): boolean {
 	if (input instanceof ConversationChatInput) {
@@ -66,3 +68,29 @@ export function isUntypedResourceEditor(input: IUntypedEditorInput): boolean {
 export function isFileLikeResource(uri: URI): boolean {
 	return uri.scheme === 'file' || uri.scheme === 'untitled' || uri.scheme === 'vscode-remote';
 }
+
+/**
+ * Answer for the editor-group core. Chat and Diff review inputs are
+ * `exclusive`; everything `isBlockedFromConversationGroup` is `foreign`. The
+ * predicates are complementary, so nothing is left unclassified once registered.
+ */
+export function classifyConversationEditorInput(input: EditorInput | IUntypedEditorInput): EditorGroupRouteKind {
+	if (isConversationChatInput(input) || isConversationDiffReviewInput(input)) {
+		return 'exclusive';
+	}
+
+	return 'foreign';
+}
+
+// Core (`editorGroupFinder`, `EditorParts`, `ConversationEditorPartImpl`)
+// learns the fence and the default root through this registration instead
+// of importing this contrib module.
+registerEditorGroupRoute({
+	classify: classifyConversationEditorInput,
+	isExtensionTab: isConversationExtensionTab,
+	createDefaultRoot: (instantiationService: IInstantiationService, sessionKey: string) => instantiationService.createInstance(
+		ConversationChatInput,
+		getDefaultConversationChatResource(sessionKey),
+		{ isDefaultRoot: true },
+	),
+});

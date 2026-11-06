@@ -17,7 +17,7 @@ import { GroupIdentifier } from '../../../common/editor.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
 import { IConversationEditorPart, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_SIDE_GROUP } from '../../../services/editor/common/editorService.js';
-import { isConversationExtensionTab } from '../../../contrib/conversation/common/conversationEditorRouting.js';
+import { getEditorGroupRoute } from '../../../services/editor/common/editorGroupRoute.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 
@@ -108,7 +108,9 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 	}
 
 	private applyConversationPartOptions(): void {
-		const extensionTabCount = this.groups.reduce((count, group) => count + group.editors.filter(editor => isConversationExtensionTab(editor)).length, 0);
+		// Without a registered route no editor counts as an extension tab.
+		const route = getEditorGroupRoute();
+		const extensionTabCount = route ? this.groups.reduce((count, group) => count + group.editors.filter(editor => route.isExtensionTab(editor)).length, 0) : 0;
 		const visibleGroupCount = this.groups.filter(group => !this.isGroupHidden(group)).length;
 		const showTabs = extensionTabCount > 0 || visibleGroupCount > 1 ? 'multiple' : 'none';
 

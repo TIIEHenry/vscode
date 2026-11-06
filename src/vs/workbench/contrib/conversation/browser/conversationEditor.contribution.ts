@@ -12,6 +12,8 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ConversationChatInput, ConversationChatInputTypeId, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
+// Registers the editor-group route (fence + default root) the core reads.
+import '../common/conversationEditorRouting.js';
 
 export class ConversationChatInputSerializer implements IEditorSerializer {
 
