@@ -75,6 +75,7 @@ import { showConfigureHooksQuickPick } from '../promptSyntax/hookActions.js';
 import { resolveWorkspaceTargetDirectory, resolveUserTargetDirectory, CustomizationLocationPicker } from './customizationCreatorService.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { AICustomizationSources, IAICustomizationWorkspaceService } from '../../common/aiCustomizationWorkspaceService.js';
+import { IProductWindowProfile } from '../../../../services/productShell/common/productWindowProfile.js';
 import { CodeEditorWidget } from '../../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { Checkbox, TriStateCheckbox } from '../../../../../base/browser/ui/toggle/toggle.js';
@@ -426,6 +427,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		@IOpenerService private readonly openerService: IOpenerService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IAICustomizationWorkspaceService private readonly workspaceService: IAICustomizationWorkspaceService,
+		@IProductWindowProfile private readonly windowProfile: IProductWindowProfile,
 		@IPromptsService private readonly promptsService: IPromptsService,
 		@ICustomizationMigrationService private readonly customizationMigrationService: ICustomizationMigrationService,
 		@ITextModelService private readonly textModelService: ITextModelService,
@@ -465,7 +467,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this._register(toDisposable(() => this.disposeBuiltinEditingSessions()));
 
 		// Build sections from the workspace service configuration
-		const isDonorWindow = !this.workspaceService.isSessionsWindow;
+		const isDonorWindow = !this.windowProfile.isSessionsWindow;
 		const sectionInfo: Record<string, { label: string; icon: ThemeIcon; description: string }> = {
 			[AICustomizationManagementSection.Agents]: { label: localize('agents', "Agents"), icon: agentIcon, description: localize('agentsDesc', "Define custom agents with specialized personas, tool access, and instructions for specific tasks.") },
 			[AICustomizationManagementSection.Skills]: { label: localize('skills', "Skills"), icon: skillIcon, description: localize('skillsDesc', "Create reusable skill files that provide domain-specific knowledge and workflows.") },
@@ -624,14 +626,14 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 	private getActiveHarnessLabel(): string {
 		const label = this.harnessService.getActiveDescriptor().label;
-		return label || (this.workspaceService.isSessionsWindow ? '' : localize('localHarnessLabel', "Local"));
+		return label || (this.windowProfile.isSessionsWindow ? '' : localize('localHarnessLabel', "Local"));
 	}
 
 	private updateHarnessLabelPresentation(): void {
 		const harnessLabel = this.getActiveHarnessLabel();
 		this.welcomePage?.setHarnessLabel(harnessLabel);
 		if (this.input instanceof AICustomizationManagementEditorInput) {
-			if (this.workspaceService.isSessionsWindow) {
+			if (this.windowProfile.isSessionsWindow) {
 				this.input.setTargetLabel(harnessLabel);
 			} else {
 				this.input.setTargetLabel(undefined);
@@ -658,7 +660,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private isUnavailableDonorSection(sectionId: AICustomizationManagementSection): boolean {
-		return !this.workspaceService.isSessionsWindow && !this.workspaceService.managementSections.includes(sectionId);
+		return !this.windowProfile.isSessionsWindow && !this.workspaceService.managementSections.includes(sectionId);
 	}
 
 	/**
@@ -683,7 +685,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 		}
 
-		if (!this.workspaceService.isSessionsWindow) {
+		if (!this.windowProfile.isSessionsWindow) {
 			this.sections.unshift(this.createOverviewSectionItem());
 		}
 
@@ -1009,7 +1011,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private createSidebarHeader(sidebarContent: HTMLElement): void {
-		if (!this.workspaceService.isSessionsWindow) {
+		if (!this.windowProfile.isSessionsWindow) {
 			return;
 		}
 
@@ -1056,7 +1058,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private createSidebarMigrationShortcut(sidebarContent: HTMLElement): void {
-		if (!this.workspaceService.isSessionsWindow) {
+		if (!this.windowProfile.isSessionsWindow) {
 			return;
 		}
 
@@ -1105,7 +1107,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 					this.showCustomizationMigrationPage(categoryId);
 				},
 				prefillChat: async (query, options) => {
-					if (!this.workspaceService.isSessionsWindow) {
+					if (!this.windowProfile.isSessionsWindow) {
 						return;
 					}
 					try {
@@ -1249,7 +1251,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		// Welcome page (shown when no section is selected)
 		this.createWelcomePage(contentInner);
 		this.createUnavailableSectionContent(contentInner);
-		if (this.workspaceService.isSessionsWindow) {
+		if (this.windowProfile.isSessionsWindow) {
 			this.editorDisposables.add(Event.any(
 				this.promptsService.onDidChangeSlashCommands,
 				this.promptsService.onDidChangeCustomAgents,
@@ -1268,7 +1270,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.promptsContentContainer = DOM.append(contentInner, $('.prompts-content-container'));
 		this.listWidget = this.editorDisposables.add(this.instantiationService.createInstance(AICustomizationListWidget));
 		this.promptsContentContainer.appendChild(this.listWidget.element);
-		if (this.workspaceService.isSessionsWindow) {
+		if (this.windowProfile.isSessionsWindow) {
 			this.createCustomizationMigrationContent(contentInner);
 		}
 
@@ -1449,7 +1451,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 			void this.listWidget.setSection(this.selectedSection).catch(onUnexpectedError);
 		}
 
-		if (this.workspaceService.isSessionsWindow) {
+		if (this.windowProfile.isSessionsWindow) {
 			void this.refreshCustomizationMigrationInfo().catch(onUnexpectedError);
 		}
 	}
@@ -1465,7 +1467,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async refreshCustomizationMigrationInfo(): Promise<void> {
-		if (this._store.isDisposed || !this.workspaceService.isSessionsWindow) {
+		if (this._store.isDisposed || !this.windowProfile.isSessionsWindow) {
 			return;
 		}
 
@@ -1617,7 +1619,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private refreshCustomizationMigrationUi(): void {
-		if (!this.workspaceService.isSessionsWindow) {
+		if (!this.windowProfile.isSessionsWindow) {
 			return;
 		}
 
@@ -2604,7 +2606,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		if (type === PromptsType.hook) {
 			const preferredStorage = target === 'user' ? PromptsStorage.user : PromptsStorage.local;
-			if (this.workspaceService.isSessionsWindow) {
+			if (this.windowProfile.isSessionsWindow) {
 				// Sessions: show hooks filtered to Copilot CLI (GitHub Copilot) hook types
 				await this.instantiationService.invokeFunction(showConfigureHooksQuickPick, {
 					openEditor: async (resource) => {
@@ -2899,7 +2901,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	public showCustomizationMigrationPage(categoryId: CustomizationMigrationCategoryId): void {
-		if (!this.workspaceService.isSessionsWindow) {
+		if (!this.windowProfile.isSessionsWindow) {
 			return;
 		}
 

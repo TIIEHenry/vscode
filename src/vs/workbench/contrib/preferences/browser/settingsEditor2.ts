@@ -66,7 +66,7 @@ import { IUserDataSyncWorkbenchService } from '../../../services/userDataSync/co
 import { ISuggestEnabledHistoryOptions, SuggestEnabledInputWithHistory } from '../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
 import { ADVANCED_SETTING_TAG, AGENTS_WINDOW_SETTING_TAG, CONTEXT_AI_SETTING_RESULTS_AVAILABLE, CONTEXT_SETTINGS_EDITOR, CONTEXT_SETTINGS_FIRST_ROW_FOCUS, CONTEXT_SETTINGS_ROW_FOCUS, CONTEXT_SETTINGS_SEARCH_FOCUS, CONTEXT_TOC_ROW_FOCUS, EMBEDDINGS_SEARCH_PROVIDER_NAME, ENABLE_LANGUAGE_FILTER, EXTENSION_FETCH_TIMEOUT_MS, EXTENSION_SETTING_TAG, FEATURE_SETTING_TAG, FILTER_MODEL_SEARCH_PROVIDER_NAME, getExperimentalExtensionToggleData, ID_SETTING_TAG, IPreferencesSearchService, ISearchProvider, LANGUAGE_SETTING_TAG, LLM_RANKED_SEARCH_PROVIDER_NAME, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, SETTINGS_EDITOR_COMMAND_CLEAR_SEARCH_RESULTS, SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS, SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS, SETTINGS_EDITOR_COMMAND_TOGGLE_AI_SEARCH, STRING_MATCH_SEARCH_PROVIDER_NAME, TF_IDF_SEARCH_PROVIDER_NAME, WorkbenchSettingsEditorSettings, WORKSPACE_TRUST_SETTING_TAG } from '../common/preferences.js';
 import { settingsHeaderBorder, settingsSashBorder, settingsTextInputBorder } from '../common/settingsEditorColorRegistry.js';
-import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { IProductWindowProfile } from '../../../services/productShell/common/productWindowProfile.js';
 import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
@@ -104,18 +104,6 @@ export function createGroupIterator(group: SettingsTreeGroupElement): Iterable<I
  */
 export function isSettingsSearchUpToDate(searchPending: boolean, renderedSearchQuery: string | undefined, currentSearchValue: string): boolean {
 	return !searchPending && renderedSearchQuery === currentSearchValue.trim();
-}
-
-/** Only UA Client categories or exclusive ID filters can use the compact Client layout. */
-export function isUaClientSettingsView(isSessionsWindow: boolean, query: string, categoryId: string | undefined): boolean {
-	if (isSessionsWindow) {
-		return false;
-	}
-	const { idFilters } = parseQuery(query);
-	if (idFilters.length) {
-		return idFilters.every(id => id.startsWith('ua.client.'));
-	}
-	return !query.trim() && (categoryId === 'ua' || !!categoryId?.startsWith('ua/'));
 }
 
 /**
@@ -414,7 +402,7 @@ export class SettingsEditor2 extends EditorPane {
 		@IUserDataProfileService userDataProfileService: IUserDataProfileService,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
 		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+		@IProductWindowProfile private readonly windowProfile: IProductWindowProfile,
 	) {
 		super(SettingsEditor2.ID, group, telemetryService, themeService, storageService);
 		this.searchDelayer = this._register(new Delayer(200));
@@ -442,7 +430,7 @@ export class SettingsEditor2 extends EditorPane {
 			.split(this.DISMISSED_EXTENSION_SETTINGS_DELIMITER);
 
 		this._register(configurationService.onDidChangeConfiguration(e => {
-			if (this.environmentService.isSessionsWindow) {
+			if (this.windowProfile.isSessionsWindow) {
 				if (e.affectedKeys.has(WorkbenchSettingsEditorSettings.ShowAISearchToggle)
 					|| e.affectedKeys.has(WorkbenchSettingsEditorSettings.EnableNaturalLanguageSearch)) {
 					this.updateAiSearchToggleVisibility();
@@ -456,7 +444,7 @@ export class SettingsEditor2 extends EditorPane {
 			}
 		}));
 
-		if (this.environmentService.isSessionsWindow) {
+		if (this.windowProfile.isSessionsWindow) {
 			this._register(chatEntitlementService.onDidChangeSentiment(() => {
 				this.updateAiSearchToggleVisibility();
 			}));
@@ -490,7 +478,7 @@ export class SettingsEditor2 extends EditorPane {
 
 		this.modelDisposables = this._register(new DisposableStore());
 
-		this.suggestions = getSettingsSearchSuggestions(this.environmentService.isSessionsWindow);
+		this.suggestions = getSettingsSearchSuggestions(this.windowProfile.isSessionsWindow);
 		this.inputChangeListener = this._register(new MutableDisposable());
 	}
 
@@ -544,7 +532,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private updateAiSearchToggleVisibility(): void {
-		if (!this.environmentService.isSessionsWindow) {
+		if (!this.windowProfile.isSessionsWindow) {
 			return;
 		}
 
@@ -959,7 +947,7 @@ export class SettingsEditor2 extends EditorPane {
 		));
 
 		const showAiResultActionClassNames = ['action-label', ThemeIcon.asClassName(preferencesAiResultsIcon)];
-		if (this.environmentService.isSessionsWindow) {
+		if (this.windowProfile.isSessionsWindow) {
 			this.showAiResultsAction = this._register(new Action(SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS,
 				SHOW_AI_RESULTS_DISABLED_LABEL, showAiResultActionClassNames.join(' '), true
 			));
@@ -1061,7 +1049,7 @@ export class SettingsEditor2 extends EditorPane {
 		const actionsToPush = [clearInputAction, filterAction];
 		this.searchInputActionBar.push(actionsToPush, { label: false, icon: true });
 
-		if (this.environmentService.isSessionsWindow) {
+		if (this.windowProfile.isSessionsWindow) {
 			this.disableAiSearchToggle();
 			this.updateAiSearchToggleVisibility();
 		}
@@ -1767,7 +1755,7 @@ export class SettingsEditor2 extends EditorPane {
 				coreSettingsGroups.push(group);
 			}
 		}
-		const isSessionsWindow = this.environmentService.isSessionsWindow;
+		const isSessionsWindow = this.windowProfile.isSessionsWindow;
 		const filter = getSettingsTocFilter(isSessionsWindow, this.canShowAdvancedSettings());
 
 		const settingsResult = resolveSettingsTree(getTocDataForWindow(isSessionsWindow), coreSettingsGroups, filter, this.logService);
@@ -2317,7 +2305,7 @@ export class SettingsEditor2 extends EditorPane {
 		for (const g of this.defaultSettingsEditorModel.settingsGroups.slice(1)) {
 			for (const sect of g.sections) {
 				for (const setting of sect.settings) {
-					if (!shouldIncludeSettingInWindowSearch(setting, this.environmentService.isSessionsWindow)) {
+					if (!shouldIncludeSettingInWindowSearch(setting, this.windowProfile.isSessionsWindow)) {
 						continue;
 					}
 					if (!shouldShowAdvanced && !this.shouldShowSetting(setting)) {
@@ -2486,7 +2474,7 @@ export class SettingsEditor2 extends EditorPane {
 		}
 
 		if (result) {
-			const isSessionsWindow = this.environmentService.isSessionsWindow;
+			const isSessionsWindow = this.windowProfile.isSessionsWindow;
 			const showAdvanced = this.canShowAdvancedSettings();
 			result.filterMatches = result.filterMatches.filter(match => {
 				if (!shouldIncludeSettingInWindowSearch(match.setting, isSessionsWindow)) {
@@ -2590,8 +2578,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private updateResponsiveLayout(clear = false): void {
-		const uaClientSettingsView = !clear && isUaClientSettingsView(
-			this.environmentService.isSessionsWindow,
+		const uaClientSettingsView = !clear && this.windowProfile.isClientSettingsView(
 			this.searchWidget?.getValue() ?? this.viewState.query ?? '',
 			this.viewState.categoryFilter?.id,
 		);

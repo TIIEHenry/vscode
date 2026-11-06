@@ -59,4 +59,18 @@ suite('Product shell module is loaded by both window entries', () => {
 		const conversation = readRepoFile('src/vs/workbench/contrib/conversation/browser/conversation.contribution.ts');
 		assert.ok(!conversation.includes('productShell.contribution'));
 	});
+
+	test('the window profile is registered where both entries load it, not on the conversation contribution', () => {
+		for (const entry of [
+			{ rel: 'src/vs/workbench/workbench.common.main.ts', preferences: './contrib/preferences/browser/preferences.contribution.js' },
+			{ rel: 'src/vs/sessions/sessions.common.main.ts', preferences: '../workbench/contrib/preferences/browser/preferences.contribution.js' },
+		]) {
+			assert.ok(importIndex(readRepoFile(entry.rel), entry.preferences) >= 0, `${entry.rel} loads preferences.contribution`);
+		}
+		const preferences = readRepoFile('src/vs/workbench/contrib/preferences/browser/preferences.contribution.ts');
+		assert.ok(preferences.includes(`import './productWindowProfile.contribution.js';`));
+		const registration = readRepoFile('src/vs/workbench/contrib/preferences/browser/productWindowProfile.contribution.ts');
+		assert.ok(registration.includes('registerSingleton(IProductWindowProfile, ProductWindowProfile'));
+		assert.ok(!readRepoFile('src/vs/workbench/contrib/conversation/browser/uaClientSettings.contribution.ts').includes('IProductWindowProfile'));
+	});
 });

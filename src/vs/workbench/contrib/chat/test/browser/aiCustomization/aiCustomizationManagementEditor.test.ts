@@ -20,6 +20,7 @@ import { PromptsStorage } from '../../../common/promptSyntax/service/promptsServ
 import { IHeaderAttribute } from '../../../common/promptSyntax/promptFileParser.js';
 import { PromptFileSource, PromptsType, Target } from '../../../common/promptSyntax/promptTypes.js';
 import { AICustomizationManagementSection, AICustomizationSources, IAICustomizationWorkspaceService } from '../../../common/aiCustomizationWorkspaceService.js';
+import { IProductWindowProfile } from '../../../../../services/productShell/common/productWindowProfile.js';
 import { CustomizationMigrationCategoryId } from '../../../browser/aiCustomization/customizationMigrationCategories.js';
 import type { ICustomizationSourceFolder } from '../../../common/customizationHarnessService.js';
 import type { ICustomizationMigrationCategorySummary } from '../../../browser/aiCustomization/aiCustomizationWelcomePage.js';
@@ -53,6 +54,7 @@ suite('aiCustomizationManagementEditor', () => {
 
 	type TestableEditor = {
 		workspaceService: IAICustomizationWorkspaceService;
+		windowProfile: IProductWindowProfile;
 		container: HTMLElement | undefined;
 		embeddedEditor: unknown;
 		embeddedMcpDetail: unknown;
@@ -118,6 +120,7 @@ suite('aiCustomizationManagementEditor', () => {
 		const editor = Object.create(AICustomizationManagementEditor.prototype) as unknown as TestableEditor;
 		editor.editorPreviewDisposables = new DisposableStore();
 		(editor as unknown as { _store: DisposableStore })._store = editor.editorPreviewDisposables.add(new DisposableStore());
+		editor.windowProfile = { isSessionsWindow: true } as IProductWindowProfile;
 		editor.workspaceService = {
 			isSessionsWindow: true,
 			managementSections: [],

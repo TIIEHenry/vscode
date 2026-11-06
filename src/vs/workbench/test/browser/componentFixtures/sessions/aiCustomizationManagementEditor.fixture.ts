@@ -44,6 +44,7 @@ import { IOutputService } from '../../../../services/output/common/output.js';
 import { IWorkingCopyService } from '../../../../services/workingCopy/common/workingCopyService.js';
 import { IWebviewService } from '../../../../contrib/webview/browser/webview.js';
 import { IAICustomizationWorkspaceService, AICustomizationManagementSection, AICustomizationSource } from '../../../../contrib/chat/common/aiCustomizationWorkspaceService.js';
+import { IProductWindowProfile } from '../../../../services/productShell/common/productWindowProfile.js';
 import { ICustomizationHarnessService, ICustomizationItem, ICustomizationItemProvider, ICustomizationSourceFolder, IHarnessDescriptor, createVSCodeHarnessDescriptor } from '../../../../contrib/chat/common/customizationHarnessService.js';
 import { IChatSessionsService } from '../../../../contrib/chat/common/chatSessionsService.js';
 import { getChatSessionType, LocalChatSessionUri } from '../../../../contrib/chat/common/model/chatUri.js';
@@ -878,6 +879,9 @@ async function renderEditor(ctx: ComponentFixtureContext, options: IRenderEditor
 				override readonly managementSections = managementSections;
 				override async generateCustomization() { }
 				override getSkillUIIntegrations() { return skillUIIntegrations; }
+			}());
+			reg.defineInstance(IProductWindowProfile, new class extends mock<IProductWindowProfile>() {
+				override readonly isSessionsWindow = isSessionsWindow;
 			}());
 			reg.defineInstance(ICustomizationHarnessService, harnessService);
 			reg.defineInstance(IAgentHostCustomizationService, agentHostCustomizationService);

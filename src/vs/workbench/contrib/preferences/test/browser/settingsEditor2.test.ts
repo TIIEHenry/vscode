@@ -12,8 +12,15 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
 import { planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from '../../browser/settingsEditFlush.js';
-import { getSettingsSearchSuggestions, isSettingsSearchUpToDate, isUaClientSettingsView, readNextSettingsSearchHistory } from '../../browser/settingsEditor2.js';
+import { getSettingsSearchSuggestions, isSettingsSearchUpToDate, readNextSettingsSearchHistory } from '../../browser/settingsEditor2.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
+import { ProductWindowProfile } from '../../browser/productWindowProfile.js';
 import { AiSearchToggleOutcomeKind, AiSearchToggleVisibilityUpdate, planAiSearchToggle, planAiSearchToggleVisibilityUpdate, shouldShowSettingsClearFiltersLink, stripSettingsSearchFilterTokens } from '../../browser/settingsEditor2Search.js';
+
+/** The Client-layout decision now lives on the product window profile; the cases below keep their data. */
+function isUaClientSettingsView(isSessionsWindow: boolean, query: string, categoryId: string | undefined): boolean {
+	return new ProductWindowProfile({ isSessionsWindow } as IWorkbenchEnvironmentService).isClientSettingsView(query, categoryId);
+}
 
 suite('SettingsEditor2', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -83,6 +90,10 @@ suite('SettingsEditor2', () => {
 			assert.deepStrictEqual(categories.map(category => isUaClientSettingsView(false, '', category)), [true, true, false, false, true, false]);
 			assert.strictEqual(isUaClientSettingsView(false, '@id:ua.client.display.conversationDensity,editor.fontSize', 'ua/display'), false);
 			assert.strictEqual(isUaClientSettingsView(false, 'font size', 'ua'), false, 'ordinary searches restore their width before asynchronous results arrive');
+		});
+
+		test('profile isSessionsWindow reads the environment service, not loaded contributions', () => {
+			assert.deepStrictEqual([true, false].map(isSessionsWindow => new ProductWindowProfile({ isSessionsWindow } as IWorkbenchEnvironmentService).isSessionsWindow), [true, false]);
 		});
 
 		test('Agents window and ordinary queries retain the upstream layout', () => {
