@@ -118,27 +118,6 @@ function initLoadFn(opts) {
 	globalThis._VSCODE_FILE_ROOT = baseUrl.href;
 
 	// set loader
-	// D17: Electron-unloadable universeAgent test/node basenames.
-	// Single source: d17-ua-node-unloadable.json (also read by scripts/run-unit-custom.sh).
-	// mocha pending would trip max_skipped=0, so allowlist skip only —
-	// any other *.test fetch miss still aborts.
-	const D17_UA_NODE_UNLOADABLE = new Set(JSON.parse(fs.readFileSync(path.join(__dirname, 'd17-ua-node-unloadable.json'), 'utf8')));
-
-	function isD17UnloadableUniverseAgentNodeTest(mod, err) {
-		if (typeof mod !== 'string' || !mod.endsWith('.test')) {
-			return false;
-		}
-		if (!mod.includes('/universeAgent/test/node/')) {
-			return false;
-		}
-		const base = mod.slice(mod.lastIndexOf('/') + 1).replace(/\.test$/, '');
-		if (!D17_UA_NODE_UNLOADABLE.has(base)) {
-			return false;
-		}
-		const msg = err && (err.message || String(err));
-		return typeof msg === 'string' && msg.includes('Failed to fetch dynamically imported module');
-	}
-
 	function importModules(modules) {
 		const moduleArray = Array.isArray(modules) ? modules : [modules];
 		const tasks = moduleArray.map(mod => {
@@ -146,10 +125,6 @@ function initLoadFn(opts) {
 			return import(url).catch(err => {
 				console.log(mod, url);
 				console.log(err);
-				if (isD17UnloadableUniverseAgentNodeTest(mod, err)) {
-					console.log(`skipping D17 unloadable test/node module: ${mod}`);
-					return undefined;
-				}
 				_loaderErrors.push(err);
 				throw err;
 			});
@@ -174,15 +149,23 @@ async function loadModules(modules) {
 	for (const file of modules) {
 		mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_PRE_REQUIRE, globalThis, file, mocha);
 		const m = await loadFn(file);
-		if (m === undefined) {
-			continue;
-		}
 		mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_REQUIRE, m, file, mocha);
 		mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_POST_REQUIRE, globalThis, file, mocha);
 	}
 }
 
 const globAsync = util.promisify(glob);
+const _ua_node_only_basenames = new Set(JSON.parse(fs.readFileSync(path.join(__dirname, 'd17-ua-node-unloadable.json'), 'utf8')));
+
+function isNodeOnlyUniverseAgentTestFile(file) {
+	const normalized = file.replace(/\\/g, '/');
+	const prefix = 'vs/platform/universeAgent/test/node/';
+	if (!normalized.startsWith(prefix) || !normalized.endsWith('.test.js')) {
+		return false;
+	}
+	const base = normalized.slice(prefix.length, -'.test.js'.length);
+	return !base.includes('/') && _ua_node_only_basenames.has(base);
+}
 
 async function loadTestModules(opts) {
 
@@ -197,6 +180,7 @@ async function loadTestModules(opts) {
 
 	const pattern = opts.runGlob || _tests_glob;
 	let files = await globAsync(pattern, { cwd: loadFn._out });
+	files = files.filter(file => !isNodeOnlyUniverseAgentTestFile(file));
 	if (opts.excludeRunGlob) {
 		const excludedFiles = new Set(await globAsync(opts.excludeRunGlob, { cwd: loadFn._out }));
 		files = files.filter(file => !excludedFiles.has(file));

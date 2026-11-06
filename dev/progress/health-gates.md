@@ -43,7 +43,7 @@ summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定
 | `eslint` | `npm run eslint` |
 | `test-placement` | `python3 scripts/check-test-placement.py`：`src/vs` 下任一 `*.test.ts` 的路径里没有名为 `test` 的目录段就退出 1；这类并列测试不在 unit-custom 的 `**/test/**` glob 里，本地门禁收不到 |
 | `docs-health` | `python3 scripts/check-docs-health.py`；`python3 scripts/wiki/wiki.py check --root .`；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 与 `python3 -m unittest scripts/tests/test_docs_status.py`（docs-burden S1 已合入） |
-| `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh)（conversation / sources 官方 glob；universeAgent 官方 glob + `--excludeRunGlob` 排除 D17 Electron 不可加载的 `test/node`，名单唯一来源 [`test/unit/electron/d17-ua-node-unloadable.json`](../../test/unit/electron/d17-ua-node-unloadable.json)，`test/unit/electron/renderer.js` 读同一份）再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
+| `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh)（conversation / sources 官方 glob；universeAgent 在收集阶段把 Node 专跑的 `test/node` 拆给 `universeAgentNode`、其余作为位置参数交给 Electron，无参数或 glob Electron 则在 [`test/unit/electron/renderer.js`](../../test/unit/electron/renderer.js) 的 glob 分支 `import()` 前排除，两处都不吞装载失败并共用唯一名单 [`test/unit/electron/d17-ua-node-unloadable.json`](../../test/unit/electron/d17-ua-node-unloadable.json)）再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
 
 规格见 [test-baseline-ci](../plans/test-baseline-ci.md)。
 
