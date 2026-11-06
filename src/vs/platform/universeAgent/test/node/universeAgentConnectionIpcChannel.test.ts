@@ -4,14 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
+import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { MarshalledId } from '../../../../base/common/marshallingIds.js';
-import * as path from '../../../../base/common/path.js';
-import { ProxyChannel, type IChannel } from '../../../../base/parts/ipc/common/ipc.js';
+import { ChannelClient, ChannelServer, ProxyChannel, type IChannel, type IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { universeAgentHubChannelName } from '../../common/hub.js';
 import { universeAgentConnectionChannelName } from '../../common/universeAgentConnection.js';
@@ -23,8 +21,47 @@ import {
 	navigatorTeamTaskListCommand,
 } from '../../common/universeAgentNavigatorTeamIpc.js';
 
-const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(thisDir, '../../../../../../');
+class QueueProtocol implements IMessagePassingProtocol {
+
+	private buffering = true;
+	private buffers: VSBuffer[] = [];
+
+	private readonly _onMessage = new Emitter<VSBuffer>({
+		onDidAddFirstListener: () => {
+			for (const buffer of this.buffers) {
+				this._onMessage.fire(buffer);
+			}
+			this.buffers = [];
+			this.buffering = false;
+		},
+		onDidRemoveLastListener: () => {
+			this.buffering = true;
+		}
+	});
+
+	readonly onMessage = this._onMessage.event;
+	other!: QueueProtocol;
+
+	send(buffer: VSBuffer): void {
+		this.other.receive(buffer);
+	}
+
+	private receive(buffer: VSBuffer): void {
+		if (this.buffering) {
+			this.buffers.push(buffer);
+		} else {
+			this._onMessage.fire(buffer);
+		}
+	}
+}
+
+function createProtocolPair(): [IMessagePassingProtocol, IMessagePassingProtocol] {
+	const one = new QueueProtocol();
+	const other = new QueueProtocol();
+	one.other = other;
+	other.other = one;
+	return [one, other];
+}
 
 class FakeWindowService {
 	readonly forwarded: string[] = [];
@@ -420,20 +457,23 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		]);
 	});
 
-	test('registration source keeps the allowlist, hub name, and host token', () => {
-		const app = fs.readFileSync(path.join(REPO_ROOT, 'src/vs/code/electron-main/app.ts'), 'utf8');
-		const hub = fs.readFileSync(path.join(REPO_ROOT, 'src/vs/platform/universeAgent/common/hub.ts'), 'utf8');
-		const sessionView = fs.readFileSync(path.join(REPO_ROOT, 'src/vs/platform/universeAgent/electron-main/universeAgentSessionViewService.ts'), 'utf8');
+	test('one inner proxy registered under the exported connection and hub names keeps each allowlist', async () => {
+		const { service, connection, hub } = open();
+		const [serverProtocol, clientProtocol] = createProtocolPair();
+		const server = store.add(new ChannelServer<string>(serverProtocol, 'ctx'));
+		server.registerChannel(universeAgentConnectionChannelName, connection);
+		server.registerChannel(universeAgentHubChannelName, hub);
+		const client = store.add(new ChannelClient(clientProtocol));
+		const connectionChannel = client.getChannel(universeAgentConnectionChannelName);
+		const hubChannel = client.getChannel(universeAgentHubChannelName);
+
 		assert.strictEqual(universeAgentHubChannelName, 'universeAgentHub');
 		assert.notStrictEqual(universeAgentHubChannelName, universeAgentConnectionChannelName);
-		assert.ok(app.includes('new UniverseAgentConnectionIpcChannel(universeAgentConnection, universeAgentInnerChannel)'));
-		assert.ok(app.includes('registerChannel(universeAgentConnectionChannelName, universeAgentConnectionChannel)'));
-		assert.ok(app.includes('new UniverseAgentHubIpcChannel(universeAgentInnerChannel)'));
-		assert.ok(app.includes('registerChannel(universeAgentHubChannelName, universeAgentHubChannel)'));
-		assert.ok(app.includes('services.set(IUniverseAgentHostConnection, new SyncDescriptor(UniverseAgentHostConnectionAdapter, undefined, false /* main-only host token */));'));
-		assert.ok(!app.includes('registerChannel(universeAgentConnectionChannelName, ProxyChannel'));
-		assert.ok(hub.includes("export const universeAgentHubChannelName = 'universeAgentHub';"));
-		assert.ok(sessionView.includes('@IUniverseAgentHostConnection hostConnection: IUniverseAgentHostConnection'));
-		assert.ok(!sessionView.includes('as unknown as'));
+		assert.deepStrictEqual(await connectionChannel.call('probeEngine'), { ok: false, reason: 'x' });
+		assert.deepStrictEqual(await hubChannel.call('login', ['https://hub.example', 'a@b.c', 'pw']), { ok: true });
+		await assert.rejects(connectionChannel.call('login', ['https://hub.example', 'a@b.c', 'pw']), /Method not found: login/);
+		await assert.rejects(connectionChannel.call('notifyFileMutation', [{}]), /Method not found: notifyFileMutation/);
+		await assert.rejects(hubChannel.call('probeEngine'), /Method not found: probeEngine/);
+		assert.deepStrictEqual(service.forwarded, ['probeEngine', 'login']);
 	});
 });
