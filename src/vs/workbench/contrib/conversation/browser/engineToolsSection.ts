@@ -18,7 +18,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
-import { captureEnginePublishedLinkOwner, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, EngineRefreshGate, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
 import { normalizeAgentWorkDirKey } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -328,7 +328,7 @@ export class EngineToolsSection extends Disposable {
 	private repaintingRows = false;
 	private sectionActive = false;
 	private selectedToolName: string | undefined;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 	private infoLoadGeneration = 0;
 
 	constructor(
@@ -341,6 +341,7 @@ export class EngineToolsSection extends Disposable {
 	) {
 		super();
 		this.instantiationService = instantiationService;
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 
 		this.container = DOM.append(parent, $('.engine-tools-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -443,7 +444,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.infoLoadGeneration++;
 		this.invalidateWriteResults();
 		this.clearCatalogPresentation();
@@ -635,7 +636,7 @@ export class EngineToolsSection extends Disposable {
 			}
 			// The saved profile is newer than every List issued before this result.
 			// Retire those Lists and their loading presentation together.
-			this.refreshGeneration++;
+			this.refreshGate.invalidate();
 			const support = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).tools.support;
 			this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'success', itemCount: this.getListEntryCount() });
 			this.listContainer.style.display = this.listEntries.length > 0 ? '' : 'none';
@@ -932,7 +933,7 @@ export class EngineToolsSection extends Disposable {
 		}
 		this.syncCatalogScope();
 		const scope = this.catalogScope;
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.tools.support;
@@ -978,7 +979,7 @@ export class EngineToolsSection extends Disposable {
 				this.listSessionTools(),
 				this.listSessionAgentProfiles(),
 			]);
-			if (this._store.isDisposed || generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
+			if (!this.refreshGate.isCurrent(generation) || scope !== this.currentCatalogScope()) {
 				return;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
@@ -1006,7 +1007,7 @@ export class EngineToolsSection extends Disposable {
 				void this.loadToolInfo(selectedToolName).catch(onUnexpectedError);
 			}
 		} catch (error) {
-			if (this._store.isDisposed || generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
+			if (!this.refreshGate.isCurrent(generation) || scope !== this.currentCatalogScope()) {
 				return;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
