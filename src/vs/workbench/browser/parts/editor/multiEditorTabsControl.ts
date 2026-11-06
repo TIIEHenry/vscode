@@ -2076,7 +2076,9 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			Object.assign(this.dimensions, dimensions);
 		}
 
-		if (this.visible && this.layoutScheduler) {
+		// A group closing its last editor removes (disposes) itself before forwarding the close here.
+		// A frame scheduled now would outlive the disposed scheduler and run without `tabsContainer`.
+		if (this.visible && this.layoutScheduler && !this._store.isDisposed) {
 			if (!this.layoutScheduler.value) {
 
 				// The layout of tabs can be an expensive operation because we access DOM properties

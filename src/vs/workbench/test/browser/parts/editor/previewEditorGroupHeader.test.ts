@@ -29,7 +29,7 @@ import { CategorizedMainEditorPart } from '../../../../browser/parts/editor/cate
 import { setup as setupEditorCommands } from '../../../../browser/parts/editor/editorCommands.js';
 import { MainEditorPart } from '../../../../browser/parts/editor/editorPart.js';
 import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
-import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { PreviewCategorizedContext } from '../../../../services/editor/common/previewCategoryRouting.js';
 import { IPreviewCategoryService, PreviewCategory } from '../../../../services/editor/common/previewCategoryService.js';
 import { ITestInstantiationService, registerTestEditor, TestFileEditorInput, TestMenuService, workbenchInstantiationService, workbenchTeardown } from '../../../browser/workbenchTestServices.js';
@@ -192,6 +192,20 @@ suite('Preview Editor Group Header', () => {
 		await group.closeEditor(editor);
 		assert.strictEqual(group.isEmpty, true);
 		assert.strictEqual(placeholder()?.textContent, 'Preview: Group 1', 'the placeholder comes back when the last editor closes');
+	});
+
+	test('a split group that closes its last editor leaves no tabs layout frame behind', async () => {
+		const { part } = await mount<RecordingMainEditorPart>(MainEditorParts);
+		const side = part.addGroup(part.activeGroup, GroupDirection.RIGHT);
+		const editor = input(URI.file('/src/side.ts'));
+		await side.openEditor(editor, { pinned: true });
+		const sideId = side.id;
+
+		// The group removes itself while closing and then forwards the close to its disposed tabs control.
+		await side.closeEditor(editor);
+		assert.strictEqual(part.getGroup(sideId), undefined);
+
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => resolve()));
 	});
 
 	test('an empty group builds its editor title actions from the group context keys', async () => {
