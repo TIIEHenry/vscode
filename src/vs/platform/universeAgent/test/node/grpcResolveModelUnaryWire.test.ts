@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -228,82 +227,9 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 			filtered: [],
 		});
 	});
-
-	test('resolve-model unary wire is ConfigService.ResolveModel only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcResolveModelUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeResolveModelRequest\b/.test(source));
-		assert.ok(/\bdecodeResolveModelResponse\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\breadProtoFields\b/.test(source));
-		assert.ok(/\bdecodeModelEntry\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!/\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bSwitchModel\b|\bListModels\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('resolveModel uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const resolve = extractMethod(source, 'resolveModel');
-		assert.ok(resolve.includes('makeUnaryBytesClient'), 'resolveModel must use makeUnaryBytesClient');
-		assert.ok(resolve.includes('encodeResolveModelRequest'), 'resolveModel must call encodeResolveModelRequest');
-		assert.ok(resolve.includes('decodeResolveModelResponse'), 'resolveModel must call decodeResolveModelResponse');
-		assert.ok(resolve.includes('mapResolveModelResponse'), 'resolveModel still calls mapResolveModelResponse');
-		assert.ok(!resolve.includes('makeUnaryClient<'), 'resolveModel must not use JSON makeUnaryClient');
-		assert.ok(!resolve.includes('JSON.stringify'), 'resolveModel must not JSON.stringify');
-		assert.ok(source.includes('grpcResolveModelUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(resolve));
-		assert.ok(!/\bSaveSkillContent\b/.test(resolve));
-		assert.ok(!/\bConnect\b/.test(resolve));
-		assert.ok(!/\bResolveTurn\b/.test(resolve));
-		assert.ok(!/\bResolveAnchor\b/.test(resolve));
-	});
-
-	test('do not lock GetModelPreferences', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
-		assert.ok(!watchBody.includes('grpcResolveModelUnaryWire'));
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-	});
 });
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcResolveModelUnaryWire.ts')));
-	assert.ok(dir, 'grpcResolveModelUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

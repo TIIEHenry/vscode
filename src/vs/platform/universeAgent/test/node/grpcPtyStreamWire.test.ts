@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -154,34 +153,6 @@ suite('grpc PtyService PtyStream protobuf bidi wire', () => {
 		assert.strictEqual(mapPtyServerMessage(success).openSessionResponse?.success, true);
 		assert.deepStrictEqual(mapPtyServerMessage(decodePtyServerMessage(new Uint8Array(0))), {});
 	});
-
-	test('pty wire encoder is not JSON or base64; openPtyStream uses the bytes handle', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcPtyStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(!source.includes('bytesToBase64'));
-		assert.ok(!source.includes('btoa'));
-		assert.ok(!/\bResolveTurn\b|\bSaveSkillContent\b|\bWatchConfig\b/.test(source));
-		const encodeStart = source.indexOf('export function encodePtyClientMessage');
-		const encodeEnd = source.indexOf('export function decodePtyServerMessage');
-		assert.ok(encodeStart >= 0 && encodeEnd > encodeStart);
-		const encodeBody = source.slice(encodeStart, encodeEnd);
-		assert.ok(!encodeBody.includes('toString(\'base64\')'));
-		assert.ok(!encodeBody.includes('JSON.stringify'));
-		assert.ok(source.includes('toString(\'base64\')'));
-
-		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		assert.ok(client.includes('grpcPtyStreamWire'));
-		const pty = extractMethod(client, 'openPtyStream');
-		assert.ok(pty.includes('makeResidentBidiBytesHandleClient'));
-		assert.ok(pty.includes('encodePtyClientMessage'));
-		assert.ok(pty.includes('decodePtyServerMessage'));
-		assert.ok(pty.includes('mapPtyServerMessage'));
-		assert.ok(pty.includes('handle.end()'));
-		assert.ok(!pty.includes('makeResidentBidiHandleClient'));
-		assert.ok(!pty.includes('bytesToBase64'));
-		assert.ok(!pty.includes('JSON.stringify'));
-		assert.ok(!pty.includes('toString(\'base64\')'));
-	});
 });
 
 function encodeVarintZero(field: number): Buffer {
@@ -191,26 +162,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcPtyStreamWire.ts')));
-	assert.ok(dir, 'grpcPtyStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

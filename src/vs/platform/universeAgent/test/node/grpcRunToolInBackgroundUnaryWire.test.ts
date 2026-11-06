@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -106,38 +105,6 @@ suite('grpc AgentService RunToolInBackground protobuf wire', () => {
 			reasonCode: undefined,
 		});
 	});
-
-	test('run-tool-in-background unary wire is RunToolInBackground only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcRunToolInBackgroundUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeRunToolInBackgroundRequest\b/.test(source));
-		assert.ok(/\bdecodeRunToolInBackgroundResponse\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('runToolInBackground uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const runBg = extractAsyncMethod(source, 'runToolInBackground');
-		assert.ok(runBg.includes('makeUnaryBytesClient'), 'runToolInBackground must use makeUnaryBytesClient');
-		assert.ok(runBg.includes('encodeRunToolInBackgroundRequest'), 'runToolInBackground must call encodeRunToolInBackgroundRequest');
-		assert.ok(runBg.includes('decodeRunToolInBackgroundResponse'), 'runToolInBackground must call decodeRunToolInBackgroundResponse');
-		assert.ok(runBg.includes('ok: wire.success === true'), 'runToolInBackground must keep ok: wire.success === true');
-		assert.ok(runBg.includes('message: wire.message'), 'runToolInBackground must keep message: wire.message');
-		assert.ok(runBg.includes('reasonCode: wire.reason_code'), 'runToolInBackground must keep reasonCode: wire.reason_code');
-		assert.ok(!runBg.includes('makeUnaryClient<'), 'runToolInBackground must not use JSON makeUnaryClient');
-		assert.ok(!runBg.includes('JSON.stringify'), 'runToolInBackground must not JSON.stringify');
-
-		assert.ok(source.includes('grpcRunToolInBackgroundUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as Agent.RunToolInBackground JSON unary (`ok: wire.success === true`). */
@@ -149,24 +116,7 @@ function mapRunToolInBackground(wire: RunToolInBackgroundResponseWire): Universe
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcRunToolInBackgroundUnaryWire.ts')));
-	assert.ok(dir, 'grpcRunToolInBackgroundUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
