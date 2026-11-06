@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Run agent-ide unit-custom domains, then compare fresh JUnit to the baseline list.
 # Sources browser and Node tests use their official runners and distinct JUnit domains.
-# universeAgent is collected once: the Electron-unloadable test/node files (D17) are excluded;
-# other test/node files stay in the same --tfs universeAgent invocation so the XML is not overwritten.
-# Those files then run under the Node runner as domain universeAgentNode — they load and pass there,
-# so excluding them from Electron must not mean excluding them from the gate.
+# universeAgent is collected once: the Node-only test/node files listed in
+# test/unit/electron/d17-ua-node-unloadable.json are routed to universeAgentNode before import(),
+# while other test/node files stay in the positional --tfs universeAgent invocation.
+# Unfiltered Electron runs (--glob / default glob) exclude the same list in renderer.js before import();
+# neither path swallows dynamic import failures.
 # See dev/plans/test-baseline-ci.md §5 and D17 「三域基线红」.
 set -uo pipefail
 
@@ -12,9 +13,9 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 export GITHUB_WORKSPACE="${GITHUB_WORKSPACE:-$REPO_ROOT}"
 
-# Electron ESM cannot load these universeAgent test/node basenames (D17).
+# universeAgent test/node basenames that require the Node runner (top-level node:* module graph).
 # Single source: test/unit/electron/d17-ua-node-unloadable.json
-# (renderer.js builds D17_UA_NODE_UNLOADABLE from the same file).
+# (renderer.js filters the same list in its glob branch before import()).
 # Basename match applies only under test/node/ so
 # browser/universeAgentConnection.test.ts stays in the run.
 if ! ua_node_unloadable_lines="$(node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).forEach(name => console.log(name))' "$REPO_ROOT/test/unit/electron/d17-ua-node-unloadable.json")"; then
