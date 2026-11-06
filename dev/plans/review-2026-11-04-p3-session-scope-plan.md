@@ -26,7 +26,7 @@ summary: "叶子只认自己的会话 id；权限与模型选择收到按会话�
 | p3-1 | `conversationLens.ts`、`conversationLensSessionBar.ts`、`conversationSessionWindowService.ts`（只删 `focusin` 里的第二笔 `switchSession`）；`.eslint-plugin-local` 与 `eslint.config.js`。不改 `editorParts.ts` 的 `mapPartToInstantiationService`。`conversationLeafSessionBar.ts` 保持「活动 id 已是目标则不调用」。History / Inbox / Snapshots 的未注入回退不改 |
 | p3-2 | `conversationLens.ts`、`conversationLensComposer.ts`、`conversationLensComposerChrome.ts`、`conversation.contribution.ts`；新增会话选择服务。与 [r11-3](review-2026-10-30-r11-conversation-plan.md) 同一套 epoch 符号 |
 | p3-3a | `conversationSessionsViewStrings.ts`（新增共享行 chrome 纯函数）、`conversationSessionsView.ts`（`SessionsRenderer` 与无障碍供给改读共享行）、`navigatorProjectsList.ts`（`ProjectNodeRenderer` 的状态回调与 `rebuildTree` 的 `sessionDetail` 改读共享行）。删除确认已在 `conversationDeleteSessionConfirm.ts`，不重写；树与列表各自的容器、排序、过滤不碰 |
-| p3-3b | `services/agentSession/common/agentSessionContext.ts`（`IAgentSessionViewLease.attribution` 类型与文件头注释）、`contrib/sources/browser/sourcesReviewAttributionService.ts`（删两处 `as ReadonlyMap<string, IReviewItemAttribution>` 断言）。生产实现 `contrib/conversation/browser/agentSessionContext.ts` 只随类型编译，不改方法体。与 p3-5 同改 `services/agentSession/common/agentSessionContext.ts`，排在 p3-5 之后，不并行 |
+| p3-3b | `services/agentSession/common/agentSessionContext.ts`（`IAgentSessionViewLease.attribution` 类型与文件头注释）、`contrib/sources/browser/sourcesReviewAttributionService.ts`（删两处断言与随之无用的 `IReviewItemAttribution` import）、`contrib/sources/common/sourcesReviewAttribution.ts`（只改 `IReviewItemAttribution` 的注释一句）。生产实现 `contrib/conversation/browser/agentSessionContext.ts` 只随类型编译，不改方法体。与 p3-5 同改 `services/agentSession/common/agentSessionContext.ts`，排在 p3-5 之后，不并行 |
 | p3-4 | `navigator` 生产文件里指向 `conversation/browser` 的 import；`navigatorStubView.ts`、`navigatorStub.css`、`navigator.contribution.ts`。roster 接口整份搬迁见该条，不进 `workbench/services` |
 | p3-5 | `services/agentSession/common/agentSessionContext.ts`；`contrib/conversation/browser/agentSessionContext.ts`；把该方法当可选的测试替身 |
 
@@ -218,7 +218,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 | Projects 行内状态图标在渲染里手拼 glyph 与旋转类，待确认数直接写数字；行菜单 Open / Delete 的启用与理由在菜单构造里按 live 与 `getRowActionUnavailableReason()` 现算 | `ProjectNodeRenderer.renderElement`、`ProjectNodeRenderer.showContextMenu`、`NavigatorProjectsView.getRowActionUnavailableReason` |
 | Sessions 行自己拼图标（`applySessionRosterIcon`），右端副标题不是全量副标题：待确认时只写数字，否则只在 idle 且有访问时间时写相对时间；无障碍标签走 `formatSessionRosterAriaLabel`，悬停是另一套行 | `SessionsRenderer.renderElement`、`SessionsRenderer.sessionHover`、`SessionsAccessibilityProvider.getAriaLabel` |
 | Sessions 的行内 More 只开菜单，菜单里只有 Open beside 且恒启用；标题上的删除由 `CONVERSATION_SESSIONS_DELETE_ENABLED_KEY` 这个 context key 启用，拒绝理由走通知，不写在按钮上 | `SessionsRenderer.renderTemplate`、`ConversationSessionsView.updateDeleteEnabledContextKey`、`ConversationSessionsView.deleteActiveSession` 与 `rejectDeleteBeforeConfirm` |
-| 写动作不可用的理由文案已经共用一处：`conversationSessionHoldReason(pairingHold, readiness)`，Projects 的不可用理由与 Sessions 的拒绝通知都从它取句 | `conversationSessionAvailability.ts` |
+| 写动作不可用的理由只有就绪度一段共用：Projects 的不可用理由走 `conversationSessionHoldReason(pairingHold, readiness)` 再接自己的 fallback，Sessions 只有未就绪通知 `sessionNotReadyNotice` 走它；配对与断连两边都用各自的 disconnected 句，不是同一来源 | `conversationSessionAvailability.ts` 的 `conversationSessionHoldReason`；`NavigatorProjectsView.getRowActionUnavailableReason`；`ConversationSessionsView.sessionNotReadyNotice` 与 `rejectDeleteBeforeConfirm` |
 | `IAgentSessionViewLease.attribution` 仍是 `ReadonlyMap<string, unknown>`，文件头注释写明不类型化是为免依赖审阅 chip 类型 | `services/agentSession/common/agentSessionContext.ts` 的 `IAgentSessionViewLease` |
 | 平台已有 `ItemAttribution`，且 roster 的 lease 同名字段已经是 `ReadonlyMap<string, ItemAttribution>`；生产实现只是透传内层 lease 的这个字段 | `platform/universeAgent/common/conversationViewFrame.ts` 的 `ItemAttribution` 与 `IConversationSessionViewLease`；`contrib/conversation/browser/agentSessionContext.ts` 的 `AgentSessionViewLease.attribution` |
 | Sources 消费时把该字段断言回自己的子集，两处 `as ReadonlyMap<string, IReviewItemAttribution>`；子集字段 `role` / `agentId` / `agentPath` / `toolCallId` 与 `ItemAttribution` 同名同型 | `contrib/sources/browser/sourcesReviewAttributionService.ts` 的 `resolveRevealItemId` 调用与 `buildChipMapForEntries`；`contrib/sources/common/sourcesReviewAttribution.ts` 的 `IReviewItemAttribution` |
@@ -229,7 +229,7 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 - 确认文案仍走现有 `confirmDeleteConversationSession`。
 - 高亮仍是 `getActiveSessionId()`，与叶获焦写回的那一个 id 相同。
 - 两处今天看得见的行文案不变：Projects 的 `detail` 仍是全量副标题，Sessions 右端仍是今天那条紧凑副标题（待确认写数字、否则 idle 且有访问时间时写相对时间、其余为空并隐藏）。抽共享行是把两条文案的算法收到一处算，不是把 Sessions 的右端换成全量副标题。
-- 行内按钮的启用不合成一份：Projects 菜单里的 Open / Delete 与新建仍按 Projects 的 live 判断启用，Sessions 的 More 与标题删除仍按今天的恒启用与 context key。共享的只是理由文案的来源（`conversationSessionHoldReason`），不新造第二套理由句，也不把 Sessions 标题删除的启用改成要求已连接。
+- 行内按钮的启用与理由不合成一份：Projects 菜单里的 Open / Delete 与新建仍按 Projects 的 live 判断启用，理由走它自己的 `getRowActionUnavailableReason`（就绪度一段取 `conversationSessionHoldReason`，再接 fallback）；Sessions 的行内 More 是恒启用的读动作（只开 Open beside 菜单），没有可与 Projects 行菜单合并的启用理由，标题删除仍按今天的 context key 启用、拒绝理由走通知（配对与断连用 disconnected 句，未就绪才走 `conversationSessionHoldReason`）。已选 A 里的「按钮启用理由」在本片收窄为这一现状：只共享就绪度的 loading / unavailable 一段，不新抽按钮函数、不新造理由句，也不把 Sessions 标题删除的启用改成要求已连接。
 
 ### p3-3a 共享行
 
@@ -237,8 +237,8 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 
 - `conversationSessionsViewStrings.ts` 新增一个纯函数与它的返回类型（实施时取名 `resolveSessionRosterRowChrome` 与 `SessionRosterRowChrome`）：入参是会话、`turns`、待确认数、是否活动会话；返回 `tone`、glyph、是否旋转、全量副标题、Sessions 用的紧凑副标题、待确认数、无障碍标签。内部只组合本文件已有的 `resolveSessionRosterTone`、`sessionRosterGlyph`、`formatSessionRosterSubtitle`、`formatSessionAccessedLabel`、`formatSessionRosterAriaLabel`，不新增 `nls` 文案。已有的这些导出不删，测试与两处调用方仍可直引。
 - `conversationSessionsView.ts`：`SessionsRenderer.renderElement` 与 `SessionsAccessibilityProvider.getAriaLabel` 改读这个返回；`applySessionRosterIcon` 改为收 `tone` 与 glyph（或直接读返回），CSS 类后缀仍用本视图自己的类名。`sessionHover` 的语气与状态句改从同一返回取，它独有的工作目录、消息数、待确认句几行留在这里，不进共享行。
-- `navigatorProjectsList.ts`：`ProjectNodeRenderer` 的 `getSessionStatus` 回调改返回共享行（构造点在 `NavigatorProjectsView.ensureTree`，在那里按 `sessionId` 取会话、轮次与待确认数后调共享函数；取不到会话时退回今天的 idle 且待确认为 0）；`renderElement` 的状态图标、旋转与待确认数改读共享行，状态元素的 CSS 类仍用 Navigator 自己的类名。`rebuildTree` 的 `sessionDetail` 闭包改取共享行的全量副标题，不再在闭包里再算一遍语气。
-- 行内按钮：Projects 的 `getRowActionUnavailableReason` 与 Sessions 的 `rejectDeleteBeforeConfirm`、`sessionNotReadyNotice` 保持今天的取句路径（都走 `conversationSessionHoldReason`），本片只核对两处不再另写同义理由句；启用布尔各自保留（见不变量），不抽成共享函数。
+- `navigatorProjectsList.ts`：`ProjectNodeRenderer` 的 `getSessionStatus` 回调改返回 `SessionRosterRowChrome | undefined`（构造点在 `NavigatorProjectsView.ensureTree`，在那里按 `sessionId` 从 `getSessions()` 取会话，取到才用会话、轮次与待确认数调共享函数，取不到返回 `undefined`）；`renderElement` 在回调为 `undefined` 时走今天的 fallback（语气 idle、状态图标隐藏、待确认不显示），拿到共享行时状态图标、旋转与待确认数改读它，状态元素的 CSS 类仍用 Navigator 自己的类名。`rebuildTree` 的 `sessionDetail` 闭包改取共享行的全量副标题，不再在闭包里再算一遍语气。
+- 行内按钮：本片不抽按钮的启用与理由函数。Projects 的 `getRowActionUnavailableReason`、Sessions 的 `rejectDeleteBeforeConfirm` 与 `sessionNotReadyNotice` 全部保持今天的取句路径：只有就绪度的 loading / unavailable 一段共用 `conversationSessionHoldReason`，配对与断连保留各自 action-specific 的 disconnected 句；启用布尔各自保留（见不变量）。
 
 改法：
 
@@ -276,7 +276,8 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 要动的符号与文件：
 
 - `services/agentSession/common/agentSessionContext.ts`：`IAgentSessionViewLease.attribution` 改为 `ReadonlyMap<string, ItemAttribution>`，type-only 引 `platform/universeAgent/common/conversationViewFrame.ts` 的 `ItemAttribution`；文件头那句「values stay untyped so this service does not depend on review chip types」改成指向平台类型，不再说不类型化。
-- `contrib/sources/browser/sourcesReviewAttributionService.ts`：删 `resolveRevealItemId` 调用处与 `buildChipMapForEntries` 里两处 `as ReadonlyMap<string, IReviewItemAttribution>` 断言，直接把 `lease.attribution` 传给收子集 map 的函数（`ItemAttribution` 与子集同名同型的字段保证这步是纯类型收窄，不是改值）。若编译器在这一步报错，先核对是不是别的值真的不是这个 map，不许用新的断言绕回去。
+- `contrib/sources/browser/sourcesReviewAttributionService.ts`：删 `resolveRevealItemId` 调用处与 `buildChipMapForEntries` 里两处 `as ReadonlyMap<string, IReviewItemAttribution>` 断言，直接把 `lease.attribution` 传给收子集 map 的函数（`ItemAttribution` 与子集同名同型的字段保证这步是纯类型收窄，不是改值）；这两处是该文件里 `IReviewItemAttribution` 的全部用处，同片删掉它的 import，不留未用导入。若编译器在这一步报错，先核对是不是别的值真的不是这个 map，不许用新的断言绕回去。
+- `contrib/sources/common/sourcesReviewAttribution.ts` 只改 `IReviewItemAttribution` 上方那句注释：平台 `ItemAttribution` 已经含 `toolCallId`，这个接口是 Sources 只读的结构子集，不再写成「superset once toolCallId」。接口字段本身不改。
 - `contrib/conversation/browser/agentSessionContext.ts` 不改方法体：`AgentSessionViewLease.attribution` 的返回类型随接口变，内层本来就是 `ReadonlyMap<string, ItemAttribution>`，透传一行不动。
 
 改法：
@@ -292,8 +293,8 @@ p3-1 与 p3-2 都改 `conversationLens.ts`，p3-2 排在 p3-1 的透镜切片之
 
 本地验证：
 
-- `npx eslint` 打 `agentSessionContext.ts`（两处同名文件）、`sourcesReviewAttributionService.ts`。
-- `scripts/test.sh --grep "Sources - review attribution"` 与 `scripts/test.sh --run src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts`（该文件在 browser 目录并列，`--run` 写它的实际路径）。
+- `npx eslint` 打 `agentSessionContext.ts`（两处同名文件）、`sourcesReviewAttributionService.ts` 与 `sourcesReviewAttribution.ts`。
+- `scripts/test.sh --grep "Sources - review attribution"` 与 `scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/agentSessionContext.test.ts`（p6-1 已把这份并列测试搬进 `test/browser`，按搬迁后的路径写；本片实施时若该搬迁还没合入，按当时树上的实际路径改这一条，不写不存在的路径）。
 - 编译以类型错误为准：`flock` 排队跑 `npm run compile-client` 后，上面两份测试再跑；若只跑转译不查类型，这片等于没验。
 
 风险与回退：风险只在类型层：某处替身其实塞了不满足 `ItemAttribution` 的值，改型后编译报错。处理是把那处替身的值改对或让它走空 map，不恢复 `unknown`、不加新断言。回退是把 `:18` 改回 `ReadonlyMap<string, unknown>` 并恢复两处断言，一个提交可退。
