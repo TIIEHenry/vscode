@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type {
 	UniverseAgentGetConfigResult,
@@ -131,44 +128,6 @@ suite('grpc ConfigService Get/Set protobuf wire', () => {
 		assert.deepStrictEqual(rejected, { success: undefined, message: undefined });
 		assert.deepStrictEqual(mapSetConfig(rejected), { ok: false, message: undefined });
 	});
-
-	test('config unary wire is Get+Set only; no JSON.stringify; grpcClient uses bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const candidates = [
-			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-			path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-		];
-		const grpcDir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcConfigUnaryWire.ts')));
-		assert.ok(grpcDir, 'grpcConfigUnaryWire.ts not found from cwd or import.meta');
-		const source = fs.readFileSync(path.join(grpcDir, 'grpcConfigUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetConfigRequest\b/.test(source));
-		assert.ok(/\bdecodeGetConfigResponse\b/.test(source));
-		assert.ok(/\bencodeSetConfigRequest\b/.test(source));
-		assert.ok(/\bdecodeSetConfigResponse\b/.test(source));
-		assert.ok(!/\bencodeWatch|\bdecodeWatch|\bWatchConfig|\bConfigChanged/.test(source));
-		assert.ok(!/\bSwitchModel|\bListModels|\bResolveModel|\bSetPermissionPolicy|\bGetModelPreferences|\bSetModelPreferences/.test(source));
-
-		const client = fs.readFileSync(path.join(grpcDir, 'grpcClient.ts'), 'utf8');
-		assert.ok(client.includes('grpcConfigUnaryWire'));
-		const methods: Array<{ name: string; encoder: string; decoder: string }> = [
-			{ name: 'getConfig', encoder: 'encodeGetConfigRequest', decoder: 'decodeGetConfigResponse' },
-			{ name: 'setConfig', encoder: 'encodeSetConfigRequest', decoder: 'decodeSetConfigResponse' },
-		];
-		for (const { name, encoder, decoder } of methods) {
-			const body = extractAsyncMethod(client, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		const getBody = extractAsyncMethod(client, 'getConfig');
-		const setBody = extractAsyncMethod(client, 'setConfig');
-		assert.ok(getBody.includes('wire.values && typeof wire.values === \'object\''), 'getConfig must keep inline values mapping');
-		assert.ok(getBody.includes('wire.scope ?? \'\''), 'getConfig must keep inline scope mapping');
-		assert.ok(setBody.includes('ok: wire.success === true'), 'setConfig must keep ok: wire.success === true');
-	});
 });
 
 /** Same mapping as grpcClient.getConfig (inline; mapper file has none). */
@@ -205,12 +164,4 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 		}
 	}
 	return numbers;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
 }

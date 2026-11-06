@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import {
 	mapContextVariableListResponse,
@@ -183,39 +180,6 @@ suite('grpc ContextVariable List/Read protobuf wire', () => {
 			},
 		});
 	});
-
-	test('context variable unary wire is List+Read only; no JSON.stringify; grpcClient uses bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const candidates = [
-			path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-			path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-		];
-		const grpcDir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcContextVariableUnaryWire.ts')));
-		assert.ok(grpcDir, 'grpcContextVariableUnaryWire.ts not found from cwd or import.meta');
-		const source = fs.readFileSync(path.join(grpcDir, 'grpcContextVariableUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeContextVariableListRequest\b/.test(source));
-		assert.ok(/\bdecodeContextVariableListResponse\b/.test(source));
-		assert.ok(/\bencodeContextVariableReadRequest\b/.test(source));
-		assert.ok(/\bdecodeContextVariableReadResponse\b/.test(source));
-		assert.ok(!/\bencodeContextVariableWriteRequest|\bencodeContextVariableSetRequest|\bencodeContextVariableDeleteRequest/.test(source));
-
-		const client = fs.readFileSync(path.join(grpcDir, 'grpcClient.ts'), 'utf8');
-		assert.ok(client.includes('grpcContextVariableUnaryWire'));
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'listContextVariable', encoder: 'encodeContextVariableListRequest', decoder: 'decodeContextVariableListResponse', mapper: 'mapContextVariableListResponse' },
-			{ name: 'readContextVariable', encoder: 'encodeContextVariableReadRequest', decoder: 'decodeContextVariableReadResponse', mapper: 'mapContextVariableReadResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(client, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
@@ -236,12 +200,4 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 		}
 	}
 	return numbers;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
 }

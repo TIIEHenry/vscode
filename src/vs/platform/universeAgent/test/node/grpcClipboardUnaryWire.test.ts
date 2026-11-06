@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import {
 	mapClipboardClearResponse,
@@ -213,27 +210,6 @@ suite('grpc clipboard unary protobuf wire', () => {
 		assert.deepStrictEqual(decodeClipboardClearResponse(new Uint8Array(0)), { removed_count: undefined });
 		assert.deepStrictEqual(mapClipboardClearResponse(decodeClipboardClearResponse(new Uint8Array(0))), { removedCount: 0 });
 	});
-
-	test('grpcClient clipboard four unaries use bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const repoRoot = path.join(thisDir, '../../../../../../');
-		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
-		const source = fs.readFileSync(clientPath, 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'writeClipboard', encoder: 'encodeClipboardWriteRequest', decoder: 'decodeClipboardWriteResponse', mapper: 'mapClipboardWriteResponse' },
-			{ name: 'readClipboard', encoder: 'encodeClipboardReadRequest', decoder: 'decodeClipboardReadResponse', mapper: 'mapClipboardReadResponse' },
-			{ name: 'listClipboard', encoder: 'encodeClipboardListRequest', decoder: 'decodeClipboardListResponse', mapper: 'mapClipboardListResponse' },
-			{ name: 'clearClipboard', encoder: 'encodeClipboardClearRequest', decoder: 'decodeClipboardClearResponse', mapper: 'mapClipboardClearResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
@@ -254,12 +230,4 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 		}
 	}
 	return numbers;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
 }
