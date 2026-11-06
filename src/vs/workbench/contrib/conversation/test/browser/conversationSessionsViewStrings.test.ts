@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
-import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterSubtitle, groupSessionsForRoster, resolveSessionRosterTone } from '../../browser/conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterSubtitle, groupSessionsForRoster, resolveSessionRosterRowChrome, resolveSessionRosterTone, sessionRosterGlyph } from '../../browser/conversationSessionsViewStrings.js';
 import type { ConversationStubSession, ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
 suite('ConversationSessionsView strings', () => {
@@ -113,5 +113,84 @@ suite('ConversationSessionsView strings', () => {
 			formatSessionRosterAriaLabel(quiet, 1, 1, 'waiting', false),
 			'Quiet, 1 message · 1 confirmation pending, waiting for confirmation',
 		);
+	});
+
+	test('resolveSessionRosterRowChrome combines tone, glyph, spin, subtitles, and aria label', () => {
+		const now = Date.now();
+		const waitingRow = resolveSessionRosterRowChrome(
+			session({ id: 'w', title: 'Wait item', lastAccessedAt: now }),
+			[tool('t1', 'running'), tool('t2', 'failed')],
+			2,
+			false,
+		);
+		assert.deepStrictEqual({
+			tone: waitingRow.tone,
+			glyphId: waitingRow.glyph.id,
+			spin: waitingRow.spin,
+			compactSubtitle: waitingRow.compactSubtitle,
+			pendingConfirmations: waitingRow.pendingConfirmations,
+		}, {
+			tone: 'waiting',
+			glyphId: sessionRosterGlyph('waiting').id,
+			spin: false,
+			compactSubtitle: '2',
+			pendingConfirmations: 2,
+		});
+		assert.ok(waitingRow.subtitle.includes('2 confirmations pending'));
+		assert.ok(waitingRow.ariaLabel.includes('waiting for confirmation'));
+		assert.ok(!waitingRow.ariaLabel.includes('active session'));
+
+		const idleTimed = resolveSessionRosterRowChrome(
+			session({ id: 'idle-t', title: 'Idle timed', lastAccessedAt: now }),
+			[tool('t1', 'completed')],
+			0,
+			true,
+		);
+		assert.strictEqual(idleTimed.tone, 'idle');
+		assert.strictEqual(idleTimed.spin, false);
+		assert.ok(idleTimed.compactSubtitle.length > 0);
+		assert.strictEqual(idleTimed.subtitle, idleTimed.compactSubtitle);
+		assert.ok(idleTimed.ariaLabel.endsWith(', active session'));
+
+		const runningTimed = resolveSessionRosterRowChrome(
+			session({ id: 'run-t', title: 'Running timed', lastAccessedAt: now }),
+			[tool('t1', 'running')],
+			0,
+			false,
+		);
+		assert.deepStrictEqual({
+			tone: runningTimed.tone,
+			glyphId: runningTimed.glyph.id,
+			spin: runningTimed.spin,
+			compactSubtitle: runningTimed.compactSubtitle,
+		}, {
+			tone: 'running',
+			glyphId: sessionRosterGlyph('running').id,
+			spin: true,
+			compactSubtitle: '',
+		});
+		assert.ok(runningTimed.subtitle.endsWith(' · running'));
+
+		const failedRow = resolveSessionRosterRowChrome(
+			session({ id: 'fail', title: 'Failed item' }),
+			[tool('t1', 'failed')],
+			0,
+			true,
+		);
+		assert.deepStrictEqual({
+			tone: failedRow.tone,
+			glyphId: failedRow.glyph.id,
+			spin: failedRow.spin,
+			subtitle: failedRow.subtitle,
+			compactSubtitle: failedRow.compactSubtitle,
+			ariaLabel: failedRow.ariaLabel,
+		}, {
+			tone: 'failed',
+			glyphId: sessionRosterGlyph('failed').id,
+			spin: false,
+			subtitle: '1 message · failed',
+			compactSubtitle: '',
+			ariaLabel: 'Failed item, 1 message · failed, active session',
+		});
 	});
 });

@@ -211,3 +211,38 @@ export function formatSessionRosterAriaLabel(session: ConversationStubSession, p
 	}
 	return parts.join(', ');
 }
+
+export interface SessionRosterRowChrome {
+	readonly tone: SessionRosterTone;
+	readonly glyph: ThemeIcon;
+	readonly spin: boolean;
+	readonly subtitle: string;
+	readonly compactSubtitle: string;
+	readonly pendingConfirmations: number;
+	readonly ariaLabel: string;
+}
+
+export function resolveSessionRosterRowChrome(
+	session: ConversationStubSession,
+	turns: readonly ConversationStubTurn[],
+	pendingConfirmations: number,
+	active: boolean,
+	turnCount = turns.length,
+): SessionRosterRowChrome {
+	const tone = resolveSessionRosterTone(turns, pendingConfirmations);
+	const glyph = sessionRosterGlyph(tone);
+	const spin = tone === 'running';
+	const subtitle = formatSessionRosterSubtitle(session, pendingConfirmations, turnCount, tone);
+	const compactSubtitle = pendingConfirmations > 0 ? String(pendingConfirmations)
+		: tone === 'idle' && typeof session.lastAccessedAt === 'number' ? formatSessionAccessedLabel(session.lastAccessedAt) : '';
+	const ariaLabel = formatSessionRosterAriaLabel(session, pendingConfirmations, turnCount, tone, active);
+	return {
+		tone,
+		glyph,
+		spin,
+		subtitle,
+		compactSubtitle,
+		pendingConfirmations,
+		ariaLabel,
+	};
+}
