@@ -5,9 +5,31 @@
 
 import assert from 'assert';
 import * as fs from 'fs';
+import { fileURLToPath } from 'url';
 import * as path from '../../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { CONVERSATION_SRC_ROOT, collectConversationProductionFiles } from './conversationImportBoundaryScan.js';
+
+/** Compiled tests run from `out/`; resolve repo `src/` from `import.meta.url` so the scan never walks an empty tree. */
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
+const CONVERSATION_SRC_ROOT = path.join(REPO_ROOT, 'src/vs/workbench/contrib/conversation');
+
+function collectProductionFiles(dir: string): string[] {
+	if (!fs.existsSync(dir)) {
+		return [];
+	}
+	const results: string[] = [];
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const fullPath = path.join(dir, entry.name);
+		if (entry.isDirectory()) {
+			if (entry.name !== 'test') {
+				results.push(...collectProductionFiles(fullPath));
+			}
+		} else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) {
+			results.push(fullPath);
+		}
+	}
+	return results;
+}
 
 /**
  * On the desktop every connection member is a function: the renderer-side
@@ -111,9 +133,9 @@ const ALLOWED_TYPEOF_SITES: readonly string[] = [
 	'conversation/browser/agentSessionContext.ts#getConnectionPhase',
 	'conversation/browser/agentSessionContext.ts#getConnectionSnapshot',
 	'conversation/browser/agentSessionContext.ts#onDidChangeConnection',
-	'conversation/browser/connectionPreferencesPane.ts#hook=listDevices',
-	'conversation/browser/connectionPreferencesPane.ts#hook=listPending',
-	'conversation/browser/connectionPreferencesPane.ts#probeEngine',
+	'conversation/browser/connectionPreferencesDevices.ts#hook=listDevices',
+	'conversation/browser/connectionPreferencesDevices.ts#hook=listPending',
+	'conversation/browser/connectionPreferencesTest.ts#probeEngine',
 	'conversation/browser/engineClipboardSection.ts#hook=listClipboard',
 	'conversation/browser/engineContextVariableSection.ts#hook=listContextVariable',
 	'conversation/browser/engineHooksSection.ts#listHookPoints',
@@ -195,7 +217,7 @@ suite('Connection capability typeof scan (p1)', () => {
 	test('production typeof-on-connection sites in conversation / navigator / sources match the allow list', () => {
 		const hits: string[] = [];
 		for (const root of SCAN_ROOTS) {
-			const files = collectConversationProductionFiles(path.join(CONTRIB_ROOT, root));
+			const files = collectProductionFiles(path.join(CONTRIB_ROOT, root));
 			assert.ok(files.length >= MIN_FILES_PER_ROOT[root], `expected >= ${MIN_FILES_PER_ROOT[root]} production .ts under ${root}, found ${files.length} (empty scan is a false green)`);
 			for (const file of files) {
 				const rel = toContribRelative(file);
