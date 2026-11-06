@@ -45,11 +45,12 @@ import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
-import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from '../../conversation/browser/conversationSessionAvailability.js';
+import { conversationSessionHoldReason } from '../../conversation/browser/conversationSessionAvailability.js';
 import { conversationLensDockEngineNotConnected } from '../../conversation/browser/conversationLensDockStrings.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone, sessionRosterGlyph, type SessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
+import { getConversationSessionReadiness, isConversationSessionNotReady } from '../../conversation/common/conversationSessionReadiness.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { filterNavigatorProjectsTreeNodes } from '../common/navigatorProjectsInlineFilter.js';

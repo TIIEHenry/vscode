@@ -35,9 +35,9 @@ import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/v
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../conversation/browser/conversationRevealItem.contribution.js';
-import { isConversationSessionNotReady } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { isConversationSessionNotReady } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
 import {
 	collectNavigatorActivityItems,

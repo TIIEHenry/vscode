@@ -9,7 +9,7 @@ import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { showConversationPart } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationSessionWindowService } from '../../conversation/browser/conversationSessionWindowService.js';
-import { IConversationSessionChatService } from '../../conversation/browser/conversationSessionChatService.js';
+import { IConversationSessionChatService } from '../../conversation/common/conversationSessionChat.js';
 import { isEngineRootAgentId } from '../common/navigatorAgentHierarchy.js';
 
 export const navigatorRevealSessionNotOpenCopy = localize(
