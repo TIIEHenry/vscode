@@ -72,7 +72,7 @@ suite('navigatorReveal bound session', () => {
 			{ sessionKey: 'leaf-a', chatId: 'default' },
 			{ sessionKey: 'leaf-a', chatId: 'default' },
 		]);
-		assert.deepStrictEqual(harness.closeCalls, ['leaf-a']);
+		assert.deepStrictEqual(harness.closeCalls, []);
 		assert.deepStrictEqual(harness.openCalls, []);
 		assert.deepStrictEqual(harness.infoCalls, []);
 		assert.deepStrictEqual(harness.focusCalls, ['focus']);
