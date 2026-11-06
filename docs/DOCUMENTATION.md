@@ -3,8 +3,8 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-30
-summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md，目录角色见 design/document-system.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations；门禁只走本地 health-gates；新归档走 wiki archive 进 archive/"
+updated: 2026-11-06
+summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md，目录角色见 design/document-system.md；规则 3c 状态翻转后扫知识层；阶段日志落 status，新证据只留 README 摘要加仓库外位置与 sha256，不设 dev/iterations；门禁只走本地 health-gates；新归档走 wiki archive 进 archive/"
 ---
 
 # 文档系统维护规则
@@ -128,7 +128,7 @@ summary: "一行描述"
 ### 规则 4：ADR vs 阶段日志
 
 **ADR**（存量在 `dev/decisions/`）：新架构概念、两方案择一、跨层契约、推翻已有 ADR。仍约束行为的新 ADR 放 `docs/decisions/`，存量仍在 `dev/decisions/`。  
-**阶段日志**：实现过程、踩坑、测试策略、局部 UI/构建变更写在 `dev/progress/status.md`（≤ 200 行）与 `dev/progress/<topic>-evidence/`（验收证据 + README）。本仓**不设** `dev/iterations/`；status 超长时把历史段移入 `dev/archive/`。
+**阶段日志**：实现过程、踩坑、测试策略、局部 UI/构建变更写在 `dev/progress/status.md`（≤ 200 行）与 `dev/progress/<topic>-evidence/`。新建证据只在该目录的 `README.md` 里写日期、命令、仓库外位置与 sha256；截图、日志、大 JSON 不 `git add`，README 本身保持短文本。本仓**不设** `dev/iterations/`；status 超长时把历史段移入 `dev/archive/`。
 
 ### 规则 5：创建 ADR
 
@@ -143,7 +143,7 @@ summary: "一行描述"
 1. **已有取代者**：另一篇是该主题的 SSOT；本篇不再被 `traceability.md`「系统/架构规格」或「实施方案」列引用，或引用已改为取代者。
 2. **过程已结束**：时间盒日志 / spike / 并行看板中的决策或事实已吸进 `docs/systems/`、`docs/architecture/` 或已签收 plan，本篇只剩过程流水。
 3. **不是实施记录本身**：`dev/plans/` 里已 `implemented` 的方案**默认不归档**（它们是完成线）。归档对象是纯过程文：重复的审查日志、已被矩阵取代的草案、已被系统文档吸收但 INDEX 仍指旧 spike 的对照页。
-4. **证据目录不当「过时文」归档**：`dev/progress/*-evidence/` 随 D 项走，不因「过程多」而移入 `dev/archive/`。
+4. **证据目录不当「过时文」归档**：`dev/progress/*-evidence/` 随 D 项走，不因「过程多」而移入 `dev/archive/`。新建的大文件不入库（只留规则 4 的 README 摘要）；已入库目录仍不因过程多而归档。
 
 禁止以「Markdown 太多」为由整目录搬迁。
 
