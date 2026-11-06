@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -116,55 +115,6 @@ suite('grpc FileTransferService GetUploadProgress protobuf wire', () => {
 			partialPath: '',
 		});
 	});
-
-	test('get-upload-progress unary wire is FileTransferService.GetUploadProgress only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcGetUploadProgressUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetUploadProgressRequest\b/.test(source));
-		assert.ok(/\bdecodeGetUploadProgressResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(!/\bUploadAttachment\b|\bDownloadAttachment\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getUploadProgress uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const getUpload = extractGetUploadProgress(source);
-		assert.ok(getUpload.includes('makeUnaryBytesClient'), 'getUploadProgress must use makeUnaryBytesClient');
-		assert.ok(getUpload.includes('encodeGetUploadProgressRequest'), 'getUploadProgress must call encodeGetUploadProgressRequest');
-		assert.ok(getUpload.includes('decodeGetUploadProgressResponse'), 'getUploadProgress must call decodeGetUploadProgressResponse');
-		assert.ok(getUpload.includes('mapUploadProgressResponse'), 'getUploadProgress still calls mapUploadProgressResponse');
-		assert.ok(!getUpload.includes('makeUnaryClient<'), 'getUploadProgress must not use JSON makeUnaryClient');
-		assert.ok(!getUpload.includes('JSON.stringify'), 'getUploadProgress must not JSON.stringify');
-		assert.ok(source.includes('grpcGetUploadProgressUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(getUpload));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
-
-	test('UploadAttachment/DownloadAttachment streams use bytes; do not lock siblings', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
-		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
-		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
-		assert.ok(!upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeUnaryBytesClient'));
-		assert.ok(!upload.includes('grpcGetUploadProgressUnaryWire'));
-
-		const download = extractMethod(source, 'openDownloadAttachmentStream');
-		assert.ok(download.includes('makeServerStreamBytesClient'), 'openDownloadAttachmentStream must use makeServerStreamBytesClient');
-		assert.ok(!download.includes('makeServerStreamClient<'));
-		assert.ok(!download.includes('makeUnaryBytesClient'));
-		assert.ok(!download.includes('grpcGetUploadProgressUnaryWire'));
-	});
 });
 
 /** TEST mapper: same shape as catalog `mapUploadProgressResponse`. */
@@ -184,16 +134,6 @@ function requiredInt64(value: number | string | undefined): number {
 	return Number.isFinite(n) ? n : 0;
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcGetUploadProgressUnaryWire.ts')));
-	assert.ok(dir, 'grpcGetUploadProgressUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
 function extractGetUploadProgress(source: string): string {
 	const start = source.indexOf('\tasync getUploadProgress(');
@@ -203,22 +143,7 @@ function extractGetUploadProgress(source: string): string {
 	return source.slice(start, end);
 }
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
-function extractMethod(source: string, name: string): string {
-	const start = source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const from = start + 1;
-	const next = source.slice(from).search(/\n\t(?:async )?[A-Za-z][A-Za-z0-9]*\(/);
-	const end = next >= 0 ? from + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

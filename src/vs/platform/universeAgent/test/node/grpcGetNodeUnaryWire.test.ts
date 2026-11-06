@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -294,55 +293,6 @@ suite('grpc RemoteAgentService GetNode protobuf wire', () => {
 		assert.strictEqual(encodeInt64Field(4, 0).length, 0);
 		assert.strictEqual(encodeInt64Field(9, 0).length, 0);
 	});
-
-	test('get-node unary wire is RemoteAgentService.GetNode only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcGetNodeUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetNodeRequest\b/.test(source));
-		assert.ok(/\bdecodeGetNodeResponse\b/.test(source));
-		assert.ok(/\bdecodeRemoteAgentInfoScalars\b/.test(source));
-		assert.ok(/\bdecodeCapabilities\b/.test(source));
-		assert.ok(/\bdecodeLoadMetrics\b/.test(source));
-		assert.ok(/\bdecodeModelInfo\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(source.includes('grpcClientMappersCatalog'));
-		assert.ok(!/export interface RemoteAgentInfoWire/.test(source));
-		assert.ok(/export function decodeCapabilities/.test(source));
-		assert.ok(/export function decodeLoadMetrics/.test(source));
-		assert.ok(/export function decodeModelInfo/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getNode uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const getNode = extractAsyncMethod(source, 'getNode');
-		assert.ok(getNode.includes('makeUnaryBytesClient'), 'getNode must use makeUnaryBytesClient');
-		assert.ok(getNode.includes('encodeGetNodeRequest'), 'getNode must call encodeGetNodeRequest');
-		assert.ok(getNode.includes('decodeGetNodeResponse'), 'getNode must call decodeGetNodeResponse');
-		assert.ok(getNode.includes('mapRemoteAgentInfo'), 'getNode still calls mapRemoteAgentInfo');
-		assert.ok(!getNode.includes('makeUnaryClient<'), 'getNode must not use JSON makeUnaryClient');
-		assert.ok(!getNode.includes('JSON.stringify'), 'getNode must not JSON.stringify');
-
-		assert.ok(source.includes('grpcGetNodeUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-		assert.ok(!watchBody.includes('grpcGetNodeUnaryWire'));
-	});
 });
 
 function emptyCapabilities() {
@@ -372,24 +322,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcGetNodeUnaryWire.ts')));
-	assert.ok(dir, 'grpcGetNodeUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

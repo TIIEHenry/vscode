@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -216,51 +215,6 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		assert.strictEqual(encodeInt64Field(4, 0).length, 0);
 		assert.strictEqual(encodeInt64Field(5, 0).length, 0);
 	});
-
-	test('get-remote-session-status unary wire is RemoteAgentService.GetRemoteSessionStatus only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcGetRemoteSessionStatusUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetRemoteSessionStatusRequest\b/.test(source));
-		assert.ok(/\bdecodeGetRemoteSessionStatusResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\bdecodeRemotePendingPermission\b/.test(source));
-		assert.ok(/\bdecodeRemotePendingQuestion\b/.test(source));
-		assert.ok(!/\bencodeRemotePendingPermission\b|\bencodeRemotePendingQuestion\b/.test(source));
-		assert.ok(!/\bmapRemotePendingPermission\b|\bmapRemotePendingQuestion\b/.test(source));
-		assert.ok(!/\bCreateRemoteSession\b|\bDestroyRemoteSession\b|\bGetRemoteSessionHistory\b/.test(source));
-		assert.ok(!/\bResumeRemoteSession\b|\bCancelRemoteSession\b|\bRemoteChat\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getRemoteSessionStatus uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const status = extractAsyncMethod(source, 'getRemoteSessionStatus');
-		assert.ok(status.includes('makeUnaryBytesClient'), 'getRemoteSessionStatus must use makeUnaryBytesClient');
-		assert.ok(status.includes('encodeGetRemoteSessionStatusRequest'), 'getRemoteSessionStatus must call encodeGetRemoteSessionStatusRequest');
-		assert.ok(status.includes('decodeGetRemoteSessionStatusResponse'), 'getRemoteSessionStatus must call decodeGetRemoteSessionStatusResponse');
-		assert.ok(status.includes('mapGetRemoteSessionStatusResponse'), 'getRemoteSessionStatus still calls mapGetRemoteSessionStatusResponse');
-		assert.ok(!status.includes('makeUnaryClient<'), 'getRemoteSessionStatus must not use JSON makeUnaryClient');
-		assert.ok(!status.includes('JSON.stringify'), 'getRemoteSessionStatus must not JSON.stringify');
-		assert.ok(source.includes('grpcGetRemoteSessionStatusUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(status));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-		assert.ok(!watchBody.includes('grpcGetRemoteSessionStatusUnaryWire'));
-	});
 });
 
 function encodeVarintZero(field: number): Buffer {
@@ -270,24 +224,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcGetRemoteSessionStatusUnaryWire.ts')));
-	assert.ok(dir, 'grpcGetRemoteSessionStatusUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

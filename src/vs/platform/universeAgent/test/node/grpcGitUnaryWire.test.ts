@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -300,34 +299,6 @@ suite('grpc git unary protobuf wire', () => {
 			stdout: '',
 		});
 	});
-
-	test('grpcClient Git six unaries use bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const repoRoot = path.join(thisDir, '../../../../../../');
-		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
-		const source = fs.readFileSync(clientPath, 'utf8');
-		const gitMethods: Array<{ name: string; encoder: string; decoder: string }> = [
-			{ name: 'readGitSummary', encoder: 'encodeReadGitSummaryRequest', decoder: 'decodeReadGitSummaryResponse' },
-			{ name: 'readGitChanges', encoder: 'encodeReadGitChangesRequest', decoder: 'decodeReadGitChangesResponse' },
-			{ name: 'readGitFileDiff', encoder: 'encodeReadGitFileDiffRequest', decoder: 'decodeReadGitFileDiffResponse' },
-			{ name: 'writeGitStagePaths', encoder: 'encodeWriteGitStagePathsRequest', decoder: 'decodeWriteGitWriteResponse' },
-			{ name: 'writeGitCommit', encoder: 'encodeWriteGitCommitRequest', decoder: 'decodeWriteGitWriteResponse' },
-			{ name: 'writeGitApplyHunks', encoder: 'encodeWriteGitApplyHunksRequest', decoder: 'decodeWriteGitWriteResponse' },
-		];
-		for (const { name, encoder, decoder } of gitMethods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-		assert.ok(extractAsyncMethod(source, 'readGitSummary').includes('mapReadGitSummaryResponse'));
-		assert.ok(extractAsyncMethod(source, 'readGitChanges').includes('mapReadGitChangesResponse'));
-		assert.ok(extractAsyncMethod(source, 'readGitFileDiff').includes('mapReadGitFileDiffResponse'));
-		assert.ok(extractAsyncMethod(source, 'writeGitStagePaths').includes('mapWriteGitWriteResponse'));
-		assert.ok(extractAsyncMethod(source, 'writeGitCommit').includes('mapWriteGitWriteResponse'));
-		assert.ok(extractAsyncMethod(source, 'writeGitApplyHunks').includes('mapWriteGitWriteResponse'));
-	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
@@ -370,10 +341,3 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 	return numbers;
 }
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}

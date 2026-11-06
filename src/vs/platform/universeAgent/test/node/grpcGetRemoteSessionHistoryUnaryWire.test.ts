@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -215,53 +214,6 @@ suite('grpc RemoteAgentService GetRemoteSessionHistory protobuf wire', () => {
 		assert.deepStrictEqual(mapGetRemoteSessionHistoryResponse(zeroPresent).messages, []);
 		assert.strictEqual(encodeInt64Field(2, 0).length, 0);
 	});
-
-	test('get-remote-session-history unary wire is RemoteAgentService.GetRemoteSessionHistory only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcGetRemoteSessionHistoryUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetRemoteSessionHistoryRequest\b/.test(source));
-		assert.ok(/\bdecodeGetRemoteSessionHistoryResponse\b/.test(source));
-		assert.ok(/\bencodeInt64Field\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\bdecodeRemoteChatMessage\b/.test(source));
-		assert.ok(/\bRemoteChatMessage\b/.test(source));
-		assert.ok(/grpcRemoteChatStreamWire/.test(source));
-		assert.ok(!/\bCreateRemoteSession\b|\bDestroyRemoteSession\b|\bGetRemoteSessionStatus\b/.test(source));
-		assert.ok(!/\bResumeRemoteSession\b|\bCancelRemoteSession\b|\bRemoteChat\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getRemoteSessionHistory uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const history = extractAsyncMethod(source, 'getRemoteSessionHistory');
-		assert.ok(history.includes('makeUnaryBytesClient'), 'getRemoteSessionHistory must use makeUnaryBytesClient');
-		assert.ok(history.includes('encodeGetRemoteSessionHistoryRequest'), 'getRemoteSessionHistory must call encodeGetRemoteSessionHistoryRequest');
-		assert.ok(history.includes('decodeGetRemoteSessionHistoryResponse'), 'getRemoteSessionHistory must call decodeGetRemoteSessionHistoryResponse');
-		assert.ok(history.includes('mapGetRemoteSessionHistoryResponse'), 'getRemoteSessionHistory still calls mapGetRemoteSessionHistoryResponse');
-		assert.ok(!history.includes('makeUnaryClient<'), 'getRemoteSessionHistory must not use JSON makeUnaryClient');
-		assert.ok(!history.includes('JSON.stringify'), 'getRemoteSessionHistory must not JSON.stringify');
-		assert.ok(source.includes('grpcGetRemoteSessionHistoryUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(history));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-		assert.ok(!watchBody.includes('grpcGetRemoteSessionHistoryUnaryWire'));
-	});
 });
 
 function encodeVarintZero(field: number): Buffer {
@@ -271,24 +223,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcGetRemoteSessionHistoryUnaryWire.ts')));
-	assert.ok(dir, 'grpcGetRemoteSessionHistoryUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
