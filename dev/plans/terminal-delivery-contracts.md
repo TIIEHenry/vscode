@@ -16,7 +16,7 @@ summary: "D1377：正式送达/拒绝合同与27项新行为已验证；原11套
 
 当前 [follow-up 编译日志](../progress/ui-visual-review-2026-10-26-evidence/followup-compile-client.log) 的终端组为 8 条：`sendPath` 直接返回 boolean；3 个 `terminalInstance` 测试替身和 `outputMonitor` 替身仍返回 void；分栏移动测试把目标实例当下标；两个 RunInTerminal 前置条件入口共用的安装 terminal 抽象仍声明 void。
 
-现有 [r10 终端方案](review-2026-10-24-r10-terminal-notebook-plan.md) 已规定 `sendText: Promise<boolean>`：true 仅表示输入已交给当前进程，不表示命令成功；false 不发送已送达/已执行事件。按用户指定的原则驱动设计（来源 `/home/clarence/Projects/UniverseSoftware/skills/principled-design/SKILL.md`），保持底层拒绝可表达且不制造无处理的 Promise rejection；在需要完成或失败的上层边界处理结果。
+现有 [r10 终端方案](../../archive/dev/plans/review-2026-10-24-r10-terminal-notebook-plan.md) 已规定 `sendText: Promise<boolean>`：true 仅表示输入已交给当前进程，不表示命令成功；false 不发送已送达/已执行事件。按用户指定的原则驱动设计（来源 `/home/clarence/Projects/UniverseSoftware/skills/principled-design/SKILL.md`），保持底层拒绝可表达且不制造无处理的 Promise rejection；在需要完成或失败的上层边界处理结果。
 
 ## 修复与取舍
 

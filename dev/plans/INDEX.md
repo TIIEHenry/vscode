@@ -312,25 +312,16 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [十六路审查 2026-10-11](review-2026-10-11.md) | `accepted` | 发现 70 条。核查后 hold 55，weaken 13，drop 2。2026-11-01 签收核对：多数条目已落地，r09/r10/r11/r13/r14/r15 改 implemented；仍开的 5 条签收，r03、r06、r16 不签。 |
 | [十六路审查 2026-10-24](review-2026-10-24.md) | `implemented` | 发现 73 条。核查后 hold 60，weaken 12，drop 1。按主题抽样 16 路，非整棵源码互斥切分。方案已实施并逐路验证。 |
 | [审查 r01：base](review-2026-10-24-r01-base.md) | `draft` | 5 条；取消后的树刷新、可取消迭代和分页游标仍会发布过期结果。 |
-| [方案 r01：base](review-2026-10-24-r01-base-plan.md) | `implemented` | hold 3，weaken 2。树刷新、可取消迭代与分页按调用方取消；查找标志归当前轮；fdatasync 失败维持降级。173 + 32 passing。 |
 | [审查 r02：editor](review-2026-10-24-r02-editor.md) | `draft` | 5 条；共享撤销栈、重命名、补全光标和更换粘贴类型仍会写错。 |
-| [方案 r02：editor](review-2026-10-24-r02-editor-plan.md) | `implemented` | hold 4，weaken 1。共享撤销栈、重命名版本、补全光标与粘贴撤销元素已修；取消粘贴维持现状。43 passing。 |
 | [审查 r03：agent-host-codex](review-2026-10-24-r03-agent-host-codex.md) | `draft` | 5 条；过期 turn、结束后的批准、未展示权限、非末尾片段和未结束回合仍会被写成成功。 |
-| [方案 r03：agent-host-codex](review-2026-10-24-r03-agent-host-codex-plan.md) | `implemented` | hold 5。过期 turn、迟到批准、未展示权限、非末尾片段与未结束回合已修。146 passing。 |
 | [审查 r04：agent-host-rest](review-2026-10-24-r04-agent-host-rest.md) | `draft` | 5 条；取消后的 Copilot 发送、Claude 旧流换绑和缺完成事件的工具成功态仍成立。 |
-| [方案 r04：agent-host-rest](review-2026-10-24-r04-agent-host-rest-plan.md) | `implemented` | hold 4，weaken 1。取消后的发送与迟到批准、Claude 旧流、缺完成事件已修；非取消回合自动批准维持现状。649 passing。 |
 | [审查 r05：universe-agent](review-2026-10-24-r05-universe-agent.md) | `draft` | 4 条；换链后的旧探测结果和旧 Chat 错误帧仍会写入当前连接。 |
-| [方案 r05：universe-agent](review-2026-10-24-r05-universe-agent-plan.md) | `implemented` | hold 3，drop 1。换链后的旧探测与旧 Chat 帧已作废，服务级通配广告已放行；r05-1 维持 drop。466 + 5 passing。 |
 | [审查 r06：platform](review-2026-10-24-r06-platform.md) | `draft` | 5 条；读失败会清空策略，通配符与 URL 主机不一致，网关记录参数和正文。 |
-| [方案 r06：platform](review-2026-10-24-r06-platform-plan.md) | `implemented` | hold 3，weaken 2。策略读失败保留旧表、MCP 主机规范化、卸载补删目录、网关不记正文。85 passing。 |
 | [审查 r07：conversation](review-2026-10-24-r07-conversation.md) | `draft` | 2 条；配对挂起或列表失败时，权限与模型下拉在引擎已接受写入后仍退回旧选择。 |
 | [方案 r07：conversation](review-2026-10-24-r07-conversation-plan.md) | `implemented` | hold 2 已实施。2026-10-24 签收 ADR-012：leftover 保留引擎已接受的权限 / 模型值，控件保持不可写；未接受的新目标仍回退。九条 leftover 用例通过。 |
 | [审查 r08：sources-navigator](review-2026-10-24-r08-sources-navigator.md) | `draft` | 5 条；切会话后的提交、Accept 行号、预览组、检查器会话和引擎文件身份仍会写错。 |
-| [方案 r08：sources-navigator](review-2026-10-24-r08-sources-navigator-plan.md) | `implemented` | hold 4，weaken 1。提交会话校验、Accept 行号、预览组、检查器与引擎文件身份已修。256 passing，1 条既有失败。 |
 | [审查 r09：chat](review-2026-10-24-r09-chat.md) | `draft` | 5 条；重命名折成普通编辑、取消或失败的工具被标成已完成、编辑工具写错请求、外部组吞普通编辑。 |
-| [方案 r09：chat](review-2026-10-24-r09-chat-plan.md) | `implemented` | hold 3，weaken 2。重命名后编辑、工具失败态、请求身份与外部编辑分组已修。276 passing。 |
 | [审查 r10：terminal-notebook](review-2026-10-24-r10-terminal-notebook.md) | `draft` | 5 条；退出后的发送、活动分栏下标、单元格输出和后台结束通知仍会对错对象。 |
-| [方案 r10：terminal-notebook](review-2026-10-24-r10-terminal-notebook-plan.md) | `implemented` | hold 4，weaken 1。送达返回值、分栏活动下标、输出 id 与后台通知已修。423 passing，2 条既有失败。 |
 | [审查 r11：debug-scm](review-2026-10-24-r11-debug-scm.md) | `draft` | 5 条；临时断点、取消后的重启、停止后的建会话、合并完成信号和 preserveFocus 跳过保存仍成立。 |
 | [方案 r11：debug-scm](review-2026-10-24-r11-debug-scm-plan.md) | `implemented` | hold 5。资源抓取、沙箱合并、未就绪工具列表、任务依赖与下载失败已修。78 passing。 |
 | [审查 r12：contrib-rest](review-2026-10-24-r12-contrib-rest.md) | `draft` | 5 条；MCP 任意 HTTPS 抓取、沙箱建议删拒绝规则、工具列表、任务依赖和网页下载把失败当完成。 |
