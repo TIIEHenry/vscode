@@ -64,6 +64,11 @@ import type {
 	UniverseAgentAgentTreeNode,
 } from '../../common/universeAgentTypes.js';
 import type { UniverseAgentAuthNonceResult } from './grpcTransport.js';
+import type { BackResponseWire } from './grpcBackUnaryWire.js';
+import type { BranchResponseWire } from './grpcBranchUnaryWire.js';
+import type { ListLoopSnapshotsResponseWire, LoopSnapshotRecordWire } from './grpcListLoopSnapshotsUnaryWire.js';
+import type { PruneResponseWire } from './grpcPruneUnaryWire.js';
+import type { AgentInfoWire, StatusResponseWire } from './grpcStatusUnaryWire.js';
 import type {
 	AgentUsageDetailWire,
 	AgentUsageWire,
@@ -95,6 +100,11 @@ export type {
 	SystemPromptPartInfoWire,
 	UsageResponseWire,
 } from './grpcUsageUnaryWire.js';
+export type { BackResponseWire } from './grpcBackUnaryWire.js';
+export type { BranchResponseWire } from './grpcBranchUnaryWire.js';
+export type { ListLoopSnapshotsResponseWire, LoopSnapshotRecordWire } from './grpcListLoopSnapshotsUnaryWire.js';
+export type { PruneResponseWire } from './grpcPruneUnaryWire.js';
+export type { AgentInfoWire, StatusResponseWire } from './grpcStatusUnaryWire.js';
 
 export interface ConnectResponseWire {
 	session_token?: string;
@@ -214,10 +224,6 @@ export interface ResolveTurnResponseWire {
 	expired?: ResolveTurnExpiredWire;
 }
 
-export interface StatusResponseWire {
-	agent?: AgentInfoWire;
-}
-
 export interface CompactResponseWire {
 	success?: boolean;
 	message?: string;
@@ -229,12 +235,6 @@ export interface CompactResponseWire {
 
 export interface ListAgentsResponseWire {
 	agents?: AgentInfoWire[];
-}
-
-export interface BackResponseWire {
-	success?: boolean;
-	message?: string;
-	current_turn_id?: string;
 }
 
 const CompactOutcomeByNumber: Record<number, string> = {
@@ -341,24 +341,6 @@ export interface ListSnapshotsResponseWire {
 	snapshots?: SessionSnapshotInfoWire[];
 }
 
-export interface LoopSnapshotRecordWire {
-	timestamp?: number;
-	turn_id?: string;
-	loop_id?: string;
-	iteration?: number;
-	max_iterations?: number;
-	goal?: string;
-	exit_condition?: string;
-	tmp_file_relative_path?: string;
-	is_exit?: boolean;
-	self_supervise?: string;
-	terminal_reason?: string;
-}
-
-export interface ListLoopSnapshotsResponseWire {
-	snapshots?: LoopSnapshotRecordWire[];
-}
-
 export interface CreateSnapshotResponseWire {
 	success?: boolean;
 	snapshot?: SessionSnapshotInfoWire;
@@ -443,20 +425,6 @@ export interface HistoryEntryWire {
 export interface HistoryResponseWire {
 	entries?: HistoryEntryWire[];
 	total?: number;
-}
-
-export interface PruneResponseWire {
-	success?: boolean;
-	message?: string;
-	removed_count?: number;
-}
-
-export interface BranchResponseWire {
-	success?: boolean;
-	message?: string;
-	current_branch?: number;
-	total_branches?: number;
-	current_turn_id?: string;
 }
 
 export interface QueueMutationResponseWire {
@@ -1267,17 +1235,6 @@ export function mapGetHistoryResponse(wire: GetHistoryResponseWire): UniverseAge
 		})),
 		nextCursorSeq: wire.next_cursor_seq,
 	};
-}
-
-export interface AgentInfoWire {
-	agent_id?: string;
-	name?: string;
-	type?: string;
-	status?: string;
-	model?: string;
-	turn_count?: number;
-	created_at?: number;
-	children?: readonly AgentInfoWire[];
 }
 
 export interface AgentTreeResponseWire {
