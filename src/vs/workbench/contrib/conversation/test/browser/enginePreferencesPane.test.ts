@@ -28,13 +28,12 @@ import type {
 	UniverseAgentModelEntry,
 	UniverseAgentPluginSummary,
 	UniverseAgentProjectRule,
-	UniverseAgentSessionEvent,
-	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentTrigger,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 import { asCssVariableName, getSizeRegistry, isSizeDefaults, sizeValueToCss } from '../../../../../platform/theme/common/sizeRegistry.js';
+import { createMutableConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 const ENGINE_DISCONNECTED_COPY = getConnectionPhaseStatusBarText({ kind: 'disconnected' });
 const FAKE_ENGINE_LABELS = ['Local Engine', '127.0.0.1:8080'];
@@ -57,84 +56,20 @@ suite('EnginePreferencesPane', () => {
 		overrides: Partial<IUniverseAgentConnection> = {},
 		options: { pairingPending?: boolean; looksLive?: boolean } = {},
 	): IUniverseAgentConnection {
-		const capabilities = createEmptyCapabilitySnapshot();
-		const pairingPending = options.pairingPending ?? false;
-		const looksLive = options.looksLive ?? false;
-		return {
-			_serviceBrand: undefined,
-			isEngineConnected: () => connected && (looksLive || !pairingPending),
-			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
-			getTransportState: () => (connected ? 'ok' : 'idle'),
-			getConnectionSnapshot: () => ({
-				transport: connected ? 'ok' : 'idle',
-				authenticated: connected,
-				pairingPending,
-				channelAlive: connected,
-				sharedFsRootSent: false,
-				capabilities,
-			}),
-			getCapabilitySnapshot: () => capabilities,
-			onDidChangeConnection: Event.None,
-			onDidFileMutation: Event.None,
-			onDidTurnSettle: Event.None,
-			onDidChangeTeamRuntime: Event.None,
-			requestAgentTreeRefresh: () => { },
-			getNavigatorCapability: () => 'UNKNOWN' as const,
-			isAgentTreeFetchFailed: () => false,
-			team: {
-				memberStatus: async () => [],
-				taskList: async () => [],
-				teamInfo: async () => undefined,
+		return createMutableConversationConnectionTestStub({
+			connected,
+			pairingPending: options.pairingPending ?? false,
+			looksLive: options.looksLive ?? false,
+			capabilities: createEmptyCapabilitySnapshot(),
+			engineIdentityId: undefined,
+			linkId: undefined,
+			publishedLink: 'never',
+			overrides: {
+				onDidChangeConnection: Event.None,
+				disconnect: async () => { },
+				...overrides,
 			},
-			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			cancelPairing: async () => { },
-			probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			disconnect: async () => { },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			renameSession: async () => ({ ok: false, message: 'stub' }),
-			cancelGeneration: async () => ({ ok: false, message: 'stub' }),
-			enqueueQueueItem: async () => ({ ok: false, error: 'stub' }),
-			pauseQueue: async () => ({ ok: false, error: 'stub' }),
-			resumeQueue: async () => ({ ok: false, error: 'stub' }),
-			clearQueue: async () => ({ ok: false, error: 'stub' }),
-			holdQueueItem: async () => ({ ok: false, error: 'stub' }),
-			releaseQueueItemHold: async () => ({ ok: false, error: 'stub' }),
-			editQueueItem: async () => ({ ok: false, error: 'stub' }),
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: (
-				_sessionId: string,
-				_listener: (event: UniverseAgentSessionEvent) => void,
-				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-			) => ({ dispose: () => { } }),
-			chat: async () => { },
-			listSkills: async () => ({ skills: [] }),
-			setSkillEnabled: async () => ({ ok: true }),
-			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
-			listAgentProfiles: async () => ({ profiles: [] }),
-			saveAgentProfile: async (request) => ({ profile: request.profile }),
-			deleteAgentProfile: async () => ({ ok: true }),
-			resetAgentProfile: async () => ({ ok: true }),
-			listMcpServers: async () => ({ servers: [] }),
-			getMcpServerStatuses: async () => ({ statuses: [] }),
-			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: async () => ({ plugins: [] }),
-			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
-			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			unloadPlugin: async () => ({ removedHookCount: 0 }),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: async () => ({ ok: true }),
-			addMcpServer: async () => ({ ok: true }),
-			updateMcpServer: async () => ({ ok: true }),
-			removeMcpServer: async () => ({ ok: true }),
-			listTools: async () => ({ tools: [] }),
-			listModels: async () => ({ models: [] }),
-			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
-			...overrides,
-		};
+		}).connection;
 	}
 
 	function mountPane(
