@@ -17651,35 +17651,7 @@ suite('UniverseAgentConnectionService dispose snapshot', () => {
 	});
 });
 
-type PairingDialogBoxCall = {
-	readonly type?: string;
-	readonly message: string;
-	readonly detail?: string;
-	readonly buttons?: readonly string[];
-	readonly cancelId?: number;
-	readonly defaultId?: number;
-};
-
-function stubPairingMainDialog(response: number, calls: PairingDialogBoxCall[]) {
-	return {
-		showMessageBox: async (options: PairingDialogBoxCall) => {
-			calls.push(options);
-			return { response };
-		},
-	};
-}
-
-function assertPairingDialogButtons(buttons: readonly string[] | undefined): void {
-	assert.ok(buttons);
-	assert.strictEqual(buttons.length, 2);
-	for (const button of buttons) {
-		const visible = button.replaceAll('&&', '').trim();
-		assert.ok(!/^skip(\s|$)/i.test(visible), visible);
-		assert.ok(!/^trust(\s|$)/i.test(visible), visible);
-	}
-}
-
-function productionPairingService(dialog?: { showMessageBox: (options: PairingDialogBoxCall) => Promise<{ response: number }> }) {
+function productionPairingService() {
 	const profileStore = new PairingTestProfileStore(directPairingPendingProfile());
 	let trustPuts = 0;
 	const service = new UniverseAgentConnectionService({
@@ -17695,7 +17667,6 @@ function productionPairingService(dialog?: { showMessageBox: (options: PairingDi
 			put: () => { trustPuts++; },
 			remove: () => { },
 		},
-		...(dialog ? { dialogMainService: dialog } : {}),
 	});
 	const orchestrator = (service as unknown as { _pairingOrchestrator?: PairingOrchestrator })._pairingOrchestrator;
 	assert.ok(orchestrator);
@@ -17730,123 +17701,62 @@ function seedRecoverTrust(orchestrator: PairingOrchestrator): void {
 	};
 }
 
-suite('UniverseAgentConnectionService pairing main dialog', () => {
+function seedAwaitingSasSnapshot(host: ReturnType<typeof productionPairingService>): void {
+	seedAwaitingSas(host.orchestrator);
+	(host.orchestrator as unknown as { lastSnapshot: object }).lastSnapshot = {
+		phase: 'awaiting_sas_confirm',
+		profileId: PAIRING_PROFILE_ID,
+		sasCode: 'ABCD-EFGH',
+		engineIdentityId: 'engine-identity-1',
+		sessionTokenInstalled: false,
+	};
+	(host.service as unknown as { _pairingContextProfileId?: string })._pairingContextProfileId = PAIRING_PROFILE_ID;
+}
+
+function seedRecoverTrustSnapshot(host: ReturnType<typeof productionPairingService>): void {
+	seedRecoverTrust(host.orchestrator);
+	(host.orchestrator as unknown as { lastSnapshot: object }).lastSnapshot = {
+		phase: 'recover_trust',
+		profileId: PAIRING_PROFILE_ID,
+		engineIdentityId: 'engine-identity-1',
+		leafSha256Hex: 'cd'.repeat(32),
+		sessionTokenInstalled: false,
+	};
+	(host.service as unknown as { _pairingContextProfileId?: string })._pairingContextProfileId = PAIRING_PROFILE_ID;
+}
+
+suite('UniverseAgentConnectionService pairing confirmation', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('confirmSas asks the stubbed dialog and cancel is not approval', async () => {
-		const calls: PairingDialogBoxCall[] = [];
-		const { service, orchestrator } = productionPairingService(stubPairingMainDialog(1, calls));
+	test('confirmSas without in-pane approval is sas_cancelled, not a rejection', async () => {
+		const { service, orchestrator } = productionPairingService();
 		seedAwaitingSas(orchestrator);
 		const result = await orchestrator.confirmSas();
 		assert.strictEqual(result.ok, false);
 		if (!result.ok) {
 			assert.strictEqual(result.code, 'sas_cancelled');
 		}
-		assert.strictEqual(calls.length, 1);
-		assert.strictEqual(calls[0].type, 'warning');
-		assert.strictEqual(calls[0].cancelId, 1);
-		assert.strictEqual(calls[0].defaultId, 0);
-		assert.match(calls[0].detail ?? '', /ABCD-EFGH/);
-		assert.match(calls[0].detail ?? '', /Direct/);
-		assertPairingDialogButtons(calls[0].buttons);
-		assert.match(calls[0].buttons?.[0] ?? '', /Verified on Engine/);
 		service.dispose();
 	});
 
-	test('confirmSas treats only the first dialog button as approval', async () => {
-		const calls: PairingDialogBoxCall[] = [];
-		const { service, orchestrator } = productionPairingService(stubPairingMainDialog(0, calls));
-		const confirmSas = (orchestrator as unknown as {
-			deps: { confirmSas: (input: { readonly sasCode: string; readonly engineIdentityId: string; readonly leafSha256Hex: string; readonly displayName: string }) => Promise<boolean> };
-		}).deps.confirmSas;
-		const approved = await confirmSas({
-			sasCode: 'ABCD-EFGH',
-			engineIdentityId: 'engine-identity-1',
-			leafSha256Hex: 'ab'.repeat(32),
-			displayName: 'Direct',
-		});
-		assert.strictEqual(approved, true);
-		assert.strictEqual(calls.length, 1);
-		service.dispose();
-	});
-
-	test('confirmSas without a dialog does not auto-approve', async () => {
-		const { service, orchestrator } = productionPairingService();
-		seedAwaitingSas(orchestrator);
-		await assert.rejects(
-			() => orchestrator.confirmSas(),
-			/Pairing confirmation dialog is not available/,
-		);
-		service.dispose();
-	});
-
-	test('a thrown pairing dialog is not user cancellation', async () => {
-		const { service, orchestrator } = productionPairingService({
-			showMessageBox: async () => {
-				throw new Error('dialog failed');
-			},
-		});
-		seedAwaitingSas(orchestrator);
-		await assert.rejects(() => orchestrator.confirmSas(), /dialog failed/);
-		service.dispose();
-	});
-
-	test('confirmRecoverTrust writes trust only when the stubbed dialog approves', async () => {
-		const approvedCalls: PairingDialogBoxCall[] = [];
-		const approvedHost = productionPairingService(stubPairingMainDialog(0, approvedCalls));
-		seedRecoverTrust(approvedHost.orchestrator);
-		const approved = await approvedHost.orchestrator.confirmRecoverTrust();
-		assert.strictEqual(approved.ok, true);
-		assert.strictEqual(approvedHost.trustPuts(), 1);
-		assert.ok(approvedHost.profileStore.get(PAIRING_PROFILE_ID)?.trust);
-		assert.strictEqual(approvedCalls.length, 1);
-		assert.match(approvedCalls[0].detail ?? '', /engine-identity-1/);
-		assert.match(approvedCalls[0].detail ?? '', new RegExp('cd'.repeat(32)));
-		assertPairingDialogButtons(approvedCalls[0].buttons);
-		assert.match(approvedCalls[0].buttons?.[0] ?? '', /Recover trust/);
-		approvedHost.service.dispose();
-
-		const refusedCalls: PairingDialogBoxCall[] = [];
-		const refusedHost = productionPairingService(stubPairingMainDialog(1, refusedCalls));
-		seedRecoverTrust(refusedHost.orchestrator);
-		const refused = await refusedHost.orchestrator.confirmRecoverTrust();
-		assert.strictEqual(refused.ok, false);
-		if (!refused.ok) {
-			assert.strictEqual(refused.code, 'recover_cancelled');
-		}
-		assert.strictEqual(refusedHost.trustPuts(), 0);
-		assert.strictEqual(refusedHost.profileStore.get(PAIRING_PROFILE_ID)?.trust, null);
-		assert.strictEqual(refusedCalls.length, 1);
-		refusedHost.service.dispose();
-	});
-
-	test('confirmRecoverTrust without a dialog does not auto-approve', async () => {
+	test('confirmRecoverTrust without in-pane approval is recover_cancelled and writes no trust', async () => {
 		const host = productionPairingService();
 		seedRecoverTrust(host.orchestrator);
-		await assert.rejects(
-			() => host.orchestrator.confirmRecoverTrust(),
-			/Pairing confirmation dialog is not available/,
-		);
+		const result = await host.orchestrator.confirmRecoverTrust();
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'recover_cancelled');
+		}
 		assert.strictEqual(host.trustPuts(), 0);
 		assert.strictEqual(host.profileStore.get(PAIRING_PROFILE_ID)?.trust, null);
 		host.service.dispose();
 	});
 
-	test('confirmPairing without in-pane approval still opens the main dialog', async () => {
-		const calls: PairingDialogBoxCall[] = [];
-		const host = productionPairingService(stubPairingMainDialog(1, calls));
-		seedAwaitingSas(host.orchestrator);
-		(host.orchestrator as unknown as { lastSnapshot: object }).lastSnapshot = {
-			phase: 'awaiting_sas_confirm',
-			profileId: PAIRING_PROFILE_ID,
-			sasCode: 'ABCD-EFGH',
-			engineIdentityId: 'engine-identity-1',
-			sessionTokenInstalled: false,
-		};
-		(host.service as unknown as { _pairingContextProfileId?: string })._pairingContextProfileId = PAIRING_PROFILE_ID;
+	test('confirmPairing without userConfirmed is sas_cancelled', async () => {
+		const host = productionPairingService();
+		seedAwaitingSasSnapshot(host);
 		const result = await host.service.confirmPairing();
-		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(result.ok, false);
 		if (!result.ok) {
 			assert.strictEqual(result.code, 'sas_cancelled');
@@ -17855,20 +17765,23 @@ suite('UniverseAgentConnectionService pairing main dialog', () => {
 		host.service.dispose();
 	});
 
+	test('confirmPairing without userConfirmed on recover trust is recover_cancelled', async () => {
+		const host = productionPairingService();
+		seedRecoverTrustSnapshot(host);
+		const result = await host.service.confirmPairing();
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'recover_cancelled');
+		}
+		assert.strictEqual(host.trustPuts(), 0);
+		assert.strictEqual(host.profileStore.get(PAIRING_PROFILE_ID)?.trust, null);
+		host.service.dispose();
+	});
+
 	test('confirmPairing userConfirmed skips the main SAS dialog', async () => {
-		const calls: PairingDialogBoxCall[] = [];
-		const host = productionPairingService(stubPairingMainDialog(1, calls));
-		seedAwaitingSas(host.orchestrator);
-		(host.orchestrator as unknown as { lastSnapshot: object }).lastSnapshot = {
-			phase: 'awaiting_sas_confirm',
-			profileId: PAIRING_PROFILE_ID,
-			sasCode: 'ABCD-EFGH',
-			engineIdentityId: 'engine-identity-1',
-			sessionTokenInstalled: false,
-		};
-		(host.service as unknown as { _pairingContextProfileId?: string })._pairingContextProfileId = PAIRING_PROFILE_ID;
+		const host = productionPairingService();
+		seedAwaitingSasSnapshot(host);
 		const result = await host.service.confirmPairing({ userConfirmed: true });
-		assert.strictEqual(calls.length, 0);
 		assert.strictEqual(result.ok, false);
 		if (!result.ok) {
 			assert.notStrictEqual(result.code, 'sas_cancelled');
@@ -17879,19 +17792,9 @@ suite('UniverseAgentConnectionService pairing main dialog', () => {
 	});
 
 	test('confirmPairing userConfirmed writes recover trust without the main dialog', async () => {
-		const calls: PairingDialogBoxCall[] = [];
-		const host = productionPairingService(stubPairingMainDialog(1, calls));
-		seedRecoverTrust(host.orchestrator);
-		(host.orchestrator as unknown as { lastSnapshot: object }).lastSnapshot = {
-			phase: 'recover_trust',
-			profileId: PAIRING_PROFILE_ID,
-			engineIdentityId: 'engine-identity-1',
-			leafSha256Hex: 'cd'.repeat(32),
-			sessionTokenInstalled: false,
-		};
-		(host.service as unknown as { _pairingContextProfileId?: string })._pairingContextProfileId = PAIRING_PROFILE_ID;
+		const host = productionPairingService();
+		seedRecoverTrustSnapshot(host);
 		const result = await host.service.confirmPairing({ userConfirmed: true });
-		assert.strictEqual(calls.length, 0);
 		assert.strictEqual(host.trustPuts(), 1);
 		assert.ok(host.profileStore.get(PAIRING_PROFILE_ID)?.trust);
 		assert.strictEqual(result.ok, false);

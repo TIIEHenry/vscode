@@ -3,7 +3,7 @@ title: "UI 缺口收口 2026-10-01"
 type: plan
 status: implemented
 phase: M7
-updated: 2026-11-01
+updated: 2026-11-06
 summary: "产品部分已落地（S-B 两份 workbench CSS、S-C、S-D 的 I1/I2、必填单选、S-G2）；S-A、S-B 的 Sessions CSS、S-D 的 I4/I5、S-E、S-F、S-G1、S-H 属 Agents Window，不计产品验收。按审查待定项决定 D22 标 implemented。不升 PRD-008。"
 ---
 
@@ -108,16 +108,7 @@ S-D / S-G 拆开是因为文件不交叠，可以并行。S-A 必须同一人：
 
 ### S-C 配对框
 
-- **目标：** 主进程 SAS / recover 框挂到当前 `BrowserWindow`，用户能看见并点 Verified on Engine。
-- **文件：** `src/vs/platform/universeAgent/electron-main/universeAgentMainService.ts` 50–58 行。`IWindowsMainService.getFocusedWindow` / `getLastActiveWindow` 在 `windows.ts` 53–54 行。`ICodeWindow.win` 在 `window.ts` 27 行。`dialogMainService.showMessageBox(options, window?)` 在 `dialogMainService.ts` 150–158 行。
-- **挂载点（已核）：** `connectionPreferencesPane.ts` 的 `pairingConfirmHost` 在 422、744–746 行创建并 `display: none`，1000–1005 行会滚动并聚焦已有按钮。`connectProfileWithPairing`（1690–1720 行）只 `await confirmPairing()`。`promptSasConfirmInPane` 生产无调用。`promptSasConfirmDialog` 只在 `connectionPreferencesPaneSas.ts` 168 行定义，生产调用为 0。`confirmPairing`（`universeAgentConnectionService.ts` 1209–1231 行）内部 `confirmSas` → `confirmPairingSasWithMainDialog` → `askPairingMainDialog`（500–508 行）。无 dialog 时返回 false。
-- **改法：** 构造函数注入 `IWindowsMainService`。`showMessageBox` 第二参为当前窗：`const codeWindow = windows.getFocusedWindow() ?? windows.getLastActiveWindow(); const win = codeWindow?.win; dialogMainService.showMessageBox(options, win && !win.isDestroyed() ? win : undefined)`。第一参字段保持今日的 type / message / detail / buttons / defaultId / cancelId。桌面 renderer 的 `confirmPairing` 走 channel client（`universeAgentConnectionChannelClient.ts` 107–109 行）到该 main 服务；browser stub（`browser/universeAgentConnectionService.ts` 154–156 行）仍是 `WEB_UNSUPPORTED`，不改。
-- **不变量：** 不调用 `promptSasConfirmInPane`。不把 `confirmSas` 改成恒 true。页内宿主保持 `display: none`，除非已有活对话框（今日没有生产路径会点亮它）。`connectionPreferencesPane.test.ts` 里 `assertNoInPanePairingDialog` 的用例保持，尤其 `pairing confirm completes inside Preferences modal block` 与 `connectProfileWithPairing writes diagnostics before pairing prompt resolves`。
-- **验收（C3）：** 源码里 `dialogMainService.showMessageBox` 带第二参。活窗验收属于 prd-008-engine-e2e，不在本切片宣称 PASS，也不升 PRD-008。
-- **测试：** 新增 `src/vs/platform/universeAgent/test/node/universeAgentMainDialogWindowScan.test.ts`，用例 `pairing showMessageBox passes the focused or last active window`。用与 `universeAgentLeftoverCatchScan.test.ts` 相同的 `readFileSync`。
-- **命令：** `scripts/test.sh --grep "pairing showMessageBox passes"`；pane 回归 `scripts/test.sh --grep "pairing confirm completes inside Preferences modal block"`。`run-unit-custom.sh` 把不在 17–32 行名单里的 `test/node` 放进 Electron 的 `UA_FILES`（66–76 行），`universeAgentNode` 只跑名单内文件（115–116 行）。本扫描走 Electron 的 universeAgent 收集，不写进 universeAgentNode。
-- **非目标：** 不改 `pairingOrchestrator.ts` 的 S1–S7。不改 pane 的 Connect 顺序。
-- **风险：** 焦点窗与最后活动窗都没有时，第二参为 `undefined`，行为与今日无窗队列相同。回滚只还原 main service。
+本段原先给主进程 SAS / recover 框补窗口参数。[p5 S2](review-2026-11-04-p5-universe-agent-platform-plan.md) 去掉了主进程配对对话框：平台不再 `showMessageBox`，确认只在 Connection 窗格（`confirmPairing({ userConfirmed: true })`），不传 `userConfirmed` 视为未批准。扫描测试 `universeAgentMainDialogWindowScan.test.ts` 改为断言 electron-main 子类不再出现对话框与窗口服务。
 
 ### S-D Conversation 诚实态
 
