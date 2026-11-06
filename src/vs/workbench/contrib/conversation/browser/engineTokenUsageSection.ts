@@ -17,6 +17,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { EngineRefreshGate } from './engineWriteGate.js';
 
 const $ = DOM.$;
 
@@ -57,7 +58,7 @@ export class EngineTokenUsageSection extends Disposable {
 	private readonly listHost: HTMLElement;
 
 	private hasSnapshot = false;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 
 	constructor(
 		parent: HTMLElement,
@@ -66,6 +67,7 @@ export class EngineTokenUsageSection extends Disposable {
 	) {
 		super();
 
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-token-usage-section'));
 		this.container.style.display = 'none';
 
@@ -100,7 +102,7 @@ export class EngineTokenUsageSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.clearSnapshot();
 		DOM.clearNode(this.container);
 		this.container.remove();
@@ -135,10 +137,6 @@ export class EngineTokenUsageSection extends Disposable {
 		return typeof this.connection.getGlobalUsage === 'function';
 	}
 
-	private isCurrent(generation: number): boolean {
-		return generation === this.refreshGeneration && !this._store.isDisposed;
-	}
-
 	private setRefreshVisible(visible: boolean): void {
 		this.refreshToolbar.style.display = visible ? '' : 'none';
 		this.refreshButton.enabled = visible;
@@ -155,7 +153,7 @@ export class EngineTokenUsageSection extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const connected = this.connection.isEngineConnected();
 
 		// Pairing-hold first, including leftover-looks-live. Do not call getGlobalUsage.
@@ -182,7 +180,7 @@ export class EngineTokenUsageSection extends Disposable {
 		try {
 			// Empty request. No session id and no date range.
 			const result = await this.connection.getGlobalUsage!();
-			if (!this.isCurrent(generation)) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -192,7 +190,7 @@ export class EngineTokenUsageSection extends Disposable {
 			this.paintUsage(result.usage);
 			this.status.render({ mode: 'ready', featureLabel: TOKEN_USAGE_FEATURE });
 		} catch (error) {
-			if (!this.isCurrent(generation)) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {

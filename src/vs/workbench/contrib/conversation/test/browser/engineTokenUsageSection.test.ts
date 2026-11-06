@@ -59,6 +59,8 @@ suite('EngineTokenUsageSection', () => {
 		connected?: boolean;
 		pairingPending?: boolean;
 		looksLive?: boolean;
+		/** Published link read on every snapshot; changing it does not fire onDidChangeConnection. */
+		linkId?: () => number;
 		getGlobalUsage?: IUniverseAgentConnection['getGlobalUsage'];
 	} = {}): IUniverseAgentConnection {
 		const connected = options.connected ?? false;
@@ -75,6 +77,7 @@ suite('EngineTokenUsageSection', () => {
 				channelAlive: connected,
 				sharedFsRootSent: false,
 				capabilities,
+				...(options.linkId ? { engineIdentityId: 'test-engine', linkId: options.linkId() } : {}),
 			}),
 			getCapabilitySnapshot: () => capabilities,
 			getGlobalUsage: options.getGlobalUsage,
@@ -330,6 +333,30 @@ suite('EngineTokenUsageSection', () => {
 		assert.ok(!(root.textContent ?? '').includes('8675309'));
 		assert.ok(!(root.textContent ?? '').includes('Input tokens'));
 
+		root.parentElement?.remove();
+	});
+
+	test('late response after the published link changed without a refresh does not paint', async () => {
+		let linkId = 1;
+		let resolveUsage: (value: UniverseAgentGetGlobalUsageResult) => void = () => { };
+		const section = mountSection(createUsageConnection({
+			connected: true,
+			linkId: () => linkId,
+			getGlobalUsage: () => new Promise(resolve => {
+				resolveUsage = resolve;
+			}),
+		}));
+		const root = section.getDomNode();
+		assert.strictEqual(catalogStatus(root).dataset['catalogMode'], 'loading');
+
+		linkId = 2;
+		resolveUsage({ usage: SAMPLE_USAGE });
+		await flush();
+
+		assert.deepStrictEqual(
+			{ mode: catalogStatus(root).dataset['catalogMode'], rows: root.querySelectorAll('.engine-catalog-row').length },
+			{ mode: 'loading', rows: 0 },
+		);
 		root.parentElement?.remove();
 	});
 
