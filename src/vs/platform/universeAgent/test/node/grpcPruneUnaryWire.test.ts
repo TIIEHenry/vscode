@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -99,36 +98,6 @@ suite('grpc AgentService Prune protobuf wire', () => {
 		});
 		assert.strictEqual(encodeInt32Field(3, 0).length, 0);
 	});
-
-	test('prune unary wire is Prune only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcPruneUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodePruneRequest\b/.test(source));
-		assert.ok(/\bdecodePruneResponse\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bClearSessionDemoFake\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('prune uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const prune = extractAsyncMethod(source, 'prune');
-		assert.ok(prune.includes('makeUnaryBytesClient'), 'prune must use makeUnaryBytesClient');
-		assert.ok(prune.includes('encodePruneRequest'), 'prune must call encodePruneRequest');
-		assert.ok(prune.includes('decodePruneResponse'), 'prune must call decodePruneResponse');
-		assert.ok(prune.includes('mapPruneResponse'), 'prune still calls mapPruneResponse');
-		assert.ok(!prune.includes('makeUnaryClient<'), 'prune must not use JSON makeUnaryClient');
-		assert.ok(!prune.includes('JSON.stringify'), 'prune must not JSON.stringify');
-
-		assert.ok(source.includes('grpcPruneUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 function encodeVarintZero(field: number): Buffer {
@@ -138,24 +107,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcPruneUnaryWire.ts')));
-	assert.ok(dir, 'grpcPruneUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

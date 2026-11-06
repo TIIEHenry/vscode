@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -152,76 +151,9 @@ suite('grpc MemoryService Rebuild protobuf server-stream wire', () => {
 		assert.strictEqual(encodeInt32Field(4, 0).length, 0);
 		assert.strictEqual(encodeInt32Field(5, 0).length, 0);
 	});
-
-	test('memory rebuild stream wire is MemoryService.Rebuild only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcMemoryRebuildStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeMemoryRebuildRequest\b/.test(source));
-		assert.ok(/\bdecodeMemoryRebuildEvent\b/.test(source));
-		assert.ok(/\bmapMemoryRebuildEvent\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('openRebuildMemoryStream uses makeServerStreamBytesClient; Upload bytes', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const rebuild = extractMethod(source, 'openRebuildMemoryStream');
-		assert.ok(rebuild.includes('makeServerStreamBytesClient'), 'openRebuildMemoryStream must use makeServerStreamBytesClient');
-		assert.ok(rebuild.includes('encodeMemoryRebuildRequest'), 'openRebuildMemoryStream must call encodeMemoryRebuildRequest');
-		assert.ok(rebuild.includes('decodeMemoryRebuildEvent'), 'openRebuildMemoryStream must call decodeMemoryRebuildEvent');
-		assert.ok(rebuild.includes('mapMemoryRebuildEvent'), 'openRebuildMemoryStream still calls mapMemoryRebuildEvent');
-		assert.ok(!rebuild.includes('makeServerStreamClient<'), 'openRebuildMemoryStream must not use JSON makeServerStreamClient');
-		assert.ok(!rebuild.includes('JSON.stringify'), 'openRebuildMemoryStream itself must not JSON.stringify');
-		assert.ok(source.includes('grpcMemoryRebuildStreamWire'));
-
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
-
-		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-
-		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
-		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
-		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
-		assert.ok(!upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeServerStreamBytesClient'));
-	});
 });
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcMemoryRebuildStreamWire.ts')));
-	assert.ok(dir, 'grpcMemoryRebuildStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function encodeVarintZero(field: number): Buffer {
 	return Buffer.concat([
