@@ -128,7 +128,7 @@ summary: "一行描述"
 ### 规则 4：ADR vs 阶段日志
 
 **ADR**（存量在 `dev/decisions/`）：新架构概念、两方案择一、跨层契约、推翻已有 ADR。仍约束行为的新 ADR 放 `docs/decisions/`，存量仍在 `dev/decisions/`。  
-**阶段日志**：实现过程、踩坑、测试策略、局部 UI/构建变更写在 `dev/progress/status.md`（≤ 200 行）与 `dev/progress/<topic>-evidence/`。新建证据只在该目录的 `README.md` 里写日期、命令、仓库外位置与 sha256；截图、日志、大 JSON 不 `git add`，README 本身保持短文本。本仓**不设** `dev/iterations/`；status 超长时把历史段移入 `dev/archive/`。
+**阶段日志**：实现过程、踩坑、测试策略、局部 UI/构建变更写在 `dev/progress/status.md`（≤ 200 行）与 `dev/progress/<topic>-evidence/`。新建证据只在该目录的 `README.md` 里写日期、命令、仓库外位置与 sha256；截图、日志、大 JSON 不 `git add`，README 本身保持短文本。本仓**不设** `dev/iterations/`；status 超长时把历史段移入 `dev/archive/`。阶段日志与证据的叙述不写测试通过、失败或 skipped 条数，写法见 [文档文体指南](guides/doc-style-guide.md)。
 
 ### 规则 5：创建 ADR
 
@@ -186,6 +186,8 @@ summary: "一行描述"
 
 方案 commit 与实施 commit 分开；各自提交前满足规则 3a，提交时满足 3b。禁止跳过方案直接编码（trivial bugfix 除外）。方案正文写完后须先满足 **规则 16**，再进入实施。
 
+方案 `accepted` 满 90 天、且文中点名的路径此后没有实施提交时，不自动改 `status`，由人决定保持、拆开或退回 `draft`。这条只提醒人判断，不写进 `generate-docs-status.py`，也不由脚本自动降级。
+
 ### 规则 16：方案写完必须经只读审查再改稿
 
 对 `dev/plans/` 新方案或实质改写、以及 `docs/reference/code-oss-b2/` 页面接入 / 映射方案：
@@ -194,6 +196,7 @@ summary: "一行描述"
 2. Reviewer **不改文件**。产出 Strengths / Critical / Important / Minor / Assessment。
 3. 父 agent **核验后改稿**：Critical 与 Important 当轮改入方案；与 HEAD 或已拍板合同冲突的意见写明不采纳原因。Minor 可记父方案，不阻塞。
 4. 未走本门禁不得把方案标成可签收完成，也不得开实施切片。
+5. **措辞修订免审**：不改行为、不改契约、不改切片、不改待定项的措辞或链接修订，不派 reviewer。其余仍走本规则。以 diff 为准，作者不能把行为改动称作措辞；不按行数免审。
 
 Cursor 侧提醒见 `.cursor/rules/scheme-review.mdc`。流程见 [multi-agent-design-workflow](guides/multi-agent-design-workflow.md)。
 

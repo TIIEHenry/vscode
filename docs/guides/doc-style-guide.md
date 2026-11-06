@@ -3,8 +3,8 @@ title: "文档文体指南"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-09-05
-summary: "本仓库 docs/ 与 dev/ 的写作约定：frontmatter、INDEX 与概览、禁止在 src/vs 建文档树、用链接引用不复制、对外可读闭集"
+updated: 2026-11-06
+summary: "本仓库 docs/ 与 dev/ 的写作约定：frontmatter、INDEX 与概览、禁止在 src/vs 建文档树、用链接引用不复制、对外可读闭集、测试结果不写通过条数"
 ---
 
 # 文档文体指南
@@ -37,6 +37,10 @@ summary: "一行描述"
 - **不要**给 `src/`、`extensions/`、`test/` 里的上游存量 `.md` 补 frontmatter。
 
 健康检查：`python3 scripts/check-docs-health.py`（可选 `--strict-frontmatter`、`--strict-links`）。链接检查只校验文档目标；源码深链不计入。
+
+## 测试结果怎么写
+
+叙述里不写测试通过条数、失败条数或 skipped 条数；写跑过的命令、`--run` 或 `--grep` 选择器与结果文件路径。基线头里的 `min_cases` 与 `max_skipped` 是比较脚本的输入，照旧写在 `dev/progress/test-baseline-failures.txt` 头里，不算叙述。
 
 ## INDEX 与概览
 
