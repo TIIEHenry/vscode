@@ -32,6 +32,7 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { EngineCatalogSectionController } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -329,6 +330,7 @@ export class EngineToolsSection extends Disposable {
 	private sectionActive = false;
 	private selectedToolName: string | undefined;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 	private infoLoadGeneration = 0;
 
 	constructor(
@@ -342,6 +344,7 @@ export class EngineToolsSection extends Disposable {
 		super();
 		this.instantiationService = instantiationService;
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 
 		this.container = DOM.append(parent, $('.engine-tools-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -889,7 +892,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.hideCatalogWriteStatus();
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
@@ -901,11 +904,11 @@ export class EngineToolsSection extends Disposable {
 				this.paintToolInfoHonesty(getEngineSectionDisconnectedCopy());
 			}
 			this.closeLeftoverRowToggleChrome();
-			return;
-		}
-		this.clearCatalogPresentation();
-		this.mode = resolveEngineCatalogPaneMode(false, support);
-		this.renderStatus();
+		}, () => {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+		});
 	}
 
 	private listSessionTools(): ReturnType<IUniverseAgentConnection['listTools']> {
