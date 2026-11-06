@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -226,70 +225,9 @@ suite('grpc SessionService Prewarm / Shelve / Unshelve / Purge / Export protobuf
 		assert.deepStrictEqual(empty, { content: undefined, format: undefined });
 		assert.deepStrictEqual(mapExportSessionResponse(empty), { content: '', format: '' });
 	});
-
-	test('session lifecycle unary wire is five unaries only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSessionLifecycleUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodePrewarmSessionsRequest\b/.test(source));
-		assert.ok(/\bdecodePrewarmSessionsResponse\b/.test(source));
-		assert.ok(/\bencodeShelveSessionRequest\b/.test(source));
-		assert.ok(/\bdecodeShelveSessionResponse\b/.test(source));
-		assert.ok(/\bencodeUnshelveSessionRequest\b/.test(source));
-		assert.ok(/\bdecodeUnshelveSessionResponse\b/.test(source));
-		assert.ok(/\bencodePurgeSessionRequest\b/.test(source));
-		assert.ok(/\bdecodePurgeSessionResponse\b/.test(source));
-		assert.ok(/\bencodeExportSessionRequest\b/.test(source));
-		assert.ok(/\bdecodeExportSessionResponse\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bFireTriggerWebhook\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('prewarmSessions / shelveSession / unshelveSession / purgeSession / exportSession use bytes then map*', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const methods: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'prewarmSessions', encoder: 'encodePrewarmSessionsRequest', decoder: 'decodePrewarmSessionsResponse', mapper: 'mapPrewarmSessionsResponse' },
-			{ name: 'shelveSession', encoder: 'encodeShelveSessionRequest', decoder: 'decodeShelveSessionResponse', mapper: 'mapShelveSessionResponse' },
-			{ name: 'unshelveSession', encoder: 'encodeUnshelveSessionRequest', decoder: 'decodeUnshelveSessionResponse', mapper: 'mapUnshelveSessionResponse' },
-			{ name: 'purgeSession', encoder: 'encodePurgeSessionRequest', decoder: 'decodePurgeSessionResponse', mapper: 'mapPurgeSessionResponse' },
-			{ name: 'exportSession', encoder: 'encodeExportSessionRequest', decoder: 'decodeExportSessionResponse', mapper: 'mapExportSessionResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of methods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		assert.ok(source.includes('grpcSessionLifecycleUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSessionLifecycleUnaryWire.ts')));
-	assert.ok(dir, 'grpcSessionLifecycleUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

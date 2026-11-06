@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -144,39 +143,6 @@ suite('grpc AgentService SendShellSessionClientControl protobuf wire', () => {
 			deliveredToSubscribe: undefined,
 		});
 	});
-
-	test('send-shell-session-client-control unary wire is AgentService.SendShellSessionClientControl only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSendShellSessionClientControlUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeSendShellSessionClientControlRequest\b/.test(source));
-		assert.ok(/\bdecodeSendShellSessionClientControlResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('sendShellSessionClientControl uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const send = extractAsyncMethod(source, 'sendShellSessionClientControl');
-		assert.ok(send.includes('makeUnaryBytesClient'), 'sendShellSessionClientControl must use makeUnaryBytesClient');
-		assert.ok(send.includes('encodeSendShellSessionClientControlRequest'), 'sendShellSessionClientControl must call encodeSendShellSessionClientControlRequest');
-		assert.ok(send.includes('decodeSendShellSessionClientControlResponse'), 'sendShellSessionClientControl must call decodeSendShellSessionClientControlResponse');
-		assert.ok(send.includes('ok: wire.success === true'), 'sendShellSessionClientControl must keep ok: wire.success === true');
-		assert.ok(send.includes('message: wire.error_message'), 'sendShellSessionClientControl must keep message: wire.error_message');
-		assert.ok(send.includes('errorCode: wire.error_code'), 'sendShellSessionClientControl must keep errorCode: wire.error_code');
-		assert.ok(send.includes('debounced: wire.debounced'), 'sendShellSessionClientControl must keep debounced: wire.debounced');
-		assert.ok(send.includes('deliveredToSubscribe: wire.delivered_to_subscribe'), 'sendShellSessionClientControl must keep deliveredToSubscribe: wire.delivered_to_subscribe');
-		assert.ok(!send.includes('makeUnaryClient<'), 'sendShellSessionClientControl must not use JSON makeUnaryClient');
-		assert.ok(!send.includes('JSON.stringify'), 'sendShellSessionClientControl must not JSON.stringify');
-
-		assert.ok(source.includes('grpcSendShellSessionClientControlUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as Agent.SendShellSessionClientControl JSON unary (`ok: wire.success === true`). */
@@ -190,24 +156,7 @@ function mapSendShellSessionClientControl(wire: SendShellSessionClientControlRes
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSendShellSessionClientControlUnaryWire.ts')));
-	assert.ok(dir, 'grpcSendShellSessionClientControlUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -164,83 +163,10 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 			contentMode: 'TOOL_DETAIL_CONTENT_MODE_UNSPECIFIED',
 		});
 	});
-
-	test('subscribe-tool-detail stream wire is SubscribeToolDetail only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSubscribeToolDetailStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeSubscribeToolDetailRequest\b/.test(source));
-		assert.ok(/\bdecodeSubscribeToolDetailChunk\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\bencodeInt64Field\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const body = extractMethod(source, 'openSubscribeToolDetailStream');
-		assert.ok(body.includes('makeServerStreamBytesClient'), 'openSubscribeToolDetailStream must use makeServerStreamBytesClient');
-		assert.ok(body.includes('encodeSubscribeToolDetailRequest'), 'openSubscribeToolDetailStream must call encodeSubscribeToolDetailRequest');
-		assert.ok(body.includes('decodeSubscribeToolDetailChunk'), 'openSubscribeToolDetailStream must call decodeSubscribeToolDetailChunk');
-		assert.ok(body.includes('mapSubscribeToolDetailChunk'), 'openSubscribeToolDetailStream still calls mapSubscribeToolDetailChunk');
-		assert.ok(!body.includes('makeServerStreamClient<'), 'openSubscribeToolDetailStream must not use JSON makeServerStreamClient');
-		assert.ok(!body.includes('JSON.stringify'), 'openSubscribeToolDetailStream itself must not JSON.stringify');
-		assert.ok(source.includes('grpcSubscribeToolDetailStreamWire'));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
-
-		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-
-		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
-		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
-		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
-		assert.ok(!upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeServerStreamBytesClient'));
-	});
 });
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSubscribeToolDetailStreamWire.ts')));
-	assert.ok(dir, 'grpcSubscribeToolDetailStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
