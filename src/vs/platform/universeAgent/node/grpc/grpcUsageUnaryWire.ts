@@ -4,19 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { UniverseAgentUsageRequest } from '../../common/universeAgentTypes.js';
-import type {
-	AgentUsageDetailWire,
-	CacheInfoWire,
-	CompactInfoWire,
-	ContextWindowInfoWire,
-	FixedOverheadInfoWire,
-	MessageBreakdownInfoWire,
-	ModelUsageWire,
-	ProfileUsageWire,
-	RecentRequestSpanWire,
-	SessionUsageInfoWire,
-	SystemPromptPartInfoWire,
-} from './grpcClientMappersSession.js';
 import {
 	allLengthDelimited,
 	encodeStringField,
@@ -25,6 +12,128 @@ import {
 	lastVarint,
 	readProtoFields,
 } from './grpcProtoCodec.js';
+
+export interface RecentRequestSpanWire {
+	profile_id?: string;
+	provider?: string;
+	model_id?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	prefill_ms?: number;
+	decode_ms?: number;
+	completed_at_ms?: number;
+	usage_kind?: string;
+}
+
+export interface FixedOverheadInfoWire {
+	tool_definition_tokens?: number;
+	tool_definition_count?: number;
+	skill_inject_tokens?: number;
+	mcp_tool_tokens?: number;
+	memory_inject_tokens?: number;
+	rules_inject_tokens?: number;
+}
+
+export interface SystemPromptPartInfoWire {
+	id?: string;
+	label?: string;
+	tokens?: number;
+	cache_scope?: string;
+	volatility?: string;
+}
+
+export interface MessageBreakdownInfoWire {
+	system_prompt_tokens?: number;
+	user_message_count?: number;
+	user_message_tokens?: number;
+	assistant_count?: number;
+	assistant_tokens?: number;
+	tool_result_count?: number;
+	tool_result_tokens?: number;
+	compact_notice_count?: number;
+	compact_notice_tokens?: number;
+}
+
+export interface CompactInfoWire {
+	compact_count?: number;
+	last_compact_tokens_before?: number;
+	last_compact_tokens_after?: number;
+	last_compact_time_ms?: number;
+}
+
+export interface CacheInfoWire {
+	total_cache_read_tokens?: number;
+	total_cache_creation_tokens?: number;
+}
+
+export interface ContextWindowInfoWire {
+	context_window_size?: number;
+	estimated_context_tokens?: number;
+	model_name?: string;
+	message_count?: number;
+	breakdown?: MessageBreakdownInfoWire;
+	compact?: CompactInfoWire;
+	cache?: CacheInfoWire;
+	fixed_overhead?: FixedOverheadInfoWire;
+	system_prompt_parts?: SystemPromptPartInfoWire[];
+}
+
+export interface ModelUsageWire {
+	model_id?: string;
+	model_name?: string;
+	provider?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	thinking_tokens?: number;
+	total_tokens?: number;
+	turn_count?: number;
+}
+
+export interface AgentUsageDetailWire {
+	agent_id?: string;
+	agent_type?: string;
+	model_id?: string;
+	input_tokens?: number;
+	output_tokens?: number;
+	thinking_tokens?: number;
+	total_tokens?: number;
+	turn_count?: number;
+}
+
+export interface ProfileUsageWire {
+	profile_id?: string;
+	profile_name?: string;
+	provider?: string;
+	model_id?: string;
+	chat_input_tokens?: number;
+	chat_output_tokens?: number;
+	compact_input_tokens?: number;
+	compact_output_tokens?: number;
+	thinking_tokens?: number;
+	cache_read_tokens?: number;
+	cache_creation_tokens?: number;
+	total_tokens?: number;
+	conversation_turn_count?: number;
+	llm_request_count?: number;
+	compact_request_count?: number;
+	has_post_switch_chat?: boolean;
+	recall_input_tokens?: number;
+	recall_output_tokens?: number;
+	recall_request_count?: number;
+}
+
+export interface SessionUsageInfoWire {
+	total_input_tokens?: number;
+	total_output_tokens?: number;
+	total_thinking_tokens?: number;
+	total_cache_read_tokens?: number;
+	total_cache_creation_tokens?: number;
+	total_tokens?: number;
+	total_turns?: number;
+	model_usages?: ModelUsageWire[];
+	agent_details?: AgentUsageDetailWire[];
+	profile_usages?: ProfileUsageWire[];
+}
 
 /**
  * JSON-shaped decode of AgentService.UsageResponse fields 1–4.
