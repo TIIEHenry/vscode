@@ -28,7 +28,7 @@ import { defaultButtonStyles, defaultInputBoxStyles } from '../../../../platform
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
-import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
+import { EngineCatalogSectionController, paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -276,6 +276,7 @@ export class EngineSkillsSection extends Disposable {
 	private catalogWriteOperation: object | undefined;
 	private linkNotice: string | undefined;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 	private sectionActive = false;
 
 	constructor(
@@ -289,6 +290,7 @@ export class EngineSkillsSection extends Disposable {
 		super();
 		this.instantiationService = instantiationService;
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 
 		this.container = DOM.append(parent, $('.engine-skills-section'));
 		this.container.style.display = 'none';
@@ -784,7 +786,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		return this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.hideWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.listContainer.style.display = '';
@@ -800,12 +802,11 @@ export class EngineSkillsSection extends Disposable {
 				else { this.showBodyStatus(getEngineSectionDisconnectedCopy()); }
 			}
 			this.closeLeftoverRowToggleChrome();
-			return false;
-		}
-		this.clearCatalogPresentation();
-		this.mode = resolveEngineSkillsPaneMode(false, support);
-		this.renderStatus();
-		return false;
+		}, () => {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineSkillsPaneMode(false, support);
+			this.renderStatus();
+		});
 	}
 
 	private async refresh(recoverDirtyBody = false, expectedOwner?: UniverseAgentExpectedOwner): Promise<boolean> {
