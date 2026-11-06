@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-30
+updated: 2026-11-06
 summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定，非缺口）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 

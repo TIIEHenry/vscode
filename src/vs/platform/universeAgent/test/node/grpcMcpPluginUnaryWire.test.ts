@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { asUnaryProtoBytes } from '../../node/grpc/grpcClientCalls.js';
 import {
@@ -839,4 +837,3 @@ function protoMessages(encoded: Uint8Array, fieldNumber: number): Uint8Array[] {
 	}
 	return values;
 }
-

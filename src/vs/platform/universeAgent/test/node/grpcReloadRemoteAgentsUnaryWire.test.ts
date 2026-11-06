@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentReloadRemoteAgentsResult } from '../../common/universeAgentTypes.js';
 import {
@@ -167,5 +165,3 @@ function requiredInt64(value: number | string | undefined): number {
 	const n = typeof value === 'number' ? value : Number(value);
 	return Number.isFinite(n) ? n : 0;
 }
-
-

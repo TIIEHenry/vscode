@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import {
 	mapGetGlobalUsageResponse,
@@ -219,4 +217,3 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 	}
 	return numbers;
 }
-
