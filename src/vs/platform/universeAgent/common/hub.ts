@@ -50,9 +50,6 @@ export type HubProfileResult =
 	| { readonly ok: true; readonly profileId: string }
 	| { readonly ok: false; readonly code: string; readonly reason: string };
 
-/** @deprecated Use {@link HubProfileResult}. */
-export type HubDirectAddressResult = HubProfileResult;
-
 /** Connection profile summary for renderer — no trust leaf / secrets. */
 export type ConnectionProfileProjection = {
 	readonly profileId: string;
@@ -113,12 +110,6 @@ export interface IUniverseAgentHubService {
 		readonly hubDeviceId: string;
 		readonly displayName?: string;
 	}): Promise<HubProfileResult>;
-
-	/** Create or reuse a hubDevice profile for a directory device, then Connect can pair. */
-	addHubDeviceProfile(input: {
-		readonly hubDeviceId: string;
-		readonly displayName?: string;
-	}): Promise<HubDirectAddressResult>;
 
 	forgetConnectionProfile(profileId: string): Promise<HubOperationResult>;
 
