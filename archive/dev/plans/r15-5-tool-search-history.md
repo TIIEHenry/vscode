@@ -14,7 +14,7 @@ summary: "谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；
 
 > **落地：** `status: implemented`。代码已落地（`extensions/copilot/src/platform/endpoint/node/responsesApi.ts`），单测 `responsesApiToolSearch.spec.ts` 15 passing 全绿。不升 PRD。
 > **slice_id**：`r15-5-tool-search-history`
-> **来源**：[审查 r15](review-2026-09-30-r15-copilot-core.md) 的 r15-5。行号作废，以当前代码为准。已签收全文在 [方案 r15](review-2026-09-30-r15-copilot-core-plan.md)，其中 r15-5 为 drop。本稿不改那篇正文，只补本条现在要落地的合同。
+> **来源**：[审查 r15](../../../dev/plans/review-2026-09-30-r15-copilot-core.md) 的 r15-5。行号作废，以当前代码为准。已签收全文在 [方案 r15](../../../dev/plans/review-2026-09-30-r15-copilot-core-plan.md)，其中 r15-5 为 drop。本稿不改那篇正文，只补本条现在要落地的合同。
 > **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。不升 PRD。不宣布 r15 或十六路审查完成。
 > **冲突域**：`extensions/copilot/src/platform/endpoint/node/responsesApi.ts` 的 `buildToolSearchOutputTools` 与 `ChatRole.Tool` 分支，以及 `responsesApiToolSearch.spec.ts`。
 > **不改**：连接服务、session actor、Preview、proposed API、`dev/loop/**`、`status.md`、`deferred-gaps.md`、`engine-protocol-surface.md`、人类工位、槽 C。不改 r15-1 到 r15-4 已落地的行为。
@@ -32,7 +32,7 @@ summary: "谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；
 | `ChatRole.Tool` 在 `toolSearchCallIds` 命中时一律推 `tool_search_output`，`tools` 用上面的数组。没有 `toolsMap` 时直接用 `[]` | 同文件 `rawMessagesToResponseAPI` |
 | 因此合法工具名数组或原来的结果文本会被换成 `tools: []` | 同上 |
 | 谓词存在时，非延迟工具本来就不进 `tool_search_output`。只有非延迟名字时结果就是 `tools: []`。这条是开启搜索后的现有行为 | `responsesApiToolSearch.spec.ts` |
-| 已签收方案把「未支持模型的 `loadedToolNames === []`」收成 drop。那条断言钉住的就是这次要改的空数组 | [方案 r15](review-2026-09-30-r15-copilot-core-plan.md) 的 r15-5。不改该文 |
+| 已签收方案把「未支持模型的 `loadedToolNames === []`」收成 drop。那条断言钉住的就是这次要改的空数组 | [方案 r15](../../../dev/plans/review-2026-09-30-r15-copilot-core-plan.md) 的 r15-5。不改该文 |
 
 ## 2. 合同
 

@@ -14,7 +14,7 @@ summary: "没有聊天流时权限回复返回拒绝并留下可再点的失败�
 
 > **落地：** `status: implemented`。代码已全面落地（提交 `2e8bd69c453`），单测 `sessionViewHostChatClose.test.ts` 与 `sessionActorReconnectHistoryRegen.test.ts` 25 passing 全绿。不升 PRD。
 > **slice_id**：`r12-permission-reply-fail-closed`
-> **来源**：[审查 r12](review-2026-09-30-r12-agent-host.md) 的 r12-2、r12-3、r12-4。行号作废，以当前代码为准。已签收全文在 [方案 r12](review-2026-09-30-r12-agent-host-plan.md)，本稿只补还没对齐审查方向的三处，不改那篇已签收正文。
+> **来源**：[审查 r12](../../../dev/plans/review-2026-09-30-r12-agent-host.md) 的 r12-2、r12-3、r12-4。行号作废，以当前代码为准。已签收全文在 [方案 r12](../../../dev/plans/review-2026-09-30-r12-agent-host-plan.md)，本稿只补还没对齐审查方向的三处，不改那篇已签收正文。
 > **本稿是方案，未签收。** 状态保持 `draft`。不升 PRD。不宣布 r12 或十六路审查完成。
 > **冲突域**：`session-actor-local-fact.ts` 的 `onPermissionRespond`、`session-core.ts` 的聊天流关闭拒绝、`session-actor-stream-fold.ts` 的 `clearPendingForRuntimeEpochChange`、对应单测。
 > **不改**：连接服务、`connect()`、`linkId`、`engineIdentityId`、能力快照、Preview、r10 proposed API、`respondEnginePermission`、`dev/loop/**`、`status.md`、`deferred-gaps.md`、`engine-protocol-surface.md`、槽 C。

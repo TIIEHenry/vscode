@@ -30,7 +30,7 @@ summary: "D1383已按旧生产red与新生产19 passing闭合；D1379–81按范
 
 ### D1375 Sources 合同基线
 
-[方案](../../plans/sources-compile-contracts.md) 收敛旧日志 Sources 的 9 条，而非全仓 176 条：三个装饰参数 optional/union 使 `GetLeadingNonServiceArgs` / singleton 合同失败 6 条；SCM 组空编辑器 `null` 未归一 2 条；list-mode 测试漏接 `store` 1 条。已按当前源码逐点修复；D1368–D1372 的已修日志不重做。J 只做静态分析与目标 ESLint（11 文件，0 errors / 31 既有 warnings），没有编译、转译、watch 或写 `out/`。新增 6 条运行回归已在 merge 当前新产物通过：`sourcesTabs` 1、`sourcesReviewProgress` 1、`sourcesChangesList` 4；同时运行夹具对齐的 `sourcesPartFocus`、`sourcesReviewList`、`sourcesFilesListMode`。当前 compile-client 已实证 Sources 0 诊断，原映射 9 条均消失；仅 D1375 合同范围闭合，全仓仍 160 条 / 58 文件。
+[方案](../../../archive/dev/plans/sources-compile-contracts.md) 收敛旧日志 Sources 的 9 条，而非全仓 176 条：三个装饰参数 optional/union 使 `GetLeadingNonServiceArgs` / singleton 合同失败 6 条；SCM 组空编辑器 `null` 未归一 2 条；list-mode 测试漏接 `store` 1 条。已按当前源码逐点修复；D1368–D1372 的已修日志不重做。J 只做静态分析与目标 ESLint（11 文件，0 errors / 31 既有 warnings），没有编译、转译、watch 或写 `out/`。新增 6 条运行回归已在 merge 当前新产物通过：`sourcesTabs` 1、`sourcesReviewProgress` 1、`sourcesChangesList` 4；同时运行夹具对齐的 `sourcesPartFocus`、`sourcesReviewList`、`sourcesFilesListMode`。当前 compile-client 已实证 Sources 0 诊断，原映射 9 条均消失；仅 D1375 合同范围闭合，全仓仍 160 条 / 58 文件。
 
 ## D1379 Policy definition 提交生命周期（待运行）
 

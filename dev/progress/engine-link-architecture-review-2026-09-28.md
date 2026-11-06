@@ -79,7 +79,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 已知：[bug-hunt 01](bug-hunt-2026-09-24/01-connection-trust.md)「看过但未立条」第一条看过这段，以「注释与代码一致、窗格先确认」判为不立条。本条以上面的引擎行为与 donor 约束推翻该判定。
 - 方向：删掉「超时进入恢复信任」，超时按 `transport_failed` 处理。恢复信任只在意外拿到 token 时进入，并作为新尝试重新观测、重新签票。SAS 与恢复两个确认框移到 main（`IDialogMainService`），renderer 只发起请求。
 - 超时半边已按 transport_failed 改。SAS 与恢复信任的生产确认改走 main 的 `IDialogMainService`；拒绝、关闭或抛错都不批准。`dispose` 在相位变为 disconnected 后、`super.dispose()` 之前广播一次。偏好设置窗格不再先画确认，直接 `confirmPairing()`。
-- 2026-10-05：身份就绪时 `confirmRecoverTrust` 不再把试连叶直接写入信任。批准后按 [recover-trust-new-attempt](../plans/recover-trust-new-attempt.md) 重新观测；新叶指纹与用户确认的不一致则 `fingerprint_mismatch` 且不写信任。中继 endpoint 在重新观测前和重新握手前各续一次票。新握手拿到 `session_token` 才写入刚观测到的叶并返回该 token；若改回 `pairing_nonce`，不写信任，快照改为带 SAS 的 `grant_pending`，下一次确认走 `confirmSas`。客户端身份未就绪时仍按批准即写信任——`universeAgentConnection.test.ts` 的生产夹具锁着这条，且 `startPairing` 在身份未就绪时进不了 recoverTrust。不改连接服务。不升 PRD-024。
+- 2026-10-05：身份就绪时 `confirmRecoverTrust` 不再把试连叶直接写入信任。批准后按 [recover-trust-new-attempt](../../archive/dev/plans/recover-trust-new-attempt.md) 重新观测；新叶指纹与用户确认的不一致则 `fingerprint_mismatch` 且不写信任。中继 endpoint 在重新观测前和重新握手前各续一次票。新握手拿到 `session_token` 才写入刚观测到的叶并返回该 token；若改回 `pairing_nonce`，不写信任，快照改为带 SAS 的 `grant_pending`，下一次确认走 `confirmSas`。客户端身份未就绪时仍按批准即写信任——`universeAgentConnection.test.ts` 的生产夹具锁着这条，且 `startPairing` 在身份未就绪时进不了 recoverTrust。不改连接服务。不升 PRD-024。
 
 ### ELR-4 session token 经 IPC 发给每个窗口
 
@@ -171,7 +171,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：IDE 启动后约 0–1 秒内，或引擎晚起、发现按退避重试时，用户对任一 profile 点连接。
 - 测试为何没发现：本机发现的测试只覆盖单独一条拨号；没有「发现在飞时用户拨号」的用例。
 - 已知：否。原文对已签收方案的补充里提过链路对象，但那时还没有本机发现。
-- 方向：本机拨号捕获 epoch、在 captured 上跑完探针、经 `_applyConnectedCommit` 提交；链路订阅随尝试走，提交时才进服务槽；用户拨号取消发现；`_liveConnectedPublished` 与 `isEngineConnected` 用同一判据。方案：[loopback-link-commit](../plans/loopback-link-commit.md)。
+- 方向：本机拨号捕获 epoch、在 captured 上跑完探针、经 `_applyConnectedCommit` 提交；链路订阅随尝试走，提交时才进服务槽；用户拨号取消发现；`_liveConnectedPublished` 与 `isEngineConnected` 用同一判据。方案：[loopback-link-commit](../../archive/dev/plans/loopback-link-commit.md)。
 
 ### ELR-11 本机引擎的信任只靠端口号
 
@@ -189,8 +189,8 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
   - [ADR-003](../decisions/003-engine-adapter-boundary.md) Decision 7 写「已连接 = 非空 session_token + 活 channel」。本机跳过鉴权的链路没有 token 也算已连接，ADR 没有修订。renderer 缓存的「已连接」只看相位与非配对，不看 channel 是否存活，与 main 的判据不同。
 - 影响：被冒充的「引擎」获得与远程引擎相同的面：本机文件与 Shell 工具由对端驱动（仍受权限确认约束）。多用户机器或本机已有恶意进程时可利用。
 - 触发：IDE 启动前，另一个进程先监听 `127.0.0.1:50061` 或 `:50051` 并回应 HealthCheck。
-- 已知：方案 [local-engine-trust-anchor](../plans/local-engine-trust-anchor.md)。2026-10-05：S1–S5 代码已落，方案仍 draft。不升 PRD。S0 ADR-012 未写，ADR-003 Decision 7 正文未改。
-- 方向：信任锚改为只有同一系统用户可读的引擎 home 文件（UDS 目录 0700，或 `engine-tls.crt` 加 `server.lock`）；没有锚就不自动连接；用新 ADR 修订 Decision 7。方案：[local-engine-trust-anchor](../plans/local-engine-trust-anchor.md)。
+- 已知：方案 [local-engine-trust-anchor](../../archive/dev/plans/local-engine-trust-anchor.md)。2026-10-05：S1–S5 代码已落，方案仍 draft。不升 PRD。S0 ADR-012 未写，ADR-003 Decision 7 正文未改。
+- 方向：信任锚改为只有同一系统用户可读的引擎 home 文件（UDS 目录 0700，或 `engine-tls.crt` 加 `server.lock`）；没有锚就不自动连接；用新 ADR 修订 Decision 7。方案：[local-engine-trust-anchor](../../archive/dev/plans/local-engine-trust-anchor.md)。
 - 2026-10-05：代码已落，方案仍 draft。自动连接只认 0700 目录下的 UDS，或回环 `server.lock` 加仅属主可读的 `engine-tls.crt` pin。无 token 时 `Session/List` 回 16 则不提交并停止本次发现。固定端口探测和不 pin 的回环 TLS 已从生产代码删除。ADR-012 未写。
 
 ### ELR-12 连接 channel 把整个服务对象暴露给每个窗口
@@ -202,7 +202,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 对照：`electron-main/universeAgentSessionViewChannel.ts` 已用显式白名单 `FORWARDED_CALLS`，并以 IPC `ctx` 校验 lease 所有者。
 - 影响：「宿主专用」只是注释，不是边界。renderer 契约与 main 实现越长越难对齐。
 - 已知：原文「看过但未立条」记过结构问题；本条补上可伪造事件与假注释两条具体证据，升为立条。
-- 方向：连接 channel 改为显式白名单的 `IServerChannel`（仿 SessionView channel）；`IUniverseAgentHostConnection` 单独注册 main 侧 token；Hub 用自己的 channel 名。方案：[connection-ipc-allowlist](../plans/connection-ipc-allowlist.md)。
+- 方向：连接 channel 改为显式白名单的 `IServerChannel`（仿 SessionView channel）；`IUniverseAgentHostConnection` 单独注册 main 侧 token；Hub 用自己的 channel 名。方案：[connection-ipc-allowlist](../../archive/dev/plans/connection-ipc-allowlist.md)。
 - 2026-10-05：代码已落，方案仍 draft。窗口通道在 `ProxyChannel` 之前拒绝宿主方法、`connect()` 与回调流。Hub 通道名是 `universeAgentHub`，仍转发同一个连接实例上的 Hub 方法。宿主 token 是适配器，不是第二个连接实例。桌面 `team` 走三条一元 IPC。不升 PRD。ELR-13 与 `connect()` 方法本体未动。
 
 ### ELR-13 能力探测在桌面端恒为真
@@ -224,7 +224,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 现状：明文、硬编码地址，经 ELR-12 的全量暴露对每个窗口可调。本机自动连接上线后，它成了第二条行为不同的 loopback 路径；本机链路在线时调用它会复用那条 TLS transport，失败臂可能把它关掉。
 - 已知：原文「对已签收方案的补充」建议删除，未做。
 - 方向：先随 ELR-12 的白名单退出 IPC 面，再把测试迁到 `connectProfile` 或本机拨号后删除。未开方案。
-- 2026-10-05：方案已写，代码已落，方案仍 draft。连接服务与窗口契约上的明文 `connect()`，以及只为它服务的写死回环打开，已经删除。命令名 `connect` 仍拒绝。不升 PRD。方案：[remove-legacy-plaintext-connect](../plans/remove-legacy-plaintext-connect.md)。
+- 2026-10-05：方案已写，代码已落，方案仍 draft。连接服务与窗口契约上的明文 `connect()`，以及只为它服务的写死回环打开，已经删除。命令名 `connect` 仍拒绝。不升 PRD。方案：[remove-legacy-plaintext-connect](../../archive/dev/plans/remove-legacy-plaintext-connect.md)。
 
 ## 与既有记录的关系
 

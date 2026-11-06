@@ -12,7 +12,7 @@ summary: "D1375：三类 Sources 合同根因已修；merge 当前 compile-clien
 覆盖需求：无（正文未引用需求编号）。
 
 
-> 基线：`0ea26634bed`，工位 `loop/J`。诊断入口为 [旧 compile-client 日志](../progress/ui-visual-review-2026-10-26-evidence/compile-client.log) 的 Sources 9 条；当前源码复核不把 D1368–D1372 的已修诊断再算本轮。
+> 基线：`0ea26634bed`，工位 `loop/J`。诊断入口为 [旧 compile-client 日志](../../../dev/progress/ui-visual-review-2026-10-26-evidence/compile-client.log) 的 Sources 9 条；当前源码复核不把 D1368–D1372 的已修诊断再算本轮。
 
 ## 1. 根因与边界
 
@@ -42,7 +42,7 @@ summary: "D1375：三类 Sources 合同根因已修；merge 当前 compile-clien
 
 - J 只做静态源码/调用点复核、目标 ESLint、`git diff --check`、文档健康与生成状态检查，不编译、不转译、不启动 watch、不写 `out/`。
 - merge 的唯一新编译实际诊断决定本轮消除数；旧日志的 9 条只作预计，不把全仓通过或 176→167 当作已验证事实。
-- merge 新产物定向运行 `sourcesTabs`、`sourcesPartFocus`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesFilesListMode` 与 SCM 打开行为所在套件。失败按 [health-gates](../progress/health-gates.md) 分类，不改既定编译门政策。
+- merge 新产物定向运行 `sourcesTabs`、`sourcesPartFocus`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesFilesListMode` 与 SCM 打开行为所在套件。失败按 [health-gates](../../../dev/progress/health-gates.md) 分类，不改既定编译门政策。
 - D1375 已由 merge 当前编译无本轮合同诊断与官方 Electron 回归通过闭合；只翻转本方案，不升 PRD 或既有 Sources 总方案状态。
 
 ## 5. 只读审查与实施
@@ -50,4 +50,4 @@ summary: "D1375：三类 Sources 合同根因已修；merge 当前 compile-clien
 - [x] 规则 16：D / `conversation_status_visual` 于 2026-10-26 完成只读审查（未改 J 文件）：Strengths 为三根因与正式服务合同吻合、行为回归及 merge 验证边界清晰；Critical / Important 无；Minor 两项已改入本文（null 归一边界、实际审查者身份）；Assessment 可进入方案独立提交及实施。
 - [x] 三类合同修复与行为回归：生产 4 文件、测试 6 文件及 1 份完整 session 夹具；新增 SCM null/newTab/replace 4 项、TabsHost 会话/销毁 1 项、ReviewProgress 双会话工作根 1 项。merge 已用当前新产物完成官方 Electron 六套件 171 passing（含清理检查），新增 6 项全部通过。
 - [x] 静态检查：11 个改动 TS 文件 ESLint exit 0（0 errors / 31 既有 warnings），直接构造与工厂调用点已全仓复核；文档健康、生成状态与 diff-check 通过；行动层与下列当前 merge 验收结果一并落账。
-- [x] merge 新编译与新产物定向回归：`a4c5e30896f` 上唯一 `compile-client` exit 1，160 条 / 58 文件；Sources 0、本轮改动 TS 0；命名旧 9 条均消失。Chromium 六套件 162 passing / 8 既有 process 环境失败，转官方 Electron + 隔离 Xvfb / `--no-sandbox` 同六套件 171 passing / 0 failing。目标 ESLint 0 errors / 31 既有 warnings。真实日志与新输出清单见 [本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。
+- [x] merge 新编译与新产物定向回归：`a4c5e30896f` 上唯一 `compile-client` exit 1，160 条 / 58 文件；Sources 0、本轮改动 TS 0；命名旧 9 条均消失。Chromium 六套件 162 passing / 8 既有 process 环境失败，转官方 Electron + 隔离 Xvfb / `--no-sandbox` 同六套件 171 passing / 0 failing。目标 ESLint 0 errors / 31 既有 warnings。真实日志与新输出清单见 [本轮看板](../../../dev/parallel/active/ui-visual-review-2026-10-26.md)。

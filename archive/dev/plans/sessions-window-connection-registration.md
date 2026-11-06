@@ -69,7 +69,7 @@ Agents 窗口不加载 `workbench.desktop.main` / `workbench.web.main`。`Change
 
 ## 5. 知识层
 
-实施时在 [sessions 模块概览](../../docs/modules/sessions/overview.md) 入口一节写明：Agents 窗口不加载工作台 main，连接服务要由对应的 `sessions.*.main.ts` 侧载。不改产品需求。
+实施时在 [sessions 模块概览](../../../docs/modules/sessions/overview.md) 入口一节写明：Agents 窗口不加载工作台 main，连接服务要由对应的 `sessions.*.main.ts` 侧载。不改产品需求。
 
 ## 审查记录
 

@@ -14,7 +14,7 @@ summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针
 
 > **落地：** `status: implemented`。确认 commit `4406489a595` 已落地（本机自动连接改经同一套拨号提交闸，不再在探针前占用服务槽；用户点 Connect 取消发现），单测 `localEngineDiscovery.test.ts` 与 `universeAgentConnection.test.ts` 全绿通过。不改 IPC，不改信任。不升 PRD-008。
 > **slice_id**：`loopback-link-commit`
-> **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-10。
+> **来源**：[引擎链接架构审查](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-10。
 > **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **基线**：HEAD `7cf1474419e`，行号以此为准。以 `node/`、`common/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。
 > **冲突域**：`node/universeAgentConnectionService.ts`（**只**改：`AuthenticatedLinkAttempt` 加 `events`、`_armAuthenticatedLink`、`_closeoutAuthenticatedLink` 的订阅释放、新增 `_adoptLinkEvents` 与 `_afterLoopbackProbe`、`_dialDeviceAuth` 提交后接管订阅、`_connectLocalSkipAuth` 全函数、删除 `_afterAuthenticatedAwait`、`_applyConnectedCommit` 加 `skipAuth`、`_dropPublishedTransport` 清旗、`_liveConnectedPublished` 判据、`_canDiscoverLocalEngine`、`connectProfile` 用户拨号臂取消发现定时器），以及 `test/node/localEngineDiscovery.test.ts`、`test/node/universeAgentConnection.test.ts`。
@@ -26,7 +26,7 @@ summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针
 
 - **症状：** IDE 启动后马上对某个 profile 点连接，偶尔连上之后断线不换链路；本机引擎在线时，拨号守卫把它当成「没有活链路」。
 - **类标签：** **第二条拨号路径不走提交闸** + **全服务单槽订阅被别的尝试拆掉** + **两套「已连接」判据**。
-- **复发机制：** [connection-dial-generation](connection-dial-generation.md) 的提交规则只写在 profile 路径上；本机发现（`f26be0d5ccc`）照着旧的「先写指针、再探针」写法加进来，测试只覆盖单独一条拨号。
+- **复发机制：** [connection-dial-generation](../../../dev/plans/connection-dial-generation.md) 的提交规则只写在 profile 路径上；本机发现（`f26be0d5ccc`）照着旧的「先写指针、再探针」写法加进来，测试只覆盖单独一条拨号。
 
 ## 0. 一句话结论
 
@@ -125,7 +125,7 @@ summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针
 
 ## 8. 验证
 
-本地，点名文件跑 `scripts/test.sh --run`；门禁沿用 [health-gates](../progress/health-gates.md)。
+本地，点名文件跑 `scripts/test.sh --run`；门禁沿用 [health-gates](../../../dev/progress/health-gates.md)。
 
 | 切片 | 测试 | 断言 |
 |:-----|:-----|:-----|
@@ -137,8 +137,8 @@ summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针
 
 ## 9. 知识层回填（实施 commit 时，不在本稿）
 
-- [钉死引擎调试](../../docs/guides/debug-engine.md) §3：用户点 Connect 会取消本机自动发现，直到 Disconnect。
-- [审查文](../progress/engine-link-architecture-review-2026-09-28.md) ELR-10 的「已知」指向本稿。
+- [钉死引擎调试](../../../docs/guides/debug-engine.md) §3：用户点 Connect 会取消本机自动发现，直到 Disconnect。
+- [审查文](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-10 的「已知」指向本稿。
 
 ## 审查记录
 

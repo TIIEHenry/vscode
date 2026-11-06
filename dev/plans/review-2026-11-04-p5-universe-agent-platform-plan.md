@@ -15,7 +15,7 @@ summary: "连接服务不拆类；已连接且 link 未变时宿主不再重复�
 
 > **本稿是方案，不是实施。**
 > **基线：** 本工作区活码。`a4b778cfd18` 已在 HEAD：第一次配对确认在 Connection 窗格出现一次。
-> **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（传输在 `platform/universeAgent`，renderer 不 import `node/**`，electron-main 是宿主）；[连接 IPC 白名单](connection-ipc-allowlist.md)（已实施：白名单外壳、Hub 通道名 `universeAgentHub`、仍打到同一个连接实例、不注册第二份 Hub 服务、不拆连接类）；[拨号 generation](connection-dial-generation.md)；[已发布链路](published-link-identity.md)；[写入闸](engine-write-gate-unification.md) §3.7（同 link 的 `transport_lost` 要拆流，恢复要 `bringUpPublishedLink` 并增加 `connectionGeneration`）；[r04 方案](review-2026-10-30-r04-universe-agent-plan.md) 的 logout 会话代际（本稿不改 `logout`）。
+> **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（传输在 `platform/universeAgent`，renderer 不 import `node/**`，electron-main 是宿主）；[连接 IPC 白名单](../../archive/dev/plans/connection-ipc-allowlist.md)（已实施：白名单外壳、Hub 通道名 `universeAgentHub`、仍打到同一个连接实例、不注册第二份 Hub 服务、不拆连接类）；[拨号 generation](connection-dial-generation.md)；[已发布链路](published-link-identity.md)；[写入闸](engine-write-gate-unification.md) §3.7（同 link 的 `transport_lost` 要拆流，恢复要 `bringUpPublishedLink` 并增加 `connectionGeneration`）；[r04 方案](review-2026-10-30-r04-universe-agent-plan.md) 的 logout 会话代际（本稿不改 `logout`）。
 > **禁止发明：** 新 RPC、新连接快照字段、新 IPC 通道。必须用到时只写在「待定项」，不写进切片。
 > **分层约束：** 服务依赖写在构造函数里；`Disposable` 创建后立刻登记；用户可见字符串走 `nls.localize`，源字符串用英文双引号，不用拼接。`contrib/**` 继续只依赖 `platform/universeAgent/common`。
 
@@ -77,7 +77,7 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 
 不变量：
 
-- 全应用一条连接。Hub 通道和连接通道共用这一条，这样 `revokeDevice` 才能断开当前档，Connection 窗格也不会看到另一份空账号。见 [连接 IPC 白名单](connection-ipc-allowlist.md) §2.3。
+- 全应用一条连接。Hub 通道和连接通道共用这一条，这样 `revokeDevice` 才能断开当前档，Connection 窗格也不会看到另一份空账号。见 [连接 IPC 白名单](../../archive/dev/plans/connection-ipc-allowlist.md) §2.3。
 - 宿主方法、`connect` 和回调流不进窗口通道。进程内 `SessionViewHost` 直接调宿主方法。
 - 不注册第二个 `UniverseAgentHubService`，也不把连接类再 `SyncDescriptor` 一次。
 
@@ -101,7 +101,7 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 
 本地验证：无新测试。回归仍用现有 `scripts/test.sh --run src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts`。
 
-风险与回退：没有代码改动。若以后要推翻「不拆类」，先改 [连接 IPC 白名单](connection-ipc-allowlist.md) 的合同，再开新方案。
+风险与回退：没有代码改动。若以后要推翻「不拆类」，先改 [连接 IPC 白名单](../../archive/dev/plans/connection-ipc-allowlist.md) 的合同，再开新方案。
 
 ## 2. 四套代次
 

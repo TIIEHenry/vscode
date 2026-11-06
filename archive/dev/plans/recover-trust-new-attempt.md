@@ -14,7 +14,7 @@ summary: "ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观�
 
 > **落地：** `status: implemented`。编排器与单测已全面落地合入（pairingOrchestrator.test.ts 23 passing 全绿）。不改连接服务。不升 PRD-024。
 > **slice_id**：`recover-trust-new-attempt`
-> **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-3。超时已是 `transport_failed`，确认框已在 main。本稿只补「批准之后仍把试连叶写进信任」这一半。
+> **来源**：[引擎链接架构审查](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-3。超时已是 `transport_failed`，确认框已在 main。本稿只补「批准之后仍把试连叶写进信任」这一半。
 > **审查记录**：见文末。编排器与单测已全面落地合入（提交 `c9affe7df1c`，pairingOrchestrator.test.ts 23 passing 全绿）。frontmatter 对齐为 `implemented`。
 > **实施（2026-10-05）**：编排器与本方案单测已落（提交 `c9affe7df1c`）。不改连接服务。不升 PRD-024。
 > **冲突域**：`src/vs/platform/universeAgent/node/pairingOrchestrator.ts`、`src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts`。审查现状句可改 `dev/progress/engine-link-architecture-review-2026-09-28.md` 里 ELR-3 那一条。

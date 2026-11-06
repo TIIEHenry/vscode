@@ -57,7 +57,6 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `implemented` | 原阶段运行保留历史，D1380/1381直接缺口已获真实回归及独立after闭合，不升PRD或签全仓绿。 |
 | [本地工具状态投影与缓存兼容](conversation-tool-status-projection.md) | `implemented` | D1380；旧生产1过5败，新生产七套138过、14TS定向语义0，独立四主题40组状态/轨迹after通过。 |
 | [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `implemented` | D1378；Output22+Search4及清理检查27 passing，保留原19项并补3个生命周期屏障；mkdir原拒绝与共享缓存身份保持，命名诊断清零。 |
-| [Sources 编译基线合同修复](sources-compile-contracts.md) | `implemented` | D1375；三类合同修复与 6 条新行为回归已写，目标 ESLint 0 errors；只收 Sources 旧日志 9 条，编译与运行验证留在 merge。 |
 | [会话就绪度单一判定、删除会话确认与会话列表排序](session-availability-and-delete-confirm.md) | `accepted` | 2026-10-24 设计评审：删除会话先确认；会话就绪度由一个只依赖 roster 的判定给出，原因只由门闩写一次，控件按未连接 / 未就绪 / 引擎不支持三分；门闩回到错误态样式；会话列表组内按访问时间排序。已过只读审查。 |
 | [功能缺口审查 2026-11-01](review-2026-11-01-feature-gaps.md) | `draft` | 六路只读复查默认编辑器窗口。新发现 Navigator Projects 删除会话不确认、生成中队列编辑无法保存、溢出降级露内部码、Overview 模型行误写原因、Preview 空态承诺无来源内容。协议层归 EIR 稿。发现稿，不改 PRD。 |
 | [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者。B1–B4、B6、B7 与文档偏差 D1–D4 已随 concrete 全面落地（4fa4f3eab56 等）。Q1–Q7、A1–A5、B5 待确认。发现稿保持 draft。 |
@@ -72,17 +71,10 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](visual-review-2026-10-16-plan.md) | `implemented` | 过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V2–V4 已于 68308db93b5 落地；V8 已于 ad333e998fa 落地。V1 归目录列表切片。V5–V7 未决。不升 PRD-028。 |
 | [引擎联动缺口：队列读回、生成中发送门禁、附件上传](engine-gap-queue-send-attachments.md) | `implemented` | 2026-10-11 用户签收。S1（生成中 / submitInFlight 禁用 Send）已于 2e785907611 落地；Q2（接通时停掉 Enqueue RPC 转发并关闭 Inbox 入口）已于 2e785907611 落地。附件不开刀。不升 PRD。 |
 | [草稿会话提交后保留 Agent 浏览器页归属](browser-owner-draft-graduation.md) | `implemented` | 切片 1、2 已由 47871ee6737 落地；切片 3、4 属 Agents Window，2026-11-01 按审查待定项决定 D22 不排期。 |
-| [未开启工具搜索时保留历史搜索结果](r15-5-tool-search-history.md) | `implemented` | 谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。代码已落地，测试（responsesApiToolSearch.spec.ts 15 passing）全绿通过。不升 PRD。不宣布 r15 完成。 |
-| [聊天流缺失时权限回复不得假装成功](r12-permission-reply-fail-closed.md) | `implemented` | 没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。已于 2e8bd69c453 落地合入，单测（25 passing）全绿。不升 PRD。 |
-| [remove-legacy-plaintext-connect.md](remove-legacy-plaintext-connect.md) | `implemented` | ELR-14：从连接服务和窗口契约去掉明文 connect()，并删掉只为它服务的 127.0.0.1:50051 回环打开路径。命令名 connect 仍拒绝。测试改走无信任的明文 profile 拨号，或本机跳过鉴权。代码已落地。不改身份合同。不升 PRD。 |
 | [published-link-identity.md](published-link-identity.md) | `implemented` | ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链路时 SessionViewHost 先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。代码与单测（sessionViewHostEngineBind 26 passing）均已全面落地合入。不升 PRD。不改 ADR-003 正文。 |
 | [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `accepted` | PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 已全面落地合入（提交 4615d3aa990 与 b6bccf8ff2c）。2026-10-24 用户改为多根工作区随时扩展：身份条与 Navigator 选文件夹改为加入工作区，Loopback 引擎的本机工作目录切会话时自动加入；未受信任目录和已保存的工作区文件不自动改写（S6）。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
-| [sources-files-list-capability.md](sources-files-list-capability.md) | `implemented` | Sources 文件列表的 listFiles 门闩改读快照 listFilesCapability。已于 b6bccf8ff2c 落地。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。 |
 | [conversation-entry-capability.md](conversation-entry-capability.md) | `implemented` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。已于 3cb1f1055bb 全面落地（连接快照 conversationEntryCapability、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
-| [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `implemented` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落地。不升 PRD。 |
 | [unspecified-address-private-denial.md](unspecified-address-private-denial.md) | `implemented` | 未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。已全面落地（afda5a04283）。不改已签收方案正文。不升 PRD。 |
-| [recover-trust-new-attempt.md](recover-trust-new-attempt.md) | `implemented` | ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观测、中继各续一次票、再握手，指纹一致且拿到 session_token 才写信任。身份未就绪仍按连接服务测试锁住的批准即写信任。编排器与单测（pairingOrchestrator 23 passing）已全面落地合入。不改连接服务。不升 PRD-024。 |
-| [sessions-window-connection-registration.md](sessions-window-connection-registration.md) | `implemented` | Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverseAgentConnection 登记。Changes 与布局不再因服务未注册而起不来。测试（sessionsUniverseAgentConnectionRegistration 5 passing）已全绿落地。不新开连接，不升 PRD。 |
 | [sources-git-write-capability.md](sources-git-write-capability.md) | `implemented` | Stage / Commit / Accept 改看连接快照 gitWriteCapability，不把桌面代理函数当成已广告的 WriteGit*。已于 c7d53074df5 落地。不进 Engine Overview。不升 PRD-009。 |
 | [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-10-05 S1 剩余已落：turn_completed 解出 turn_id 与 assistant_turn_id，仅当前 turn 才 hold clear；overlay field 7 与 join 嵌套 37、根上 field 23 已接。S4/S5/S6 此前已落。不升 `implemented`。不升 PRD-008。 |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。S1–S5 已落，方案仍 accepted。 |
@@ -245,8 +237,6 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [十六路视觉审查 2026-10-06](review-2026-10-06-ui.md) | `draft` | 2026-10-06 视觉十六路审查。发现 68 条。核查后 hold 39，weaken 15，drop 14。方案均为 draft，未实施。 |
 | [ui-gap-closeout-2026-10-01.md](ui-gap-closeout-2026-10-01.md) | `implemented` | UI 缺口收口。产品部分已落地，Agents Window 切片不计验收，2026-11-01 按 D22 标 implemented。不升 PRD-008。 |
 | [自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md) | `accepted` | 八项已确认问题分切片：窄宽裁切、焦点、Light+ 对比度、Sources 密度、减少动态；Customizations 窄模态先实测。 |
-| [loopback-link-commit.md](loopback-link-commit.md) | `implemented` | ELR-10：本机自动连接改经拨号提交闸。代码已于 4406489a595 落地，单测全绿通过。不升 PRD-008。 |
-| [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `implemented` | ELR-11：本机自动连接只信同一用户可读的引擎 home 锚。代码已于 98a8b10550f 落地，单测全绿通过。不升 PRD-008。 |
 | [审查 r01：base](review-2026-10-08-r01-base.md) | `draft` | 3 条；最重的是主库缺失时，恢复改名失败会用旧备份或新空库挡住仍在的恢复库，打开失败还会把仅存备份改名损坏。 |
 | [审查 r02：storage-policy](review-2026-10-08-r02-storage-policy.md) | `draft` | 2 条，最重是缺文件重试会取消监听防抖并提前清空已加载的托管设置。 |
 | [审查 r03：agent-host](review-2026-10-08-r03-agent-host.md) | `draft` | 四条，最重为中：未就绪的 branch changeset 会挡住 session 变更计数，列表芯片不亮。 |

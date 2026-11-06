@@ -29,3 +29,13 @@
 | [方案 r13：contrib-rest](dev/plans/review-2026-10-11-r13-contrib-rest-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [方案 r14：copilot-extension](dev/plans/review-2026-10-11-r14-copilot-extension-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [方案 r15：copilot-rest](dev/plans/review-2026-10-11-r15-copilot-rest-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [连接 IPC 白名单与桌面 Team 一元调用](dev/plans/connection-ipc-allowlist.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [本机引擎信任锚：同一系统用户可读的引擎 home 文件](dev/plans/local-engine-trust-anchor.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [本机引擎链路走拨号提交路径](dev/plans/loopback-link-commit.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [恢复信任改为新的一次配对尝试](dev/plans/recover-trust-new-attempt.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [删除连接服务的旧明文 connect()](dev/plans/remove-legacy-plaintext-connect.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [聊天流缺失时权限回复不得假装成功](dev/plans/r12-permission-reply-fail-closed.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [未开启工具搜索时保留历史搜索结果](dev/plans/r15-5-tool-search-history.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Agents 窗口登记引擎连接服务](dev/plans/sessions-window-connection-registration.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Sources 编译基线合同修复](dev/plans/sources-compile-contracts.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Sources 文件列表按广告探测](dev/plans/sources-files-list-capability.md) | 已完成方案，过程已结束，归档保留原文。 |

@@ -36,7 +36,7 @@ summary: "六路只读架构审查。根因是派生状态与判断规则没有�
 
 方向：每类状态一个所有者，派生值都从所有者读。链路改成"一次拨号产出一个不可变链路对象，提交时整体替换"。每个会话一个 projector，同时产出时间线、轨迹和过程折。Sources 建一个共享的 mutation 索引。本地判定只读 `IAgentWorkRoot.access` / `localRoot`。
 
-已有覆盖：`dev/progress/engine-link-architecture-review-2026-09-28.md` 提过链路对象方向，[loopback-link-commit](loopback-link-commit.md) 写明不做。[session-work-root](session-work-root-and-workbench-scope.md) S2 第 4 项已列入 Changes 与 Review 行根改用 `localRoot`，代码仍走 `resolveSourcesGitResourceRoot`（`sourcesChangesList.ts:811-816`）。S2 未列的是：会话没有 `workDir` 时 Files 不回落连接 `workDir`（`agentSessionContext.ts:107-109`，`sourcesFilesExplorer.ts:449-453`），以及 Navigator 仍读连接快照的 `workDir`（`navigatorProjectsList.ts:608`）。[conversation-timeline-refactor](conversation-timeline-refactor.md) 只管时间线一侧的缓存。
+已有覆盖：`dev/progress/engine-link-architecture-review-2026-09-28.md` 提过链路对象方向，[loopback-link-commit](../../archive/dev/plans/loopback-link-commit.md) 写明不做。[session-work-root](session-work-root-and-workbench-scope.md) S2 第 4 项已列入 Changes 与 Review 行根改用 `localRoot`，代码仍走 `resolveSourcesGitResourceRoot`（`sourcesChangesList.ts:811-816`）。S2 未列的是：会话没有 `workDir` 时 Files 不回落连接 `workDir`（`agentSessionContext.ts:107-109`，`sourcesFilesExplorer.ts:449-453`），以及 Navigator 仍读连接快照的 `workDir`（`navigatorProjectsList.ts:608`）。[conversation-timeline-refactor](conversation-timeline-refactor.md) 只管时间线一侧的缓存。
 
 ### A2 接口过宽
 

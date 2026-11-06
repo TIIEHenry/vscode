@@ -14,7 +14,7 @@ summary: "ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调
 
 > **落地：** `status: implemented`。代码已全面落地（提交 `143c96bef91`，通道外壳白名单、Hub 独立通道名 `universeAgentHub`、宿主适配器与桌面 Team 一元调用及单测已全部合入）。不升 PRD。
 > **slice_id**：`connection-ipc-allowlist`
-> **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-12。ELR-14 的 `connect()` 只退出窗口通道，方法本体留在 node。ELR-13 不在本稿。
+> **来源**：[引擎链接架构审查](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-12。ELR-14 的 `connect()` 只退出窗口通道，方法本体留在 node。ELR-13 不在本稿。
 > **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **实施（2026-10-05）**：通道外壳、Hub 通道名、宿主适配器、桌面 Team 一元调用与单测已落（`143c96bef91`）。代码已落地。不升 PRD。
 > **冲突域**：`code/electron-main/app.ts` 的 `universeAgentConnection` 通道注册、`platform/universeAgent/common/universeAgentConnectionIpcChannel.ts`、`common/universeAgentNavigatorTeamIpc.ts`、`common/universeAgentConnectionChannelClient.ts`、`common/hub.ts` 的通道名、`common/universeAgentHostConnection.ts` 的 main token、`electron-main/universeAgentHostConnectionAdapter.ts`、`electron-main/universeAgentSessionViewService.ts`。

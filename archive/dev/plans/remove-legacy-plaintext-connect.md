@@ -14,7 +14,7 @@ summary: "ELR-14：从连接服务和窗口契约去掉明文 connect()，并删
 
 > **落地：** `status: implemented`。代码已全面落地（提交 `87865dbf5bb`，从连接服务和窗口契约去掉明文 `connect()`，删掉 127.0.0.1:50051 回环打开路径，命令名 `connect` 仍拒绝，测试完成迁移）。不改身份合同。不升 PRD。
 > **slice_id**：`remove-legacy-plaintext-connect`
-> **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-14。
+> **来源**：[引擎链接架构审查](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-14。
 > **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **2026-10-05**：代码已落（`87865dbf5bb`）。`_profileReconnectDial` 只被已删除的 `_keepTransportLostOnConnect` 读取，落地时一并去掉。
 > **基线**：HEAD `901066fb913`。行号以此为准。以 `node/`、`common/`、`browser/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。

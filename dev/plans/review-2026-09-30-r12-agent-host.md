@@ -44,7 +44,7 @@ summary: "聊天流已关但连接仍在时，已接受的用户消息和权限�
 ```
 - 为什么是问题：权限回复走和 r12-1 相同的入口：连接仍在时 `post` 接受事实，Actor 在 `currentChatAttemptId === null` 时返回。清理补丁和聊天写入都在这次返回之后，待确认项留在快照里，引擎继续等原来的 `requestId`。
 - 方向：没有聊天流时退回这次权限回复并保留可再点的失败状态，避免把 accepted 回给调用方。
-- 落地（2026-10-05，loop/B）：`post` 仍返回 `accepted: false` / `chat_stream_closed`，并走 `onPermissionRespond` 记下 `pendingRespondFailed`（`retryable`，`error` 为 `chat_send_stream_closed`）。不摘待确认项，不发 `send_failed`。方案见 [r12-permission-reply-fail-closed](r12-permission-reply-fail-closed.md)，仍是 draft。
+- 落地（2026-10-05，loop/B）：`post` 仍返回 `accepted: false` / `chat_stream_closed`，并走 `onPermissionRespond` 记下 `pendingRespondFailed`（`retryable`，`error` 为 `chat_send_stream_closed`）。不摘待确认项，不发 `send_failed`。方案见 [r12-permission-reply-fail-closed](../../archive/dev/plans/r12-permission-reply-fail-closed.md)，仍是 draft。
 
 ## r12-3 中
 - 症状：历史补洞还在飞的时候，先到一条重写窗口 hello，接着又来一条普通补洞或 bootstrap hello，界面会留下重写前的旧消息，重写掉的那一段也不会按原窗口再拉。

@@ -14,7 +14,7 @@ summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。�
 
 > **落地：** `status: implemented`。确认 commit `98a8b10550f` 已落地（本机自动连接改为只信同一用户的引擎 home 锚，支持 UDS 与 pinned TLS 证书），单测 `localEngineDiscovery.test.ts` 全绿通过。不升 PRD-008。
 > **slice_id**：`local-engine-trust-anchor`
-> **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-11。
+> **来源**：[引擎链接架构审查](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-11。
 > **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **基线**：HEAD `7cf1474419e`，行号以此为准。以 `node/`、`common/`、`electron-main/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。仓外引擎路径相对钉死工位 `vscode-debug-engine/universe-agent/grpc-server/src/jvmMain/kotlin/universe/agentic/grpc/`（PIN `748e7698e6`）。
 > **冲突域**：`node/localEngineDiscovery.ts`（重写）、`node/universeAgentChannel.ts`（删不 pin 的 loopback 凭据）、`node/grpc/grpcClient.ts`（删 `createLoopbackTlsGrpcClient`，加 UDS 与 pinned 本机两个工厂）、`node/universeAgentConnectionService.ts`（**只**改服务选项 `findLocalEnginePort` / `openLocalEngineTransport` 的类型与默认值、`_discoverAndConnectLocalEngine` 与 `_connectLocalSkipAuth` 的入参、S5 在 `_connectLocalSkipAuth` 里加一次 `probeRpc`），以及 `test/node/localEngineDiscovery.test.ts`。
@@ -49,10 +49,10 @@ summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。�
 | 引擎 TCP 跳过鉴权的条件：未开 Hub 且绑定为回环 | 仓外 `HeadlessServer.kt` L1288-1307、L1161-1166 |
 | 引擎在监听前写 `<agent-home>/server.lock`：JSON `pid`（不可用时 -1）、`port`、`bind`、`token`、`protocolVersion`、`startedAt`；仅 owner 可读写 | 仓外 `ServerLockfile.kt` L22-49、L67、L81-130；`HeadlessServer.kt` L500-501 |
 | 引擎 TLS 叶证书持久化在 `<agent-home>/engine-tls.crt`（PEM），私钥与证书都设仅 owner 读写；ConfigStore 的 `tls.cert` / `tls.key` 可改用别处的证书 | 仓外 `auth/EngineTlsMaterial.kt` L68-133、L254-258；`HeadlessServer.kt` L1376-1384 |
-| agent-home：钉死工位的本地补丁让 `AgentHome.defaultHomePath()` 读 `UNIVERSE_AGENT_HOME`，否则 `~/.universe-agent` | [钉死引擎调试](../../docs/guides/debug-engine.md) §4 |
+| agent-home：钉死工位的本地补丁让 `AgentHome.defaultHomePath()` 读 `UNIVERSE_AGENT_HOME`，否则 `~/.universe-agent` | [钉死引擎调试](../../../docs/guides/debug-engine.md) §4 |
 | 钉死工位实测：`engine-tls.crt` 为 `-rw-------`；`start-engine.sh` 以 `--port 50061 --bind 127.0.0.1 --no-uds` 启动并导出 `UNIVERSE_AGENT_HOME` | 仓外 `vscode-debug-engine/agent-home/`、`start-engine.sh` L15、L65-66 |
 | 不带 `device_auth` 的 `Connect` 不论鉴权模式都成功、不带 token；`Connect`、`GetAuthNonce`、`HealthCheck` 在鉴权拦截器豁免名单里 | 仓外 `SystemGrpcService.kt` L72-73；`interceptor/AuthInterceptor.kt` L166-170 |
-| 本机拨号拿到「无 token、无 pairing nonce」即置 `_loopbackSkipAuth = true`；拦截器只在这次调用带了它写的 token 时才上报 `UNAUTHENTICATED`，无 token 的链路不会收口 | `node/universeAgentConnectionService.ts` L2484-2495；[remote-link-auth-and-relay](remote-link-auth-and-relay.md) §3 S2 |
+| 本机拨号拿到「无 token、无 pairing nonce」即置 `_loopbackSkipAuth = true`；拦截器只在这次调用带了它写的 token 时才上报 `UNAUTHENTICATED`，无 token 的链路不会收口 | `node/universeAgentConnectionService.ts` L2484-2495；[remote-link-auth-and-relay](../../../dev/plans/remote-link-auth-and-relay.md) §3 S2 |
 | `probeRpc(service, method)` 发空请求并返回 gRPC 状态码，不抛错 | `node/grpc/grpcClient.ts` L1275 起 |
 
 ## 2. Options
@@ -90,7 +90,7 @@ summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。�
    - `_connectLocalSkipAuth` 拿到「无 token、无 pairing nonce」之后、能力探针之前，在 captured 上 `probeRpc(UniverseAgentGrpcServices.Session.service, UniverseAgentGrpcServices.Session.List)` 一次。返回 `UNAUTHENTICATED`（16）即判定这台引擎要求鉴权：关 captured，`_suppressLocalEngineDiscovery = true`（本进程不再自动发现，避免对同一台引擎退避空转），相位写 `disconnected` 并广播，日志记一行。用户要连它就走 Direct Address 与 Device Grant。
    - 其他状态码不拦，交给既有能力探针。拿到 token 的本机链路（引擎给了 token）不做这一步。
    - 这一步在 ELR-10 的 epoch 闸之内：await 之后同样先过 `_localDialCurrent(epoch)`。
-6. **S0 ADR-012（签收时写，不在本稿）。** 标题「本机引擎信任锚与已连接判据」，修订 [ADR-003](../decisions/003-engine-adapter-boundary.md) Decision 7（规则 5：accepted ADR 正文不改，以新 ADR 取代该条）：
+6. **S0 ADR-012（签收时写，不在本稿）。** 标题「本机引擎信任锚与已连接判据」，修订 [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md) Decision 7（规则 5：accepted ADR 正文不改，以新 ADR 取代该条）：
    - 已连接 = 非配对 ∧ channel 活 ∧（非空 `session_token` ∨ 经本机信任锚建立的跳过鉴权链路）。
    - 本机信任锚只有两种：0700 目录下的 UDS；回环绑定 + 仅 owner 可读的 `server.lock` 与 `engine-tls.crt` pin。不 pin 的回环 TLS 与固定端口探测不构成信任。
    - main 只在 `isEngineConnected()` 为真时发布相位 `connected`；renderer 以快照相位与 `pairingPending` 派生已连接，不另设判据。
@@ -135,7 +135,7 @@ summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。�
 
 ## 8. 验证
 
-本地，点名文件跑 `scripts/test.sh --run`；门禁沿用 [health-gates](../progress/health-gates.md)。
+本地，点名文件跑 `scripts/test.sh --run`；门禁沿用 [health-gates](../../../dev/progress/health-gates.md)。
 
 | 切片 | 测试 | 断言 |
 |:-----|:-----|:-----|
@@ -149,10 +149,10 @@ summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。�
 
 ## 9. 知识层回填（实施 commit 时，不在本稿）
 
-- [钉死引擎调试](../../docs/guides/debug-engine.md) §3：IDE 要以同一个 `UNIVERSE_AGENT_HOME` 启动；不再扫 50061 / 50051；去掉 `--no-uds` 也能连。
+- [钉死引擎调试](../../../docs/guides/debug-engine.md) §3：IDE 要以同一个 `UNIVERSE_AGENT_HOME` 启动；不再扫 50061 / 50051；去掉 `--no-uds` 也能连。
 - `docs/reference/universe-agent/INDEX.md` 钉死引擎一行与 `engine-protocol-surface.md` 的 `SystemService` 两行改口。
 - `dev/decisions/012-*.md`（S0）与 `dev/decisions/INDEX.md`。
-- [审查文](../progress/engine-link-architecture-review-2026-09-28.md) ELR-11 的「已知」指向本稿。
+- [审查文](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) ELR-11 的「已知」指向本稿。
 
 ## 审查记录
 
