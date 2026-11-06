@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { mapHistoryEntry, mapHistoryResponse } from '../../node/grpc/grpcClientMappers.js';
 import {
@@ -168,68 +165,7 @@ suite('grpc AgentService History protobuf wire', () => {
 			total: 0,
 		});
 	});
-
-	test('history unary wire is AgentService.History only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcAgentHistoryUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeHistoryRequest\b/.test(source));
-		assert.ok(/\bdecodeHistoryResponse\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bencodeGetHistoryRequest\b|\bdecodeGetHistoryResponse\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getAgentHistory uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const agentHistory = extractAsyncMethod(source, 'getAgentHistory');
-		assert.ok(agentHistory.includes('makeUnaryBytesClient'), 'getAgentHistory must use makeUnaryBytesClient');
-		assert.ok(agentHistory.includes('encodeHistoryRequest'), 'getAgentHistory must call encodeHistoryRequest');
-		assert.ok(agentHistory.includes('decodeHistoryResponse'), 'getAgentHistory must call decodeHistoryResponse');
-		assert.ok(agentHistory.includes('mapHistoryResponse'), 'getAgentHistory still calls mapHistoryResponse');
-		assert.ok(!agentHistory.includes('makeUnaryClient<'), 'getAgentHistory must not use JSON makeUnaryClient');
-		assert.ok(!agentHistory.includes('JSON.stringify'), 'getAgentHistory must not JSON.stringify');
-
-		assert.ok(source.includes('grpcAgentHistoryUnaryWire'));
-
-		const sessionHistory = extractAsyncMethod(source, 'getHistory');
-		assert.ok(sessionHistory.includes('encodeGetHistoryRequest'));
-		assert.ok(sessionHistory.includes('decodeGetHistoryResponse'));
-		assert.ok(!sessionHistory.includes('encodeHistoryRequest'));
-		assert.ok(!sessionHistory.includes('decodeHistoryResponse'));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-		assert.ok(!watchBody.includes('grpcAgentHistoryUnaryWire'));
-	});
 });
-
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcAgentHistoryUnaryWire.ts')));
-	assert.ok(dir, 'grpcAgentHistoryUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

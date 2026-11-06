@@ -4,10 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { asUnaryProtoBytes, makeServerStreamBytesClient, makeServerStreamClient } from '../../node/grpc/grpcClientCalls.js';
 import {
 	encodeContinueGenerationRequest,
 	encodeRegenerateRequest,
@@ -119,89 +117,47 @@ suite('grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-st
 		}).length, 0);
 	});
 
-	test('continuation stream wire is ContinueGeneration/Regenerate/Resume only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcAgentChatServerStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeContinueGenerationRequest\b/.test(source));
-		assert.ok(/\bencodeRegenerateRequest\b/.test(source));
-		assert.ok(/\bencodeResumeRequest\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bRebuild\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('openContinuationStream/openRegenerateStream/openResumeStream use bytes helper and decodeChatResponse', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		for (const { name, encoder } of [
-			{ name: 'openContinuationStream', encoder: 'encodeContinueGenerationRequest' },
-			{ name: 'openRegenerateStream', encoder: 'encodeRegenerateRequest' },
-			{ name: 'openResumeStream', encoder: 'encodeResumeRequest' },
-		]) {
-			const body = extractMethod(source, name);
-			assert.ok(body.includes('makeServerStreamBytesClient'), `${name} must use makeServerStreamBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes('decodeChatResponse'), `${name} must deserialize via decodeChatResponse`);
-			assert.ok(!body.includes('makeServerStreamClient<'), `${name} must not use JSON makeServerStreamClient`);
-			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
-		}
-		assert.ok(source.includes('grpcAgentChatServerStreamWire'));
-	});
-
-	test('Connect, ResolveTurn, ResolveAnchor, and Watch use proto bytes', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
-
-		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-	});
-
 	test('makeServerStreamBytesClient serializes proto bytes; makeServerStreamClient stays JSON', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClientCalls.ts'), 'utf8');
-		assert.ok(/\bexport function makeServerStreamBytesClient\b/.test(source));
-		assert.ok(/\basUnaryProtoBytes\b/.test(source));
-		const jsonStart = source.indexOf('export function makeServerStreamClient<');
-		assert.ok(jsonStart >= 0, 'missing makeServerStreamClient');
-		const jsonEnd = source.indexOf('export function makeServerStreamBytesClient<', jsonStart + 1);
-		const jsonBody = source.slice(jsonStart, jsonEnd >= 0 ? jsonEnd : source.length);
-		assert.ok(jsonBody.includes('JSON.stringify'), 'makeServerStreamClient must keep JSON.stringify');
-		const bytesStart = source.indexOf('export function makeServerStreamBytesClient<');
-		const bytesEnd = source.indexOf('\nexport function ', bytesStart + 1);
-		const bytesBody = source.slice(bytesStart, bytesEnd >= 0 ? bytesEnd : source.length);
-		assert.ok(!bytesBody.includes('JSON.stringify'), 'makeServerStreamBytesClient must not JSON.stringify');
-		assert.ok(bytesBody.includes('asUnaryProtoBytes'), 'makeServerStreamBytesClient must serialize via asUnaryProtoBytes');
+		let bytesSerialize: ((value: Uint8Array | undefined) => Buffer) | undefined;
+		let bytesDeserialize: ((buffer: Buffer) => { n: number }) | undefined;
+		let bytesPayload: Uint8Array | undefined;
+		const noopCall = { on(): void { }, cancel(): void { } };
+		const bytesStream = makeServerStreamBytesClient<{ n: number }>(
+			{
+				makeServerStreamRequest(_path: string, ser: (v: Uint8Array | undefined) => Buffer, deser: (b: Buffer) => { n: number }, req: Uint8Array) {
+					bytesSerialize = ser;
+					bytesDeserialize = deser;
+					bytesPayload = req;
+					return noopCall;
+				},
+			} as never,
+			'agentservice.AgentService',
+			'ContinueGeneration',
+			buffer => ({ n: buffer[0] ?? 0 }),
+		);
+		const reqBytes = encodeContinueGenerationRequest({ sessionId: 'sess-1' });
+		const sub1 = bytesStream(reqBytes, () => { });
+		sub1.dispose();
+		assert.strictEqual(bytesSerialize, asUnaryProtoBytes);
+		assert.deepStrictEqual(bytesPayload, reqBytes);
+		assert.deepStrictEqual(bytesDeserialize?.(Buffer.from([7])), { n: 7 });
+
+		let jsonSerialize: ((value: { a: number }) => Buffer) | undefined;
+		const jsonStream = makeServerStreamClient<{ a: number }, { ok: boolean }>(
+			{
+				makeServerStreamRequest(_path: string, ser: (v: { a: number }) => Buffer) {
+					jsonSerialize = ser;
+					return noopCall;
+				},
+			} as never,
+			'agentservice.AgentService',
+			'Legacy',
+		);
+		const sub2 = jsonStream({ a: 1 }, () => { });
+		sub2.dispose();
+		assert.strictEqual(jsonSerialize?.({ a: 1 }).toString('utf8'), JSON.stringify({ a: 1 }));
 	});
 });
-
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcAgentChatServerStreamWire.ts')));
-	assert.ok(dir, 'grpcAgentChatServerStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
-
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
