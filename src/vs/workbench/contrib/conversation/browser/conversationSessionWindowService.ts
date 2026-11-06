@@ -614,9 +614,6 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 		store.add(addDisposableListener(container, 'focusin', () => {
 			this.setFocusedLeaf(sessionKey);
-			if (this.rosterService.getActiveSessionId() !== sessionKey) {
-				this.rosterService.switchSession(sessionKey);
-			}
 		}, true));
 
 		this.editorGroupsService.createConversationEditorPart(editorPartHost, sessionKey);

@@ -232,6 +232,73 @@ suite('ConversationLeafSessionBar', () => {
 		assert.ok(paneB.leafSessionBarHost);
 	});
 
+	test('focusin on another leaf calls switchSession once when the roster keeps the old active id', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(b);
+		await waitForPane(partFor(parts, primaryId));
+		await waitForPane(partFor(parts, b));
+		await sessionWindowService.revealSessionWindow(b);
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), b);
+		assert.strictEqual(rosterService.getActiveSessionId(), b);
+
+		const switched: string[] = [];
+		rosterService.switchSession = (sessionId: string) => {
+			switched.push(sessionId);
+		};
+		const leafA = sessionWindowService.getLeafSlots(primaryId);
+		assert.ok(leafA);
+		leafA.container.dispatchEvent(new FocusEvent('focusin'));
+
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		assert.deepStrictEqual(switched, [primaryId]);
+	});
+
+	test('switchLeafSession does not call switchSession when the active id is already the target', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(b);
+		await waitForPane(partFor(parts, primaryId));
+		const paneB = await waitForPane(partFor(parts, b));
+		assert.ok(paneB.leafSessionBarHost);
+		await sessionWindowService.revealSessionWindow(b);
+		assert.strictEqual(rosterService.getActiveSessionId(), b);
+
+		const switched: string[] = [];
+		const originalSwitch = rosterService.switchSession.bind(rosterService);
+		rosterService.switchSession = (sessionId: string) => {
+			switched.push(sessionId);
+			originalSwitch(sessionId);
+		};
+		await paneB.leafSessionBarHost.switchLeafSession(b);
+
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), b);
+		assert.deepStrictEqual(switched, []);
+	});
+
+	test('switchLeafSession switches to its argument when reveal does not focus a leaf', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		assert.ok(paneA.leafSessionBarHost);
+		assert.strictEqual(rosterService.getActiveSessionId(), primaryId);
+		sessionWindowService.revealSessionWindow = async () => ({ cancelled: false });
+
+		const switched: string[] = [];
+		const originalSwitch = rosterService.switchSession.bind(rosterService);
+		rosterService.switchSession = (sessionId: string) => {
+			switched.push(sessionId);
+			originalSwitch(sessionId);
+		};
+		await paneA.leafSessionBarHost.switchLeafSession(b);
+
+		assert.deepStrictEqual(switched, [b]);
+		assert.strictEqual(rosterService.getActiveSessionId(), b);
+	});
+
 	test('leaf session bar title follows roster rename while that leaf is not active', async () => {
 		const harness = await createHarness();
 		const { parts, sessionWindowService, rosterService, primaryId } = harness;
