@@ -1159,7 +1159,9 @@ suite('EnginePreferencesPane', () => {
 		// An environment that cannot host an engine is the exception that earns the warning surface.
 		assert.ok((container.querySelector('.engine-preferences-disconnected-banner') as HTMLElement).classList.contains('is-warning'));
 		assert.strictEqual(banner.textContent, getUnsupportedEnvironmentCopy());
-		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
+		assert.strictEqual(getUnsupportedEnvironmentCopy(), 'This environment cannot connect to a local Engine.');
+		assert.strictEqual(WEB_UNSUPPORTED_REASON, 'unsupported_environment');
+		assert.ok(!(container.textContent ?? '').includes(WEB_UNSUPPORTED_REASON), 'the token must not reach the UI');
 		assert.notStrictEqual(banner.textContent, ENGINE_DISCONNECTED_COPY);
 
 		container.remove();

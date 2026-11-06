@@ -20,6 +20,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentFireTriggerResult, UniverseAgentTrigger, UniverseAgentTriggerDeliveryTarget } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { formatCapabilityReason } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
@@ -612,7 +613,7 @@ export class EngineTriggersSection extends Disposable {
 		const entry = this.connection.getCapabilitySnapshot()?.[key];
 		const title = entry?.support === 'SUPPORTED'
 			? actionLabel
-			: (entry?.reason?.trim() || getEngineSectionApiUnavailableCopy(actionLabel));
+			: (formatCapabilityReason(entry?.reason?.trim()) || getEngineSectionApiUnavailableCopy(actionLabel));
 		button.setTitle(title);
 		button.element.title = title;
 	}

@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { WEB_UNSUPPORTED_LOCAL_ENGINE_REASON } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySupport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { getUnsupportedEnvironmentCopy } from './engineSectionChrome.js';
 
 /**
  * Engine catalog pane rendering mode (engine-preferences-completion §2).
@@ -78,7 +80,18 @@ export function shouldHideCatalogRows(mode: EngineCatalogPaneMode): boolean {
 	return mode !== 'ready';
 }
 
+/**
+ * Capability `reason` for display. The Web token becomes the environment copy;
+ * probe reasons (`UNIMPLEMENTED`, `method not advertised`, …) pass through.
+ */
+export function formatCapabilityReason(reason: string): string;
+export function formatCapabilityReason(reason: string | undefined): string | undefined;
+export function formatCapabilityReason(reason: string | undefined): string | undefined {
+	return reason === WEB_UNSUPPORTED_LOCAL_ENGINE_REASON ? getUnsupportedEnvironmentCopy() : reason;
+}
+
 export function getCatalogUnsupportedCopy(featureLabel: string, reason?: string): string {
+	reason = formatCapabilityReason(reason);
 	if (reason) {
 		return localize(
 			'ua.engineCatalogUnsupportedWithReason',
@@ -111,6 +124,7 @@ export function getCatalogTransportFailedCopy(featureLabel: string): string {
 }
 
 export function getCatalogFailedCopy(featureLabel: string, reason?: string): string {
+	reason = formatCapabilityReason(reason);
 	if (reason) {
 		return localize(
 			'ua.engineCatalogFailedWithReason',

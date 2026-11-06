@@ -30,6 +30,7 @@ suite('universeAgentRendererSync', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('desktop idle snapshot never uses the Web unsupported reason', () => {
+		assert.strictEqual(WEB_UNSUPPORTED_LOCAL_ENGINE_REASON, 'unsupported_environment');
 		const idle = createIdleCapabilitySnapshot();
 		for (const entry of Object.values(idle)) {
 			assert.notStrictEqual(entry.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
@@ -40,21 +41,26 @@ suite('universeAgentRendererSync', () => {
 	test('sanitizeDesktopCapabilitySnapshot strips Web stub pollution', () => {
 		const polluted = {
 			...createIdleCapabilitySnapshot(),
-			skills: { support: 'UNSUPPORTED' as const, reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON },
-			models: { support: 'UNSUPPORTED' as const, reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON },
+			skills: { support: 'UNSUPPORTED' as const, reason: 'unsupported_environment' },
+			models: { support: 'UNSUPPORTED' as const, reason: 'unsupported_environment' },
+			tools: { support: 'UNSUPPORTED' as const, reason: 'This environment cannot connect to a local Engine.' },
+			plugins: { support: 'UNSUPPORTED' as const, reason: 'Web 不支持本机 Engine 连接' },
 		};
 		const clean = sanitizeDesktopCapabilitySnapshot(polluted);
 		assert.strictEqual(clean.skills.support, 'UNKNOWN');
 		assert.strictEqual(clean.skills.reason, undefined);
 		assert.strictEqual(clean.models.support, 'UNKNOWN');
 		assert.strictEqual(clean.providerConfig.support, 'UNKNOWN');
+		// Only the token is the sentinel; display sentences are ordinary reasons.
+		assert.deepStrictEqual(clean.tools, polluted.tools);
+		assert.deepStrictEqual(clean.plugins, polluted.plugins);
 	});
 
 	test('connection cache drops Web stub capability reasons from IPC snapshots', () => {
 		const cache = new UniverseAgentConnectionSyncCache();
 		const capabilities = {
 			...createIdleCapabilitySnapshot(),
-			mcp: { support: 'UNSUPPORTED' as const, reason: WEB_UNSUPPORTED_LOCAL_ENGINE_REASON },
+			mcp: { support: 'UNSUPPORTED' as const, reason: 'unsupported_environment' },
 		};
 		cache.applySnapshot({
 			transport: 'idle',

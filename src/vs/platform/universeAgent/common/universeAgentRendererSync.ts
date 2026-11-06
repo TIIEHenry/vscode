@@ -22,8 +22,12 @@ import type {
 
 const UNKNOWN_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNKNOWN' };
 
-/** Web stub only. Desktop idle / node empty snapshots must never use this reason. */
-export const WEB_UNSUPPORTED_LOCAL_ENGINE_REASON = 'Web 不支持本机 Engine 连接';
+/**
+ * Web stub only. Stable token, not UI copy: the UI maps it through `nls`.
+ * Same word as `ConnectionFailureCode` `unsupported_environment`.
+ * Desktop idle / node empty snapshots must never use this reason.
+ */
+export const WEB_UNSUPPORTED_LOCAL_ENGINE_REASON = 'unsupported_environment';
 
 const CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
 	'skills',

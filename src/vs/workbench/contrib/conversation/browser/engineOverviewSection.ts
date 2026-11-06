@@ -12,6 +12,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
+import { formatCapabilityReason } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { formatCapabilitySupportLabel } from './engineSectionChrome.js';
 import type {
@@ -211,7 +212,7 @@ export class EngineOverviewSection extends Disposable {
 		switch (modelsSupport) {
 			case 'UNSUPPORTED':
 				// The engine advertised no model registry; the client always has listModels.
-				return { value: formatOverviewRegistryUnavailable('UNSUPPORTED'), title: reason };
+				return { value: formatOverviewRegistryUnavailable('UNSUPPORTED'), title: formatCapabilityReason(reason) };
 			case 'UNKNOWN':
 				// Keep leftover model count after a live paint (D272; D252 / D204).
 				// First-pull UNKNOWN still confirming; this branch must not listModels.
@@ -380,7 +381,7 @@ export class EngineOverviewSection extends Disposable {
 			const support = DOM.append(row, $('.engine-overview-capability-support'));
 			support.textContent = formatOverviewCapabilitySupportLabel(entry?.support);
 			if (entry?.reason) {
-				support.title = entry.reason;
+				support.title = formatCapabilityReason(entry.reason);
 			}
 		}
 	}

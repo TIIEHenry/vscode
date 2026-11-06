@@ -2085,7 +2085,9 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(test.style.display, 'none');
 		assert.notStrictEqual(notice.style.display, 'none');
 		assert.strictEqual(notice.textContent, getUnsupportedEnvironmentCopy());
-		assert.strictEqual(getUnsupportedEnvironmentCopy(), '此环境不支持本机 Engine 连接');
+		assert.strictEqual(getUnsupportedEnvironmentCopy(), 'This environment cannot connect to a local Engine.');
+		assert.strictEqual(WEB_UNSUPPORTED_REASON, 'unsupported_environment');
+		assert.ok(!(container.textContent ?? '').includes(WEB_UNSUPPORTED_REASON), 'the token must not reach the UI');
 
 		const profileActions = container.querySelector('.connection-profile-actions') as HTMLElement;
 		assert.ok(profileActions);

@@ -6,14 +6,12 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { localize } from '../../../../nls.js';
 import type { ConnectionPhase } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { capabilityEntryIsWebUnsupported } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentCapabilitySupport,
 	UniverseAgentConnectionSnapshot,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-
-/** P0 capability / connectProfile reason；UI 只对照 common 符号，不 import browser stub。 */
-const LOCAL_ENGINE_UNSUPPORTED_REASON = 'Web 不支持本机 Engine 连接';
 
 export interface IDesktopConnectionControlContext {
 	readonly phase: ConnectionPhase;
@@ -26,7 +24,7 @@ function capabilityMarksUnsupportedEnvironment(capabilities: UniverseAgentCapabi
 		return false;
 	}
 	for (const entry of Object.values(capabilities)) {
-		if (entry?.reason === LOCAL_ENGINE_UNSUPPORTED_REASON) {
+		if (capabilityEntryIsWebUnsupported(entry)) {
 			return true;
 		}
 	}
@@ -53,7 +51,7 @@ export function shouldDrawDesktopConnectionControls(context: IDesktopConnectionC
 
 /** a11y §7 / E2-1：Web 与 unsupported_environment 的产品文案，不是 capability reason 原文。 */
 export function getUnsupportedEnvironmentCopy(): string {
-	return localize('ua.unsupportedLocalEngineEnvironment', "此环境不支持本机 Engine 连接");
+	return localize('ua.unsupportedLocalEngineEnvironment', "This environment cannot connect to a local Engine.");
 }
 
 /** a11y RWD-2：叶级 pane `layout(dimension).width`，不是 Part 宽。 */
