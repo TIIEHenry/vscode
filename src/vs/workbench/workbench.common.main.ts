@@ -96,6 +96,7 @@ import './services/model/common/modelService.js';
 import './services/notebook/common/notebookDocumentService.js';
 import './services/commands/common/commandService.js';
 import './services/themes/browser/workbenchThemeService.js';
+import './browser/productShell.contribution.js';
 import './services/label/common/labelService.js';
 import './services/extensions/common/extensionManifestPropertiesService.js';
 import './services/extensionManagement/common/extensionGalleryService.js';

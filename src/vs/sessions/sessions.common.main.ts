@@ -92,6 +92,7 @@ import '../workbench/services/model/common/modelService.js';
 import '../workbench/services/notebook/common/notebookDocumentService.js';
 import '../workbench/services/commands/common/commandService.js';
 import '../workbench/services/themes/browser/workbenchThemeService.js';
+import '../workbench/browser/productShell.contribution.js';
 import '../workbench/services/label/common/labelService.js';
 import '../workbench/services/extensions/common/extensionManifestPropertiesService.js';
 import '../workbench/services/extensionManagement/common/extensionGalleryService.js';

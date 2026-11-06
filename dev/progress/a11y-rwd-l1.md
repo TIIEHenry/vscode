@@ -199,7 +199,7 @@ summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-mo
 
 **A / D19(1) 改口：** Engine / Connection pane CSS 无 `transition`/`animation`/`@keyframes`（`enginePreferencesPane.css` / `connectionPreferencesPane.css` 文件头已钉死）。不挂空 `.ua-motion`。减动对这两页是 no-op，不是漏关 shimmer。
 
-**HC 覆盖（GC-7 后）：** T1 描边选择器现含 `.preferences-editor`（Engine / Connection pane 宿主）。引入链：`workbench/browser/style.ts` → `productAccessibility.css` + `ua-common.css`（后者仍由 `conversationPart.ts` 再 import 一次）。未跑目视/axe（§10 / D17）。
+**HC 覆盖（GC-7 后）：** T1 描边选择器现含 `.preferences-editor`（Engine / Connection pane 宿主）。引入链（2026-11-06 p2-6a 起）：`workbench/browser/productShell.contribution.ts`（默认窗与 Agents 窗的 common main 在主题服务之后各 import 一次）→ `productShell/media/productAccessibility.css` + `ua-common.css`（后者仍由 `conversationPart.ts` 再 import 一次）；`style.ts` 不再 import 这两张表。未跑目视/axe（§10 / D17）。
 
 **仍缺：** 无（本条源码合同）；手测/axe/W1 仍归 §10 / D17 / D15。
 **HC：** `ua-common.css` 已把 Engine / Connection Preferences 与 `.conversation-visualize-overlay` 纳入 `:focus-visible` / selected 描边。
