@@ -35,6 +35,7 @@ import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/v
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../conversation/browser/conversationRevealItem.contribution.js';
+import { isNavigatorEngineWriteLive } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationSessionNotReady } from '../../conversation/common/conversationSessionReadiness.js';
@@ -481,11 +482,7 @@ export class NavigatorAgentsView extends ViewPane {
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.engineConnectedContextKey.set(
-			!isConversationPairingHold(this.uaConnection)
-			&& this.rosterService.isEngineConnected()
-			&& !isConversationSessionNotReady(this.rosterService),
-		);
+		this.engineConnectedContextKey.set(isNavigatorEngineWriteLive(this.uaConnection, this.rosterService));
 	}
 
 	private syncKeepLeftoverWriteChrome(): void {

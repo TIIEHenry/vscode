@@ -5,7 +5,7 @@
 
 import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { conversationLensDockEngineNotConnected, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from './conversationLensDockStrings.js';
-import { isConversationSessionNotReady, type ConversationSessionReadiness } from '../common/conversationSessionReadiness.js';
+import { isConversationSessionNotReady, type ConversationSessionReadiness, type IConversationSessionReadinessSource } from '../common/conversationSessionReadiness.js';
 import type { ConversationSessionSource } from './conversationRosterStorage.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 
@@ -21,6 +21,21 @@ export function isConversationDisconnectedEngineSession(roster: {
 }, sessionId?: string): boolean {
 	return !roster.isEngineConnected() && (roster.hasEngineConnectionHistory?.() === true
 		|| (sessionId !== undefined && roster.getSessionSource?.(sessionId) === 'engine-cache'));
+}
+
+/**
+ * Navigator Agents / Team `ua.engineConnected`: not pairing-hold, roster
+ * transport connected, and the session catalog ready. Exactly these three
+ * conjuncts. The roster carries `isEngineConnected`, so no Sources probe;
+ * each view still binds the key to its own scoped context.
+ */
+export function isNavigatorEngineWriteLive(
+	connection: IConversationPairingHoldSource | undefined,
+	roster: IConversationSessionReadinessSource & { isEngineConnected(): boolean },
+): boolean {
+	return !isConversationPairingHold(connection)
+		&& roster.isEngineConnected()
+		&& !isConversationSessionNotReady(roster);
 }
 
 /** Gate and write-hold sentence. Pairing-hold wins over session readiness. */
