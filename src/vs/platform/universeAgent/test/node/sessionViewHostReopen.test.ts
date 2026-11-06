@@ -279,6 +279,63 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		assert.strictEqual(connection.subscribeCalls.length, 2, 'session stream must re-subscribe after recovery');
 	});
 
+	test('connected snapshot with unchanged link does not bring the published link up again', async () => {
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-same-link');
+		await viewHost.whenEngineSessionReady('sess-same-link');
+		const linkState = (viewHost as unknown as { connectionUp: boolean; connectionGeneration: number });
+		const generationBefore = linkState.connectionGeneration;
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		viewHost.onEngineConnectionChanged();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.deepStrictEqual({
+			connectionUp: linkState.connectionUp,
+			connectionGeneration: linkState.connectionGeneration,
+			subscribeCalls: connection.subscribeCalls.length,
+		}, {
+			connectionUp: true,
+			connectionGeneration: generationBefore,
+			subscribeCalls: 1,
+		});
+	});
+
+	test('failed first bind is not retried by the next connected snapshot but whenEngineSessionReady rebinds', async () => {
+		const connection = new class extends TestConnection {
+			failCreate = true;
+			override async createSession(request: Parameters<TestConnection['createSession']>[0] = {}) {
+				if (this.failCreate) {
+					this.createSessionCalls.push(request);
+					throw new Error('create failed');
+				}
+				return super.createSession(request);
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-bind-fail');
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+		const linkState = (viewHost as unknown as { connectionUp: boolean });
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.strictEqual(linkState.connectionUp, true, 'a failed bind leaves the link up');
+
+		viewHost.onEngineConnectionChanged();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+		assert.strictEqual(connection.createSessionCalls.length, 1, 'a connected snapshot must not retry the failed bind');
+
+		connection.failCreate = false;
+		await viewHost.whenEngineSessionReady('sess-bind-fail');
+		assert.strictEqual(connection.createSessionCalls.length, 2);
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+	});
+
 	test('failClosedOverflow schedules same-connection recovery', async () => {
 		const connection = new TestConnection();
 		const diagnostics = new CountingDiagnostics();

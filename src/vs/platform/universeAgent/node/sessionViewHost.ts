@@ -624,7 +624,10 @@ export class SessionViewHost extends Disposable {
 		}
 		if (!publishedChanged) {
 			if (this.connection.isEngineConnected()) {
-				this.bringUpPublishedLink();
+				// Same link: a snapshot (e.g. capability update) must not bump connectionGeneration again.
+				if (!this.connectionUp) {
+					this.bringUpPublishedLink();
+				}
 			} else {
 				this.releasePublishedLink();
 			}
