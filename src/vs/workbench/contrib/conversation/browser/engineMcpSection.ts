@@ -26,7 +26,7 @@ import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedL
 import { captureEnginePublishedLinkOwner, EngineRefreshGate, evaluateEnginePublishedWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, engineWriteSelectionNotSentCopy, engineWriteSelectionUnconfirmedCopy } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -35,7 +35,7 @@ import {
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
-import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
+import { EngineCatalogSectionController, paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote } from './engineSectionChrome.js';
 import { EngineMcpRuntimePanel } from './engineMcpRuntimePanel.js';
@@ -396,6 +396,7 @@ export class EngineMcpSection extends Disposable {
 	private writeFailedReason: string | undefined;
 	private sectionActive = false;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 	private linkNotice: string | undefined;
 	private addInFlight = false;
 	private _removeServerGeneration = 0;
@@ -413,6 +414,7 @@ export class EngineMcpSection extends Disposable {
 		super();
 		this.instantiationService = instantiationService;
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 
 		this.container = DOM.append(parent, $('.engine-mcp-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -1197,19 +1199,18 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		return this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.hideCatalogWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.listContainer.style.display = '';
 			this.mode = resolveEngineCatalogPaneMode(false, support);
 			this.renderStatus();
 			this.closeLeftoverRowToggleChrome();
-			return false;
-		}
-		this.clearCatalogPresentation();
-		this.mode = resolveEngineCatalogPaneMode(false, support);
-		this.renderStatus();
-		return false;
+		}, () => {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+		});
 	}
 
 	private async refresh(): Promise<boolean> {
