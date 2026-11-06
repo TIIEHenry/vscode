@@ -2924,6 +2924,7 @@ suite('conversation lens dispose gate', () => {
 			composeDraftSnapshot: 'Saved compose snapshot must not replace the live draft',
 			dockTextarea: { value: 'leftover draft' },
 			getBoundSessionId: () => 'ua-a',
+			listSessionId: () => 'ua-a',
 			writeComposerDraft: (_sessionId: string, text: string) => {
 				draftWrites.push(text);
 			},

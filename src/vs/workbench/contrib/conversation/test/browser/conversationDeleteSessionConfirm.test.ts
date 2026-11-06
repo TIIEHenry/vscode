@@ -63,6 +63,7 @@ suite('ConversationDeleteSessionConfirm', () => {
 			composerPolicy: 'turnEdit',
 			composeDraftSnapshot: 'draft',
 			getBoundSessionId: () => 's1',
+			listSessionId: () => 's1',
 			writeComposerDraft: () => { draftWrites++; },
 			deleteComposerDraftsForSession: () => { },
 			showPostFailure: (reason: string) => { failures.push(reason); },

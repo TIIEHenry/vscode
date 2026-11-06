@@ -37,6 +37,7 @@ suite('ConversationComposerEditDraft', () => {
 			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
 			dockTextarea: { value: options.textarea },
 			getBoundSessionId: () => 'sess-a',
+			listSessionId: () => 'sess-a',
 			writeComposerDraft: (sessionId: string, text: string) => {
 				written.push(text);
 				drafts.set(sessionId, text);
