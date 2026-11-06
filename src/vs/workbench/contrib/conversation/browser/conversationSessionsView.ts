@@ -35,7 +35,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
-import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterStatus, groupSessionsForRoster, resolveSessionRosterTone, sessionRosterGlyph, type SessionRosterEntry, type SessionRosterTone } from './conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterGroupLabel, formatSessionRosterStatus, groupSessionsForRoster, resolveSessionRosterRowChrome, type SessionRosterEntry, type SessionRosterRowChrome } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from './conversationDeleteSessionConfirm.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
@@ -106,11 +106,11 @@ interface ISessionTemplateData {
 	session: ConversationStubSession | undefined;
 }
 
-function applySessionRosterIcon(icon: HTMLElement, tone: SessionRosterTone): void {
-	icon.className = `conversation-sessions-item-icon conversation-sessions-item-icon--${tone}`;
-	icon.classList.add(...ThemeIcon.asClassNameArray(sessionRosterGlyph(tone)));
-	icon.classList.toggle('ua-motion', tone === 'running');
-	icon.classList.toggle('codicon-modifier-spin', tone === 'running');
+function applySessionRosterIcon(icon: HTMLElement, rowChrome: Pick<SessionRosterRowChrome, 'tone' | 'glyph' | 'spin'>): void {
+	icon.className = `conversation-sessions-item-icon conversation-sessions-item-icon--${rowChrome.tone}`;
+	icon.classList.add(...ThemeIcon.asClassNameArray(rowChrome.glyph));
+	icon.classList.toggle('ua-motion', rowChrome.spin);
+	icon.classList.toggle('codicon-modifier-spin', rowChrome.spin);
 }
 
 class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemplateData> {
@@ -166,14 +166,18 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		const session = entry.session;
 		templateData.session = session;
 		templateData.label.textContent = session.title;
-		const pending = this.countPendingConfirmations(session.id);
-		const tone = resolveSessionRosterTone(this.getTurns(session.id), pending);
-		applySessionRosterIcon(templateData.icon, tone);
-		templateData.container.dataset.tone = tone;
-		templateData.subtitle.textContent = pending > 0 ? String(pending)
-			: tone === 'idle' && typeof session.lastAccessedAt === 'number' ? formatSessionAccessedLabel(session.lastAccessedAt) : '';
+		const active = session.id === this.getActiveSessionId();
+		const rowChrome = resolveSessionRosterRowChrome(
+			session,
+			this.getTurns(session.id),
+			this.countPendingConfirmations(session.id),
+			active,
+		);
+		applySessionRosterIcon(templateData.icon, rowChrome);
+		templateData.container.dataset.tone = rowChrome.tone;
+		templateData.subtitle.textContent = rowChrome.compactSubtitle;
 		templateData.subtitle.hidden = !templateData.subtitle.textContent;
-		templateData.container.classList.toggle('conversation-sessions-item-active', session.id === this.getActiveSessionId());
+		templateData.container.classList.toggle('conversation-sessions-item-active', active);
 	}
 
 	disposeTemplate(templateData: ISessionTemplateData): void {
@@ -187,7 +191,14 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		}
 		const pending = this.countPendingConfirmations(session.id);
 		const turnCount = this.countRosterTurns(session.id);
-		const tone = resolveSessionRosterTone(this.getTurns(session.id), pending);
+		const rowChrome = resolveSessionRosterRowChrome(
+			session,
+			this.getTurns(session.id),
+			pending,
+			session.id === this.getActiveSessionId(),
+			turnCount,
+		);
+		const tone = rowChrome.tone;
 		markdown.appendText(session.title);
 		const lines: { icon: string; text: string }[] = [];
 		if (session.workDir) {
@@ -232,15 +243,13 @@ class SessionsAccessibilityProvider implements IListAccessibilityProvider<Sessio
 			return localize('conversationSessionsView.groupAria', "{0}, {1}", formatSessionRosterGroupLabel(entry.group), entry.count);
 		}
 		const session = entry.session;
-		const pending = this.countPendingConfirmations(session.id);
-		const turnCount = this.countRosterTurns(session.id);
-		return formatSessionRosterAriaLabel(
+		return resolveSessionRosterRowChrome(
 			session,
-			pending,
-			turnCount,
-			resolveSessionRosterTone(this.getTurns(session.id), pending),
+			this.getTurns(session.id),
+			this.countPendingConfirmations(session.id),
 			session.id === this.getActiveSessionId(),
-		);
+			this.countRosterTurns(session.id),
+		).ariaLabel;
 	}
 }
 
