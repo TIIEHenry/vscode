@@ -66,6 +66,13 @@ interface EngineSessionDeleteSnapshot {
 	readonly previousBindFailed: boolean;
 }
 
+/**
+ * Which backend a roster write goes to. Order is fixed: pairing hold, leftover
+ * list failure, connected, cached disconnect, then stub. Each write keeps its
+ * own return value per branch.
+ */
+type RosterWriteRoute = 'pairingHold' | 'leftoverListFail' | 'connected' | 'cachedDisconnect' | 'stub';
+
 export function isEngineRosterPlaceholderSessionId(sessionId: string | undefined): boolean {
 	return !!sessionId && (sessionId === ENGINE_BIND_FAILED_SESSION_ID || STUB_SEED_IDS.has(sessionId));
 }
@@ -433,93 +440,90 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	override createSession(): string {
+	/**
+	 * Pairing hold comes first: during it `isConversationEngineLive` is false
+	 * while `wasEverConnected` may be true (or still false on first pairing), and
+	 * a pinned `testEngineConnected` may keep `isEngineConnected()` true.
+	 */
+	private routeRosterWrite(): RosterWriteRoute {
 		if (isConversationPairingHold(this.uaConnection)) {
-			return '';
+			return 'pairingHold';
 		}
 		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return '';
+			return 'leftoverListFail';
 		}
 		if (this.isEngineConnected()) {
-			void this.ensureEngineSession().then(() => {
-				this.bindLiveTreeObservationLease();
-			}).catch(error => {
-				this._onDidFailEngineAction.fire({
-					sessionId: this.pendingEngineBindSessionId ?? this.getActiveSessionId(),
-					action: 'createSession',
-					error,
-				});
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
-			return '';
+			return 'connected';
 		}
 		if (this.wasEverConnected) {
-			return '';
+			return 'cachedDisconnect';
 		}
-		return super.createSession();
+		return 'stub';
+	}
+
+	/** Boolean writes whose engine helper takes `callRemote` (true connected, false cached disconnect). */
+	private routeRosterBooleanWrite(engine: (callRemote: boolean) => boolean, stub: () => boolean): boolean {
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
+				return false;
+			case 'connected':
+				return engine(true);
+			case 'cachedDisconnect':
+				return engine(false);
+			case 'stub':
+				return stub();
+		}
+	}
+
+	override createSession(): string {
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				return '';
+			case 'connected':
+				void this.ensureEngineSession().then(() => {
+					this.bindLiveTreeObservationLease();
+				}).catch(error => {
+					this._onDidFailEngineAction.fire({
+						sessionId: this.pendingEngineBindSessionId ?? this.getActiveSessionId(),
+						action: 'createSession',
+						error,
+					});
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				return '';
+			case 'stub':
+				return super.createSession();
+		}
 	}
 
 	override renameSession(sessionId: string, title: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.renameEngineSession(sessionId, title, true);
-		}
-		if (this.wasEverConnected) {
-			return this.renameEngineSession(sessionId, title, false);
-		}
-		return super.renameSession(sessionId, title);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.renameEngineSession(sessionId, title, callRemote),
+			() => super.renameSession(sessionId, title),
+		);
 	}
 
 	override cancelGeneration(sessionId: string, agentId?: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.cancelEngineGeneration(sessionId, agentId, true);
-		}
-		if (this.wasEverConnected) {
-			return this.cancelEngineGeneration(sessionId, agentId, false);
-		}
-		return super.cancelGeneration(sessionId, agentId);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.cancelEngineGeneration(sessionId, agentId, callRemote),
+			() => super.cancelGeneration(sessionId, agentId),
+		);
 	}
 
 	override setSessionGoal(sessionId: string, goal: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.setEngineSessionGoal(sessionId, goal, true);
-		}
-		if (this.wasEverConnected) {
-			return this.setEngineSessionGoal(sessionId, goal, false);
-		}
-		return super.setSessionGoal(sessionId, goal);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.setEngineSessionGoal(sessionId, goal, callRemote),
+			() => super.setSessionGoal(sessionId, goal),
+		);
 	}
 
 	override cancelSessionGoal(sessionId: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.cancelEngineSessionGoal(sessionId, true);
-		}
-		if (this.wasEverConnected) {
-			return this.cancelEngineSessionGoal(sessionId, false);
-		}
-		return super.cancelSessionGoal(sessionId);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.cancelEngineSessionGoal(sessionId, callRemote),
+			() => super.cancelSessionGoal(sessionId),
+		);
 	}
 
 	override getSessionGoal(sessionId: string): string | undefined {
@@ -530,147 +534,73 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.forkEngineSubAgent(sessionId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.forkEngineSubAgent(sessionId, options, false);
-		}
-		return super.forkSubAgent(sessionId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.forkEngineSubAgent(sessionId, options, callRemote),
+			() => super.forkSubAgent(sessionId, options),
+		);
 	}
 
 	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.killEngineSubAgent(sessionId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.killEngineSubAgent(sessionId, options, false);
-		}
-		return super.killSubAgent(sessionId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.killEngineSubAgent(sessionId, options, callRemote),
+			() => super.killSubAgent(sessionId, options),
+		);
 	}
 
 	override createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.createEngineSnapshot(sessionId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.createEngineSnapshot(sessionId, options, false);
-		}
-		return super.createSnapshot(sessionId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.createEngineSnapshot(sessionId, options, callRemote),
+			() => super.createSnapshot(sessionId, options),
+		);
 	}
 
 	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.cancelEngineToolCall(sessionId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.cancelEngineToolCall(sessionId, options, false);
-		}
-		return super.cancelToolCall(sessionId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.cancelEngineToolCall(sessionId, options, callRemote),
+			() => super.cancelToolCall(sessionId, options),
+		);
 	}
 
 	override retryError(sessionId: string, options: { messageId: string; turnId?: string; agentId?: string }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.continueEngineGeneration(sessionId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.continueEngineGeneration(sessionId, options, false);
-		}
-		return super.retryError(sessionId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.continueEngineGeneration(sessionId, options, callRemote),
+			() => super.retryError(sessionId, options),
+		);
 	}
 
 	override deleteTurn(sessionId: string, turnId: string, agentId?: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.deleteEngineMessage(sessionId, turnId, true, agentId);
-		}
-		if (this.wasEverConnected) {
-			return this.deleteEngineMessage(sessionId, turnId, false, agentId);
-		}
-		return super.deleteTurn(sessionId, turnId, agentId);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.deleteEngineMessage(sessionId, turnId, callRemote, agentId),
+			() => super.deleteTurn(sessionId, turnId, agentId),
+		);
 	}
 
 	override updateUserTurnText(sessionId: string, turnId: string, text: string, agentId?: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.editEngineMessage(sessionId, turnId, text, true, agentId);
-		}
-		if (this.wasEverConnected) {
-			return this.editEngineMessage(sessionId, turnId, text, false, agentId);
-		}
-		return super.updateUserTurnText(sessionId, turnId, text, agentId);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.editEngineMessage(sessionId, turnId, text, callRemote, agentId),
+			() => super.updateUserTurnText(sessionId, turnId, text, agentId),
+		);
 	}
 
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'connected':
+				// Enqueue while connected is refused without an RPC.
+				return false;
+			case 'cachedDisconnect':
+				return this.enqueueEngineQueueItem(sessionId, text, options, false);
+			case 'stub':
+				return super.enqueueMessageQueueItem(sessionId, text, options);
 		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return false;
-		}
-		if (this.wasEverConnected) {
-			return this.enqueueEngineQueueItem(sessionId, text, options, false);
-		}
-		return super.enqueueMessageQueueItem(sessionId, text, options);
 	}
 
 	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.retryEngineQueueItem(sessionId, itemId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.retryEngineQueueItem(sessionId, itemId, options, false);
-		}
-		return super.retryMessageQueueItem(sessionId, itemId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.retryEngineQueueItem(sessionId, itemId, options, callRemote),
+			() => super.retryMessageQueueItem(sessionId, itemId, options),
+		);
 	}
 
 	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
@@ -709,50 +639,48 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override pauseMessageQueue(sessionId: string): void {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return;
-		}
-		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, engineSessionId => this.uaConnection.pauseQueue({ sessionId: engineSessionId }));
-			return;
-		}
-		if (!this.wasEverConnected) {
-			super.pauseMessageQueue(sessionId);
+		switch (this.routeRosterWrite()) {
+			case 'connected':
+				this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, engineSessionId => this.uaConnection.pauseQueue({ sessionId: engineSessionId }));
+				return;
+			case 'stub':
+				super.pauseMessageQueue(sessionId);
+				return;
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				// Cached disconnect sends no RPC and leaves the stub queue alone.
+				return;
 		}
 	}
 
 	override resumeMessageQueue(sessionId: string): void {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return;
-		}
-		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, engineSessionId => this.uaConnection.resumeQueue({ sessionId: engineSessionId }));
-			return;
-		}
-		if (!this.wasEverConnected) {
-			super.resumeMessageQueue(sessionId);
+		switch (this.routeRosterWrite()) {
+			case 'connected':
+				this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, engineSessionId => this.uaConnection.resumeQueue({ sessionId: engineSessionId }));
+				return;
+			case 'stub':
+				super.resumeMessageQueue(sessionId);
+				return;
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				return;
 		}
 	}
 
 	override clearMessageQueue(sessionId: string): void {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return;
-		}
-		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, engineSessionId => this.uaConnection.clearQueue({ sessionId: engineSessionId }));
-			return;
-		}
-		if (!this.wasEverConnected) {
-			super.clearMessageQueue(sessionId);
+		switch (this.routeRosterWrite()) {
+			case 'connected':
+				this.forwardEngineQueueRef(sessionId, 'clearQueue', true, engineSessionId => this.uaConnection.clearQueue({ sessionId: engineSessionId }));
+				return;
+			case 'stub':
+				super.clearMessageQueue(sessionId);
+				return;
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				return;
 		}
 	}
 
@@ -761,24 +689,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return { sent: false };
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				return { sent: false };
+			case 'connected':
+				return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'holdQueueItem', true, (id, engineSessionId) => this.uaConnection.holdQueueItem({
+					sessionId: engineSessionId,
+					itemId: id,
+					reason: hold,
+				}));
+			case 'stub':
+				super.holdMessageQueueItem(sessionId, itemId, hold);
+				return { sent: true };
 		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return { sent: false };
-		}
-		if (this.isEngineConnected()) {
-			return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'holdQueueItem', true, (id, engineSessionId) => this.uaConnection.holdQueueItem({
-				sessionId: engineSessionId,
-				itemId: id,
-				reason: hold,
-			}));
-		}
-		if (!this.wasEverConnected) {
-			super.holdMessageQueueItem(sessionId, itemId, hold);
-			return { sent: true };
-		}
-		return { sent: false };
 	}
 
 	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
@@ -786,23 +711,20 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	releaseMessageQueueItemHoldWithSettlement(sessionId: string, itemId: string): ConversationQueueMutationDispatch {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return { sent: false };
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				return { sent: false };
+			case 'connected':
+				return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'releaseQueueItemHold', true, (id, engineSessionId) => this.uaConnection.releaseQueueItemHold({
+					sessionId: engineSessionId,
+					itemId: id,
+				}));
+			case 'stub':
+				super.releaseMessageQueueItemHold(sessionId, itemId);
+				return { sent: true };
 		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return { sent: false };
-		}
-		if (this.isEngineConnected()) {
-			return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'releaseQueueItemHold', true, (id, engineSessionId) => this.uaConnection.releaseQueueItemHold({
-				sessionId: engineSessionId,
-				itemId: id,
-			}));
-		}
-		if (!this.wasEverConnected) {
-			super.releaseMessageQueueItemHold(sessionId, itemId);
-			return { sent: true };
-		}
-		return { sent: false };
 	}
 
 	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
@@ -810,67 +732,37 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	updateMessageQueueItemContentWithSettlement(sessionId: string, itemId: string, content: string): ConversationQueueMutationDispatch {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return { sent: false };
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
+			case 'cachedDisconnect':
+				return { sent: false };
+			case 'connected':
+				return this.editEngineQueueItemWithSettlement(sessionId, itemId, content, true);
+			case 'stub':
+				return { sent: super.updateMessageQueueItemContent(sessionId, itemId, content) };
 		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return { sent: false };
-		}
-		if (this.isEngineConnected()) {
-			return this.editEngineQueueItemWithSettlement(sessionId, itemId, content, true);
-		}
-		if (this.wasEverConnected) {
-			return { sent: false };
-		}
-		return { sent: super.updateMessageQueueItemContent(sessionId, itemId, content) };
 	}
 
 	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.respondEnginePermission(sessionId, turnId, status, true);
-		}
-		if (this.wasEverConnected) {
-			return this.respondEnginePermission(sessionId, turnId, status, false);
-		}
-		return super.resolveConfirmation(sessionId, turnId, status);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.respondEnginePermission(sessionId, turnId, status, callRemote),
+			() => super.resolveConfirmation(sessionId, turnId, status),
+		);
 	}
 
 	override respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.sendEngineClientToolResponse(sessionId, callId, options, true);
-		}
-		if (this.wasEverConnected) {
-			return this.sendEngineClientToolResponse(sessionId, callId, options, false);
-		}
-		return super.respondClientTool(sessionId, callId, options);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.sendEngineClientToolResponse(sessionId, callId, options, callRemote),
+			() => super.respondClientTool(sessionId, callId, options),
+		);
 	}
 
 	override respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			return this.respondEngineQuestion(sessionId, questionId, answers, customText, true);
-		}
-		if (this.wasEverConnected) {
-			return this.respondEngineQuestion(sessionId, questionId, answers, customText, false);
-		}
-		return super.respondQuestion(sessionId, questionId, answers, customText);
+		return this.routeRosterBooleanWrite(
+			callRemote => this.respondEngineQuestion(sessionId, questionId, answers, customText, callRemote),
+			() => super.respondQuestion(sessionId, questionId, answers, customText),
+		);
 	}
 
 	override deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean {
@@ -879,23 +771,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (supplied && !captured) {
 			return false;
 		}
-		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
-		}
-		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
-		}
-		if (this.isEngineConnected()) {
-			if (captured?.kind !== 'engine' || !sameConversationDeleteOwner(captured, this, this.uaConnection)) {
+		switch (this.routeRosterWrite()) {
+			case 'pairingHold':
+			case 'leftoverListFail':
 				return false;
-			}
-			return this.deleteEngineSession(sessionId, captured);
+			case 'connected':
+				if (captured?.kind !== 'engine' || !sameConversationDeleteOwner(captured, this, this.uaConnection)) {
+					return false;
+				}
+				return this.deleteEngineSession(sessionId, captured);
+			case 'cachedDisconnect':
+				// Trusted local cache cleanup is not an Engine delete and never crosses IPC.
+				return supplied ? false : this.deleteEngineSession(sessionId);
+			case 'stub':
+				return captured?.kind === 'local' ? super.deleteSession(sessionId, captured) : false;
 		}
-		if (this.wasEverConnected) {
-			// Trusted local cache cleanup is not an Engine delete and never crosses IPC.
-			return supplied ? false : this.deleteEngineSession(sessionId);
-		}
-		return captured?.kind === 'local' ? super.deleteSession(sessionId, captured) : false;
 	}
 
 	override appendStubEchoAssistant(sessionId: string, text: string) {
