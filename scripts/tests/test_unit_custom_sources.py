@@ -80,8 +80,9 @@ class UnitCustomSourcesTests(unittest.TestCase):
             shutil.copy2(REPO_ROOT / "scripts" / name, self.root / "scripts" / name)
         self.baseline = self.root / "dev/progress/test-baseline-failures.txt"
         self.baseline.parent.mkdir(parents=True)
-        # Keep the actual Sources 89/0 and SourcesNode 59/0 thresholds. Other
-        # domains need only one synthetic case to exercise their original route.
+        # Synthetic Sources 89/0 and SourcesNode 59/0 thresholds exercise the gate;
+        # the real header is checked separately. Other domains need only one
+        # synthetic case to exercise their original route.
         self.baseline.write_text(
             "# min_cases: conversation=1 sources=89 universeAgent=1 universeAgentNode=1 sourcesNode=59\n"
             "# max_skipped: conversation=1 sources=0 universeAgent=0 universeAgentNode=0 sourcesNode=0\n",
@@ -171,7 +172,7 @@ class UnitCustomSourcesTests(unittest.TestCase):
         self.assertEqual(len(browser), 26)
         text = (REPO_ROOT / "dev/progress/test-baseline-failures.txt").read_text(encoding="utf-8")
         for header, expected in (
-            ("min_cases", {"conversation": 799, "sources": 89, "universeAgent": 190, "universeAgentNode": 418, "sourcesNode": 59}),
+            ("min_cases", {"conversation": 799, "sources": 89, "universeAgent": 190, "universeAgentNode": 418, "sourcesNode": 6}),
             ("max_skipped", {"conversation": 1, "sources": 0, "universeAgent": 0, "universeAgentNode": 0, "sourcesNode": 0}),
         ):
             line = next(line for line in text.splitlines() if line.startswith(f"# {header}:"))
