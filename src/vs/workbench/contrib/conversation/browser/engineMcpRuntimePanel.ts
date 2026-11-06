@@ -31,6 +31,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { EngineRefreshGate } from './engineWriteGate.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
@@ -150,7 +151,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	private tools: readonly UniverseAgentMcpToolDefinition[] = [];
 	private toolsTotal: number | undefined;
 	private toolsCachedAt: number | undefined;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 	private toolsGeneration = 0;
 	private ignoreSelection = false;
 	private leftoverCatalogToolsFailReason: string | undefined;
@@ -164,6 +165,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	) {
 		super();
 
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-mcp-runtime-panel.engine-catalog-section'));
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
@@ -207,7 +209,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.toolsGeneration++;
 		this.clearRuntimePresentation();
 		this.list?.dispose();
@@ -350,7 +352,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.mcpRuntime.support;
@@ -396,7 +398,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 
 		try {
 			const result = await this.connection.getMcpServerStatuses();
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -421,7 +423,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				this.clearToolsPresentation();
 			}
 		} catch (error) {
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return;
 			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
