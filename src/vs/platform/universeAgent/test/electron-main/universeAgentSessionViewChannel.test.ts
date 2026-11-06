@@ -15,7 +15,7 @@ import {
 } from '../../electron-main/universeAgentSessionViewChannel.js';
 import { UniverseAgentSessionViewService } from '../../electron-main/universeAgentSessionViewService.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
-import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
+import { TestConnection, TestHost } from '../node/sessionViewHostTestHelpers.js';
 
 class FakeSessionViewService implements UniverseAgentSessionViewChannelService {
 	readonly acquireLeaseForCalls: Array<{ readonly owner: string; readonly sessionId: string }> = [];
