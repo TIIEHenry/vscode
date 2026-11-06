@@ -381,7 +381,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return createRevealHarnessWithRoster(store.add(new QuietRosterService()), createConversationConnectionTestStub());
 	}
 
-	async function createRevealHarnessWithRoster<R extends ConversationStubService>(rosterService: R, connection: IUniverseAgentConnection, engine = false) {
+	async function createRevealHarnessWithRoster<R extends IConversationRosterService>(rosterService: R, connection: IUniverseAgentConnection, engine = false) {
 		const openErrors: unknown[] = [];
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({

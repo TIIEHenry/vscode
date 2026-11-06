@@ -7,7 +7,7 @@ import { ConversationEngineQueueReader } from './conversationEngineQueueReader.j
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import type { ConversationResponseKind } from '../../../../platform/universeAgent/common/conversationResponseState.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -29,8 +29,10 @@ import {
 	withEngineCache,
 	type ConversationRosterEngineCache,
 	type ConversationRosterStorageV1,
+	type ConversationSessionSource,
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
+import type { ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 import type { SessionViewSnapshot, ViewPatch, SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
 import { clientToolRespondCleanupPatches, permissionRespondCleanupPatches, questionRespondCleanupPatches } from '../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
@@ -81,7 +83,20 @@ export function isEngineRosterPlaceholderSessionId(sessionId: string | undefined
  * Engine-backed roster (M6-A2): same token as stub; switches frame source and
  * session catalog when UA is connected.
  */
-export class ConversationEngineRosterService extends ConversationStubService implements IConversationRosterService {
+export class ConversationEngineRosterService extends Disposable implements IConversationRosterService {
+
+	declare readonly _serviceBrand: undefined;
+
+	private readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
+	readonly onDidChangeActiveSession = this._onDidChangeActiveSession.event;
+	private readonly _onDidChangeSession = this._register(new Emitter<string>());
+	readonly onDidChangeSession = this._onDidChangeSession.event;
+	private readonly _onDidDeleteSession = this._register(new Emitter<string>());
+	readonly onDidDeleteSession = this._onDidDeleteSession.event;
+	private readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
+	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
+	/** Never-connected backend; its own events reach subscribers only through the forwards in the constructor. */
+	private readonly stub: ConversationStubService;
 
 	private readonly queueReader: ConversationEngineQueueReader;
 	private queueBoundLease: IConversationSessionViewLease | undefined;
@@ -89,15 +104,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private readonly liveTreeObservationStore = this._register(new DisposableStore());
 	private liveTreeObservationLease: IConversationSessionViewLease | undefined;
 	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
-	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
+	readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
 	private readonly _onDidChangeSessionRosterDetail = this._register(new Emitter<string>());
-	override readonly onDidChangeSessionRosterDetail = this._onDidChangeSessionRosterDetail.event;
+	readonly onDidChangeSessionRosterDetail = this._onDidChangeSessionRosterDetail.event;
 	/** Last published subtitle key (`turnCount:pending`) per session. */
 	private readonly rosterDetailKeys = new Map<string, string>();
 	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
-	override readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
+	readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
 	private readonly _onDidPruneEngineSessions = this._register(new Emitter<readonly string[]>());
-	override readonly onDidPruneEngineSessions = this._onDidPruneEngineSessions.event;
+	readonly onDidPruneEngineSessions = this._onDidPruneEngineSessions.event;
 	private lastDispatchedEngineAction: Promise<boolean> | undefined;
 	private readonly deleteScopes = this._register(new DisposableStore());
 	private engineSessions: ConversationStubSession[] = [];
@@ -134,10 +149,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IUniverseAgentSessionView sessionView: IUniverseAgentSessionView,
 		@IUaClientWorkspaceToolsGate private readonly workspaceToolsGate: IUaClientWorkspaceToolsGate,
-		@IStorageService storageService?: IStorageService,
-		@IConfigurationService configurationService?: IConfigurationService,
+		@IStorageService private readonly storageService?: IStorageService,
+		@IConfigurationService private readonly configurationService?: IConfigurationService,
 	) {
-		super(storageService, configurationService);
+		super();
+		this.stub = this._register(new ConversationStubService(storageService, configurationService, () => this.wasEverConnected));
+		this._register(this.stub.onDidChangeActiveSession(sessionId => this._onDidChangeActiveSession.fire(sessionId)));
+		this._register(this.stub.onDidChangeSession(sessionId => this._onDidChangeSession.fire(sessionId)));
+		this._register(this.stub.onDidDeleteSession(sessionId => this._onDidDeleteSession.fire(sessionId)));
+		this._register(this.stub.onDidChangeEngineConnection(connected => this._onDidChangeEngineConnection.fire(connected)));
 		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
 		this.queueReader = this._register(new ConversationEngineQueueReader(
 			engineSessionId => this.uaConnection.getQueue!({ sessionId: engineSessionId }),
@@ -148,7 +168,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (published !== undefined) {
 			this.boundEngineIdentityId = published;
 		} else if (!isConversationEngineLive(uaConnection.getConnectionPhase(), snapshot.pairingPending)) {
-			this.boundEngineIdentityId = engineIdentityKey(this.loadedStorage?.lastDisplayedEngineIdentityId);
+			this.boundEngineIdentityId = engineIdentityKey(this.stub.loadedStorage?.lastDisplayedEngineIdentityId);
 		} else {
 			this.boundEngineIdentityId = undefined;
 		}
@@ -164,7 +184,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	override isEngineConnected(): boolean {
+	isEngineConnected(): boolean {
 		if (this.testEngineConnected !== undefined) {
 			return this.testEngineConnected;
 		}
@@ -200,7 +220,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return 'ready';
 	}
 
-	override isEngineSessionReady(): boolean {
+	isEngineSessionReady(): boolean {
 		return this.getEngineSessionReadiness() === 'ready';
 	}
 
@@ -247,7 +267,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.isEngineLiveChrome() && this.workspaceToolsGate.shouldAdvertise();
 	}
 
-	override setEngineConnected(connected: boolean): void {
+	setEngineConnected(connected: boolean): void {
 		const wasConnected = this.isEngineConnected();
 		// Close the public write gate before any cache or scope notification.
 		this.testEngineConnected = connected;
@@ -257,7 +277,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				this.captureEngineCache();
 			}
 		}
-		super.setEngineConnected(connected);
+		this.stub.setEngineConnected(connected);
 		if (!connected) {
 			this.engineFrameSource.resetResponseScopes();
 		}
@@ -275,7 +295,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.bindLiveTreeObservationLease();
 	}
 
-	override getSessions(): readonly ConversationStubSession[] {
+	getSessions(): readonly ConversationStubSession[] {
 		if (this.isEngineConnected()) {
 			if (!this.listCompleted) {
 				// In-flight refresh: last-good leftover stays visible. First pull (no leftover) stays [].
@@ -291,10 +311,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.wasEverConnected) {
 			return this.engineSessions;
 		}
-		return super.getSessions();
+		return this.stub.getSessions();
 	}
 
-	override getActiveSession(): ConversationStubSession {
+	getActiveSession(): ConversationStubSession {
 		if (this.isEngineSessionBindFailed()) {
 			if (this.hasLeftoverEngineCatalogListFailed()) {
 				const sessionId = this.activeEngineSessionId;
@@ -322,10 +342,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return this.getEngineBindFailedSession();
 			}
 		}
-		return super.getActiveSession();
+		return this.stub.getActiveSession();
 	}
 
-	override getActiveSessionId(): string {
+	getActiveSessionId(): string {
 		if (this.isEngineConnected()) {
 			if (!this.listCompleted) {
 				return this.activeEngineSessionId ?? '';
@@ -356,25 +376,25 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			return this.engineSessions[0]!.id;
 		}
-		return super.getActiveSessionId();
+		return this.stub.getActiveSessionId();
 	}
 
-	override getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
+	getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
 			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
-					return this.rewriteTrajectoryMessageLinks(
+					return this.stub.rewriteTrajectoryMessageLinks(
 						projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options),
 					);
 				}
 			}
 			return projectTurnsToTrajectory(this.getTurns(sessionId));
 		}
-		return super.getTrajectoryRecords(sessionId, options);
+		return this.stub.getTrajectoryRecords(sessionId, options);
 	}
 
-	override getTurns(sessionId: string): readonly ConversationStubTurn[] {
+	getTurns(sessionId: string): readonly ConversationStubTurn[] {
 		// Seed ids are placeholders only once an engine roster exists. While never
 		// connected, `untitled` / `visualize` are the local sessions and must keep
 		// their turns — otherwise the reading column stays PreFirst and hides them.
@@ -395,7 +415,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (this.canReadCachedEngineProjection()) {
 				const projection = this.engineFrameSource.getCachedProjection(sessionId);
 				if (projection) {
-					return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
+					return this.stub.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
 				}
 				return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
 			}
@@ -403,7 +423,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
 			}
 		}
-		return super.getTurns(sessionId);
+		return this.stub.getTurns(sessionId);
 	}
 
 	/** D287–D289/D291: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
@@ -411,7 +431,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.isEngineConnected() || isConversationPairingHold(this.uaConnection);
 	}
 
-	override switchSession(sessionId: string): void {
+	switchSession(sessionId: string): void {
 		if (isConversationPairingHold(this.uaConnection)) {
 			if (this.engineSessions.some(s => s.id === sessionId)) {
 				const previous = this.getActiveSessionId();
@@ -436,7 +456,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		if (!this.isEngineConnected() && !this.wasEverConnected) {
-			super.switchSession(sessionId);
+			this.stub.switchSession(sessionId);
 		}
 	}
 
@@ -476,7 +496,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	override createSession(): string {
+	createSession(): string {
 		switch (this.routeRosterWrite()) {
 			case 'pairingHold':
 			case 'leftoverListFail':
@@ -494,95 +514,95 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				}).catch(onUnexpectedError).catch(onUnexpectedError);
 				return '';
 			case 'stub':
-				return super.createSession();
+				return this.stub.createSession();
 		}
 	}
 
-	override renameSession(sessionId: string, title: string): boolean {
+	renameSession(sessionId: string, title: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.renameEngineSession(sessionId, title, callRemote),
-			() => super.renameSession(sessionId, title),
+			() => this.stub.renameSession(sessionId, title),
 		);
 	}
 
-	override cancelGeneration(sessionId: string, agentId?: string): boolean {
+	cancelGeneration(sessionId: string, agentId?: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.cancelEngineGeneration(sessionId, agentId, callRemote),
-			() => super.cancelGeneration(sessionId, agentId),
+			() => this.stub.cancelGeneration(sessionId, agentId),
 		);
 	}
 
-	override setSessionGoal(sessionId: string, goal: string): boolean {
+	setSessionGoal(sessionId: string, goal: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.setEngineSessionGoal(sessionId, goal, callRemote),
-			() => super.setSessionGoal(sessionId, goal),
+			() => this.stub.setSessionGoal(sessionId, goal),
 		);
 	}
 
-	override cancelSessionGoal(sessionId: string): boolean {
+	cancelSessionGoal(sessionId: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.cancelEngineSessionGoal(sessionId, callRemote),
-			() => super.cancelSessionGoal(sessionId),
+			() => this.stub.cancelSessionGoal(sessionId),
 		);
 	}
 
-	override getSessionGoal(sessionId: string): string | undefined {
+	getSessionGoal(sessionId: string): string | undefined {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return this.sessionGoals.get(sessionId);
 		}
-		return super.getSessionGoal(sessionId);
+		return this.stub.getSessionGoal(sessionId);
 	}
 
-	override forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.forkEngineSubAgent(sessionId, options, callRemote),
-			() => super.forkSubAgent(sessionId, options),
+			() => this.stub.forkSubAgent(sessionId, options),
 		);
 	}
 
-	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
+	killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.killEngineSubAgent(sessionId, options, callRemote),
-			() => super.killSubAgent(sessionId, options),
+			() => this.stub.killSubAgent(sessionId, options),
 		);
 	}
 
-	override createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
+	createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.createEngineSnapshot(sessionId, options, callRemote),
-			() => super.createSnapshot(sessionId, options),
+			() => this.stub.createSnapshot(sessionId, options),
 		);
 	}
 
-	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
+	cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.cancelEngineToolCall(sessionId, options, callRemote),
-			() => super.cancelToolCall(sessionId, options),
+			() => this.stub.cancelToolCall(sessionId, options),
 		);
 	}
 
-	override retryError(sessionId: string, options: { messageId: string; turnId?: string; agentId?: string }): boolean {
+	retryError(sessionId: string, options: { messageId: string; turnId?: string; agentId?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.continueEngineGeneration(sessionId, options, callRemote),
-			() => super.retryError(sessionId, options),
+			() => this.stub.retryError(sessionId, options),
 		);
 	}
 
-	override deleteTurn(sessionId: string, turnId: string, agentId?: string): boolean {
+	deleteTurn(sessionId: string, turnId: string, agentId?: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.deleteEngineMessage(sessionId, turnId, callRemote, agentId),
-			() => super.deleteTurn(sessionId, turnId, agentId),
+			() => this.stub.deleteTurn(sessionId, turnId, agentId),
 		);
 	}
 
-	override updateUserTurnText(sessionId: string, turnId: string, text: string, agentId?: string): boolean {
+	updateUserTurnText(sessionId: string, turnId: string, text: string, agentId?: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.editEngineMessage(sessionId, turnId, text, callRemote, agentId),
-			() => super.updateUserTurnText(sessionId, turnId, text, agentId),
+			() => this.stub.updateUserTurnText(sessionId, turnId, text, agentId),
 		);
 	}
 
-	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+	enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
 		switch (this.routeRosterWrite()) {
 			case 'pairingHold':
 			case 'leftoverListFail':
@@ -592,59 +612,59 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			case 'cachedDisconnect':
 				return this.enqueueEngineQueueItem(sessionId, text, options, false);
 			case 'stub':
-				return super.enqueueMessageQueueItem(sessionId, text, options);
+				return this.stub.enqueueMessageQueueItem(sessionId, text, options);
 		}
 	}
 
-	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+	retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.retryEngineQueueItem(sessionId, itemId, options, callRemote),
-			() => super.retryMessageQueueItem(sessionId, itemId, options),
+			() => this.stub.retryMessageQueueItem(sessionId, itemId, options),
 		);
 	}
 
-	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+	getMessageQueueState(sessionId: string): ConversationMessageQueueState {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return this.queueReader.getState(sessionId);
 		}
-		return super.getMessageQueueState(sessionId);
+		return this.stub.getMessageQueueState(sessionId);
 	}
 
-	override setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+	setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return;
 		}
-		super.setMessageQueueFixture(sessionId, state);
+		this.stub.setMessageQueueFixture(sessionId, state);
 	}
 
-	override getAutoDriveTasks(sessionId: string): readonly string[] {
+	getAutoDriveTasks(sessionId: string): readonly string[] {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return [];
 		}
-		return super.getAutoDriveTasks(sessionId);
+		return this.stub.getAutoDriveTasks(sessionId);
 	}
 
-	override getAutoDriveTaskCount(sessionId: string): number {
+	getAutoDriveTaskCount(sessionId: string): number {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return 0;
 		}
-		return super.getAutoDriveTaskCount(sessionId);
+		return this.stub.getAutoDriveTaskCount(sessionId);
 	}
 
-	override setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
+	setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
 		if (this.isEngineConnected() || this.wasEverConnected) {
 			return;
 		}
-		super.setAutoDriveTaskFixture(sessionId, tasks);
+		this.stub.setAutoDriveTaskFixture(sessionId, tasks);
 	}
 
-	override pauseMessageQueue(sessionId: string): void {
+	pauseMessageQueue(sessionId: string): void {
 		switch (this.routeRosterWrite()) {
 			case 'connected':
 				this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, engineSessionId => this.uaConnection.pauseQueue({ sessionId: engineSessionId }));
 				return;
 			case 'stub':
-				super.pauseMessageQueue(sessionId);
+				this.stub.pauseMessageQueue(sessionId);
 				return;
 			case 'pairingHold':
 			case 'leftoverListFail':
@@ -654,13 +674,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	override resumeMessageQueue(sessionId: string): void {
+	resumeMessageQueue(sessionId: string): void {
 		switch (this.routeRosterWrite()) {
 			case 'connected':
 				this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, engineSessionId => this.uaConnection.resumeQueue({ sessionId: engineSessionId }));
 				return;
 			case 'stub':
-				super.resumeMessageQueue(sessionId);
+				this.stub.resumeMessageQueue(sessionId);
 				return;
 			case 'pairingHold':
 			case 'leftoverListFail':
@@ -669,13 +689,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	override clearMessageQueue(sessionId: string): void {
+	clearMessageQueue(sessionId: string): void {
 		switch (this.routeRosterWrite()) {
 			case 'connected':
 				this.forwardEngineQueueRef(sessionId, 'clearQueue', true, engineSessionId => this.uaConnection.clearQueue({ sessionId: engineSessionId }));
 				return;
 			case 'stub':
-				super.clearMessageQueue(sessionId);
+				this.stub.clearMessageQueue(sessionId);
 				return;
 			case 'pairingHold':
 			case 'leftoverListFail':
@@ -684,11 +704,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
-	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
 		this.holdMessageQueueItemWithSettlement(sessionId, itemId, hold);
 	}
 
-	override holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
+	holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
 		switch (this.routeRosterWrite()) {
 			case 'pairingHold':
 			case 'leftoverListFail':
@@ -701,12 +721,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					reason: hold,
 				}));
 			case 'stub':
-				super.holdMessageQueueItem(sessionId, itemId, hold);
+				this.stub.holdMessageQueueItem(sessionId, itemId, hold);
 				return { sent: true };
 		}
 	}
 
-	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+	releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
 		this.releaseMessageQueueItemHoldWithSettlement(sessionId, itemId);
 	}
 
@@ -722,12 +742,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					itemId: id,
 				}));
 			case 'stub':
-				super.releaseMessageQueueItemHold(sessionId, itemId);
+				this.stub.releaseMessageQueueItemHold(sessionId, itemId);
 				return { sent: true };
 		}
 	}
 
-	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+	updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
 		return this.updateMessageQueueItemContentWithSettlement(sessionId, itemId, content).sent;
 	}
 
@@ -740,32 +760,32 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			case 'connected':
 				return this.editEngineQueueItemWithSettlement(sessionId, itemId, content, true);
 			case 'stub':
-				return { sent: super.updateMessageQueueItemContent(sessionId, itemId, content) };
+				return { sent: this.stub.updateMessageQueueItemContent(sessionId, itemId, content) };
 		}
 	}
 
-	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
+	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.respondEnginePermission(sessionId, turnId, status, callRemote),
-			() => super.resolveConfirmation(sessionId, turnId, status),
+			() => this.stub.resolveConfirmation(sessionId, turnId, status),
 		);
 	}
 
-	override respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
+	respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.sendEngineClientToolResponse(sessionId, callId, options, callRemote),
-			() => super.respondClientTool(sessionId, callId, options),
+			() => this.stub.respondClientTool(sessionId, callId, options),
 		);
 	}
 
-	override respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
+	respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.respondEngineQuestion(sessionId, questionId, answers, customText, callRemote),
-			() => super.respondQuestion(sessionId, questionId, answers, customText),
+			() => this.stub.respondQuestion(sessionId, questionId, answers, customText),
 		);
 	}
 
-	override deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean {
+	deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean {
 		const supplied = owner !== undefined;
 		const captured = copyConversationDeleteOwner(supplied ? owner : captureConversationDeleteOwner(this, this.uaConnection));
 		if (supplied && !captured) {
@@ -784,22 +804,50 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				// Trusted local cache cleanup is not an Engine delete and never crosses IPC.
 				return supplied ? false : this.deleteEngineSession(sessionId);
 			case 'stub':
-				return captured?.kind === 'local' ? super.deleteSession(sessionId, captured) : false;
+				return captured?.kind === 'local' ? this.stub.deleteSession(sessionId, captured) : false;
 		}
 	}
 
-	override appendStubEchoAssistant(sessionId: string, text: string) {
+	get stubTurnSessionLinkCatalog(): ConversationStubTurnCatalogLookup | undefined {
+		return this.stub.stubTurnSessionLinkCatalog;
+	}
+
+	set stubTurnSessionLinkCatalog(catalog: ConversationStubTurnCatalogLookup | undefined) {
+		this.stub.stubTurnSessionLinkCatalog = catalog;
+	}
+
+	getSessionSource(sessionId: string): ConversationSessionSource {
+		return this.stub.getSessionSource(sessionId);
+	}
+
+	appendUserTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		return this.stub.appendUserTurn(sessionId, text);
+	}
+
+	appendStubEchoAssistant(sessionId: string, text: string) {
 		if (this.isEngineConnected()) {
 			throw new Error('appendStubEchoAssistant is forbidden while the engine is connected');
 		}
-		return super.appendStubEchoAssistant(sessionId, text);
+		return this.stub.appendStubEchoAssistant(sessionId, text);
 	}
 
-	override hasEngineConnectionHistory(): boolean {
+	appendConfirmationTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		return this.stub.appendConfirmationTurn(sessionId, text);
+	}
+
+	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		return this.stub.appendThinkingTurn(sessionId, text);
+	}
+
+	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined {
+		return this.stub.appendToolTurn(sessionId, text);
+	}
+
+	hasEngineConnectionHistory(): boolean {
 		return this.wasEverConnected;
 	}
 
-	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+	acquireSessionView(sessionId: string): IConversationSessionViewLease {
 		if (this.isEngineConnected()) {
 			if (isEngineRosterPlaceholderSessionId(sessionId)) {
 				throw new Error(`acquireSessionView: session ${sessionId} is not engine-bound`);
@@ -815,7 +863,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.shouldKeepEngineSessionViewLeaseWhilePairing(sessionId)) {
 			return this.engineFrameSource.acquire(sessionId);
 		}
-		return super.acquireSessionView(sessionId);
+		return this.stub.acquireSessionView(sessionId);
 	}
 
 	/** Pairing-hold + leftover engine session/cache. True disconnect and placeholders stay stub. */
@@ -827,7 +875,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			|| !!this.engineFrameSource.getCachedProjection(sessionId);
 	}
 
-	override getSessionSync(sessionId: string): SyncChrome {
+	getSessionSync(sessionId: string): SyncChrome {
 		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
@@ -837,7 +885,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return { kind: 'idle' };
 			}
 		}
-		return super.getSessionSync(sessionId);
+		return this.stub.getSessionSync(sessionId);
 	}
 
 	/**
@@ -856,28 +904,24 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		};
 	}
 
-	override countPendingConfirmations(sessionId: string): number {
+	countPendingConfirmations(sessionId: string): number {
 		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
 				return projection.snapshot.pendingActions.filter(action => action.summary.kind === 'permission').length;
 			}
 		}
-		return super.countPendingConfirmations(sessionId);
+		return this.stub.countPendingConfirmations(sessionId);
 	}
 
-	override hasPendingAttentionSeat(sessionId: string): boolean {
+	hasPendingAttentionSeat(sessionId: string): boolean {
 		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
 				return projection.snapshot.pendingActions.some(isPendingAttentionAction);
 			}
 		}
-		return super.hasPendingAttentionSeat(sessionId);
-	}
-
-	protected override shouldSkipLocalPersistence(): boolean {
-		return this.wasEverConnected;
+		return this.stub.hasPendingAttentionSeat(sessionId);
 	}
 
 	private allocateEngineBindClientSessionId(forceNew = false): string {
@@ -899,7 +943,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		for (const session of this.engineSessions) {
 			taken.add(session.id);
 		}
-		for (const session of this.model.getSessions()) {
+		for (const session of this.stub.model.getSessions()) {
 			taken.add(session.id);
 		}
 		let id = allocateConversationStubSessionId();
@@ -1759,14 +1803,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				this.wasEverConnected = true;
 			}
 			this.testEngineConnected = undefined;
-			super.setEngineConnected(true);
+			this.stub.setEngineConnected(true);
 			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this.connectionGeneration++;
 			this.captureEngineCache();
 			this.listCompleted = this.engineSessions.length > 0;
 			if (this.testEngineConnected === undefined) {
-				super.setEngineConnected(false);
+				this.stub.setEngineConnected(false);
 			}
 			this.engineFrameSource.resetResponseScopes();
 		}
@@ -2083,8 +2127,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
+	protected saveRosterStorage(state: ConversationRosterStorageV1): void {
+		this.stub.saveRosterStorage(state);
+	}
+
 	private currentRosterStorage(): ConversationRosterStorageV1 | undefined {
-		return this.storageService ? loadConversationRosterStorage(this.storageService) : this.loadedStorage;
+		return this.storageService ? loadConversationRosterStorage(this.storageService) : this.stub.loadedStorage;
 	}
 
 	/**
@@ -2150,7 +2198,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		// Cache is for disconnect display only — bind waits for engine List reconciliation.
 		this.listCompleted = false;
 		for (const session of this.engineSessions) {
-			this.model.upsertCachedSession(session);
+			this.stub.model.upsertCachedSession(session);
 		}
 	}
 
@@ -2162,7 +2210,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const sessions: PersistedConversationSession[] = this.engineSessions.map(session => {
 			const projection = this.engineFrameSource.getCachedProjection(session.id);
 			const turns = projection
-				? this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
+				? this.stub.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
 				: session.turns;
 			const cached: ConversationStubSession = {
 				id: session.id,
@@ -2173,7 +2221,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
 				...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 			};
-			this.model.upsertCachedSession(cached);
+			this.stub.model.upsertCachedSession(cached);
 			return {
 				id: cached.id,
 				title: cached.title,
@@ -2203,11 +2251,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private resolvePersistedActiveSessionId(): string {
 		const raw = this.wasEverConnected
-			? (this.activeEngineSessionId ?? super.getActiveSessionId())
-			: this.model.getActiveSessionId();
+			? (this.activeEngineSessionId ?? this.stub.getActiveSessionId())
+			: this.stub.model.getActiveSessionId();
 		if (isEngineRosterPlaceholderSessionId(raw)) {
-			const cached = this.engineSessions[0]?.id ?? super.getActiveSessionId();
-			return isEngineRosterPlaceholderSessionId(cached) ? super.getActiveSessionId() : cached;
+			const cached = this.engineSessions[0]?.id ?? this.stub.getActiveSessionId();
+			return isEngineRosterPlaceholderSessionId(cached) ? this.stub.getActiveSessionId() : cached;
 		}
 		return raw;
 	}
@@ -2226,7 +2274,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			wasEverConnected,
 			activeSessionId: this.resolvePersistedActiveSessionId(),
 			nextTurnId: getConversationStubNextTurnId(),
-			localSessions: buildLocalSessionsFromModel(this.model),
+			localSessions: buildLocalSessionsFromModel(this.stub.model),
 			engineCache: existing?.engineCache,
 			engineCaches: existing?.engineCaches,
 			lastDisplayedEngineIdentityId: engineIdentityKey(this.boundEngineIdentityId),
@@ -2245,7 +2293,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			sessions: this.engineSessions.map(session => {
 				const projection = this.engineFrameSource.getCachedProjection(session.id);
 				const turns = projection
-					? this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
+					? this.stub.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
 					: session.turns;
 				return {
 					id: session.id,

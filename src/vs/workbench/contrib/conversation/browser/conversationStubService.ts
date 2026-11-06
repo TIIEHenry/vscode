@@ -380,11 +380,14 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	declare readonly _serviceBrand: undefined;
 
-	protected readonly model: ConversationStubModel;
+	/** Read by the engine roster in this folder; not part of {@link IConversationRosterService}. */
+	readonly model: ConversationStubModel;
 	private engineConnected = false;
 	protected readonly storageService: IStorageService | undefined;
 	protected readonly configurationService: IConfigurationService | undefined;
-	protected readonly loadedStorage: ConversationRosterStorageV1 | undefined;
+	/** Read by the engine roster in this folder; not part of {@link IConversationRosterService}. */
+	readonly loadedStorage: ConversationRosterStorageV1 | undefined;
+	private readonly skipLocalPersistence: (() => boolean) | undefined;
 
 	protected readonly _onDidChangeActiveSession = this._register(new Emitter<string>());
 	readonly onDidChangeActiveSession = this._onDidChangeActiveSession.event;
@@ -412,10 +415,11 @@ export class ConversationStubService extends Disposable implements IConversation
 	protected frameSource!: ConversationStubFrameSource;
 	stubTurnSessionLinkCatalog: ConversationStubTurnCatalogLookup | undefined;
 
-	constructor(storageService?: IStorageService, configurationService?: IConfigurationService) {
+	constructor(storageService?: IStorageService, configurationService?: IConfigurationService, shouldSkipLocalPersistence?: () => boolean) {
 		super();
 		this.storageService = storageService;
 		this.configurationService = configurationService;
+		this.skipLocalPersistence = shouldSkipLocalPersistence;
 		this.loadedStorage = storageService ? loadConversationRosterStorage(storageService) : undefined;
 		const localSessions = this.loadedStorage?.localSessions;
 		if (localSessions && localSessions.length > 0) {
@@ -610,7 +614,8 @@ export class ConversationStubService extends Disposable implements IConversation
 		return records;
 	}
 
-	protected projectSnapshotToLegacyTurns(
+	/** Engine roster in this folder reuses this projection; not part of {@link IConversationRosterService}. */
+	projectSnapshotToLegacyTurns(
 		snapshot: Parameters<typeof projectSnapshotToEntries>[0],
 		attribution: Parameters<typeof projectSnapshotToEntries>[1],
 		details: Parameters<typeof projectSnapshotToEntries>[2],
@@ -618,7 +623,8 @@ export class ConversationStubService extends Disposable implements IConversation
 		return entriesToLegacyTurns(projectSnapshotToEntries(snapshot, attribution, details, this.stubTurnSessionLinkCatalog));
 	}
 
-	protected rewriteTrajectoryMessageLinks(records: readonly ConversationTrajectoryRecord[]): ConversationTrajectoryRecord[] {
+	/** Engine roster in this folder reuses this rewrite; not part of {@link IConversationRosterService}. */
+	rewriteTrajectoryMessageLinks(records: readonly ConversationTrajectoryRecord[]): ConversationTrajectoryRecord[] {
 		const catalog = this.stubTurnSessionLinkCatalog;
 		if (!catalog) {
 			return records as ConversationTrajectoryRecord[];
@@ -670,10 +676,11 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	protected shouldSkipLocalPersistence(): boolean {
-		return false;
+		return this.skipLocalPersistence?.() ?? false;
 	}
 
-	protected saveRosterStorage(state: ConversationRosterStorageV1): void {
+	/** Engine roster in this folder persists through this; not part of {@link IConversationRosterService}. */
+	saveRosterStorage(state: ConversationRosterStorageV1): void {
 		if (!this.storageService) {
 			return;
 		}
