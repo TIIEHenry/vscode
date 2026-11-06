@@ -83,4 +83,4 @@ summary: "四路只读审查 UI 缺口已齐：3 条 Critical 与 Important/Mino
 1. Critical / Important 逐条核验后再决定是否进 [deferred-gaps](deferred-gaps.md) 或开方案。
 2. 本文只是发现稿。不登记 D 编号、不改任何 PRD 状态，待用户拍板。
 3. 验证只用本地 `npm run compile`、eslint、`scripts/test.sh`（点名相关测）。
-4. 收口方案：[ui-gap-closeout-2026-10-01](../plans/ui-gap-closeout-2026-10-01.md)（draft）。条目取舍以该方案核验节为准。
+4. 收口方案：[ui-gap-closeout-2026-10-01](../../archive/dev/plans/ui-gap-closeout-2026-10-01.md)（draft）。条目取舍以该方案核验节为准。

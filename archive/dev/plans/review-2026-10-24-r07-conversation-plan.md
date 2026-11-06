@@ -19,7 +19,7 @@ summary: "2 hold 已实施；2026-10-24 用户签收 B（ADR-012）：引擎已�
 
 ## 签收
 
-- 2026-10-24 用户签收选择 B：引擎已接受的值可以显示，但 leftover 期间控件必须保持不可写。契约见 [ADR-012](../../dev/decisions/012-leftover-accepted-value-vs-write-affordance.md)。
+- 2026-10-24 用户签收选择 B：引擎已接受的值可以显示，但 leftover 期间控件必须保持不可写。契约见 [ADR-012](../../../dev/decisions/012-leftover-accepted-value-vs-write-affordance.md)。
 - D383 与 D450 保持 closed 与原文；ADR-012 只收窄解释，不改写历史记录。
 - 本稿 `implemented`。实现与验证见文末「落地」。
 

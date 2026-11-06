@@ -9,7 +9,7 @@ summary: "四CSS精修；四主题16组基本控件、8组本地工具栏、4组
 
 # 控件细节精修验证
 
-对应[方案](../../plans/control-detail-polish.md)。规则16方案C0/I1（Back hidden）已改；实施独立复读C0/I1（HC缺active token）后补foreground回退，最终C0/I0/M0。
+对应[方案](../../../archive/dev/plans/control-detail-polish.md)。规则16方案C0/I1（Back hidden）已改；实施独立复读C0/I1（HC缺active token）后补foreground回退，最终C0/I0/M0。
 
 ## 范围与结果
 

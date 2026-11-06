@@ -12,7 +12,7 @@ summary: "切片 1–5 已落 @ 18b5e8d7；D4/D5 closed；valid-layers-check env
 覆盖需求：无（正文未引用需求编号）。
 
 
-> **前置**：[M0 拓扑](m0-topology-surgery.md) · [M1 壳切片](m1-shell-followon.md) · [M2 产品壳](m2-product-shell.md) · [M3 壳收尾](m3-shell-closeout.md) 均已落代码；[M4 验证波](m4-validation-wave.md) 已闭 D3，D4/D5 仍开。  
+> **前置**：[M0 拓扑](m0-topology-surgery.md) · [M1 壳切片](m1-shell-followon.md) · [M2 产品壳](m2-product-shell.md) · [M3 壳收尾](../../archive/dev/plans/m3-shell-closeout.md) 均已落代码；[M4 验证波](../../archive/dev/plans/m4-validation-wave.md) 已闭 D3，D4/D5 仍开。  
 > **问题依据**：[Deferred Gaps](../progress/deferred-gaps.md) · [Agent UI](../../docs/systems/chat/agent-ui.md) · [Parts/Grid](../../docs/systems/workbench/parts-and-grid.md) · [壳映射](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)。
 
 ## 1. 目标
@@ -194,7 +194,7 @@ shouldRouteChatEditorToConversation(environmentService): boolean
 
 ### 切片 4 — D4 启动与恢复验收
 
-**D4 唯一 closer。** [M4](m4-validation-wave.md) 切片 2 只做环境探测（有无 `.build/electron`）；**不得**在 T1–T3 目视后把 D4 标 `closed`。D4 Exit Condition 以本切片 V1–V8 为准，见 [deferred-gaps.md](../progress/deferred-gaps.md)。
+**D4 唯一 closer。** [M4](../../archive/dev/plans/m4-validation-wave.md) 切片 2 只做环境探测（有无 `.build/electron`）；**不得**在 T1–T3 目视后把 D4 标 `closed`。D4 Exit Condition 以本切片 V1–V8 为准，见 [deferred-gaps.md](../progress/deferred-gaps.md)。
 
 **前置：** 切片 1–3 合入集成工位；使用有 `node_modules`、`out`、`.build/electron` 的 merge 工位。
 
@@ -310,7 +310,7 @@ M5 完成时要求本方案相关 warning 为 0；`dev/loop/` 子模块自身断
 
 ## 10. 相关文档
 
-- [M4 验证波](m4-validation-wave.md)
+- [M4 验证波](../../archive/dev/plans/m4-validation-wave.md)
 - [Deferred Gaps](../progress/deferred-gaps.md)
 - [健康检查 Gate](../progress/health-gates.md)
 - [Agent UI](../../docs/systems/chat/agent-ui.md)

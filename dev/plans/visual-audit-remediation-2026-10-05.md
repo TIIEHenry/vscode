@@ -14,7 +14,7 @@ summary: "按八项已确认视觉问题和一项待实测疑点分切片收口�
 
 > 发现和实拍见 [2026-10-05 自有界面视觉审查](../parallel/active/visual-audit-2026-10-05.md)。产品合同是 [PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 的验收 3、4、7，以及 [UI 设计原则](../../docs/architecture/cross-cutting/ui-design-principles.md) §2、§4、§8。[可访问性与响应式 UI 完成方案](accessibility-responsive-ui.md) §5 的宽度档约束 Conversation 叶与 Preferences pane，**不是** Sessions 壳的断点；Sessions 窄桌面单栏是本稿新增的壳策略，不改变叶级现行断点。
 >
-> 这份方案只收审查中确认的自有界面问题；不重做 VS Code 原生部件。与 [UI 缺口收口](ui-gap-closeout-2026-10-01.md) S-B 的焦点环文件集不重叠；该方案的其他诚实态和配对切片也不搬进来。已在 UI 设计原则 §10 登记的 Composer 投影、Visualize 毛玻璃与整面空态大图标仍由 PRD-028 后续切片承接，本稿不重复实施。
+> 这份方案只收审查中确认的自有界面问题；不重做 VS Code 原生部件。与 [UI 缺口收口](../../archive/dev/plans/ui-gap-closeout-2026-10-01.md) S-B 的焦点环文件集不重叠；该方案的其他诚实态和配对切片也不搬进来。已在 UI 设计原则 §10 登记的 Composer 投影、Visualize 毛玻璃与整面空态大图标仍由 PRD-028 后续切片承接，本稿不重复实施。
 
 ## 1. 目标与完成线
 

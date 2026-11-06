@@ -58,3 +58,13 @@
 | [Wiki Git 主仓与外仓上下文隔离](dev/plans/wiki-git-context-isolation.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [订阅恢复与错误态缺口收口](dev/plans/subscription-recovery-closeout.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [Sources Git 写能力按广告探测](dev/plans/sources-git-write-capability.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [方案 r07：conversation](dev/plans/review-2026-10-24-r07-conversation-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [十六路审查 2026-10-24](dev/plans/review-2026-10-24.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [对话框与引导页遮罩去掉背景模糊](dev/plans/modal-mask-no-glass.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [草稿会话提交后保留 Agent 浏览器页归属](dev/plans/browser-owner-draft-graduation.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [默认编辑器控件细节精修](dev/plans/control-detail-polish.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [UI 缺口收口 2026-10-01](dev/plans/ui-gap-closeout-2026-10-01.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [M3 壳收尾（无引擎，可选）](dev/plans/m3-shell-closeout.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [M4 验证波](dev/plans/m4-validation-wave.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Agents 窗口聊天输入去掉毛玻璃和投影](dev/plans/sessions-chat-composer-glass.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [已发布链路的引擎身份](dev/plans/published-link-identity.md) | 已完成方案，过程已结束，归档保留原文。 |

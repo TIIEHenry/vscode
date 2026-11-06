@@ -14,7 +14,7 @@ summary: "Sources 工具栏与页签、Navigator 筛选和首选项返回按钮�
 
 ## 目标与边界
 
-用户要求并行优化控件细节。遵循 [UI 规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 与 PRD-028，收敛安静、紧凑、一致的控件语言，不新增产品行为。仅默认编辑器窗口，排除 Agents Window、上游组件、大布局以及既有 Composer / SessionBar WIP。
+用户要求并行优化控件细节。遵循 [UI 规范](../../../docs/architecture/cross-cutting/ui-design-principles.md) 与 PRD-028，收敛安静、紧凑、一致的控件语言，不新增产品行为。仅默认编辑器窗口，排除 Agents Window、上游组件、大布局以及既有 Composer / SessionBar WIP。
 
 ## 实施切片
 
@@ -36,7 +36,7 @@ summary: "Sources 工具栏与页签、Navigator 筛选和首选项返回按钮�
 - [x] 规则16只读审查及改稿：reviewer C0/I1；hidden可见性风险已改稿，焦点/按压组合与减少动效一并纳入。
 - [x] A Sources / Navigator实施
 - [x] B 首选项返回控件实施
-- [x] 浅深色/高对比/窄宽/键盘验证与独立复读：16+8+4组；[验证与fixture边界](../progress/control-detail-polish-evidence/verification.md)。
+- [x] 浅深色/高对比/窄宽/键盘验证与独立复读：16+8+4组；[验证与fixture边界](../../../dev/progress/control-detail-polish-evidence/verification.md)。
 - [x] 文档与范围提交：本主题CSS、方案、证据与并行看板；其他WIP保留。
 
 方案先独立提交；实现与本主题验证/行动层一并提交。保留所有其他WIP，不升PRD-028整体状态。

@@ -13,8 +13,8 @@ summary: "产品部分已落地（S-B 两份 workbench CSS、S-C、S-D 的 I1/I2
 覆盖需求：PRD-008、PRD-018。
 
 
-> 发现稿：[ui-gap-review-2026-10-01](../progress/ui-gap-review-2026-10-01.md)。本稿已 `accepted`。不改 PRD 状态，不登记 D 编号。
-> 相关方案只链不抄：[m7-gap-closeout](m7-gap-closeout.md) GC-1b、[prd-008-engine-e2e](prd-008-engine-e2e.md)、[accessibility-responsive-ui](accessibility-responsive-ui.md) T1、[sources-architecture](sources-architecture.md) P4、[settings-two-surfaces](settings-two-surfaces.md)、[connection-hub-client](connection-hub-client.md)。
+> 发现稿：[ui-gap-review-2026-10-01](../../../dev/progress/ui-gap-review-2026-10-01.md)。本稿已 `accepted`。不改 PRD 状态，不登记 D 编号。
+> 相关方案只链不抄：[m7-gap-closeout](../../../dev/plans/m7-gap-closeout.md) GC-1b、[prd-008-engine-e2e](../../../dev/plans/prd-008-engine-e2e.md)、[accessibility-responsive-ui](../../../dev/plans/accessibility-responsive-ui.md) T1、[sources-architecture](../../../dev/plans/sources-architecture.md) P4、[settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)、[connection-hub-client](../../../dev/plans/connection-hub-client.md)。
 
 ## 1. 背景与范围
 
@@ -31,7 +31,7 @@ summary: "产品部分已落地（S-B 两份 workbench CSS、S-C、S-D 的 I1/I2
 | D85 | promote 仍 close-first。本稿不改 `conversationSessionChatService` |
 | Inbox 焦点环 | `workbench/browser/parts/conversation/media/ua-common.css` 不在此条。Inbox 环在 `conversationLens.css` 2675–2687 行：`:focus` 为 `outline: none !important`，`:focus-visible` 为 `1px solid var(--vscode-focusBorder) !important` 且 `outline-offset: -1px`。新环照这个写，含 `!important`，否则打不过 workbench 钮与选中 tab 的 `outline: none !important` |
 | GC-1b | `confirmSas` 仍是用户确认门。Connect 路径保持「页内不画 SAS」（`assertNoInPanePairingDialog`）。取消不写 trust |
-| PRD-008 | 升档只由 [prd-008-engine-e2e](prd-008-engine-e2e.md) 全 PASS 决定。本稿合入也不升档 |
+| PRD-008 | 升档只由 [prd-008-engine-e2e](../../../dev/plans/prd-008-engine-e2e.md) 全 PASS 决定。本稿合入也不升档 |
 | 引擎 RPC | 不新增 RPC，不改引擎仓。`SaveSkillContent` 维持现状 |
 | 分层 | `sessions/contrib` 可依赖 `workbench/contrib` 与 `platform`（`LAYERS.md`、`eslint.config.js` 2311 行一带）。`sessions/contrib/changes` 不新增对 `contrib/providers` 的 import |
 | T1 | `src/vs/workbench/browser/parts/conversation/media/ua-common.css` 110–119 行只服务已挂 `.ua-motion` 的节点。Engine / Connection 无动画节点，不挂空 class。Sessions 窗不 import 该文件，Sessions 侧的 reduce 写在 `sessions/browser/media/workbench.css` |
@@ -132,7 +132,7 @@ S-D / S-G 拆开是因为文件不交叠，可以并行。S-A 必须同一人：
 - **文件：** `githubFileSystemProvider.ts` 42–46、200–237 行。消费步行在 `newChatContextAttachments.ts` 321 行。`fileTreeView.contribution.ts` 13–14、32–36 行只注册 FS。
 - **I7 不改能力位：** 80–83 行已是 `Readonly | FileReadWrite | PathCaseSensitive`。`filesConfigurationService.ts` 213–214 行对带 Readonly 的 provider 直接 `isReadonly`。`writeFile` 328–329 行已抛 `NoPermissions`。`fileService.ts` 159–166 行的 `withReadProvider` 在没有 `FileReadWrite` / `FileReadStream` / `FileOpenReadWriteClose` 时抛错，`readFile` 走这条。去掉 `FileReadWrite` 会让打开文件失败，树还在、内容读不出。编辑器只读今天已经成立。
 - **改法：** capabilities 三件套不动。`ITreeCacheEntry` 记下 `truncated`。导出查询函数。`_collectFilePicksViaFileService` 在 `truncated` 时追加一条不可选的「未列全」。
-- **I10 取舍：** 不注册 auxiliary Files 视图。Sources Files 已是 [sources-architecture](sources-architecture.md) P4 的搜索投影。contribution 注释写明此取舍。
+- **I10 取舍：** 不注册 auxiliary Files 视图。Sources Files 已是 [sources-architecture](../../../dev/plans/sources-architecture.md) P4 的搜索投影。contribution 注释写明此取舍。
 - **不变量：** 不改 P4 的 `fileSearch` / `limitHit`。不改 capabilities。不发明写 GitHub 的 RPC。
 - **测试：** 目录无 `*.test.ts`。新增 `src/vs/sessions/contrib/fileTreeView/test/browser/githubFileSystemProvider.test.ts`，用例 `truncated tree is remembered` 与 `capabilities keep FileReadWrite beside Readonly`。picker 无对口测试时，只测查询函数；`_collectFilePicksViaFileService` 调用它。
 - **命令：** `scripts/test.sh --grep "truncated tree is remembered|capabilities keep FileReadWrite"`。
@@ -161,7 +161,7 @@ S-D / S-G 拆开是因为文件不交叠，可以并行。S-A 必须同一人：
   - `aiCustomizationListWidget.ts` 1024、1905 行（仅 `isDonorWindow === false` 分支）
   - 火花标题的渲染条件在 `aiCustomizationWelcomePagePromptLaunchers.ts` 189 行，flag 为 false 时不进入。不改该文件
 - **改法：** Sessions `managementSections` 改成与 donor 相同的五个枚举，顺序一致。`showGettingStartedBanner: false`。删 `userStoragePath` 那一行。同对象里 `github.copilot.chat.claudeCode.enabled` 保留。两处 Copilot 英文改为不点名 Copilot 的技能 / 说明空态。
-- **不变量：** 不改 donor 服务。不重开 `ua.customizations` pane（[settings-two-surfaces](settings-two-surfaces.md)）。不删 `AICustomizationManagementSection` 枚举。
+- **不变量：** 不改 donor 服务。不重开 `ua.customizations` pane（[settings-two-surfaces](../../../dev/plans/settings-two-surfaces.md)）。不删 `AICustomizationManagementSection` 枚举。
 - **测试：** `aiCustomizationListWidget.test.ts` 新增 `sessions skills and instructions copy does not say Copilot`。同文件用 `readFileSync` 断言 Sessions 数组为五节且 banner 为 false，并断言 `configuration.contribution.ts` 不含 `~/.copilot`、仍含 `claudeCode.enabled`。
 - **命令：** `scripts/test.sh --grep "does not say Copilot"`。
 - **非目标：** 不发明新的用户目录。扩展自身的默认路径不在本稿改。
@@ -210,7 +210,7 @@ S-A、S-B、S-C、S-D、S-E、S-F、S-G1、S-G2、S-H 可同时开工。S-H 不�
 |----|------|
 | I3 sideChat pill | 不实施。D465 写的是先修订 §3.3b，此前不画 pill |
 | I17 发行标识 | 不实施。`product.json` 28–30 行仍是开发期 id。第一次面向用户打包前由发布方填写。换 id 不迁 secret |
-| U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC | 与 [status](../progress/status.md)「不做」一致，不进切片 |
+| U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC | 与 [status](../../../dev/progress/status.md)「不做」一致，不进切片 |
 | Minor | 提问 Submit 空选项已补：必填单选为空白时，Submit、自定义框 Enter、点选即提交都会写出 “Can't submit — a required choice is empty.”，不调用 `onRespond`；改到非空选项后提示消失。`writesEnabled: false` 仍不解释、不提交。其余不进切片：`branchChatSessionAction` 的 `when:false`、`aria-live` 空态、`applyChangesToParentRepo` 菜单恒 false、`changesView.ts` 82 行对 provider 的 eslint TODO、硬编码字号与色、65 处 `outline: none` 的其余文件 |
 | 双确认 | S-C 若再挂页内 SAS，会在 `confirmSas` 之外再问一次，并打红 `assertNoInPanePairingDialog` |
 | 回滚 | 按切片文件还原。不要为了回滚去改 D312 的 Sources 测试 |
@@ -246,13 +246,13 @@ S-A、S-B、S-C、S-D、S-E、S-F、S-G1、S-G2、S-H 可同时开工。S-H 不�
 本稿已由 agent:codex 签成 `accepted`。agent:kiro 受用户委托做同一轮签收审查，结论：签（收窄），并且可以直接标 `implemented`，因为产品部分都已落地。
 
 - 已落地的产品部分：S-B 的 `conversationLens.css` 与 `conversationPart.css` 焦点环（`4e56d51248b`）；S-C 配对框绑窗（`bc7a6231530`）；S-D 的 I1、I2（`a3e182d1b8f`）；§7 必填单选空白（`4ff25f993f9`）；S-G2（`27c47c8f8b3`）。
-- 排除：S-A、S-B 的三份 Sessions CSS、S-D 的 I4 / I5、S-E、S-F、S-G1、S-H。它们都在 `src/vs/sessions`，按[产品愿景](../../docs/product/vision.md)第 35 行不计产品验收，代码保留作上游对照。
+- 排除：S-A、S-B 的三份 Sessions CSS、S-D 的 I4 / I5、S-E、S-F、S-G1、S-H。它们都在 `src/vs/sessions`，按[产品愿景](../../../docs/product/vision.md)第 35 行不计产品验收，代码保留作上游对照。
 - 标 `implemented` 前先改稿：S-C 的「挂载点」与「风险」两处仍写「无窗时第二参传 undefined」「无 dialog 返回 false」，实际是两种情况都抛错（`universeAgentMainService.ts`、`universeAgentConnectionService.ts`）；S-E、S-F、S-G1、S-H 的实际落法与方案不同，写明实际做法或标为范围外；各切片补提交号。
 
 agent:codex 的签收行原样保留，等用户决定。
 
 ## 按设计原则的决定（2026-11-01）
 
-用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../../docs/decisions/ui-review-decisions-2026-11-01.md)。
 
 按 D22 标 `implemented`。上面「签收复核」一节列的文字订正（S-C 的抛错语义、S-E 至 S-H 的实际落法）仍要补，不影响状态。agent:codex 的签收行保留。

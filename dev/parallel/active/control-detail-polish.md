@@ -9,7 +9,7 @@ summary: "A Sources/Navigator、B首选项返回控件；父集成验证，独�
 
 # 控件细节精修
 
-方案：[control-detail-polish](../../plans/control-detail-polish.md)。
+方案：[control-detail-polish](../../../archive/dev/plans/control-detail-polish.md)。
 
 | Owner | 文件/职责 | 状态 |
 |---|---|---|

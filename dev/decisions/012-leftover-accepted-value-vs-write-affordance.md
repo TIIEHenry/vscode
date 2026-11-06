@@ -57,7 +57,7 @@ summary: "2026-10-24 用户签收。收窄 D383/D450：leftover 不显示未接�
 
 ## References
 
-- 发现与方案：[review-2026-10-24-r07-conversation](../plans/review-2026-10-24-r07-conversation.md)、[方案 r07](../plans/review-2026-10-24-r07-conversation-plan.md)
+- 发现与方案：[review-2026-10-24-r07-conversation](../plans/review-2026-10-24-r07-conversation.md)、[方案 r07](../../archive/dev/plans/review-2026-10-24-r07-conversation-plan.md)
 - 既有决策：D383、D450（[deferred-gaps](../progress/deferred-gaps.md)）
 - 系统规格：[composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)
 - 测试：`conversationLensDisposeGate.test.ts`

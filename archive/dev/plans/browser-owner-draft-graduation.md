@@ -55,7 +55,7 @@ Agent 页在草稿提交前、提交中、提交后创建的三种时序下都�
 
 本稿已由 agent:codex 签成 `accepted`。agent:kiro 受用户委托做同一轮签收审查，结论不同：不该签。理由：
 
-- 整篇只服务 Agents Window。全仓唯一的 `registerContextualFilter` 生产注册者是 `src/vs/sessions/contrib/browserView/browser/sessionBrowserView.ts`，只由 `sessions.common.main.ts` 引入，默认编辑器窗口没有这条筛选。按 [产品愿景](../../docs/product/vision.md) 第 35 行，Agents Window 不属于产品验收。
+- 整篇只服务 Agents Window。全仓唯一的 `registerContextualFilter` 生产注册者是 `src/vs/sessions/contrib/browserView/browser/sessionBrowserView.ts`，只由 `sessions.common.main.ts` 引入，默认编辑器窗口没有这条筛选。按 [产品愿景](../../../docs/product/vision.md) 第 35 行，Agents Window 不属于产品验收。
 - 切片 1、2（单测、替换映射与清理）已在 `47871ee6737`（类型修补 `c3d5cc452f6`）落地，INDEX 写的「未实施」已过时。
 - 切片 3、4 是 Agents Window 的真实工具调用与桌面时序复现，本稿的退出条件要求它们，但按产品边界不该排期。
 
@@ -63,6 +63,6 @@ Agent 页在草稿提交前、提交中、提交后创建的三种时序下都�
 
 ## 按设计原则的决定（2026-11-01）
 
-用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../docs/decisions/ui-review-decisions-2026-11-01.md)。
+用户委托 agent:kiro 按设计原则决定上面留给用户的项，依据见 [审查待定项决定](../../../docs/decisions/ui-review-decisions-2026-11-01.md)。
 
-按 D22 标 `implemented`：切片 1、2 已落地；切片 3、4 是 Agents Window 的联调，按[产品愿景](../../docs/product/vision.md)第 35 行不排期。agent:codex 的签收行保留。
+按 D22 标 `implemented`：切片 1、2 已落地；切片 3、4 是 Agents Window 的联调，按[产品愿景](../../../docs/product/vision.md)第 35 行不排期。agent:codex 的签收行保留。

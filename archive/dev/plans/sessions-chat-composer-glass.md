@@ -16,7 +16,7 @@ summary: "追问卡去毛玻璃和投影已落；工作态聚焦描边被 40% �
 
 落地确认（2026-10-16）：追问卡去毛玻璃和投影已落；工作态聚焦描边被 40% 混色覆盖问题已于 commit `cd93865b15a` 修正为 `focusBorder` 并补齐状态测试。扫描测试与单元测试已全部通过，状态正式对齐为 `implemented`。不升 PRD-028。
 
-系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §5.2。需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
+系统规格：[UI 设计原则与规范](../../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §5.2。需求：[PRD-028](../../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
 
 ## 合同
 

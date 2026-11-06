@@ -42,7 +42,7 @@ Workbench 状态全按窗口存：Preview 编辑器是窗口级的；`StorageSco
 
 换引擎有两个入口，都在 Connection 首选项：选中 profile 后连接，以及 Direct Address。Direct Address（`handleDirectConnect`，1530–1537 行）先调 `ensureDirectAddressProfileForConnect`：忘掉同一端点的旧 profile，旧 profile 正连着就**先断开**（1548–1563 行），再以新的 `profileId` 加回来（1566 行），最后才进 `connectProfileWithPairing`（1722 行）。两个入口切换前都不看有没有待处理的会话。
 
-引擎连接是 electron-main 里的单例，所有窗口共用（`app.ts` 1414–1423 行；[published-link-identity](published-link-identity.md)：全应用一条连接，roster 按 `engineIdentityId` 分桶）。快照上的 `engineIdentityId` 与 `workDir` 每次清掉已发布链路时都会清空（`universeAgentTypes.ts` 1606 行：“Must not keep a previous engine's id”）。
+引擎连接是 electron-main 里的单例，所有窗口共用（`app.ts` 1414–1423 行；[published-link-identity](../../archive/dev/plans/published-link-identity.md)：全应用一条连接，roster 按 `engineIdentityId` 分桶）。快照上的 `engineIdentityId` 与 `workDir` 每次清掉已发布链路时都会清空（`universeAgentTypes.ts` 1606 行：“Must not keep a previous engine's id”）。
 
 ## 2. 外仓参照
 

@@ -15,7 +15,7 @@ summary: "连接服务不拆类；已连接且 link 未变时宿主不再重复�
 
 > **本稿是方案，不是实施。**
 > **基线：** 本工作区活码。`a4b778cfd18` 已在 HEAD：第一次配对确认在 Connection 窗格出现一次。
-> **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（传输在 `platform/universeAgent`，renderer 不 import `node/**`，electron-main 是宿主）；[连接 IPC 白名单](../../archive/dev/plans/connection-ipc-allowlist.md)（已实施：白名单外壳、Hub 通道名 `universeAgentHub`、仍打到同一个连接实例、不注册第二份 Hub 服务、不拆连接类）；[拨号 generation](connection-dial-generation.md)；[已发布链路](published-link-identity.md)；[写入闸](engine-write-gate-unification.md) §3.7（同 link 的 `transport_lost` 要拆流，恢复要 `bringUpPublishedLink` 并增加 `connectionGeneration`）；[r04 方案](review-2026-10-30-r04-universe-agent-plan.md) 的 logout 会话代际（本稿不改 `logout`）。
+> **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（传输在 `platform/universeAgent`，renderer 不 import `node/**`，electron-main 是宿主）；[连接 IPC 白名单](../../archive/dev/plans/connection-ipc-allowlist.md)（已实施：白名单外壳、Hub 通道名 `universeAgentHub`、仍打到同一个连接实例、不注册第二份 Hub 服务、不拆连接类）；[拨号 generation](connection-dial-generation.md)；[已发布链路](../../archive/dev/plans/published-link-identity.md)；[写入闸](engine-write-gate-unification.md) §3.7（同 link 的 `transport_lost` 要拆流，恢复要 `bringUpPublishedLink` 并增加 `connectionGeneration`）；[r04 方案](review-2026-10-30-r04-universe-agent-plan.md) 的 logout 会话代际（本稿不改 `logout`）。
 > **禁止发明：** 新 RPC、新连接快照字段、新 IPC 通道。必须用到时只写在「待定项」，不写进切片。
 > **分层约束：** 服务依赖写在构造函数里；`Disposable` 创建后立刻登记；用户可见字符串走 `nls.localize`，源字符串用英文双引号，不用拼接。`contrib/**` 继续只依赖 `platform/universeAgent/common`。
 
@@ -124,7 +124,7 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 |:-----|:-------|:---------|
 | `_connectEpoch` | 用户拨号、断开、dispose | 不取消 Hub 目录，不代替 `linkId`。细则见 [拨号 generation](connection-dial-generation.md) |
 | `_connectedEpoch` | 不是取消令牌。记下赢家那一代 | 同代重连不得拆赢家 |
-| `_publishedLinkSerial` / `_publishedLinkId` | 不是拨号取消令牌。标识已提交链路 | 同 transport / profile / identity 不加号。相位变化不加号。见 [已发布链路](published-link-identity.md) |
+| `_publishedLinkSerial` / `_publishedLinkId` | 不是拨号取消令牌。标识已提交链路 | 同 transport / profile / identity 不加号。相位变化不加号。见 [已发布链路](../../archive/dev/plans/published-link-identity.md) |
 | `pairingGeneration` | 编排器里新的配对、确认、放弃、dispose | 与 `_connectEpoch` 各算各的。`userConfirmed` 只跳过对话框 |
 | `_directoryGeneration` | 换 Hub、登录、目录刷新、启动恢复、dispose，以及 `logout` | 不表示引擎 link。活码在 `logout` 入口（200 行）和 `await` 之后（209 行）各加一次，并在 211 行把目录收成 `idle`。已签收、未实施的 [r04](review-2026-10-30-r04-universe-agent-plan.md) 收尾条件以该方案为准，活码尚未落地。本稿不改 `logout`。概览的这一行只写「收尾条件以 r04 为准，活码尚未落地」。无条件的第二次递增不是概览里的不变量。r04 签收摘要写入口递增保持不变，但正文 92 行仍写：入口那次递增若会作废另一个 Hub 已开始的 `refreshDirectory`，就不要无条件做。概览沿用 r04 正文的收尾条件，不把入口收成签收摘要里更窄的那句 |
 | `connectionGeneration` | 宿主每次把已发布链路拉起 | 不是 `linkId`。同 link 从断开回到已连接必须加一，否则 [写入闸](engine-write-gate-unification.md) §3.7 的同传输恢复不会重开流 |
@@ -142,7 +142,7 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 改法：
 
 1. 625–628 行的已连接分支改为：仅当 `!this.connectionUp` 时调用 `bringUpPublishedLink`。未连接分支仍 `releasePublishedLink`。`publishedChanged` 分支不动。
-2. 在 platform 概览的 UniverseAgent 段写下表，并链到拨号 generation、已发布链路、写入闸 §3.7、r04。写明 [已发布链路](published-link-identity.md) 里「只改相位不制造断开边沿」已被写入闸的 `transport_lost` 拆流覆盖；本切片不把那条拆流退回去。`logout` 一行的正文就是：活码有两次递增，收尾条件以 r04 为准且尚未落地。
+2. 在 platform 概览的 UniverseAgent 段写下表，并链到拨号 generation、已发布链路、写入闸 §3.7、r04。写明 [已发布链路](../../archive/dev/plans/published-link-identity.md) 里「只改相位不制造断开边沿」已被写入闸的 `transport_lost` 拆流覆盖；本切片不把那条拆流退回去。`logout` 一行的正文就是：活码有两次递增，收尾条件以 r04 为准且尚未落地。
 
 明确不改什么：
 
@@ -300,7 +300,7 @@ S2 是本方案里唯一改 `universeAgentConnectionService.ts` 的切片。`hub
 - 窗格文案和 `connectionPreferencesPaneSas.ts`。不把平台句子再搬一遍。
 - `pairingGeneration`、trust 写入、`confirmPairing` 在 `grant_pending` 时留在配对的分支。
 - `listProviderPresetCatalog`、`previewHarnessProviderImport`、`importHarnessProviders`、`builtinProviderPresets`。
-- [ui-gap-closeout](ui-gap-closeout-2026-10-01.md) 里给对话框补窗口参数的那段，随本切片删除。窗格路径以 `a4b778cfd18` 为准。
+- [ui-gap-closeout](../../archive/dev/plans/ui-gap-closeout-2026-10-01.md) 里给对话框补窗口参数的那段，随本切片删除。窗格路径以 `a4b778cfd18` 为准。
 
 本地验证：
 

@@ -312,7 +312,7 @@ dev/progress/d8-evidence/<sha>/
 - [ADR-003](../decisions/003-engine-adapter-boundary.md) · [engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md)
 - [debug-engine](../../docs/guides/debug-engine.md)（§4「改 config.json」过时；key 以 `start-engine.sh` 为准）· [shell-smoke-verification](../../docs/guides/shell-smoke-verification.md)
 - [status.md](../progress/status.md) · [deferred-gaps.md](../progress/deferred-gaps.md) D17 / D20（不要把本路径写成「D8」）
-- 体例：[m4-validation-wave](m4-validation-wave.md)
+- 体例：[m4-validation-wave](../../archive/dev/plans/m4-validation-wave.md)
 
 ## 规则 16 审查记录
 

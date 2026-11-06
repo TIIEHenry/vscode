@@ -16,7 +16,7 @@ summary: "对话框与引导页遮罩已去掉背景模糊；对话框遮罩已�
 
 2026-10-16 落地：去模糊改动已落入 `dialog.css` 与 `variationA.css`，对话框遮罩背景已修复为独立的 `rgba(0, 0, 0, 0.45)`，扫描测试已全绿验证通过。
 
-系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §9。需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
+系统规格：[UI 设计原则与规范](../../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §9。需求：[PRD-028](../../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
 
 ## 合同
 
@@ -37,7 +37,7 @@ summary: "对话框与引导页遮罩已去掉背景模糊；对话框遮罩已�
 ## 验证
 
 - 更新 `src/vs/workbench/test/node/modalMaskGlassScan.test.ts`：去掉注释后，上述两份 CSS 不再出现 `backdrop-filter`；对话框遮罩不再引用 `--vscode-widget-shadow`，两处半透明 `background` 与卡片投影仍在。测试应验证默认浅色主题实际 `widget.shadow` 值，不能只匹配 CSS 字符串。
-- 按 [UI 设计原则与规范 §8](../../docs/architecture/cross-cutting/ui-design-principles.md#8-审查与验证) 目视检查浅色、深色、键盘与窄宽；至少保存浅色和深色遮罩截图，确认背景被压暗、对话内容与焦点仍可辨。
+- 按 [UI 设计原则与规范 §8](../../../docs/architecture/cross-cutting/ui-design-principles.md#8-审查与验证) 目视检查浅色、深色、键盘与窄宽；至少保存浅色和深色遮罩截图，确认背景被压暗、对话内容与焦点仍可辨。
 - 命令：`scripts/test.sh --grep "modal mask has no backdrop-filter"`。
 
 ## 只读审查与改稿

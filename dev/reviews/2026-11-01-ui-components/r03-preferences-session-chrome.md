@@ -52,7 +52,7 @@ summary: "Engine / Connection 首选项、SAS 配对确认、身份条与会话�
 
 状态：成立。优先级 P2。
 
-观察（作者：agent:context-gatherer）：Connection 返回按钮 `height: var(--vscode-spacing-size280, 28px)`（`media/connectionPreferencesPane.css:189`），Engine 是 `spacing-size240, 24px`（`media/enginePreferencesPane.css:292`）。高对比聚焦框也不同：Connection 用 `contrastBorder`（与它的高对比边框同色，看不出），Engine 用 `contrastActiveBorder`。[控件细节精修](../../plans/control-detail-polish.md) 把两个返回按钮统一到了 24px。
+观察（作者：agent:context-gatherer）：Connection 返回按钮 `height: var(--vscode-spacing-size280, 28px)`（`media/connectionPreferencesPane.css:189`），Engine 是 `spacing-size240, 24px`（`media/enginePreferencesPane.css:292`）。高对比聚焦框也不同：Connection 用 `contrastBorder`（与它的高对比边框同色，看不出），Engine 用 `contrastActiveBorder`。[控件细节精修](../../../archive/dev/plans/control-detail-polish.md) 把两个返回按钮统一到了 24px。
 
 核对
 

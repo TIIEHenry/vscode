@@ -42,7 +42,7 @@ summary: "2 条；配对挂起或列表失败时，权限与模型下拉在引�
 
 - 为什么是问题：`applySessionPermissionIndex` 在请求返回前就把目标和 `permissionSelectBox` 写成新档（第 1248–1253 行）。同一代请求返回后，第 1130–1132 行只看 `isComposerSessionWriteLive`（第 898–901 行：未连接、配对挂起或列表失败即为不可写），不看 `result.ok`，用 `confirmedIndex`（缺省为 Ask，索引 0）把配置和下拉写回去。更新一代且不可写时，第 1117–1120 行直接返回：已成功的旧档不记入 `confirmedIndex`，界面上的新档也不再发送。`conversationLensDisposeGate.test.ts` 的 `in-flight leftover-looks-live permission and model apply restore leftover index`（第 3486–3499 行）和 `in-flight leftover permission restore after switch to B does not roll back B select`（第 3996–4005 行）都在 `{ ok: true }` 之后断言会话 A 的 `permissionIndex === 0`。
 - 既有契约：第 1130 行的注释写明 `D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live apply.`；D383（`dev/progress/deferred-gaps.md:397`）与 D450（`:464`）均已 closed。D450 的产品取舍是 leftover 期间不能把写面画得像 live。实现把这条约束落在“值”上，于是引擎已接受的 Permit 被改写成 Ask，值开始撒谎。
-- 已签收方向：2026-10-24 用户签收 [ADR-012](../../dev/decisions/012-leftover-accepted-value-vs-write-affordance.md)。leftover 不显示未接受的乐观值；引擎已接受的值可以显示，但控件必须保持不可写并说明原因。D383/D450 保持 closed 与原文，ADR-012 只收窄解释。已按 [方案 r07](review-2026-10-24-r07-conversation-plan.md) 实施。
+- 已签收方向：2026-10-24 用户签收 [ADR-012](../../dev/decisions/012-leftover-accepted-value-vs-write-affordance.md)。leftover 不显示未接受的乐观值；引擎已接受的值可以显示，但控件必须保持不可写并说明原因。D383/D450 保持 closed 与原文，ADR-012 只收窄解释。已按 [方案 r07](../../archive/dev/plans/review-2026-10-24-r07-conversation-plan.md) 实施。
 
 ## r07-2 中
 

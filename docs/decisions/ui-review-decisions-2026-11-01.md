@@ -132,7 +132,7 @@ summary: "用户 2026-11-01 委托 agent:kiro 按设计原则决定审查与签�
 
 **决定：** 以规范为准，不以哪一边为准：导航行 22px、`cornerRadius.small`、选中分有焦点 / 无焦点两色；设置行上下 8px；按钮用 monaco 默认高度，不强制 28px 与 `min-width: 64px`；危险按钮 400 字重；两边引用同一份 CSS。Connection 认可现行「左导航 + 窄宽 Back」形态。
 
-**依据：** §4、原则四、原则二（字重只用 400 与 600，危险按钮不是标题）、反模式 12。规范 §10 已按「Connection 导航 22px」记账，[控件细节精修](../../dev/plans/control-detail-polish.md)已实施 Connection 返回钮，说明这个形态已被接受。
+**依据：** §4、原则四、原则二（字重只用 400 与 600，危险按钮不是标题）、反模式 12。规范 §10 已按「Connection 导航 22px」记账，[控件细节精修](../../archive/dev/plans/control-detail-polish.md)已实施 Connection 返回钮，说明这个形态已被接受。
 
 **影响：** r03-9、a03-1。实施时同刀改可访问性方案第 58、87、124 行与 D19(3) 的「Connection 单栏无左导航」。
 
@@ -206,5 +206,5 @@ summary: "用户 2026-11-01 委托 agent:kiro 按设计原则决定审查与签�
 
 | 方案 | 决定 | 依据 |
 |:-----|:-----|:-----|
-| [browser-owner-draft-graduation](../../dev/plans/browser-owner-draft-graduation.md) | `implemented`：切片 1、2 已落地，3、4 属 Agents Window，不排期，退出条件里的动态证据不再要求 | 愿景第 35 行 |
-| [ui-gap-closeout-2026-10-01](../../dev/plans/ui-gap-closeout-2026-10-01.md) | `implemented`：产品部分已落地，Agents Window 切片不计验收 | 同上 |
+| [browser-owner-draft-graduation](../../archive/dev/plans/browser-owner-draft-graduation.md) | `implemented`：切片 1、2 已落地，3、4 属 Agents Window，不排期，退出条件里的动态证据不再要求 | 愿景第 35 行 |
+| [ui-gap-closeout-2026-10-01](../../archive/dev/plans/ui-gap-closeout-2026-10-01.md) | `implemented`：产品部分已落地，Agents Window 切片不计验收 | 同上 |

@@ -381,7 +381,7 @@ summary: "把编辑器路由、会话叶可见性、聊天打开、水印和主�
 - `changesViewService.ts:17` import，第 103 行注入。第 238–243 行：`pairingHoldObs` 初值读快照，`onDidChangeConnection` 再写，`writesHeldObs` 为加载中或配对挂起。
 - `changesWriteHold.ts` 实际路径是 `src/vs/sessions/contrib/changes/common/changesWriteHold.ts`。第 12–17 行只看 `pairingPending === true`，不要求 phase 已连接。
 - 测试锁着：`changesViewService.test.ts:519` 起 `writes held while loading or pairing hold`（第 529–531 行配对挂起时 `writesHeldObs` 为真）。`agentHostSessionChangesets.test.ts:441-444` 锁 `changesetInvokeBlock` 的三态；第 459–462 行锁源码里 `changesetInvokeBlock` 出现在 `confirm` 与 `invokeChangesetOperation` 之前。
-- 已落地的 [sessions-window-connection-registration](../../archive/dev/plans/sessions-window-connection-registration.md) 之所以在 `sessions.desktop.main.ts` / `sessions.web.main.ts` 侧载连接服务，是因为这两处构造函数已经注入它。写闸来自 [ui-gap-closeout-2026-10-01](ui-gap-closeout-2026-10-01.md)。撤掉注入等于撤回这两份已落地行为的前提。
+- 已落地的 [sessions-window-connection-registration](../../archive/dev/plans/sessions-window-connection-registration.md) 之所以在 `sessions.desktop.main.ts` / `sessions.web.main.ts` 侧载连接服务，是因为这两处构造函数已经注入它。写闸来自 [ui-gap-closeout-2026-10-01](../../archive/dev/plans/ui-gap-closeout-2026-10-01.md)。撤掉注入等于撤回这两份已落地行为的前提。
 
 选项见「待定项」。已选 C 冻结：不改 `src/vs/sessions`。
 

@@ -29,7 +29,7 @@ summary: "PRD-022 实施方案：2026-11-01 按 PRD-022.6 允许 Projects 会话
 |------|------|
 | Kill / Fork / StartMember / KillMember / MessageMember / TaskUpdate / TaskCancel / SwitchWorkDir 等写操作 | [product-requirements-layer](../../archive/dev/plans/product-requirements-layer.md)「多 Agent 操作者」不在当前产品壳交付；写操作要先有 PRD 与权限座位设计。RPC 名记在 §7 供 v2 |
 | Engines 进 Activity rail / Projects 里的引擎设置 | page-access 已拍板：连接面在 Preferences Connection pane |
-| Projects 树替代 Sessions roster | Sessions 是 roster 权威（[m3 切片 2](m3-shell-closeout.md)）；Projects 只按 work_dir 分组同一份数据 |
+| Projects 树替代 Sessions roster | Sessions 是 roster 权威（[m3 切片 2](../../archive/dev/plans/m3-shell-closeout.md)）；Projects 只按 work_dir 分组同一份数据 |
 | Agent Detail 开成 Preview tab 或 Conversation tab；Agents 段列 `IChatAgentService` participant 或 Customizations 文件型 Agents | PC-NAV；page-access §5.4 Agents 禁止表 |
 | contrib 自己打 gRPC、自己订 `SessionEventStream`、自己存第二棵 Agent 树 | ADR-003；stream-timeline「lease 是显示写源」；HEAD 快照已有 `liveAgentTree` / `liveTeamId` 槽 |
 | 消费 `AgentService.List`（扁平 roster）或 `SessionInfoResponse.root_agent` 当第二 / 第三份树 | 单源 = `liveAgentTree` |
@@ -230,7 +230,7 @@ summary: "PRD-022 实施方案：2026-11-01 按 PRD-022.6 允许 Projects 会话
 ## 相关
 
 - [m6-engine-wave](m6-engine-wave.md) · [ADR-003](../decisions/003-engine-adapter-boundary.md) · [conversation-stream-timeline](conversation-stream-timeline.md)
-- [page-access-schemes](page-access-schemes.md) · [m3-shell-closeout 切片 2](m3-shell-closeout.md) · [conversation-session-windows](conversation-session-windows.md) · [sources-review-progress](sources-review-progress.md)（共用 `conversation.revealItem`）
+- [page-access-schemes](page-access-schemes.md) · [m3-shell-closeout 切片 2](../../archive/dev/plans/m3-shell-closeout.md) · [conversation-session-windows](conversation-session-windows.md) · [sources-review-progress](sources-review-progress.md)（共用 `conversation.revealItem`）
 - 外仓：UniverseAgent `grpc-api/src/main/proto/{agent_service,team_service,session_service,common,message_envelope}.proto`；Desktop [information-architecture §2](../../../UniverseAgentDesktop/docs/product/information-architecture.md)（Projects / Agents / Team 在 Desktop 亦为 not-wired 空 chrome，本稿是首个接线方案）
 
 ## 审查记录（规则 16）

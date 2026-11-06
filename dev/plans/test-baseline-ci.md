@@ -19,7 +19,7 @@ summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide wor
 > **现有 CI：** [.github/workflows/pr.yml](../../.github/workflows/pr.yml) 只跟 `main` / `release/*`，且 `runs-on` 指向微软 1ES self-hosted pool——本仓不能假装有该 runner。  
 > **不推翻：** [health-gates](../progress/health-gates.md) 的 D8 豁免与「测试不冻结不冲突 UI 槽」。  
 > **明确修改（签收裁定 2026-09-04）：** [health-gates](../progress/health-gates.md) 与 [m7-ui-completion-wave §2](m7-ui-completion-wave.md)「单测失败不挡合入」在 **三自定义域** 上改为「**新增**失败挡合入 `agent-ide`（名单加行 PR 例外）」。这是政策翻转而不是补充，切片 5 须同时改这两份文档的原句。三域之外的验证债（D18 / D20、E2E、手测、axe；D15 已闭）仍走 D17 非阻塞。  
-> **对照体例：** [m4-validation-wave.md](m4-validation-wave.md)。
+> **对照体例：** [m4-validation-wave.md](../../archive/dev/plans/m4-validation-wave.md)。
 
 ## 1. 目标 / 非目标
 

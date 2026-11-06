@@ -12,15 +12,15 @@ summary: "两切片已落地：ChatEditor 默认路径藏/转（命令/还原/re
 覆盖需求：无（正文未引用需求编号）。
 
 
-> **前置**：[m0-topology-surgery.md](m0-topology-surgery.md) · [m1-shell-followon.md](m1-shell-followon.md) · [m2-product-shell.md](m2-product-shell.md)（均 `implemented`）。  
+> **前置**：[m0-topology-surgery.md](../../../dev/plans/m0-topology-surgery.md) · [m1-shell-followon.md](../../../dev/plans/m1-shell-followon.md) · [m2-product-shell.md](../../../dev/plans/m2-product-shell.md)（均 `implemented`）。  
 > **决策**：外仓 [ADR-061](https://github.com/TIIEHenry/UniverseAgentDesktop/blob/main/dev/decisions/061-code-oss-base-and-editor-window-shell.md) 决策 5 复用清单（只读）：会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）。  
-> **本仓事实**：[agent-ui](../../docs/systems/chat/agent-ui.md) · [views-and-composites](../../docs/systems/workbench/views-and-composites.md) · [desktop-shell-mapping](../../docs/reference/code-oss-b2/desktop-shell-mapping.md) · [parts-and-grid](../../docs/systems/workbench/parts-and-grid.md)
+> **本仓事实**：[agent-ui](../../../docs/systems/chat/agent-ui.md) · [views-and-composites](../../../docs/systems/workbench/views-and-composites.md) · [desktop-shell-mapping](../../../docs/reference/code-oss-b2/desktop-shell-mapping.md) · [parts-and-grid](../../../docs/systems/workbench/parts-and-grid.md)
 
 **Goal：** 收掉 M2 之后仍让默认窗看起来像 vanilla Copilot Chat、或仍留 **INV-TOPO 洞** 的壳项：默认路径不得把 Conversation 打开成 `EDITOR_PART` tab；Navigator（Sidebar）有一份 stub 会话 roster。仍 **不接** UniverseAgent 引擎。
 
 **Architecture：** 继续只动默认 Code 窗口 chrome / 打开路径。中心透镜仍是 `ConversationPart` + `contrib/conversation` stub 产品面。`ChatWidget` / `ChatEditor` **源码保留**（donor）。会话列表是 Sidebar 里的 **roster**，不是第二块 Conversation，也不是 `IChatModel`。
 
-> **相对 M2 的地位（本方案拍板）：** [M2 产品完成线](m2-product-shell.md) 已经把「没有引擎」前提下的 ADR-061 编辑器窗口产品壳写完整：中心透镜可操作、Aux 出厂 hidden、Chat 非 Aux default、知识层诚实。本 M3 **不是** 无引擎方案的阻塞出口，只是 **chrome / INV-TOPO 卫生 follow-on**。两切片可独立落地，也可整波搁置；不验收、不排期也不等于壳没做完。compile / 启动 / EH 仍是 D3–D5，本波不勾。
+> **相对 M2 的地位（本方案拍板）：** [M2 产品完成线](../../../dev/plans/m2-product-shell.md) 已经把「没有引擎」前提下的 ADR-061 编辑器窗口产品壳写完整：中心透镜可操作、Aux 出厂 hidden、Chat 非 Aux default、知识层诚实。本 M3 **不是** 无引擎方案的阻塞出口，只是 **chrome / INV-TOPO 卫生 follow-on**。两切片可独立落地，也可整波搁置；不验收、不排期也不等于壳没做完。compile / 启动 / EH 仍是 D3–D5，本波不勾。
 
 > `status: implemented` — 切片 2 roster `80b3f76c`；切片 1 命令转 Conversation `fd549855`、serializer/resolver/move `8ca89e3a`。合入 `agent-ide` `98522c4b`。compile / 启动 / EH 仍 deferred（D3–D5）。
 
@@ -53,7 +53,7 @@ summary: "两切片已落地：ChatEditor 默认路径藏/转（命令/还原/re
 
 ## 对照：M2「仍 deferred」与切片 2「本切片明确不做」
 
-摘自 [m2-product-shell.md](m2-product-shell.md)：
+摘自 [m2-product-shell.md](../../../dev/plans/m2-product-shell.md)：
 
 | M2 明确留下 | M3 |
 |-------------|----|
@@ -105,7 +105,7 @@ M2 出口句「用户打开默认窗，中心是 Conversation 透镜，不是 `C
 | `src/vs/workbench/contrib/chat/browser/agentSessions/agentSessionsActions.ts` | 仅 `OpenAgentSessionInEditorGroupAction`（及明显的 New Editor Group 变体）默认窗藏/转 |
 | `src/vs/workbench/contrib/chat/test/browser/widgetHosts/editor/chatEditorShellPaths.test.ts`（或同等新测） | 断言：上述 command id 的 `run` 不产生 `ChatEditorInput`；serializer `canSerialize` 为 false；resolver 不再认 `vscodeChatEditor`。可继续用现有 `ChatEditorInput` 单测证明类仍存在 |
 
-落地时把 [agent-ui.md](../../docs/systems/chat/agent-ui.md) §3 的「代码里已存在，改造时要避免默认打开 chat 走 editor」改成现在时：**默认路径已藏/转；pane 仍注册；ChatWidget 仍 donor**。不要把「已从注册表删除」写进去。
+落地时把 [agent-ui.md](../../../docs/systems/chat/agent-ui.md) §3 的「代码里已存在，改造时要避免默认打开 chat 走 editor」改成现在时：**默认路径已藏/转；pane 仍注册；ChatWidget 仍 donor**。不要把「已从注册表删除」写进去。
 
 **本切片明确不做：** 删 `ChatWidget` / `ChatEditor` 文件；动 `contrib/conversation`；动 `contrib/sources`；动 `layout.ts`；改 ChatViewPane / Aux 默认（M2 已做）；引擎；`product.json`。
 
@@ -122,7 +122,7 @@ M2 出口句「用户打开默认窗，中心是 Conversation 透镜，不是 `C
 | SessionBar | `contrib/conversation` 下拉切 `untitled` / `tour` / `blank`；`ConversationLens` **私有** `new ConversationStubModel()` | 同一份 stub 模型提升为 conversation contrib 内可共享的内存服务；SessionBar 继续切 |
 | Sidebar | Explorer 默认容器；无产品会话 roster | 非 default 的 Sessions 列表视图；列出同一批 stub 会话 |
 | `agentSessions` 控件族 | Copilot 会话目录 + `agentSessionsOpener` → 经常 `ChatEditor` | **不接入。** 不复用 opener，不把 `AgentSessionsControl` 整块搬进 Sidebar（那会变成第二 Chat） |
-| Desktop Navigator | roster 换成产品 tab（[desktop-shell-mapping §2](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)） | 最小：Sidebar 里多一个可开的 Sessions 列表。**不**把 Explorer 从 default 换成它 |
+| Desktop Navigator | roster 换成产品 tab（[desktop-shell-mapping §2](../../../docs/reference/code-oss-b2/desktop-shell-mapping.md)） | 最小：Sidebar 里多一个可开的 Sessions 列表。**不**把 Explorer 从 default 换成它 |
 
 **选定路径：**
 
@@ -146,7 +146,7 @@ M2 出口句「用户打开默认窗，中心是 Conversation 透镜，不是 `C
 | `src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts` | 扩：服务与透镜共用当前会话 |
 | `src/vs/workbench/contrib/conversation/test/browser/conversationSessionsView.test.ts` | **新建**：容器 location = Sidebar 且非 default；点击不构造 `ChatEditorInput`；零 `IChatModel` |
 
-落地时改 [agent-ui.md](../../docs/systems/chat/agent-ui.md) §2 复用清单一句为现在时（Navigator stub roster 已挂 Sidebar，仍非 `IChatModel`）；[views-and-composites.md](../../docs/systems/workbench/views-and-composites.md) 补一句：产品会话列表是 Sidebar View，不是 Conversation Part；[desktop-shell-mapping.md](../../docs/reference/code-oss-b2/desktop-shell-mapping.md) Navigator 行写清 Explorer 仍权威、Sessions roster 为 stub。
+落地时改 [agent-ui.md](../../../docs/systems/chat/agent-ui.md) §2 复用清单一句为现在时（Navigator stub roster 已挂 Sidebar，仍非 `IChatModel`）；[views-and-composites.md](../../../docs/systems/workbench/views-and-composites.md) 补一句：产品会话列表是 Sidebar View，不是 Conversation Part；[desktop-shell-mapping.md](../../../docs/reference/code-oss-b2/desktop-shell-mapping.md) Navigator 行写清 Explorer 仍权威、Sessions roster 为 stub。
 
 **本切片明确不做：** 把 `AgentSessionsControl` / `IAgentSessionsService` 当数据源；在 Sidebar 再开一个 Chat；持久化 stub；改 Explorer `isDefault`；改 `layout.ts` / `conversationPart.ts` 槽数；碰 `contrib/chat`（切片 1 独占）；`vs/sessions`。
 
@@ -185,8 +185,8 @@ M2 出口句「用户打开默认窗，中心是 Conversation 透镜，不是 `C
 
 ## 相关文档
 
-- [m2-product-shell.md](m2-product-shell.md)（`implemented`；本波为其「明确不做 / 仍 deferred」里的壳卫生）
-- [agent-ui.md](../../docs/systems/chat/agent-ui.md) §2 决策 5 复用清单 · §3 ChatEditor
-- [views-and-composites.md](../../docs/systems/workbench/views-and-composites.md)
-- [deferred-gaps.md](../progress/deferred-gaps.md) D3–D5
+- [m2-product-shell.md](../../../dev/plans/m2-product-shell.md)（`implemented`；本波为其「明确不做 / 仍 deferred」里的壳卫生）
+- [agent-ui.md](../../../docs/systems/chat/agent-ui.md) §2 决策 5 复用清单 · §3 ChatEditor
+- [views-and-composites.md](../../../docs/systems/workbench/views-and-composites.md)
+- [deferred-gaps.md](../../../dev/progress/deferred-gaps.md) D3–D5
 - 外仓 ADR-061 决策 5（只读）
