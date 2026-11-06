@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { errorHandler, onUnexpectedError, setUnexpectedErrorHandler } from '../../../../base/common/errors.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { AgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
@@ -14,34 +14,42 @@ suite('UniverseAgent leftover fire-and-forget catch scan (D678)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_fireReconnect leftover void is single-chain; bare/double-chain gone', async () => {
+	test('sessionViewHost pullNow leftover is onError then single-chain; double-chain gone', async () => {
 		const seen: unknown[] = [];
+		const warns: string[] = [];
+		let throwInWarn = false;
 		const origHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(err => seen.push(err));
 		try {
-			void Promise.reject(new Error('reconnect-boom')).catch(onUnexpectedError);
+			const connection = new TestConnection();
+			const host = new TestHost(() => Promise.reject(new Error('pull-now-boom')));
+			const viewHost = store.add(new SessionViewHost(connection, host, {
+				orphanTimeoutMs: 0,
+				diagnostics: {
+					count(): void { },
+					warn(message: string): void {
+						warns.push(message);
+						if (throwInWarn) {
+							throw new Error('on-error-boom');
+						}
+					},
+				},
+			}));
+			viewHost.acquireLease('sess-pull');
+			viewHost.onEngineConnectionChanged();
+			await viewHost.whenEngineSessionReady('sess-pull');
+			await new Promise(resolve => setTimeout(resolve, 10));
+			assert.deepStrictEqual(warns, ['agentTree fetch failed']);
+			assert.strictEqual(seen.length, 0);
+
+			throwInWarn = true;
+			(viewHost as unknown as { scheduleAgentTreeRefresh(id: string, immediate: boolean): void }).scheduleAgentTreeRefresh('sess-pull', true);
 			await new Promise(resolve => setTimeout(resolve, 10));
 		} finally {
 			setUnexpectedErrorHandler(origHandler);
 		}
 		assert.strictEqual(seen.length, 1);
-	});
-
-	test('sessionViewHost pullNow leftover is onError then single-chain; double-chain gone', async () => {
-		const seen: unknown[] = [];
-		const origHandler = errorHandler.getUnexpectedErrorHandler();
-		setUnexpectedErrorHandler(err => seen.push(err));
-		try {
-			const connection = new TestConnection();
-			const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
-				orphanTimeoutMs: 0,
-			}));
-			viewHost.acquireLease('sess-pull');
-			await new Promise(resolve => setTimeout(resolve, 10));
-		} finally {
-			setUnexpectedErrorHandler(origHandler);
-		}
-		assert.strictEqual(seen.length, 0);
+		assert.ok(seen[0] instanceof Error && seen[0].message === 'on-error-boom');
 	});
 
 	test('scheduleRefresh pullNow leftover routes to caller onError; bare onBound signature gone', async () => {

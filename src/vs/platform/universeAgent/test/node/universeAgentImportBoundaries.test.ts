@@ -5,7 +5,12 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { evaluateAgentImportBoundary, normalizeToVsImportPath } from '../common/agentImportBoundaryRules.js';
+import {
+	createAgentImportBoundaryRule,
+	evaluateAgentImportBoundary,
+	normalizeToVsImportPath,
+	type AgentImportBoundaryViolationId,
+} from '../common/agentImportBoundaryRules.js';
 
 suite('universeAgentImportBoundaries (eslint rule contract)', () => {
 
@@ -76,12 +81,10 @@ suite('universeAgentImportBoundaries (eslint rule contract)', () => {
 			[],
 		);
 
-		// Legacy contribution action is exempted for general relative chat routing/action fallback...
 		assert.deepStrictEqual(
 			evaluateAgentImportBoundary(legacyActionFile, '../../chat/browser/chatShellRouting.js'),
 			[],
 		);
-		// ...but still rejects process-fold, trajectory, and visualize forbidden imports.
 		for (const forbidden of [
 			'../../chat/browser/widget/chatContentParts/chatThinkingContentPart.js',
 			'../../chat/browser/widget/chatContentParts/chatToolInvocationPart.js',
@@ -121,5 +124,40 @@ suite('universeAgentImportBoundaries (eslint rule contract)', () => {
 			evaluateAgentImportBoundary(adapterFile, '../common/conversationSessionChat.js'),
 			[],
 		);
+	});
+
+	test('ESLint rule listener reports AST ImportDeclaration/ExportNamedDeclaration violations and ignores test files', () => {
+		const rule = createAgentImportBoundaryRule('/workspace/vscode');
+		const reports: Array<{ messageId: AgentImportBoundaryViolationId; importPath: string }> = [];
+		const listener = rule.create({
+			filename: '/workspace/vscode/src/vs/workbench/contrib/conversation/browser/rewriteConversationStubTurnSessionLinks.ts',
+			report(descriptor) {
+				reports.push({ messageId: descriptor.messageId, importPath: descriptor.data.importPath });
+			},
+		});
+
+		listener.ImportDeclaration({
+			source: { type: 'Literal', value: '../../chat/browser/ widget/chatContentParts/chatContentCodePools.js'.replace(' ', '') },
+		});
+		assert.deepStrictEqual(reports, []);
+
+		listener.ImportDeclaration({
+			source: { type: 'Literal', value: '../../chat/browser/chatShellRouting.js' },
+		});
+		listener.ExportNamedDeclaration({
+			source: { type: 'Literal', value: '../../../../platform/universeAgent/common/universeAgentConnection.js' },
+		});
+		assert.deepStrictEqual(reports, [
+			{ messageId: 'forbiddenConversationChatBoundary', importPath: '../../chat/browser/chatShellRouting.js' },
+			{ messageId: 'forbiddenRewriteEngineImport', importPath: '../../../../platform/universeAgent/common/universeAgentConnection.js' },
+		]);
+
+		const testListener = rule.create({
+			filename: '/workspace/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts',
+			report() {
+				assert.fail('test files must be ignored by the rule listener');
+			},
+		});
+		assert.deepStrictEqual(Object.keys(testListener), []);
 	});
 });

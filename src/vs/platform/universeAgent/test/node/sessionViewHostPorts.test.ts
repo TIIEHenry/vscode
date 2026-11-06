@@ -13,21 +13,6 @@ suite('SessionViewHost diagnostics port (S4a)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('electron-main session view service injects logging diagnostics', () => {
-		const infos: string[] = [];
-		const warns: string[] = [];
-		const port = createSessionViewDiagnosticsPort({
-			info(message: string): void { infos.push(message); },
-			warn(message: string): void { warns.push(message); },
-		});
-		port.count('view.lease_released_by_owner', { owner: 'window:1' });
-		port.warn('test_warn', { b: 2 });
-		assert.strictEqual(infos.length, 1);
-		assert.ok(infos[0].includes('view.lease_released_by_owner'));
-		assert.strictEqual(warns.length, 1);
-		assert.ok(warns[0].includes('test_warn'));
-	});
-
 	test('releaseLeasesOwnedBy logs view.lease_released_by_owner', () => {
 		const lines: string[] = [];
 		const logService = {

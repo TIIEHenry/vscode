@@ -6,8 +6,9 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcUniverseAgentClient } from '../../node/grpc/grpcClient.js';
+import { asUnaryProtoBytes } from '../../node/grpc/grpcClientCalls.js';
 import { decodeQueueState, encodeSaveSkillContentRequest } from '../../node/grpc/grpcQueueSkillWire.js';
-import { encodeInt32Field, encodeInt64Field, encodeMessageField, encodeStringField, lastString, lastVarint, readProtoFields } from '../../node/grpc/grpcProtoCodec.js';
+import { encodeInt32Field, encodeInt64Field, encodeMessageField, encodePresentMessageField, encodeStringField, lastString, lastVarint, readProtoFields } from '../../node/grpc/grpcProtoCodec.js';
 import { probeConversationEntryCapability } from '../../node/grpcCapabilityProbe.js';
 import { GrpcStatusCode, type IUniverseAgentGrpcTransport } from '../../node/grpc/grpcTransport.js';
 
@@ -55,5 +56,61 @@ suite('Queue readback and skill content protocol', () => {
 			const transport = { probeRpc: async () => status } as unknown as IUniverseAgentGrpcTransport;
 			assert.strictEqual((await probeConversationEntryCapability({ methods, transport })).getQueue, expected);
 		}
+	});
+	test('openUploadAttachmentStream, connect, resolveTurn, resolveAnchor, and openWatchConfigStream wire proto bytes on GrpcUniverseAgentClient', async () => {
+		const unaryCalls: Array<{ path: string; ser: unknown; bytes: Buffer }> = [];
+		const serverStreamCalls: Array<{ path: string; ser: unknown; bytes: Buffer }> = [];
+		let clientStreamSer: ((v: Uint8Array | undefined) => Buffer) | undefined;
+		let clientStreamDeser: ((b: Buffer) => unknown) | undefined;
+		let clientStreamCb: ((err: null, res: unknown) => void) | undefined;
+		const writtenChunks: Uint8Array[] = [];
+		const channel = {
+			makeUnaryRequest(path: string, ser: (v: Uint8Array) => Buffer, deser: (b: Buffer) => unknown, req: Uint8Array, cb: (err: null, res: unknown) => void) {
+				unaryCalls.push({ path, ser, bytes: ser(req) });
+				cb(null, deser(path.endsWith('/Connect') ? encodeStringField(5, '/ws') : encodePresentMessageField(1, new Uint8Array(0))));
+			},
+			makeServerStreamRequest(path: string, ser: (v: Uint8Array) => Buffer, deser: (b: Buffer) => unknown, req: Uint8Array) {
+				serverStreamCalls.push({ path, ser, bytes: ser(req) });
+				return {
+					on(ev: string, fn: (data: unknown) => void) {
+						if (ev === 'data') {
+							fn(deser(encodeStringField(1, 'theme')));
+						}
+					},
+					cancel() { },
+				};
+			},
+			makeClientStreamRequest(_path: string, ser: (v: Uint8Array | undefined) => Buffer, deser: (b: Buffer) => unknown, cb: (err: null, res: unknown) => void) {
+				clientStreamSer = ser;
+				clientStreamDeser = deser;
+				clientStreamCb = cb;
+				return {
+					write(chunk: Uint8Array) { writtenChunks.push(chunk); },
+					end() { },
+					cancel() { },
+				};
+			},
+		};
+		const client = Object.create(GrpcUniverseAgentClient.prototype) as GrpcUniverseAgentClient;
+		Reflect.set(client, '_channel', channel);
+		assert.strictEqual((await client.connect({ workDir: '/ws' })).workDir, '/ws');
+		assert.strictEqual((await client.resolveTurn({ sessionId: 's1', turnId: 't1', currentLeafTurnId: 'l1' })).kind, 'hit');
+		assert.ok((await client.resolveAnchor({ anchor: { sessionId: 's1', envelopeId: 'e1' }, scope: 'ANCHOR_RESOLVE_SCOPE_ACTIVE' })).hit);
+		for (const call of unaryCalls) {
+			assert.strictEqual(call.ser, asUnaryProtoBytes);
+			assert.notStrictEqual(call.bytes[0], 0x7b);
+		}
+		const watchEvents: string[] = [];
+		client.openWatchConfigStream({ keys: ['theme'] }, ev => watchEvents.push(ev.key)).dispose();
+		assert.strictEqual(serverStreamCalls[0]?.ser, asUnaryProtoBytes);
+		assert.deepStrictEqual(watchEvents, ['theme']);
+		const uploaded: string[] = [];
+		const upload = client.openUploadAttachmentStream(res => uploaded.push(res.filePath));
+		upload.write({ chunk: Uint8Array.from([0x00, 0xff, 0x7b]) });
+		assert.strictEqual(clientStreamSer, asUnaryProtoBytes);
+		assert.notStrictEqual(writtenChunks[0]?.[0], 0x7b);
+		clientStreamCb?.(null, clientStreamDeser?.(encodeStringField(2, '/tmp/att-1')));
+		assert.deepStrictEqual(uploaded, ['/tmp/att-1']);
+		upload.dispose();
 	});
 });
