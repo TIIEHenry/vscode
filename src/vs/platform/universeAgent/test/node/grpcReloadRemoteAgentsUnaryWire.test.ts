@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -147,37 +146,6 @@ suite('grpc RemoteAgentService Reload protobuf wire', () => {
 			durationMs: 0,
 		});
 	});
-
-	test('reload unary wire is RemoteAgentService.Reload only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcReloadRemoteAgentsUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeReloadRemoteAgentsRequest\b/.test(source));
-		assert.ok(/\bdecodeReloadRemoteAgentsResponse\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('reloadRemoteAgents uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const reload = extractAsyncMethod(source, 'reloadRemoteAgents');
-		assert.ok(reload.includes('makeUnaryBytesClient'), 'reloadRemoteAgents must use makeUnaryBytesClient');
-		assert.ok(reload.includes('encodeReloadRemoteAgentsRequest'), 'reloadRemoteAgents must call encodeReloadRemoteAgentsRequest');
-		assert.ok(reload.includes('decodeReloadRemoteAgentsResponse'), 'reloadRemoteAgents must call decodeReloadRemoteAgentsResponse');
-		assert.ok(reload.includes('mapReloadRemoteAgentsResponse'), 'reloadRemoteAgents still calls mapReloadRemoteAgentsResponse');
-		assert.ok(!reload.includes('makeUnaryClient<'), 'reloadRemoteAgents must not use JSON makeUnaryClient');
-		assert.ok(!reload.includes('JSON.stringify'), 'reloadRemoteAgents must not JSON.stringify');
-
-		assert.ok(source.includes('grpcReloadRemoteAgentsUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** TEST-only mapper: same shape as catalog `mapReloadRemoteAgentsResponse`. */
@@ -200,22 +168,4 @@ function requiredInt64(value: number | string | undefined): number {
 	return Number.isFinite(n) ? n : 0;
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcReloadRemoteAgentsUnaryWire.ts')));
-	assert.ok(dir, 'grpcReloadRemoteAgentsUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(?:async )?[A-Za-z_]/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}

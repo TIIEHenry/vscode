@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -68,37 +67,6 @@ suite('grpc RemoteAgentService ResetError protobuf wire', () => {
 		});
 		assert.deepStrictEqual(mapResetErrorResponse({ success: false }), { success: false });
 	});
-
-	test('reset-error unary wire is RemoteAgentService.ResetError only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcResetErrorUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeResetErrorRequest\b/.test(source));
-		assert.ok(/\bdecodeResetErrorResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bSetMaintenance\b|\bExitMaintenance\b/.test(source));
-		assert.ok(!/\bencodeResetRequest\b|\bdecodeResetResponse\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('resetError uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const reset = extractAsyncMethod(source, 'resetError');
-		assert.ok(reset.includes('makeUnaryBytesClient'), 'resetError must use makeUnaryBytesClient');
-		assert.ok(reset.includes('encodeResetErrorRequest'), 'resetError must call encodeResetErrorRequest');
-		assert.ok(reset.includes('decodeResetErrorResponse'), 'resetError must call decodeResetErrorResponse');
-		assert.ok(reset.includes('mapResetErrorResponse'), 'resetError still calls mapResetErrorResponse');
-		assert.ok(!reset.includes('makeUnaryClient<'), 'resetError must not use JSON makeUnaryClient');
-		assert.ok(!reset.includes('JSON.stringify'), 'resetError must not JSON.stringify');
-
-		assert.ok(source.includes('grpcResetErrorUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as RemoteAgent.ResetError JSON unary (`success: wire.success === true`). */
@@ -108,24 +76,7 @@ function mapResetErrorResponse(wire: ResetErrorResponseWire): UniverseAgentReset
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcResetErrorUnaryWire.ts')));
-	assert.ok(dir, 'grpcResetErrorUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

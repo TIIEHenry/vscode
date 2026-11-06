@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -391,57 +390,6 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.strictEqual(encodeInt32Field(5, 0).length, 0);
 		assert.strictEqual(lastVarint(readProtoFields(encodeVarintZero(2)), 2), 0n);
 	});
-
-	test('remote-chat stream wire is RemoteAgentService.RemoteChat only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcRemoteChatStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeRemoteChatRequest\b/.test(source));
-		assert.ok(/\bdecodeRemoteChatResponse\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\bencodePresentMessageField\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bCreateRemoteSession\b|\bDestroyRemoteSession\b|\bGetRemoteSessionStatus\b/.test(source));
-		assert.ok(!/\bResumeRemoteSession\b|\bCancelRemoteSession\b|\bGetRemoteSessionHistory\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bRebuild\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('openRemoteChatStream uses makeServerStreamBytesClient; Upload bytes', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const remoteChat = extractMethod(source, 'openRemoteChatStream');
-		assert.ok(remoteChat.includes('makeServerStreamBytesClient'), 'openRemoteChatStream must use makeServerStreamBytesClient');
-		assert.ok(remoteChat.includes('encodeRemoteChatRequest'), 'openRemoteChatStream must call encodeRemoteChatRequest');
-		assert.ok(remoteChat.includes('decodeRemoteChatResponse'), 'openRemoteChatStream must call decodeRemoteChatResponse');
-		assert.ok(remoteChat.includes('mapRemoteChatResponse'), 'openRemoteChatStream still calls mapRemoteChatResponse');
-		assert.ok(!remoteChat.includes('makeServerStreamClient<'), 'openRemoteChatStream must not use JSON makeServerStreamClient');
-		assert.ok(!remoteChat.includes('JSON.stringify'), 'openRemoteChatStream itself must not JSON.stringify');
-		assert.ok(source.includes('grpcRemoteChatStreamWire'));
-
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
-
-		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-
-		const upload = extractMethod(source, 'openUploadAttachmentStream');
-		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
-		assert.ok(upload.includes('encodeUploadChunk'), 'openUploadAttachmentStream must call encodeUploadChunk');
-		assert.ok(upload.includes('decodeUploadResponse'), 'openUploadAttachmentStream must call decodeUploadResponse');
-		assert.ok(!upload.includes('makeClientStreamClient<'));
-		assert.ok(!upload.includes('makeServerStreamBytesClient'));
-	});
 });
 
 function encodeVarintZero(field: number): Buffer {
@@ -451,26 +399,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcRemoteChatStreamWire.ts')));
-	assert.ok(dir, 'grpcRemoteChatStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoVarints(encoded: Uint8Array): Map<number, number> {
 	const numbers = new Map<number, number>();

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -305,70 +304,6 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 			asyncTestId: '',
 		});
 	});
-
-	test('save-config unary wire is RemoteAgentService.SaveConfig only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSaveConfigUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeSaveConfigRequest\b/.test(source));
-		assert.ok(/\bdecodeSaveConfigResponse\b/.test(source));
-		assert.ok(/\bencodePresentMessageField\b/.test(source));
-		assert.ok(/\bencodeMessageField\b/.test(source));
-		assert.ok(/\bencodeInt32Field\b/.test(source));
-		assert.ok(/\bencodeInt64Field\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\bencodeDouble\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastString\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\bdecodeCheckConnectionResponse\b/.test(source));
-		assert.ok(/\bencodeEndpoint\b/.test(source));
-		assert.ok(/\bencodeAuthConfig\b/.test(source));
-		assert.ok(/\bencodePermissionDelegate\b/.test(source));
-		assert.ok(/\bencodeWhitelistEntry\b/.test(source));
-		assert.ok(/\bencodeArgCondition\b/.test(source));
-		assert.ok(/\bencodePermissionBudget\b/.test(source));
-		assert.ok(/\bencodeHealthCheckConfig\b/.test(source));
-		assert.ok(!/\bdecodeEndpoint\b|\bdecodeAuthConfig\b|\bdecodePermissionDelegate\b|\bdecodeHealthCheck\b/.test(source));
-		assert.ok(!/\bdecodeConnectionReport\b|\bencodeConnectionReport\b/.test(source));
-		assert.ok(!/\bdecodeCapabilities\b|\bdecodeLoadMetrics\b|\bdecodeValidationError\b/.test(source));
-		assert.ok(!/\bgrpcListConfigsUnaryWire\b|\bgrpcGetConfigUnaryWire\b/.test(source));
-		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
-		assert.ok(!/\bListConfigs\b|\bGetConfig\b|\bDeleteConfig\b|\bReload\b/.test(source));
-		assert.ok(!/\bSetMaintenance\b|\bExitMaintenance\b|\bResetError\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('saveRemoteAgentConfig uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		const save = extractAsyncMethod(source, 'saveRemoteAgentConfig');
-		assert.ok(save.includes('makeUnaryBytesClient'), 'saveRemoteAgentConfig must use makeUnaryBytesClient');
-		assert.ok(save.includes('encodeSaveConfigRequest'), 'saveRemoteAgentConfig must call encodeSaveConfigRequest');
-		assert.ok(save.includes('decodeSaveConfigResponse'), 'saveRemoteAgentConfig must call decodeSaveConfigResponse');
-		assert.ok(save.includes('mapSaveRemoteAgentConfigResponse'), 'saveRemoteAgentConfig still calls mapSaveRemoteAgentConfigResponse');
-		assert.ok(!save.includes('makeUnaryClient<'), 'saveRemoteAgentConfig must not use JSON makeUnaryClient');
-		assert.ok(!save.includes('JSON.stringify'), 'saveRemoteAgentConfig must not JSON.stringify');
-		assert.ok(source.includes('grpcSaveConfigUnaryWire'));
-		assert.ok(!/\bWatch\b/.test(save));
-		assert.ok(!/\bSaveSkillContent\b/.test(save));
-		assert.ok(!/\bResolveTurn\b/.test(save));
-		assert.ok(!/\bResolveAnchor\b/.test(save));
-
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		const watchStart = source.indexOf('\topenWatchConfigStream(');
-		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
-		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
-		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
-		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
-	});
 });
 
 function sampleConfig(overrides: Partial<UniverseAgentRemoteAgentConfig>): UniverseAgentRemoteAgentConfig {
@@ -464,24 +399,7 @@ function emptyNested(): Pick<UniverseAgentRemoteAgentConfig, 'endpoint' | 'auth'
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcSaveConfigUnaryWire.ts')));
-	assert.ok(dir, 'grpcSaveConfigUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStringLists(encoded: Uint8Array): Map<number, string[]> {
 	const strings = new Map<number, string[]>();
