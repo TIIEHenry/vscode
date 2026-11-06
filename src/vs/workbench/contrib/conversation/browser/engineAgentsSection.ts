@@ -1369,9 +1369,18 @@ export class EngineAgentsSection extends Disposable {
 		}
 		this.showCatalogWriteStatus(copy);
 		const listed = await this.refresh(isContextCurrent);
+		if (this._store.isDisposed) {
+			return false;
+		}
+		if (!this.sameWriteLink(link)) {
+			// The refresh gate drops a list that returns after the link changed,
+			// so nothing else clears the pre-refresh notice; it belongs to the old link.
+			this.hideCatalogWriteStatus();
+			return false;
+		}
 		// A failed follow-up List is not a rejected write. An invalidated
 		// editing context cannot update even the saved-result bookkeeping.
-		const stillSame = !this._store.isDisposed && this.sameWriteLink(link) && isContextCurrent();
+		const stillSame = isContextCurrent();
 		if (!stillSame) {
 			return false;
 		}
