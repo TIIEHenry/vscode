@@ -42,6 +42,25 @@ export type AgentImportBoundaryViolationId =
 	| 'forbiddenAdapterRewriteImport'
 	| 'forbiddenAdapterChatServiceImport';
 
+export interface AgentImportBoundaryLiteralNode {
+	readonly type: string;
+	readonly value?: unknown;
+	readonly loc?: unknown;
+}
+
+export interface AgentImportBoundarySourceCarrierNode {
+	readonly source?: AgentImportBoundaryLiteralNode | null;
+}
+
+export interface AgentImportBoundaryRuleContext {
+	readonly filename: string;
+	report(descriptor: {
+		readonly loc?: unknown;
+		readonly messageId: AgentImportBoundaryViolationId;
+		readonly data: { readonly importPath: string };
+	}): void;
+}
+
 function posixJoinAndNormalize(dir: string, rel: string): string {
 	const combined = `${dir}/${rel}`.split('/');
 	const stack: string[] = [];
@@ -74,6 +93,15 @@ export function normalizeToVsImportPath(rawImportPath: string, relativeFilename:
 		return joined;
 	}
 	return rawImportPath;
+}
+
+export function toRepoRelativeFilename(filename: string, repoRoot: string): string {
+	const normFile = filename.replace(/\\/g, '/');
+	const normRoot = repoRoot.replace(/\\/g, '/').replace(/\/+$/, '');
+	if (normRoot && normFile.startsWith(normRoot + '/')) {
+		return normFile.slice(normRoot.length + 1).replace(/^\/+/, '');
+	}
+	return normFile.replace(/^\/+/, '');
 }
 
 export function evaluateAgentImportBoundary(
@@ -135,4 +163,57 @@ export function evaluateAgentImportBoundary(
 	}
 
 	return violations;
+}
+
+export function createAgentImportBoundaryRule(repoRoot: string) {
+	return {
+		meta: {
+			messages: {
+				forbiddenUniverseAgentNode: 'Workbench and sessions production code must not import platform/universeAgent/node ({{importPath}}).',
+				forbiddenSessionViewParent: 'Vendored common/sessionView must remain self-contained and not import parent directories ({{importPath}}).',
+				forbiddenConversationChatBoundary: 'Forbidden import in contrib/conversation production code ({{importPath}}).',
+				forbiddenRewriteEngineImport: 'rewriteConversationStubTurnSessionLinks must stay a local catalog projection with no engine connection or RPC import ({{importPath}}).',
+				forbiddenAdapterRewriteImport: 'conversationTurnContentAdapter must not import rewriteConversationStubTurnSessionLinks ({{importPath}}).',
+				forbiddenAdapterChatServiceImport: 'conversationTurnContentAdapter must inject IConversationSessionChatService from common/ to avoid the overlay->lens ESM cycle ({{importPath}}).',
+			},
+			schema: false,
+		},
+		create(context: AgentImportBoundaryRuleContext): Record<string, (node: unknown) => void> {
+			const relativeFilename = toRepoRelativeFilename(context.filename, repoRoot);
+			if (relativeFilename.endsWith('.test.ts') || relativeFilename.includes('/test/')) {
+				return {};
+			}
+
+			const checkLiteral = (node: AgentImportBoundaryLiteralNode | null | undefined): void => {
+				if (!node || node.type !== 'Literal' || typeof node.value !== 'string') {
+					return;
+				}
+				for (const messageId of evaluateAgentImportBoundary(relativeFilename, node.value)) {
+					context.report({
+						loc: node.loc,
+						messageId,
+						data: { importPath: node.value },
+					});
+				}
+			};
+
+			return {
+				ImportDeclaration: (node: unknown) => {
+					checkLiteral((node as AgentImportBoundarySourceCarrierNode).source);
+				},
+				['CallExpression[callee.type="Import"][arguments.length=1] > Literal']: (node: unknown) => {
+					checkLiteral(node as AgentImportBoundaryLiteralNode);
+				},
+				['TSImportEqualsDeclaration > TSExternalModuleReference > Literal']: (node: unknown) => {
+					checkLiteral(node as AgentImportBoundaryLiteralNode);
+				},
+				ExportAllDeclaration: (node: unknown) => {
+					checkLiteral((node as AgentImportBoundarySourceCarrierNode).source);
+				},
+				ExportNamedDeclaration: (node: unknown) => {
+					checkLiteral((node as AgentImportBoundarySourceCarrierNode).source);
+				},
+			};
+		},
+	};
 }

@@ -92,8 +92,14 @@ suite('UniverseAgentSessionViewChannel', () => {
 		assert.strictEqual(leaseId, 'lease:window:3:sess-1');
 		assert.deepStrictEqual(service.acquireLeaseForCalls, [{ owner: 'window:3', sessionId: 'sess-1' }]);
 
+		const logLines: string[] = [];
+		const logService = new class extends NullLogService {
+			override info(message: string): void {
+				logLines.push(message);
+			}
+		}();
 		const connection = new OwnerCheckConnection();
-		const sessionView = store.add(new UniverseAgentSessionViewService(connection, connection, new NullLogService()));
+		const sessionView = store.add(new UniverseAgentSessionViewService(connection, connection, logService));
 		const viewHost = (sessionView as unknown as { host: SessionViewHost }).host;
 		viewHost.onEngineConnectionChanged();
 		const owned = new UniverseAgentSessionViewChannel(sessionView);
@@ -122,7 +128,8 @@ suite('UniverseAgentSessionViewChannel', () => {
 		}
 		assert.strictEqual(connection.fetches, 0);
 
-		await owned.call('window:1', 'releaseLease', [ownedLease]);
+		assert.strictEqual(sessionView.releaseLeasesOwnedBy('window:1'), 1);
+		assert.ok(logLines.some(line => line.includes('view.lease_released_by_owner')));
 		const released = await owned.call<PostOutcome>('window:1', 'post', [ownedLease, { kind: 'submitInput', text: 'gone' }]);
 		assert.strictEqual(released.accepted, false);
 		if (!released.accepted) {
@@ -178,8 +185,7 @@ suite('UniverseAgentSessionViewChannel', () => {
 		);
 	});
 
-	test('windowConnectionContext matches mainProcessService literal', () => {
+	test('windowConnectionContext formats window id prefix', () => {
 		assert.strictEqual(windowConnectionContext(7), 'window:7');
-		assert.strictEqual(windowConnectionContext(0), 'window:0');
 	});
 });

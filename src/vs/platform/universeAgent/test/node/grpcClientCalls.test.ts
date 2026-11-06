@@ -4,9 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { makeClientStreamClient, asUnaryProtoBytes, makeClientStreamBytesClient, makeResidentBidiBytesHandleClient } from '../../node/grpc/grpcClientCalls.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
+import type {
+	UniverseAgentConfigChangedEvent,
+	UniverseAgentSessionStreamCloseCause,
+	UniverseAgentUploadAttachmentResult,
+} from '../../common/universeAgentTypes.js';
+import {
+	asUnaryProtoBytes,
+	makeClientStreamBytesClient,
+	makeClientStreamClient,
+	makeResidentBidiBytesHandleClient,
+} from '../../node/grpc/grpcClientCalls.js';
+import { mapUploadResponse } from '../../node/grpc/grpcClientMappers.js';
+import { encodeInt64Field, encodePresentMessageField, encodeStringField, lastString, readProtoFields } from '../../node/grpc/grpcProtoCodec.js';
+import { decodeUploadResponse, encodeUploadChunk } from '../../node/grpc/grpcUploadAttachmentStreamWire.js';
 
 /** Not valid UTF-8 and not a JSON object (`{` as a raw byte). */
 const BINARY_CHUNK = Uint8Array.from([0x00, 0xff, 0xfe, 0x7b, 0x22]);
@@ -109,6 +121,108 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		channel.emitData({ n: 2 });
 		assert.deepStrictEqual(responses, [1], 'locally disposed stream must drop late frames');
 		assert.deepStrictEqual(causes, []);
+	});
+
+	test('openUploadAttachmentStream wires makeClientStreamBytesClient and Connect/ResolveTurn/ResolveAnchor/Watch use proto bytes', async () => {
+		const chunkBytes = encodeUploadChunk({ chunk: BINARY_CHUNK });
+		assert.notStrictEqual(chunkBytes[0], 0x7b);
+		const uploadWire = decodeUploadResponse(Buffer.concat([
+			encodeStringField(2, '/tmp/att-1'),
+			encodeInt64Field(5, 0),
+		]));
+		assert.strictEqual(mapUploadResponse(uploadWire).filePath, '/tmp/att-1');
+
+		if (typeof window === 'undefined') {
+			const { GrpcUniverseAgentClient } = await import('../../node/grpc/grpcClient.js');
+			const unaryCalls: Array<{ path: string; ser: unknown; bytes: Buffer }> = [];
+			const serverStreamCalls: Array<{ path: string; ser: unknown; bytes: Buffer }> = [];
+			let clientStreamSer: ((v: Uint8Array | undefined) => Buffer) | undefined;
+			let clientStreamDeser: ((b: Buffer) => unknown) | undefined;
+			let clientStreamCb: ((err: null, res: unknown) => void) | undefined;
+			const writtenChunks: Uint8Array[] = [];
+
+			const fakeChannel = {
+				makeUnaryRequest(
+					path: string,
+					ser: (v: Uint8Array) => Buffer,
+					deser: (b: Buffer) => unknown,
+					req: Uint8Array,
+					cb: (err: null, res: unknown) => void,
+				) {
+					unaryCalls.push({ path, ser, bytes: ser(req) });
+					if (path.endsWith('/Connect')) {
+						cb(null, deser(encodeStringField(5, '/ws')));
+					} else if (path.endsWith('/ResolveTurn') || path.endsWith('/ResolveAnchor')) {
+						cb(null, deser(encodePresentMessageField(1, new Uint8Array(0))));
+					} else {
+						cb(null, deser(Buffer.alloc(0)));
+					}
+				},
+				makeServerStreamRequest(
+					path: string,
+					ser: (v: Uint8Array) => Buffer,
+					deser: (b: Buffer) => unknown,
+					req: Uint8Array,
+				) {
+					serverStreamCalls.push({ path, ser, bytes: ser(req) });
+					return {
+						on(ev: string, fn: (data: unknown) => void) {
+							if (ev === 'data') {
+								fn(deser(encodeStringField(1, 'theme')));
+							}
+						},
+						cancel() { },
+					};
+				},
+				makeClientStreamRequest(
+					_path: string,
+					ser: (v: Uint8Array | undefined) => Buffer,
+					deser: (b: Buffer) => unknown,
+					cb: (err: null, res: unknown) => void,
+				) {
+					clientStreamSer = ser;
+					clientStreamDeser = deser;
+					clientStreamCb = cb;
+					return {
+						write(chunk: Uint8Array) { writtenChunks.push(chunk); },
+						end() { },
+						cancel() { },
+					};
+				},
+			};
+
+			const client = Object.create(GrpcUniverseAgentClient.prototype) as InstanceType<typeof GrpcUniverseAgentClient>;
+			Reflect.set(client, '_channel', fakeChannel);
+
+			const conn = await client.connect({ workDir: '/ws' });
+			assert.strictEqual(conn.workDir, '/ws');
+			const turn = await client.resolveTurn({ sessionId: 's1', turnId: 't1', currentLeafTurnId: 'l1' });
+			assert.strictEqual(turn.kind, 'hit');
+			const anchor = await client.resolveAnchor({ anchor: { sessionId: 's1', envelopeId: 'e1' }, scope: 'ANCHOR_RESOLVE_SCOPE_ACTIVE' });
+			assert.ok(anchor.hit);
+			for (const call of unaryCalls) {
+				assert.strictEqual(call.ser, asUnaryProtoBytes, `${call.path} must use asUnaryProtoBytes`);
+				assert.notStrictEqual(call.bytes[0], 0x7b);
+			}
+
+			const watchEvents: UniverseAgentConfigChangedEvent[] = [];
+			const watchSub = client.openWatchConfigStream({ keys: ['theme'] }, ev => watchEvents.push(ev));
+			watchSub.dispose();
+			assert.strictEqual(serverStreamCalls.length, 1);
+			assert.strictEqual(serverStreamCalls[0].ser, asUnaryProtoBytes);
+			assert.strictEqual(lastString(readProtoFields(serverStreamCalls[0].bytes), 1), 'theme');
+			assert.strictEqual(watchEvents[0]?.key, 'theme');
+
+			const uploadResults: UniverseAgentUploadAttachmentResult[] = [];
+			const uploadStream = client.openUploadAttachmentStream(res => uploadResults.push(res));
+			uploadStream.write({ chunk: BINARY_CHUNK });
+			assert.strictEqual(clientStreamSer, asUnaryProtoBytes);
+			assert.strictEqual(writtenChunks.length, 1);
+			assert.notStrictEqual(writtenChunks[0][0], 0x7b);
+			clientStreamCb?.(null, clientStreamDeser?.(encodeStringField(2, '/tmp/att-9')));
+			assert.strictEqual(uploadResults[0]?.filePath, '/tmp/att-9');
+			uploadStream.dispose();
+		}
 	});
 });
 

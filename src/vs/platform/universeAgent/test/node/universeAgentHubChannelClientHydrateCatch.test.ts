@@ -28,18 +28,22 @@ suite('UniverseAgentHubChannelClient fire-and-forget leftover catch', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('constructor hydrate void is single-caught; bare void this.hydrate() gone in this file only', async () => {
+		const proto = UniverseAgentHubChannelClient.prototype as unknown as { hydrate: () => Promise<void> };
+		const origHydrate = proto.hydrate;
 		const seen = await captureUnexpectedErrors(async () => {
-			const channel: IChannel = {
-				call: () => Promise.resolve([]),
-				listen: () => Event.None,
-			};
-			const client = store.add(new UniverseAgentHubChannelClient(channel));
-			Reflect.set(client, 'hydrate', () => Promise.reject(new Error('hydrate-boom')));
-			await Promise.resolve((client as unknown as { hydrate(): Promise<void> }).hydrate()).catch(err => {
-				errorHandler.onUnexpectedError(err);
-			});
+			proto.hydrate = () => Promise.reject(new Error('hydrate-boom'));
+			try {
+				const channel: IChannel = {
+					call: () => Promise.resolve([]),
+					listen: () => Event.None,
+				};
+				store.add(new UniverseAgentHubChannelClient(channel));
+			} finally {
+				proto.hydrate = origHydrate;
+			}
 		});
 		assert.strictEqual(seen.length, 1);
+		assert.ok(seen[0] instanceof Error && seen[0].message === 'hydrate-boom');
 	});
 
 	test('setActiveHubBaseUrl remote void is single-caught; hydrate single-catch stays (D562)', async () => {
