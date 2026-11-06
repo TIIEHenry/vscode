@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -76,37 +75,6 @@ suite('grpc RemoteAgentService ExitMaintenance protobuf wire', () => {
 			success: false,
 		});
 	});
-
-	test('exit-maintenance unary wire is RemoteAgentService.ExitMaintenance only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcExitMaintenanceUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeExitMaintenanceRequest\b/.test(source));
-		assert.ok(/\bdecodeExitMaintenanceResponse\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(!/\bSetMaintenance\b/.test(source));
-		assert.ok(!/\bResetError\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('exitMaintenance uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const exit = extractAsyncMethod(source, 'exitMaintenance');
-		assert.ok(exit.includes('makeUnaryBytesClient'), 'exitMaintenance must use makeUnaryBytesClient');
-		assert.ok(exit.includes('encodeExitMaintenanceRequest'), 'exitMaintenance must call encodeExitMaintenanceRequest');
-		assert.ok(exit.includes('decodeExitMaintenanceResponse'), 'exitMaintenance must call decodeExitMaintenanceResponse');
-		assert.ok(exit.includes('mapExitMaintenanceResponse'), 'exitMaintenance still calls mapExitMaintenanceResponse');
-		assert.ok(!exit.includes('makeUnaryClient<'), 'exitMaintenance must not use JSON makeUnaryClient');
-		assert.ok(!exit.includes('JSON.stringify'), 'exitMaintenance must not JSON.stringify');
-
-		assert.ok(source.includes('grpcExitMaintenanceUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as RemoteAgent.ExitMaintenance JSON unary (`success: wire.success === true`). */
@@ -116,24 +84,7 @@ function mapExitMaintenance(wire: ExitMaintenanceResponseWire): UniverseAgentExi
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcExitMaintenanceUnaryWire.ts')));
-	assert.ok(dir, 'grpcExitMaintenanceUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

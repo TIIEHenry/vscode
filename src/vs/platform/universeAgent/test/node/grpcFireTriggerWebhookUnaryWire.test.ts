@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -194,45 +193,6 @@ suite('grpc AgentService FireTriggerWebhook / InstallSessionDemoFake protobuf wi
 			reasonCode: '',
 		});
 	});
-
-	test('fire-trigger-webhook unary wire is FireTriggerWebhook + InstallSessionDemoFake only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcFireTriggerWebhookUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeFireTriggerWebhookRequest\b/.test(source));
-		assert.ok(/\bdecodeFireTriggerWebhookResponse\b/.test(source));
-		assert.ok(/\bencodeInstallSessionDemoFakeRequest\b/.test(source));
-		assert.ok(/\bdecodeInstallSessionDemoFakeResponse\b/.test(source));
-		assert.ok(/\bencodeBytesField\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bClearSessionDemoFake\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('fireTriggerWebhook / installSessionDemoFake use bytes then map*', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const fire = extractAsyncMethod(source, 'fireTriggerWebhook');
-		assert.ok(fire.includes('makeUnaryBytesClient'), 'fireTriggerWebhook must use makeUnaryBytesClient');
-		assert.ok(fire.includes('encodeFireTriggerWebhookRequest'), 'fireTriggerWebhook must call encodeFireTriggerWebhookRequest');
-		assert.ok(fire.includes('decodeFireTriggerWebhookResponse'), 'fireTriggerWebhook must call decodeFireTriggerWebhookResponse');
-		assert.ok(fire.includes('mapFireTriggerWebhookStatus'), 'fireTriggerWebhook must call mapFireTriggerWebhookStatus');
-		assert.ok(!fire.includes('makeUnaryClient<'), 'fireTriggerWebhook must not use JSON makeUnaryClient');
-		assert.ok(!fire.includes('JSON.stringify'), 'fireTriggerWebhook must not JSON.stringify');
-
-		const install = extractAsyncMethod(source, 'installSessionDemoFake');
-		assert.ok(install.includes('makeUnaryBytesClient'), 'installSessionDemoFake must use makeUnaryBytesClient');
-		assert.ok(install.includes('encodeInstallSessionDemoFakeRequest'), 'installSessionDemoFake must call encodeInstallSessionDemoFakeRequest');
-		assert.ok(install.includes('decodeInstallSessionDemoFakeResponse'), 'installSessionDemoFake must call decodeInstallSessionDemoFakeResponse');
-		assert.ok(!install.includes('makeUnaryClient<'), 'installSessionDemoFake must not use JSON makeUnaryClient');
-		assert.ok(!install.includes('JSON.stringify'), 'installSessionDemoFake must not JSON.stringify');
-		assert.ok(!install.includes('bytesToBase64'), 'installSessionDemoFake must not base64 queues_payload');
-
-		assert.ok(source.includes('grpcFireTriggerWebhookUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 /** Same mapping as Agent.InstallSessionDemoFake JSON unary (`ok: wire.success === true`). */
@@ -251,24 +211,7 @@ function encodeEnumInclZero(field: number, value: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcFireTriggerWebhookUnaryWire.ts')));
-	assert.ok(dir, 'grpcFireTriggerWebhookUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();

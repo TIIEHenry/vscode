@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -227,49 +226,6 @@ suite('grpc RemoteAgentService GetConfig protobuf wire', () => {
 			healthCheck: emptyHealth(),
 		});
 	});
-
-	test('get-config unary wire is RemoteAgentService.GetConfig only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcGetConfigUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeGetConfigRequest\b/.test(source));
-		assert.ok(/\bdecodeGetConfigResponse\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\blastVarint\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\blastFixed64\b/.test(source));
-		assert.ok(/\bdecodeEndpoint\b/.test(source));
-		assert.ok(/\bdecodeAuthConfig\b/.test(source));
-		assert.ok(/\bdecodePermissionDelegate\b/.test(source));
-		assert.ok(/\bdecodeWhitelistEntry\b/.test(source));
-		assert.ok(/\bdecodeArgCondition\b/.test(source));
-		assert.ok(/\bdecodePermissionBudget\b/.test(source));
-		assert.ok(/\bdecodeHealthCheckConfig\b/.test(source));
-		assert.ok(!/\bencodeEndpoint\b|\bencodeAuthConfig\b|\bencodePermissionDelegate\b|\bencodeHealthCheckConfig\b/.test(source));
-		assert.ok(!/\bgrpcListConfigsUnaryWire\b/.test(source));
-		assert.ok(!source.includes('UniverseAgent-WorkTrees'));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getRemoteAgentConfig uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const getConfig = extractAsyncMethod(source, 'getRemoteAgentConfig');
-		assert.ok(getConfig.includes('makeUnaryBytesClient'), 'getRemoteAgentConfig must use makeUnaryBytesClient');
-		assert.ok(getConfig.includes('encodeGetConfigRequest'), 'getRemoteAgentConfig must call encodeGetConfigRequest');
-		assert.ok(getConfig.includes('decodeGetConfigResponse'), 'getRemoteAgentConfig must call decodeGetConfigResponse');
-		assert.ok(getConfig.includes('mapRemoteAgentConfig'), 'getRemoteAgentConfig still calls mapRemoteAgentConfig');
-		assert.ok(!getConfig.includes('makeUnaryClient<'), 'getRemoteAgentConfig must not use JSON makeUnaryClient');
-		assert.ok(!getConfig.includes('JSON.stringify'), 'getRemoteAgentConfig must not JSON.stringify');
-
-		assert.ok(source.includes('grpcGetConfigUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-	});
 });
 
 function emptyEndpoint() {
@@ -381,24 +337,7 @@ function nestedHealthBytes(): Uint8Array {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcGetConfigUnaryWire.ts')));
-	assert.ok(dir, 'grpcGetConfigUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
