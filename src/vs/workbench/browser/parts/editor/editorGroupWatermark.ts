@@ -19,8 +19,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IUniverseAgentPty, previewUniverseAgentPtyEditorCommandId } from '../../../../platform/universeAgent/common/universeAgentPty.js';
+import { getEditorGroupWatermarkTips, IEditorGroupWatermarkTipsSession, IPreviewCategoryEmptyState, previewTerminalLocalCommandId } from '../../../services/editor/common/editorGroupWatermarkTips.js';
 import { IPreviewCategoryService, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
 
 interface WatermarkEntry {
@@ -73,35 +72,24 @@ export function getEditorGroupWatermarkEntryActionIds(): readonly string[] {
 	return entries.map(entry => entry.id);
 }
 
-/** Local editor terminal. Used when the engine is disconnected or the Pty bridge is absent. */
-export const previewTerminalLocalCommandId = 'workbench.action.createTerminalEditor';
+/** Shown when no tips contribution is registered, or it does not know the category. */
+const defaultCategoryEmptyState: IPreviewCategoryEmptyState = {
+	icon: 'symbol-misc',
+	title: localize('previewEmpty.default.title', "No Preview Content"),
+	description: localize('previewEmpty.default.desc', "Select an item to preview or start a task in the conversation panel."),
+	actions: [],
+};
 
 /**
- * Preview Terminal empty state: engine editor pty when connected and the
- * main-process bridge is available; otherwise the local editor terminal.
+ * Same command as the Terminal empty-state button, opened in `viewColumn`.
+ * The command is chosen by the registered watermark tips; without them it is
+ * the local editor terminal.
  */
-export function previewTerminalEmptyStateCommand(connected: boolean, bridgeAvailable: boolean): string {
-	if (connected && bridgeAvailable) {
-		return previewUniverseAgentPtyEditorCommandId;
-	}
-	return previewTerminalLocalCommandId;
-}
-
-/** Same command as the Terminal empty-state button, opened in `viewColumn`. */
 export async function executePreviewTerminalEmptyState(accessor: ServicesAccessor, viewColumn: number): Promise<void> {
 	const commandService = accessor.get(ICommandService);
-	const connection = accessor.get(IUniverseAgentConnection);
-	const pty = accessor.get(IUniverseAgentPty);
-	const connected = connection.isEngineConnected();
-	let bridgeAvailable = false;
-	if (connected) {
-		try {
-			bridgeAvailable = await pty.isBridgeAvailable();
-		} catch {
-			bridgeAvailable = false;
-		}
-	}
-	await commandService.executeCommand(previewTerminalEmptyStateCommand(connected, bridgeAvailable), {
+	const tips = getEditorGroupWatermarkTips();
+	const commandId = tips ? await tips.resolveTerminalEmptyStateCommand(accessor) : previewTerminalLocalCommandId;
+	await commandService.executeCommand(commandId, {
 		location: { viewColumn },
 	});
 }
@@ -119,6 +107,8 @@ export class EditorGroupWatermark extends Disposable {
 	private readonly transientDisposables = this._register(new DisposableStore());
 	private readonly keybindingLabels = this._register(new DisposableStore());
 
+	private readonly tips: IEditorGroupWatermarkTipsSession | undefined;
+
 	private enabled = false;
 	private workbenchState: WorkbenchState;
 
@@ -132,9 +122,7 @@ export class EditorGroupWatermark extends Disposable {
 		@IStorageService private readonly storageService: IStorageService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService,
-		@ICommandService private readonly commandService: ICommandService,
-		@IUniverseAgentConnection private readonly universeAgentConnection: IUniverseAgentConnection,
-		@IUniverseAgentPty private readonly universeAgentPty: IUniverseAgentPty
+		@ICommandService private readonly commandService: ICommandService
 	) {
 		super();
 
@@ -161,116 +149,17 @@ export class EditorGroupWatermark extends Disposable {
 			menuOptions: { shouldForwardArgs: true }
 		}));
 
+		// Created before the first render, so the tips are settled when the empty state is first drawn.
+		if (this.previewCategoryEmpty) {
+			this.tips = getEditorGroupWatermarkTips()?.createSession(this.instantiationService, () => this.render());
+			if (this.tips) {
+				this._register(this.tips);
+			}
+		}
+
 		this.registerListeners();
 
-		if (this.previewCategoryEmpty && this.isEngineConnected()) {
-			// Marks the bridge unknown before the first paint.
-			this.queryBridgeAvailable();
-		}
-
 		this.render();
-	}
-
-	override dispose(): void {
-		this.bridgeQueryGeneration++;
-		this.bridgeProbe = undefined;
-		this.bridgeProbeGeneration = 0;
-		super.dispose();
-	}
-
-	// undefined: not confirmed on this connection (probe in flight, or the last probe was rejected).
-	// false: confirmed unavailable, including when the engine is disconnected.
-	private bridgeAvailable: boolean | undefined = false;
-	private bridgeQueryGeneration = 0;
-	private bridgeProbe: Promise<void> | undefined;
-	private bridgeProbeGeneration = 0;
-
-	private isEngineConnected(): boolean {
-		return !!this.universeAgentConnection?.isEngineConnected();
-	}
-
-	private queryBridgeAvailable(): Promise<void> {
-		if (this._store.isDisposed) {
-			return Promise.resolve();
-		}
-
-		const generation = ++this.bridgeQueryGeneration;
-		if (!this.isEngineConnected()) {
-			this.bridgeAvailable = false;
-			this.bridgeProbe = undefined;
-			this.bridgeProbeGeneration = 0;
-			return Promise.resolve();
-		}
-
-		this.bridgeAvailable = undefined;
-		this.bridgeProbeGeneration = generation;
-		const promise = this.finishBridgeQuery(generation);
-		// A probe that already settled (synchronous throw) must not stay in flight.
-		if (this.bridgeProbeGeneration === generation) {
-			this.bridgeProbe = promise;
-		}
-		return promise;
-	}
-
-	private async finishBridgeQuery(generation: number): Promise<void> {
-		let rejected = false;
-		let result = false;
-		try {
-			result = this.universeAgentPty ? await this.universeAgentPty.isBridgeAvailable() : false;
-		} catch {
-			// Rejection is not confirmed-unavailable. The next click on this connection probes again.
-			rejected = true;
-		}
-
-		if (this.bridgeProbeGeneration === generation) {
-			this.bridgeProbeGeneration = 0;
-			this.bridgeProbe = undefined;
-		}
-
-		if (this._store.isDisposed || generation !== this.bridgeQueryGeneration) {
-			return;
-		}
-
-		if (!this.isEngineConnected()) {
-			return;
-		}
-
-		if (rejected) {
-			this.bridgeAvailable = undefined;
-			return;
-		}
-
-		this.bridgeAvailable = result;
-		this.render();
-	}
-
-	private async runPendingTerminalEmptyState(): Promise<void> {
-		// A still-connected change retires the probe captured at entry and leaves
-		// bridgeAvailable unknown. Follow that replacement; do not start another query.
-		let waited = this.bridgeProbe;
-		if (waited) {
-			await waited;
-		} else {
-			waited = this.queryBridgeAvailable();
-			await waited;
-		}
-
-		while (!this._store.isDisposed && this.bridgeAvailable === undefined) {
-			const newer = this.bridgeProbe;
-			if (!newer || newer === waited) {
-				return;
-			}
-			waited = newer;
-			await waited;
-		}
-
-		const bridgeAvailable = this.bridgeAvailable;
-		if (this._store.isDisposed || bridgeAvailable === undefined) {
-			return;
-		}
-
-		const connected = this.isEngineConnected();
-		void this.commandService.executeCommand(previewTerminalEmptyStateCommand(connected, bridgeAvailable));
 	}
 
 	private registerListeners(): void {
@@ -281,21 +170,6 @@ export class EditorGroupWatermark extends Disposable {
 			this._register(this.previewCategoryService.onDidChangeCategoryCounts(() => {
 				this.render();
 			}));
-			if (this.universeAgentConnection) {
-				this._register(this.universeAgentConnection.onDidChangeConnection(() => {
-					if (!this.isEngineConnected()) {
-						this.bridgeQueryGeneration++;
-						this.bridgeAvailable = false;
-						this.bridgeProbe = undefined;
-						this.bridgeProbeGeneration = 0;
-						this.render();
-					} else {
-						// Unknown before paint, so a click during the probe is not the local command.
-						this.queryBridgeAvailable();
-						this.render();
-					}
-				}));
-			}
 		}
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
@@ -333,103 +207,8 @@ export class EditorGroupWatermark extends Disposable {
 		return this.previewCategoryService.getCategoryCounts()[category] ?? 0;
 	}
 
-	private getCategoryIconClass(category: PreviewCategory): string {
-		switch (category) {
-			case PreviewCategory.Overview:
-				return 'home';
-			case PreviewCategory.Terminal:
-				return 'terminal';
-			case PreviewCategory.Code:
-				return 'code';
-			case PreviewCategory.Web:
-				return 'globe';
-			case PreviewCategory.Planning:
-				return 'checklist';
-			case PreviewCategory.History:
-				return 'history';
-			case PreviewCategory.Artifacts:
-				return 'package';
-			default:
-				return 'symbol-misc';
-		}
-	}
-
-	private getCategoryEmptyTitle(category: PreviewCategory): string {
-		switch (category) {
-			case PreviewCategory.Overview:
-				return localize('previewEmpty.overview.title', "Workspace Overview");
-			case PreviewCategory.Terminal:
-				return localize('previewEmpty.terminal.title', "No Active Terminal");
-			case PreviewCategory.Code:
-				return localize('previewEmpty.code.title', "No Open Code Editors");
-			case PreviewCategory.Web:
-				return localize('previewEmpty.web.title', "No Web Preview");
-			case PreviewCategory.Planning:
-				return localize('previewEmpty.planning.title', "No Planning Documents");
-			case PreviewCategory.History:
-				return localize('previewEmpty.history.title', "No History Records");
-			case PreviewCategory.Artifacts:
-				return localize('previewEmpty.artifacts.title', "No Generated Artifacts");
-			default:
-				return localize('previewEmpty.default.title', "No Preview Content");
-		}
-	}
-
-	private getCategoryEmptyDesc(category: PreviewCategory): string {
-		switch (category) {
-			case PreviewCategory.Overview:
-				return localize('previewEmpty.overview.desc', "The Welcome page and walkthroughs open here.");
-			case PreviewCategory.Terminal:
-				return localize('previewEmpty.terminal.desc', "Terminals open in the bottom panel by default. Terminals you open or move into the editor area appear here.");
-			case PreviewCategory.Code:
-				return localize('previewEmpty.code.desc', "Select files from the Sources file tree or jump directly from conversation references.");
-			case PreviewCategory.Web:
-				return localize('previewEmpty.web.desc', "Start local dev servers or launch web applications to inspect preview results.");
-			case PreviewCategory.Planning:
-				return localize('previewEmpty.planning.desc', "The todo list of the active agent session opens here.");
-			case PreviewCategory.History:
-				return localize('previewEmpty.history.desc', "Read-only past versions open here: files and diffs from earlier commits, and local history snapshots.");
-			case PreviewCategory.Artifacts:
-				return localize('previewEmpty.artifacts.desc', "No content source is connected to this category yet.");
-			default:
-				return localize('previewEmpty.default.desc', "Select an item to preview or start a task in the conversation panel.");
-		}
-	}
-
-	private terminalEmptyStateCommandId(): string | undefined {
-		const connected = this.isEngineConnected();
-		if (!connected) {
-			return previewTerminalEmptyStateCommand(false, false);
-		}
-		const bridgeAvailable = this.bridgeAvailable;
-		if (bridgeAvailable === undefined) {
-			return undefined;
-		}
-		return previewTerminalEmptyStateCommand(true, bridgeAvailable);
-	}
-
-	private getCategoryActions(category: PreviewCategory): readonly { id: string | undefined; label: string; icon: string }[] {
-		switch (category) {
-			case PreviewCategory.Terminal:
-				return [
-					{ id: this.terminalEmptyStateCommandId(), label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
-				];
-			case PreviewCategory.Code:
-				return [
-					{ id: 'workbench.action.files.openFile', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
-					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newFile', "New File"), icon: 'new-file' },
-				];
-			case PreviewCategory.Web:
-				return [
-					{ id: 'workbench.action.browser.open', label: localize('previewAction.openBrowser', "Open Browser"), icon: 'globe' },
-				];
-			case PreviewCategory.Planning:
-				return [
-					{ id: 'workbench.action.planning.openTodos', label: localize('previewAction.openPlanningTodos', "Open Planning Todos"), icon: 'checklist' },
-				];
-			default:
-				return [];
-		}
+	private getCategoryEmptyState(category: PreviewCategory): IPreviewCategoryEmptyState {
+		return this.tips?.getCategoryEmptyState(category) ?? defaultCategoryEmptyState;
 	}
 
 	private render(): void {
@@ -447,15 +226,15 @@ export class EditorGroupWatermark extends Disposable {
 		const category = this.previewCategoryEmpty ? this.previewCategoryService.activeCategory : undefined;
 		if (category && this.categoryEditorCount(category) === 0) {
 			const emptyCard = append(this.shortcuts.parentElement ?? this.shortcuts, $('.preview-category-empty-state'));
-			const iconClass = this.getCategoryIconClass(category);
-			const icon = append(emptyCard, $('div.preview-category-empty-icon.codicon.codicon-' + iconClass));
+			const emptyState = this.getCategoryEmptyState(category);
+			const icon = append(emptyCard, $('div.preview-category-empty-icon.codicon.codicon-' + emptyState.icon));
 			icon.setAttribute('aria-hidden', 'true');
 			const title = append(emptyCard, $('div.preview-category-empty-title'));
-			title.textContent = this.getCategoryEmptyTitle(category);
+			title.textContent = emptyState.title;
 			const desc = append(emptyCard, $('div.preview-category-empty-desc'));
-			desc.textContent = this.getCategoryEmptyDesc(category);
+			desc.textContent = emptyState.description;
 
-			const actions = this.getCategoryActions(category);
+			const actions = emptyState.actions;
 			if (actions.length > 0) {
 				const actionsContainer = append(emptyCard, $('.preview-category-empty-actions'));
 				for (const action of actions) {
@@ -492,7 +271,7 @@ export class EditorGroupWatermark extends Disposable {
 							void this.commandService.executeCommand(commandId);
 							return;
 						}
-						void this.runPendingTerminalEmptyState();
+						void this.tips?.runPendingTerminalEmptyState();
 					}));
 				}
 			}

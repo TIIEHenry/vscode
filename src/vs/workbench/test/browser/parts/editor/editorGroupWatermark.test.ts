@@ -5,11 +5,10 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { EditorGroupWatermark, getEditorGroupWatermarkEntryActionIds, previewTerminalLocalCommandId } from '../../../../browser/parts/editor/editorGroupWatermark.js';
+import { EditorGroupWatermark, executePreviewTerminalEmptyState, getEditorGroupWatermarkEntryActionIds } from '../../../../browser/parts/editor/editorGroupWatermark.js';
 
-import { DeferredPromise } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { Event, Emitter } from '../../../../../base/common/event.js';
+import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
@@ -20,96 +19,263 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { PreviewCategoryService } from '../../../../services/editor/browser/previewCategoryService.js';
 import { PreviewCategory } from '../../../../services/editor/common/previewCategoryService.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IUniverseAgentPty, previewUniverseAgentPtyEditorCommandId } from '../../../../../platform/universeAgent/common/universeAgentPty.js';
+import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
+import { IEditorGroupWatermarkTips, IEditorGroupWatermarkTipsSession, IPreviewCategoryEmptyState, overrideEditorGroupWatermarkTips, previewTerminalLocalCommandId, registerEditorGroupWatermarkTips } from '../../../../services/editor/common/editorGroupWatermarkTips.js';
 
 suite('Editor Group Watermark', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('renders category empty state tailored to active category', () => {
+	interface IStubTipsLog {
+		sessionsCreated: number;
+		sessionsDisposed: number;
+		pendingRuns: number;
+		resolvedAccessors: number;
+		notifyChange: () => void;
+	}
+
+	/** Tips whose Terminal action has the given command id (`undefined`: not known yet), plus Planning and Artifacts states. */
+	function createStubTips(terminalCommandId: string | undefined, resolvedCommandId = 'stub.resolved'): { tips: IEditorGroupWatermarkTips; log: IStubTipsLog } {
+		const log: IStubTipsLog = { sessionsCreated: 0, sessionsDisposed: 0, pendingRuns: 0, resolvedAccessors: 0, notifyChange: () => { } };
+		const tips: IEditorGroupWatermarkTips = {
+			createSession(_instantiationService, onDidChange) {
+				log.sessionsCreated++;
+				log.notifyChange = onDidChange;
+				const session: IEditorGroupWatermarkTipsSession = {
+					getCategoryEmptyState(category): IPreviewCategoryEmptyState | undefined {
+						switch (category) {
+							case PreviewCategory.Terminal:
+								return { icon: 'terminal', title: 'Stub Terminal Title', description: 'stub terminal', actions: [{ id: terminalCommandId, label: 'Stub New Terminal', icon: 'terminal' }] };
+							case PreviewCategory.Planning:
+								return { icon: 'checklist', title: 'Stub Planning Title', description: 'stub planning', actions: [{ id: 'workbench.action.planning.openTodos', label: 'Stub Todos', icon: 'checklist' }] };
+							case PreviewCategory.Artifacts:
+								return { icon: 'package', title: 'Stub Artifacts Title', description: 'stub artifacts', actions: [] };
+							default:
+								return undefined;
+						}
+					},
+					runPendingTerminalEmptyState() {
+						log.pendingRuns++;
+						return Promise.resolve();
+					},
+					dispose() {
+						log.sessionsDisposed++;
+					}
+				};
+				return session;
+			},
+			resolveTerminalEmptyStateCommand() {
+				log.resolvedAccessors++;
+				return Promise.resolve(resolvedCommandId);
+			}
+		};
+		return { tips, log };
+	}
+
+	function createWatermark(disposables: DisposableStore, category: PreviewCategory, previewCategoryEmpty: boolean): {
+		container: HTMLElement;
+		watermark: EditorGroupWatermark;
+		previewCategoryService: PreviewCategoryService;
+		executedCommands: string[];
+		lookedUpKeybindingIds: string[];
+	} {
+		const container = document.createElement('div');
+		const storage = disposables.add(new TestStorageService());
+		const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
+		previewCategoryService.setActiveCategory(category);
+		const config = new TestConfigurationService();
+		config.setUserConfiguration('workbench', { tips: { enabled: false } });
+		const executedCommands: string[] = [];
+		const lookedUpKeybindingIds: string[] = [];
+
+		const watermark = disposables.add(new EditorGroupWatermark(
+			container,
+			previewCategoryEmpty,
+			new class extends mock<IKeybindingService>() {
+				override lookupKeybinding(id: string) {
+					lookedUpKeybindingIds.push(id);
+					return undefined;
+				}
+				override onDidUpdateKeybindings = Event.None;
+			}(),
+			new class extends mock<IWorkspaceContextService>() {
+				override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
+				override onDidChangeWorkbenchState = Event.None;
+			}(),
+			new class extends mock<IContextKeyService>() {
+				override contextMatchesRules() { return true; }
+			}(),
+			config,
+			storage,
+			new class extends mock<IInstantiationService>() {
+				override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+					return { dispose() { } } as unknown as T;
+				}
+			}(),
+			previewCategoryService,
+			new class extends mock<ICommandService>() {
+				override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
+					executedCommands.push(id);
+					return Promise.resolve(undefined);
+				}
+			}()
+		));
+		return { container, watermark, previewCategoryService, executedCommands, lookedUpKeybindingIds };
+	}
+
+	test('renders the category empty state the registered tips return', () => {
 		const disposables = new DisposableStore();
 		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-			const executedCommands: string[] = [];
+			const { tips, log } = createStubTips('stub.terminal.command');
+			disposables.add(registerEditorGroupWatermarkTips(tips));
+			const { container, previewCategoryService, executedCommands, lookedUpKeybindingIds } = createWatermark(disposables, PreviewCategory.Terminal, true);
 
-			disposables.add(new EditorGroupWatermark(
-				container,
-				true,
-				new class extends mock<IKeybindingService>() {
-					override lookupKeybinding() { return undefined; }
-					override onDidUpdateKeybindings = Event.None;
-				}(),
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				new class extends mock<ICommandService>() {
-					override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
-						executedCommands.push(id);
-						return Promise.resolve(undefined);
-					}
-				}(),
-				new class extends mock<IUniverseAgentConnection>() {
-					override isEngineConnected() { return false; }
-					override onDidChangeConnection = Event.None;
-				}(),
-				new class extends mock<IUniverseAgentPty>() {
-					override isBridgeAvailable() { return Promise.resolve(false); }
-				}()
-			));
+			assert.strictEqual(log.sessionsCreated, 1);
+			assert.strictEqual(container.querySelector('.preview-category-empty-title')?.textContent, 'Stub Terminal Title');
+			assert.strictEqual(container.querySelector('.preview-category-empty-desc')?.textContent, 'stub terminal');
+			assert.ok(container.querySelector('.preview-category-empty-icon')?.className.includes('codicon-terminal'));
+			assert.strictEqual(container.querySelector('.preview-category-empty-action-label')?.textContent, 'Stub New Terminal');
+			assert.deepStrictEqual(lookedUpKeybindingIds, ['stub.terminal.command']);
 
-			const title = container.querySelector('.preview-category-empty-title') as HTMLElement;
-			const icon = container.querySelector('.preview-category-empty-icon') as HTMLElement;
-			const actionButtons = container.querySelectorAll('.preview-category-empty-action-button');
-			assert.ok(title);
-			assert.ok(icon);
-			assert.ok(actionButtons.length > 0);
+			(container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement).click();
+			assert.deepStrictEqual(executedCommands, ['stub.terminal.command']);
+			assert.strictEqual(log.pendingRuns, 0);
 
-			(actionButtons[0] as HTMLButtonElement).click();
-			assert.strictEqual(executedCommands.length, 1);
-			// Initially Code
-			assert.strictEqual(previewCategoryService.activeCategory, PreviewCategory.Code);
-			assert.ok(title.textContent?.includes('Code'));
-
-			// Switch to Terminal
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const terminalTitle = container.querySelector('.preview-category-empty-title') as HTMLElement;
-			const terminalIcon = container.querySelector('.preview-category-empty-icon') as HTMLElement;
-			assert.ok(terminalTitle.textContent?.includes('Terminal'));
-			assert.ok(terminalIcon.className.includes('codicon-terminal'));
-
-			// Switch to Artifacts
 			previewCategoryService.setActiveCategory(PreviewCategory.Artifacts);
-			const artifactsTitle = container.querySelector('.preview-category-empty-title') as HTMLElement;
-			const artifactsIcon = container.querySelector('.preview-category-empty-icon') as HTMLElement;
-			assert.ok(artifactsTitle.textContent?.includes('Artifacts'));
-			assert.ok(artifactsIcon.className.includes('codicon-package'));
-			// Artifacts has no content source, so it offers no action.
+			assert.strictEqual(container.querySelector('.preview-category-empty-title')?.textContent, 'Stub Artifacts Title');
+			assert.ok(container.querySelector('.preview-category-empty-icon')?.className.includes('codicon-package'));
 			assert.strictEqual(container.querySelectorAll('.preview-category-empty-action-button').length, 0);
 
-			// Planning offers the existing todo editor
 			previewCategoryService.setActiveCategory(PreviewCategory.Planning);
-			const planningButtons = container.querySelectorAll('.preview-category-empty-action-button');
-			assert.strictEqual(planningButtons.length, 1);
 			executedCommands.length = 0;
-			(planningButtons[0] as HTMLButtonElement).click();
+			(container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement).click();
 			assert.deepStrictEqual(executedCommands, ['workbench.action.planning.openTodos']);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	test('a category the tips do not know falls back to the default text', () => {
+		const disposables = new DisposableStore();
+		try {
+			const { tips } = createStubTips('stub.terminal.command');
+			disposables.add(registerEditorGroupWatermarkTips(tips));
+			const { container } = createWatermark(disposables, PreviewCategory.Code, true);
+
+			assert.strictEqual(container.querySelector('.preview-category-empty-title')?.textContent, 'No Preview Content');
+			assert.ok(container.querySelector('.preview-category-empty-icon')?.className.includes('codicon-symbol-misc'));
+			assert.strictEqual(container.querySelectorAll('.preview-category-empty-action-button').length, 0);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	test('a button without a command id waits on the tips session instead of running a command', () => {
+		const disposables = new DisposableStore();
+		try {
+			const { tips, log } = createStubTips(undefined);
+			disposables.add(registerEditorGroupWatermarkTips(tips));
+			const { container, executedCommands, lookedUpKeybindingIds } = createWatermark(disposables, PreviewCategory.Terminal, true);
+
+			assert.deepStrictEqual(lookedUpKeybindingIds, []);
+			(container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement).click();
+			assert.deepStrictEqual(executedCommands, []);
+			assert.strictEqual(log.pendingRuns, 1);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	test('the tips session asks for a new render and is disposed with the watermark', () => {
+		const disposables = new DisposableStore();
+		try {
+			const { tips, log } = createStubTips('stub.terminal.command');
+			disposables.add(registerEditorGroupWatermarkTips(tips));
+			const { container, watermark } = createWatermark(disposables, PreviewCategory.Terminal, true);
+
+			const firstTitle = container.querySelector('.preview-category-empty-title');
+			assert.ok(firstTitle);
+			log.notifyChange();
+			const secondTitle = container.querySelector('.preview-category-empty-title');
+			assert.ok(secondTitle);
+			assert.notStrictEqual(secondTitle, firstTitle, 'the watermark rendered again');
+
+			watermark.dispose();
+			assert.strictEqual(log.sessionsDisposed, 1);
+			const titleBeforeDisposedNotify = container.querySelector('.preview-category-empty-title');
+			log.notifyChange();
+			assert.strictEqual(container.querySelector('.preview-category-empty-title'), titleBeforeDisposedNotify, 'a disposed watermark does not render');
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	test('no tips session when the group does not use Preview category empty states', () => {
+		const disposables = new DisposableStore();
+		try {
+			const { tips, log } = createStubTips('stub.terminal.command');
+			disposables.add(registerEditorGroupWatermarkTips(tips));
+			createWatermark(disposables, PreviewCategory.Terminal, false);
+			assert.strictEqual(log.sessionsCreated, 0);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	suite('without registered tips', () => {
+
+		test('the category empty state is the default text without actions', () => {
+			const disposables = new DisposableStore();
+			try {
+				disposables.add(overrideEditorGroupWatermarkTips(undefined));
+				const { container } = createWatermark(disposables, PreviewCategory.Terminal, true);
+
+				assert.strictEqual(container.querySelector('.preview-category-empty-title')?.textContent, 'No Preview Content');
+				assert.strictEqual(container.querySelectorAll('.preview-category-empty-action-button').length, 0);
+			} finally {
+				disposables.dispose();
+			}
+		});
+
+		test('executePreviewTerminalEmptyState opens the local terminal in the given column', async () => {
+			const disposables = new DisposableStore();
+			try {
+				disposables.add(overrideEditorGroupWatermarkTips(undefined));
+				const executed: { id: string; args: unknown[] }[] = [];
+				const instantiationService = disposables.add(new InstantiationService(new ServiceCollection(
+					[ICommandService, new class extends mock<ICommandService>() {
+						override executeCommand<T = unknown>(id: string, ...args: unknown[]): Promise<T | undefined> {
+							executed.push({ id, args });
+							return Promise.resolve(undefined);
+						}
+					}()],
+				)));
+				await instantiationService.invokeFunction(accessor => executePreviewTerminalEmptyState(accessor, 3));
+				assert.deepStrictEqual(executed, [{ id: previewTerminalLocalCommandId, args: [{ location: { viewColumn: 3 } }] }]);
+			} finally {
+				disposables.dispose();
+			}
+		});
+	});
+
+	test('executePreviewTerminalEmptyState runs the command the registered tips resolve', async () => {
+		const disposables = new DisposableStore();
+		try {
+			const { tips, log } = createStubTips(undefined, 'stub.resolved');
+			disposables.add(registerEditorGroupWatermarkTips(tips));
+			const executed: { id: string; args: unknown[] }[] = [];
+			const instantiationService = disposables.add(new InstantiationService(new ServiceCollection(
+				[ICommandService, new class extends mock<ICommandService>() {
+					override executeCommand<T = unknown>(id: string, ...args: unknown[]): Promise<T | undefined> {
+						executed.push({ id, args });
+						return Promise.resolve(undefined);
+					}
+				}()],
+			)));
+			await instantiationService.invokeFunction(accessor => executePreviewTerminalEmptyState(accessor, 2));
+			assert.strictEqual(log.resolvedAccessors, 1);
+			assert.deepStrictEqual(executed, [{ id: 'stub.resolved', args: [{ location: { viewColumn: 2 } }] }]);
 		} finally {
 			disposables.dispose();
 		}
@@ -124,635 +290,4 @@ suite('Editor Group Watermark', () => {
 		assert.ok(actionIds.includes('workbench.action.findInFiles'));
 		assert.strictEqual(actionIds.includes('workbench.action.chat.open'), false);
 	});
-
-	test('terminal empty state command resolves consistently for keybinding lookup and execution', async () => {
-		const disposables = new DisposableStore();
-		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-			const lookedUpKeybindingIds: string[] = [];
-			const executedCommands: string[] = [];
-			let connected = true;
-			const connectionEmitter = disposables.add(new Emitter<any>());
-
-			const keybindingService = new class extends mock<IKeybindingService>() {
-				override lookupKeybinding(id: string) {
-					lookedUpKeybindingIds.push(id);
-					return undefined;
-				}
-				override onDidUpdateKeybindings = Event.None;
-			}();
-
-			const connection = new class extends mock<IUniverseAgentConnection>() {
-				override isEngineConnected() { return connected; }
-				override onDidChangeConnection = connectionEmitter.event;
-			}();
-
-			let bridgeAvailable = true;
-			const pty = new class extends mock<IUniverseAgentPty>() {
-				override isBridgeAvailable() { return Promise.resolve(bridgeAvailable); }
-			}();
-
-			const commandService = new class extends mock<ICommandService>() {
-				override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
-					executedCommands.push(id);
-					return Promise.resolve(undefined);
-				}
-			}();
-
-			disposables.add(new EditorGroupWatermark(
-				container,
-				true,
-				keybindingService,
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				commandService,
-				connection,
-				pty
-			));
-
-			// Wait for queryBridgeAvailable promise to resolve and re-render
-			await Promise.resolve();
-
-			lookedUpKeybindingIds.length = 0;
-			executedCommands.length = 0;
-
-			// Trigger render to inspect fresh keybinding lookup when connected && bridgeAvailable
-			connectionEmitter.fire({});
-			await Promise.resolve();
-
-			assert.ok(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId));
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
-
-			const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			assert.ok(actionButton);
-			actionButton.click();
-			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
-			actionButton.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 2 }));
-			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
-
-			// Now disconnect: connected = false
-			connected = false;
-			lookedUpKeybindingIds.length = 0;
-			executedCommands.length = 0;
-			connectionEmitter.fire({});
-			await Promise.resolve();
-
-			assert.ok(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId));
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId), false);
-
-			const disconnectedButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			disconnectedButton.click();
-			assert.deepStrictEqual(executedCommands, [previewTerminalLocalCommandId]);
-
-			// Now connected = true, but bridgeAvailable = false
-			connected = true;
-			bridgeAvailable = false;
-			lookedUpKeybindingIds.length = 0;
-			executedCommands.length = 0;
-			connectionEmitter.fire({});
-			await Promise.resolve();
-
-			assert.ok(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId));
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId), false);
-
-			const bridgeUnavailableButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			bridgeUnavailableButton.click();
-			assert.deepStrictEqual(executedCommands, [previewTerminalLocalCommandId]);
-		} finally {
-			disposables.dispose();
-		}
-	});
-
-	test('stale async isBridgeAvailable result is ignored when connection drops or generation advances', async () => {
-		const disposables = new DisposableStore();
-		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-			let connected = true;
-			const connectionEmitter = disposables.add(new Emitter<any>());
-			const connection = new class extends mock<IUniverseAgentConnection>() {
-				override isEngineConnected() { return connected; }
-				override onDidChangeConnection = connectionEmitter.event;
-			}();
-
-			const deferredBridge1 = new DeferredPromise<boolean>();
-			const deferredBridge2 = new DeferredPromise<boolean>();
-			let callIndex = 0;
-			const pty = new class extends mock<IUniverseAgentPty>() {
-				override isBridgeAvailable() {
-					callIndex++;
-					return callIndex === 1 ? deferredBridge1.p : deferredBridge2.p;
-				}
-			}();
-
-			const executedCommands: string[] = [];
-			const commandService = new class extends mock<ICommandService>() {
-				override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
-					executedCommands.push(id);
-					return Promise.resolve(undefined);
-				}
-			}();
-
-			disposables.add(new EditorGroupWatermark(
-				container,
-				true,
-				new class extends mock<IKeybindingService>() {
-					override lookupKeybinding() { return undefined; }
-					override onDidUpdateKeybindings = Event.None;
-				}(),
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				commandService,
-				connection,
-				pty
-			));
-
-			assert.strictEqual(callIndex, 1);
-
-			// Connection drops: synchronous reset to disconnected/local command
-			connected = false;
-			connectionEmitter.fire({});
-
-			const btn = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			assert.ok(btn);
-			btn.click();
-			assert.deepStrictEqual(executedCommands, [previewTerminalLocalCommandId]);
-
-			// Now deferredBridge1 finishes with `true` while disconnected - must be ignored
-			deferredBridge1.complete(true);
-			await Promise.resolve();
-
-			executedCommands.length = 0;
-			const btnAfterStaleResolve = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			btnAfterStaleResolve.click();
-			assert.deepStrictEqual(executedCommands, [previewTerminalLocalCommandId]);
-
-			// Now reconnect and trigger a second query that returns false
-			connected = true;
-			connectionEmitter.fire({});
-			assert.strictEqual(callIndex, 2);
-
-			deferredBridge2.complete(false);
-			await Promise.resolve();
-
-			executedCommands.length = 0;
-			const btnAfterSecondQuery = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			btnAfterSecondQuery.click();
-			assert.deepStrictEqual(executedCommands, [previewTerminalLocalCommandId]);
-		} finally {
-			disposables.dispose();
-		}
-	});
-
-	test('isBridgeAvailable is not called when disconnected', async () => {
-		const disposables = new DisposableStore();
-		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-			let connected = false;
-			const connectionEmitter = disposables.add(new Emitter<any>());
-			const connection = new class extends mock<IUniverseAgentConnection>() {
-				override isEngineConnected() { return connected; }
-				override onDidChangeConnection = connectionEmitter.event;
-			}();
-
-			let bridgeCallCount = 0;
-			const pty = new class extends mock<IUniverseAgentPty>() {
-				override isBridgeAvailable() {
-					bridgeCallCount++;
-					return Promise.resolve(true);
-				}
-			}();
-
-			disposables.add(new EditorGroupWatermark(
-				container,
-				true,
-				new class extends mock<IKeybindingService>() {
-					override lookupKeybinding() { return undefined; }
-					override onDidUpdateKeybindings = Event.None;
-				}(),
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				new class extends mock<ICommandService>() {
-					override executeCommand() { return Promise.resolve(undefined); }
-				}(),
-				connection,
-				pty
-			));
-
-			await Promise.resolve();
-			assert.strictEqual(bridgeCallCount, 0, 'Should not query bridge when created disconnected');
-
-			connectionEmitter.fire({});
-			await Promise.resolve();
-			assert.strictEqual(bridgeCallCount, 0, 'Should not query bridge when connection event fires but still disconnected');
-
-			connected = true;
-			connectionEmitter.fire({});
-			await Promise.resolve();
-			assert.strictEqual(bridgeCallCount, 1, 'Should query bridge when connected');
-		} finally {
-			disposables.dispose();
-		}
-	});
-
-	test('watermark disposal while isBridgeAvailable is in flight does not trigger render', async () => {
-		const disposables = new DisposableStore();
-		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-			const deferredBridge = new DeferredPromise<boolean>();
-			const connection = new class extends mock<IUniverseAgentConnection>() {
-				override isEngineConnected() { return true; }
-				override onDidChangeConnection = Event.None;
-			}();
-
-			const pty = new class extends mock<IUniverseAgentPty>() {
-				override isBridgeAvailable() {
-					return deferredBridge.p;
-				}
-			}();
-
-			const watermark = new EditorGroupWatermark(
-				container,
-				true,
-				new class extends mock<IKeybindingService>() {
-					override lookupKeybinding() { return undefined; }
-					override onDidUpdateKeybindings = Event.None;
-				}(),
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				new class extends mock<ICommandService>() {
-					override executeCommand() { return Promise.resolve(undefined); }
-				}(),
-				connection,
-				pty
-			);
-
-			// Dispose while isBridgeAvailable is still pending
-			watermark.dispose();
-
-			// Clear container children to observe if render runs after disposal
-			container.replaceChildren();
-
-			// Complete the pending bridge promise
-			deferredBridge.complete(true);
-			await Promise.resolve();
-
-			// render() must not run on disposed watermark
-			assert.strictEqual(container.childNodes.length, 0);
-		} finally {
-			disposables.dispose();
-		}
-	});
-
-	test('pending isBridgeAvailable click does not run the local terminal command', async () => {
-		const disposables = new DisposableStore();
-		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-			const lookedUpKeybindingIds: string[] = [];
-			const executedCommands: string[] = [];
-			const deferredBridge = new DeferredPromise<boolean>();
-			let bridgeCalls = 0;
-
-			disposables.add(new EditorGroupWatermark(
-				container,
-				true,
-				new class extends mock<IKeybindingService>() {
-					override lookupKeybinding(id: string) {
-						lookedUpKeybindingIds.push(id);
-						return undefined;
-					}
-					override onDidUpdateKeybindings = Event.None;
-				}(),
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				new class extends mock<ICommandService>() {
-					override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
-						executedCommands.push(id);
-						return Promise.resolve(undefined);
-					}
-				}(),
-				new class extends mock<IUniverseAgentConnection>() {
-					override isEngineConnected() { return true; }
-					override onDidChangeConnection = Event.None;
-				}(),
-				new class extends mock<IUniverseAgentPty>() {
-					override isBridgeAvailable() {
-						bridgeCalls++;
-						return deferredBridge.p;
-					}
-				}()
-			));
-
-			assert.strictEqual(bridgeCalls, 1);
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId), false);
-
-			const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			assert.ok(actionButton);
-			actionButton.click();
-			assert.strictEqual(bridgeCalls, 1, 'in-flight probe is awaited, not started again');
-			assert.deepStrictEqual(executedCommands, []);
-
-			deferredBridge.complete(true);
-			// Probe continuation rebinds the button; the click continuation runs on the next turn.
-			await Promise.resolve();
-			await Promise.resolve();
-
-			assert.ok(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId));
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
-			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
-
-			executedCommands.length = 0;
-			const rebound = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			rebound.click();
-			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
-		} finally {
-			disposables.dispose();
-		}
-	});
-
-	test('rejected isBridgeAvailable stays unknown until the next click probes again', async () => {
-		const disposables = new DisposableStore();
-		try {
-			const container = document.createElement('div');
-			const storage = disposables.add(new TestStorageService());
-			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-			const config = new TestConfigurationService();
-			config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-			const lookedUpKeybindingIds: string[] = [];
-			const executedCommands: string[] = [];
-			const deferredBridge = new DeferredPromise<boolean>();
-			let bridgeCalls = 0;
-
-			disposables.add(new EditorGroupWatermark(
-				container,
-				true,
-				new class extends mock<IKeybindingService>() {
-					override lookupKeybinding(id: string) {
-						lookedUpKeybindingIds.push(id);
-						return undefined;
-					}
-					override onDidUpdateKeybindings = Event.None;
-				}(),
-				new class extends mock<IWorkspaceContextService>() {
-					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-					override onDidChangeWorkbenchState = Event.None;
-				}(),
-				new class extends mock<IContextKeyService>() {
-					override contextMatchesRules() { return true; }
-				}(),
-				config,
-				storage,
-				new class extends mock<IInstantiationService>() {
-					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-						return { dispose() { } } as unknown as T;
-					}
-				}(),
-				previewCategoryService,
-				new class extends mock<ICommandService>() {
-					override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
-						executedCommands.push(id);
-						return Promise.resolve(undefined);
-					}
-				}(),
-				// Same connection for the whole test: onDidChangeConnection is never fired.
-				new class extends mock<IUniverseAgentConnection>() {
-					override isEngineConnected() { return true; }
-					override onDidChangeConnection = Event.None;
-				}(),
-				new class extends mock<IUniverseAgentPty>() {
-					override isBridgeAvailable() {
-						bridgeCalls++;
-						if (bridgeCalls === 1) {
-							return Promise.reject(new Error('bridge probe failed'));
-						}
-						return deferredBridge.p;
-					}
-				}()
-			));
-
-			await Promise.resolve();
-			assert.strictEqual(bridgeCalls, 1);
-			assert.deepStrictEqual(executedCommands, []);
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId), false);
-
-			const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-			assert.ok(actionButton);
-			actionButton.click();
-			assert.strictEqual(bridgeCalls, 2);
-			assert.deepStrictEqual(executedCommands, []);
-
-			deferredBridge.complete(true);
-			await Promise.resolve();
-			await Promise.resolve();
-
-			assert.ok(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId));
-			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
-			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
-		} finally {
-			disposables.dispose();
-		}
-	});
-
-	test('click follows the replacement bridge probe instead of dropping the command', async () => {
-		const cases: { label: string; settleSecond: (deferred: DeferredPromise<boolean>) => void; expected: readonly string[] }[] = [
-			{
-				label: 'true',
-				settleSecond: deferred => { deferred.complete(true); },
-				expected: [previewUniverseAgentPtyEditorCommandId],
-			},
-			{
-				label: 'false',
-				settleSecond: deferred => { deferred.complete(false); },
-				expected: [previewTerminalLocalCommandId],
-			},
-			{
-				label: 'rejected',
-				settleSecond: deferred => { deferred.error(new Error('bridge probe failed')); },
-				expected: [],
-			},
-		];
-
-		for (const outcome of cases) {
-			const disposables = new DisposableStore();
-			try {
-				const container = document.createElement('div');
-				const storage = disposables.add(new TestStorageService());
-				const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
-				previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
-				const config = new TestConfigurationService();
-				config.setUserConfiguration('workbench', { tips: { enabled: false } });
-
-				const executedCommands: string[] = [];
-				const deferredFirst = new DeferredPromise<boolean>();
-				const deferredSecond = new DeferredPromise<boolean>();
-				let bridgeCalls = 0;
-				const connectionEmitter = disposables.add(new Emitter<any>());
-
-				disposables.add(new EditorGroupWatermark(
-					container,
-					true,
-					new class extends mock<IKeybindingService>() {
-						override lookupKeybinding() { return undefined; }
-						override onDidUpdateKeybindings = Event.None;
-					}(),
-					new class extends mock<IWorkspaceContextService>() {
-						override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
-						override onDidChangeWorkbenchState = Event.None;
-					}(),
-					new class extends mock<IContextKeyService>() {
-						override contextMatchesRules() { return true; }
-					}(),
-					config,
-					storage,
-					new class extends mock<IInstantiationService>() {
-						override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-							return { dispose() { } } as unknown as T;
-						}
-					}(),
-					previewCategoryService,
-					new class extends mock<ICommandService>() {
-						override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
-							executedCommands.push(id);
-							return Promise.resolve(undefined);
-						}
-					}(),
-					new class extends mock<IUniverseAgentConnection>() {
-						override isEngineConnected() { return true; }
-						override onDidChangeConnection = connectionEmitter.event;
-					}(),
-					new class extends mock<IUniverseAgentPty>() {
-						override isBridgeAvailable() {
-							bridgeCalls++;
-							return bridgeCalls === 1 ? deferredFirst.p : deferredSecond.p;
-						}
-					}()
-				));
-
-				assert.strictEqual(bridgeCalls, 1, outcome.label);
-
-				const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
-				assert.ok(actionButton, outcome.label);
-				actionButton.click();
-				assert.strictEqual(bridgeCalls, 1, `${outcome.label}: click must not start another probe`);
-				assert.deepStrictEqual(executedCommands, [], `${outcome.label}: click must not send a command while the first probe is in flight`);
-
-				connectionEmitter.fire({});
-				assert.strictEqual(bridgeCalls, 2, `${outcome.label}: a still-connected change starts the replacement probe`);
-				assert.deepStrictEqual(executedCommands, [], outcome.label);
-
-				deferredFirst.complete(true);
-				await Promise.resolve();
-				await Promise.resolve();
-				assert.strictEqual(bridgeCalls, 2, `${outcome.label}: settling the retired probe must not start another query`);
-				assert.deepStrictEqual(executedCommands, [], `${outcome.label}: a stale true result must not send a command`);
-
-				outcome.settleSecond(deferredSecond);
-				await Promise.resolve();
-				await Promise.resolve();
-				assert.strictEqual(bridgeCalls, 2, outcome.label);
-				assert.deepStrictEqual(executedCommands, [...outcome.expected], outcome.label);
-			} finally {
-				disposables.dispose();
-			}
-		}
-	});
-
 });
