@@ -128,13 +128,17 @@ suite('UniverseAgentSessionViewChannel', () => {
 		}
 		assert.strictEqual(connection.fetches, 0);
 
-		assert.strictEqual(sessionView.releaseLeasesOwnedBy('window:1'), 1);
-		assert.ok(logLines.some(line => line.includes('view.lease_released_by_owner')));
+		await owned.call('window:1', 'releaseLease', [ownedLease]);
 		const released = await owned.call<PostOutcome>('window:1', 'post', [ownedLease, { kind: 'submitInput', text: 'gone' }]);
 		assert.strictEqual(released.accepted, false);
 		if (!released.accepted) {
 			assert.strictEqual(released.reason, 'no_such_session');
 		}
+
+		const diagLease = await owned.call<string>('window:4', 'acquireLease', ['sess-diag']);
+		store.add(viewHost.onDynamicDidApplyFrame(diagLease)(() => undefined));
+		assert.strictEqual(sessionView.releaseLeasesOwnedBy('window:4'), 1);
+		assert.ok(logLines.some(line => line.includes('view.lease_released_by_owner')));
 
 		const localConnection = new TestConnection();
 		const localHost = store.add(new SessionViewHost(localConnection, new TestHost(async () => undefined), {
