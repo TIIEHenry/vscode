@@ -47,7 +47,7 @@ import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser
 import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
 import { conversationSessionHoldReason } from '../../conversation/browser/conversationSessionAvailability.js';
 import { conversationLensDockEngineNotConnected } from '../../conversation/browser/conversationLensDockStrings.js';
-import { formatSessionRosterSubtitle, resolveSessionRosterTone, sessionRosterGlyph, type SessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
+import { resolveSessionRosterRowChrome, sessionRosterGlyph, type SessionRosterRowChrome } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { getConversationSessionReadiness, isConversationSessionNotReady } from '../../conversation/common/conversationSessionReadiness.js';
@@ -159,7 +159,7 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 		private readonly contextMenuService: IContextMenuService,
 		private readonly restoreFocus: () => void,
 		private readonly getMenuOwner: () => IProjectsMenuOwner,
-		private readonly getSessionStatus: (sessionId: string) => { tone: SessionRosterTone; pending: number },
+		private readonly getSessionStatus: (sessionId: string) => SessionRosterRowChrome | undefined,
 		private readonly areRowActionsLive: () => boolean,
 		private readonly onOpenSession: (sessionId: string) => void,
 		private readonly onDeleteSession: (sessionId: string) => void,
@@ -246,14 +246,18 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 			templateData.icon.style.display = 'none';
 		}
 		templateData.name.textContent = element.kind === 'workdir' ? workDirGroupLabel(element.description, false) : element.label;
-		const state = element.kind === 'session' && element.sessionId ? this.getSessionStatus(element.sessionId) : { tone: 'idle' as const, pending: 0 };
-		templateData.row.dataset.tone = state.tone;
-		templateData.status.className = `navigator-projects-session-status is-${state.tone}`;
-		templateData.status.classList.add(...ThemeIcon.asClassNameArray(sessionRosterGlyph(state.tone)));
-		templateData.status.classList.toggle('codicon-modifier-spin', state.tone === 'running');
-		templateData.status.hidden = state.tone === 'idle';
-		templateData.pendingCount.textContent = state.pending > 0 ? String(state.pending) : '';
-		templateData.pendingCount.hidden = state.pending < 1;
+		const rowChrome = element.kind === 'session' && element.sessionId ? this.getSessionStatus(element.sessionId) : undefined;
+		const tone = rowChrome?.tone ?? 'idle';
+		const glyph = rowChrome?.glyph ?? sessionRosterGlyph(tone);
+		const spin = rowChrome?.spin ?? false;
+		const pending = rowChrome?.pendingConfirmations ?? 0;
+		templateData.row.dataset.tone = tone;
+		templateData.status.className = `navigator-projects-session-status is-${tone}`;
+		templateData.status.classList.add(...ThemeIcon.asClassNameArray(glyph));
+		templateData.status.classList.toggle('codicon-modifier-spin', spin);
+		templateData.status.hidden = tone === 'idle';
+		templateData.pendingCount.textContent = pending > 0 ? String(pending) : '';
+		templateData.pendingCount.hidden = pending < 1;
 		templateData.description.textContent = element.description ?? '';
 		templateData.detail.textContent = element.detail ?? '';
 		templateData.detail.style.display = element.detail ? '' : 'none';
@@ -571,8 +575,16 @@ export class NavigatorProjectsView extends ViewPane {
 				return { engineIdentityId: snapshot.engineIdentityId, linkId: snapshot.linkId, revision: this.menuConnectionRevision };
 			},
 			sessionId => {
-				const pending = this.rosterService.countPendingConfirmations(sessionId);
-				return { tone: resolveSessionRosterTone(this.rosterService.getTurns(sessionId), pending), pending };
+				const session = this.rosterService.getSessions().find(item => item.id === sessionId);
+				if (!session) {
+					return undefined;
+				}
+				return resolveSessionRosterRowChrome(
+					session,
+					this.rosterService.getTurns(sessionId),
+					this.rosterService.countPendingConfirmations(sessionId),
+					sessionId === this.rosterService.getActiveSessionId(),
+				);
 			},
 			() => this.isProjectsSessionSwitchLive(),
 			sessionId => this.openSession(sessionId),
@@ -851,11 +863,12 @@ export class NavigatorProjectsView extends ViewPane {
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
 				activeSessionId: this.rosterService.getActiveSessionId(),
-				sessionDetail: session => {
-					const turns = this.rosterService.getTurns(session.id);
-					const pending = this.rosterService.countPendingConfirmations(session.id);
-					return formatSessionRosterSubtitle(session, pending, turns.length, resolveSessionRosterTone(turns, pending));
-				},
+				sessionDetail: session => resolveSessionRosterRowChrome(
+					session,
+					this.rosterService.getTurns(session.id),
+					this.rosterService.countPendingConfirmations(session.id),
+					session.id === this.rosterService.getActiveSessionId(),
+				).subtitle,
 			}), suppressRecentsFailureNote ? undefined : recentsFailureCopy);
 			this.leftoverSessionSwitchClosed = !engineConnected
 				|| sessionListCapability === 'UNKNOWN'

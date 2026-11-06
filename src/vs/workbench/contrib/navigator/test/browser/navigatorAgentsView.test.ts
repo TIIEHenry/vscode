@@ -126,7 +126,7 @@ suite('NavigatorAgentsView template lifecycle', () => {
 			{} as IContextMenuService,
 			() => { },
 			() => ({ engineIdentityId: undefined, linkId: undefined, revision: 0 }),
-			() => ({ tone: 'idle', pending: 0 }),
+			() => undefined,
 			() => false,
 			() => { },
 			() => { },
