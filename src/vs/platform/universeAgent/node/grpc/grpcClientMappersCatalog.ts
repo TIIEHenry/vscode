@@ -160,6 +160,25 @@ import {
 	mapRuleEnum,
 	requiredInt64,
 } from './grpcClientMappersSession.js';
+import type { CancelRemoteSessionResponseWire } from './grpcCancelRemoteSessionUnaryWire.js';
+import type { CreateRemoteSessionResponseWire } from './grpcCreateRemoteSessionUnaryWire.js';
+import type { DeleteRemoteAgentConfigResponseWire } from './grpcDeleteConfigUnaryWire.js';
+import type { DestroyRemoteSessionResponseWire } from './grpcDestroyRemoteSessionUnaryWire.js';
+import type { ExitMaintenanceResponseWire } from './grpcExitMaintenanceUnaryWire.js';
+import type { UploadProgressResponseWire } from './grpcGetUploadProgressUnaryWire.js';
+import type { ResetErrorResponseWire } from './grpcResetErrorUnaryWire.js';
+import type { ResumeRemoteSessionResponseWire } from './grpcResumeRemoteSessionUnaryWire.js';
+import type { SetMaintenanceResponseWire } from './grpcSetMaintenanceUnaryWire.js';
+
+export type { CancelRemoteSessionResponseWire } from './grpcCancelRemoteSessionUnaryWire.js';
+export type { CreateRemoteSessionResponseWire } from './grpcCreateRemoteSessionUnaryWire.js';
+export type { DeleteRemoteAgentConfigResponseWire } from './grpcDeleteConfigUnaryWire.js';
+export type { DestroyRemoteSessionResponseWire } from './grpcDestroyRemoteSessionUnaryWire.js';
+export type { ExitMaintenanceResponseWire } from './grpcExitMaintenanceUnaryWire.js';
+export type { UploadProgressResponseWire } from './grpcGetUploadProgressUnaryWire.js';
+export type { ResetErrorResponseWire } from './grpcResetErrorUnaryWire.js';
+export type { ResumeRemoteSessionResponseWire } from './grpcResumeRemoteSessionUnaryWire.js';
+export type { SetMaintenanceResponseWire } from './grpcSetMaintenanceUnaryWire.js';
 
 export interface ListSkillsResponseWire {
 	skills?: Array<{
@@ -1680,28 +1699,16 @@ export function mapConnectionReport(wire: ConnectionReportWire): UniverseAgentCo
 	};
 }
 
-export interface SetMaintenanceResponseWire {
-	success?: boolean;
-}
-
 export function mapSetMaintenanceResponse(wire: SetMaintenanceResponseWire): UniverseAgentSetMaintenanceResult {
 	return {
 		success: wire.success === true,
 	};
 }
 
-export interface ExitMaintenanceResponseWire {
-	success?: boolean;
-}
-
 export function mapExitMaintenanceResponse(wire: ExitMaintenanceResponseWire): UniverseAgentExitMaintenanceResult {
 	return {
 		success: wire.success === true,
 	};
-}
-
-export interface DeleteRemoteAgentConfigResponseWire {
-	success?: boolean;
 }
 
 export function mapDeleteRemoteAgentConfigResponse(wire: DeleteRemoteAgentConfigResponseWire): UniverseAgentDeleteRemoteAgentConfigResult {
@@ -2171,21 +2178,10 @@ export function mapSaveRemoteAgentConfigResponse(wire: SaveRemoteAgentConfigResp
 	};
 }
 
-export interface ResetErrorResponseWire {
-	success?: boolean;
-}
-
 export function mapResetErrorResponse(wire: ResetErrorResponseWire): UniverseAgentResetErrorResult {
 	return {
 		success: wire.success === true,
 	};
-}
-
-export interface CreateRemoteSessionResponseWire {
-	call_id?: string;
-	status?: string;
-	created_at?: number | string;
-	expires_at?: number | string;
 }
 
 export function mapCreateRemoteSessionResponse(wire: CreateRemoteSessionResponseWire): UniverseAgentCreateRemoteSessionResult {
@@ -2197,24 +2193,11 @@ export function mapCreateRemoteSessionResponse(wire: CreateRemoteSessionResponse
 	};
 }
 
-export interface DestroyRemoteSessionResponseWire {
-	success?: boolean;
-	message?: string;
-}
-
 export function mapDestroyRemoteSessionResponse(wire: DestroyRemoteSessionResponseWire): UniverseAgentDestroyRemoteSessionResult {
 	return {
 		success: wire.success === true,
 		message: wire.message ?? '',
 	};
-}
-
-export interface ResumeRemoteSessionResponseWire {
-	success?: boolean;
-	call_id?: string;
-	status?: string;
-	message?: string;
-	expires_at?: number | string;
 }
 
 export function mapResumeRemoteSessionResponse(wire: ResumeRemoteSessionResponseWire): UniverseAgentResumeRemoteSessionResult {
@@ -2226,12 +2209,6 @@ export function mapResumeRemoteSessionResponse(wire: ResumeRemoteSessionResponse
 		expiresAt: requiredInt64(wire.expires_at),
 	};
 }
-export interface CancelRemoteSessionResponseWire {
-	success?: boolean;
-	call_id?: string;
-	status?: string;
-	message?: string;
-}
 
 export function mapCancelRemoteSessionResponse(wire: CancelRemoteSessionResponseWire): UniverseAgentCancelRemoteSessionResult {
 	return {
@@ -2240,11 +2217,6 @@ export function mapCancelRemoteSessionResponse(wire: CancelRemoteSessionResponse
 		status: wire.status ?? '',
 		message: wire.message ?? '',
 	};
-}
-export interface UploadProgressResponseWire {
-	exists?: boolean;
-	bytes_received?: number | string;
-	partial_path?: string;
 }
 
 export function mapUploadProgressResponse(wire: UploadProgressResponseWire): UniverseAgentGetUploadProgressResult {
