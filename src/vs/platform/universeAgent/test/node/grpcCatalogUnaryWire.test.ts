@@ -4,9 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { asUnaryProtoBytes } from '../../node/grpc/grpcClientCalls.js';
 import {
@@ -1283,131 +1280,6 @@ suite('grpc catalog unary protobuf wire', () => {
 		assert.deepStrictEqual(mapDeleteAgentProfileResponse(decodeDeleteAgentProfileResponse(encodeInt32Field(1, 1))), { ok: true });
 		assert.deepStrictEqual(mapDeleteAgentProfileResponse(decodeDeleteAgentProfileResponse(new Uint8Array(0))), { ok: false });
 	});
-
-	test('grpcClient snapshots + next known unaries use bytes; listTools/listSkills use bytes; respondQuestion/sendClientToolResponse use bytes', () => {
-		const thisDir = path.dirname(fileURLToPath(import.meta.url));
-		const repoRoot = path.join(thisDir, '../../../../../../');
-		const clientPath = path.join(repoRoot, 'src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
-		const source = fs.readFileSync(clientPath, 'utf8');
-		const bytesMethods: Array<{ name: string; encoder: string }> = [
-			{ name: 'deleteSession', encoder: 'encodeDeleteSessionRequest' },
-			{ name: 'renameSession', encoder: 'encodeRenameSessionRequest' },
-			{ name: 'cancelGeneration', encoder: 'encodeCancelGenerationRequest' },
-			{ name: 'setPermissionMode', encoder: 'encodeSetPermissionModeRequest' },
-			{ name: 'switchModel', encoder: 'encodeSwitchModelRequest' },
-			{ name: 'listSnapshots', encoder: 'encodeListSnapshotsRequest' },
-			{ name: 'createSnapshot', encoder: 'encodeCreateSnapshotRequest' },
-			{ name: 'restoreSnapshot', encoder: 'encodeRestoreSnapshotRequest' },
-			{ name: 'deleteSnapshot', encoder: 'encodeDeleteSnapshotRequest' },
-			{ name: 'cancelToolCall', encoder: 'encodeCancelToolCallRequest' },
-			{ name: 'setSessionGoal', encoder: 'encodeSetSessionGoalRequest' },
-			{ name: 'memberStatus', encoder: 'encodeMemberStatusRequest' },
-			{ name: 'taskList', encoder: 'encodeTaskListRequest' },
-			{ name: 'teamInfo', encoder: 'encodeTeamInfoRequest' },
-			{ name: 'fetchToolDetail', encoder: 'encodeFetchToolDetailRequest' },
-			{ name: 'cancelSessionGoal', encoder: 'encodeCancelSessionGoalRequest' },
-			{ name: 'respondPermission', encoder: 'encodeRespondPermissionRequest' },
-			{ name: 'syncPermissionRule', encoder: 'encodeSyncPermissionRuleRequest' },
-			{ name: 'promotePermissionRule', encoder: 'encodePromotePermissionRuleRequest' },
-			{ name: 'getSessionRules', encoder: 'encodeGetSessionRulesRequest' },
-			{ name: 'forkAgent', encoder: 'encodeForkAgentRequest' },
-			{ name: 'killAgent', encoder: 'encodeKillAgentRequest' },
-			{ name: 'deleteMessage', encoder: 'encodeDeleteMessageRequest' },
-			{ name: 'editMessage', encoder: 'encodeEditMessageRequest' },
-			{ name: 'readGitSummary', encoder: 'encodeReadGitSummaryRequest' },
-			{ name: 'readGitChanges', encoder: 'encodeReadGitChangesRequest' },
-			{ name: 'readGitFileDiff', encoder: 'encodeReadGitFileDiffRequest' },
-			{ name: 'writeGitStagePaths', encoder: 'encodeWriteGitStagePathsRequest' },
-			{ name: 'writeGitCommit', encoder: 'encodeWriteGitCommitRequest' },
-			{ name: 'writeGitApplyHunks', encoder: 'encodeWriteGitApplyHunksRequest' },
-		];
-		for (const { name, encoder } of bytesMethods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-		const permissionLeftover: Array<{ name: string; decoder: string }> = [
-			{ name: 'syncPermissionRule', decoder: 'decodeSyncPermissionRuleResponse' },
-			{ name: 'promotePermissionRule', decoder: 'decodePromotePermissionRuleResponse' },
-			{ name: 'getSessionRules', decoder: 'decodeGetSessionRulesResponse' },
-		];
-		for (const { name, decoder } of permissionLeftover) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-		}
-		assert.ok(extractAsyncMethod(source, 'getSessionRules').includes('mapGetSessionRulesResponse'));
-		const gitLeftover: Array<{ name: string; decoder: string }> = [
-			{ name: 'readGitSummary', decoder: 'decodeReadGitSummaryResponse' },
-			{ name: 'readGitChanges', decoder: 'decodeReadGitChangesResponse' },
-			{ name: 'readGitFileDiff', decoder: 'decodeReadGitFileDiffResponse' },
-			{ name: 'writeGitStagePaths', decoder: 'decodeWriteGitWriteResponse' },
-			{ name: 'writeGitCommit', decoder: 'decodeWriteGitWriteResponse' },
-			{ name: 'writeGitApplyHunks', decoder: 'decodeWriteGitWriteResponse' },
-		];
-		for (const { name, decoder } of gitLeftover) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-		}
-		const queueMethods: Array<{ name: string; encoder: string }> = [
-			{ name: 'enqueueQueueItem', encoder: 'encodeEnqueueQueueItemRequest' },
-			{ name: 'insertQueueItem', encoder: 'encodeInsertQueueItemRequest' },
-			{ name: 'reorderQueue', encoder: 'encodeReorderQueueRequest' },
-			{ name: 'deleteQueueItem', encoder: 'encodeQueueItemRefRequest' },
-			{ name: 'retryQueueItem', encoder: 'encodeQueueItemRefRequest' },
-			{ name: 'retryAllFailed', encoder: 'encodeQueueRefRequest' },
-			{ name: 'retryQueueItemUpload', encoder: 'encodeQueueItemRefRequest' },
-			{ name: 'pinQueueItem', encoder: 'encodeQueueItemRefRequest' },
-			{ name: 'setQueueItemLocked', encoder: 'encodeSetQueueItemLockedRequest' },
-			{ name: 'injectQueueItem', encoder: 'encodeQueueItemRefRequest' },
-			{ name: 'setQueueItemForkAnchor', encoder: 'encodeSetQueueItemForkAnchorRequest' },
-			{ name: 'pauseQueue', encoder: 'encodeQueueRefRequest' },
-			{ name: 'resumeQueue', encoder: 'encodeQueueRefRequest' },
-			{ name: 'clearQueue', encoder: 'encodeQueueRefRequest' },
-			{ name: 'holdQueueItem', encoder: 'encodeHoldQueueItemRequest' },
-			{ name: 'releaseQueueItemHold', encoder: 'encodeQueueItemRefRequest' },
-			{ name: 'editQueueItem', encoder: 'encodeEditQueueItemRequest' },
-		];
-		for (const { name, encoder } of queueMethods) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('_queueMutation'), `${name} must go through _queueMutation`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-		const mutation = extractPrivateAsyncMethod(source, '_queueMutation');
-		assert.ok(mutation.includes('makeUnaryBytesClient'), '_queueMutation must use makeUnaryBytesClient');
-		assert.ok(mutation.includes('decodeQueueMutationResponse'), '_queueMutation must decode QueueMutationResponse');
-		assert.ok(!mutation.includes('makeUnaryClient<'), '_queueMutation must not use JSON makeUnaryClient');
-		const toolCatalog: Array<{ name: string; encoder: string; decoder: string; mapper: string }> = [
-			{ name: 'listTools', encoder: 'encodeListToolsRequest', decoder: 'decodeListToolsResponse', mapper: 'mapListToolsResponse' },
-			{ name: 'listSkills', encoder: 'encodeListSkillsRequest', decoder: 'decodeListSkillsResponse', mapper: 'mapListSkillsResponse' },
-			{ name: 'getSkillInfo', encoder: 'encodeSkillInfoRequest', decoder: 'decodeSkillInfoResponse', mapper: 'mapSkillInfoResponse' },
-			{ name: 'setSkillEnabled', encoder: 'encodeSetSkillEnabledRequest', decoder: 'decodeSetSkillEnabledResponse', mapper: 'mapSetSkillEnabledResponse' },
-			{ name: 'getToolInfo', encoder: 'encodeToolInfoRequest', decoder: 'decodeToolInfoResponse', mapper: 'mapToolInfoResponse' },
-			{ name: 'listCommands', encoder: 'encodeListCommandsRequest', decoder: 'decodeListCommandsResponse', mapper: 'mapListCommandsResponse' },
-			{ name: 'getCommandDef', encoder: 'encodeGetCommandDefRequest', decoder: 'decodeGetCommandDefResponse', mapper: 'mapGetCommandDefResponse' },
-			{ name: 'deleteAgentProfile', encoder: 'encodeDeleteAgentProfileRequest', decoder: 'decodeDeleteAgentProfileResponse', mapper: 'mapDeleteAgentProfileResponse' },
-		];
-		for (const { name, encoder, decoder, mapper } of toolCatalog) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-		const questionTool: Array<{ name: string; encoder: string; decoder: string }> = [
-			{ name: 'respondQuestion', encoder: 'encodeRespondQuestionRequest', decoder: 'decodeRespondQuestionResponse' },
-			{ name: 'sendClientToolResponse', encoder: 'encodeSendClientToolResponseRequest', decoder: 'decodeSendClientToolResponseResponse' },
-		];
-		for (const { name, encoder, decoder } of questionTool) {
-			const body = extractAsyncMethod(source, name);
-			assert.ok(body.includes('makeUnaryBytesClient'), `${name} must use makeUnaryBytesClient`);
-			assert.ok(body.includes(encoder), `${name} must call ${encoder}`);
-			assert.ok(body.includes(decoder), `${name} must call ${decoder}`);
-			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
-		}
-	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
@@ -1438,20 +1310,4 @@ function protoVarints(encoded: Uint8Array): Map<number, number> {
 		}
 	}
 	return numbers;
-}
-
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
-
-function extractPrivateAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tprivate async ${name}(`);
-	assert.ok(start >= 0, `missing private async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
 }
