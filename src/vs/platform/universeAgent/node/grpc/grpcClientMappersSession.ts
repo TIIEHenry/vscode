@@ -66,6 +66,7 @@ import type {
 import type { UniverseAgentAuthNonceResult } from './grpcTransport.js';
 import type {
 	AgentUsageDetailWire,
+	AgentUsageWire,
 	CacheInfoWire,
 	CompactInfoWire,
 	ContextWindowInfoWire,
@@ -80,6 +81,7 @@ import type {
 
 export type {
 	AgentUsageDetailWire,
+	AgentUsageWire,
 	CacheInfoWire,
 	CompactInfoWire,
 	ContextWindowInfoWire,
@@ -427,13 +429,6 @@ export interface ResolveAnchorResponseWire {
 	hit?: AnchorHitWire;
 	tombstone?: AnchorTombstoneWire;
 	expired?: AnchorExpiredWire;
-}
-
-export interface AgentUsageWire {
-	agent_id?: string;
-	input_tokens?: number;
-	output_tokens?: number;
-	turns?: number;
 }
 
 export interface UsageResponseWire {
