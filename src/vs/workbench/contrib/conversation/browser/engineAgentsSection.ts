@@ -40,6 +40,7 @@ import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { captureEnginePublishedLinkOwner, captureEngineWriteLink, EngineRefreshGate, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { EngineCatalogSectionController } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -328,6 +329,7 @@ export class EngineAgentsSection extends Disposable {
 	private agentTools: UniverseAgentToolSummary[] = [];
 	private agentToolsLoadFailed: string | undefined;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 	private agentToolsLoadGeneration = 0;
 	private readonly agentToolPending = new Map<string, boolean>();
 	private sectionActive = false;
@@ -344,6 +346,7 @@ export class EngineAgentsSection extends Disposable {
 		super();
 
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 		this.container = DOM.append(parent, $('.engine-agents-section.engine-catalog-section'));
 		this.container.style.display = 'none';
 
@@ -1775,7 +1778,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): boolean {
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		return this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.hideCatalogWriteStatus();
 			this.writeToolbar.style.display = 'none';
 			this.updateWriteActions();
@@ -1797,12 +1800,11 @@ export class EngineAgentsSection extends Disposable {
 			if (this.modelFormShown) {
 				this.renderModelTab();
 			}
-			return false;
-		}
-		this.clearCatalogPresentation();
-		this.mode = resolveEngineCatalogPaneMode(false, support);
-		this.renderStatus();
-		return false;
+		}, () => {
+			this.clearCatalogPresentation();
+			this.mode = resolveEngineCatalogPaneMode(false, support);
+			this.renderStatus();
+		});
 	}
 
 	private listSessionAgentProfiles(): ReturnType<IUniverseAgentConnection['listAgentProfiles']> {
