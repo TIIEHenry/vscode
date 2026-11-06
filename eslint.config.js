@@ -1163,6 +1163,48 @@ export default defineConfig(
 			]
 		}
 	},
+	// Conversation leaves use their bound session id. Only entries without a
+	// leaf, and the unbound / fallback paths listed here, read the roster's
+	// global active session.
+	{
+		files: [
+			'src/vs/workbench/contrib/conversation/browser/**/*.ts'
+		],
+		ignores: [
+			'**/*.test.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationStubService.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts',
+			'src/vs/workbench/contrib/conversation/browser/agentSessionContext.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationLens.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationTurnContentAdapter.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationSessionWindowService.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationSessionChatService.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationSessionsView.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationSessionStatusBar.ts',
+			'src/vs/workbench/contrib/conversation/browser/uaClientSettingsStartup.contribution.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationCreateSnapshotActions.contribution.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationAccessibleView.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationNotifications.contribution.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationOpenPendingOnFocus.contribution.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationRevealItem.contribution.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationForkEngine.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationLeafSessionBar.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts',
+			'src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts',
+		],
+		languageOptions: {
+			parser: tseslint.parser,
+		},
+		plugins: {
+			'local': pluginLocal,
+		},
+		rules: {
+			'local/code-conversation-no-active-session-read': 'error',
+		}
+	},
 	// browser/electron-browser layer
 	{
 		files: [
