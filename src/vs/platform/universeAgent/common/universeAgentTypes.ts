@@ -1091,11 +1091,17 @@ export interface UniverseAgentSyncPermissionRuleRequest {
 	readonly reason: string;
 }
 
-export interface UniverseAgentSyncPermissionRuleResult {
-	readonly ok: boolean;
-	/** Proto `rule_id`. Empty returned as-is. */
-	readonly ruleId: string;
-}
+export type UniverseAgentSyncPermissionRuleResult =
+	| {
+		readonly ok: true;
+		/** Proto `rule_id`. Empty returned as-is. */
+		readonly ruleId: string;
+	}
+	| {
+		readonly ok: false;
+		/** Proto `rule_id`. Empty returned as-is. */
+		readonly ruleId: string;
+	};
 
 /** PermissionService.PromotePermissionRule — promote a tool rule to global config (≠ Respond / SetSessionGoal / SyncPermissionRule / GetSessionRules). */
 export interface UniverseAgentPromotePermissionRuleRequest {
@@ -1105,9 +1111,13 @@ export interface UniverseAgentPromotePermissionRuleRequest {
 	readonly action: UniverseAgentPermissionRuleAction;
 }
 
-export interface UniverseAgentPromotePermissionRuleResult {
-	readonly ok: boolean;
-}
+export type UniverseAgentPromotePermissionRuleResult =
+	| {
+		readonly ok: true;
+	}
+	| {
+		readonly ok: false;
+	};
 
 /** PermissionService.GetSessionRules — list session permission rules (≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule). */
 export interface UniverseAgentGetSessionRulesRequest {
@@ -1162,10 +1172,15 @@ export interface UniverseAgentSetClientToolProfileRequest {
 	readonly profile: UniverseAgentClientToolProfile;
 }
 
-export interface UniverseAgentSetClientToolProfileResult {
-	readonly ok: boolean;
-	readonly error?: string;
-}
+export type UniverseAgentSetClientToolProfileResult =
+	| {
+		readonly ok: true;
+		readonly error?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly error?: string;
+	};
 
 /** TeamService.TaskUpdate — Manager overwrite of blackboard task status (≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode). */
 export interface UniverseAgentTaskUpdateRequest {
@@ -1441,12 +1456,19 @@ export interface UniverseAgentEditQueueItemRequest extends UniverseAgentQueueIte
 }
 
 /** Shared QueueMutationResponse. */
-export interface UniverseAgentQueueMutationResult {
-	readonly ok: boolean;
-	readonly error?: string;
-	readonly opId?: string;
-	readonly itemId?: string;
-}
+export type UniverseAgentQueueMutationResult =
+	| {
+		readonly ok: true;
+		readonly error?: string;
+		readonly opId?: string;
+		readonly itemId?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly error?: string;
+		readonly opId?: string;
+		readonly itemId?: string;
+	};
 
 /** AgentService.Fork request — create a SubAgent. Connected Fork action forwards this; disconnected Fork tab stays local `registerForkChat`. */
 export interface UniverseAgentForkAgentRequest {

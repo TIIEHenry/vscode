@@ -264,10 +264,10 @@ export function encodeSyncPermissionRuleRequest(sessionId: string, toolName: str
 /** SyncRuleResponse — `success` = 1, `rule_id` = 2. Unknown fields unread. */
 export function decodeSyncPermissionRuleResponse(bytes: Uint8Array): UniverseAgentSyncPermissionRuleResult {
 	const fields = readProtoFields(bytes);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
-		ruleId: lastString(fields, 2) ?? '',
-	};
+	const ruleId = lastString(fields, 2) ?? '';
+	return lastVarint(fields, 1) === 1n
+		? { ok: true, ruleId }
+		: { ok: false, ruleId };
 }
 
 /**
@@ -284,9 +284,7 @@ export function encodePromotePermissionRuleRequest(toolName: string, scope: stri
 
 /** PromoteRuleResponse — `success` = 1. Unknown fields unread. */
 export function decodePromotePermissionRuleResponse(bytes: Uint8Array): UniverseAgentPromotePermissionRuleResult {
-	return {
-		ok: lastVarint(readProtoFields(bytes), 1) === 1n,
-	};
+	return lastVarint(readProtoFields(bytes), 1) === 1n ? { ok: true } : { ok: false };
 }
 
 /** Permission.GetSessionRules — `session_id` = 1. Empty omitted. */
@@ -851,12 +849,12 @@ export function encodeEditQueueItemRequest(request: UniverseAgentEditQueueItemRe
  */
 export function decodeQueueMutationResponse(bytes: Uint8Array): UniverseAgentQueueMutationResult {
 	const fields = readProtoFields(bytes);
-	return {
-		ok: lastVarint(fields, 1) === 1n,
+	const payload = {
 		error: lastString(fields, 2),
 		opId: lastString(fields, 3),
 		itemId: lastString(fields, 4),
 	};
+	return lastVarint(fields, 1) === 1n ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 /**

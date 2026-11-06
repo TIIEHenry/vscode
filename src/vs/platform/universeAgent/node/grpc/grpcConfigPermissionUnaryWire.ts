@@ -82,5 +82,7 @@ export function encodeSetClientToolProfileRequest(request: UniverseAgentSetClien
 export function decodeSetClientToolProfileResponse(bytes: Uint8Array): UniverseAgentSetClientToolProfileResult {
 	const fields = readProtoFields(bytes);
 	const error = lastString(fields, 2);
-	return { ok: lastVarint(fields, 1) === 1n, ...(error ? { error } : {}) };
+	return lastVarint(fields, 1) === 1n
+		? { ok: true, ...(error ? { error } : {}) }
+		: { ok: false, ...(error ? { error } : {}) };
 }
