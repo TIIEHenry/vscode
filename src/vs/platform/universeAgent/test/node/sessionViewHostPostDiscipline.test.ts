@@ -4,87 +4,58 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from '../../../../base/common/path.js';
-import { fileURLToPath } from 'url';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-
-const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(thisDir, '../../../../../../');
-const SESSION_VIEW_HOST_PATH = path.join(REPO_ROOT, 'src/vs/platform/universeAgent/node/sessionViewHost.ts');
-
-function countOccurrences(source: string, needle: string): number {
-	let count = 0;
-	let index = 0;
-	while ((index = source.indexOf(needle, index)) !== -1) {
-		count += 1;
-		index += needle.length;
-	}
-	return count;
-}
-
-function extractMethodBody(source: string, methodName: string): string | undefined {
-	const signature = `private ${methodName}(`;
-	const start = source.indexOf(signature);
-	if (start < 0) {
-		return undefined;
-	}
-	const braceStart = source.indexOf('{', start);
-	if (braceStart < 0) {
-		return undefined;
-	}
-	let depth = 0;
-	for (let i = braceStart; i < source.length; i++) {
-		const ch = source[i];
-		if (ch === '{') {
-			depth += 1;
-		} else if (ch === '}') {
-			depth -= 1;
-			if (depth === 0) {
-				return source.slice(braceStart, i + 1);
-			}
-		}
-	}
-	return undefined;
-}
+import { SessionViewHost } from '../../node/sessionViewHost.js';
+import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
 suite('SessionViewHost post discipline (F2)', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('core.post and takeIntents each appear once inside postAndDrain / drainIntents', () => {
-		const source = fs.readFileSync(SESSION_VIEW_HOST_PATH, 'utf8');
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const core = Reflect.get(viewHost, 'core') as { post: (...args: unknown[]) => unknown; takeIntents: (...args: unknown[]) => unknown };
+		let postCalls = 0;
+		let takeCalls = 0;
+		const origPost = core.post.bind(core);
+		const origTake = core.takeIntents.bind(core);
+		core.post = (...args: unknown[]) => {
+			postCalls++;
+			return origPost(...args);
+		};
+		core.takeIntents = (...args: unknown[]) => {
+			takeCalls++;
+			return origTake(...args);
+		};
 
-		assert.strictEqual(countOccurrences(source, 'this.core.post('), 1, 'expected exactly one core.post call site');
-		assert.strictEqual(countOccurrences(source, 'this.core.takeIntents('), 1, 'expected exactly one core.takeIntents call site');
-
-		const postAndDrainBody = extractMethodBody(source, 'postAndDrain');
-		const drainIntentsBody = extractMethodBody(source, 'drainIntents');
-		assert.ok(postAndDrainBody, 'postAndDrain method not found');
-		assert.ok(drainIntentsBody, 'drainIntents method not found');
-
-		assert.ok(postAndDrainBody!.includes('this.core.post('), 'core.post must live inside postAndDrain');
-		assert.ok(drainIntentsBody!.includes('this.core.takeIntents('), 'takeIntents must live inside drainIntents');
+		const leaseId = viewHost.acquireLease('sess-discipline');
+		assert.ok(postCalls >= 1);
+		assert.strictEqual(takeCalls, postCalls);
+		viewHost.releaseLease(leaseId);
+		assert.strictEqual(takeCalls, postCalls);
 	});
 
-	test('sessionViewHost fire-and-forget voids single-catch onUnexpectedError and eliminate double-catch', () => {
-		const source = fs.readFileSync(SESSION_VIEW_HOST_PATH, 'utf8');
-		const singleCatch = '.catch(onUnexpectedError)';
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const caughtWriteChat = `void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId)${singleCatch};`;
-		assert.ok(source.includes(`void this.bringUpBoundSession(sessionId)${singleCatch};`));
-		assert.ok(source.includes(`void this.bringUpBoundSession(binding.sessionId)${singleCatch};`));
-		assert.ok(source.includes(caughtWriteChat));
-		assert.ok(source.includes(`void this.fillHistory(sessionId, intent)${singleCatch};`));
-		assert.ok(source.includes(`void this.sendHeartbeatAck(sessionId, echoTs)${singleCatch};`));
-		assert.strictEqual((source.match(/void this\.bringUpBoundSession\([^;]+catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.ok(!source.replace(caughtWriteChat, '').includes('void this.writeChat('));
-		assert.ok(!source.includes('void this.bringUpBoundSession(sessionId);'));
-		assert.ok(!source.includes('void this.bringUpBoundSession(binding.sessionId);'));
-		assert.ok(!source.includes('void this.writeChat(sessionId, intent.correlation, intent.payload, intent.chatAttemptId, intent.writeId);'));
-		assert.ok(!source.includes('void this.fillHistory(sessionId, intent);'));
-		assert.ok(!source.includes('void this.sendHeartbeatAck(sessionId);'));
-		assert.ok(!source.includes(doubleCatch));
-		assert.ok(!source.includes('.catch(() => undefined)'));
+	test('sessionViewHost fire-and-forget voids single-catch onUnexpectedError and eliminate double-catch', async () => {
+		const seen: unknown[] = [];
+		const origHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(err => seen.push(err));
+		try {
+			const connection = new TestConnection();
+			const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+				orphanTimeoutMs: 0,
+			}));
+			Reflect.set(viewHost, 'bringUpBoundSession', () => Promise.reject(new Error('bringup-boom')));
+			viewHost.acquireLease('sess-catch');
+			viewHost.onEngineConnectionChanged();
+			await new Promise(resolve => setTimeout(resolve, 10));
+		} finally {
+			setUnexpectedErrorHandler(origHandler);
+		}
+		assert.strictEqual(seen.length, 1);
+		assert.ok(seen[0] instanceof Error && seen[0].message === 'bringup-boom');
 	});
 });

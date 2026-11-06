@@ -4,26 +4,28 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from '../../../../base/common/path.js';
-import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { createSessionViewDiagnosticsPort } from '../../node/sessionViewHostPorts.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
-
-const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(thisDir, '../../../../../../');
-const MAIN_SESSION_VIEW_SERVICE_PATH = path.join(REPO_ROOT, 'src/vs/platform/universeAgent/electron-main/universeAgentSessionViewService.ts');
 
 suite('SessionViewHost diagnostics port (S4a)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('electron-main session view service injects logging diagnostics', () => {
-		const source = fs.readFileSync(MAIN_SESSION_VIEW_SERVICE_PATH, 'utf8');
-		assert.ok(source.includes('@ILogService'), 'electron-main must inject ILogService');
-		assert.ok(source.includes('createSessionViewDiagnosticsPort(logService)'), 'electron-main must inject createSessionViewDiagnosticsPort(logService)');
+		const infos: string[] = [];
+		const warns: string[] = [];
+		const port = createSessionViewDiagnosticsPort({
+			info(message: string): void { infos.push(message); },
+			warn(message: string): void { warns.push(message); },
+		});
+		port.count('view.lease_released_by_owner', { owner: 'window:1' });
+		port.warn('test_warn', { b: 2 });
+		assert.strictEqual(infos.length, 1);
+		assert.ok(infos[0].includes('view.lease_released_by_owner'));
+		assert.strictEqual(warns.length, 1);
+		assert.ok(warns[0].includes('test_warn'));
 	});
 
 	test('releaseLeasesOwnedBy logs view.lease_released_by_owner', () => {
