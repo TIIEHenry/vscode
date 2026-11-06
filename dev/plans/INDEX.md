@@ -17,19 +17,16 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [UniverseAgent 真实编辑器联测](universe-agent-real-editor-e2e-2026-10-31.md) | `implemented` | 默认编辑器真实引擎联测剧本与 4/4 步骤证据已完成；不等同于当前 50061 钉或 SGLang Provider 验收。 |
 | [五域测试报告 skipped 汇总完整性](test-result-skipped-summary.md) | `draft` | 统一五域测试报告的严格 skipped 汇总，支持根 skipped 属性与子 testcase skipped 的 max 解析，门禁在超限时严格失败关闭。 |
 | [Sources 已登记回归与可执行合同对齐](sources-regression-contract-alignment.md) | `draft` | 对齐 Sources 回归测试可执行合同，恢复双环境严格门禁与 AST 扫描。 |
 | [Agent Profile 内容有效性与无损编辑](profile-content-validity.md) | `accepted` | 方案C0/I0/M0；A候选15源码/自动层通过，Node774同JS复用、browser526、私有精确新/旧对照及Node24双目标0；待专题Gate/集成/真实门，D1398hold/D1395open，整体不升implemented。 |
 | [Engine catalog 19个写入口的expectedOwner闭环](engine-catalog-mutation-ownership.md) | `implemented` | 19写入口原始归属已获最终专题CommitGate PASS C0/I0/M0，D1397仅本地代码/自动层closed；13P1族与6结构mock精确旧红新绿，D1398仍全局push hold。 |
-| [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `implemented` | D1394本地工具代码/自动层closed；18真Git矩阵与最终OV/原hooks通过，已合本波组合；D1397本地owner专题已签收，D1398另有全局发布硬门。 |
 | [Tools 固定高度列表呈现与保存生命周期](tools-display-lifecycle.md) | `accepted` | A主题已合本波，206/0及Node24组合绿；真实交互子集有证据，Save来源未定P2保持open，D1397本地owner专题已签收，D1398另有P1硬门。 |
 | [其余设置页参考图视觉统一](preferences-visual-alignment.md) | `accepted` | 代码与组件验证完成，1101过/4pending；仅视觉/布局；真实引擎窗口待验。 |
 | [Engine 设置参考图视觉适配](engine-tools-settings-usability.md) | `accepted` | 用户参考图视觉已落；组件测试48过、五种渲染场景通过；真实默认窗口待验，不新增功能。 |
 | [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；两test await/undefined静态合同签收，无实际checker结果，114仅静态/组件与运行准备全待，plan accepted/runtime pending；lease优先/独立after及四Sources边界保持。 |
 | [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1关闭，无未闭源码项；accepted/runtime pending，J保候选，lease当前业务门后另定真实接入与最终源码运行。 |
 | [引擎写入结果闸门统一](engine-write-gate-unification.md) | `accepted` | S1–S5源码已落；S3 Tools原红后续独立主题206/0，真实Save门仍open。UI写结果闸不代替D1397 main发前owner，整体产品不升验收。 |
-| [订阅恢复与错误态缺口收口](subscription-recovery-closeout.md) | `implemented` | 当前58972组合源码fresh/自动层已签收；Automation仅兼容，D405真实手测独立保留，不升PRD |
 | [Conversation lease：L5 switch-input 的 successor Lens 夹具](conversation-visible-lease-l5-successor-lens-fixture.md) | `draft` | 仅同一L5 switch-input分别观测old0/successor1，保留真实lease/frame；规则16待审，source/tools/新packet/runtime另授。[本轮实测](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)。 |
 | [Conversation lease：hidden-delete 前置与 official 阶段预算](conversation-visible-lease-reveal-fixture-and-official-budget.md) | `accepted` | 唯一new40/39pass1fail/0pending、238hooks完整；L5旧Lens统计I1，恢复与保护接收、lane归还，Mgreen=false；同case窄draft待审，原§2–§4/official180保持。 |
 | [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | ed565真双亲接入固定4f264两新增源码，经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |
@@ -58,15 +55,10 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者。B1–B4、B6、B7 与文档偏差 D1–D4 已随 concrete 全面落地（4fa4f3eab56 等）。Q1–Q7、A1–A5、B5 待确认。发现稿保持 draft。 |
 | [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) | `draft` | 复查 2026-10-11 引擎联动缺口并补新发现。G3/D1（05a17c38879）、G4/G15/G16（05a17c38879、1a4c4295b45、f342680627e）、G6（2e785907611）、G8（83ef402a254）、G17（4fa4f3eab56）、D2/D3（cc6e17a9d8f）均已实施。发现稿保持 draft，未闭环缺口待后续迭代。 |
 | [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `implemented` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。已于 2e785907611 落地。不升 PRD。 |
-| [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `implemented` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。 |
-| [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `implemented` | G1、G2、G5、G10、G19、G20 指向已实施方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。D2 与 D3 文档偏差已于 cc6e17a9d8f 落地合入。不升 PRD。 |
-| [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](visual-review-2026-10-16-plan.md) | `implemented` | 过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V2–V4 已于 68308db93b5 落地；V8 已于 ad333e998fa 落地。V1 归目录列表切片。V5–V7 未决。不升 PRD-028。 |
 | [引擎联动缺口：队列读回、生成中发送门禁、附件上传](engine-gap-queue-send-attachments.md) | `implemented` | 2026-10-11 用户签收。S1（生成中 / submitInFlight 禁用 Send）已于 2e785907611 落地；Q2（接通时停掉 Enqueue RPC 转发并关闭 Inbox 入口）已于 2e785907611 落地。附件不开刀。不升 PRD。 |
 | [草稿会话提交后保留 Agent 浏览器页归属](browser-owner-draft-graduation.md) | `implemented` | 切片 1、2 已由 47871ee6737 落地；切片 3、4 属 Agents Window，2026-11-01 按审查待定项决定 D22 不排期。 |
 | [published-link-identity.md](published-link-identity.md) | `implemented` | ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链路时 SessionViewHost 先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。代码与单测（sessionViewHostEngineBind 26 passing）均已全面落地合入。不升 PRD。不改 ADR-003 正文。 |
 | [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `accepted` | PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 已全面落地合入（提交 4615d3aa990 与 b6bccf8ff2c）。2026-10-24 用户改为多根工作区随时扩展：身份条与 Navigator 选文件夹改为加入工作区，Loopback 引擎的本机工作目录切会话时自动加入；未受信任目录和已保存的工作区文件不自动改写（S6）。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
-| [unspecified-address-private-denial.md](unspecified-address-private-denial.md) | `implemented` | 未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。已全面落地（afda5a04283）。不改已签收方案正文。不升 PRD。 |
-| [sources-git-write-capability.md](sources-git-write-capability.md) | `implemented` | Stage / Commit / Accept 改看连接快照 gitWriteCapability，不把桌面代理函数当成已广告的 WriteGit*。已于 c7d53074df5 落地。不进 Engine Overview。不升 PRD-009。 |
 | [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-10-05 S1 剩余已落：turn_completed 解出 turn_id 与 assistant_turn_id，仅当前 turn 才 hold clear；overlay field 7 与 join 嵌套 37、根上 field 23 已接。S4/S5/S6 此前已落。不升 `implemented`。不升 PRD-008。 |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。S1–S5 已落，方案仍 accepted。 |
 | [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。S1–S5 已落，方案仍 accepted。 |
@@ -110,7 +102,6 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [settings-two-surfaces.md](settings-two-surfaces.md) | `implemented` | 两主面边界 + C5/H0–H3 已落；Engine E2 / Client CS 代码完成线见 M7 方案（仍 accepted） |
 | [customizations-host-ui.md](customizations-host-ui.md) | `implemented` | H0–H3 donor chrome @ `77d6e7cc` |
 | [customizations-engine.md](customizations-engine.md) | `accepted` | E1 已落 Skills/Agents/MCP/Tools 读写主体；九节宿主由 M7 E2-1–E2-7 承接（代码已落） |
-| [product-requirements-layer.md](product-requirements-layer.md) | `implemented` | 建立本仓产品需求 SSOT |
 | [conversation-trajectory-lens.md](conversation-trajectory-lens.md) | `implemented` | PRD-012 T1–T3 + **T4** @ `5104678e` + **T5** 搜索/虚拟化 @ `94267eef`；Overview / DetailRef / compacted 由 M7 Q1–Q3 承接（代码已落，产品验证未做） |
 | [conversation-process-fold.md](conversation-process-fold.md) | `implemented` | PRD-013 P1–P3/P3t @ `19f3e7ba`–`42fa941e` |
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 T1–T3 @ `5cad7c3b`–`0eb470f2` |

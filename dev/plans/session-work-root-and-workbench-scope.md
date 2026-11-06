@@ -149,7 +149,7 @@ S5 只换 Code 类别组里的编辑器，按 `projectKey` 自己存一份 Code 
 **显式加入**（身份条文件夹菜单、Navigator 最近文件夹）：
 
 - 身份条菜单分两段：「Workspace」列出工作区里现有的文件夹，当前会话的本地根打勾，其他是文件夹图标，选中无动作（只是状态，不是导航；在 Explorer 里定位由 Navigator 的当前文件夹节点承担）；「Recents」列出不在工作区里的最近文件夹，选中即 `addFolders([{ uri }])`。末项改为「Add Folder to Workspace…」，执行 `ADD_ROOT_FOLDER_COMMAND_ID`（`addRootFolder`），不再执行 `workbench.action.files.openFolder`。最近文件夹的 `remoteAuthority` 与本窗口不同时，先比较授权再 `openWindow([...], { forceNewWindow: true })`，不替换本窗口：`addFolders` 只在本窗口 `remoteAuthority` 非空时过滤（`abstractWorkspaceEditingService.ts` 200–204 行），本机窗口里一个远程最近文件夹不会被过滤掉，而是被当成远程根加进本机工作区，所以不能依赖它。
-- 菜单是否可点的条件不变（本地根或无工作根时有窗口文件夹才可点）。引擎根没有这个菜单；需要确认才加入时，文件夹名旁边是「Add and trust」或「Add to workspace」。读屏名改成「Session folder: {0}. Add a folder to the workspace.」，不再叫「Workspace folder」。这是本稿替视觉审查 V5 做的决定，[visual-review-2026-10-16-plan](visual-review-2026-10-16-plan.md) 里 V5 仍标未决，本稿不回写那份方案。
+- 菜单是否可点的条件不变（本地根或无工作根时有窗口文件夹才可点）。引擎根没有这个菜单；需要确认才加入时，文件夹名旁边是「Add and trust」或「Add to workspace」。读屏名改成「Session folder: {0}. Add a folder to the workspace.」，不再叫「Workspace folder」。这是本稿替视觉审查 V5 做的决定，[visual-review-2026-10-16-plan](../../archive/dev/plans/visual-review-2026-10-16-plan.md) 里 V5 仍标未决，本稿不回写那份方案。
 - Navigator：当前工作区的文件夹节点，普通点击在 Explorer 里定位（`revealInExplorer`），不再 `openWindow`；最近文件夹节点普通点击是 `addFolders`。两个节点按住 Ctrl / Cmd 都开新窗口，按住 Alt 都替换当前窗口（用户显式选择）。远程授权不同的最近文件夹同身份条，开新窗口。
 
 **自动加入**（新贡献，挂在 Conversation 贡献点，`WorkbenchPhase.AfterRestored`）：

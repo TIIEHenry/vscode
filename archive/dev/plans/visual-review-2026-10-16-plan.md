@@ -12,9 +12,9 @@ summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝�
 覆盖需求：PRD-028。
 
 
-> **触发：** [视觉设计只读审查 2026-10-16](../progress/visual-review-2026-10-16.md) V2、V3、V4、V8。
-> **规范：** [UI 设计原则](../../docs/architecture/cross-cutting/ui-design-principles.md)。字重只用 400 / 600。低对比描边 8%。
-> **落地：** `status: implemented`。V2–V4（字重 400、发丝线 8%、只读分支芯片）已于 `68308db93b5` 落地；V8（零值增删统计弱化）已于 `ad333e998fa` 落地。V1 归 [cursor-visual-alignment](cursor-visual-alignment.md) S9。V5–V7 未决。不升 PRD-028。
+> **触发：** [视觉设计只读审查 2026-10-16](../../../dev/progress/visual-review-2026-10-16.md) V2、V3、V4、V8。
+> **规范：** [UI 设计原则](../../../docs/architecture/cross-cutting/ui-design-principles.md)。字重只用 400 / 600。低对比描边 8%。
+> **落地：** `status: implemented`。V2–V4（字重 400、发丝线 8%、只读分支芯片）已于 `68308db93b5` 落地；V8（零值增删统计弱化）已于 `ad333e998fa` 落地。V1 归 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) S9。V5–V7 未决。不升 PRD-028。
 
 ## 1. 字重（V2）
 
@@ -71,7 +71,7 @@ Triggers 列表原同时展示 Enable 与 Disable 两个动作，即使当前只
 
 ## 6. 不在本切片
 
-- V1 Tools 双行归 [cursor-visual-alignment](cursor-visual-alignment.md) S9。
+- V1 Tools 双行归 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) S9。
 - V5 文件夹芯片的菜单与读屏名、V7 错误卡与 file_edit 卡的左缘对齐仍未决。本稿不选。
 - 不改 `ui-design-principles.md`。本切片落在已写明的 400/600 与 8% 上。
 - 不新增 `transform` 或 `filter`。

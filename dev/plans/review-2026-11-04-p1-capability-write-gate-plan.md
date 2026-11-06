@@ -28,7 +28,7 @@ summary: "能力判断改读已有快照，引擎设置的断开刷新与刷新�
 下列已落地合同把「不要把桌面代理函数当成已广告」做成专用快照字段，并且写明不把这些方法加进 `UniverseAgentCapabilityKey`、不把可选方法改成必填：
 
 - `12b096615dc`：FireTrigger、剪贴板、上下文读、快照恢复/删除、`readGitChanges` 改看能力快照。
-- `c7d53074df5`：[Sources Git 写能力](sources-git-write-capability.md)，字段 `gitWriteCapability`。
+- `c7d53074df5`：[Sources Git 写能力](../../archive/dev/plans/sources-git-write-capability.md)，字段 `gitWriteCapability`。
 - `3cb1f1055bb`：[对话入口](../../archive/dev/plans/conversation-entry-capability.md)，字段 `conversationEntryCapability`。
 - `b6bccf8ff2c`：[Sources 文件列表](../../archive/dev/plans/sources-files-list-capability.md)，字段 `listFilesCapability`。
 

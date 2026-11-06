@@ -15,7 +15,7 @@ summary: "承接 D 的窄修，统一 Git 子进程上下文，保留真实暂�
 
 ## 1. 证据、已有候选与范围
 
-[D1394](../progress/deferred-gaps.md) 真实提交钩子继承主 worktree 的 GIT_DIR 等定位环境，子模块 `git -C` 因而仍读取父仓，staged check 误报 28 条链接。普通工作区 check 绿不能证明 staged 绿；现有仓外 wrapper 保留 absolute index 才使原 hooks 完整通过，不能长期依靠它。
+[D1394](../../../dev/progress/deferred-gaps.md) 真实提交钩子继承主 worktree 的 GIT_DIR 等定位环境，子模块 `git -C` 因而仍读取父仓，staged check 误报 28 条链接。普通工作区 check 绿不能证明 staged 绿；现有仓外 wrapper 保留 absolute index 才使原 hooks 完整通过，不能长期依靠它。
 
 新波集成基线 `0ac6a61fe86087ed5fa690764ae98178239276b0` 已验证 source 与 `51e790607b0` compile 绿相同。D 候选 `9d4719459aa6a4cf1ceec7c394dca8f3068606f6` 已窄修三个 foreign 调用点并带四项测试，但不覆盖完整残余合同。B 在编码前先真三路 merge 此原 commit，保留其身份与有效修复；文档逐段保双方意图，旧槽快照不能覆盖 D1393 或本波。不得复制 C 整树；C 不含 f370 全链修复且有其他 WIP。
 
@@ -33,7 +33,7 @@ foreign 从捕获环境副本移除 Git `--local-env-vars` 的仓库局部集合
 
 root repository 身份先按第2节无污染 probe 分类，不能无条件把传入 root 当 primary；同 primary 的 root ls-files/HEAD/ls-tree/blob 才继承其真实 index，foreign root 用隔离上下文。gitlink 展开以及 blob_roots/head_blob_roots 标识的 child/nested ls-tree 与 cat-file 显式 foreign；始终读取父 index/HEAD 捕获的固定 oid，不借 child 当前 HEAD/index/worktree 字节。selected-root 已剥 prefix 的相对 gitlink 路径应从 self.root/name 定位，不能错用 self.repository/name。
 
-现 [reference 暂存检查](../../scripts/wiki/reference.md#暂存检查) 明文规定“子模块未检出或提交不在本地均保持 gitlink、内部链接算断链”。本方案有意收紧其中已初始化但 pin 不可读的分支，不能声称旧规范本已要求硬错误：
+现 [reference 暂存检查](../../../scripts/wiki/reference.md#暂存检查) 明文规定“子模块未检出或提交不在本地均保持 gitlink、内部链接算断链”。本方案有意收紧其中已初始化但 pin 不可读的分支，不能声称旧规范本已要求硬错误：
 
 | Gitlink 状态 | 新合同 |
 | --- | --- |
@@ -78,7 +78,7 @@ verify_report 会运行任意配置命令，不应仅按 argv[0] 是否 git 判�
 - verify 在 primary/subdir/child/另一个 linked worktree/non-Git cwd 的真实 Git 行为符合表；普通 env、显式 selection、primary 单独 INDEX、相对路径、COUNT/KEY/VALUE 组与配置错误分别验证。foreign 名单发现失败必须报 unavailable，不假装无仓库或回退。
 - 安装原 pre-commit/commit-msg 到临时 worktree，正常与 alternate-index 两路真实 commit 无 wrapper 通过，好 index 的提交树等于真实 index，坏 alternate 即使默认 index 正常也被真实 hook 拒绝；父默认 index、child HEAD/dirty、dev/loop/config/global hooks 前后不变。保留 D 9d471 原四例和历史，新增完整组合证据另行记录。
 
-所有检查只经 integration 唯一通道，开发者不自跑并发检查。命令、固定输入、hash、退出码及限制写[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。本工具主题无用户产品界面变化，不借此升任何产品 PRD 验收。
+所有检查只经 integration 唯一通道，开发者不自跑并发检查。命令、固定输入、hash、退出码及限制写[本波看板](../../../dev/parallel/active/tools-wiki-wave-2026-11-02.md)。本工具主题无用户产品界面变化，不借此升任何产品 PRD 验收。
 
 ## 7. 审查门
 

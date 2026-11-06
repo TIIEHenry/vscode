@@ -18,7 +18,7 @@ summary: "固定两域 A Tools/B Wiki；正式方案规则16已通过；独立�
 | 成员 | 预定分支/路径 | 唯一生产/测试冲突域 | 完成线 |
 | --- | --- | --- | --- |
 | A | `codex/tools-display-lifecycle-A`，`../vscode-WorkTrees/A` | `engineToolsSection.ts` 与现 Tools 真实组件测试 | [Tools 方案](../../plans/tools-display-lifecycle.md) 完整呈现/保存生命周期，D1395 原业务红通过 |
-| B | `codex/wiki-git-context-B`，`../vscode-WorkTrees/B` | `scripts/wiki/wiki.py` 与 `scripts/tests/test_wiki_git_environment.py` | [Wiki 方案](../../plans/wiki-git-context-isolation.md) 主仓真实 index、foreign 固定 pin、verify 覆盖及真实 hooks |
+| B | `codex/wiki-git-context-B`，`../vscode-WorkTrees/B` | `scripts/wiki/wiki.py` 与 `scripts/tests/test_wiki_git_environment.py` | [Wiki 方案](../../../archive/dev/plans/wiki-git-context-isolation.md) 主仓真实 index、foreign 固定 pin、verify 覆盖及真实 hooks |
 | integration | 固定 merge | 唯一文档/Git 与所有编译、测试、eslint、工具检查 | 范围审查、精确提交、三路保留、组合检查、正常发布与安全同步 |
 
 正式方案独立提交 `5a48ed3cba2` 后，A/B 已各自 ff-only 跟该 SHA 并创建表中全新分支，原槽分支保留，未使用 checkout -B。A 获作者源码授权、尚无验证结果；B 真三路承接 D 后为 `db36339ae0f` 且 clean，残余实现仍待。两成员被冻结，不按函数拆更细，不纳 Task Inspect；该只读身份诚实性缺口另记 [D1396](../../progress/deferred-gaps.md) 排后。作者不自行裁定最终 OV。

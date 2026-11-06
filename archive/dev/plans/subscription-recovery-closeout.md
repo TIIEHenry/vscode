@@ -12,9 +12,9 @@ summary: "四类订阅恢复在58972组合源码fresh后通过当前官方定向
 覆盖需求：PRD-007、PRD-008。
 
 
-> **2026-10-28 最终复核**：唯一 merge 固定 `58972a2f679b125f97fd488e823961491dee4bc3`，当前八份订阅 TS 已 fresh；包含三份订阅测试的官方 Electron 13 文件合计 **521/0**，UniverseAgent 四 Node suite **58/0**。八 TS 定向语义 0、ESLint 0 error / 0 warning。D1389 仅代码与自动层关闭，本方案 implemented；D405 / V-S5 真实窗口与引擎手测仍 open，不升 PRD。完整选择、命令、exit 和源码/产物身份见[本次结果](../progress/session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。下文“暂保持 accepted”是开始时审计结论，保留其历史。
+> **2026-10-28 最终复核**：唯一 merge 固定 `58972a2f679b125f97fd488e823961491dee4bc3`，当前八份订阅 TS 已 fresh；包含三份订阅测试的官方 Electron 13 文件合计 **521/0**，UniverseAgent 四 Node suite **58/0**。八 TS 定向语义 0、ESLint 0 error / 0 warning。D1389 仅代码与自动层关闭，本方案 implemented；D405 / V-S5 真实窗口与引擎手测仍 open，不升 PRD。完整选择、命令、exit 和源码/产物身份见[本次结果](../../../dev/progress/session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。下文“暂保持 accepted”是开始时审计结论，保留其历史。
 
-> **2026-10-28 收尾复核**：下文的 71/104/41/17 与相邻 52 是历史运行摘要；本次未找到对应原始日志，且当前 reopen 测试与保留旧产物不等，不据此签收当前源码。方案暂保持 accepted，由唯一 merge 对最终提交 fresh 后运行并保存来源与结果；见[独立审计](../progress/session-closeout-2026-10-28-evidence/subscription-static-audit.md)。AHP / UniverseAgent 是平台共用合同，Automation 两 TS 为保留 Sessions 兼容修复，不计默认编辑器自动化产品交付。D405 / V-S5 真实引擎手测仍 open。
+> **2026-10-28 收尾复核**：下文的 71/104/41/17 与相邻 52 是历史运行摘要；本次未找到对应原始日志，且当前 reopen 测试与保留旧产物不等，不据此签收当前源码。方案暂保持 accepted，由唯一 merge 对最终提交 fresh 后运行并保存来源与结果；见[独立审计](../../../dev/progress/session-closeout-2026-10-28-evidence/subscription-static-audit.md)。AHP / UniverseAgent 是平台共用合同，Automation 两 TS 为保留 Sessions 兼容修复，不计默认编辑器自动化产品交付。D405 / V-S5 真实引擎手测仍 open。
 
 ## 1. 基线与范围
 

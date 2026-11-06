@@ -13,10 +13,10 @@ summary: "未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 reso
 
 
 > **slice_id**：`unspecified-address-private-denial`
-> **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) 对已签收方案的补充：BH-01 S1 的分类还缺 `0.0.0.0/8` 与 `::`。Linux 上拨这两个地址会落到本机，等于绕过环回拒绝。
+> **来源**：[引擎链接架构审查](../../../dev/progress/engine-link-architecture-review-2026-09-28.md) 对已签收方案的补充：BH-01 S1 的分类还缺 `0.0.0.0/8` 与 `::`。Linux 上拨这两个地址会落到本机，等于绕过环回拒绝。
 > **落地：** `status: implemented`。已全面落地（提交 `afda5a04283`，分类器与单测已全部合入）。不改已签收方案正文。不升 PRD。
 > **冲突域**：`src/vs/platform/universeAgent/node/connectionResolver.ts`、`src/vs/platform/universeAgent/test/node/connectionResolver.test.ts`。
-> **不改**：`universeAgentConnectionService.ts`、`pairingOrchestrator.ts`、conversation 状态栏、[bug-hunt 01](bug-hunt-2026-09-24/01-connection-trust.md) 与 [connection-hub-client](connection-hub-client.md) 已签收正文、`deferred-gaps.md`、`status.md`。
+> **不改**：`universeAgentConnectionService.ts`、`pairingOrchestrator.ts`、conversation 状态栏、[bug-hunt 01](../../../dev/plans/bug-hunt-2026-09-24/01-connection-trust.md) 与 [connection-hub-client](../../../dev/plans/connection-hub-client.md) 已签收正文、`deferred-gaps.md`、`status.md`。
 > **不发明**失败码、理由字符串、快照字段或开关。沿用 `private_network_denied` 与现有理由 `direct address resolves to private or loopback network without allowPrivateNetwork`。
 > **不升** PRD。
 

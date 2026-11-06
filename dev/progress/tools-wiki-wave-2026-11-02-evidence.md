@@ -11,7 +11,7 @@ summary: "双域代码与Node24组合门通过；真实Tools交互子集通过�
 # Tools/Wiki 双域集成与真实窗口分层证据
 状态：当前有效。负责：agent:codex。范围：本波集成、唯一检查通道与真实默认窗口证据；不把自动层或可见子集升级为完整产品验收。
 
-返回[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。方案：[Tools](../plans/tools-display-lifecycle.md) · [Wiki](../plans/wiki-git-context-isolation.md)。
+返回[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。方案：[Tools](../plans/tools-display-lifecycle.md) · [Wiki](../../archive/dev/plans/wiki-git-context-isolation.md)。
 
 ## 1. 固定集成与代码门
 

@@ -50,5 +50,5 @@ summary: "对照 UI 设计原则审查 agent-ide 工作区未提交的视觉改�
 ## 下一步
 
 1. 本文只是发现稿，不登记 D 编号，不改任何 PRD 或方案状态，待用户拍板。
-2. V1 随 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) S9。V2–V4、V8 见 [visual-review-2026-10-16-plan](../plans/visual-review-2026-10-16-plan.md)，`draft`，未实施。V6 的 Enable / Disable 状态动作已在 D1334 落地；Add、Delete 分组与 V5、V7 仍须用户先定。
+2. V1 随 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) S9。V2–V4、V8 见 [visual-review-2026-10-16-plan](../../archive/dev/plans/visual-review-2026-10-16-plan.md)，`draft`，未实施。V6 的 Enable / Disable 状态动作已在 D1334 落地；Add、Delete 分组与 V5、V7 仍须用户先定。
 3. 修完按 §8 补截图、键盘走查和窄宽检查。验证只用本地 `npm run compile`、eslint、`scripts/test.sh`（点名相关测试）。

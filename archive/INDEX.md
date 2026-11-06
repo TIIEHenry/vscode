@@ -49,3 +49,12 @@
 | [默认编辑器视觉状态修复与续审](dev/plans/default-editor-visual-state-followup.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [Engine Catalog 测试合同基线修复](dev/plans/engine-catalog-test-contracts.md) | 已完成方案，过程已结束，归档保留原文。 |
 | [MCP 定义：Add / Update 先有表单](dev/plans/engine-mcp-definition-form.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [功能缺口 2026-10-16：已有方案与维持传输层](dev/plans/feature-gaps-2026-10-16-boundary.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](dev/plans/engine-trigger-clipboard-actions.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [产品需求层建设方案](dev/plans/product-requirements-layer.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [UniverseAgent 真实编辑器联测](dev/plans/universe-agent-real-editor-e2e-2026-10-31.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [未指定地址并进私网拒绝](dev/plans/unspecified-address-private-denial.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](dev/plans/visual-review-2026-10-16-plan.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Wiki Git 主仓与外仓上下文隔离](dev/plans/wiki-git-context-isolation.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [订阅恢复与错误态缺口收口](dev/plans/subscription-recovery-closeout.md) | 已完成方案，过程已结束，归档保留原文。 |
+| [Sources Git 写能力按广告探测](dev/plans/sources-git-write-capability.md) | 已完成方案，过程已结束，归档保留原文。 |
