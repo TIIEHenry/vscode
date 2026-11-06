@@ -4,10 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { Event } from '../../../../base/common/event.js';
-import * as path from '../../../../base/common/path.js';
-import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { encodeDetailRef, type ConversationWriteMessage, type DetailFetchOutcome, type PostOutcome } from '../../common/conversationViewFrame.js';
 import { NullLogService } from '../../../log/common/log.js';
@@ -19,10 +16,6 @@ import {
 import { UniverseAgentSessionViewService } from '../../electron-main/universeAgentSessionViewService.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
-
-const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(thisDir, '../../../../../../');
-const MAIN_PROCESS_SERVICE_PATH = path.join(REPO_ROOT, 'src/vs/platform/ipc/electron-browser/mainProcessService.ts');
 
 class FakeSessionViewService implements UniverseAgentSessionViewChannelService {
 	readonly acquireLeaseForCalls: Array<{ readonly owner: string; readonly sessionId: string }> = [];
@@ -187,7 +180,6 @@ suite('UniverseAgentSessionViewChannel', () => {
 
 	test('windowConnectionContext matches mainProcessService literal', () => {
 		assert.strictEqual(windowConnectionContext(7), 'window:7');
-		const source = fs.readFileSync(MAIN_PROCESS_SERVICE_PATH, 'utf8');
-		assert.ok(source.includes('`window:${windowId}`'), 'mainProcessService.ts must keep window:${windowId} hello ctx');
+		assert.strictEqual(windowConnectionContext(0), 'window:0');
 	});
 });

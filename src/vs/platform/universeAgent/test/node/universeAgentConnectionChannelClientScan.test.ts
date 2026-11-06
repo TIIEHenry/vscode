@@ -4,41 +4,60 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from '../../../../base/common/path.js';
-import { fileURLToPath } from 'url';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../base/common/errors.js';
+import { Event } from '../../../../base/common/event.js';
+import type { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 
-const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(thisDir, '../../../../../../');
-const CHANNEL_CLIENT_PATH = path.join(REPO_ROOT, 'src/vs/platform/universeAgent/common/universeAgentConnectionChannelClient.ts');
+async function captureUnexpectedErrors(run: () => Promise<void>): Promise<unknown[]> {
+	const seen: unknown[] = [];
+	const orig = errorHandler.getUnexpectedErrorHandler();
+	setUnexpectedErrorHandler(err => seen.push(err));
+	try {
+		await run();
+		await new Promise(resolve => setTimeout(resolve, 10));
+	} finally {
+		setUnexpectedErrorHandler(orig);
+	}
+	return seen;
+}
 
 suite('UniverseAgentConnectionChannelClient fire-and-forget scan', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('hydrate void is single-caught and snapshot does not IPC for phase', () => {
-		const source = fs.readFileSync(CHANNEL_CLIENT_PATH, 'utf8');
-		const singleCatch = '.catch(onUnexpectedError)';
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void this.hydrate()${singleCatch};`));
-		assert.ok(source.includes("from '../../../base/common/errors.js'"));
-		assert.ok(!source.includes('refreshPhaseAndNotify'));
-		assert.ok(!source.includes('this.remote.getConnectionPhase'));
-		assert.ok(!source.includes('this.remote.isAgentTreeFetchFailed'));
-		assert.ok(!source.includes('void this.hydrate();'));
-		assert.ok(!source.includes(doubleCatch));
+	test('hydrate void is single-caught and snapshot does not IPC for phase', async () => {
+		const calls: string[] = [];
+		const channel: IChannel = {
+			call: (command: string) => {
+				calls.push(command);
+				return Promise.reject(new Error('hydrate-ignored'));
+			},
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		await new Promise(resolve => setTimeout(resolve, 10));
+		assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
+		assert.strictEqual(client.isAgentTreeFetchFailed(), false);
+		assert.deepStrictEqual(calls, ['getConnectionSnapshot']);
 	});
 
-	test('requestAgentTreeRefresh remote void is single-caught (D561)', () => {
-		// Typed void on IUniverseAgentConnection; ProxyChannel still returns a Promise.
-		const source = fs.readFileSync(CHANNEL_CLIENT_PATH, 'utf8');
-		const singleCatch = '.catch(onUnexpectedError)';
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const singleCaught = `void Promise.resolve(this.remote.requestAgentTreeRefresh(sessionId))${singleCatch};`;
-		assert.ok(source.includes(singleCaught));
-		assert.strictEqual((source.match(/void Promise\.resolve\(this\.remote\.requestAgentTreeRefresh\(sessionId\)\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.ok(!source.includes('void this.remote.requestAgentTreeRefresh(sessionId);'));
-		assert.ok(!source.includes(doubleCatch));
+	test('requestAgentTreeRefresh remote void is single-caught (D561)', async () => {
+		const seen = await captureUnexpectedErrors(async () => {
+			const channel: IChannel = {
+				call: (command: string) => {
+					if (command === 'requestAgentTreeRefresh') {
+						return Promise.reject(new Error('refresh-tree-boom'));
+					}
+					return Promise.resolve(undefined);
+				},
+				listen: () => Event.None,
+			};
+			const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+			client.requestAgentTreeRefresh('sess-1');
+		});
+		assert.strictEqual(seen.length, 1);
+		assert.ok(seen[0] instanceof Error && seen[0].message === 'refresh-tree-boom');
 	});
 });

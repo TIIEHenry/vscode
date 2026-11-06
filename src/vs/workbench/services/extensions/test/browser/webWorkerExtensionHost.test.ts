@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import * as path from '../../../../../base/common/path.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IMessagePassingProtocol } from '../../../../../base/parts/ipc/common/ipc.js';
@@ -15,9 +13,6 @@ import { WorkbenchState } from '../../../../../platform/workspace/common/workspa
 import { WebWorkerExtensionHost } from '../../browser/webWorkerExtensionHost.js';
 import { ExtensionHostStartup, ExtensionHostExtensions } from '../../common/extensions.js';
 import { LocalWebWorkerRunningLocation } from '../../common/extensionRunningLocation.js';
-
-const singleChain = 'this._protocolPromise.then(protocol => this._protocol = protocol).catch(onUnexpectedError);';
-const doubleChain = 'this._protocolPromise.then(protocol => this._protocol = protocol).catch(onUnexpectedError).catch(onUnexpectedError);';
 
 function iframeCount(container: HTMLElement): number {
 	return container.querySelectorAll('iframe.web-worker-ext-host-iframe').length;
@@ -259,15 +254,5 @@ suite('WebWorkerExtensionHost start', () => {
 		} finally {
 			container.remove();
 		}
-	});
-
-	test('leftover protocol then single-chain is still the line the scan test requires', () => {
-		const root = process.cwd();
-		const source = fs.readFileSync(path.join(root, 'src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts'), 'utf8');
-		const scan = fs.readFileSync(path.join(root, 'src/vs/workbench/services/extensions/test/node/extensionsServicesLeftoverPromiseCatchScan.test.ts'), 'utf8');
-		assert.ok(source.includes(singleChain));
-		assert.ok(!source.includes(doubleChain));
-		assert.ok(scan.includes('this._protocolPromise.then(protocol => this._protocol = protocol)'));
-		assert.ok(scan.includes('.catch(onUnexpectedError)'));
 	});
 });

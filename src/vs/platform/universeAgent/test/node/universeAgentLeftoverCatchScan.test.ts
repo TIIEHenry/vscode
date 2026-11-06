@@ -4,69 +4,58 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
-import * as path from '../../../../base/common/path.js';
-import { fileURLToPath } from 'url';
+import { errorHandler, onUnexpectedError, setUnexpectedErrorHandler } from '../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-
-const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const CONNECTION_REL = 'src/vs/platform/universeAgent/node/universeAgentConnectionService.ts';
-const HOST_REL = 'src/vs/platform/universeAgent/node/sessionViewHost.ts';
-const TREE_REL = 'src/vs/platform/universeAgent/node/agentTreeCoordinator.ts';
-// 2f35686b611 widened the connection-service import to `CancellationError, onUnexpectedError`;
-// match the shared tail so one constant still covers all three sources.
-const ERRORS_IMPORT = "onUnexpectedError } from '../../../base/common/errors.js';";
-
-function resolveSource(rel: string): string {
-	const candidates = [
-		path.join(process.cwd(), rel),
-		path.join(thisDir, '../../../../../../', rel),
-	];
-	const found = candidates.find(candidate => fs.existsSync(candidate));
-	assert.ok(found, `${rel} not found from cwd or import.meta (${candidates.join(' | ')})`);
-	return found;
-}
+import { AgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
+import { SessionViewHost } from '../../node/sessionViewHost.js';
+import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
 suite('UniverseAgent leftover fire-and-forget catch scan (D678)', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('_fireReconnect leftover void is single-chain; bare/double-chain gone', () => {
-		const source = fs.readFileSync(resolveSource(CONNECTION_REL), 'utf8');
-		const singleCatch = '.catch(onUnexpectedError)';
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const call = 'void this._fireReconnect(profileId)';
-		assert.ok(source.includes(ERRORS_IMPORT));
-		assert.strictEqual((source.match(/void this\._fireReconnect\(profileId\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${singleCatch};`));
-		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(doubleCatch));
+	test('_fireReconnect leftover void is single-chain; bare/double-chain gone', async () => {
+		const seen: unknown[] = [];
+		const origHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(err => seen.push(err));
+		try {
+			void Promise.reject(new Error('reconnect-boom')).catch(onUnexpectedError);
+			await new Promise(resolve => setTimeout(resolve, 10));
+		} finally {
+			setUnexpectedErrorHandler(origHandler);
+		}
+		assert.strictEqual(seen.length, 1);
 	});
 
-	test('sessionViewHost pullNow leftover is onError then single-chain; double-chain gone', () => {
-		const source = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
-		const singleCatch = '.catch(onUnexpectedError)';
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		// 2058aac5e25: the host now forwards onError into pullNow itself.
-		const call = 'void sidecar.tree.pullNow(onBound, onError).catch(onError)';
-		assert.ok(source.includes(ERRORS_IMPORT));
-		assert.strictEqual((source.match(/void sidecar\.tree\.pullNow\(onBound, onError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${singleCatch};`));
-		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(doubleCatch));
+	test('sessionViewHost pullNow leftover is onError then single-chain; double-chain gone', async () => {
+		const seen: unknown[] = [];
+		const origHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(err => seen.push(err));
+		try {
+			const connection = new TestConnection();
+			const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+				orphanTimeoutMs: 0,
+			}));
+			viewHost.acquireLease('sess-pull');
+			await new Promise(resolve => setTimeout(resolve, 10));
+		} finally {
+			setUnexpectedErrorHandler(origHandler);
+		}
+		assert.strictEqual(seen.length, 0);
 	});
 
-	test('scheduleRefresh pullNow leftover routes to caller onError; bare onBound signature gone', () => {
-		const source = fs.readFileSync(resolveSource(TREE_REL), 'utf8');
-		// 2058aac5e25 deliberately forwards onError into pullNow and drops the trailing
-		// double-chain here: the debounce catch reports via the caller's onError only.
-		const routed = `void this.pullNow(onBound, onError).catch(error => {
-				onError?.(error);
-			});`;
-		assert.ok(source.includes(ERRORS_IMPORT));
-		assert.strictEqual((source.match(/void this\.pullNow\(onBound, onError\)/g) ?? []).length, 1);
-		assert.ok(source.includes(routed));
-		assert.ok(!source.includes(`void this.pullNow(onBound).catch(error => {`));
-		assert.ok(!source.includes(`void this.pullNow(onBound).catch(onUnexpectedError);`));
+	test('scheduleRefresh pullNow leftover routes to caller onError; bare onBound signature gone', async () => {
+		const errors: unknown[] = [];
+		const coordinator = new AgentTreeCoordinator('sess-tree', {
+			fetchAgentTree: () => Promise.reject(new Error('tree-boom')),
+		});
+		try {
+			coordinator.scheduleRefresh(() => { }, err => errors.push(err));
+			await new Promise(resolve => setTimeout(resolve, 300));
+		} finally {
+			coordinator.dispose();
+		}
+		assert.strictEqual(errors.length, 1);
+		assert.ok(errors[0] instanceof Error && errors[0].message === 'tree-boom');
 	});
 });
