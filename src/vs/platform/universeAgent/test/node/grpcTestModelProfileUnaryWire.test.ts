@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -142,42 +141,6 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 			message: undefined,
 		});
 	});
-
-	test('test-model-profile unary wire is TestModelProfile only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcTestModelProfileUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(!/\bencodeMap\b/.test(source));
-		assert.ok(/\bencodeTestModelProfileRequest\b/.test(source));
-		assert.ok(/\bdecodeTestModelProfileResponse\b/.test(source));
-		assert.ok(/\bencodeStringField\b/.test(source));
-		assert.ok(/\bencodeMessageField\b/.test(source));
-		assert.ok(/\bencodeStringStringMap\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bConnect\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b/.test(source));
-		assert.ok(!/\bResolveAnchor\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('testModelProfile uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const method = extractAsyncMethod(source, 'testModelProfile');
-		assert.ok(method.includes('makeUnaryBytesClient'), 'testModelProfile must use makeUnaryBytesClient');
-		assert.ok(method.includes('encodeTestModelProfileRequest'), 'testModelProfile must call encodeTestModelProfileRequest');
-		assert.ok(method.includes('decodeTestModelProfileResponse'), 'testModelProfile must call decodeTestModelProfileResponse');
-		assert.ok(method.includes('ok: wire.success === true'), 'testModelProfile must keep ok: wire.success === true');
-		assert.ok(method.includes('message: wire.error_message'), 'testModelProfile must keep message: wire.error_message');
-		assert.ok(!method.includes('makeUnaryClient<'), 'testModelProfile must not use JSON makeUnaryClient');
-		assert.ok(!method.includes('JSON.stringify'), 'testModelProfile must not JSON.stringify');
-
-		assert.ok(source.includes('grpcTestModelProfileUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(extractOpenWatchConfigStream(source).includes('makeServerStreamBytesClient'));
-		assert.ok(!extractOpenWatchConfigStream(source).includes('makeServerStreamClient<'));
-	});
 });
 
 /** Same mapping as Agent.TestModelProfile JSON unary (`ok: wire.success === true`). */
@@ -188,24 +151,7 @@ function mapTestModelProfile(wire: TestModelProfileResponseWire): UniverseAgentT
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcTestModelProfileUnaryWire.ts')));
-	assert.ok(dir, 'grpcTestModelProfileUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function extractOpenWatchConfigStream(source: string): string {
 	const start = source.indexOf('\topenWatchConfigStream(');

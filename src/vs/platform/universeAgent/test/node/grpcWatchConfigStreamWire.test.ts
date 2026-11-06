@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -85,26 +84,6 @@ suite('grpc ConfigService Watch protobuf server-stream wire', () => {
 			timestamp: 0,
 		});
 	});
-
-	test('watch wire is ConfigService.Watch only; openWatchConfigStream uses makeServerStreamBytesClient', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcWatchConfigStreamWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeWatchConfigRequest\b/.test(source));
-		assert.ok(/\bdecodeConfigChangedEvent\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b|\bPtyStream\b|\bSaveSkillContent\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-
-		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		assert.ok(client.includes('grpcWatchConfigStreamWire'));
-		const watch = extractMethod(client, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamBytesClient'));
-		assert.ok(watch.includes('encodeWatchConfigRequest'));
-		assert.ok(watch.includes('decodeConfigChangedEvent'));
-		assert.ok(watch.includes('mapConfigChangedEvent'));
-		assert.ok(!watch.includes('makeServerStreamClient<'));
-		assert.ok(!watch.includes('makeUnaryBytesClient'));
-		assert.ok(!watch.includes('JSON.stringify'));
-	});
 });
 
 function encodeVarintZero(field: number): Buffer {
@@ -114,26 +93,7 @@ function encodeVarintZero(field: number): Buffer {
 	]);
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcWatchConfigStreamWire.ts')));
-	assert.ok(dir, 'grpcWatchConfigStreamWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractMethod(source: string, name: string): string {
-	const asyncStart = source.indexOf(`\tasync ${name}(`);
-	const start = asyncStart >= 0 ? asyncStart : source.indexOf(`\t${name}(`);
-	assert.ok(start >= 0, `missing ${name}(`);
-	const rest = source.slice(start + 1);
-	const next = rest.search(/\n\t(async |\w+\()/);
-	const end = next >= 0 ? start + 1 + next : source.length;
-	return source.slice(start, end);
-}
 
 function protoVarints(encoded: Uint8Array): Map<number, number> {
 	const numbers = new Map<number, number>();

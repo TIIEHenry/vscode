@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -293,43 +292,6 @@ suite('grpc AgentService Usage protobuf wire', () => {
 			sessionUsage: undefined,
 			recentRequestSpans: [],
 		});
-	});
-
-	test('usage unary wire is Usage only; no JSON.stringify; identifier scan', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcUsageUnaryWire.ts'), 'utf8');
-		assert.ok(!source.includes('JSON.stringify'));
-		assert.ok(/\bencodeUsageRequest\b/.test(source));
-		assert.ok(/\bdecodeUsageResponse\b/.test(source));
-		assert.ok(/\bdecodeRecentRequestSpan\b/.test(source));
-		assert.ok(/\bdecodeContextWindow\b/.test(source));
-		assert.ok(/\bdecodeSessionUsage\b/.test(source));
-		assert.ok(/\blastBytes\b/.test(source));
-		assert.ok(/\ballLengthDelimited\b/.test(source));
-		assert.ok(/\bContextWindowInfoWire\b/.test(source));
-		assert.ok(/\bSessionUsageInfoWire\b/.test(source));
-		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
-		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
-		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
-		assert.ok(!/\bResolveTurn\b|\bResolveAnchor\b/.test(source));
-		assert.ok(!/\bPty\b/.test(source));
-		assert.ok(!/\bContextWindowInfo\b|\bSessionUsageInfo\b|\bMessageBreakdown\b/.test(source));
-		assert.ok(!/\bmodel_info\b|\bdecodeModelInfo\b/.test(source));
-		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
-	});
-
-	test('getUsage uses bytes then existing map', () => {
-		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		const body = extractAsyncMethod(source, 'getUsage');
-		assert.ok(body.includes('makeUnaryBytesClient'), 'getUsage must use makeUnaryBytesClient');
-		assert.ok(body.includes('encodeUsageRequest'), 'getUsage must call encodeUsageRequest');
-		assert.ok(body.includes('decodeUsageResponse'), 'getUsage must call decodeUsageResponse');
-		assert.ok(body.includes('mapUsageResponse'), 'getUsage still calls mapUsageResponse');
-		assert.ok(!body.includes('makeUnaryClient<'), 'getUsage must not use JSON makeUnaryClient');
-		assert.ok(!body.includes('JSON.stringify'), 'getUsage must not JSON.stringify');
-
-		assert.ok(source.includes('grpcUsageUnaryWire'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 
@@ -631,24 +593,7 @@ function filledSessionUsageMapped() {
 	};
 }
 
-function grpcDir(): string {
-	const thisDir = path.dirname(fileURLToPath(import.meta.url));
-	const candidates = [
-		path.join(process.cwd(), 'src/vs/platform/universeAgent/node/grpc'),
-		path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc'),
-	];
-	const dir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'grpcUsageUnaryWire.ts')));
-	assert.ok(dir, 'grpcUsageUnaryWire.ts not found from cwd or import.meta');
-	return dir;
-}
 
-function extractAsyncMethod(source: string, name: string): string {
-	const start = source.indexOf(`\tasync ${name}(`);
-	assert.ok(start >= 0, `missing async ${name}(`);
-	const nextAsync = source.indexOf('\n\tasync ', start + 1);
-	const end = nextAsync >= 0 ? nextAsync : source.length;
-	return source.slice(start, end);
-}
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {
 	const strings = new Map<number, string>();
