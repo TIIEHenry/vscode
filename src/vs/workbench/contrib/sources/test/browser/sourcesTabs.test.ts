@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
+import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -17,6 +18,8 @@ import { SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js'
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { ISourcesReviewHostService } from '../../common/sourcesReviewHostService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { getIconRegistry } from '../../../../../platform/theme/common/iconRegistry.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
 
@@ -138,6 +141,29 @@ suite('Sources - tabs host docking', () => {
 			selected: selectedTab(),
 			savedA: storage.get(sourcesSelectedTabStorageKey('sess-a'), StorageScope.WORKSPACE),
 		}, { hasSessionListener: false, tabs: 0, selected: undefined, savedA: SourcesTabId.Files });
+	});
+
+	test('the Sources hide control is a focusable remove glyph that hides only the Sources part', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const hidden: [boolean, Parts][] = [];
+		const layoutService = instantiationService.invokeFunction(accessor => accessor.get(IWorkbenchLayoutService));
+		layoutService.setPartHidden = (hide: boolean, target: Parts) => { hidden.push([hide, target]); };
+		const part = store.add(instantiationService.createInstance(SourcesPart));
+		const parent = mainWindow.document.createElement('div');
+		mainWindow.document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+		part.create(parent);
+
+		const label = parent.querySelector<HTMLElement>('.part-region-hide-actions .action-label');
+		assert.ok(label);
+		assert.deepStrictEqual({
+			defaultGlyph: getIconRegistry().getIcon('part-region-hide')?.defaults,
+			icon: label.classList.contains('codicon-part-region-hide'),
+			tabIndex: label.tabIndex,
+			name: label.getAttribute('aria-label'),
+		}, { defaultGlyph: Codicon.remove, icon: true, tabIndex: 0, name: 'Hide Sources' });
+		label.click();
+		assert.deepStrictEqual(hidden, [[true, Parts.SOURCES_PART]]);
 	});
 
 	test('filterSlot docks Files actions only when Files tab is active', () => {

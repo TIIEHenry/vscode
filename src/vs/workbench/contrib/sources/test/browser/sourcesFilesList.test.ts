@@ -40,6 +40,7 @@ import { SOURCES_EDITOR_OPEN_MODE_SETTING } from '../../../../services/editor/co
 import { isExplorerAutoRevealSuppressed } from '../../../../services/editor/common/explorerAutoRevealGate.js';
 import { ColorThemeData } from '../../../../services/themes/common/colorThemeData.js';
 import { COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS } from '../../../../services/themes/common/workbenchThemeService.js';
+import { appendStyled, computedStyle, mountSourcesStyleRoot } from './sourcesStyleTestUtils.js';
 
 suite('Sources - Files list search', () => {
 
@@ -1537,5 +1538,30 @@ suite('Sources - Files explorer engine directory', () => {
 		mounted.host.layout(100, 200);
 		assert.strictEqual(mounted.host.getActionsElement(), undefined);
 		assert.strictEqual(mounted.container.childNodes.length, 0);
+	});
+});
+
+suite('Sources - Files status stylesheet', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const colors = {
+		'foreground': 'rgb(30, 30, 30)',
+		'descriptionForeground': 'rgb(150, 150, 150)',
+		'errorForeground': 'rgb(240, 10, 10)',
+	};
+
+	test('a failed read raises the status and empty text to foreground and marks the status with an error glyph', async () => {
+		const part = await mountSourcesStyleRoot(store, ['sourcesFilesList.css'], colors);
+		const status = appendStyled(part, 'div.sources-files-status');
+		const empty = appendStyled(part, 'div.sources-files-empty');
+		const paint = () => ({
+			status: computedStyle(status).color,
+			empty: computedStyle(empty).color,
+			glyph: [computedStyle(status, '::before').content, computedStyle(status, '::before').color],
+		});
+		assert.deepStrictEqual(paint(), { status: colors.descriptionForeground, empty: colors.descriptionForeground, glyph: ['none', colors.descriptionForeground] });
+		status.classList.add('is-error');
+		empty.classList.add('is-error');
+		assert.deepStrictEqual(paint(), { status: colors.foreground, empty: colors.foreground, glyph: ['"\uea87"', colors.errorForeground] });
 	});
 });

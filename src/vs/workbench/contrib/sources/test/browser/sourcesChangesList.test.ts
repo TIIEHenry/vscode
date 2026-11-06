@@ -20,6 +20,7 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { CommandsRegistry, ICommandEvent, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -2206,6 +2207,43 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).name, 'leftover.ts');
 		assert.ok(host.querySelector('.sources-changes-list .monaco-list-row'));
 		assert.notStrictEqual((host.querySelector('.sources-changes-status') as HTMLElement).style.display, 'none');
+	});
+
+	test('list-fail leftover rows neither open a FileDiff nor offer the alternate open', async function () {
+		let readCalls = 0;
+		let diffCalls = 0;
+		let menus = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createGitReadConnection({
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				if (++readCalls === 1) {
+					return { supported: true, reason: '', branch: 'main', entries: [{ path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }] };
+				}
+				throw new Error('boom');
+			},
+			readGitFileDiff: async () => {
+				diffCalls++;
+				return { supported: true, reason: '', path: 'src/leftover.ts', unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n' };
+			},
+		});
+		const instantiationService = stubChangesListServices(connection);
+		instantiationService.stub(IContextMenuService, { showContextMenu: () => { menus++; } });
+		const host = mountHost();
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const rightClickRow = () => host.querySelector('.sources-changes-list .monaco-list-row')!.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+		rightClickRow();
+		assert.strictEqual(menus, 1, 'a live row offers the alternate open');
+
+		onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+		const status = await waitForStatusText(host, 'Unable to read git changes');
+		assert.strictEqual(list.length, 1);
+		rightClickRow();
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		await timeout(20);
+		assert.deepStrictEqual({ menus, diffCalls, status: readChangesNotice(host) }, { menus: 1, diffCalls: 0, status });
 	});
 
 	test('success then missing readGitChanges keeps leftover rows and does not paint local-only', async function () {

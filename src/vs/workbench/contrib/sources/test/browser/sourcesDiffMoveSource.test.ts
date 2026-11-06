@@ -50,7 +50,11 @@ import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import '../../browser/conversationDiffReview.contribution.js';
-import { SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
+import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
+import { sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
+import { sourcesGitDiffOpenFailureMessage } from '../../common/sourcesChangesGitRead.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, resolveSourcesChangeRefFromEditor, type ISourcesConversationDiffMoveSource, type SourcesDiffMoveResult } from '../../browser/sourcesDiffRefHelpers.js';
 import type { ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
 
@@ -423,6 +427,29 @@ suite('Sources M01 move source', () => {
 		const h = controlledSource();
 		await assert.rejects(moveActiveDiffToConversation('editorTitle', h.deps, h.scm, h.source), /No conversation window/);
 		assert.deepStrictEqual(h.trace, []);
+	});
+
+	test('the registered move command reports a missing Conversation leaf as an error notification', async () => {
+		const h = controlledSource();
+		const errors: string[] = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IEditorService, h.editorService);
+		instantiationService.stub(IEditorGroupsService, h.groups);
+		instantiationService.stub(ISourcesDiffPanelService, h.deps.sourcesDiffPanelService);
+		instantiationService.stub(IQuickDiffService, h.deps.quickDiffService);
+		instantiationService.stub(ISCMService, h.scm);
+		instantiationService.stub(IAgentSessionContext, createSourcesTestSessionContext({ getActiveSessionId: () => 'session-without-leaf' }));
+		instantiationService.stub(INotificationService, 'error', (message: unknown) => { errors.push(String(message)); });
+		const command = CommandsRegistry.getCommand(SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND);
+		assert.ok(command);
+
+		const result = await instantiationService.invokeFunction(accessor => command.handler(accessor, h.source));
+
+		assert.deepStrictEqual({ result, errors, trace: h.trace }, {
+			result: undefined,
+			errors: [sourcesGitDiffOpenFailureMessage(new Error(sourcesConversationLeafMissingMessage()))],
+			trace: [],
+		});
 	});
 
 	for (const outcome of [false, undefined, 'stale'] as const) {

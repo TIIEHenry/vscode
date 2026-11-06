@@ -70,6 +70,7 @@ import {
 } from '../../common/sourcesReviewListModel.js';
 import { SourcesReviewProgressService } from '../../browser/sourcesReviewProgressService.js';
 import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
+import { appendStyled, computedStyle, mountSourcesStyleRoot } from './sourcesStyleTestUtils.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { buildSourcesReviewProgressKey, ISourcesReviewProgressBucket, ISourcesReviewProgressKey, ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../../common/sourcesReviewProgress.js';
 
@@ -3580,4 +3581,28 @@ suite('Sources - review list model', () => {
 		await timeout(400);
 		assert.strictEqual(readCalls, afterLoad);
 	});
+});
+
+suite('Sources list status stylesheets', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const colors = {
+		'descriptionForeground': 'rgb(150, 150, 150)',
+		'errorForeground': 'rgb(240, 10, 10)',
+	};
+
+	for (const { css, elements } of [
+		{ css: 'sourcesReviewList.css', elements: ['div.sources-review-status', 'div.sources-review-empty'] },
+		{ css: 'sourcesChangesList.css', elements: ['div.sources-changes-status', 'div.sources-changes-empty'] },
+	]) {
+		test(`${css} paints status and empty lines in the error tone only with is-error`, async () => {
+			const part = await mountSourcesStyleRoot(store, [css], colors);
+			for (const shorthand of elements) {
+				const line = appendStyled(part, shorthand);
+				assert.strictEqual(computedStyle(line).color, colors.descriptionForeground, shorthand);
+				line.classList.add('is-error');
+				assert.strictEqual(computedStyle(line).color, colors.errorForeground, shorthand);
+			}
+		});
+	}
 });
