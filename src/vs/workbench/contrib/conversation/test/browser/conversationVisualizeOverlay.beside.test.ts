@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { $, append } from '../../../../base/browser/dom.js';
-import { mainWindow } from '../../../../base/browser/window.js';
-import { Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
-import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
-import { IWebviewService } from '../../webview/browser/webview.js';
-import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
-import { URI } from '../../../../base/common/uri.js';
+import { $, append } from '../../../../../base/browser/dom.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
+import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
+import { IWebviewService } from '../../../webview/browser/webview.js';
+import { ConversationVisualizeOverlay } from '../../browser/conversationVisualizeOverlay.js';
+import { URI } from '../../../../../base/common/uri.js';
 
 suite('ConversationVisualizeOverlay (browser)', () => {
 

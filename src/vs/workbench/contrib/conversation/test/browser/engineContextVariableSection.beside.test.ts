@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot, UniverseAgentContextVariableListResult, UniverseAgentContextVariableReadResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { formatEngineContextVariableListLabel } from './engineContextVariableList.js';
-import { EngineContextVariableSection } from './engineContextVariableSection.js';
-import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentContextVariableListResult, UniverseAgentContextVariableReadResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { formatEngineContextVariableListLabel } from '../../browser/engineContextVariableList.js';
+import { EngineContextVariableSection } from '../../browser/engineContextVariableSection.js';
+import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineContextVariableSection (browser)', () => {
 

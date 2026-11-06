@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { DetailFetchOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { TrajectoryDetailInspectorModel, type ITrajectoryDetailContext } from './conversationTrajectoryDetailInspector.js';
-import type { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { DetailFetchOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { TrajectoryDetailInspectorModel, type ITrajectoryDetailContext } from '../../browser/conversationTrajectoryDetailInspector.js';
+import type { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 
 suite('TrajectoryDetailInspectorModel (browser co-located)', () => {
 

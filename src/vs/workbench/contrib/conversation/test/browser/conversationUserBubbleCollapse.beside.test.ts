@@ -10,7 +10,7 @@ import {
 	shouldScrollExpandedUserBubble,
 	USER_BUBBLE_COLLAPSE_LINE_THRESHOLD,
 	USER_BUBBLE_EXPANDED_SCROLL_LINE_THRESHOLD,
-} from './conversationUserBubbleCollapse.js';
+} from '../../browser/conversationUserBubbleCollapse.js';
 
 suite('ConversationUserBubbleCollapse (browser)', () => {
 

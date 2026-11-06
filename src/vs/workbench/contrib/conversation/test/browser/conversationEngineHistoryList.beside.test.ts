@@ -4,18 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentHistoryEnvelope } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentHistoryEnvelope } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConversationEngineHistoryList,
 	conversationLensHistoryRowClass,
-} from './conversationEngineHistoryList.js';
-import { IConversationRosterService } from './conversationStubService.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
+} from '../../browser/conversationEngineHistoryList.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 suite('ConversationEngineHistoryList (browser dispose gate)', () => {
 

@@ -136,7 +136,7 @@ for report in conversation sources sourcesnode universeagent universeagentnode; 
 done
 
 set +e
-./scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --tfs conversation
+./scripts/test.sh --glob '**/vs/workbench/contrib/conversation/test/**/*.test.js' --excludeRunGlob '**/conversationSessionsFocus.test.js' --tfs conversation
 ./scripts/test.sh --glob '**/vs/workbench/contrib/sources/test/browser/**/*.test.js' --tfs sources
 node test/unit/node/index.js --tfs sourcesNode "${SOURCES_NODE_RUN_ARGS[@]}"
 sources_node_exit=$?

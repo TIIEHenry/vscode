@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { IWebviewService } from '../../webview/browser/webview.js';
-import { ConversationTimelineRenderer } from './conversationTimelineRenderer.js';
-import type { ConversationStubTurn } from './conversationStubModel.js';
-import type { ConversationTimelineItem } from './conversationTimelineTypes.js';
+import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { IWebviewService } from '../../../webview/browser/webview.js';
+import { ConversationTimelineRenderer } from '../../browser/conversationTimelineRenderer.js';
+import type { ConversationStubTurn } from '../../browser/conversationStubModel.js';
+import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
 
 suite('ConversationTimelineRenderer row height generation', () => {
 

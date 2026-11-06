@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListToolsResult,
-} from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { EngineToolsSection } from './engineToolsSection.js';
-import { createConversationConnectionTestStub, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { EngineToolsSection } from '../../browser/engineToolsSection.js';
+import { createConversationConnectionTestStub, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineToolsSection (browser)', () => {
 

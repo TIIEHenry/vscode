@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { isConversationTimelineScrolledToBottom } from './conversationTimelineScroll.js';
+import { isConversationTimelineScrolledToBottom } from '../../browser/conversationTimelineScroll.js';
 
 suite('conversationTimelineScroll (browser colocated)', () => {
 

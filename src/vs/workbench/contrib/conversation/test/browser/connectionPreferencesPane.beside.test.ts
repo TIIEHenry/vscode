@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentListDevicesResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ConnectionPreferencesPane } from './connectionPreferencesPane.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
-import { Dimension } from '../../../../base/browser/dom.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentListDevicesResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConnectionPreferencesPane } from '../../browser/connectionPreferencesPane.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { Dimension } from '../../../../../base/browser/dom.js';
 
 suite('ConnectionPreferencesPane (browser)', () => {
 

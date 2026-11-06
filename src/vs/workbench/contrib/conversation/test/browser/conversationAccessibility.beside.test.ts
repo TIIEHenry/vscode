@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getConversationTurnAccessibleText } from '../../browser/conversationAccessibility.js';
 
 suite('conversationAccessibility (browser unit)', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();

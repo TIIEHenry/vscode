@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ConversationTrajectoryList } from './conversationTrajectoryList.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationTrajectoryList } from '../../browser/conversationTrajectoryList.js';
 
 suite('ConversationTrajectoryList (browser widget)', () => {
 

@@ -62,7 +62,7 @@ Electron runner的[`renderer.html`](../../../test/unit/electron/renderer.html)�
 
 | 域 | 官方选择范围 |
 |:---|:---|
-| `conversation` | Electron 的 `contrib/conversation/test` 完整 glob |
+| `conversation` | Electron 的 `contrib/conversation/test` 完整 glob，排除 `conversationSessionsFocus.test.js`（真实焦点用例只在 browser runner 跑，见「验证真实焦点样式」） |
 | `sources` | Electron 的 `contrib/sources/test/browser` 完整 glob |
 | `sourcesNode` | Node 的 `sourcesLeftoverCatchScan.test.ts`、`sourcesWiringScan.test.ts` 两个 `--run` |
 | `universeAgent` | 按现有收集器保留可在 Electron 加载的全部正式文件 |
@@ -114,7 +114,7 @@ SH
 
 ```bash
 rtk proxy node test/unit/browser/index.js --browser chromium-chrome \
-  --run src/vs/workbench/contrib/conversation/browser/conversationSessionsView.test.ts \
+  --run src/vs/workbench/contrib/conversation/test/browser/conversationSessionsFocus.test.ts \
   --grep 'selected session text follows'
 ```
 

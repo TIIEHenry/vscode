@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
-import type { ConversationWriteMessage } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { ViewLeaseId } from '../../../../platform/universeAgent/common/sessionView/types.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { ConversationEngineRosterService } from './conversationEngineRosterService.js';
-import { stubTurnsToSnapshot } from './conversationSessionView.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
+import type { ConversationWriteMessage } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { ConversationEngineRosterService } from '../../browser/conversationEngineRosterService.js';
+import { stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
 
 const LEFTOVER_CACHE_TURN_TEXT = 'leftover-cached-turn';
 

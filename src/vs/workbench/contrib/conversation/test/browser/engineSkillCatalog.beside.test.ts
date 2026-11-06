@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { groupSkillsBySource, isSkillBodyDirty } from './engineSkillCatalog.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { groupSkillsBySource, isSkillBodyDirty } from '../../browser/engineSkillCatalog.js';
 
 suite('engineSkillCatalog body dirty', () => {
 

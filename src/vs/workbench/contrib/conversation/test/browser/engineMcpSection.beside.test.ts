@@ -4,23 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IDialogService, type IInput } from '../../../../platform/dialogs/common/dialogs.js';
-import { TestDialogService } from '../../../../platform/dialogs/test/common/testDialogService.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IDialogService, type IInput } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type {
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListMcpServersResult,
 	UniverseAgentMcpServerSummary,
 	UniverseAgentUpdateMcpServerRequest,
-} from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from './engineMcpSection.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineMcpSection (browser)', () => {
 

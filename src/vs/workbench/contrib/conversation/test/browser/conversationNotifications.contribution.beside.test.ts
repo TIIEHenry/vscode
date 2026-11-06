@@ -4,23 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { TestConfigurationService } from '../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { INotification, INotificationHandle, INotificationService, NoOpNotification } from '../../../../platform/notification/common/notification.js';
-import { TestNotificationService } from '../../../../platform/notification/test/common/testNotificationService.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { PendingActionView, SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ConversationNotificationsContribution } from './conversationNotifications.contribution.js';
-import { IConversationRosterService, ConversationStubService } from './conversationStubService.js';
-import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
-import { UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS } from '../common/uaClientSettingsKeys.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { INotification, INotificationHandle, INotificationService, NoOpNotification } from '../../../../../platform/notification/common/notification.js';
+import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
+import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { PendingActionView, SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationNotificationsContribution } from '../../browser/conversationNotifications.contribution.js';
+import { IConversationRosterService, ConversationStubService } from '../../browser/conversationStubService.js';
+import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { UA_CLIENT_NOTIFICATIONS_PERMISSION_REQUESTS } from '../../common/uaClientSettingsKeys.js';
 
 class RecordingNotificationService extends TestNotificationService {
 	readonly notifications: INotification[] = [];
@@ -51,7 +51,8 @@ class RosterDetailPendingRoster extends ConversationStubService {
 			...lease.snapshot,
 			pendingActions: [...lease.snapshot.pendingActions, ...injected],
 		};
-		return { ...lease, snapshot };
+		// Spread drops the prototype `dispose`, which the contribution calls in its finally.
+		return { ...lease, snapshot, dispose: () => lease.dispose() };
 	}
 
 	emitPendingViaRosterDetailOnly(sessionId: string, requestId: string): void {

@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { getEngineStatusCommandArguments } from './conversationSessionStatus.js';
-import { CONNECTION_PROFILES_ZONE } from '../common/uaPreferencesPanes.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getEngineStatusCommandArguments } from '../../browser/conversationSessionStatus.js';
+import { CONNECTION_PROFILES_ZONE } from '../../common/uaPreferencesPanes.js';
 
 suite('ConversationSessionStatus (browser)', () => {
 

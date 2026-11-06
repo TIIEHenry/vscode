@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	ConversationTimelineResourceBudget,
 	type ConversationTimelineResourceClaim,
 	type ConversationTimelineVisibilityEntry,
 	type ConversationTimelineVisibilityObserver,
-} from './conversationTimelineResourceBudget.js';
+} from '../../browser/conversationTimelineResourceBudget.js';
 
 class FakeVisibilityObserver implements ConversationTimelineVisibilityObserver {
 	readonly observed = new Set<Element>();
@@ -65,6 +65,8 @@ suite('ConversationTimelineResourceBudget (browser colocated)', () => {
 
 		budget.release('d2');
 		assert.deepStrictEqual(budget.getMountedIds(), ['d1']);
-		assert.strictEqual(d1.mounts, 1);
+		// d1 mounted once, was evicted by the more recently near d2, then remounted into the freed slot.
+		assert.strictEqual(d1.mounts, 2);
+		assert.strictEqual(d1.unmounts, 1);
 	});
 });

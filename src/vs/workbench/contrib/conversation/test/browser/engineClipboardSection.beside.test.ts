@@ -4,23 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentClearClipboardResult,
 	UniverseAgentListClipboardResult,
 	UniverseAgentReadClipboardResult,
 	UniverseAgentWriteClipboardResult,
-} from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from './engineClipboardList.js';
-import { EngineClipboardSection } from './engineClipboardSection.js';
-import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
+import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
+import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineClipboardSection (browser)', () => {
 
@@ -247,7 +247,7 @@ suite('EngineClipboardSection (browser)', () => {
 			getCapabilitySnapshot: () => capabilities,
 			getConnectionSnapshot: () => ({
 				transport: 'ok', pairingPending: false, channelAlive: true, sharedFsRootSent: false,
-				capabilities, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' },
+				capabilities, engineIdentityId: 'test-engine', linkId: 1, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' },
 			}),
 			listClipboard: async () => ({ entries: [] }),
 			writeClipboard: async () => ({ clipId: 'live-write' }),

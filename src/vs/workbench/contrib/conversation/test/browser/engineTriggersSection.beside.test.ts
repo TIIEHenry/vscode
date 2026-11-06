@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentDeleteTriggerResult,
@@ -16,12 +16,12 @@ import type {
 	UniverseAgentListTriggersResult,
 	UniverseAgentTrigger,
 	UniverseAgentUpsertTriggerResult,
-} from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { formatEngineTriggerListLabel } from './engineTriggerList.js';
-import { EngineTriggersSection } from './engineTriggersSection.js';
-import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
+import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
+import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineTriggersSection (browser)', () => {
 

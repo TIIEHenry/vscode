@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { URI } from '../../../../base/common/uri.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { emptySessionViewSnapshot, type SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { attachReviewEntries, type IReviewNavRecord } from './conversationReviewEntry.js';
-import type { ConversationTimelineEntry } from './conversationSessionView.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { emptySessionViewSnapshot, type SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { attachReviewEntries, type IReviewNavRecord } from '../../browser/conversationReviewEntry.js';
+import type { ConversationTimelineEntry } from '../../browser/conversationSessionView.js';
 
 suite('conversationReviewEntry attach (browser)', () => {
 

@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { conversationLensDockNoModel } from './conversationLensDockStrings.js';
-import { composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions } from './conversationComposerCatalog.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { conversationLensDockNoModel } from '../../browser/conversationLensDockStrings.js';
+import { composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions } from '../../browser/conversationComposerCatalog.js';
 
 suite('conversationComposerCatalog (unit)', () => {
 

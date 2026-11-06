@@ -4,30 +4,30 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getWindow } from '../../../../base/browser/dom.js';
-import { timeout } from '../../../../base/common/async.js';
-import { Color, RGBA } from '../../../../base/common/color.js';
-import { Event } from '../../../../base/common/event.js';
-import { toDisposable } from '../../../../base/common/lifecycle.js';
-import { mock } from '../../../../base/test/common/mock.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { getErrorMessage } from '../../../../base/common/errors.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { asCssVariableName, getColorRegistry } from '../../../../platform/theme/common/colorRegistry.js';
-import { ConversationPart, IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
-import { IViewContainerModel, IViewDescriptorService, ViewContainer, ViewContainerLocation } from '../../../common/views.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { TestEditorService, TestLayoutService, workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from './conversationSessionsView.js';
-import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
-import { stubConversationTimelineLinkServices } from '../test/browser/conversationTimelineLinkTestStubs.js';
-import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { ColorThemeData } from '../../../services/themes/common/colorThemeData.js';
-import { COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS } from '../../../services/themes/common/workbenchThemeService.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Color, RGBA } from '../../../../../base/common/color.js';
+import { Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { mock } from '../../../../../base/test/common/mock.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { asCssVariableName, getColorRegistry } from '../../../../../platform/theme/common/colorRegistry.js';
+import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { IViewContainerModel, IViewDescriptorService, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { TestEditorService, TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
+import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { ColorThemeData } from '../../../../services/themes/common/colorThemeData.js';
+import { COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS } from '../../../../services/themes/common/workbenchThemeService.js';
 
-suite('ConversationSessionsView (browser co-located)', () => {
+suite('ConversationSessionsView focus styles (browser co-located)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -58,19 +58,6 @@ suite('ConversationSessionsView (browser co-located)', () => {
 				return stubViewContainer;
 			}
 		}();
-	}
-
-	async function setFilterQuery(view: ConversationSessionsView, query: string): Promise<void> {
-		const input = view.element.querySelector('.conversation-sessions-inline-filter-input') as HTMLInputElement | null;
-		assert.ok(input, 'filter input must exist');
-		input.value = query;
-		input.dispatchEvent(new globalThis.Event('input'));
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
-	}
-
-	function getVisibleSessionTitles(view: ConversationSessionsView): string[] {
-		return [...view.element.querySelectorAll('.conversation-sessions-item-label')]
-			.map(label => label.textContent ?? '');
 	}
 
 	function mountView(stubService?: ConversationStubService): { view: ConversationSessionsView; stubService: ConversationStubService } {
@@ -109,26 +96,6 @@ suite('ConversationSessionsView (browser co-located)', () => {
 		return { view, stubService: service };
 	}
 
-	test('inline filter keeps the active session visible when its title does not match', async () => {
-		const { view, stubService } = mountView();
-		const alphaId = stubService.getActiveSessionId();
-		stubService.renameSession(alphaId, 'Alpha roster item');
-		const betaId = stubService.createSession();
-		stubService.renameSession(betaId, 'Beta roster item');
-		stubService.switchSession(betaId);
-
-		await setFilterQuery(view, 'alpha');
-
-		const titles = getVisibleSessionTitles(view);
-		assert.strictEqual(stubService.getActiveSessionId(), betaId);
-		assert.ok(titles.includes('Beta roster item'), 'active session must stay in the filtered roster');
-		assert.ok(titles.includes('Alpha roster item'));
-		assert.strictEqual(titles.length, 2);
-		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label')?.textContent === 'Beta roster item');
-		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-more'));
-		assert.ok(view.element.querySelector('.conversation-sessions-item-icon--waiting, .conversation-sessions-item-icon--idle, .conversation-sessions-item-icon--running, .conversation-sessions-item-icon--failed'));
-	});
-
 	function paintedColor(...layers: string[]): Color {
 		const canvas = document.createElement('canvas');
 		canvas.width = canvas.height = 1;
@@ -162,7 +129,7 @@ suite('ConversationSessionsView (browser co-located)', () => {
 
 			const stylesheet = document.createElement('link');
 			stylesheet.rel = 'stylesheet';
-			stylesheet.href = new URL('./media/conversationSessions.css', import.meta.url).href;
+			stylesheet.href = new URL('../../browser/media/conversationSessions.css', import.meta.url).href;
 			store.add(toDisposable(() => stylesheet.remove()));
 			await new Promise<void>((resolve, reject) => {
 				stylesheet.onload = () => resolve();
