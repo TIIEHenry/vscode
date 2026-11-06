@@ -323,17 +323,11 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r09：chat](review-2026-10-24-r09-chat.md) | `draft` | 5 条；重命名折成普通编辑、取消或失败的工具被标成已完成、编辑工具写错请求、外部组吞普通编辑。 |
 | [审查 r10：terminal-notebook](review-2026-10-24-r10-terminal-notebook.md) | `draft` | 5 条；退出后的发送、活动分栏下标、单元格输出和后台结束通知仍会对错对象。 |
 | [审查 r11：debug-scm](review-2026-10-24-r11-debug-scm.md) | `draft` | 5 条；临时断点、取消后的重启、停止后的建会话、合并完成信号和 preserveFocus 跳过保存仍成立。 |
-| [方案 r11：debug-scm](review-2026-10-24-r11-debug-scm-plan.md) | `implemented` | hold 5。资源抓取、沙箱合并、未就绪工具列表、任务依赖与下载失败已修。78 passing。 |
 | [审查 r12：contrib-rest](review-2026-10-24-r12-contrib-rest.md) | `draft` | 5 条；MCP 任意 HTTPS 抓取、沙箱建议删拒绝规则、工具列表、任务依赖和网页下载把失败当完成。 |
-| [方案 r12：contrib-rest](review-2026-10-24-r12-contrib-rest-plan.md) | `implemented` | hold 5。Cloud 仓库与基线、未知文件权限、补丁 requestId 与笔记本取消已修。105 passing。 |
 | [审查 r13：workbench-shell](review-2026-10-24-r13-workbench-shell.md) | `draft` | 5 条；会话网格按序号恢复、藏列接住新打开、大小写另存为失败仍返回目标路径。 |
-| [方案 r13：workbench-shell](review-2026-10-24-r13-workbench-shell-plan.md) | `implemented` | hold 3，weaken 2。会话键 memento、隐藏组 / 叶、失败另存为与移动中断已修；旧序号不迁移。54 + 17 + 12 + 14 passing。 |
 | [审查 r14：sessions](review-2026-10-24-r14-sessions.md) | `draft` | 4 条；追问框、已读、分组成员和变更审阅仍会把别的会话的状态写成已发生。 |
-| [方案 r14：sessions](review-2026-10-24-r14-sessions-plan.md) | `implemented` | hold 4。追问框绑定、断连已读、分组替换与变更审阅会话已修。125 passing。 |
 | [审查 r15：copilot](review-2026-10-24-r15-copilot.md) | `draft` | 5 条；提交仓库、写权限、补丁上下文、云端基线和笔记本取消仍按发现稿成立。 |
-| [方案 r15：copilot](review-2026-10-24-r15-copilot-plan.md) | `implemented` | hold 5。Cloud 仓库与基线、未知文件权限、补丁 requestId 与笔记本取消已修。105 passing。 |
 | [审查 r16：extensions-entry](review-2026-10-24-r16-extensions-entry.md) | `draft` | 3 条；回环登录 nonce 失败、无账户会话核对失败、Git IPC 注销删错键。 |
-| [方案 r16：extensions-entry](review-2026-10-24-r16-extensions-entry-plan.md) | `implemented` | hold 3 已实施。nonce 失败拒绝登录 Promise；身份核对失败不交出会话且只删明确 401，网络失败保留钥匙串；IPC 注销删除注册键。`github-authentication` 67 passing，`git` 76 passing。 |
 | [终端命令投递与沙箱安装的送达合同](terminal-delivery-contracts.md) | `implemented` | D1377：命令投递 void 边界、三策略与安装/修复 boolean 合同；行为待 merge 验证。 |
 | [十六路审查 r01：base 发现](review-2026-10-30-r01-base.md) | `draft` | 抽样审查 src/vs/base 的状态、销毁、持久化与竞态，确认 5 条可复现的行为问题。 |
 | [十六路审查 r02：editor 发现](review-2026-10-30-r02-editor.md) | `draft` | 抽样 editor 的编辑、撤销、diff 与内联编辑状态，证实 3 条问题。 |
