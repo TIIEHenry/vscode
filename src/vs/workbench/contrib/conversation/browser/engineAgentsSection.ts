@@ -37,7 +37,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
-import { captureEnginePublishedLinkOwner, captureEngineWriteLink, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, captureEngineWriteLink, EngineRefreshGate, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -327,7 +327,7 @@ export class EngineAgentsSection extends Disposable {
 	private activeDetailTab: EngineAgentDetailTab = 'instructions';
 	private agentTools: UniverseAgentToolSummary[] = [];
 	private agentToolsLoadFailed: string | undefined;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
 	private agentToolsLoadGeneration = 0;
 	private readonly agentToolPending = new Map<string, boolean>();
 	private sectionActive = false;
@@ -343,6 +343,7 @@ export class EngineAgentsSection extends Disposable {
 	) {
 		super();
 
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 		this.container = DOM.append(parent, $('.engine-agents-section.engine-catalog-section'));
 		this.container.style.display = 'none';
 
@@ -593,7 +594,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.agentToolsLoadGeneration++;
 		this.selectionGeneration++;
 		this.agentsEditorLoadGeneration++;
@@ -1816,7 +1817,7 @@ export class EngineAgentsSection extends Disposable {
 		if (this._store.isDisposed || !isContextCurrent()) {
 			return false;
 		}
-		const generation = ++this.refreshGeneration;
+		const generation = this.refreshGate.begin();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.agentProfiles.support;
@@ -1862,7 +1863,7 @@ export class EngineAgentsSection extends Disposable {
 		const readOwner = this.publishedWriteLink();
 		try {
 			const result = await this.listSessionAgentProfiles();
-			if (this._store.isDisposed || generation !== this.refreshGeneration || !isContextCurrent()) {
+			if (!this.refreshGate.isCurrent(generation) || !isContextCurrent()) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'profile');
@@ -1887,7 +1888,7 @@ export class EngineAgentsSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			if (this._store.isDisposed || generation !== this.refreshGeneration || !isContextCurrent()) {
+			if (!this.refreshGate.isCurrent(generation) || !isContextCurrent()) {
 				return false;
 			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'profile');
