@@ -53,6 +53,7 @@ export function createSourcesConversationOpenHarness(store: Pick<DisposableStore
 		opened,
 		session: {
 			getActiveSessionId: () => sessionId,
+			getEngineSessionReadiness: () => 'ready',
 		} as IAgentSessionContext,
 		editorGroupsService: {
 			conversationParts: [part],

@@ -12,6 +12,7 @@ export function createSourcesTestSessionContext(overrides: Partial<IAgentSession
 		_serviceBrand: undefined,
 		getActiveSessionId: () => '',
 		isEngineSessionReady: () => false,
+		getEngineSessionReadiness: () => 'ready',
 		isPairingHold: () => false,
 		onDidChangeActiveSession: Event.None,
 		onDidChangeSession: Event.None,

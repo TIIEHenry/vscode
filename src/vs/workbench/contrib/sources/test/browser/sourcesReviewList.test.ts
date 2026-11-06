@@ -239,6 +239,7 @@ suite('Sources - review list model', () => {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
 			isEngineSessionReady: () => roster.isEngineSessionReady(),
+			getEngineSessionReadiness: () => roster.getEngineSessionReadiness?.() ?? (roster.isEngineSessionReady() ? 'ready' : 'unavailable'),
 			isPairingHold: () => isConversationPairingHold(connection),
 			onDidChangeActiveSession: roster.onDidChangeActiveSession,
 			onDidChangeSession: roster.onDidChangeSession,

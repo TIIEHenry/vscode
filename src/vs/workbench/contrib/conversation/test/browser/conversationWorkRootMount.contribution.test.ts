@@ -105,6 +105,7 @@ suite('ConversationWorkRootMount', () => {
 		const onDidChangeActiveWorkRoot = store.add(new Emitter<IAgentWorkRoot>());
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const sessionContext = {
+			getEngineSessionReadiness: () => 'ready' as const,
 			getActiveWorkRoot: () => root,
 			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
 		} as unknown as IAgentSessionContext;

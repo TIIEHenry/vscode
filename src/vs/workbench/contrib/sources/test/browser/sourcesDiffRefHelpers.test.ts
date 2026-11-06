@@ -257,7 +257,7 @@ suite('Sources - Diff ref helpers', () => {
 					addGroup: () => { throw new Error('neighbor must be reused'); },
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => activeSession } as IAgentSessionContext,
+			session: { getActiveSessionId: () => activeSession, getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}, createScmService());
 
 		assert.strictEqual(moved, false);
@@ -313,7 +313,7 @@ suite('Sources - Diff ref helpers', () => {
 					addGroup: () => otherGroup,
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+			session: { getActiveSessionId: () => 'session-active', getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		};
 
 		await assert.rejects(

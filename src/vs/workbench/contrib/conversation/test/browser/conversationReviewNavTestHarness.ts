@@ -115,6 +115,7 @@ export class ConversationReviewNavTestHarness extends Disposable {
 		if (options.legacyContext || options.workRoot) {
 			const session = new class extends mock<IAgentSessionContext>() {
 				override getActiveSessionId = () => harness.activeSessionId;
+				override getEngineSessionReadiness = () => 'ready' as const;
 				override readonly onDidChangeActiveSession = harness.activeSessionChanged.event;
 				override readonly onDidChangeSession = harness.sessionChanged.event;
 			}();

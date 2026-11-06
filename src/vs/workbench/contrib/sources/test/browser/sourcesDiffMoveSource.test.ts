@@ -178,7 +178,7 @@ suite('Sources M01 move source', () => {
 			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
 			instantiation.stub(IAgentSessionContext, {
 				_serviceBrand: undefined, getActiveSessionId: () => 'm01-owner-b', isEngineSessionReady: () => false,
-				isPairingHold: () => false, onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
+				getEngineSessionReadiness: () => 'unavailable', isPairingHold: () => false, onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
 				acquireSessionView: () => { throw new Error('not used'); },
 			} satisfies IAgentSessionContext);
 			instantiation.stub(ISourcesChangesModel, disposables.add(instantiation.createInstance(SourcesChangesModel)));
@@ -292,7 +292,7 @@ suite('Sources M01 move source', () => {
 		instantiation.stub(IUniverseAgentConnection, connection);
 		instantiation.stub(IAgentSessionContext, {
 			_serviceBrand: undefined, getActiveSessionId: () => 'm01-owner', isEngineSessionReady: () => false,
-			isPairingHold: () => false, onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
+			getEngineSessionReadiness: () => 'unavailable', isPairingHold: () => false, onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
 			acquireSessionView: () => { throw new Error('not used'); },
 		} satisfies IAgentSessionContext);
 		instantiation.stub(ISCMService, {

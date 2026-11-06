@@ -971,6 +971,7 @@ suite('ConversationIdentityStrip', () => {
 		const offer: IWorkRootMountOffer = { uri: URI.file('/remote/gamma'), reason: 'trust' };
 		let accepts = 0;
 		const sessionContext = {
+			getEngineSessionReadiness: () => 'ready' as const,
 			getActiveWorkRoot: () => ({
 				sessionId: 's-engine',
 				engineIdentityId: 'eng',
@@ -1023,6 +1024,7 @@ suite('ConversationIdentityStrip', () => {
 		]);
 		const summaries: { sessionId: string; resolve: (value: UniverseAgentReadGitSummaryResult) => void }[] = [];
 		const sessionContext = {
+			getEngineSessionReadiness: () => 'ready' as const,
 			getActiveWorkRoot: () => current,
 			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
 		} as IAgentSessionContext;
@@ -1327,7 +1329,7 @@ suite('ConversationIdentityStrip', () => {
 
 	test('D1386 bound leaf does not borrow a window root when its root API is absent', () => {
 		const legacy: IAgentSessionContext = {
-			_serviceBrand: undefined, getActiveSessionId: () => 'active', isEngineSessionReady: () => true, isPairingHold: () => false,
+			_serviceBrand: undefined, getActiveSessionId: () => 'active', isEngineSessionReady: () => true, getEngineSessionReadiness: () => 'ready', isPairingHold: () => false,
 			onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
 			acquireSessionView: () => { throw new Error('not used'); },
 		};

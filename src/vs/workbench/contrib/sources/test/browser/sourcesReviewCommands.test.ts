@@ -119,6 +119,7 @@ suite('Sources - review commands', () => {
 				return {
 					getActiveSessionId: () => 'session-1',
 					isEngineSessionReady: () => false,
+					getEngineSessionReadiness: () => 'unavailable',
 					isPairingHold: () => true,
 					onDidChangeActiveSession: Event.None,
 					onDidChangeSession: Event.None,

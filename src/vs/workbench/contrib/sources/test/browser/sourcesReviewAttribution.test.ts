@@ -67,6 +67,7 @@ suite('Sources - review attribution', () => {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
 			isEngineSessionReady: () => true,
+			getEngineSessionReadiness: () => 'ready',
 			isPairingHold: () => isConversationPairingHold(connection),
 			onDidChangeActiveSession: roster.onDidChangeActiveSession,
 			onDidChangeSession: Event.None,

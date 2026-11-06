@@ -126,6 +126,7 @@ suite('Sources - Files list search', () => {
 		instantiationService.stub(IAgentSessionContext, {
 			getActiveSessionId: () => options?.sessionState?.id ?? options?.sessionId ?? '',
 			isEngineSessionReady: () => false,
+			getEngineSessionReadiness: () => 'ready',
 			isPairingHold: () => false,
 			getSessionWorkDir: () => options?.workDir,
 			getWorkRoot: () => options?.workRoot ?? ({
@@ -1241,6 +1242,7 @@ suite('Sources - Files explorer engine directory', () => {
 		instantiationService.stub(IAgentSessionContext, {
 			getActiveSessionId: () => 'sess-1',
 			isEngineSessionReady: () => false,
+			getEngineSessionReadiness: () => 'ready',
 			isPairingHold: () => false,
 			getSessionWorkDir: () => workDir,
 			getWorkRoot: () => workRoot ?? ({

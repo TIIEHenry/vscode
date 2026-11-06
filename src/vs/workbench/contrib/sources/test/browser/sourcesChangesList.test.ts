@@ -1188,7 +1188,7 @@ suite('Sources - Changes list open', () => {
 					addGroup: () => otherGroup,
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+			session: { getActiveSessionId: () => 'session-active', getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}), {}), (error: unknown) => {
 			assert.ok(error instanceof Error);
 			assert.strictEqual(error.message, sourcesConversationLeafMissingMessage());
@@ -1239,7 +1239,7 @@ suite('Sources - Changes list open', () => {
 					addGroup: () => { throw new Error('no chat root must not addGroup'); },
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+			session: { getActiveSessionId: () => 'session-active', getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}), {});
 
 		assert.strictEqual(opened, false);
@@ -1342,7 +1342,7 @@ suite('Sources - Changes list open', () => {
 			editorGroupsService: {
 				conversationParts: [otherPart, rightPart],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => activeSession } as IAgentSessionContext,
+			session: { getActiveSessionId: () => activeSession, getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}), { preserveFocus: true, pinned: true });
 
 		assert.strictEqual(opened, false);
@@ -1409,7 +1409,7 @@ suite('Sources - Changes list open', () => {
 					addGroup: () => { throw new Error('same identity must reveal before addGroup'); },
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+			session: { getActiveSessionId: () => 'session-active', getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}), {});
 
 		assert.deepStrictEqual(openedOn, ['reveal']);
@@ -1466,7 +1466,7 @@ suite('Sources - Changes list open', () => {
 					addGroup: () => { throw new Error('hidden neighbor must be reused'); },
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+			session: { getActiveSessionId: () => 'session-active', getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}), {});
 
 		assert.strictEqual(unhidden, true);
@@ -1539,7 +1539,7 @@ suite('Sources - Changes list open', () => {
 					},
 				}],
 			} as unknown as IEditorGroupsService,
-			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+			session: { getActiveSessionId: () => 'session-active', getEngineSessionReadiness: () => 'ready' } as IAgentSessionContext,
 		}), {});
 
 		assert.strictEqual(addSourceId, chatGroup.id);
@@ -1809,6 +1809,7 @@ suite('Sources - Changes list leftover honesty', () => {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
 			isEngineSessionReady: () => roster.isEngineSessionReady(),
+			getEngineSessionReadiness: () => roster.getEngineSessionReadiness?.() ?? (roster.isEngineSessionReady() ? 'ready' : 'unavailable'),
 			isPairingHold: () => {
 				if (typeof connection.getConnectionPhase !== 'function' || typeof connection.getConnectionSnapshot !== 'function') {
 					return false;

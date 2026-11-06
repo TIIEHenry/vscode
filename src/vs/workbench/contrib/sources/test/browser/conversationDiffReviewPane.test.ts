@@ -100,6 +100,7 @@ suite('Conversation diff review pane', () => {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => 'session-1',
 			isEngineSessionReady: () => true,
+			getEngineSessionReadiness: () => 'ready',
 			isPairingHold: () => false,
 			onDidChangeActiveSession: Event.None,
 			onDidChangeSession: Event.None,

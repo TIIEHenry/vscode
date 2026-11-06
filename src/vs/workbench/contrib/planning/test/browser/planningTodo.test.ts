@@ -257,6 +257,7 @@ function connectedDeps(options: {
 	} as IUniverseAgentConnection;
 	const session = {
 		getActiveSessionId: () => options.sessionId,
+		getEngineSessionReadiness: () => 'ready' as const,
 		acquireSessionView: (sessionId: string) => {
 			options.onAcquire?.();
 			if (options.acquireThrows) {

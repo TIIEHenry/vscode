@@ -306,6 +306,7 @@ suite('Sources diff panel', () => {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => 'session-1',
 			isEngineSessionReady: () => engineSessionReady,
+			getEngineSessionReadiness: () => engineSessionReady ? 'ready' : 'unavailable',
 			isPairingHold: () => {
 				const phase = typeof connection.getConnectionPhase === 'function' ? connection.getConnectionPhase() : undefined;
 				const snapshot = typeof connection.getConnectionSnapshot === 'function' ? connection.getConnectionSnapshot() : undefined;
@@ -3772,7 +3773,7 @@ suite('Sources diff panel', () => {
 				projection: () => ({ reads, applies, commands, refreshes }),
 				readGates: () => {
 					const current = snapshot().state;
-					return { catalog: session.getEngineSessionReadiness!(), gitState: current.kind, gitReason: current.kind === 'engine-leftover' ? current.reason : undefined };
+					return { catalog: session.getEngineSessionReadiness(), gitState: current.kind, gitReason: current.kind === 'engine-leftover' ? current.reason : undefined };
 				},
 				hasRawApplyHook: () => typeof connection.writeGitApplyHunks === 'function',
 				owner: () => pane
