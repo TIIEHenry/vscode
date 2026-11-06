@@ -220,17 +220,15 @@ export function mapListSkillsResponse(wire: ListSkillsResponseWire): UniverseAge
 }
 
 export function mapSetSkillEnabledResponse(wire: SetSkillEnabledResponseWire): UniverseAgentSetSkillEnabledResult {
-	return {
-		ok: wire.ok === true,
-		reason: wire.reason,
-	};
+	return wire.ok === true
+		? { ok: true, reason: wire.reason }
+		: { ok: false, reason: wire.reason };
 }
 
 export function mapSaveSkillContentResponse(wire: SaveSkillContentResponseWire): UniverseAgentSaveSkillContentResult {
-	return {
-		ok: wire.ok === true,
-		reason: wire.reason,
-	};
+	return wire.ok === true
+		? { ok: true, reason: wire.reason }
+		: { ok: false, reason: wire.reason };
 }
 
 export function mapSkillInfoResponse(wire: SkillInfoResponseWire): UniverseAgentSkillInfoResult {
@@ -349,7 +347,7 @@ export interface DeleteAgentProfileResponseWire {
 }
 
 export function mapDeleteAgentProfileResponse(wire: DeleteAgentProfileResponseWire): UniverseAgentDeleteAgentProfileResult {
-	return { ok: wire.success === true };
+	return wire.success === true ? { ok: true } : { ok: false };
 }
 
 export interface ResetAgentProfileResponseWire {
@@ -358,10 +356,10 @@ export interface ResetAgentProfileResponseWire {
 }
 
 export function mapResetAgentProfileResponse(wire: ResetAgentProfileResponseWire): UniverseAgentResetAgentProfileResult {
-	return {
-		ok: wire.success === true,
-		profile: wire.profile ? mapAgentProfileDetail(wire.profile) : undefined,
-	};
+	const profile = wire.profile ? mapAgentProfileDetail(wire.profile) : undefined;
+	return wire.success === true
+		? { ok: true, profile }
+		: { ok: false, profile };
 }
 
 export interface ProviderStatusWire {
@@ -504,11 +502,11 @@ export interface AddMcpServerResponseWire {
 }
 
 export function mapAddMcpServerResponse(wire: AddMcpServerResponseWire): UniverseAgentAddMcpServerResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		reason: wire.error_message,
 		assignedId: wire.assigned_id,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export interface UpdateMcpServerResponseWire {
@@ -518,11 +516,11 @@ export interface UpdateMcpServerResponseWire {
 }
 
 export function mapUpdateMcpServerResponse(wire: UpdateMcpServerResponseWire): UniverseAgentUpdateMcpServerResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		reason: wire.error_message,
 		config: mapMcpServerConfigFromWire(wire.updated_config),
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export interface RemoveMcpServerResponseWire {
@@ -532,11 +530,11 @@ export interface RemoveMcpServerResponseWire {
 }
 
 export function mapRemoveMcpServerResponse(wire: RemoveMcpServerResponseWire): UniverseAgentRemoveMcpServerResult {
-	return {
-		ok: wire.success === true,
+	const payload = {
 		reason: wire.error_message,
 		removedName: wire.removed_name,
 	};
+	return wire.success === true ? { ok: true, ...payload } : { ok: false, ...payload };
 }
 
 export interface ListMcpServersResponseWire {
@@ -808,10 +806,9 @@ export interface ToggleMcpServerResponseWire {
 }
 
 export function mapToggleMcpServerResponse(wire: ToggleMcpServerResponseWire): UniverseAgentToggleMcpServerResult {
-	return {
-		ok: wire.success === true,
-		reason: wire.error_message,
-	};
+	return wire.success === true
+		? { ok: true, reason: wire.error_message }
+		: { ok: false, reason: wire.error_message };
 }
 
 export interface ListToolsResponseWire {

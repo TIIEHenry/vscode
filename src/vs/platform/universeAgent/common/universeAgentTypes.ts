@@ -2131,10 +2131,15 @@ export interface UniverseAgentSetSkillEnabledRequest {
 	readonly enabled: boolean;
 }
 
-export interface UniverseAgentSetSkillEnabledResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-}
+export type UniverseAgentSetSkillEnabledResult =
+	| {
+		readonly ok: true;
+		readonly reason?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+	};
 
 export interface UniverseAgentSkillInfoRequest {
 	readonly skillName: string;
@@ -2156,10 +2161,15 @@ export type UniverseAgentSaveSkillContentRequest = {
     | { readonly create: false; readonly expectedSource: 'user' | 'project'; readonly expectedContent: string }
 );
 
-export interface UniverseAgentSaveSkillContentResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-}
+export type UniverseAgentSaveSkillContentResult =
+	| {
+		readonly ok: true;
+		readonly reason?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+	};
 
 /** Agent profile source from AgentService.ListAgentProfiles (customizations-engine §3.2). */
 export type UniverseAgentAgentProfileSource = 'built_in' | 'user' | 'project' | 'unknown';
@@ -2222,20 +2232,29 @@ export interface UniverseAgentDeleteAgentProfileRequest {
 	readonly id: string;
 }
 
-export interface UniverseAgentDeleteAgentProfileResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-}
+export type UniverseAgentDeleteAgentProfileResult =
+	| {
+		readonly ok: true;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+	};
 
 export interface UniverseAgentResetAgentProfileRequest {
 	readonly id: string;
 }
 
-export interface UniverseAgentResetAgentProfileResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-	readonly profile?: UniverseAgentAgentProfileDetail;
-}
+export type UniverseAgentResetAgentProfileResult =
+	| {
+		readonly ok: true;
+		readonly profile?: UniverseAgentAgentProfileDetail;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+		readonly profile?: UniverseAgentAgentProfileDetail;
+	};
 
 export interface UniverseAgentListAgentProfilesRequest {
 	readonly projectPath?: string;
@@ -2280,10 +2299,15 @@ export interface UniverseAgentToggleMcpServerRequest {
 	readonly workDir?: string;
 }
 
-export interface UniverseAgentToggleMcpServerResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-}
+export type UniverseAgentToggleMcpServerResult =
+	| {
+		readonly ok: true;
+		readonly reason?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+	};
 
 export interface UniverseAgentMcpServerConfig {
 	readonly id?: string;
@@ -2303,11 +2327,17 @@ export interface UniverseAgentAddMcpServerRequest {
 	readonly workDir?: string;
 }
 
-export interface UniverseAgentAddMcpServerResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-	readonly assignedId?: string;
-}
+export type UniverseAgentAddMcpServerResult =
+	| {
+		readonly ok: true;
+		readonly reason?: string;
+		readonly assignedId?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+		readonly assignedId?: string;
+	};
 
 export interface UniverseAgentUpdateMcpServerRequest {
 	readonly serverId: string;
@@ -2317,11 +2347,17 @@ export interface UniverseAgentUpdateMcpServerRequest {
 	readonly workDir?: string;
 }
 
-export interface UniverseAgentUpdateMcpServerResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-	readonly config?: UniverseAgentMcpServerConfig;
-}
+export type UniverseAgentUpdateMcpServerResult =
+	| {
+		readonly ok: true;
+		readonly reason?: string;
+		readonly config?: UniverseAgentMcpServerConfig;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+		readonly config?: UniverseAgentMcpServerConfig;
+	};
 
 export interface UniverseAgentRemoveMcpServerRequest {
 	readonly serverId: string;
@@ -2330,11 +2366,17 @@ export interface UniverseAgentRemoveMcpServerRequest {
 	readonly workDir?: string;
 }
 
-export interface UniverseAgentRemoveMcpServerResult {
-	readonly ok: boolean;
-	readonly reason?: string;
-	readonly removedName?: string;
-}
+export type UniverseAgentRemoveMcpServerResult =
+	| {
+		readonly ok: true;
+		readonly reason?: string;
+		readonly removedName?: string;
+	}
+	| {
+		readonly ok: false;
+		readonly reason?: string;
+		readonly removedName?: string;
+	};
 
 /** Engine tool directory entry from ToolService.ListTools (customizations-engine §3.6). */
 export interface UniverseAgentToolSummary {

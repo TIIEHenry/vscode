@@ -61,5 +61,8 @@ export function encodeSaveSkillContentRequest(request: UniverseAgentSaveSkillCon
 
 export function decodeSaveSkillContentResponse(bytes: Uint8Array): UniverseAgentSaveSkillContentResult {
 	const fields = readProtoFields(bytes);
-	return { ok: lastVarint(fields, 1) === 1n, reason: lastString(fields, 2) };
+	const reason = lastString(fields, 2);
+	return lastVarint(fields, 1) === 1n
+		? { ok: true, reason }
+		: { ok: false, reason };
 }
