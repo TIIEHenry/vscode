@@ -31,7 +31,7 @@ import { getTeamTreeEmptyCopy, INavigatorTeamMemberEntry, NAVIGATOR_TEAM_LOADING
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
-import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorView.js';
 import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLeaseHolder.js';
 import { NavigatorTeamInlineFilterBox } from '../../browser/navigatorTeamInlineFilterBox.js';
 import {

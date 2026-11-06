@@ -30,7 +30,7 @@ import { AgentInspectView, IAgentInspectEntry, inspectTitleFromTarget, isInspect
 import { IAgentInspectService, IUniverseAgentConnectionOwner } from '../../common/agentInspect.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import '../../browser/navigator.contribution.js';
-import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorView.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
 const INSPECT_EMPTY_COPY = 'Select an item in Agents or Team';

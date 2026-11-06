@@ -56,7 +56,7 @@ import {
 import { NavigatorTeamInlineFilterBox } from './navigatorTeamInlineFilterBox.js';
 import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
-import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
+import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorView.js';
 import { UA_ENGINE_CONNECTED_KEY } from './navigatorContextKeys.js';
 
 const $ = dom.$;

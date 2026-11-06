@@ -27,7 +27,7 @@ import { IAgentInspectService } from '../../common/agentInspect.js';
 import { INavigatorTeamMemberEntry } from '../../common/navigatorTeamData.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AGENT_INSPECT_VIEW_ID } from '../../browser/agentInspectIds.js';
-import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
 import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
 import { INavigatorTeamMember, NAVIGATOR_TEAM_REFRESH_COMMAND_ID, NavigatorTeamView } from '../../browser/navigatorTeamList.js';

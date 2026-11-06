@@ -30,7 +30,7 @@ import { TestHostService, TestWorkspacesService, workbenchInstantiationService }
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService, type ConversationDeleteOwner } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
-import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView, navigatorProjectsRecentsFailureMessage } from '../../browser/navigatorProjectsList.js';
 import { INavigatorProjectsTreeNode } from '../../browser/navigatorProjectsTree.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';

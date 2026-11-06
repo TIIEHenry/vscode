@@ -17,7 +17,7 @@ import {
 	NAVIGATOR_PROJECTS_VIEW_ID,
 	NAVIGATOR_TEAM_VIEW_ID,
 	NAVIGATOR_VIEW_IDS,
-} from '../../browser/navigatorStubView.js';
+} from '../../browser/navigatorView.js';
 import { NavigatorProjectsView } from '../../browser/navigatorProjectsList.js';
 import { NavigatorAgentsView } from '../../browser/navigatorAgentsView.js';
 import { NavigatorTeamView } from '../../browser/navigatorTeamList.js';

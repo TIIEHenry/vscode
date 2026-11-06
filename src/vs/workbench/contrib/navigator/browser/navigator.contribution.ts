@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import './media/navigatorStub.css';
+import './media/navigator.css';
 import './agentInspectService.js';
 import './agentInspect.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -24,7 +24,7 @@ import {
 import {
 	NAVIGATOR_PROJECTS_VIEW_ID,
 	NAVIGATOR_TEAM_VIEW_ID,
-} from './navigatorStubView.js';
+} from './navigatorView.js';
 
 export const NAVIGATOR_PROJECTS_CONTAINER_ID = 'workbench.view.navigator.projects';
 export const NAVIGATOR_AGENTS_CONTAINER_ID = 'workbench.view.navigator.agents';
@@ -51,7 +51,7 @@ const navigatorTeamViewIcon = registerIcon(
 const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
 
-function registerNavigatorStubContainer(id: string, title: ILocalizedString, icon: typeof navigatorProjectsViewIcon, order: number, isDefault: boolean = false): ViewContainer {
+function registerNavigatorContainer(id: string, title: ILocalizedString, icon: typeof navigatorProjectsViewIcon, order: number, isDefault: boolean = false): ViewContainer {
 	return viewContainersRegistry.registerViewContainer({
 		id,
 		title,
@@ -64,7 +64,7 @@ function registerNavigatorStubContainer(id: string, title: ILocalizedString, ico
 	}, ViewContainerLocation.Sidebar, { isDefault });
 }
 
-export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorStubContainer(
+export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorContainer(
 	NAVIGATOR_PROJECTS_CONTAINER_ID,
 	localize2('navigatorProjects', "Projects"),
 	navigatorProjectsViewIcon,
@@ -72,14 +72,14 @@ export const NAVIGATOR_PROJECTS_VIEW_CONTAINER = registerNavigatorStubContainer(
 	false,
 );
 
-export const NAVIGATOR_AGENTS_VIEW_CONTAINER = registerNavigatorStubContainer(
+export const NAVIGATOR_AGENTS_VIEW_CONTAINER = registerNavigatorContainer(
 	NAVIGATOR_AGENTS_CONTAINER_ID,
 	localize2('navigatorAgents', "Agents"),
 	navigatorAgentsViewIcon,
 	12,
 );
 
-export const NAVIGATOR_TEAM_VIEW_CONTAINER = registerNavigatorStubContainer(
+export const NAVIGATOR_TEAM_VIEW_CONTAINER = registerNavigatorContainer(
 	NAVIGATOR_TEAM_CONTAINER_ID,
 	localize2('navigatorTeam', "Team"),
 	navigatorTeamViewIcon,

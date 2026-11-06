@@ -56,7 +56,7 @@ import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { filterNavigatorProjectsTreeNodes } from '../common/navigatorProjectsInlineFilter.js';
 import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode, isNavigatorWorkDirCreateTarget, navigatorNewSessionInLabel, workDirGroupLabel } from './navigatorProjectsTree.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
-import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
+import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorView.js';
 
 const $ = dom.$;
 
