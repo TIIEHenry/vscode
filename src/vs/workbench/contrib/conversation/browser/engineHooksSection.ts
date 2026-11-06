@@ -18,10 +18,11 @@ import {
 	type EngineCatalogPaneMode,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { EngineCatalogSectionController } from './engineCatalogSectionController.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import { EngineRefreshGate } from './engineWriteGate.js';
-import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
@@ -48,6 +49,7 @@ export class EngineHooksSection extends Disposable {
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private listPhase: EngineCatalogListPhase = { kind: 'none' };
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 
 	constructor(
 		parent: HTMLElement,
@@ -57,6 +59,7 @@ export class EngineHooksSection extends Disposable {
 		super();
 
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 		this.container = DOM.append(parent, $('.engine-hooks-section'));
 		this.container.style.display = 'none';
 
@@ -150,15 +153,15 @@ export class EngineHooksSection extends Disposable {
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
 		// D357 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `!connected`.
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.layoutHost.style.display = '';
 			this.listPhase = { kind: 'none' };
 			this.renderStatus(this.resolveMode(false, support));
-			return;
-		}
-		this.clearPresentation();
-		this.listPhase = { kind: 'none' };
-		this.renderStatus(this.resolveMode(false, support));
+		}, () => {
+			this.clearPresentation();
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(this.resolveMode(false, support));
+		});
 	}
 
 	private async refresh(): Promise<void> {
