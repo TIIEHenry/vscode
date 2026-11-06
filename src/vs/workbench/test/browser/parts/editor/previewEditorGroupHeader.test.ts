@@ -185,8 +185,13 @@ suite('Preview Editor Group Header', () => {
 		assert.strictEqual(tab.textContent, 'Preview: Group 1');
 		assert.strictEqual(mainWindow.getComputedStyle(tab).cursor, 'default');
 
-		await group.openEditor(input(URI.file('/src/app.ts')), { pinned: true });
+		const editor = input(URI.file('/src/app.ts'));
+		await group.openEditor(editor, { pinned: true });
 		assert.strictEqual(placeholder(), null, 'a real tab replaces the placeholder');
+
+		await group.closeEditor(editor);
+		assert.strictEqual(group.isEmpty, true);
+		assert.strictEqual(placeholder()?.textContent, 'Preview: Group 1', 'the placeholder comes back when the last editor closes');
 	});
 
 	test('an empty group builds its editor title actions from the group context keys', async () => {

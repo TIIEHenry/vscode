@@ -2471,6 +2471,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			if (span) {
 				span.textContent = labelText;
 			}
+			// `clearNode(tabsContainer)` on the no-tabs and refresh paths detaches it without clearing the field.
+			if (this.emptyPlaceholderTab.parentElement !== this.tabsContainer) {
+				this.tabsContainer.appendChild(this.emptyPlaceholderTab);
+			}
 			return;
 		}
 
