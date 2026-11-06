@@ -45,26 +45,50 @@ export interface IEditorGroupRoute {
 	createDefaultRoot(instantiationService: IInstantiationService, sessionKey: string): EditorInput;
 }
 
-let registeredRoute: IEditorGroupRoute | undefined;
-
 /**
- * Registers the single editor-group route. Registering while another route
- * is still registered is a programming error.
+ * Holds at most one route. The workbench uses a single process-wide
+ * instance (see {@link registerEditorGroupRoute}); tests may construct their
+ * own to exercise the lifecycle without touching the global one.
  */
-export function registerEditorGroupRoute(route: IEditorGroupRoute): IDisposable {
-	if (registeredRoute) {
-		throw new Error('An editor group route is already registered');
+export class EditorGroupRouteRegistry {
+
+	private route: IEditorGroupRoute | undefined;
+
+	/**
+	 * Registers the single route. Registering while another route is still
+	 * registered is a programming error. Disposing the returned handle
+	 * unregisters the route; a stale handle never unregisters a newer route.
+	 */
+	register(route: IEditorGroupRoute): IDisposable {
+		if (this.route) {
+			throw new Error('An editor group route is already registered');
+		}
+
+		this.route = route;
+
+		return toDisposable(() => {
+			if (this.route === route) {
+				this.route = undefined;
+			}
+		});
 	}
 
-	registeredRoute = route;
+	get(): IEditorGroupRoute | undefined {
+		return this.route;
+	}
+}
 
-	return toDisposable(() => {
-		if (registeredRoute === route) {
-			registeredRoute = undefined;
-		}
-	});
+const registry = new EditorGroupRouteRegistry();
+
+/**
+ * Registers the process-wide editor-group route. The registering module
+ * owns the returned handle; in the product the conversation contribution
+ * keeps it for the lifetime of the process and marks it as a singleton.
+ */
+export function registerEditorGroupRoute(route: IEditorGroupRoute): IDisposable {
+	return registry.register(route);
 }
 
 export function getEditorGroupRoute(): IEditorGroupRoute | undefined {
-	return registeredRoute;
+	return registry.get();
 }

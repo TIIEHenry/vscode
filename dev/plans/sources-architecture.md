@@ -225,7 +225,7 @@ Stage、Accept、Revert、Unstage 的可否与请求组装放进一个与 DOM �
 P2 已把会话三事实抽到 `IAgentSessionContext`。P7 做剩下的三件：
 
 1. `SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND` 挪到 `contrib/sources/common`。`conversationLensReadingColumn.ts` 引用 common 里的常量，不再引用会执行 `registerAction2` / `registerSingleton` 的 `sourcesReview.contribution.js`。
-2. scheme、type id、editor id 和 `isConversationDiffReviewInput` 挪到 `workbench/common/editor/`。guard 只比较 type id 与 scheme。`ConversationDiffReviewInput` 类与序列化留在 sources，改为使用这组常量。`editorGroupFinder.ts` 与 `conversationEditorRouting.ts` 改引新位置。eslint 对 `contrib/sources/common/conversationDiffReviewInput.js` 的放行删除。finder 对 `conversationEditorRouting.js` 的放行保留。（2026-11-06 由 [p2 方案](review-2026-11-04-p2-upstream-seams-plan.md) p2-1 撤销：finder 改问 `services/editor/common/editorGroupRoute.ts` 注册点，这处放行已删。）
+2. scheme、type id、editor id 和 `isConversationDiffReviewInput` 挪到 `workbench/common/editor/`。guard 只比较 type id 与 scheme。`ConversationDiffReviewInput` 类与序列化留在 sources，改为使用这组常量。`editorGroupFinder.ts` 与 `conversationEditorRouting.ts` 改引新位置。eslint 对 `contrib/sources/common/conversationDiffReviewInput.js` 的放行删除。finder 对 `conversationEditorRouting.js` 的放行保留。（2026-11-06 [p2 方案](review-2026-11-04-p2-upstream-seams-plan.md) p2-1 只撤销这一句放行：finder 改问 `services/editor/common/editorGroupRoute.ts` 注册点，不再 import contrib；finder 对 `workbench/common/editor/conversationDiffReviewInput.js` 的直接引用与 guard 不变。）
 3. 删除 sources 侧的 `IFileMutationRecord`，归因与其测试改用 `universeAgentTypes.ts` 的那份；夹具里 `diffStats` 的三个数字写全。去掉 `as unknown as`。`buckets` 改为会话 → 路径 → 记录，并设每会话上限 500，超出丢最旧的一条，路径索引同步去掉。Review 刷新按路径取记录，不再对每个条目扫描该会话的全量数组。
 
 ### 4.8 P8：焦点由当前面板委托

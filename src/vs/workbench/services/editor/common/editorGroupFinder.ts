@@ -8,6 +8,7 @@ import { EditorActivation } from '../../../../platform/editor/common/editor.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorInputWithOptions, isEditorInputWithOptions, IUntypedEditorInput, isEditorInput, EditorInputCapabilities } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
+import { isConversationDiffReviewInput } from '../../../common/editor/conversationDiffReviewInput.js';
 import { IEditorGroup, GroupDirection, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
 import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode, isConversationPreferredGroup } from './editorService.js';
 import { EditorGroupRouteKind, getEditorGroupRoute } from './editorGroupRoute.js';
@@ -402,9 +403,23 @@ function isGroupInConversationPart(group: IEditorGroup, editorGroupService: IEdi
 	return editorGroupService.conversationParts.some(part => part.groups.includes(group));
 }
 
-/** `undefined` when no route is registered: the fence then neither throws nor exempts anything. */
+/**
+ * `undefined` when no route is registered: the fence then neither throws nor
+ * exempts anything. With a route registered, the read-only Diff review guard
+ * is answered here from `workbench/common/editor` (type id and scheme, see
+ * sources-architecture P7); the route classifies everything else.
+ */
 function classifyEditorGroupRoute(editor: EditorInput | IUntypedEditorInput): EditorGroupRouteKind | undefined {
-	return getEditorGroupRoute()?.classify(editor);
+	const route = getEditorGroupRoute();
+	if (!route) {
+		return undefined;
+	}
+
+	if (isConversationDiffReviewInput(editor)) {
+		return 'exclusive';
+	}
+
+	return route.classify(editor);
 }
 
 function isExplicitConversationGroupTarget(preferredGroup: PreferredGroup | undefined, group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {

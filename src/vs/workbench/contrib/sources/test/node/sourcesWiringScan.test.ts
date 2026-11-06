@@ -744,11 +744,13 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(readingColumn.includes('sources/common/sourcesReviewCommands'));
 		assert.ok(!finder.includes('contrib/sources'));
 		// p2-1: the finder reads the fence through the `editorGroupRoute`
-		// registry; the Diff guard stays in `workbench/common/editor` and is
-		// consumed by the conversation routing module that registers the route.
+		// registry and no longer imports the conversation contrib. The P7
+		// Diff guard stays in `workbench/common/editor` and the finder keeps
+		// reading it directly.
 		assert.ok(!finder.includes('contrib/conversation'));
 		assert.ok(!finder.includes('conversationEditorRouting'));
 		assert.ok(finder.includes('editorGroupRoute'));
+		assert.ok(finder.includes('common/editor/conversationDiffReviewInput'));
 		assert.ok(!routing.includes('contrib/sources'));
 		assert.ok(routing.includes('registerEditorGroupRoute'));
 		assert.ok(routing.includes('common/editor/conversationDiffReviewInput'));

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IDisposable, markAsSingleton } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { isEditorInput, IUntypedEditorInput, isResourceEditorInput } from '../../../common/editor.js';
@@ -82,10 +83,16 @@ export function classifyConversationEditorInput(input: EditorInput | IUntypedEdi
 	return 'foreign';
 }
 
-// Core (`editorGroupFinder`, `EditorParts`, `ConversationEditorPartImpl`)
-// learns the fence and the default root through this registration instead
-// of importing this contrib module.
-registerEditorGroupRoute({
+/**
+ * Core (`editorGroupFinder`, `EditorParts`, `ConversationEditorPartImpl`)
+ * learns the fence and the default root through this registration instead
+ * of importing this contrib module.
+ *
+ * The registration lives as long as the process: this module owns the
+ * handle and never disposes it, so it is marked as a singleton for the
+ * disposable tracker.
+ */
+export const conversationEditorGroupRouteRegistration: IDisposable = markAsSingleton(registerEditorGroupRoute({
 	classify: classifyConversationEditorInput,
 	isExtensionTab: isConversationExtensionTab,
 	createDefaultRoot: (instantiationService: IInstantiationService, sessionKey: string) => instantiationService.createInstance(
@@ -93,4 +100,4 @@ registerEditorGroupRoute({
 		getDefaultConversationChatResource(sessionKey),
 		{ isDefaultRoot: true },
 	),
-});
+}));
