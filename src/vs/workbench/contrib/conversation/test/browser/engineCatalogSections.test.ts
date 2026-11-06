@@ -15,14 +15,13 @@ import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/un
 import { timeout } from '../../../../../base/common/async.js';
 import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 
-import { Emitter, Event } from '../../../../../base/common/event.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentAgentProfileDetail,
-	UniverseAgentConnectionSnapshot,
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentListAgentProfilesResult,
 	UniverseAgentListMcpServersResult,
@@ -36,8 +35,6 @@ import type {
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentToggleMcpServerRequest,
 	UniverseAgentToggleMcpServerResult,
-	UniverseAgentSessionEvent,
-	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -60,6 +57,7 @@ import {
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { localize } from '../../../../../nls.js';
+import { createMutableConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENTS_EMPTY_COPY = localize('ua.engineAgentsEmpty', "No agent profiles yet.");
@@ -127,104 +125,48 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			agentProfiles: agentProfilesCapability,
 			tools: toolsCapability,
 		};
-		let connected = options.connected ?? false;
-		let pairingPending = options.pairingPending ?? false;
-		let looksLive = options.looksLive ?? false;
 		let explicitPhase: ConnectionPhase | undefined;
-		let engineIdentityId: string | undefined = 'test-engine';
-		let linkId = 1;
 		let getToolInfo = options.getToolInfo;
-		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
-
-		const snapshot = (): UniverseAgentConnectionSnapshot => ({
-			transport: connected ? 'ok' : 'idle',
-			authenticated: connected,
-			pairingPending,
-			channelAlive: connected,
-			sharedFsRootSent: false,
+		const stub = createMutableConversationConnectionTestStub({
+			connected: options.connected ?? false,
+			pairingPending: options.pairingPending ?? false,
+			looksLive: options.looksLive ?? false,
 			capabilities,
+			engineIdentityId: 'test-engine',
+			linkId: 1,
 			// Writes bind the published link. Omitting it made every Agents/MCP write return before RPC.
-			...(connected ? { engineIdentityId, linkId } : {}),
+			publishedLink: 'whenConnected',
+			overrides: {
+				getConnectionPhase: () => {
+					if (explicitPhase) {
+						return explicitPhase;
+					}
+					return { kind: stub.state.connected ? 'connected' : 'disconnected', path: 'loopback' };
+				},
+				listSkills: options.listSkills ?? (async () => ({ skills: [] })),
+				listAgentProfiles: options.listAgentProfiles ?? (async () => ({
+					profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
+				})),
+				saveAgentProfile: options.saveAgentProfile ?? (async (request) => ({ profile: request.profile })),
+				deleteAgentProfile: options.deleteAgentProfile ?? (async () => ({ ok: true })),
+				resetAgentProfile: options.resetAgentProfile ?? (async () => ({ ok: true })),
+				listMcpServers: options.listMcpServers ?? (async () => ({ servers: [] })),
+				listPlugins: options.listPlugins ?? (async () => ({ plugins: [] })),
+				toggleMcpServer: options.toggleMcpServer ?? (async () => ({ ok: true })),
+				addMcpServer: options.addMcpServer ?? (async () => ({ ok: true })),
+				updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
+				removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
+				listTools: options.listTools ?? (async () => ({ tools: [] })),
+				get getToolInfo() {
+					return getToolInfo;
+				},
+			},
 		});
+		const { state } = stub;
 
-		return {
-			_serviceBrand: undefined,
-			isEngineConnected: () => connected && (looksLive || !pairingPending),
-			getConnectionPhase: () => {
-				if (explicitPhase) {
-					return explicitPhase;
-				}
-				return { kind: connected ? 'connected' : 'disconnected', path: 'loopback' };
-			},
-			getTransportState: () => (connected ? 'ok' : 'idle'),
-			getConnectionSnapshot: snapshot,
-			getCapabilitySnapshot: () => capabilities,
-			onDidChangeConnection: onDidChangeConnection.event,
-			onDidFileMutation: Event.None,
-			onDidTurnSettle: Event.None,
-			onDidChangeTeamRuntime: Event.None,
-			requestAgentTreeRefresh: () => { },
-			getNavigatorCapability: () => 'UNKNOWN' as const,
-			isAgentTreeFetchFailed: () => false,
-			team: {
-				memberStatus: async () => [],
-				taskList: async () => [],
-				teamInfo: async () => undefined,
-			},
-			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			cancelPairing: async () => { },
-			probeConnectionProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
-			disconnect: async () => { connected = false; onDidChangeConnection.fire(snapshot()); },
-			listSessions: async () => ({ sessions: [] }),
-			createSession: async () => ({ sessionId: 's' }),
-			deleteSession: async () => { },
-			renameSession: async () => ({ ok: false, message: 'stub' }),
-			cancelGeneration: async () => ({ ok: false, message: 'stub' }),
-			enqueueQueueItem: async () => ({ ok: false, error: 'stub' }),
-			pauseQueue: async () => ({ ok: false, error: 'stub' }),
-			resumeQueue: async () => ({ ok: false, error: 'stub' }),
-			clearQueue: async () => ({ ok: false, error: 'stub' }),
-			holdQueueItem: async () => ({ ok: false, error: 'stub' }),
-			releaseQueueItemHold: async () => ({ ok: false, error: 'stub' }),
-			editQueueItem: async () => ({ ok: false, error: 'stub' }),
-			getHistory: async () => ({ envelopes: [] }),
-			subscribeSessionEventStream: (
-				_sessionId: string,
-				_listener: (event: UniverseAgentSessionEvent) => void,
-				_onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-			) => ({ dispose: () => { } }),
-			chat: async () => { },
-			listSkills: options.listSkills ?? (async () => ({ skills: [] })),
-			setSkillEnabled: async () => ({ ok: true }),
-			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
-			listAgentProfiles: options.listAgentProfiles ?? (async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
-			})),
-			saveAgentProfile: options.saveAgentProfile ?? (async (request) => ({ profile: request.profile })),
-			deleteAgentProfile: options.deleteAgentProfile ?? (async () => ({ ok: true })),
-			resetAgentProfile: options.resetAgentProfile ?? (async () => ({ ok: true })),
-			listMcpServers: options.listMcpServers ?? (async () => ({ servers: [] })),
-			getMcpServerStatuses: async () => ({ statuses: [] }),
-			getMcpServerTools: async () => ({ tools: [] }),
-			listPlugins: options.listPlugins ?? (async () => ({ plugins: [] })),
-			getPluginInfo: async () => ({ summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] }),
-			enablePlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			reloadPlugin: async () => ({ plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } }),
-			unloadPlugin: async () => ({ removedHookCount: 0 }),
-			scanNewPlugins: async () => ({ newPlugins: [], skippedCount: 0 }),
-			toggleMcpServer: options.toggleMcpServer ?? (async () => ({ ok: true })),
-			addMcpServer: options.addMcpServer ?? (async () => ({ ok: true })),
-			updateMcpServer: options.updateMcpServer ?? (async () => ({ ok: true })),
-			removeMcpServer: options.removeMcpServer ?? (async () => ({ ok: true })),
-			listTools: options.listTools ?? (async () => ({ tools: [] })),
-			get getToolInfo() {
-				return getToolInfo;
-			},
-			listModels: async () => ({ models: [] }),
-			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
+		return Object.assign(stub.connection, {
 			setConnected(value: boolean) {
-				connected = value;
+				state.connected = value;
 				if (value) {
 					explicitPhase = undefined;
 				} else {
@@ -232,50 +174,50 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 					// and clears pairingPending; a pinned connecting phase would
 					// still look like pairing-hold and keep leftover rows.
 					explicitPhase = undefined;
-					pairingPending = false;
+					state.pairingPending = false;
 				}
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setPairingPending(value: boolean) {
-				pairingPending = value;
+				state.pairingPending = value;
 				if (!value) {
 					explicitPhase = undefined;
 				}
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setPairingPendingQuiet(value: boolean) {
-				pairingPending = value;
+				state.pairingPending = value;
 			},
 			setPairingConnectingPhase(reason: 'initial' | 'transport_lost' = 'initial') {
-				pairingPending = true;
-				connected = false;
+				state.pairingPending = true;
+				state.connected = false;
 				explicitPhase = { kind: 'connecting', reason };
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setLooksLive(value: boolean) {
-				looksLive = value;
+				state.looksLive = value;
 			},
 			setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				mcpCapability.support = support;
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				agentProfilesCapability.support = support;
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				toolsCapability.support = support;
-				onDidChangeConnection.fire(snapshot());
+				stub.notify();
 			},
 			// Silent: a write-link swap must not also be a connection refresh.
 			setPublishedLink(identity: string | undefined, nextLinkId: number) {
-				engineIdentityId = identity;
-				linkId = nextLinkId;
+				state.engineIdentityId = identity;
+				state.linkId = nextLinkId;
 			},
 			clearGetToolInfo() {
 				getToolInfo = undefined;
 			},
-		};
+		});
 	}
 
 	function mountAgentsSection(connection: IUniverseAgentConnection, ctor: typeof EngineAgentsSection = EngineAgentsSection): EngineAgentsSection {
