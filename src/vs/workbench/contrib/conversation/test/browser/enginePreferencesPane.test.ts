@@ -56,7 +56,7 @@ suite('EnginePreferencesPane', () => {
 		overrides: Partial<IUniverseAgentConnection> = {},
 		options: { pairingPending?: boolean; looksLive?: boolean } = {},
 	): IUniverseAgentConnection {
-		return createMutableConversationConnectionTestStub({
+		const stub = createMutableConversationConnectionTestStub({
 			connected,
 			pairingPending: options.pairingPending ?? false,
 			looksLive: options.looksLive ?? false,
@@ -69,7 +69,9 @@ suite('EnginePreferencesPane', () => {
 				disconnect: async () => { },
 				...overrides,
 			},
-		}).connection;
+		});
+		store.add(stub.onDidChangeConnectionEmitter);
+		return stub.connection;
 	}
 
 	function mountPane(

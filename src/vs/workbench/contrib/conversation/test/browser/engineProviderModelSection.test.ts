@@ -96,6 +96,7 @@ suite('Engine providers and models sections', () => {
 				testModelProfile: options.testModelProfile as IUniverseAgentConnection['testModelProfile'],
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 		const { state } = stub;
 
 		return Object.assign(stub.connection, {

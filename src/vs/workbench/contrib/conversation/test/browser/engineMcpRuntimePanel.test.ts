@@ -104,6 +104,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 				},
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 		const { state } = stub;
 
 		return Object.assign(stub.connection, {

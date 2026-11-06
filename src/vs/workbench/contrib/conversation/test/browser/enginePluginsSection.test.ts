@@ -105,6 +105,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 				scanNewPlugins: options.scanNewPlugins ?? (async () => ({ newPlugins: [], skippedCount: 0 })),
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 		const { state } = stub;
 
 		return Object.assign(stub.connection, {

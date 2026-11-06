@@ -3,8 +3,8 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 """Fail when a `*.test.ts` under src/vs sits outside a `test` directory.
 
-The Electron, Node and browser unit runners collect `**/test/**/*.test.js`.
-A test that lives beside its source never reaches the local gate.
+The local Electron, Node and unit-custom runners collect `**/test/**/*.test.js`.
+A test that lives beside its source never reaches those local gates.
 
 Usage: python3 scripts/check-test-placement.py [--root <repo>]
 """

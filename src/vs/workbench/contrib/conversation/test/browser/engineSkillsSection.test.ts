@@ -79,6 +79,7 @@ suite('EngineSkillsSection (E1)', () => {
 				saveSkillContent: options.saveSkillContent ?? (async () => ({ ok: true })),
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 		const { state } = stub;
 
 		return Object.assign(stub.connection, {

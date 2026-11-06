@@ -162,6 +162,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				},
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 		const { state } = stub;
 
 		return Object.assign(stub.connection, {

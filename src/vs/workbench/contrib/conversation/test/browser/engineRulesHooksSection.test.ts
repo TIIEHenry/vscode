@@ -68,6 +68,7 @@ suite('Engine Rules / Hooks list (G-ENG-2/3)', () => {
 				listHookPoints: options.listHookPoints,
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 
 		return Object.assign(stub.connection, {
 			setConnected(next: boolean) {

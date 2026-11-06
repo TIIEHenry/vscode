@@ -156,7 +156,7 @@ export interface IMutableConversationConnectionTestStubInit {
 
 export interface IMutableConversationConnectionTestStub {
 	readonly connection: IUniverseAgentConnection;
-	/** Not disposed here. The test registers it where it used to create it. */
+	/** Not disposed here. The caller adds it to its `DisposableStore` right after creating the stub. */
 	readonly onDidChangeConnectionEmitter: Emitter<UniverseAgentConnectionSnapshot>;
 	/** Quiet mutation. Call `notify()` to publish. */
 	readonly state: IMutableConversationConnectionTestStubState;

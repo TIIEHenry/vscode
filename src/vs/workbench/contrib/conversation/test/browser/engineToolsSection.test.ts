@@ -102,6 +102,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 				},
 			},
 		});
+		store.add(stub.onDidChangeConnectionEmitter);
 		const { state } = stub;
 
 		return Object.assign(stub.connection, {
