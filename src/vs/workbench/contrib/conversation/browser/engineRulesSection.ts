@@ -30,11 +30,11 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
-import { paintEngineLinkNotice } from './engineCatalogSectionController.js';
+import { EngineCatalogSectionController, paintEngineLinkNotice } from './engineCatalogSectionController.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
-import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import { captureEnginePublishedLinkOwner, classifyEnginePublishedWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, EngineRefreshGate } from './engineWriteGate.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -88,6 +88,7 @@ export class EngineRulesSection extends Disposable {
 	private listPhase: EngineCatalogListPhase = { kind: 'none' };
 	private linkNotice: string | undefined;
 	private readonly refreshGate: EngineRefreshGate;
+	private readonly controller: EngineCatalogSectionController;
 
 	constructor(
 		parent: HTMLElement,
@@ -98,6 +99,7 @@ export class EngineRulesSection extends Disposable {
 	) {
 		super();
 		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
+		this.controller = new EngineCatalogSectionController(this.connection);
 
 		this.container = DOM.append(parent, $('.engine-rules-section'));
 		this.container.style.display = 'none';
@@ -213,15 +215,15 @@ export class EngineRulesSection extends Disposable {
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
 		// D356 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
-		if (keepLeftoverCatalogForPairingHold(hadLiveCatalog, this.connection)) {
+		this.controller.applyDisconnectedRefresh(hadLiveCatalog, () => {
 			this.scopePanels.style.display = '';
 			this.listPhase = { kind: 'none' };
 			this.renderStatus(this.resolveMode(false, support));
-			return;
-		}
-		this.clearPresentation();
-		this.listPhase = { kind: 'none' };
-		this.renderStatus(this.resolveMode(false, support));
+		}, () => {
+			this.clearPresentation();
+			this.listPhase = { kind: 'none' };
+			this.renderStatus(this.resolveMode(false, support));
+		});
 	}
 
 	private async refresh(): Promise<boolean> {
