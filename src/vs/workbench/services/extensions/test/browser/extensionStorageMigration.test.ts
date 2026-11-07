@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
-import { createFileSystemProviderError, FileSystemProviderErrorCode, IFileService } from '../../../../../platform/files/common/files.js';
+import { createFileSystemProviderError, FileOperationError, FileOperationResult, FileSystemProviderErrorCode, IFileService } from '../../../../../platform/files/common/files.js';
 import { FileService } from '../../../../../platform/files/common/fileService.js';
 import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -118,6 +118,29 @@ suite('ExtensionStorageMigration', () => {
 		assert.deepStrictEqual(extensionStorageService.getExtensionState(toExtensionId, true), { globalKey: 'hello global state' });
 		assert.deepStrictEqual((await fileService.readFile(toPath)).value.toString(), 'hello global storage');
 		assert.deepStrictEqual(storageService.get(storageMigratedKey, StorageScope.PROFILE), 'true');
+	});
+
+	test('missing source reported as FileOperationError or remote provider error still completes migration', async () => {
+		const fromExtensionId = 'pub.from', toExtensionId = 'pub.to', storageMigratedKey = `extensionStorage.migrate.${fromExtensionId}-${toExtensionId}`;
+		const extensionStorageService = instantiationService.get(IExtensionStorageService), fileService = instantiationService.get(IFileService), storageService = instantiationService.get(IStorageService);
+
+		const remoteNotFound = new Error('not found');
+		remoteNotFound.name = `${FileSystemProviderErrorCode.FileNotFound} (FileSystemError)`;
+		const notFoundErrors: [StorageScope, boolean, Error][] = [
+			[StorageScope.PROFILE, true, new FileOperationError('not found', FileOperationResult.FILE_NOT_FOUND)],
+			[StorageScope.WORKSPACE, false, remoteNotFound],
+		];
+
+		for (const [scope, global, error] of notFoundErrors) {
+			extensionStorageService.setExtensionState(fromExtensionId, { key: 'state' }, global);
+			fileService.move = () => Promise.reject(error);
+
+			await migrateExtensionStorage(fromExtensionId, toExtensionId, global, instantiationService);
+
+			assert.deepStrictEqual(extensionStorageService.getExtensionState(fromExtensionId, global), undefined);
+			assert.deepStrictEqual(extensionStorageService.getExtensionState(toExtensionId, global), { key: 'state' });
+			assert.deepStrictEqual(storageService.get(storageMigratedKey, scope), 'true');
+		}
 	});
 
 });

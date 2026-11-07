@@ -9,6 +9,7 @@ import { BROWSER_RESTRICTED_PORTS, findFreePortFaster } from '../../../base/node
 import { NodeSocket } from '../../../base/parts/ipc/node/ipc.net.js';
 
 import { Barrier } from '../../../base/common/async.js';
+import { getErrorMessage } from '../../../base/common/errors.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { OS } from '../../../base/common/platform.js';
 import { ISocket } from '../../../base/parts/ipc/common/ipc.net.js';
@@ -26,7 +27,12 @@ async function createRemoteTunnel(options: IConnectionOptions, defaultTunnelHost
 	for (let attempts = 3; attempts; attempts--) {
 		readyTunnel?.dispose();
 		const tunnel = new NodeRemoteTunnel(options, defaultTunnelHost, tunnelRemoteHost, tunnelRemotePort, tunnelLocalPort);
-		readyTunnel = await tunnel.waitForReady();
+		try {
+			readyTunnel = await tunnel.waitForReady();
+		} catch (error) {
+			void tunnel.dispose();
+			throw error;
+		}
 		if ((tunnelLocalPort && BROWSER_RESTRICTED_PORTS[tunnelLocalPort]) || !BROWSER_RESTRICTED_PORTS[readyTunnel.tunnelLocalPort]) {
 			break;
 		}
@@ -48,7 +54,8 @@ export class NodeRemoteTunnel extends Disposable implements RemoteTunnel {
 
 	private readonly _listeningListener: () => void;
 	private readonly _connectionListener: (socket: net.Socket) => void;
-	private readonly _errorListener: () => void;
+	private readonly _errorListener: (error: Error) => void;
+	private _listenError: Error | undefined;
 
 	private readonly _socketsDispose: Map<string, () => void> = new Map();
 
@@ -66,7 +73,10 @@ export class NodeRemoteTunnel extends Disposable implements RemoteTunnel {
 
 		// If there is no error listener and there is an error it will crash the whole window.
 		// A failed listen() never emits 'listening', so release the waiter here as well.
-		this._errorListener = () => this._barrier.open();
+		this._errorListener = error => {
+			this._listenError = error;
+			this._barrier.open();
+		};
 		this._server.on('error', this._errorListener);
 
 		this.tunnelRemotePort = tunnelRemotePort;
@@ -104,6 +114,10 @@ export class NodeRemoteTunnel extends Disposable implements RemoteTunnel {
 			this._server.listen(localPort, this.defaultTunnelHost);
 			await this._barrier.wait();
 			address = <net.AddressInfo>this._server.address();
+		}
+
+		if (!address) {
+			throw new Error(`Unable to listen on a local port for the tunnel to ${this.tunnelRemoteHost}:${this.tunnelRemotePort}: ${this._listenError ? getErrorMessage(this._listenError) : 'unknown error'}`, { cause: this._listenError });
 		}
 
 		this.tunnelLocalPort = address.port;

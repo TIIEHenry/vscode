@@ -37,4 +37,18 @@ suite('NodeRemoteTunnel', () => {
 			await new Promise(resolve => blocker.close(resolve));
 		}
 	});
+
+	test('rejects with the listen error when the random port retry also fails', async () => {
+		// 192.0.2.1 (TEST-NET-1) is not assigned locally, so every listen() on it fails.
+		const tunnel = new NodeRemoteTunnel({} as IConnectionOptions, '192.0.2.1', '127.0.0.1', 8080);
+		try {
+			await assert.rejects(tunnel.waitForReady(), (error: Error) => {
+				assert.match(error.message, /^Unable to listen on a local port for the tunnel to 127\.0\.0\.1:8080: /);
+				assert.ok(error.cause instanceof Error && (error.cause as NodeJS.ErrnoException).code, 'the original listen error is attached as cause');
+				return true;
+			});
+		} finally {
+			await tunnel.dispose();
+		}
+	});
 });
