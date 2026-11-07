@@ -501,7 +501,6 @@ suite('conversation lens dispose gate', () => {
 			getBoundSessionId: () => boundSessionId,
 			stubService: {
 				isEngineConnected: () => connected && (looksLive || !pairingPending),
-				getActiveSessionId: () => boundSessionId,
 				getTurns: (sessionId: string) => sessionId === boundSessionId ? (options.turns ?? []) : [],
 			},
 			uaConnection: {
