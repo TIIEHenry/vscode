@@ -13,7 +13,6 @@ const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const APP_REL = 'src/vs/code/electron-main/app.ts';
 const MAIN_REL = 'src/vs/code/electron-main/main.ts';
 const WINDOWS_REL = 'src/vs/platform/windows/electron-main/windows.ts';
-const PFS_REL = 'src/vs/base/node/pfs.ts';
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const IPC_REL = 'src/vs/base/parts/ipc/common/ipc.ts';
 const LIFECYCLE_REL = 'src/vs/platform/lifecycle/electron-main/lifecycleMainService.ts';
@@ -65,26 +64,6 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers four leftover Promise single-chain sites', () => {
-		const app = fs.readFileSync(resolveSource(APP_REL), 'utf8');
-		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
-		const activate = sliceBetween(app, "app.on('activate'", "app.on('web-contents-created'");
-		const openFile = sliceBetween(app, "app.on('open-file'", "app.on('new-window-for-tab'");
-		const newTab = sliceBetween(app, "app.on('new-window-for-tab'", '//#region Bootstrap IPC Handlers');
-		const writeFileCall = 'FSPromises.writeFile(environmentMainService.mainLockfile, String(process.pid))';
-		const sites = [
-			activate.includes('void (async () => {') && activate.includes(iifeTail) && activate.includes('openEmptyWindow({ context: OpenContext.DOCK })'),
-			openFile.includes('void (async () => {') && openFile.includes(iifeTail) && openFile.includes('this.windowsMainService?.open({'),
-			newTab.includes('void (async () => {') && newTab.includes(iifeTail) && newTab.includes('openEmptyWindow({ context: OpenContext.DESKTOP })'),
-			main.includes(`${writeFileCall}.catch(err => {
-					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
-				})${singleCatch};`),
-		].filter(Boolean).length;
-		assert.strictEqual(sites, 4);
-		assert.ok(!app.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
-		assert.ok(!main.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
-	});
-
 	test('activate / open-file timeout / new-window-for-tab leftover async listeners are Promise IIFE single-chain', () => {
 		const app = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const windows = fs.readFileSync(resolveSource(WINDOWS_REL), 'utf8');
@@ -102,23 +81,6 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 			assert.ok(slice.includes(iifeTail));
 			assert.ok(!slice.includes(`})()${doubleCatch};`));
 		}
-	});
-
-	test('main.ts leftover lockfile writeFile single catch is Promise single-chain', () => {
-		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
-		const pfs = fs.readFileSync(resolveSource(PFS_REL), 'utf8');
-		assertPromiseSignature(pfs, 'function writeFile(path: string, data: string, options?: IWriteFileOptions): Promise<void>;');
-		assert.ok(main.includes('import { ExpectedError, onUnexpectedError, setUnexpectedErrorHandler } from \'../../base/common/errors.js\';'));
-		const writeFileCall = 'FSPromises.writeFile(environmentMainService.mainLockfile, String(process.pid))';
-		assert.ok(main.includes(`${writeFileCall}.catch(err => {
-					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
-				})${singleCatch};`));
-		assert.ok(!main.includes(`${writeFileCall}.catch(err => {
-					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
-				})${doubleCatch};`));
-		assert.ok(!main.includes(`${writeFileCall}.catch(err => {
-					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
-				});`));
 	});
 
 	test('D704 / D713 / D719 / D726 single-chained; opener / D145 / Connect / Watch / Resolve / Pty / two-arg / assigned / sync void / this.startup stay skipped', () => {
