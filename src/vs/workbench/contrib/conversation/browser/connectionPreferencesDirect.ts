@@ -96,11 +96,11 @@ export class ConnectionPreferencesDirect extends Disposable {
 		const directActions = DOM.append(this.element, DOM.$('.connection-actions.connection-direct-actions'));
 		this.connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
 		this.connectDirectButton.label = localize('ua.connectionDirectConnect', "Connect");
-		this._register(this.connectDirectButton.onDidClick(() => void host.handleConnectDirectAddress().catch(onUnexpectedError)));
+		this._register(this.connectDirectButton.onDidClick(() => void host.handleConnectDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const addDirectButton = this._register(new Button(directActions, { ...defaultButtonStyles, secondary: true }));
 		addDirectButton.label = localize('ua.connectionDirectAdd', "Add");
-		this._register(addDirectButton.onDidClick(() => void host.handleAddDirectAddress().catch(onUnexpectedError)));
+		this._register(addDirectButton.onDidClick(() => void host.handleAddDirectAddress().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.status = DOM.append(this.element, DOM.$('.connection-status.connection-direct-address-status'));
 		this.status.setAttribute('role', 'status');

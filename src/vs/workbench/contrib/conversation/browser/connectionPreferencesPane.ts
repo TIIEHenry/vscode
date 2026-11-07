@@ -283,7 +283,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.renderProfiles();
 			this.applyDesktopConnectionControlVisibility();
 			this.renderHubAccount();
-			void this.refreshEngineDeviceLists().catch(onUnexpectedError);
+			void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this.renderHubAccount();
@@ -308,8 +308,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		));
 		this._register(resizeObserver.observe(this.navHost));
 		this._register(resizeObserver.observe(this.scrollBody));
-		void this.hub.initializeState().catch(onUnexpectedError);
-		void this.refreshEngineDeviceLists().catch(onUnexpectedError);
+		void this.hub.initializeState().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private getZoneElement(id: ConnectionZoneId): HTMLElement {

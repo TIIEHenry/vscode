@@ -194,7 +194,7 @@ export class ConnectionPreferencesDevices extends Disposable {
 			'HubDevices',
 			this.hubDevicesListContainer,
 			new HubDevicesDelegate(),
-			[new HubDevicesRenderer(device => void this.host.handleConnectDevice(device).catch(onUnexpectedError), device => this.canConnectDevice(device))],
+			[new HubDevicesRenderer(device => void this.host.handleConnectDevice(device).catch(onUnexpectedError).catch(onUnexpectedError), device => this.canConnectDevice(device))],
 			{
 				identityProvider: { getId: (device: HubDeviceProjection) => device.id },
 				accessibilityProvider: new HubDevicesAccessibilityProvider(),
@@ -205,14 +205,14 @@ export class ConnectionPreferencesDevices extends Disposable {
 		this.deviceActionsRow = DOM.append(this.element, DOM.$('.connection-actions.connection-hub-device-actions'));
 		this.renameDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
-		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError)));
+		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.revokeDeviceButton.element.classList.add('is-danger');
 		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
-		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError)));
+		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
 		this.rotateTokenButton.label = CONNECTION_DEVICE_ROTATE_TOKEN_LABEL;
-		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken().catch(onUnexpectedError)));
+		this._register(this.rotateTokenButton.onDidClick(() => void this.handleRotateSelectedDeviceToken().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.connectStatus = DOM.append(this.element, DOM.$('.connection-status.connection-hub-devices-status'));
 		this.connectStatus.setAttribute('role', 'status');
@@ -237,10 +237,10 @@ export class ConnectionPreferencesDevices extends Disposable {
 		const deviceCodeActions = DOM.append(deviceCodeRow, $('.connection-actions'));
 		this.confirmDeviceCodeButton = this._register(new Button(deviceCodeActions, defaultButtonStyles));
 		this.confirmDeviceCodeButton.label = localize('ua.connectionConfirmDeviceCode', "Confirm");
-		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError)));
+		this._register(this.confirmDeviceCodeButton.onDidClick(() => void this.handleConfirmDeviceCode().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.rejectDevicePairButton = this._register(new Button(deviceCodeActions, { ...defaultButtonStyles, secondary: true }));
 		this.rejectDevicePairButton.label = CONNECTION_DEVICE_PAIR_REJECT_LABEL;
-		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError)));
+		this._register(this.rejectDevicePairButton.onDidClick(() => void this.handleRejectDevicePair().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.hubDeviceCodeStatus = DOM.append(this.element, DOM.$('.connection-status.connection-hub-device-code-status'));
 		this.hubDeviceCodeStatus.setAttribute('role', 'status');
 	}

@@ -233,7 +233,7 @@ export class EnginePluginsSection extends Disposable {
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
 		this.scanNewButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.enginePluginsScanNew', "Scan New"), Codicon.search));
-		this._register(this.scanNewButton.onDidClick(() => void this.scanNew().catch(onUnexpectedError)));
+		this._register(this.scanNewButton.onDidClick(() => void this.scanNew().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.scanResult = DOM.append(this.container, $('.engine-catalog-description.engine-plugins-scan-result'));
 		this.scanResult.setAttribute('role', 'status');
@@ -251,11 +251,11 @@ export class EnginePluginsSection extends Disposable {
 		this.rowToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-plugins-row-toolbar.engine-catalog-icon-actions'));
 		this.rowToolbar.style.display = 'none';
 		this.enableButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsEnable', "Enable"), Codicon.check));
-		this._register(this.enableButton.onDidClick(() => void this.enableSelected().catch(onUnexpectedError)));
+		this._register(this.enableButton.onDidClick(() => void this.enableSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.reloadButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsReload', "Reload"), Codicon.refresh));
-		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected().catch(onUnexpectedError)));
+		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.unloadButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsUnload', "Unload"), Codicon.debugDisconnect));
-		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected().catch(onUnexpectedError)));
+		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.infoStatus = this._register(new EngineCatalogStatusWidget(this.container));
 		this.hooksTable = DOM.append(this.container, $('table.engine-plugins-hooks-table')) as HTMLTableElement;
@@ -268,8 +268,8 @@ export class EnginePluginsSection extends Disposable {
 		DOM.append(headRow, $('th')).textContent = localize('ua.enginePluginHookClass', "Class Name");
 		this.hooksBody = DOM.append(this.hooksTable, $('tbody'));
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError)));
-		void this.refresh().catch(onUnexpectedError);
+		this._register(this.connection.onDidChangeConnection(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	getDomNode(): HTMLElement {
@@ -456,7 +456,7 @@ export class EnginePluginsSection extends Disposable {
 				this.selectedPlugin = entry?.plugin;
 				this.updateRowActions();
 				if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
-					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError);
+					void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if ((this.mode === 'failed' || this.mode === 'loading') && this.hookEntries.length > 0) {
 					this.hooksTable.style.display = '';
 				} else if (keepLeftoverCatalogForPairingHold(this.hasLeftoverHooks(), this.connection)) {
@@ -589,7 +589,7 @@ export class EnginePluginsSection extends Disposable {
 			this.renderScanResult();
 			this.renderStatus();
 			if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
-				void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError);
+				void this.loadInfo(this.selectedPlugin.id).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.clearInfoPresentation();
 			}
@@ -613,7 +613,7 @@ export class EnginePluginsSection extends Disposable {
 			});
 			this.renderStatus({
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh().catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (hadLiveCatalog) {
 				this.closeLeftoverWriteChrome();
@@ -722,7 +722,7 @@ export class EnginePluginsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: PLUGIN_INFO_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.loadInfo(id).catch(onUnexpectedError),
+				onRetry: () => void this.loadInfo(id).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		}
 	}
@@ -951,7 +951,7 @@ export class EnginePluginsSection extends Disposable {
 			mode: 'failed',
 			featureLabel: PLUGINS_FEATURE,
 			reason,
-			onRetry: () => void this.refresh().catch(onUnexpectedError),
+			onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 		});
 	}
 
@@ -977,7 +977,7 @@ export class EnginePluginsSection extends Disposable {
 				mode: 'failed',
 				featureLabel: PLUGINS_FEATURE,
 				reason: this.writeFailedReason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			return;
 		}

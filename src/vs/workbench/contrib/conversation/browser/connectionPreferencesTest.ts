@@ -41,7 +41,7 @@ export class ConnectionPreferencesTest extends Disposable {
 		this.status = DOM.append(testRow, DOM.$('.connection-status.connection-test-status'));
 		this.status.setAttribute('role', 'status');
 		this.status.setAttribute('aria-live', 'polite');
-		this._register(testButton.onDidClick(() => void this.handleTestConnection().catch(onUnexpectedError)));
+		this._register(testButton.onDidClick(() => void this.handleTestConnection().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const remoteIoHint = DOM.append(this.element, DOM.$('.connection-remote-io-hint'));
 		remoteIoHint.textContent = getConnectionRemoteIoHintCopy();

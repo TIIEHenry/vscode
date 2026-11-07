@@ -176,7 +176,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.refreshToolbar.style.display = 'none';
 		this.refreshButton = this._register(createCatalogIconButton(this.refreshToolbar, localize('ua.engineMcpRuntimeRefresh', "Refresh"), Codicon.refresh));
 		this.refreshButton.enabled = false;
-		this._register(this.refreshButton.onDidClick(() => void this.refresh({ forceTools: true }).catch(onUnexpectedError)));
+		this._register(this.refreshButton.onDidClick(() => void this.refresh({ forceTools: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list.engine-mcp-runtime-list'));
 		this.listContainer.style.display = 'none';
@@ -206,9 +206,9 @@ export class EngineMcpRuntimePanel extends Disposable {
 			if (this._store.isDisposed) {
 				return;
 			}
-			void this.refresh().catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		void this.refresh().catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
@@ -284,7 +284,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		void this.refresh().catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private ensureList(): WorkbenchList<EngineMcpRuntimeListEntry> {
@@ -309,7 +309,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				const entry = e.elements[0];
 				this.selectedServerId = entry?.status.serverId;
 				if (this.selectedServerId && canShowCatalogRows(this.mode)) {
-					void this.loadTools(this.selectedServerId, false).catch(onUnexpectedError);
+					void this.loadTools(this.selectedServerId, false).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 				// Keep leftover tool rows after a live paint (D263; D238).
@@ -421,7 +421,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.renderCheckedAt();
 			this.renderStatus();
 			if (this.selectedServerId && canShowCatalogRows(this.mode)) {
-				void this.loadTools(this.selectedServerId, options?.forceTools === true).catch(onUnexpectedError);
+				void this.loadTools(this.selectedServerId, options?.forceTools === true).catch(onUnexpectedError).catch(onUnexpectedError);
 			} else {
 				this.clearToolsPresentation();
 			}
@@ -441,14 +441,14 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.renderCheckedAt();
 			this.renderStatus({
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh(options).catch(onUnexpectedError),
+				onRetry: () => void this.refresh(options).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			// D434: leftover after list throw must paint leftover tools failed
 			// honesty on refresh; do not wait for another selectServer.
 			// Do not extra getMcpServerStatuses / invent listTools.
 			this.keepLeftoverRuntimeToolsFailed(
 				getTransportErrorMessage(error),
-				() => void this.refresh(options).catch(onUnexpectedError),
+				() => void this.refresh(options).catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
 	}
@@ -625,7 +625,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				mode: 'failed',
 				featureLabel: MCP_RUNTIME_TOOLS_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.loadTools(serverId, forceRefresh).catch(onUnexpectedError),
+				onRetry: () => void this.loadTools(serverId, forceRefresh).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		}
 	}

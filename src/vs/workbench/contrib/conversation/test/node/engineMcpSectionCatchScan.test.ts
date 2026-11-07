@@ -32,10 +32,8 @@ suite('Engine MCP fire-and-forget catch scan', () => {
 	test('async MCP actions catch dialog and transport failures', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
 		assert.ok(/import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/.test(source));
-		assert.strictEqual(source.includes(doubleCatch), false, 'source must not contain double catch');
+		// D506: catch-path paint inside these methods can rethrow through a warn-then-rethrow handler.
 		for (const method of [
-			'promptAddServer',
-			'promptUpdateSelectedServer',
 			'confirmAndRemoveSelectedServer',
 			'refresh',
 			'toggleServer',
@@ -43,24 +41,34 @@ suite('Engine MCP fire-and-forget catch scan', () => {
 			const matches = source.match(new RegExp(`void this\\.${method}\\([^\\n;]*`, 'g')) ?? [];
 			assert.ok(matches.length > 0, `${method} should have at least one fire-and-forget call`);
 			for (const match of matches) {
-				assert.ok(match.includes(singleCatch), `${method} fire-and-forget call must use a single catch: ${match}`);
+				assert.ok(match.includes(doubleCatch), `${method} fire-and-forget call must use a double catch: ${match}`);
+			}
+		}
+		for (const method of [
+			'promptAddServer',
+			'promptUpdateSelectedServer',
+		]) {
+			const matches = source.match(new RegExp(`void this\\.${method}\\([^\\n;]*`, 'g')) ?? [];
+			assert.ok(matches.length > 0, `${method} should have at least one fire-and-forget call`);
+			for (const match of matches) {
+				assert.ok(match.includes(singleCatch) && !match.includes(doubleCatch), `${method} fire-and-forget call must use a single catch: ${match}`);
 			}
 		}
 
 		const commandMatches = source.match(/void this\.commandService\.executeCommand\([^\n;]*/g) ?? [];
 		assert.ok(commandMatches.length > 0, 'commandService.executeCommand should have at least one fire-and-forget call');
 		for (const match of commandMatches) {
-			assert.ok(match.includes(singleCatch), `commandService.executeCommand fire-and-forget call must use a single catch: ${match}`);
+			assert.ok(match.includes(singleCatch) && !match.includes(doubleCatch), `commandService.executeCommand fire-and-forget call must use a single catch: ${match}`);
 		}
 	});
 
-	test('all fire-and-forget void calls use single catch and no double catch', () => {
+	test('all fire-and-forget void calls catch; nine D506 sites use double catch', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
-		assert.strictEqual(source.includes(doubleCatch), false);
 		const voidMatches = source.match(/void this\.[^\n;]+/g) ?? [];
 		assert.strictEqual(voidMatches.length, 12, 'should have exactly 12 void this.* calls');
 		for (const match of voidMatches) {
-			assert.ok(match.includes(singleCatch), `fire-and-forget call must use single catch: ${match}`);
+			assert.ok(match.includes(singleCatch), `fire-and-forget call must catch: ${match}`);
 		}
+		assert.strictEqual(voidMatches.filter(match => match.includes(doubleCatch)).length, 9);
 	});
 });

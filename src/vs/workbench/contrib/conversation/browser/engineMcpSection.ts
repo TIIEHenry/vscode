@@ -477,7 +477,7 @@ export class EngineMcpSection extends Disposable {
 			if (this.isDisposed || this._store.isDisposed) {
 				return;
 			}
-			void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError);
+			void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.syncMcpSelectionActions();
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
@@ -494,7 +494,7 @@ export class EngineMcpSection extends Disposable {
 			if (this.isDisposed || this._store.isDisposed) {
 				return;
 			}
-			void this.refresh().catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.runtimePanel.render();
 		}));
 
@@ -503,7 +503,7 @@ export class EngineMcpSection extends Disposable {
 				if (this.isDisposed || this._store.isDisposed) {
 					return;
 				}
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
@@ -511,7 +511,7 @@ export class EngineMcpSection extends Disposable {
 				if (this.isDisposed || this._store.isDisposed) {
 					return;
 				}
-				void this.refresh().catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 
@@ -521,7 +521,7 @@ export class EngineMcpSection extends Disposable {
 		this._register(resizeObserver.observe(this.container));
 
 		this.setActiveTab('definitions');
-		void this.refresh().catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private setActiveTab(tab: EngineMcpTab): void {
@@ -1138,7 +1138,7 @@ export class EngineMcpSection extends Disposable {
 			mode: 'failed',
 			featureLabel: MCP_FEATURE,
 			reason,
-			onRetry: () => void this.refresh().catch(onUnexpectedError),
+			onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 		});
 	}
 
@@ -1157,7 +1157,7 @@ export class EngineMcpSection extends Disposable {
 							if (this.isDisposed || this._store.isDisposed) {
 								return;
 							}
-							void this.toggleServer(server, enabled).catch(onUnexpectedError);
+							void this.toggleServer(server, enabled).catch(onUnexpectedError).catch(onUnexpectedError);
 						},
 					),
 				],
@@ -1303,7 +1303,7 @@ export class EngineMcpSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh().catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			if (leftoverAfterList) {
 				this.closeLeftoverRowToggleChrome();
@@ -1318,7 +1318,7 @@ export class EngineMcpSection extends Disposable {
 				mode: 'failed',
 				featureLabel: MCP_FEATURE,
 				reason: this.writeFailedReason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 			return;
 		}

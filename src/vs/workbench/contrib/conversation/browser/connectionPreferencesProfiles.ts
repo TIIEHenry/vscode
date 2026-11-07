@@ -129,16 +129,16 @@ export class ConnectionPreferencesProfiles extends Disposable {
 		this.profileActionsRow = DOM.append(this.element, DOM.$('.connection-actions.connection-profile-actions'));
 		this.connectProfileButton = this._register(new Button(this.profileActionsRow, defaultButtonStyles));
 		this.connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
-		this._register(this.connectProfileButton.onDidClick(() => void host.handleConnectSelectedProfile().catch(onUnexpectedError)));
+		this._register(this.connectProfileButton.onDidClick(() => void host.handleConnectSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
-		this._register(disconnectButton.onDidClick(() => void host.handleDisconnect().catch(onUnexpectedError)));
+		this._register(disconnectButton.onDidClick(() => void host.handleDisconnect().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
 		forgetButton.element.classList.add('is-danger');
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
-		this._register(forgetButton.onDidClick(() => void host.handleForgetSelectedProfile().catch(onUnexpectedError)));
+		this._register(forgetButton.onDidClick(() => void host.handleForgetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.status = DOM.append(this.element, DOM.$('.connection-status.connection-profiles-status'));
 		this.status.setAttribute('role', 'status');

@@ -87,7 +87,7 @@ export class ConnectionPreferencesHub extends Disposable {
 		const hubActions = DOM.append(this.element, DOM.$('.connection-actions.connection-hub-actions'));
 		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
 		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
-		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError)));
+		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.hubBaseUrlInput.onDidChange(() => this.updateHubLoginState()));
 		this._register(this.hubEmailInput.onDidChange(() => this.updateHubLoginState()));
 		this._register(this.hubPasswordInput.onDidChange(() => this.updateHubLoginState()));
@@ -95,11 +95,11 @@ export class ConnectionPreferencesHub extends Disposable {
 
 		this.hubLogoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubLogoutButton.label = localize('ua.connectionHubLogout', "Sign out");
-		this._register(this.hubLogoutButton.onDidClick(() => void this.handleLogout().catch(onUnexpectedError)));
+		this._register(this.hubLogoutButton.onDidClick(() => void this.handleLogout().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.hubRefreshButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubRefreshButton.label = localize('ua.connectionHubRefreshDevices', "Refresh devices");
-		this._register(this.hubRefreshButton.onDidClick(() => void this.host.refreshHubDirectory().catch(onUnexpectedError)));
+		this._register(this.hubRefreshButton.onDidClick(() => void this.host.refreshHubDirectory().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.connectStatus = DOM.append(this.element, DOM.$('.connection-status.connection-hub-connect-status'));
 		this.connectStatus.setAttribute('role', 'status');
