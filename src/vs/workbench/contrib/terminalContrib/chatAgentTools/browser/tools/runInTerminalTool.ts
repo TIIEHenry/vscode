@@ -1208,7 +1208,10 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 			wouldBeAutoApproved
 		);
 		const isSandboxAutoApproved = isSandboxEnabled && toolSpecificData.commandLine.isSandboxWrapped === true && !requiresAllowNetworkConfirmation && this._allowSandboxAutoApprove;
-		const isFinalAutoApproved = isSandboxAutoApproved || isAutoApprovedByRules;
+		// Rules match the displayed command, but leaving the sandbox or allowing network runs a
+		// different command, so these always need an explicit confirmation.
+		const requiresSandboxEscalationConfirmation = requiresUnsandboxConfirmation || requiresAllowNetworkConfirmation;
+		const isFinalAutoApproved = !requiresSandboxEscalationConfirmation && (isSandboxAutoApproved || isAutoApprovedByRules);
 
 		// Pass auto approve info if the command:
 		// - Was auto approved
@@ -1289,7 +1292,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		}
 
 		// If forceConfirmationReason is set, always show confirmation regardless of auto-approval
-		const shouldShowConfirmation = (!isFinalAutoApproved && (!isSessionAutoApproved || requiresAllowNetworkConfirmation)) || context.forceConfirmationReason !== undefined;
+		const shouldShowConfirmation = (!isFinalAutoApproved && (!isSessionAutoApproved || requiresSandboxEscalationConfirmation)) || context.forceConfirmationReason !== undefined;
 		const explanation = args.explanation || localize('runInTerminal.defaultExplanation', "No explanation provided");
 		const goal = args.goal || localize('runInTerminal.defaultGoal', "No goal provided");
 		const confirmationMessage = requiresUnsandboxConfirmation
