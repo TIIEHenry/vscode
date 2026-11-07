@@ -15,6 +15,7 @@ import type { ConnectionPhase, ConnectionProbeResult } from '../../../../../plat
 import { type ConnectionProfileProjection, type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConnectionPreferencesPane,
@@ -2279,6 +2280,33 @@ suite('ConnectionPreferencesPane', () => {
 		assert.deepStrictEqual(added, { hubDeviceId: 'dev-1', displayName: 'Studio' });
 		assert.strictEqual(connectedProfileId, 'hub-profile-1');
 		container.remove();
+	});
+
+	test('device row Connect is a secondary button', async () => {
+		// The Hub login button's `secondary` setter writes into the shared defaults; pin them to primary here.
+		const sharedDefaults = defaultButtonStyles as { secondary?: boolean };
+		const leakedSecondary = sharedDefaults.secondary;
+		Object.defineProperty(sharedDefaults, 'secondary', { get: () => false, set: () => { }, configurable: true, enumerable: true });
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+		});
+		const container = pane.getDomNode();
+		try {
+			pane.layout(new Dimension(800, 800));
+			pane.selectZone('devices');
+			await Promise.resolve();
+
+			const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLElement | null;
+			assert.ok(connectButton);
+			assert.ok(connectButton.classList.contains('secondary'));
+		} finally {
+			delete sharedDefaults.secondary;
+			if (leakedSecondary !== undefined) {
+				sharedDefaults.secondary = leakedSecondary;
+			}
+			container.remove();
+		}
 	});
 
 	test('device Connect failure writes the visible Devices status', async () => {
