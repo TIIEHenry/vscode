@@ -553,7 +553,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 		return this.stub.getSessionGoal(sessionId);
 	}
 
-	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string; anchorTurnId?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.forkEngineSubAgent(sessionId, options, callRemote),
 			() => this.stub.forkSubAgent(sessionId, options),
@@ -1134,7 +1134,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 
 	private forkEngineSubAgent(
 		sessionId: string,
-		options: { name?: string; task?: string; parentAgentId?: string } | undefined,
+		options: { name?: string; task?: string; parentAgentId?: string; anchorTurnId?: string } | undefined,
 		callRemote: boolean,
 	): boolean {
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
@@ -1147,6 +1147,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			const parentAgentId = options?.parentAgentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 			const name = options?.name?.trim();
 			const task = options?.task?.trim();
+			const anchorTurnId = options?.anchorTurnId?.trim();
 			this.dispatchEngineAction(sessionId, 'forkAgent', this.wrapEngineQueueMutation(
 				'forkAgent',
 				() => this.uaConnection.forkAgent!({
@@ -1154,6 +1155,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 					parentAgentId,
 					...(name ? { name } : {}),
 					...(task ? { task } : {}),
+					...(anchorTurnId ? { anchorTurnId } : {}),
 				}),
 			));
 			return true;

@@ -233,7 +233,9 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 		return this.cancelGoalResult;
 	}
 	readonly forkCalls: { sessionId: string; parentAgentId?: string; name?: string; task?: string }[] = [];
-	async forkAgent(request: { sessionId: string; parentAgentId?: string; name?: string; task?: string }) {
+	readonly forkRequests: { sessionId: string; parentAgentId?: string; name?: string; task?: string; anchorTurnId?: string }[] = [];
+	async forkAgent(request: { sessionId: string; parentAgentId?: string; name?: string; task?: string; anchorTurnId?: string }) {
+		this.forkRequests.push({ ...request });
 		this.forkCalls.push({
 			sessionId: request.sessionId,
 			parentAgentId: request.parentAgentId,
@@ -3235,6 +3237,40 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.forkCalls[1]?.parentAgentId, 'sub:a');
 		assert.strictEqual(service.forkSubAgent('missing', { name: 'Nope' }), false);
 		assert.strictEqual(connection.forkCalls.length, 2);
+	});
+
+	test('connected forkSubAgent forwards trimmed anchorTurnId to AgentService.Fork', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.forkSubAgent('ua-only', { anchorTurnId: '  turn-7  ' }), true);
+		assert.deepStrictEqual(connection.forkRequests, [{
+			sessionId: 'ua-only',
+			parentAgentId: 'root',
+			anchorTurnId: 'turn-7',
+		}]);
+	});
+
+	test('connected forkSubAgent without anchorTurnId omits the field', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.forkSubAgent('ua-only'), true);
+		assert.strictEqual(service.forkSubAgent('ua-only', { name: 'reviewer', anchorTurnId: '   ' }), true);
+		assert.deepStrictEqual(connection.forkRequests, [
+			{ sessionId: 'ua-only', parentAgentId: 'root' },
+			{ sessionId: 'ua-only', parentAgentId: 'root', name: 'reviewer' },
+		]);
 	});
 
 	test('connected forkSubAgent uses last streaming agent as parent', async () => {
