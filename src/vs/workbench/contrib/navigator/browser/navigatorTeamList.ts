@@ -451,11 +451,11 @@ export class NavigatorTeamView extends ViewPane {
 			button.dataset.statusFilter = filter;
 			button.setAttribute('aria-pressed', String(filter === this.taskStatusFilter));
 			this.taskStatusFilterButtons.set(filter, button);
-			button.addEventListener('click', () => {
+			this._register(dom.addDisposableListener(button, dom.EventType.CLICK, () => {
 				this.taskStatusFilter = filter;
 				this.applyFilterToTasks();
 				this.updateTasksDisplay();
-			});
+			}));
 		}
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
 		this.tasksEmpty.setAttribute('role', 'status');

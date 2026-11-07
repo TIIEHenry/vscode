@@ -47,6 +47,7 @@ import { ConversationDiffReviewInput } from '../../browser/conversationDiffRevie
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
+import { appendStyled, computedStyle, mountSourcesStyleRoot } from './sourcesStyleTestUtils.js';
 import { SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
 import { moveActiveDiffToConversation, resolveSourcesChangeRefFromEditor } from '../../browser/sourcesDiffRefHelpers.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
@@ -4837,3 +4838,60 @@ suite('Sources diff panel', () => {
 	});
 });
 
+
+suite('Sources diff stylesheets', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const colors = {
+		'button-background': 'rgb(10, 10, 200)',
+		'button-hoverBackground': 'rgb(20, 20, 220)',
+		'button-secondaryBackground': 'rgb(100, 100, 100)',
+		'button-secondaryHoverBackground': 'rgb(120, 120, 120)',
+		'descriptionForeground': 'rgb(150, 150, 150)',
+		'errorForeground': 'rgb(240, 10, 10)',
+	};
+
+	test('Diff panel header wraps, actions pack to the end, and the title takes the slack', async () => {
+		const part = await mountSourcesStyleRoot(store, ['sourcesDiffPanel.css'], colors);
+		const header = appendStyled(appendStyled(part, 'div.sources-diff-panel'), 'div.sources-diff-panel-header');
+		const title = appendStyled(header, 'div.sources-diff-panel-title');
+		const actions = appendStyled(header, 'div.sources-diff-panel-actions');
+		assert.deepStrictEqual({
+			header: [computedStyle(header).display, computedStyle(header).flexWrap],
+			title: [computedStyle(title).flexGrow, computedStyle(title).flexShrink],
+			actions: [computedStyle(actions).flexWrap, computedStyle(actions).justifyContent],
+		}, {
+			header: ['flex', 'wrap'],
+			title: ['1', '1'],
+			actions: ['wrap', 'flex-end'],
+		});
+	});
+
+	for (const host of [
+		{ name: 'Panel Diff', css: 'sourcesDiffPanel.css', root: 'div.sources-diff-panel', bar: 'div.sources-diff-panel-actions', accept: 'button.sources-diff-panel-accept', secondary: 'button.sources-diff-panel-stage', notices: ['div.sources-diff-panel-action-notice', 'div.sources-diff-panel-new-file-notice'] },
+		{ name: 'Conversation Diff', css: 'conversationDiffReviewPane.css', root: 'div.conversation-diff-review-pane', bar: 'div.conversation-diff-review-toolbar', accept: 'button.conversation-diff-review-accept', secondary: 'button.conversation-diff-review-stage', notices: ['div.conversation-diff-review-notice'] },
+	]) {
+		test(`${host.name} Accept stays primary at rest and on hover; the secondary hover does not cover it`, async () => {
+			const part = await mountSourcesStyleRoot(store, [host.css], colors);
+			const bar = appendStyled(appendStyled(part, host.root), host.bar);
+			const accept = appendStyled(bar, host.accept);
+			const secondary = appendStyled(bar, host.secondary);
+			const backgrounds = () => [computedStyle(accept).backgroundColor, computedStyle(secondary).backgroundColor];
+			assert.deepStrictEqual(backgrounds(), [colors['button-background'], colors['button-secondaryBackground']]);
+			accept.classList.add('sim-hover');
+			secondary.classList.add('sim-hover');
+			assert.deepStrictEqual(backgrounds(), [colors['button-hoverBackground'], colors['button-secondaryHoverBackground']]);
+		});
+
+		test(`${host.name} notices use the error tone only when marked is-error`, async () => {
+			const part = await mountSourcesStyleRoot(store, [host.css], colors);
+			const root = appendStyled(part, host.root);
+			for (const shorthand of host.notices) {
+				const notice = appendStyled(root, shorthand);
+				assert.strictEqual(computedStyle(notice).color, colors.descriptionForeground, shorthand);
+				notice.classList.add('is-error');
+				assert.strictEqual(computedStyle(notice).color, colors.errorForeground, shorthand);
+			}
+		});
+	}
+});

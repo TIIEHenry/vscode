@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getWindow } from '../../../../../base/browser/dom.js';
 import { IAction } from '../../../../../base/common/actions.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
@@ -1229,6 +1231,127 @@ suite('NavigatorProjectsView', () => {
 		const sessionLabel = labels.find(el => el.classList.contains('is-active-session'));
 		assert.ok(sessionLabel?.querySelector('.codicon-comment-discussion'), 'session row must use a comment icon');
 		assert.strictEqual(sessionLabel?.querySelector('.navigator-projects-node-detail')?.textContent, active.detail);
+	});
+
+	test('row chrome: folder name keeps width, path stays capped, actions follow hover and keyboard focus, active row uses neutral chrome', async () => {
+		const stylesheet = document.createElement('link');
+		stylesheet.rel = 'stylesheet';
+		stylesheet.href = new URL('../../browser/media/navigatorProjectsList.css', import.meta.url).href;
+		store.add(toDisposable(() => stylesheet.remove()));
+		await new Promise<void>((resolve, reject) => {
+			stylesheet.onload = () => resolve();
+			stylesheet.onerror = () => reject(new Error('Navigator projects stylesheet failed to load'));
+			document.head.appendChild(stylesheet);
+		});
+		// Pseudo-classes cannot be forced, so their rules are copied onto simulated classes.
+		let simulatedCss = '.navigator-style-test * { transition: none !important; }\n';
+		for (const rule of stylesheet.sheet ? [...stylesheet.sheet.cssRules] : []) {
+			if (rule instanceof CSSStyleRule && /:(hover|focus-visible|focus-within|focus)\b/.test(rule.selectorText)) {
+				const selector = rule.selectorText
+					.replace(/:hover\b/g, '.sim-hover')
+					.replace(/:focus-visible\b/g, '.sim-focus-visible')
+					.replace(/:focus-within\b/g, '.sim-focus-within')
+					.replace(/:focus(?![-\w])/g, '.sim-focus');
+				simulatedCss += `${selector} { ${rule.style.cssText} }\n`;
+			}
+		}
+		const simulatedStyle = document.createElement('style');
+		simulatedStyle.textContent = simulatedCss;
+		document.head.appendChild(simulatedStyle);
+		store.add(toDisposable(() => simulatedStyle.remove()));
+
+		const rosterService = new ConversationStubService();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				workDir: '/engine/live',
+				engineIdentityId: 'engine-test',
+				linkId: 1,
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({ rosterService, uaConnection });
+		const workbench = document.createElement('div');
+		workbench.className = 'monaco-workbench navigator-style-test';
+		for (const [name, value] of [
+			['foreground', 'rgb(200, 100, 0)'],
+			['list-activeSelectionBackground', 'rgb(0, 0, 255)'],
+			['focusBorder', 'rgb(0, 255, 0)'],
+			['cornerRadius-xLarge', '7px'],
+			['spacing-size20', '3px'],
+			['spacing-size80', '9px'],
+		]) {
+			workbench.style.setProperty(`--vscode-${name}`, value);
+		}
+		workbench.appendChild(view.element);
+		document.body.appendChild(workbench);
+		store.add(toDisposable(() => workbench.remove()));
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
+
+		const active = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && node.active === true && !!node.sessionId);
+		assert.ok(active?.sessionId);
+		const sessionRow = sessionRowFor(view, active.sessionId).closest<HTMLElement>('.monaco-list-row');
+		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir' && !!node.description);
+		assert.ok(workdir?.description);
+		const workdirLabel = Array.from(view.element.querySelectorAll<HTMLElement>('.navigator-projects-node-label')).find(el => el.title.includes(workdir.description!));
+		const workdirRow = workdirLabel?.closest<HTMLElement>('.monaco-list-row');
+		const list = view.element.querySelector<HTMLElement>('.navigator-projects-list .monaco-list');
+		assert.ok(sessionRow && workdirLabel && workdirRow && list);
+		const sessionActions = sessionRow.querySelector<HTMLElement>('.navigator-projects-row-actions.is-available.is-session-actions');
+		const workdirActions = workdirRow.querySelector<HTMLElement>('.navigator-projects-row-actions.is-available.is-workdir-actions');
+		const name = workdirLabel.querySelector<HTMLElement>('.navigator-projects-node-name');
+		const description = workdirLabel.querySelector<HTMLElement>('.navigator-projects-node-description');
+		assert.ok(sessionActions && workdirActions && name && description);
+		const style = (element: Element, pseudo?: string) => getWindow(element).getComputedStyle(element, pseudo);
+		for (const row of [sessionRow, workdirRow]) {
+			row.classList.remove('focused', 'selected');
+		}
+
+		const probe = document.createElement('span');
+		probe.style.display = 'inline-block';
+		probe.style.width = '8ch';
+		name.appendChild(probe);
+		const eightCh = style(probe).width;
+		probe.remove();
+		assert.deepStrictEqual({ nameMinWidth: style(name).minWidth, descriptionMaxWidth: style(description).maxWidth }, { nameMinWidth: eightCh, descriptionMaxWidth: '46%' });
+
+		const actionsDisplay = () => ({ session: style(sessionActions).display, workdir: style(workdirActions).display });
+		assert.deepStrictEqual(actionsDisplay(), { session: 'none', workdir: 'none' });
+		assert.strictEqual(style(sessionActions).columnGap, '3px');
+		sessionRow.classList.add('sim-hover');
+		workdirRow.classList.add('sim-hover');
+		assert.deepStrictEqual(actionsDisplay(), { session: 'flex', workdir: 'flex' }, 'hover reveals both kinds of row actions');
+		sessionRow.classList.remove('sim-hover');
+		workdirRow.classList.remove('sim-hover');
+		sessionRow.classList.add('sim-focus-within');
+		assert.strictEqual(actionsDisplay().session, 'flex', 'focus inside a session row keeps its actions reachable');
+		sessionRow.classList.remove('sim-focus-within');
+		workdirRow.classList.add('selected');
+		list.classList.add('sim-focus');
+		assert.strictEqual(actionsDisplay().workdir, 'none', 'selection alone does not reveal New session');
+		workdirRow.classList.add('focused');
+		list.classList.add('sim-focus-visible');
+		assert.strictEqual(actionsDisplay().workdir, 'flex', 'keyboard focus reveals New session');
+		assert.strictEqual(style(workdirRow).boxShadow, 'none', 'focused rounded row has no inset bar that reads as a parenthesis');
+		workdirRow.classList.remove('focused', 'selected');
+		list.classList.remove('sim-focus', 'sim-focus-visible');
+
+		const tint = (color: string) => {
+			const match = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+) \/ ([\d.e-]+)\)$/.exec(color) ?? /^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(color);
+			assert.ok(match, color);
+			const channels = match.slice(1, 4).map(Number);
+			const scale = channels.some(value => value > 1) ? 1 : 255;
+			return { rgb: channels.map(value => Math.round(value * scale)), alpha: Number(Number(match[4]).toFixed(2)) };
+		};
+		const neutral = { rgb: [200, 100, 0], alpha: 0.04 };
+		assert.ok(sessionRow.querySelector('.navigator-projects-node-label.is-active-session'));
+		assert.deepStrictEqual(tint(style(sessionRow).backgroundColor), neutral, 'active session row uses a foreground tint, not the list selection color');
+		workdirRow.classList.add('selected');
+		assert.deepStrictEqual(tint(style(workdirRow).backgroundColor), neutral, 'selected row uses the same neutral tint');
+		assert.deepStrictEqual({ radius: style(sessionRow).borderTopLeftRadius, after: style(sessionRow, '::after').content }, { radius: '7px', after: 'none' });
 	});
 
 	test('session rows expose open and delete; workdir rows do not', async () => {
