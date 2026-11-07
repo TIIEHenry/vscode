@@ -243,7 +243,7 @@ suite('WorkbenchThemeService', () => {
 		assert.ok(themes.some((theme: IThemeExtensionPoint) => theme.id === 'Default High Contrast Light' && theme.path === './themes/hc_light.json'));
 
 		assert.strictEqual(productLightTheme.include, './2026-light.json');
-		assert.strictEqual(productLightTheme.colors['sideBar.background'], '#F6F6F6');
+		assert.strictEqual(productLightTheme.colors['sideBar.background'], '#FAFAFA');
 		assert.strictEqual(productLightTheme.colors['panel.background'], '#F6F6F6');
 		assert.strictEqual(productLightTheme.colors['widget.border'], '#E2E2E2');
 		assert.strictEqual(productLightTheme.colors['chat.requestBubbleBackground'], '#F4F4F4');
@@ -253,6 +253,8 @@ suite('WorkbenchThemeService', () => {
 		assert.strictEqual(productDarkTheme.include, './2026-dark.json');
 		assert.strictEqual(productDarkTheme.colors['badge.background'], '#767676');
 		assert.strictEqual(productDarkTheme.colors['conversation.background'], '#121314');
+		assert.strictEqual(productDarkTheme.colors['button.secondaryBorder'], '#FFFFFF1F');
+		assert.strictEqual(productDarkTheme.colors['menu.selectionBorder'], '#00000000');
 		assert.deepStrictEqual(Object.keys(productDarkTheme.colors).sort(), [
 			'activityBar.activeBackground',
 			'activityBar.inactiveForeground',
@@ -267,6 +269,8 @@ suite('WorkbenchThemeService', () => {
 			'button.border',
 			'button.foreground',
 			'button.hoverBackground',
+			'button.secondaryBackground',
+			'button.secondaryBorder',
 			'chat.inputWorkingBorderColor1',
 			'chat.inputWorkingBorderColor2',
 			'chat.inputWorkingBorderColor3',
@@ -275,6 +279,7 @@ suite('WorkbenchThemeService', () => {
 			'inlineEdit.gutterIndicator.primaryBorder',
 			'inlineEdit.gutterIndicator.successfulBorder',
 			'menu.selectionBackground',
+			'menu.selectionBorder',
 			'quickInputList.focusBackground',
 			'quickInputList.focusForeground',
 			'quickInputList.focusHighlightForeground',
@@ -304,7 +309,7 @@ suite('WorkbenchThemeService', () => {
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F8F8F8');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#000000');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#005FB8');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F6F6F6');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#FAFAFA');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F8F8F8');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['statusBar.background'], '#F6F6F6');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#1F1F1F');

@@ -7,6 +7,251 @@
    in high contrast / forced colors so platform contrast remapping remains intact. */
 @media (forced-colors: none) {
 
+	/* Shapes bind by icon class; only the scoped `::before` rules below paint them. */
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-add {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%203v10M3%208h10%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-ellipsis {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20fill%3D%22black%22%20stroke%3D%22none%22%3E%3Ccircle%20cx%3D%223.5%22%20cy%3D%228%22%20r%3D%220.85%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%220.85%22%2F%3E%3Ccircle%20cx%3D%2212.5%22%20cy%3D%228%22%20r%3D%220.85%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-close {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4.5%204.5l7%207M11.5%204.5l-7%207%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-remove {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%208h9%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-search {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%224.25%22%2F%3E%3Cpath%20d%3D%22M10.25%2010.25%2013.5%2013.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-copy {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225.25%22%20y%3D%225.25%22%20width%3D%228.5%22%20height%3D%228.5%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M10.75%203.5v-.25c0-.97-.78-1.75-1.75-1.75H3.25c-.97%200-1.75.78-1.75%201.75V9c0%20.97.78%201.75%201.75%201.75h.25%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-refresh {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13.25%208a5.25%205.25%200%201%201-1.54-3.71M13.25%202.5v3.25H10%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-trash {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%204h11M6%202h4M4%204l.6%209.5h6.8L12%204M6.5%206.5v4.5M9.5%206.5v4.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-edit {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10.5%202.75a1.77%201.77%200%200%201%202.5%202.5L5.5%2012.75l-3%20.75.75-3z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-check {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%208.5l3%203%206-7%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-chevron-down {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%206l4%204%204-4%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-chevron-up {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2010l4-4%204%204%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-chevron-right {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%204l4%204-4%204%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-chevron-left {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%204%206%208l4%204%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-folder {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M1.75%204.25c0-.83.67-1.5%201.5-1.5h2.6c.4%200%20.78.16%201.06.44l.88.87h4.96c.83%200%201.5.67%201.5%201.5v6.19c0%20.83-.67%201.5-1.5%201.5H3.25c-.83%200-1.5-.67-1.5-1.5z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-root-folder {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M1.75%204.25c0-.83.67-1.5%201.5-1.5h2.6c.4%200%20.78.16%201.06.44l.88.87h4.96c.83%200%201.5.67%201.5%201.5v6.19c0%20.83-.67%201.5-1.5%201.5H3.25c-.83%200-1.5-.67-1.5-1.5z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-file {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%201.75H4.25c-.83%200-1.5.67-1.5%201.5v9.5c0%20.83.67%201.5%201.5%201.5h7.5c.83%200%201.5-.67%201.5-1.5V6L9%201.75zM9%201.75V6h4.25%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-history {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.75%208a5.25%205.25%200%201%200%201.54-3.71M2.75%202.5v3.25H6M8%205.25V8l2%201.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-layers {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%202%201.75%205.25%208%208.5l6.25-3.25zM1.75%208%208%2011.25%2014.25%208M1.75%2010.75%208%2014l6.25-3.25%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-list-tree {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%203.5h11M5.5%208h8M8.5%2012.5h5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-list-flat {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%204h11M2.5%208h11M2.5%2012h11%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-target {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%225.75%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%222.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-bell {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2011.25V7a4%204%200%200%201%208%200v4.25l1%201.25H3zM6.5%2014.25h3%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-warning {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6.7%202.75c.58-1%202.02-1%202.6%200l4.85%208.5c.57%201-.15%202.25-1.3%202.25h-9.7c-1.15%200-1.87-1.25-1.3-2.25zM8%206.25V9%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%2211.25%22%20r%3D%220.75%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-error {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%226%22%2F%3E%3Cpath%20d%3D%22M5.75%205.75l4.5%204.5M10.25%205.75l-4.5%204.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-info {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%226%22%2F%3E%3Cpath%20d%3D%22M8%207.25V11%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%225%22%20r%3D%220.75%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-circle-slash {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%226%22%2F%3E%3Cpath%20d%3D%22M3.75%2012.25l8.5-8.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-debug-stop {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223.5%22%20y%3D%223.5%22%20width%3D%229%22%20height%3D%229%22%20rx%3D%222%22%20fill%3D%22black%22%20stroke%3D%22none%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-conversation-sessions-view-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.25%202.75h9.5c.83%200%201.5.67%201.5%201.5v6c0%20.83-.67%201.5-1.5%201.5H8.5l-3.5%202.5v-2.5H3.25c-.83%200-1.5-.67-1.5-1.5v-6c0-.83.67-1.5%201.5-1.5z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-navigator-projects-view-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M1.75%204.25c0-.83.67-1.5%201.5-1.5h2.6c.4%200%20.78.16%201.06.44l.88.87h4.96c.83%200%201.5.67%201.5%201.5v6.19c0%20.83-.67%201.5-1.5%201.5H3.25c-.83%200-1.5-.67-1.5-1.5z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-navigator-agents-view-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%201.75c.45%203.05%201.7%204.3%204.75%204.75-3.05.45-4.3%201.7-4.75%204.75-.45-3.05-1.7-4.3-4.75-4.75C6.3%206.05%207.55%204.8%208%201.75zM12.5%2010.75c.2%201.35.65%201.8%202%202-1.35.2-1.8.65-2%202-.2-1.35-.65-1.8-2-2%201.35-.2%201.8-.65%202-2z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-navigator-team-view-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%226%22%20cy%3D%225.5%22%20r%3D%222.25%22%2F%3E%3Cpath%20d%3D%22M2%2013.25c.4-2.2%202-3.5%204-3.5s3.6%201.3%204%203.5M10.75%203.4a2.25%202.25%200%200%201%200%204.2M11.75%209.9c1.3.45%202.05%201.55%202.25%203.35%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-agent-inspect-view-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13.5%207V4c0-.83-.67-1.5-1.5-1.5H4c-.83%200-1.5.67-1.5%201.5v8c0%20.83.67%201.5%201.5%201.5h3M9%209l1.6%205%20.9-2.1%202.1-.9z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-explorer-view-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%201.75h4.25l3%203v6.5c0%20.69-.56%201.25-1.25%201.25H6c-.69%200-1.25-.56-1.25-1.25V3c0-.69.56-1.25%201.25-1.25zM10.25%201.75v3h3M2.75%205.25v7.5c0%20.83.67%201.5%201.5%201.5h5.5%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-accounts-view-bar-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%225.75%22%20r%3D%222.75%22%2F%3E%3Cpath%20d%3D%22M2.75%2014c.5-2.75%202.6-4.25%205.25-4.25s4.75%201.5%205.25%204.25%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-settings-view-bar-icon {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12.88%206.93L14.45%207.24L14.45%208.76L12.88%209.07L12.21%2010.70L13.10%2012.02L12.02%2013.10L10.70%2012.21L9.07%2012.88L8.76%2014.45L7.24%2014.45L6.93%2012.88L5.30%2012.21L3.98%2013.10L2.90%2012.02L3.79%2010.70L3.12%209.07L1.55%208.76L1.55%207.24L3.12%206.93L3.79%205.30L2.90%203.98L3.98%202.90L5.30%203.79L6.93%203.12L7.24%201.55L8.76%201.55L9.07%203.12L10.70%203.79L12.02%202.90L13.10%203.98L12.21%205.30Z%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%222.25%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	/* Product-owned surfaces only. Zero-specificity scope so the explicit rules below still win. */
+	.monaco-workbench:not(.hc-black):not(.hc-light) :where(
+		.part.conversation,
+		.conversation-sessions-list,
+		.conversation-sessions-inline-filter,
+		.navigator-projects-list,
+		.navigator-projects-inline-filter,
+		.navigator-agents-inline-filter,
+		.navigator-team-inline-filter,
+		.navigator-agents-hierarchy-tree,
+		.navigator-agents-activity-list,
+		.navigator-team-list,
+		.navigator-team-tasks-list,
+		.part.sidebar > .composite.title .title-actions,
+		.part.sidebar .pane-header .monaco-action-bar,
+		.conversation-lens-dock-add-popup,
+		.conversation-lens-dock-more-popup,
+		.conversation-lens-dock-tune-popup,
+		.part.sources,
+		.engine-preferences-pane,
+		.connection-preferences-pane,
+		.preview-category-switcher
+	) :is(
+		.codicon-add,
+		.codicon-ellipsis,
+		.codicon-close,
+		.codicon-remove,
+		.codicon-search,
+		.codicon-copy,
+		.codicon-refresh,
+		.codicon-trash,
+		.codicon-edit,
+		.codicon-check,
+		.codicon-chevron-down,
+		.codicon-chevron-up,
+		.codicon-chevron-right,
+		.codicon-chevron-left,
+		.codicon-folder,
+		.codicon-root-folder,
+		.codicon-file,
+		.codicon-history,
+		.codicon-layers,
+		.codicon-list-tree,
+		.codicon-list-flat,
+		.codicon-target,
+		.codicon-bell,
+		.codicon-warning,
+		.codicon-error,
+		.codicon-info,
+		.codicon-circle-slash,
+		.codicon-debug-stop
+	):not(.monaco-custom-toggle, .codicon-modifier-spin)::before {
+		content: '';
+		display: inline-block;
+		width: 1em;
+		height: 1em;
+		background-color: currentColor;
+		mask: var(--ua-rounded-icon) center / contain no-repeat;
+		flex-shrink: 0;
+		vertical-align: middle;
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) :where(
+		.activitybar > .content :not(.monaco-menu) > .monaco-action-bar,
+		.pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container > .composite-bar > .monaco-action-bar
+	) .action-label:is(
+		.codicon-conversation-sessions-view-icon,
+		.codicon-navigator-projects-view-icon,
+		.codicon-navigator-agents-view-icon,
+		.codicon-navigator-team-view-icon,
+		.codicon-agent-inspect-view-icon,
+		.codicon-explorer-view-icon,
+		.codicon-accounts-view-bar-icon,
+		.codicon-settings-view-bar-icon
+	)::before {
+		content: '';
+		display: inline-block;
+		width: 1em;
+		height: 1em;
+		background-color: currentColor;
+		mask: var(--ua-rounded-icon) center / contain no-repeat;
+		flex-shrink: 0;
+		vertical-align: middle;
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-dock-maximize-input-button:is(.codicon-expand-all, .codicon-collapse-all)::before {
+		content: '';
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+		background-color: currentColor;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9.5%202.5h4v4M13.5%202.5%209%207M6.5%2013.5h-4v-4M2.5%2013.5%207%209%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+		flex-shrink: 0;
+		vertical-align: middle;
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-dock-maximize-input-button.codicon-collapse-all::before {
+		mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13.5%206.5h-4v-4M9.5%206.5l4-4M2.5%209.5h4v4M6.5%209.5l-4%204%22%2F%3E%3C%2Fsvg%3E");
+	}
+
 	.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-dock-add .codicon-add::before,
 	.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-row-actions .navigator-projects-new-session::before {
 		content: '';
@@ -49,7 +294,7 @@
 		width: 16px;
 		height: 16px;
 		background-color: currentColor;
-		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%2013.5V2.5M3%207.5l5-5%205%205%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%2012.5V3.5M4.25%207.25%208%203.5l3.75%203.75%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
 		flex-shrink: 0;
 		vertical-align: middle;
 	}
@@ -71,7 +316,7 @@
 		width: 16px;
 		height: 16px;
 		background-color: currentColor;
-		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4.6%201.7v3.1M2.6%201.7v2.7c0%201.2.8%202%202%202s2-.8%202-2V1.7M4.6%206.5v6.4c0%20.9-.5%201.4-1.2%201.4s-1.2-.5-1.2-1.4V6M11%202h2v6h-2zM12%208v6M10.3%2011h3.4%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%205h6M12.5%205h1M2.5%2011h1M7.5%2011h6%22%2F%3E%3Ccircle%20cx%3D%2210.5%22%20cy%3D%225%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%225.5%22%20cy%3D%2211%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
 		flex-shrink: 0;
 		vertical-align: middle;
 	}

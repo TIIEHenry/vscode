@@ -5,6 +5,7 @@
 
 import './media/activitybarpart.css';
 import './media/activityaction.css';
+import '../../media/uaRoundedIcons.css';
 import { localize, localize2 } from '../../../../nls.js';
 import { ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Part } from '../../part.js';

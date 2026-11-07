@@ -17,6 +17,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [2026-11-06 默认窗口并行 UI 与交互审查收口](ui-interaction-parallel-review-2026-11-06.md) | `accepted` | 五路并行审查默认编辑器窗口的 Conversation、Composer/Inbox/SessionBar、Sessions/Navigator、Engine/Connection/Settings 与 Sources/Trajectory/壳层；经规则 16 只读审查 C0/I3 改稿后实施 S1–S3。 |
 | [UniverseAgent 真实编辑器联测](universe-agent-real-editor-e2e-2026-10-31.md) | `implemented` | 默认编辑器真实引擎联测剧本与 4/4 步骤证据已完成；不等同于当前 50061 钉或 SGLang Provider 验收。 |
 | [五域测试报告 skipped 汇总完整性](test-result-skipped-summary.md) | `draft` | 统一五域测试报告的严格 skipped 汇总，支持根 skipped 属性与子 testcase skipped 的 max 解析，门禁在超限时严格失败关闭。 |
 | [Sources 已登记回归与可执行合同对齐](sources-regression-contract-alignment.md) | `draft` | 对齐 Sources 回归测试可执行合同，恢复双环境严格门禁与 AST 扫描。 |

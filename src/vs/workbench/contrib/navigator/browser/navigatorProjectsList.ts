@@ -306,8 +306,9 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 				}
 			}),
 		];
+		const menuClassName = sessionId ? 'ua-rounded-menu ua-project-session-menu' : 'ua-rounded-menu ua-project-workdir-menu';
 		this.contextMenuService.showContextMenu({
-			getMenuClassName: () => 'ua-rounded-menu ua-project-session-menu',
+			getMenuClassName: () => menuClassName,
 			getAnchor: () => anchor,
 			getActions: () => actions,
 			onHide: didCancel => {

@@ -132,7 +132,7 @@ Composer 自定义 Add context / More / Tools 的 Esc 按 PRD-018 验收4处理�
 
 配色、密度、焦点与按压零形变见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)（Composer / Inbox 见其 §5.2），本页不重复。Cursor / ChatGPT / Claude 的尺寸取样见 [外部对话界面密度对照](../../reference/external-chat-ui-density.md)，不改 PRD-015。Stop 留在 Inbox 右簇、不与发送钮合并（2026-09-28 用户确认，PRD-015 不变）。
 
-2026-11-02 局部图标校准：UA输入栏与会话导航使用共享 `workbench/browser/media/uaRoundedIcons.css` 的16px SVG轮廓（1.5px圆头/圆连接），模型箭头12px；currentColor随主题/禁用状态着色，高对比及forced-colors回退原Codicon。输入左内衬12px、底栏左右8px、按钮28px与8px组间距保持。没有对应功能的图钉/麦克风不新增入口。
+2026-11-02 局部图标校准：UA输入栏与会话导航使用共享 `workbench/browser/media/uaRoundedIcons.css` 的16px SVG轮廓（1.5px圆头/圆连接），模型箭头12px；currentColor随主题/禁用状态着色，高对比及forced-colors回退原Codicon。输入左内衬12px、底栏左右8px、按钮28px与8px组间距保持。没有对应功能的图钉/麦克风不新增入口。2026-11-06 起发送箭头加粗为 2px 紧凑上箭头，Tool options 改为双轨滑块，输入框右上角展开/还原改为对角双向箭头；其余阅读面通用图标随共享图标层统一，见 [UI 设计原则](../../architecture/cross-cutting/ui-design-principles.md)。
 
 2026-11-04 GPT 输入框复刻：Composer 的视觉优先级高于普通表单控件。白色 24px 圆角卡片占据阅读列主位置，左上是 14px 弱化占位文字，底栏从左到右按 `+`、Permission、Model / 推理、真实语音入口、圆形发送或 Stop 排列。Permission 的橙色只表达权限语义；Model 胶囊保持中性，推理强度提示用黑色高对比 tooltip；生成中的 Stop 使用蓝色圆钮。输入框聚焦不画任何焦点框描边或 `focusBorder` 环，输入光标和已有状态仍可见。
 

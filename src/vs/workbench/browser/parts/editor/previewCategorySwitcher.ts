@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/previewCategoryBar.css';
+import '../../media/uaRoundedIcons.css';
 import { $, append, addDisposableListener, EventHelper, EventType, DisposableResizeObserver, getWindow, scheduleAtNextAnimationFrame } from "../../../../base/browser/dom.js";
 import { Disposable } from "../../../../base/common/lifecycle.js";
 import { KeyCode, KeyCodeUtils } from "../../../../base/common/keyCodes.js";

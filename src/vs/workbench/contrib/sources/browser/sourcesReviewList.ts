@@ -769,6 +769,7 @@ export class SourcesReviewList extends Disposable {
 			}
 
 			this.contextMenuService.showContextMenu({
+				getMenuClassName: () => 'ua-rounded-menu',
 				getAnchor: () => e.anchor,
 				getActions: () => {
 					const reviewed = this.isEntryReviewed(element);

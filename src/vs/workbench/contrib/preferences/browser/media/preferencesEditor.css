@@ -141,8 +141,12 @@
 				}
 
 				.action-label:focus-visible {
-					outline: 1px solid var(--vscode-focusBorder);
-					outline-offset: -1px;
+					outline: none;
+				}
+
+				.action-label:not(.checked):focus-visible {
+					color: var(--vscode-foreground);
+					background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent) !important;
 				}
 
 				.action-label:not(.checked):hover {
@@ -160,6 +164,11 @@
 
 :is(.hc-black, .hc-light) .preferences-editor .action-label.checked {
 	outline: 1px solid var(--vscode-contrastActiveBorder);
+	outline-offset: -1px;
+}
+
+:is(.hc-black, .hc-light) .preferences-editor .preferences-tabs-container .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
 	outline-offset: -1px;
 }
 

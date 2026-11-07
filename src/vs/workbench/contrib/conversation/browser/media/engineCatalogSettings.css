@@ -79,7 +79,8 @@
 	padding: var(--vscode-spacing-size80);
 }
 
-.monaco-workbench .engine-providers-section .engine-provider-catalog-filter {
+/* Outranks the pane-wide `input[type="search"]` 24px pill so the provider filter stays 32px. */
+.monaco-workbench .engine-preferences-pane .engine-providers-section input.engine-provider-catalog-filter {
 	height: var(--vscode-spacing-size320);
 	border-radius: var(--vscode-cornerRadius-circle);
 	margin-block: 0 var(--vscode-spacing-size160);

@@ -435,6 +435,7 @@ export class SourcesFilesList extends Disposable {
 			}
 			const current = sourcesEditorOpenSlot(this.configurationService);
 			this.contextMenuService.showContextMenu({
+				getMenuClassName: () => 'ua-rounded-menu',
 				getAnchor: () => e.anchor,
 				getActions: () => [sourcesAlternateOpenAction(current, slot => {
 					if (this._store.isDisposed) {

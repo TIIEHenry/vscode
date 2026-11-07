@@ -40,6 +40,8 @@ summary: "视觉全面以 GPT 为主参照，交互参考 GPT 的上下文连续
 
 2026-11-02 同屏视觉修正：会话导航采用14px本地导航字号（`--ua-navigation-font-size`），30px行、8px外侧留白、12px行内衬。消息数/零消息和项目完整路径保留在hover/读屏名，不占标题预算；必要状态以行尾图标+待确认数字常显。默认活动栏44px步距、20px图标、36px圆角选中底、48px栏宽，compact仍按显式设置。该局部修正覆盖前文48px活动项/24px图标等中间稿，UA功能与门控不变。
 
+2026-11-06 图标语言：产品自有表面的高频 Codicon（增删、关闭、搜索、复制、刷新、编辑、对勾、四向箭头、文件夹、文件、历史、层、列表、目标、铃铛、警告、错误、信息、禁止、停止）和活动栏产品容器图标，在普通主题下由 `workbench/browser/media/uaRoundedIcons.css` 换成 16 视框、1.5px 圆头圆角的线性 SVG 遮罩（`--ua-rounded-icon`，`currentColor` 着色，尺寸随字号 `1em`）。TS 侧的 `Codicon.*` 与 DOM 的 `.codicon-*` 类名不变；作用域用零权重 `:where()`，所以已有的局部图标规则仍优先；转圈、开关勾选框、高对比和系统强制颜色保持原 Codicon。上游编辑器、文件树与面板不在作用域内。
+
 ### 1.1 ChatGPT 到桌面的换算
 
 规则：产品自有表面的结构、层级、比例、颜色、圆角、图标和 item 高度直接以 GPT 参考图为准，并映射到本仓 token；VS Code 文件管理器与代码编辑器继续沿用上游字号和行高。对照文里量到的正文尺寸只作为字体 token 的参考，不覆盖用户已经签收的产品自有 item 高度。没有真实能力的入口、状态和权限语义不因复刻视觉而新增或隐藏。
@@ -48,7 +50,7 @@ ChatGPT 一列里，画布、字色、Composer 与侧栏尺寸是 2026-10-15 在
 
 | 表面 | ChatGPT | 本仓 |
 |------|---------|------|
-| 整体色调 | 近白画布 `rgb(252,252,252)`、近黑字 `rgb(13,13,13)`，几乎没有彩色，主操作近黑 | 浅色两种表面（chrome `#F6F6F6`、画布与浮层白，2026-10-22 用户选定），输入卡靠细边分层；主按钮近黑；强调色只给焦点、选中、链接、进度（原则一） |
+| 整体色调 | 近白画布 `rgb(252,252,252)`、近黑字 `rgb(13,13,13)`，几乎没有彩色，主操作近黑 | 浅色两种表面（chrome `#F6F6F6`、画布与浮层白，2026-10-22 用户选定；侧栏 `#FAFAFA` 是 2026-11-02 §25 的局部例外），输入卡靠细边分层；主按钮近黑；强调色只给焦点、选中、链接、进度（原则一） |
 | 正文 | 系统无衬线 16px（2026-10-15 在 500px 视口量到字号；行高和阅读列宽没有量到，由方案 S0 再记） | 13px / 1.5（`compact` 1.35），阅读列 720px；标题只用 heading token |
 | 助手回合 | 无头像、无角色标签，正文直接起排 | 相同（§5.1） |
 | 用户回合 | 靠右，宽度随正文，浅灰填充，大圆角 | 靠右、不超过列宽 82%；`cornerRadius.large`，输入框底色加 8% 细边，可点进编辑，有悬停反馈（2026-10-21 用户选定） |
@@ -337,7 +339,7 @@ Cursor 取的是布局：用户回合像输入卡片、模型留在输入栏、�
 
 | 项 | HEAD |
 |----|------|
-| 默认主题 | 产品自有 `UniverseAgentStudio Light` / `Dark` 已是默认。chrome 浅色 `#F6F6F6`，会话画布 `conversation.background` 浅色 `#FFFFFF`（2026-10-22 从 `#F3F3F3` / `#F8F8F8` 改为 ChatGPT 两种表面）、深色 `#191A1B`，输入卡与浮层白；主按钮浅色近黑、深色近白。其余切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。上游基线：`Light 2026` 的 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC` |
+| 默认主题 | 产品自有 `UniverseAgentStudio Light` / `Dark` 已是默认。chrome 浅色 `#F6F6F6`（侧栏 `#FAFAFA`），会话画布 `conversation.background` 浅色 `#FFFFFF`（2026-10-22 从 `#F3F3F3` / `#F8F8F8` 改为 ChatGPT 两种表面）、深色 `#121314`，与编辑器形成连续深色画布；chrome 保持 `#191A1B`，输入卡与浮层白；主按钮浅色近黑、深色近白。其余切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。上游基线：`Light 2026` 的 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC` |
 | 强调色 | 实心蓝徽标（如 "Input needed"、"UNAVAILABLE"）。轨迹来源芯片已改为 `textLink` 12% 淡底。Files 视图欢迎页有两颗满宽主按钮（上游） |
 | 字号 | 2026-10-22 起 Conversation 样式目录不再有半像素字号和 500 / 700 字重，Markdown 标题改用 `fontSize.heading2` / `heading3`，由 `conversationLensCssScan.test.ts` 锁住。整数 px 的写死字号仍多，`conversationLens.css` 里写死圆角 59 处、token 29 处 |
 | 圆角 | 12 / 14 / 16px 残留 13 处（10 个文件）；Conversation 样式目录另有 3px、10px |

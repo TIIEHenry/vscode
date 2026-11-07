@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/sourcesTabs.css';
+import '../../../browser/media/uaRoundedIcons.css';
+import '../../../browser/media/uaRoundedMenus.css';
 import './sourcesReview.contribution.js';
 import * as dom from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
