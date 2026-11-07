@@ -96,7 +96,7 @@ export class JSONEditingService implements IJSONEditingService {
 			const content = JSON.stringify(value, null, insertSpaces ? ' '.repeat(tabSize) : '\t');
 			return [{
 				content,
-				length: content.length,
+				length: model.getValueLength(),
 				offset: 0
 			}];
 		}

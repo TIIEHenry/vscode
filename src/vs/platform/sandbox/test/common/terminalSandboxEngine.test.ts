@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { timeout } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { OperatingSystem } from '../../../../base/common/platform.js';
@@ -502,6 +503,56 @@ suite('TerminalSandboxEngine', () => {
 			allowed: false,
 			denied: ['/home/user/private.txt'],
 		});
+	});
+
+	test('checkFileAccess expands ~ in configured paths on macOS', async () => {
+		setSandboxSetting(AgentSandboxSettingId.AgentSandboxMacFileSystem, {
+			allowRead: ['~/.allowed-read'],
+			allowWrite: ['~/project'],
+			denyWrite: ['~/project/secret'],
+		});
+		const engine = store.add(instantiationService.createInstance(TerminalSandboxEngine, createHost({ getOS: () => Promise.resolve(OperatingSystem.Macintosh) })));
+
+		deepStrictEqual(await engine.checkFileAccess('write', [
+			'/home/user/project/file.txt',
+			'/home/user/project/secret/key.txt',
+		]), {
+			allowed: false,
+			denied: ['/home/user/project/secret/key.txt'],
+		});
+		deepStrictEqual(await engine.checkFileAccess('read', [
+			'/home/user/.allowed-read/config.json',
+			'/home/user/private.txt',
+		]), {
+			allowed: false,
+			denied: ['/home/user/private.txt'],
+		});
+	});
+
+	test('concurrent callers wait for runtime info before using the user home', async () => {
+		const engine = store.add(instantiationService.createInstance(TerminalSandboxEngine, createHost({
+			getUserHome: () => timeout(10).then(() => URI.file('/home/user')),
+		})));
+
+		const [, result] = await Promise.all([
+			engine.getSandboxConfigPath(),
+			engine.checkFileAccess('read', ['/home/user/private.txt']),
+		]);
+
+		deepStrictEqual(result, { allowed: false, denied: ['/home/user/private.txt'] });
+	});
+
+	test('runtime info is resolved again after a failed attempt', async () => {
+		let attempts = 0;
+		const engine = store.add(instantiationService.createInstance(TerminalSandboxEngine, createHost({
+			getRuntimeInfo: () => ++attempts === 1 ? Promise.reject(new Error('not ready')) : Promise.resolve({ appRoot: '/app', execPath: '/app/node' }),
+		})));
+
+		await engine.getSandboxConfigPath().then(() => ok(false, 'expected first resolution to fail'), () => { });
+		const wrapped = await engine.wrapCommand('echo hi');
+
+		strictEqual(attempts, 2);
+		ok(wrapped.command.includes('"/app/node"'), `Expected exec path in command. Actual: ${wrapped.command}`);
 	});
 
 	test('checkFileAccess preserves symlink source and target permissions on Linux', async () => {

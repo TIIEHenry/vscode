@@ -287,7 +287,8 @@ export class McpRegistry extends Disposable implements IMcpRegistry {
 		}
 	}
 
-	private async _promptForTrust(definition: McpServerDefinition, collection: McpCollectionDefinition, interaction: McpStartServerInteraction | undefined, trustNonceBearer: { trustedAtNonce: string | undefined }): Promise<boolean> {
+	/** Returns undefined if the user cancelled the trust prompt. */
+	private async _promptForTrust(definition: McpServerDefinition, collection: McpCollectionDefinition, interaction: McpStartServerInteraction | undefined, trustNonceBearer: { trustedAtNonce: string | undefined }): Promise<boolean | undefined> {
 		interaction ??= new McpStartServerInteraction();
 		interaction.participants.set(definition.id, { s: 'waiting', definition, collection });
 
@@ -308,13 +309,13 @@ export class McpRegistry extends Disposable implements IMcpRegistry {
 
 		this._logService.trace(`MCP trusted servers:`, trustedDefinitionIds);
 
-		if (trustedDefinitionIds) {
-			trustNonceBearer.trustedAtNonce = trustedDefinitionIds.includes(definition.id)
-				? definition.cacheNonce
-				: notTrustedNonce;
+		if (!trustedDefinitionIds) {
+			return undefined;
 		}
 
-		return !!trustedDefinitionIds?.includes(definition.id);
+		const trusted = trustedDefinitionIds.includes(definition.id);
+		trustNonceBearer.trustedAtNonce = trusted ? definition.cacheNonce : notTrustedNonce;
+		return trusted;
 	}
 
 	/**
