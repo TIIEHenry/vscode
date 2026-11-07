@@ -199,4 +199,30 @@ suite('SessionViewHost per-lease fanout (F1)', () => {
 		assert.strictEqual(viewHost.onDynamicDidApplyFrame(leaseId), Event.None);
 		assert.strictEqual(viewHost.onDynamicDidApplyFrame('forged-lease'), Event.None);
 	});
+
+	test('releasePublishedLink posts connectionDown to lingering sessions so reacquired leases reopen streams', async () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
+
+		viewHost.onEngineConnectionChanged();
+		const lease1 = viewHost.acquireLease('sess-linger');
+		await viewHost.whenEngineSessionReady('sess-linger');
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		// Release lease so session enters 30s linger without an active lease.
+		viewHost.releaseLease(lease1);
+
+		// Simulate engine disconnect and reconnect while lingering.
+		await connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+		(connection as unknown as { connected: boolean }).connected = true;
+		viewHost.onEngineConnectionChanged();
+
+		// Re-acquire lease during linger; stream must reopen on the reconnected link.
+		const lease2 = viewHost.acquireLease('sess-linger');
+		await viewHost.whenEngineSessionReady('sess-linger');
+		assert.strictEqual(connection.subscribeCalls.length, 2);
+		viewHost.releaseLease(lease2);
+	});
 });

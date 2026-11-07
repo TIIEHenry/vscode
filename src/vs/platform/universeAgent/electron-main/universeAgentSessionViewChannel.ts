@@ -79,7 +79,20 @@ export class UniverseAgentSessionViewChannel implements IServerChannel<string> {
 
 	listen<T>(_ctx: string, event: string, arg?: any): Event<T> {
 		if (event === 'onDynamicDidApplyFrame') {
-			return this.service.onDynamicDidApplyFrame(String(arg ?? '')) as Event<T>;
+			return Event.map(this.service.onDynamicDidApplyFrame(String(arg ?? '')), frameEvent => {
+				if (frameEvent.applied.kind !== 'patches') {
+					return frameEvent as unknown as T;
+				}
+				const changedIds = Array.from(frameEvent.applied.changedIds) as unknown as ReadonlySet<string>;
+				const mapped: IUniverseAgentSessionViewFrameEvent = {
+					...frameEvent,
+					applied: {
+						kind: 'patches',
+						changedIds,
+					},
+				};
+				return mapped as unknown as T;
+			});
 		}
 		throw new ErrorNoTelemetry(`Event not found: ${event}`);
 	}

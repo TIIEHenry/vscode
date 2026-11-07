@@ -404,12 +404,13 @@ import type {
 import { createEmptyCapabilitySnapshot, createUnknownConversationEntryCapability, createUnknownGitWriteCapability } from '../common/universeAgentCapabilities.js';
 import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability, probeSessionListCapability } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient, type GrpcUniverseAgentClient } from './grpc/grpcClient.js';
+import { mintClientIdentityMaterial } from './clientIdentityStore.js';
 import { createDiscoveredLocalEngineClient, findLocalEngine, type LocalEngineTarget } from './localEngineDiscovery.js';
 import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAgentChannel.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError, type UniverseAgentAuthNonceResult } from './grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
-import { classifyDeviceAuthRpcFailure, isNonRetryableDeviceAuthRpcFailure, runDeviceAuthHandshake } from './deviceAuthHandshake.js';
+import { assertObservedFingerprintMatchesNonce, classifyDeviceAuthRpcFailure, isNonRetryableDeviceAuthRpcFailure, runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IEngineTrustStore } from './engineTrustStore.js';
@@ -1424,8 +1425,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		await this._runOwnedTransport(ownership, transport => transport.deleteSession(request));
 	}
 
-	async getSessionInfo(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult> {
-		return this._withTransport(transport => transport.getSessionInfo(request));
+	async getSessionInfo(request: UniverseAgentSessionInfoRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSessionInfoResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.getSessionInfo(request));
 	}
 
 	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
@@ -2724,6 +2725,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			if (!this._localDialCurrent(epoch)) {
 				return;
 			}
+			const expectedLeafSha256Hex = target.kind === 'tcp' ? target.tls.expectedLeafSha256Hex : undefined;
 			transport = this._openLocalEngineTransport(target);
 			const result = await transport.connectWithoutDeviceAuth();
 			if (!this._localDialCurrent(epoch)) {
@@ -2744,6 +2746,29 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				return;
 			}
 			attempt = this._armAuthenticatedLink(transport, result.sessionToken ?? '');
+			const challenge = mintClientIdentityMaterial();
+			let nonce: UniverseAgentAuthNonceResult;
+			try {
+				nonce = await transport.getAuthNonce({ clientIdentityId: challenge.clientIdentityId, clientPublicKey: challenge.clientPublicKey });
+			} catch (error) {
+				if (this._afterLoopbackProbe(attempt, epoch)) {
+					return;
+				}
+				throw error instanceof UniverseAgentTransportError ? error : new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Local engine identity request failed');
+			}
+			if (this._afterLoopbackProbe(attempt, epoch)) {
+				return;
+			}
+			const engineIdentityId = nonce.engineIdentityId;
+			if (!engineIdentityId?.trim() || !nonce.authNonce?.byteLength) {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'Local engine identity response is incomplete');
+			}
+			if (expectedLeafSha256Hex !== undefined) {
+				const fingerprint = assertObservedFingerprintMatchesNonce(nonce, expectedLeafSha256Hex);
+				if (!fingerprint.ok) {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, fingerprint.reason);
+				}
+			}
 			const capabilities = await probeEngineCapabilities({
 				methods: result.methods,
 				transport,
@@ -2779,6 +2804,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				epoch,
 				transport,
 				profileId: undefined,
+				engineIdentityId,
 				token: result.sessionToken ?? '',
 				skipAuth: !result.sessionToken,
 				workDir: result.workDir,

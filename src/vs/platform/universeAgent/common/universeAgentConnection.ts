@@ -491,10 +491,11 @@ export interface IUniverseAgentConnection {
 
 	/**
 	 * SessionService.Info unary (session metadata + root AgentInfo). Optional so
-	 * Web / tests can omit it. Catalog + node transport only this slice; empty
-	 * `sessionId` is sent as-is. No Conversation roster / UI.
+	 * Web / tests can omit it. New roster entries use it for best-effort metadata.
+	 * IPC requires the expected owner; trusted Node callers may omit it.
+	 * Empty `sessionId` is sent as-is.
 	 */
-	getSessionInfo?(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult>;
+	getSessionInfo?(request: UniverseAgentSessionInfoRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSessionInfoResult>;
 
 	/**
 	 * SessionService.Resume unary (restore a persisted session). Optional so

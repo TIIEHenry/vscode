@@ -228,6 +228,8 @@ function admitAgentId(value: unknown): string | undefined {
 export class OverlayDeltaJoin {
 
 	private turnId: string | undefined;
+	private completedAssistantTurnId: string | undefined;
+	private readonly unmatchedAssistantEnvelopes: object[] = [];
 	private streamingText = '';
 	private thinkingText = '';
 	private generatingToolName: string | undefined;
@@ -312,6 +314,8 @@ export class OverlayDeltaJoin {
 		const thinking = readField(active, 'thinking_text', 'thinkingText');
 		const tool = readField(active, 'generating_tool_name', 'generatingToolName');
 		this.turnId = turnId;
+		this.completedAssistantTurnId = undefined;
+		this.unmatchedAssistantEnvelopes.length = 0;
 		this.streamingText = typeof streaming === 'string' ? streaming : '';
 		this.thinkingText = typeof thinking === 'string' ? thinking : '';
 		this.generatingToolName = typeof tool === 'string' && tool.length > 0 ? tool : undefined;
@@ -331,6 +335,8 @@ export class OverlayDeltaJoin {
 			this.thinkingText = '';
 			this.generatingToolName = undefined;
 			this.generatingToolCallId = undefined;
+			this.completedAssistantTurnId = undefined;
+			this.unmatchedAssistantEnvelopes.length = 0;
 		}
 		this.turnId = turnId;
 		this.noteAgentId(body, turnChanged);
@@ -356,6 +362,8 @@ export class OverlayDeltaJoin {
 				this.thinkingText = '';
 				this.generatingToolName = undefined;
 				this.generatingToolCallId = undefined;
+				this.completedAssistantTurnId = undefined;
+				this.unmatchedAssistantEnvelopes.length = 0;
 			}
 			this.turnId = turnId;
 			this.noteAgentId(body, turnChanged);
@@ -414,6 +422,16 @@ export class OverlayDeltaJoin {
 		if (completed !== undefined && completed !== null) {
 			const completedTurnId = isRecord(completed) ? readField(completed, 'turn_id', 'turnId') : undefined;
 			if (admitTurnId(completedTurnId) && completedTurnId === this.turnId) {
+				const assistantTurnId = isRecord(completed) ? readField(completed, 'assistant_turn_id', 'assistantTurnId') : undefined;
+				if (admitTurnId(assistantTurnId)) {
+					this.completedAssistantTurnId = assistantTurnId;
+					const matched = this.unmatchedAssistantEnvelopes.filter(
+						envelope => readField(envelope, 'turn_id', 'turnId') === assistantTurnId,
+					);
+					if (matched.length > 0) {
+						return this.handoffAssistantEnvelopes(matched);
+					}
+				}
 				this.beginHold();
 			}
 			return [];
@@ -425,6 +443,8 @@ export class OverlayDeltaJoin {
 				const holding = this.heldTurnId !== undefined;
 				this.cancelHold();
 				this.turnId = turnId;
+				this.completedAssistantTurnId = undefined;
+				this.unmatchedAssistantEnvelopes.length = 0;
 				this.streamingText = '';
 				this.thinkingText = '';
 				this.generatingToolName = undefined;
@@ -445,21 +465,35 @@ export class OverlayDeltaJoin {
 			return [];
 		}
 		const matched: object[] = [];
+		const inspectEnvelope = (envelope: unknown): void => {
+			if (!isRecord(envelope)) {
+				return;
+			}
+			if (this.envelopeMatchesActiveTurn(envelope)) {
+				matched.push(envelope);
+			} else if (isAssistantRole(readField(envelope, 'role')) && admitTurnId(readField(envelope, 'turn_id', 'turnId'))) {
+				this.unmatchedAssistantEnvelopes.push(envelope);
+			}
+		};
 		const appended = readField(payload, 'envelope_appended', 'envelopeAppended');
 		if (isRecord(appended)) {
-			const envelope = readField(appended, 'envelope');
-			if (isRecord(envelope) && this.envelopeMatchesActiveTurn(envelope)) {
-				matched.push(envelope);
-			}
+			inspectEnvelope(readField(appended, 'envelope'));
 		}
 		const batch = readField(payload, 'envelope_batch_appended', 'envelopeBatchAppended');
 		if (isRecord(batch)) {
 			const envelopes = readField(batch, 'envelopes');
 			if (Array.isArray(envelopes)) {
 				for (const envelope of envelopes) {
-					if (isRecord(envelope) && this.envelopeMatchesActiveTurn(envelope)) {
-						matched.push(envelope);
-					}
+					inspectEnvelope(envelope);
+				}
+			}
+		}
+		const replaced = readField(payload, 'envelope_range_replaced', 'envelopeRangeReplaced');
+		if (isRecord(replaced)) {
+			const replacement = readField(replaced, 'replacement', 'replacements');
+			if (Array.isArray(replacement)) {
+				for (const envelope of replacement) {
+					inspectEnvelope(envelope);
 				}
 			}
 		}
@@ -498,7 +532,9 @@ export class OverlayDeltaJoin {
 			return false;
 		}
 		const turnId = readField(envelope, 'turn_id', 'turnId');
-		return turnId === this.turnId && isAssistantRole(readField(envelope, 'role'));
+		const turnMatches = turnId === this.turnId
+			|| (this.completedAssistantTurnId !== undefined && turnId === this.completedAssistantTurnId);
+		return turnMatches && isAssistantRole(readField(envelope, 'role'));
 	}
 
 	private takeImmediateClear(): readonly OverlayDeltaArm[] {
@@ -573,6 +609,8 @@ export class OverlayDeltaJoin {
 
 	private clearState(): void {
 		this.turnId = undefined;
+		this.completedAssistantTurnId = undefined;
+		this.unmatchedAssistantEnvelopes.length = 0;
 		this.streamingText = '';
 		this.thinkingText = '';
 		this.generatingToolName = undefined;

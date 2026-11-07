@@ -479,6 +479,8 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	async getSessionInfo(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult> {
 		this.getSessionInfoCalls.push(request);
+		const ownedOperation = this.recordOwnedOperation('getSessionInfo', request);
+		if (ownedOperation) { await ownedOperation; }
 		return this.getSessionInfoResult;
 	}
 
@@ -2902,6 +2904,7 @@ suite('UniverseAgentConnectionService', () => {
 		readonly invoke: (connection: IUniverseAgentConnection, owner?: UniverseAgentExpectedOwner) => Promise<unknown>;
 		readonly wireCalls: readonly { readonly method: string; readonly request?: object }[];
 	}[] = [
+		{ method: 'getSessionInfo', invoke: (connection, owner) => connection.getSessionInfo!({ sessionId: 'session' }, owner), wireCalls: [{ method: 'getSessionInfo', request: { sessionId: 'session' } }] },
 		{ method: 'upsertProviderCredentials', invoke: (connection, owner) => connection.upsertProviderCredentials!({ providerId: 'p', apiKey: 'fixture-secret' }, owner), wireCalls: [{ method: 'upsertProviderCredentials', request: { providerId: 'p', apiKey: 'fixture-secret' } }] },
 		{ method: 'clearProviderCredentials', invoke: (connection, owner) => connection.clearProviderCredentials!({ providerId: 'p' }, owner), wireCalls: [{ method: 'clearProviderCredentials', request: { providerId: 'p' } }] },
 		{ method: 'upsertModel', invoke: (connection, owner) => connection.upsertModel!(ownedModelRequest, owner), wireCalls: [{ method: 'upsertModel', request: ownedModelRequest }] },

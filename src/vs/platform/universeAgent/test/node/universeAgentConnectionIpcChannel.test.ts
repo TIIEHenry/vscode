@@ -168,7 +168,7 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		['upsertProviderCredentials', 1], ['clearProviderCredentials', 1],
 		['upsertModel', 1], ['deleteModel', 1], ['setModelEnabled', 1],
 		['testModelProfile', 1], ['importHarnessProviders', 1],
-		['listProviderStatus', 0], ['listModels', 0],
+		['listProviderStatus', 0], ['listModels', 0], ['getSessionInfo', 1],
 		['setSkillEnabled', 1], ['saveSkillContent', 1], ['listSkills', 0], ['getSkillInfo', 1],
 		['saveMemory', 1], ['deleteMemory', 1],
 	] as const;

@@ -71,6 +71,20 @@ suite('HistoryFill coordinator', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('raw and wrapped history envelopes share chronological numeric keys', () => {
+		const keys: string[] = [];
+		for (const seq of [3, 5, 7, 12, 100]) {
+			const envelope = { ...TEXT_ENVELOPE, id: `history-${seq}`, seq };
+			const raw = historyFillRowFromGetHistoryEnvelope({ cursorSeq: String(seq), payload: envelope });
+			const wrapped = historyFillRowFromGetHistoryEnvelope({ cursorSeq: String(seq), payload: { envelope_appended: { envelope } } });
+			assert.deepStrictEqual(wrapped, raw);
+			assert.strictEqual(raw?.seq, seq);
+			keys.push((raw?.body as { orderKey: string }).orderKey);
+		}
+		assert.deepStrictEqual(keys.slice().sort(), keys);
+		assert.strictEqual(keys[3], '0000000000000012');
+	});
+
 	test('demuxes a raw GetHistory envelope into { seq, arm, body }', () => {
 		const row = historyFillRowFromGetHistoryEnvelope({
 			cursorSeq: '1',

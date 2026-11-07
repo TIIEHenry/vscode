@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { execFileSync } from 'node:child_process';
-import { X509Certificate } from 'node:crypto';
+import { createHash, X509Certificate } from 'node:crypto';
 import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { createServer, type Server } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -19,7 +19,7 @@ import type { ConnectionProfile, IConnectionProfileStore } from '../../node/conn
 import type { ConnectionResolver } from '../../node/connectionResolver.js';
 import { deriveEngineLeafFingerprintHex } from '../../node/deviceGrant/tls-pin.js';
 import { createLocalPinnedGrpcClient, type GrpcUniverseAgentClient } from '../../node/grpc/grpcClient.js';
-import { GrpcStatusCode, UniverseAgentGrpcServices } from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, UniverseAgentGrpcServices, type UniverseAgentAuthNonceResult, type UniverseAgentAuthNonceRequest } from '../../node/grpc/grpcTransport.js';
 import { checkOwnerOnly, findLocalEngine, localEngineCertificateDer, localEngineOwnerOk, localEnginePidAlive, resolveLocalEngineHome, type LocalEngineTarget } from '../../node/localEngineDiscovery.js';
 import { loadGrpcModule } from '../../node/universeAgentChannel.js';
 import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
@@ -79,6 +79,10 @@ suite('local engine discovery', () => {
 		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(service.getConnectionSnapshot().workDir, '/engine');
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, false);
+		const { engineIdentityId, linkId } = service.getConnectionSnapshot();
+		assert.strictEqual(engineIdentityId, 'local-engine');
+		assert.ok(typeof linkId === 'number');
+		assert.deepStrictEqual(await service.listModels({ engineIdentityId: engineIdentityId!, linkId: linkId! }), { models: [{ id: 'Local', modelId: 'Local', enabled: true, type: 'coding', provider: 'openai', level: 1 }] });
 	});
 
 	test('desktop auto-connect commits a TCP anchor as loopback too', async () => {
@@ -120,6 +124,135 @@ suite('local engine discovery', () => {
 		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(service.getConnectionSnapshot().workDir, '/engine');
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, false);
+		const { engineIdentityId, linkId } = service.getConnectionSnapshot();
+		assert.strictEqual(engineIdentityId, 'local-engine');
+		assert.ok(typeof linkId === 'number');
+		assert.deepStrictEqual(await service.listModels({ engineIdentityId: engineIdentityId!, linkId: linkId! }), { models: [{ id: 'Local', modelId: 'Local', enabled: true, type: 'coding', provider: 'openai', level: 1 }] });
+	});
+
+	const validNonce = (): UniverseAgentAuthNonceResult => ({ engineIdentityId: 'local-engine', authNonce: new Uint8Array(32).fill(1), engineCertFingerprint: 'ab'.repeat(32) });
+
+	for (const [label, response] of [
+		['missing identity', () => ({ ...validNonce(), engineIdentityId: undefined! })],
+		['empty identity', () => ({ ...validNonce(), engineIdentityId: '' })],
+		['whitespace identity', () => ({ ...validNonce(), engineIdentityId: '  ' })],
+		['empty nonce', () => ({ ...validNonce(), authNonce: new Uint8Array(0) })],
+		['missing nonce', () => ({ ...validNonce(), authNonce: undefined! })],
+		['mismatched fingerprint', () => ({ ...validNonce(), engineCertFingerprint: 'cd'.repeat(32) })],
+		['malformed fingerprint', () => ({ ...validNonce(), engineCertFingerprint: 'invalid' })],
+		['RPC failure', () => { throw new Error('nonce RPC failed'); }],
+	] as const) {
+		test(`local identity rejects ${label} before publishing a connected owner`, async () => {
+			const timers = manualTimers();
+			const transport = scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }), getAuthNonce: async () => response() });
+			const service = disposables.add(new UniverseAgentConnectionService({ autoConnectLocalEngine: true, storageReady: Promise.resolve(), findLocalEngine: async () => loopbackTcpTarget, openLocalEngineTransport: () => transport, ...timers.fns, reconnectJitterRatio: 0 }));
+			const connected: unknown[] = [];
+			disposables.add(service.onDidChangeConnection(snapshot => { if (snapshot.phase?.kind === 'connected') { connected.push(snapshot); } }));
+			await flushDiscovery();
+			timers.fireNext();
+			await settleIo();
+			assert.strictEqual(transport.closed, true);
+			assert.strictEqual(service.isEngineConnected(), false);
+			assert.strictEqual(service.getConnectionSnapshot().engineIdentityId, undefined);
+			assert.strictEqual(service.getConnectionSnapshot().linkId, undefined);
+			assert.deepStrictEqual(connected, []);
+			assert.strictEqual(timers.pending.size, 1, 'failed identity read permits rediscovery');
+		});
+	}
+
+	test('UDS identity needs no TLS fingerprint and never touches the persistent client identity store', async () => {
+		const timers = manualTimers();
+		const transport = scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }), getAuthNonce: async request => {
+			assert.strictEqual(request.clientPublicKey.byteLength, 32);
+			assert.strictEqual(request.clientIdentityId, createHash('sha256').update(request.clientPublicKey).digest('hex'));
+			return { ...validNonce(), engineCertFingerprint: '' };
+		} });
+		const fail = async (): Promise<never> => { throw new Error('persistent identity store must not be used'); };
+		const service = disposables.add(new UniverseAgentConnectionService({ autoConnectLocalEngine: true, storageReady: Promise.resolve(), findLocalEngine: async () => loopbackUdsTarget, openLocalEngineTransport: () => transport, clientIdentityStore: { getState: fail, getOrCreateIdentity: fail, createSigner: fail }, ...timers.fns, reconnectJitterRatio: 0 }));
+		await flushDiscovery();
+		timers.fireNext();
+		await settleIo();
+		assert.strictEqual(service.getConnectionSnapshot().engineIdentityId, 'local-engine');
+		assert.strictEqual(service.isEngineConnected(), true);
+	});
+
+	test('local engine identity remains opaque and is not trimmed when published', async () => {
+		const timers = manualTimers();
+		const transport = scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }), getAuthNonce: async () => ({ ...validNonce(), engineIdentityId: ' opaque engine ' }) });
+		const service = disposables.add(new UniverseAgentConnectionService({ autoConnectLocalEngine: true, storageReady: Promise.resolve(), findLocalEngine: async () => loopbackUdsTarget, openLocalEngineTransport: () => transport, ...timers.fns, reconnectJitterRatio: 0 }));
+		await flushDiscovery();
+		timers.fireNext();
+		await settleIo();
+		const snapshot = service.getConnectionSnapshot();
+		assert.strictEqual(snapshot.engineIdentityId, ' opaque engine ');
+		await service.listModels({ engineIdentityId: snapshot.engineIdentityId!, linkId: snapshot.linkId! });
+	});
+
+	test('TCP identity uses the pin captured when opening its transport', async () => {
+		const timers = manualTimers();
+		assert.strictEqual(loopbackTcpTarget.kind, 'tcp');
+		const target = { ...loopbackTcpTarget, tls: { ...loopbackTcpTarget.tls } };
+		const transport = scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }), getAuthNonce: async () => {
+			(target.tls as { expectedLeafSha256Hex: string }).expectedLeafSha256Hex = 'cd'.repeat(32);
+			return { ...validNonce(), engineCertFingerprint: 'cd'.repeat(32) };
+		} });
+		const service = disposables.add(new UniverseAgentConnectionService({ autoConnectLocalEngine: true, storageReady: Promise.resolve(), findLocalEngine: async () => target, openLocalEngineTransport: () => transport, ...timers.fns, reconnectJitterRatio: 0 }));
+		await flushDiscovery();
+		timers.fireNext();
+		await settleIo();
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(service.getConnectionSnapshot().engineIdentityId, undefined);
+		assert.strictEqual(transport.closed, true);
+	});
+
+	for (const takeover of ['disconnect', 'profile'] as const) {
+		for (const outcome of ['resolve', 'reject'] as const) {
+			test(`late nonce ${outcome} cannot overwrite ${takeover}`, async () => {
+				const timers = manualTimers();
+				let resolveNonce!: (result: UniverseAgentAuthNonceResult) => void;
+				let rejectNonce!: (error: Error) => void;
+				let started = false;
+				const pending = new Promise<UniverseAgentAuthNonceResult>((resolve, reject) => { resolveNonce = resolve; rejectNonce = reject; });
+				const local = scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }), getAuthNonce: async () => { started = true; return pending; } });
+				const user = scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }) });
+				(user as unknown as { connect: () => Promise<UniverseAgentConnectResult> }).connect = async () => ({ sessionToken: 'user-token', methods: [], events: [] });
+				const service = disposables.add(new UniverseAgentConnectionService({ autoConnectLocalEngine: true, storageReady: Promise.resolve(), findLocalEngine: async () => loopbackUdsTarget, openLocalEngineTransport: () => local, createTransport: () => user, connectionResolver: plainResolver(), connectionProfileStore: plainProfileStore(), clientIdentityStore: readyIdentity(), ...timers.fns, reconnectJitterRatio: 0 }));
+				await flushDiscovery();
+				timers.fireNext();
+				await settleIo();
+				assert.strictEqual(started, true);
+				if (takeover === 'disconnect') { await service.disconnect(); } else { assert.strictEqual((await service.connectProfile('p1')).ok, true); }
+				const winner = service.getConnectionSnapshot();
+				if (outcome === 'resolve') { resolveNonce(validNonce()); } else { rejectNonce(new Error('late nonce failed')); }
+				await settleIo();
+				assert.strictEqual(local.closed, true);
+				assert.deepStrictEqual(service.getConnectionSnapshot(), winner);
+				assert.strictEqual(dialState(service)._transport, takeover === 'profile' ? user : undefined);
+			});
+		}
+	}
+
+	test('local reconnection publishes a new identity and rejects the previous expected owner', async () => {
+		const timers = manualTimers();
+		let opened = 0;
+		const transports = ['engine-a', 'engine-b'].map(engineIdentityId => scriptedLoopbackTransport({ connectWithoutDeviceAuth: async () => ({ methods: [], events: [] }), getAuthNonce: async () => ({ ...validNonce(), engineIdentityId }) }));
+		const service = disposables.add(new UniverseAgentConnectionService({ autoConnectLocalEngine: true, storageReady: Promise.resolve(), findLocalEngine: async () => loopbackTcpTarget, openLocalEngineTransport: () => transports[opened++], ...timers.fns, reconnectJitterRatio: 0 }));
+		await flushDiscovery();
+		timers.fireNext();
+		await settleIo();
+		const first = service.getConnectionSnapshot();
+		const oldOwner = { engineIdentityId: first.engineIdentityId!, linkId: first.linkId! };
+		assert.strictEqual(oldOwner.engineIdentityId, 'engine-a');
+		await service.listModels(oldOwner);
+		transports[0].fireUnavailable();
+		await settleIo();
+		timers.fireNext();
+		await settleIo();
+		const second = service.getConnectionSnapshot();
+		assert.strictEqual(second.engineIdentityId, 'engine-b');
+		assert.notStrictEqual(second.linkId, first.linkId);
+		await assert.rejects(() => service.listModels(oldOwner));
+		assert.deepStrictEqual(await service.listModels({ engineIdentityId: second.engineIdentityId!, linkId: second.linkId! }), { models: [] });
 	});
 
 	test('missed probe retries, then connects', async () => {
@@ -601,6 +734,12 @@ function fakeLoopbackTransport(result: UniverseAgentConnectResult): GrpcUniverse
 	return {
 		isChannelAlive: true,
 		connectWithoutDeviceAuth: async () => result,
+		getAuthNonce: async (request: { clientIdentityId: string; clientPublicKey: Uint8Array }) => {
+			assert.strictEqual(request.clientPublicKey.byteLength, 32);
+			assert.strictEqual(request.clientIdentityId, createHash('sha256').update(request.clientPublicKey).digest('hex'));
+			return { engineIdentityId: 'local-engine', authNonce: new Uint8Array(32).fill(1), engineCertFingerprint: 'ab'.repeat(32) };
+		},
+		listModels: async () => ({ models: [{ id: 'Local', modelId: 'Local', enabled: true, type: 'coding', provider: 'openai', level: 1 }] }),
 		probeRpc: async () => GrpcStatusCode.OK,
 		installSessionToken: () => { /* skip-auth installs nothing */ },
 		onDidRejectSessionToken: Event.None,
@@ -661,6 +800,7 @@ function manualTimers() {
 function scriptedLoopbackTransport(hooks: {
 	connectWithoutDeviceAuth: () => Promise<UniverseAgentConnectResult>;
 	probeRpc?: (service: string, method: string, transport: { fireUnavailable(): void }) => Promise<number>;
+	getAuthNonce?: (request: UniverseAgentAuthNonceRequest) => Promise<UniverseAgentAuthNonceResult>;
 }): GrpcUniverseAgentClient & { readonly closed: boolean; fireUnavailable(): void } {
 	const rejected = new Emitter<void>();
 	const unavailable = new Emitter<void>();
@@ -668,6 +808,8 @@ function scriptedLoopbackTransport(hooks: {
 		closed: false,
 		isChannelAlive: true,
 		connectWithoutDeviceAuth: hooks.connectWithoutDeviceAuth,
+		getAuthNonce: hooks.getAuthNonce ?? (async () => ({ engineIdentityId: 'local-engine', authNonce: new Uint8Array(32).fill(1), engineCertFingerprint: 'ab'.repeat(32) })),
+		listModels: async () => ({ models: [] }),
 		probeRpc: async (service: string, method: string) => hooks.probeRpc ? hooks.probeRpc(service, method, transport) : GrpcStatusCode.OK,
 		installSessionToken: () => { /* skip-auth installs nothing */ },
 		onDidRejectSessionToken: rejected.event,

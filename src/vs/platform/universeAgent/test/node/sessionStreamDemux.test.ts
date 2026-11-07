@@ -91,6 +91,49 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('numeric envelope sequence keys sort across decimal widths without changing sequence numbers', () => {
+		const seqs = [0, 3, 5, 7, 9, 10, 12, 99, 100, Number.MAX_SAFE_INTEGER];
+		const events = seqs.map(seq => demuxSessionStreamPayload({ envelope_appended: { envelope: { id: `e-${seq}`, seq, role: 'ASSISTANT', blocks: [{ block_type: 1, text: 'text' }] } } })[0]);
+		assert.deepStrictEqual(events.map(event => (event as { seq: number }).seq), seqs);
+		const keys = events.map(event => bodyOf(event).orderKey as string);
+		assert.deepStrictEqual(keys.slice().sort(), keys);
+		assert.strictEqual(new Set(keys).size, seqs.length);
+		assert.strictEqual(keys[0], '0000000000000000');
+		assert.strictEqual(keys.at(-1), '9007199254740991');
+	});
+
+	test('append batch and replacement share numeric sequence key construction', () => {
+		const envelope = { id: 'later', seq: 12, role: 'ASSISTANT', blocks: [{ block_type: 1, text: 'later' }] };
+		const appended = demuxSessionStreamPayload({ envelope_appended: { envelope } })[0];
+		const batch = demuxSessionStreamPayload({ envelope_batch_appended: { envelopes: [envelope] } })[0];
+		const replacement = demuxSessionStreamPayload({ envelope_range_replaced: { from_seq: 1, new_head_seq: 12, session_version: 1, replacement: [envelope] } })[0];
+		assert.deepStrictEqual(batch, appended);
+		assert.deepStrictEqual((bodyOf(replacement).events as unknown[])[0], appended);
+		assert.strictEqual(bodyOf(appended).orderKey, '0000000000000012');
+	});
+
+	test('sequence admission retains existing Number string conversions and rejects invalid numbers', () => {
+		const read = (seq: unknown) => demuxSessionStreamPayload({ envelope_appended: { envelope: { id: 'e', seq, role: 'ASSISTANT', blocks: [{ block_type: 1, text: 'text' }] } } });
+		for (const seq of [12, '12', ' 12 ', '1.2e1']) {
+			const event = read(seq)[0] as { seq: number };
+			assert.strictEqual(event.seq, 12);
+			assert.strictEqual(bodyOf(event).orderKey, '0000000000000012');
+		}
+		for (const seq of [-1, 0.5, Number.MAX_SAFE_INTEGER + 1, Number.NaN, Number.POSITIVE_INFINITY, '', 'invalid', undefined]) {
+			assert.deepStrictEqual(read(seq), [], String(seq));
+		}
+	});
+
+	test('domain event opaque order keys are preserved by the fold', () => {
+		for (const orderKey of ['10', 'row:12', '0003/child']) {
+			const result = foldDomainStreamEvent({ arm: 'text', body: { id: 'opaque', orderKey, title: 'Agent', preview: 'text' } });
+			assert.strictEqual(result.kind, 'patches');
+			if (result.kind === 'patches') {
+				assert.strictEqual((result.patches[0] as { item: TimelineItemView }).item.orderKey, orderKey);
+			}
+		}
+	});
+
 	test('hello and heartbeat stay foldable', () => {
 		const hello = demuxSessionStreamPayload({
 			hello: { session_version: 1, head_seq: 3, runtime_epoch: 2, last_mutated_from_seq: 0 },
@@ -132,7 +175,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(armOf(events[0]), 'text');
 		const body = bodyOf(events[0]);
 		assert.strictEqual(body.id, 'e1');
-		assert.strictEqual(body.orderKey, '4');
+		assert.strictEqual(body.orderKey, '0000000000000004');
 		assert.strictEqual(body.title, 'Agent');
 		assert.strictEqual(body.preview, 'hello world');
 		assert.strictEqual(body.turnId, 't1');
@@ -983,7 +1026,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(toolRows(running).length, 1);
 			const runningItem = toolRows(running)[0]!;
 			assert.strictEqual(String(runningItem.id), 'e-run');
-			assert.strictEqual(runningItem.orderKey, '4');
+			assert.strictEqual(runningItem.orderKey, '0000000000000004');
 			assert.strictEqual(runningItem.turnId, 'turn-run');
 			assert.strictEqual(runningItem.summary.kind === 'tool' && runningItem.summary.status, 'running');
 			assert.strictEqual(runningItem.summary.kind === 'tool' && runningItem.summary.argPreview, '{"path":"a.ts"}');
@@ -1024,7 +1067,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(toolRows(finished).length, 1);
 			const finishedItem = toolRows(finished)[0]!;
 			assert.strictEqual(String(finishedItem.id), 'e-run');
-			assert.strictEqual(finishedItem.orderKey, '4');
+			assert.strictEqual(finishedItem.orderKey, '0000000000000004');
 			assert.strictEqual(finishedItem.turnId, 'turn-run');
 			assert.strictEqual(finishedItem.summary.kind === 'tool' && finishedItem.summary.status, 'completed');
 			assert.strictEqual(finishedItem.summary.kind === 'tool' && finishedItem.summary.resultPreview, 'file body');
@@ -1203,7 +1246,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(toolRows(finished).length, 1);
 			const item = toolRows(finished)[0]!;
 			assert.strictEqual(String(item.id), 'e-arm');
-			assert.strictEqual(item.orderKey, '8');
+			assert.strictEqual(item.orderKey, '0000000000000008');
 			assert.strictEqual(item.turnId, 'turn-arm');
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.status, 'completed');
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.toolName, 'read_file');

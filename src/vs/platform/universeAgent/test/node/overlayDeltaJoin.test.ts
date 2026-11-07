@@ -606,6 +606,52 @@ suite('OverlayDeltaJoin', () => {
 		assert.strictEqual((otherName[0] as { body: { generatingToolName?: string } }).body.generatingToolName, 'read');
 		assert.ok(!Object.hasOwn((otherName[0] as { body: object }).body, 'generatingToolCallId'));
 	});
+
+	test('turn_completed assistant_turn_id matches L2 assistant envelope arriving before or after turn_completed', () => {
+		const timerAfter = new ManualTimeout();
+		const afterJoin = new OverlayDeltaJoin({ scheduleTimeout: timerAfter.scheduleTimeout });
+		afterJoin.handlePayload({ streaming_delta: { turn_id: 't-runtime-1', text_delta: 'final answer' } });
+		assert.deepStrictEqual(afterJoin.handlePayload({
+			turn_lifecycle: { turn_completed: { turn_id: 't-runtime-1', assistant_turn_id: 't-asst-1' } },
+		}), []);
+		assert.strictEqual(timerAfter.disposed, false);
+		assert.deepStrictEqual(afterJoin.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'env-final-1', seq: 12, role: 'ASSISTANT', turn_id: 't-asst-1',
+					blocks: [{ block_type: 1, text_block: { text: 'final answer' } }],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+		assert.strictEqual(timerAfter.disposed, true);
+
+		const timerBefore = new ManualTimeout();
+		const beforeJoin = new OverlayDeltaJoin({ scheduleTimeout: timerBefore.scheduleTimeout });
+		beforeJoin.handlePayload({ streaming_delta: { turn_id: 't-runtime-2', text_delta: 'final answer' } });
+		assert.deepStrictEqual(beforeJoin.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'env-final-2', seq: 12, role: 'ASSISTANT', turn_id: 't-asst-2',
+					blocks: [{ block_type: 1, text_block: { text: 'final answer' } }],
+				},
+			},
+		}), []);
+		assert.deepStrictEqual(beforeJoin.handlePayload({
+			turn_lifecycle: { turn_completed: { turn_id: 't-runtime-2', assistant_turn_id: 't-asst-2' } },
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+		assert.strictEqual(timerBefore.delayMs, 0);
+
+		const replacedJoin = new OverlayDeltaJoin();
+		replacedJoin.handlePayload({ streaming_delta: { turn_id: 't-rep', text_delta: 'replaced' } });
+		assert.deepStrictEqual(replacedJoin.handlePayload({
+			envelope_range_replaced: {
+				replacement: [{
+					id: 'env-rep', seq: 5, role: 'ASSISTANT', turn_id: 't-rep',
+					blocks: [{ block_type: 1, text_block: { text: 'replaced' } }],
+				}],
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+	});
 });
 
 class ManualTimeout {
