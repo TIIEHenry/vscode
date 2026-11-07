@@ -173,15 +173,6 @@ export function requestReadingColumnDetail(host: IReadingColumnDetailHost, ref: 
 }
 
 /**
- * D304: pairing-hold leftover (D287 cached turns / D289 leftover lease) keeps
- * read live chrome (spinner and status on the aria-label). First-pull pairing without
- * leftover must not fake it. True disconnect still hides it.
- * D355 leftover-looks-live: pairing-hold first. Do not take the
- * `isEngineConnected()` short-circuit while `isConversationPairingHold`;
- * fall through to leftover lease / `getTurns`. looks-live first-pull
- * (connected===true + pairingPending, no leftover) stays false.
- */
-/**
  * D452 / D449 SessionBar: pairing-hold or KEEP leftover list-fail
  * (`connected && isEngineSessionReady()===false`) is not a live write surface.
  */
@@ -200,17 +191,35 @@ export function isReadingColumnWritesEnabled(host: {
 		&& !isConversationDisconnectedEngineSession(host.stubService, host.getBoundSessionId?.());
 }
 
+/**
+ * D304: pairing-hold leftover (D287 cached turns / D289 leftover lease) keeps
+ * read live chrome (spinner and status on the aria-label). First-pull pairing without
+ * leftover must not fake it. True disconnect still hides it.
+ * D355 leftover-looks-live: pairing-hold first. Do not take the
+ * `isEngineConnected()` short-circuit while `isConversationPairingHold`;
+ * fall through to leftover lease / `getTurns`. looks-live first-pull
+ * (connected===true + pairingPending, no leftover) stays false.
+ */
 export function shouldShowReadingColumnLiveChrome(host: {
 	readonly stubService: {
 		isEngineConnected(): boolean;
-		getActiveSessionId(): string;
 		getTurns(sessionId: string): readonly unknown[];
 	};
 	readonly uaConnection: IConversationPairingHoldSource;
 	readonly sessionViewLease?: { readonly sessionId: string };
 	getBoundSessionId(): string;
 }): boolean {
-	return getConversationDisplayMode(host) === 'live';
+	if (!isConversationPairingHold(host.uaConnection)) {
+		return host.stubService.isEngineConnected();
+	}
+	const sessionId = resolveReadingColumnSessionId(host);
+	if (!sessionId) {
+		return false;
+	}
+	if (host.sessionViewLease?.sessionId === sessionId) {
+		return true;
+	}
+	return host.stubService.getTurns(sessionId).length > 0;
 }
 
 export function getConversationDisplayMode(host: {
