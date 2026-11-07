@@ -1081,3 +1081,150 @@ suite('UniverseAgentHubService directory failure badge', () => {
 		service.dispose();
 	});
 });
+
+suite('UniverseAgentHubService logout overlap', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const HUB_A = 'https://hub.example.com';
+	const HUB_B = 'https://hub-b.example.com';
+	const NOW = 1_700_000_000_000;
+
+	function session(accessToken: string, csrfToken: string): ParsedAuthSessionV1 {
+		return {
+			accessToken,
+			expiresIn: 900,
+			csrfToken,
+			mustChangePassword: false,
+			user: { id: 'usr_1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		};
+	}
+
+	function deferred(): { readonly promise: Promise<void>; readonly resolve: () => void } {
+		let resolve!: () => void;
+		const promise = new Promise<void>(r => { resolve = r; });
+		return { promise, resolve };
+	}
+
+	/** `/auth/logout` and (optionally) `/devices` stop at gates; login always sets a fresh refresh cookie. */
+	function overlapHttp(gates: { readonly logout?: Promise<void>; readonly devices?: Promise<void> }, entered: { logout?: () => void; devices?: () => void } = {}) {
+		return {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/logout')) {
+					entered.logout?.();
+					await gates.logout;
+					return { status: 204, json: async () => ({}) };
+				}
+				if (url.includes('/auth/login')) {
+					return {
+						status: 200,
+						headers: { getSetCookie: () => ['hub_refresh=login-refresh; Path=/; HttpOnly'] },
+						json: async () => session('login-access', 'login-csrf'),
+					};
+				}
+				if (url.includes('/devices')) {
+					entered.devices?.();
+					await gates.devices;
+					return { status: 200, json: async () => ({ devices: [] }) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+	}
+
+	async function persistedRefreshCookie(store: InMemoryHubSessionStore, hubBaseUrl: string): Promise<string> {
+		let cookie = '';
+		await store.refreshIfNeeded(hubBaseUrl, NOW, {
+			fetch: async (_url: string, init?: { readonly headers?: Readonly<Record<string, string>> }) => {
+				cookie = init?.headers?.Cookie ?? '';
+				return { status: 200, json: async () => session('refreshed-access', 'login-csrf') };
+			},
+		}, { force: true });
+		return cookie;
+	}
+
+	test('same-Hub login while logoutHub is pending keeps the new session', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_A, session('old-access', 'old-csrf'), NOW, 'old-refresh');
+		const logoutGate = deferred();
+		const logoutEntered = deferred();
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => NOW,
+			skipStartupRestore: true,
+			http: overlapHttp({ logout: logoutGate.promise }, { logout: logoutEntered.resolve }),
+		});
+		service.setActiveHubBaseUrl(HUB_A);
+
+		const loggingOut = service.logout();
+		await logoutEntered.promise;
+		assert.strictEqual((await service.login(HUB_A, 'user@example.com', 'secret')).ok, true);
+		logoutGate.resolve();
+		await loggingOut;
+
+		assert.strictEqual(service.getAuthStatus().kind, 'signedIn');
+		assert.strictEqual(service.getDirectoryStatus().kind, 'ok');
+		assert.strictEqual(hubSessionStore.getAccessTokenForHub(HUB_A, NOW), 'login-access');
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), [HUB_A]);
+		const cookie = await persistedRefreshCookie(hubSessionStore, HUB_A);
+		assert.ok(cookie.includes('hub_refresh=login-refresh'));
+		assert.ok(!cookie.includes('old-refresh'));
+		service.dispose();
+	});
+
+	test('logout without an overlapping login clears the Hub session', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_A, session('old-access', 'old-csrf'), NOW, 'old-refresh');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => NOW,
+			skipStartupRestore: true,
+			http: overlapHttp({}),
+		});
+		service.setActiveHubBaseUrl(HUB_A);
+
+		await service.logout();
+
+		assert.strictEqual(service.getAuthStatus().kind, 'signedOut');
+		assert.strictEqual(service.getDirectoryStatus().kind, 'idle');
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), []);
+		assert.strictEqual(hubSessionStore.getAccessTokenForHub(HUB_A, NOW), null);
+		service.dispose();
+	});
+
+	test('login to another Hub while logoutHub is pending clears only the old Hub and keeps its directory refresh', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_A, session('old-access', 'old-csrf'), NOW, 'old-refresh');
+		const logoutGate = deferred();
+		const logoutEntered = deferred();
+		const devicesGate = deferred();
+		const devicesEntered = deferred();
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => NOW,
+			skipStartupRestore: true,
+			http: overlapHttp(
+				{ logout: logoutGate.promise, devices: devicesGate.promise },
+				{ logout: logoutEntered.resolve, devices: devicesEntered.resolve },
+			),
+		});
+		service.setActiveHubBaseUrl(HUB_A);
+
+		const loggingOut = service.logout();
+		await logoutEntered.promise;
+		const loggingIn = service.login(HUB_B, 'user@example.com', 'secret');
+		await devicesEntered.promise;
+		logoutGate.resolve();
+		await loggingOut;
+		devicesGate.resolve();
+		assert.strictEqual((await loggingIn).ok, true);
+
+		assert.strictEqual(service.getActiveHubBaseUrl(), HUB_B);
+		assert.strictEqual(service.getAuthStatus().kind, 'signedIn');
+		assert.strictEqual(service.getDirectoryStatus().kind, 'ok', 'the Hub B refresh must not be invalidated by Hub A logout');
+		assert.strictEqual(hubSessionStore.getAccessTokenForHub(HUB_A, NOW), null);
+		assert.strictEqual(hubSessionStore.getAccessTokenForHub(HUB_B, NOW), 'login-access');
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), [HUB_B]);
+		service.dispose();
+	});
+});

@@ -108,11 +108,12 @@ function evaluateWrite(store: DisposableStore, evaluation: Omit<EngineWriteEvalu
 
 /**
  * List refresh token. A token dies when a newer refresh starts, the view is
- * disposed, or the published engine link is no longer the one captured at begin.
+ * disposed, or the published link owner is no longer the one captured at begin.
+ * An absent identity is compared exactly, so a link change still retires it.
  */
 export class EngineRefreshGate {
 	private generation = 0;
-	private link: EngineWriteLink | undefined;
+	private owner: UniverseAgentPublishedLinkOwner | undefined;
 
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
@@ -121,7 +122,7 @@ export class EngineRefreshGate {
 
 	begin(): number {
 		this.generation++;
-		this.link = captureEngineWriteLink(this.connection);
+		this.owner = captureEnginePublishedLinkOwner(this.connection);
 		return this.generation;
 	}
 
@@ -129,8 +130,10 @@ export class EngineRefreshGate {
 		if (this.store.isDisposed || token !== this.generation) {
 			return false;
 		}
-		const current = captureEngineWriteLink(this.connection);
-		return current?.engineIdentityId === this.link?.engineIdentityId && current?.linkId === this.link?.linkId;
+		if (this.owner === undefined) {
+			return captureEnginePublishedLinkOwner(this.connection) === undefined;
+		}
+		return isSameEnginePublishedLinkOwner(this.connection, this.owner);
 	}
 
 	invalidate(): void {

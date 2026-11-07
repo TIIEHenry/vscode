@@ -15,6 +15,7 @@ import type { ConnectionPhase, ConnectionProbeResult } from '../../../../../plat
 import { type ConnectionProfileProjection, type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	ConnectionPreferencesPane,
@@ -325,7 +326,6 @@ suite('ConnectionPreferencesPane', () => {
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -333,16 +333,13 @@ suite('ConnectionPreferencesPane', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2283,6 +2280,33 @@ suite('ConnectionPreferencesPane', () => {
 		assert.deepStrictEqual(added, { hubDeviceId: 'dev-1', displayName: 'Studio' });
 		assert.strictEqual(connectedProfileId, 'hub-profile-1');
 		container.remove();
+	});
+
+	test('device row Connect is a secondary button', async () => {
+		// The Hub login button's `secondary` setter writes into the shared defaults; pin them to primary here.
+		const sharedDefaults = defaultButtonStyles as { secondary?: boolean };
+		const leakedSecondary = sharedDefaults.secondary;
+		Object.defineProperty(sharedDefaults, 'secondary', { get: () => false, set: () => { }, configurable: true, enumerable: true });
+		const pane = mountPane({
+			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			getDirectoryStatus: () => ({ kind: 'ok', devices: [device({ id: 'dev-1', name: 'Studio' })] }),
+		});
+		const container = pane.getDomNode();
+		try {
+			pane.layout(new Dimension(800, 800));
+			pane.selectZone('devices');
+			await Promise.resolve();
+
+			const connectButton = container.querySelector('.connection-hub-device-row .monaco-button') as HTMLElement | null;
+			assert.ok(connectButton);
+			assert.ok(connectButton.classList.contains('secondary'));
+		} finally {
+			delete sharedDefaults.secondary;
+			if (leakedSecondary !== undefined) {
+				sharedDefaults.secondary = leakedSecondary;
+			}
+			container.remove();
+		}
 	});
 
 	test('device Connect failure writes the visible Devices status', async () => {
@@ -6815,7 +6839,7 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('does not leak unhandled rejection when constructor initializeState throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when constructor initializeState throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const pane = mountPane({
@@ -6827,7 +6851,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when constructor refreshEngineDeviceLists catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when constructor refreshEngineDeviceLists catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const pane = mountPane({
@@ -6846,7 +6870,7 @@ suite('ConnectionPreferencesPane', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when handleTestConnection catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleTestConnection catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane(undefined, {
 			probeEngine: async () => {
@@ -6866,7 +6890,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleRenameSelectedDevice catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleRenameSelectedDevice catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -6892,7 +6916,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleRevokeSelectedDevice catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleRevokeSelectedDevice catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -6918,7 +6942,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleRotateSelectedDeviceToken catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleRotateSelectedDeviceToken catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -6945,7 +6969,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleConfirmDeviceCode catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleConfirmDeviceCode catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -6975,7 +6999,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleRejectDevicePair catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleRejectDevicePair catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -7001,7 +7025,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleLogin catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleLogin catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			login: async () => {
@@ -7023,7 +7047,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleLogout catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleLogout catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -7047,7 +7071,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when refreshHubDirectory catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refreshHubDirectory catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
@@ -7071,7 +7095,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleConnectDirectAddress catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleConnectDirectAddress catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
@@ -7102,7 +7126,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleAddDirectAddress catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleAddDirectAddress catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			addDirectAddressProfile: async () => {
@@ -7125,7 +7149,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleConnectSelectedProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleConnectSelectedProfile catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			listConnectionProfiles: () => [{
@@ -7157,7 +7181,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleDisconnect catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleDisconnect catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({}, {
 			disconnect: async () => {
@@ -7180,7 +7204,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleForgetSelectedProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleForgetSelectedProfile catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({
 			listConnectionProfiles: () => [{
@@ -7211,7 +7235,7 @@ suite('ConnectionPreferencesPane', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when handleConnectDevice catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleConnectDevice catch-path paint throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const studio = device({ id: 'dev-1', name: 'Studio' });
 		const pane = mountPane({

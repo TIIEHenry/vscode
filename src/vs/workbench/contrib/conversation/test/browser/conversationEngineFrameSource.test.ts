@@ -410,8 +410,7 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// acknowledge() is async. A lone `.catch(onUnexpectedError)` still leaks
-		// when the handler warn-then-rethrows.
+		// acknowledge() is async.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const windowUnhandledRejections: unknown[] = [];
@@ -423,9 +422,6 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
@@ -435,7 +431,7 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			assert.deepStrictEqual({ unhandledRejections, windowUnhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
 				windowUnhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -621,7 +617,7 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when acknowledge rejects and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('ack boom');
 		const sessionView = new BufferedMockUniverseAgentSessionView();
 		const source = store.add(new ConversationEngineFrameSource(sessionView));

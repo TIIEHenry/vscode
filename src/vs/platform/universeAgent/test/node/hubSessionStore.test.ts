@@ -343,6 +343,41 @@ suite('Hub session store', () => {
 		assert.strictEqual(store.getAccessTokenForHub('https://hub.example.com', now + 100), null);
 	});
 
+	test('HubSessionStore clear with a superseded generation keeps the newer bucket and refresh secret', async () => {
+		const encryption = new TestEncryptionService(true);
+		const storage = new TestApplicationStorageMainService();
+		const store = new HubSessionStore(encryption, storage.asService());
+		const hub = 'https://hub.example.com';
+		const now = 1_000_000;
+		await store.applyAuthSession(hub, FIXTURE_SESSION, now, 'old-refresh');
+		const generationAtLogout = store.getSessionGeneration(hub);
+		await store.applyAuthSession(hub, { ...FIXTURE_SESSION, accessToken: 'newer-access' }, now, 'newer-refresh');
+
+		assert.strictEqual(await store.clear(hub, generationAtLogout), false);
+		const refreshKey = 'universeAgent.secret.hubRefresh.' + encodeURIComponent(hub);
+		assert.ok(storage.has(refreshKey));
+		assert.strictEqual(store.getAccessTokenForHub(hub, now + 100), 'newer-access');
+
+		assert.strictEqual(await store.clear(hub, store.getSessionGeneration(hub)), true);
+		assert.ok(!storage.has(refreshKey));
+		assert.strictEqual(store.getAccessTokenForHub(hub, now + 100), null);
+	});
+
+	test('InMemoryHubSessionStore clear with a superseded generation keeps the newer bucket and refresh secret', async () => {
+		const store = new InMemoryHubSessionStore();
+		const hub = 'https://hub.example.com';
+		const now = 1_000_000;
+		await store.applyAuthSession(hub, FIXTURE_SESSION, now, 'old-refresh');
+		const generationAtLogout = store.getSessionGeneration(hub);
+		await store.applyAuthSession(hub, { ...FIXTURE_SESSION, accessToken: 'newer-access' }, now, 'newer-refresh');
+		const generationAfterLogin = store.getSessionGeneration(hub);
+
+		assert.strictEqual(await store.clear(hub, generationAtLogout), false);
+		assert.strictEqual(store.getSessionGeneration(hub), generationAfterLogin);
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), [hub]);
+		assert.strictEqual(store.getAccessTokenForHub(hub, now + 100), 'newer-access');
+	});
+
 	test('applyAuthSession without refreshToken drops the persisted secret and keeps the new memory session', async () => {
 		const store = new InMemoryHubSessionStore();
 		const now = 1_000_000;

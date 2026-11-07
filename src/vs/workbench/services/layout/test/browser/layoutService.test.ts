@@ -12,7 +12,13 @@ import '../../../../browser/workbench.contribution.js';
 import '../../../../contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
 import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, createDefaultZenModeExitInfo, forceShownAgentShellPart, getDefaultPartFocusTarget, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, getNominalPartFocusNeighbour, isFloatingTopEdgeExposed, isHorizontal, MAIN_WINDOW_PART_FOCUS_CYCLE, type IZenModeExitInfo, type PanelAlignment, Parts, Position, resolveVisiblePartFocusNeighbour } from '../../browser/layoutService.js';
 import { createEditorParts, TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { Layout } from '../../../../browser/layout.js';
+import { groupEditorsToOpenByViewColumn, Layout } from '../../../../browser/layout.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { Event } from '../../../../../base/common/event.js';
+import { ITitleService } from '../../../title/browser/titleService.js';
+import { IAuxiliaryWindowService } from '../../../auxiliaryWindow/browser/auxiliaryWindowService.js';
+import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
+import { IPaneCompositePartService } from '../../../panecomposite/browser/panecomposite.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ISourcesPartService } from '../../../../browser/parts/sources/sourcesPart.js';
@@ -711,7 +717,7 @@ suite('LayoutService - zen mode End column', () => {
 	function stubWorkbenchGrid(target: Layout): void {
 		// eslint-disable-next-line local/code-no-any-casts
 		const internal = target as any;
-		internal.workbenchGrid = { setViewVisible: () => { } };
+		internal.workbenchGrid = { setViewVisible: () => { }, getViewSize: () => ({ width: 0, height: 0 }) };
 		internal.conversationPartView = {};
 		internal.editorPartView = {};
 		internal.sourcesPartView = {};
@@ -775,6 +781,187 @@ suite('LayoutService - zen mode End column', () => {
 
 		layout.toggleZenMode(true);
 		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
+
+		disposables.dispose();
+	});
+});
+
+suite('LayoutService - End column persistence, startup editors and panel focus', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	class EndColumnTestLayout extends Layout {
+		initialize(accessor: ServicesAccessor): void {
+			this.initLayout(accessor);
+		}
+
+		endColumnWidthToPersist(): number {
+			return this.getEndColumnWidthToPersist();
+		}
+	}
+
+	interface IViewBox { width: number; height: number }
+
+	/** Leaves of a vertical branch: the cached visible size is the leaf height. */
+	class FakeEndColumnGrid {
+		private readonly hidden = new Set<object>();
+		private readonly cached = new Map<object, number>();
+
+		constructor(private readonly boxes: Map<object, IViewBox>) { }
+
+		setViewVisible(view: object, visible: boolean): void {
+			if (!visible && !this.hidden.has(view)) {
+				this.cached.set(view, this.boxes.get(view)?.height ?? 0);
+				this.hidden.add(view);
+			} else if (visible) {
+				this.hidden.delete(view);
+			}
+		}
+
+		isViewVisible(view: object): boolean {
+			return !this.hidden.has(view);
+		}
+
+		getViewSize(view: object): IViewBox {
+			return this.hidden.has(view) ? { width: 0, height: 0 } : this.boxes.get(view) ?? { width: 0, height: 0 };
+		}
+
+		getViewCachedVisibleSize(view: object): number | undefined {
+			return this.cached.get(view);
+		}
+	}
+
+	async function createLayout(disposables: DisposableStore, focusCalls: string[]): Promise<{ layout: EndColumnTestLayout; views: { editor: object; sources: object } }> {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IConversationPartService, { _serviceBrand: undefined, focus: () => focusCalls.push('conversation') } as unknown as IConversationPartService);
+		instantiationService.stub(ISourcesPartService, { _serviceBrand: undefined, focus: () => focusCalls.push('sources') } as unknown as ISourcesPartService);
+		instantiationService.stub(ITitleService, { _serviceBrand: undefined, onMenubarVisibilityChange: Event.None } as unknown as ITitleService);
+		instantiationService.stub(IAuxiliaryWindowService, { _serviceBrand: undefined, onDidOpenAuxiliaryWindow: Event.None } as unknown as IAuxiliaryWindowService);
+		instantiationService.stub(IViewDescriptorService, {
+			_serviceBrand: undefined,
+			getDefaultViewContainer: () => undefined,
+			getViewContainersByLocation: () => [],
+			getViewContainerById: () => undefined,
+		} as unknown as IViewDescriptorService);
+		const activePanel = { focus: () => focusCalls.push('panel') };
+		instantiationService.stub(IPaneCompositePartService, {
+			_serviceBrand: undefined,
+			onDidPaneCompositeOpen: Event.None,
+			onDidPaneCompositeClose: Event.None,
+			getActivePaneComposite: (location: ViewContainerLocation) => location === ViewContainerLocation.Panel ? activePanel : undefined,
+			getPaneCompositeIds: () => [],
+			getVisiblePaneCompositeIds: () => [],
+			getLastActivePaneCompositeId: () => undefined,
+			openPaneComposite: async () => undefined,
+			hideActivePaneComposite: () => { },
+		} as unknown as IPaneCompositePartService);
+		const parts = await createEditorParts(instantiationService, disposables);
+		disposables.add(parts);
+		instantiationService.stub(IEditorGroupsService, parts);
+		parts.mainPart.activeGroup.focus = () => { focusCalls.push('editor'); };
+
+		const layout = disposables.add(new EndColumnTestLayout(document.createElement('div'), { resetLayout: true }));
+		instantiationService.invokeFunction(accessor => layout.initialize(accessor));
+
+		const views = { editor: {}, sources: {} };
+		const boxes = new Map<object, IViewBox>([
+			[views.editor, { width: 520, height: 300 }],
+			[views.sources, { width: 520, height: 200 }],
+		]);
+		// eslint-disable-next-line local/code-no-any-casts
+		const internal = layout as any;
+		internal.workbenchGrid = new FakeEndColumnGrid(boxes);
+		internal.editorPartView = views.editor;
+		internal.sourcesPartView = views.sources;
+		internal.conversationPartView = {};
+		internal.panelPartView = {};
+		internal.sideBarPartView = {};
+		internal.auxiliaryBarPartView = {};
+		internal.activityBarPartView = {};
+		internal.statusBarPartView = {};
+
+		for (const id of [Parts.ACTIVITYBAR_PART, Parts.SIDEBAR_PART, Parts.CONVERSATION_PART, Parts.PANEL_PART, Parts.AUXILIARYBAR_PART, Parts.EDITOR_PART, Parts.SOURCES_PART, Parts.STATUSBAR_PART]) {
+			disposables.add(layout.registerPart({
+				getId: () => id,
+				getContainer: () => document.createElement('div'),
+				updateStyles: () => { },
+			} as unknown as Parameters<Layout['registerPart']>[0]));
+		}
+
+		return { layout, views };
+	}
+
+	test('persists the End column width, not a part height, when Preview and Sources are both hidden', async () => {
+		const disposables = new DisposableStore();
+		const { layout } = await createLayout(disposables, []);
+
+		layout.setPartHidden(false, Parts.EDITOR_PART);
+		layout.setPartHidden(false, Parts.SOURCES_PART);
+		assert.strictEqual(layout.endColumnWidthToPersist(), 520);
+
+		layout.setPartHidden(true, Parts.SOURCES_PART);
+		layout.setPartHidden(true, Parts.EDITOR_PART);
+		assert.strictEqual(layout.endColumnWidthToPersist(), 520);
+
+		layout.setPartHidden(false, Parts.SOURCES_PART);
+		layout.setPartHidden(true, Parts.SOURCES_PART);
+		assert.strictEqual(layout.endColumnWidthToPersist(), 520);
+
+		disposables.dispose();
+	});
+
+	test('startup editors whose view column has no visible group open in the active group', () => {
+		const first = URI.file('/a.ts');
+		const second = URI.file('/b.ts');
+		const third = URI.file('/c.ts');
+		const groups = [{ id: 1 }, { id: 2 }];
+		const active = { id: 2 };
+
+		const result = groupEditorsToOpenByViewColumn([
+			{ editor: { resource: first } },
+			{ editor: { resource: second }, viewColumn: 2 },
+			{ editor: { resource: third }, viewColumn: 5 },
+		], groups, active);
+
+		assert.deepStrictEqual(
+			[...result].map(([groupId, editors]) => [groupId, [...editors].map(editor => (editor as { resource: URI }).resource.path)]),
+			[[1, ['/a.ts']], [2, ['/b.ts', '/c.ts']]],
+		);
+	});
+
+	test('hiding the panel with Preview hidden focuses Conversation, then Sources', async () => {
+		const disposables = new DisposableStore();
+		const focusCalls: string[] = [];
+		const { layout } = await createLayout(disposables, focusCalls);
+
+		layout.setPartHidden(false, Parts.CONVERSATION_PART);
+		layout.setPartHidden(false, Parts.SOURCES_PART);
+		layout.setPartHidden(true, Parts.EDITOR_PART);
+
+		layout.setPartHidden(false, Parts.PANEL_PART);
+		focusCalls.length = 0;
+		layout.setPartHidden(true, Parts.PANEL_PART);
+		assert.deepStrictEqual(focusCalls, ['conversation']);
+
+		layout.setPartHidden(true, Parts.CONVERSATION_PART);
+		layout.setPartHidden(false, Parts.PANEL_PART);
+		focusCalls.length = 0;
+		layout.setPartHidden(true, Parts.PANEL_PART);
+		assert.deepStrictEqual(focusCalls, ['sources']);
+
+		disposables.dispose();
+	});
+
+	test('hiding the panel with Preview visible still focuses the active editor group', async () => {
+		const disposables = new DisposableStore();
+		const focusCalls: string[] = [];
+		const { layout } = await createLayout(disposables, focusCalls);
+
+		layout.setPartHidden(false, Parts.EDITOR_PART);
+		layout.setPartHidden(false, Parts.PANEL_PART);
+		focusCalls.length = 0;
+		layout.setPartHidden(true, Parts.PANEL_PART);
+		assert.deepStrictEqual(focusCalls, ['editor']);
 
 		disposables.dispose();
 	});

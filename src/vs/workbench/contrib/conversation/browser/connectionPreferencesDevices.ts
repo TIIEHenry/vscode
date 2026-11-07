@@ -51,7 +51,7 @@ import {
 	getHubDirectoryBannerLabel,
 } from './connectionPreferencesPaneLabels.js';
 import { layoutConnectionList, presentConnectionAction, shouldDrawDesktopConnectionZones, writeStatus } from './connectionPreferencesZone.js';
-import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 
 const $ = DOM.$;
@@ -89,7 +89,7 @@ class HubDevicesRenderer implements IListRenderer<HubDeviceProjection, IHubDevic
 		const row = DOM.append(container, $('.connection-hub-device-row'));
 		const name = DOM.append(row, $('.connection-hub-device-name'));
 		const status = DOM.append(row, $('.connection-hub-device-status'));
-		const connectButton = new Button(row, defaultButtonStyles);
+		const connectButton = new Button(row, { ...defaultButtonStyles, secondary: true });
 		connectButton.label = localize('ua.connectionDeviceConnect', "Connect");
 		const templateData: IHubDeviceTemplateData = {
 			row,
@@ -361,10 +361,6 @@ export class ConnectionPreferencesDevices extends Disposable {
 		}
 	}
 
-	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		return hadLiveCatalog && isConversationPairingHold(this.connectionService);
-	}
-
 	isDeviceWritePairingHold(): boolean {
 		return isConversationPairingHold(this.connectionService);
 	}
@@ -380,7 +376,7 @@ export class ConnectionPreferencesDevices extends Disposable {
 	}
 
 	private applyDisconnectedDevicesRefresh(): void {
-		if (this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length)) {
+		if (keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length, this.connectionService)) {
 			this.renderHubDirectory();
 			writeStatus(this.connectStatus, getEngineSectionDisconnectedCopy(), 'warning');
 			return;
@@ -398,7 +394,7 @@ export class ConnectionPreferencesDevices extends Disposable {
 	}
 
 	private applyDisconnectedPendingRefresh(): void {
-		if (this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0)) {
+		if (keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0, this.connectionService)) {
 			this.renderPendingPairs();
 			return;
 		}
@@ -541,7 +537,7 @@ export class ConnectionPreferencesDevices extends Disposable {
 		const pendingListed = this.conversationEntryPresent('listPending', hook);
 		const canList = canSendConnectionDevicePairRequest(connected, pendingListed);
 		const showUnsupported = connected && !pendingListed;
-		const pairingHoldLeftover = this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0);
+		const pairingHoldLeftover = keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0, this.connectionService);
 		const showPending = canList || showUnsupported || pairingHoldLeftover;
 		this.pendingPairsHeading.style.display = showPending ? '' : 'none';
 		this.pendingPairsList.style.display = showPending && this.pendingPairs.length > 0 ? '' : 'none';
@@ -949,8 +945,9 @@ export class ConnectionPreferencesDevices extends Disposable {
 		const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
 		// D362 leftover-looks-live: pairing-hold-first. KEEP is not only `isEngineConnected()`.
 		const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
-		const pairingHoldCatalog = this.keepLeftoverCatalogForPairingHold(
+		const pairingHoldCatalog = keepLeftoverCatalogForPairingHold(
 			!!this.enginePairedDevices?.length || this.pendingPairs.length > 0,
+			this.connectionService,
 		);
 		return hubSignedIn || enginePairSeat || pairingHoldCatalog;
 	}

@@ -3,8 +3,8 @@ title: "架构设计审查 2026-10-16"
 type: reference
 status: draft
 phase: M7
-updated: 2026-10-16
-summary: "六路只读架构审查。根因是派生状态与判断规则没有唯一所有者：链路状态、会话投影、Sources 读模型、本地或引擎判定、异步进行中请求各写一份。具体缺陷 B1–B4、B6、B7 与文档偏差 D1–D4 已随 architecture-2026-10-16-concrete.md 全面落地（提交 4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。Q1–Q7、A1–A5、B5 维持原状待确认。发现稿保持 draft。"
+updated: 2026-11-07
+summary: "六路只读架构审查。根因是派生状态与判断规则没有唯一所有者：链路状态、会话投影、Sources 读模型、本地或引擎判定、异步进行中请求各写一份。具体缺陷 B1–B4、B6、B7 与文档偏差 D1–D4 已随 architecture-2026-10-16-concrete.md 全面落地（提交 4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。Q3 的 catch / CatchScan 部分与 Q4 已于 2026-11-07 决定（单链约定、源码扫描不作合入证据）；Q1、Q2、Q3 的异步原语部分、Q5–Q7、A1–A5、B5 维持原状待确认。发现稿保持 draft。"
 ---
 
 # 架构设计审查 2026-10-16
@@ -125,6 +125,11 @@ summary: "六路只读架构审查。根因是派生状态与判断规则没有�
 | Q6 | 工作根相关状态存 `WORKSPACE` 还是 `PROFILE` / `APPLICATION`？这决定"同引擎同目录共用"能否跨窗口 |
 | Q7 | 本地判定是否以 SCM 根优先为唯一定义、Files 也改读 `localRoot`？引擎设置与 Composer 的项目作用域锚在活动会话还是绑定会话？ |
 
+2026-11-07 已决：
+
+- **Q3（catch 与 CatchScan 部分）**：双链 catch 退役。产品代码 fire-and-forget 统一单链 `.catch(onUnexpectedError)`，禁止 `.catch(onUnexpectedError).catch(onUnexpectedError)`；`onUnexpectedError` 是链尾终结者、返回 undefined，生产与上游测试跑器的 handler 都不抛。CatchScan 不再新增，存量按 [p6-2 S2c](review-2026-11-04-p6-tests-and-process-plan.md) 改成行为测试，没有行为对应的删除。登记见 [D1400](../progress/deferred-gaps.md)。共享异步原语放在哪一层仍待确认。
+- **Q4**：源码扫描测试不算合入证据，合入证据是调用生产路径的行为测试。已关闭 D 行里以双链扫描为证的（D480/D484/D488/D491-D500/D506/D507/D509/D550），原文不改，证据改以非抛 handler 行为测试为准，见 D1400。
+
 ## 7. 方案
 
-B1–B4、B6、B7 与 §4 的文档偏差在 [architecture-2026-10-16-concrete](../../archive/dev/plans/architecture-2026-10-16-concrete.md) 中已全部实施合入（提交 `4fa4f3eab56`、`99bd6829c11`、`1a4c4295b45`、`83ef402a254`、`68308db93b5`、`cc6e17a9d8f`）。G17 与 B1 同收在该稿第一节。Q1–Q7、A1–A5、B5 仍不在该稿里选定，维持原状待确认。
+B1–B4、B6、B7 与 §4 的文档偏差在 [architecture-2026-10-16-concrete](../../archive/dev/plans/architecture-2026-10-16-concrete.md) 中已全部实施合入（提交 `4fa4f3eab56`、`99bd6829c11`、`1a4c4295b45`、`83ef402a254`、`68308db93b5`、`cc6e17a9d8f`）。G17 与 B1 同收在该稿第一节。Q1–Q7、A1–A5、B5 不在该稿里选定；其中 Q3 的 catch / CatchScan 部分与 Q4 已在 §6 表后写明决定，其余维持原状待确认。

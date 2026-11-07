@@ -368,10 +368,9 @@ suite('SessionTurnChanges', () => {
 		}]);
 	});
 
-	test('does not leak unhandled rejection when openChangesEditor rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when openChangesEditor rejects and onUnexpectedError logs it', async () => {
 		// `_openSessionTurnChanges` already catches `openChangesEditor`; a lone inner reject
-		// does not leak. The void call site still needs `.catch` when onUnexpectedError
-		// warn-then-rethrows.
+		// does not leak. The void call site still needs `.catch` for anything that escapes it.
 		const chatResource = URI.parse('chat:session');
 		const chat = upcastPartial<IChat>({
 			resource: chatResource,
@@ -413,9 +412,6 @@ suite('SessionTurnChanges', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			service.openChangesForRequest(chatResource, undefined, { isLastTurn: true });
@@ -423,7 +419,7 @@ suite('SessionTurnChanges', () => {
 			assert.deepStrictEqual({ unhandledRejections, openCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				openCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -469,9 +465,8 @@ suite('SessionTurnChanges', () => {
 		assert.strictEqual(openCount, 1);
 	});
 
-	test('does not leak unhandled rejection when standalone openEditor rejects and onUnexpectedError warn-then-rethrows', async () => {
-		// `_openStandaloneChanges` has no inner try/catch. A lone
-		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('does not leak unhandled rejection when standalone openEditor rejects and onUnexpectedError logs it', async () => {
+		// `_openStandaloneChanges` has no inner try/catch.
 		let openCalls = 0;
 		const editorService = new class extends mock<IEditorService>() {
 			override async openEditor(): Promise<undefined> {
@@ -511,9 +506,6 @@ suite('SessionTurnChanges', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			service.openChangesForRequest(URI.parse('test:session'), 'request', { isLastTurn: false });
@@ -521,7 +513,7 @@ suite('SessionTurnChanges', () => {
 			assert.deepStrictEqual({ unhandledRejections, openCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				openCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

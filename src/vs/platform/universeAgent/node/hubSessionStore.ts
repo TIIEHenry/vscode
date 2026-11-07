@@ -195,7 +195,13 @@ export interface IHubSessionStore {
 	getStatusForHub(hubBaseUrl: string, nowMs: number): HubAuthStatusProjection;
 	requiresPasswordChange(hubBaseUrl: string, nowMs: number): boolean;
 	applyAuthSession(hubBaseUrl: string, session: ParsedAuthSessionV1, nowMs: number, refreshToken?: string): Promise<void>;
-	clear(hubBaseUrl: string): Promise<void>;
+	/** Bumped by every `applyAuthSession` and `clear` on this Hub. */
+	getSessionGeneration(hubBaseUrl: string): number;
+	/**
+	 * With `expectedGeneration`, a newer session on this Hub keeps its bucket and refresh secret.
+	 * The check and the delete run in the same synchronous step. Resolves whether it cleared.
+	 */
+	clear(hubBaseUrl: string, expectedGeneration?: number): Promise<boolean>;
 	refreshIfNeeded(
 		hubBaseUrl: string,
 		nowMs: number,
@@ -312,11 +318,15 @@ export class HubSessionStore implements IHubSessionStore {
 		);
 	}
 
-	async clear(hubBaseUrl: string): Promise<void> {
+	async clear(hubBaseUrl: string, expectedGeneration?: number): Promise<boolean> {
+		if (expectedGeneration !== undefined && expectedGeneration !== this.getSessionGeneration(hubBaseUrl)) {
+			return false;
+		}
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		this.buckets.delete(key);
 		this.applicationStorage.remove(secretStorageKey(hubBaseUrl), StorageScope.APPLICATION);
 		this.bumpSessionGeneration(hubBaseUrl);
+		return true;
 	}
 
 	async refreshIfNeeded(
@@ -402,7 +412,7 @@ export class HubSessionStore implements IHubSessionStore {
 		this.sessionGenerationByHubKey.set(key, (this.sessionGenerationByHubKey.get(key) ?? 0) + 1);
 	}
 
-	private getSessionGeneration(hubBaseUrl: string): number {
+	getSessionGeneration(hubBaseUrl: string): number {
 		return this.sessionGenerationByHubKey.get(hubBaseUrlIdentityKey(hubBaseUrl)) ?? 0;
 	}
 
@@ -495,11 +505,15 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		}
 	}
 
-	async clear(hubBaseUrl: string): Promise<void> {
+	async clear(hubBaseUrl: string, expectedGeneration?: number): Promise<boolean> {
+		if (expectedGeneration !== undefined && expectedGeneration !== this.getSessionGeneration(hubBaseUrl)) {
+			return false;
+		}
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		this.buckets.delete(key);
 		this.refreshSecrets.delete(key);
 		this.bumpSessionGeneration(hubBaseUrl);
+		return true;
 	}
 
 	async refreshIfNeeded(
@@ -562,7 +576,7 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		this.sessionGenerationByHubKey.set(key, (this.sessionGenerationByHubKey.get(key) ?? 0) + 1);
 	}
 
-	private getSessionGeneration(hubBaseUrl: string): number {
+	getSessionGeneration(hubBaseUrl: string): number {
 		return this.sessionGenerationByHubKey.get(hubBaseUrlIdentityKey(hubBaseUrl)) ?? 0;
 	}
 
