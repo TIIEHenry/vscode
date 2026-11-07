@@ -76,9 +76,31 @@ interface ILayoutRuntimeState {
 	};
 }
 
-interface IEditorToOpen {
+export interface IEditorToOpen {
 	readonly editor: IUntypedEditorInput;
 	readonly viewColumn?: number;
+}
+
+/**
+ * Map startup editors to groups by `viewColumn` (index + 1 into the visible
+ * groups). A column past the visible groups opens in `fallbackGroup` instead
+ * of being dropped.
+ */
+export function groupEditorsToOpenByViewColumn(editors: readonly IEditorToOpen[], groupsInVisualOrder: readonly { readonly id: GroupIdentifier }[], fallbackGroup: { readonly id: GroupIdentifier }): Map<GroupIdentifier, Set<IUntypedEditorInput>> {
+	const editorsByGroup = new Map<GroupIdentifier, Set<IUntypedEditorInput>>();
+	for (const editor of editors) {
+		const group = groupsInVisualOrder[(editor.viewColumn ?? 1) - 1] ?? fallbackGroup;
+
+		let groupEditors = editorsByGroup.get(group.id);
+		if (!groupEditors) {
+			groupEditors = new Set<IUntypedEditorInput>();
+			editorsByGroup.set(group.id, groupEditors);
+		}
+
+		groupEditors.add(editor.editor);
+	}
+
+	return editorsByGroup;
 }
 
 interface ILayoutInitializationState {
@@ -1079,22 +1101,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				const mainPart = this.editorGroupService.mainPart;
 				const editorGroupsInVisualOrder = mainPart.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group =>
 					!isPreviewCategoryRoutingPart(mainPart) || mainPart.isGroupVisible(group));
-				const mapEditorsToGroup = new Map<GroupIdentifier, Set<IUntypedEditorInput>>();
-
-				for (const editor of editors) {
-					const group = editorGroupsInVisualOrder[(editor.viewColumn ?? 1) - 1]; // viewColumn is index+1 based
-					if (!group) {
-						continue;
-					}
-
-					let editorsByGroup = mapEditorsToGroup.get(group.id);
-					if (!editorsByGroup) {
-						editorsByGroup = new Set<IUntypedEditorInput>();
-						mapEditorsToGroup.set(group.id, editorsByGroup);
-					}
-
-					editorsByGroup.add(editor.editor);
-				}
+				const mapEditorsToGroup = groupEditorsToOpenByViewColumn(editors, editorGroupsInVisualOrder, mainPart.activeGroup);
 
 				openEditorsPromise = Promise.all(Array.from(mapEditorsToGroup).map(async ([groupId, editors]) => {
 					try {
@@ -1837,12 +1844,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Editor column size (End column width; shared with Sources)
 			const editorHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN);
 			const sourcesHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
-			const endColumnHidden = editorHidden && sourcesHidden;
-			const endColumnView = editorHidden ? this.sourcesPartView : this.editorPartView;
-			const editorSize = endColumnHidden
-				? this.workbenchGrid.getViewCachedVisibleSize(endColumnView)
-				: this.workbenchGrid.getViewSize(endColumnView).width;
-			this.stateModel.setInitializationValue(LayoutStateKeys.EDITOR_SIZE, editorSize as number);
+			this.stateModel.setInitializationValue(LayoutStateKeys.EDITOR_SIZE, this.getEndColumnWidthToPersist());
 
 			// Sources height inside the End column (only persist the split size, not a solo fill)
 			if (!sourcesHidden && !editorHidden) {
@@ -2053,6 +2055,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 
+		this.trackEndColumnWidth(Parts.EDITOR_PART, hidden);
 		this.stateModel.setRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN, hidden);
 
 		// Adjust CSS
@@ -2101,6 +2104,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
 
+		this.trackEndColumnWidth(Parts.SOURCES_PART, hidden);
 		this.stateModel.setRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN, hidden);
 
 		if (hidden) {
@@ -2115,6 +2119,42 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		if (hidden && beforeHide) {
 			this.enforceAgentShellVisible(Parts.SOURCES_PART, this.getAgentShellVisibilityAfterHide(Parts.SOURCES_PART, beforeHide));
 		}
+	}
+
+	/**
+	 * Once Preview and Sources are both hidden the grid caches the End column
+	 * width on the column branch, which `getViewCachedVisibleSize` cannot reach
+	 * (it reports the leaf height inside the column). Capture the width while
+	 * the last visible End column part is still laid out.
+	 */
+	private trackEndColumnWidth(part: Parts.EDITOR_PART | Parts.SOURCES_PART, hidden: boolean): void {
+		if (!hidden) {
+			this.endColumnWidthWhenHidden = undefined;
+			return;
+		}
+
+		const editorVisible = !this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN);
+		const sourcesVisible = !this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
+		const partVisible = part === Parts.EDITOR_PART ? editorVisible : sourcesVisible;
+		const siblingVisible = part === Parts.EDITOR_PART ? sourcesVisible : editorVisible;
+		if (!partVisible || siblingVisible) {
+			return;
+		}
+
+		const width = this.workbenchGrid.getViewSize(part === Parts.EDITOR_PART ? this.editorPartView : this.sourcesPartView).width;
+		if (width > 0) {
+			this.endColumnWidthWhenHidden = width;
+		}
+	}
+
+	protected getEndColumnWidthToPersist(): number {
+		const editorHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN);
+		const sourcesHidden = this.stateModel.getRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN);
+		if (editorHidden && sourcesHidden) {
+			return this.endColumnWidthWhenHidden ?? this.stateModel.getInitializationValue(LayoutStateKeys.EDITOR_SIZE);
+		}
+
+		return this.workbenchGrid.getViewSize(editorHidden ? this.sourcesPartView : this.editorPartView).width;
 	}
 
 	private getAgentShellVisibility(): IAgentShellVisibility {
@@ -2432,7 +2472,24 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		if (focusEditor) {
-			this.editorGroupService.mainPart.activeGroup.focus(); // Pass focus to editor group if panel part is now hidden
+			this.focusAgentShellAfterPanelHide();
+		}
+	}
+
+	/**
+	 * Pass focus to Preview when the panel is hidden; with Preview hidden fall
+	 * back in {@link focus} order. `focus()` itself is not used because a hidden
+	 * End column still reads as a maximized panel there.
+	 */
+	private focusAgentShellAfterPanelHide(): void {
+		if (this.isVisible(Parts.EDITOR_PART, mainWindow)) {
+			this.editorGroupService.mainPart.activeGroup.focus();
+		} else if (this.isVisible(Parts.CONVERSATION_PART)) {
+			this.focusPart(Parts.CONVERSATION_PART);
+		} else if (this.isVisible(Parts.SOURCES_PART)) {
+			this.focusPart(Parts.SOURCES_PART);
+		} else {
+			this.editorGroupService.mainPart.activeGroup.focus();
 		}
 	}
 
@@ -2441,6 +2498,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	private panelMaximizeEntryPanelVisible: boolean | undefined;
 	/** End column width and split captured before panel maximize hides Preview / Sources. */
 	private panelMaximizeEndColumnSize: { width: number; editorHeight?: number; sourcesHeight?: number } | undefined;
+	/** End column width captured when its last visible part was hidden. */
+	private endColumnWidthWhenHidden: number | undefined;
 
 	isAuxiliaryBarMaximized(): boolean {
 		return this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_WAS_LAST_MAXIMIZED);
