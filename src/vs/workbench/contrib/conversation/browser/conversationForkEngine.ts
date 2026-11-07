@@ -22,6 +22,9 @@ import { IConversationRosterService, settleDispatchedEngineWrite } from './conve
  * `isEngineSessionReady()===false`, not pairing-hold) is the same gate as
  * D449/D454 — disconnected notice, no `forkSubAgent`. True disconnect leftover
  * and never-connected stub stay unhandled so local fork can proceed (D298).
+ *
+ * `anchorTurnId` must be an engine L1 turn id (`ConversationStubTurn.turnId`),
+ * never a chat request id or timeline row id. Omitted forks the whole live path.
  */
 export type ConversationEngineForkOutcome = {
 	readonly handled: boolean;
@@ -42,6 +45,7 @@ export async function tryConnectedEngineFork(
 	roster: IConversationRosterService,
 	notificationService: INotificationService,
 	ua?: IConversationPairingHoldSource,
+	options?: { readonly anchorTurnId?: string },
 ): Promise<ConversationEngineForkOutcome> {
 	if (isConversationPairingHold(ua)) {
 		if (roster.hasEngineConnectionHistory()) {
@@ -58,9 +62,12 @@ export async function tryConnectedEngineFork(
 		return { handled: false, forked: false };
 	}
 	if (roster.isEngineConnected()) {
+		const anchorTurnId = options?.anchorTurnId?.trim();
 		const forked = await settleDispatchedEngineWrite(
 			roster,
-			roster.forkSubAgent(roster.getActiveSessionId()),
+			anchorTurnId
+				? roster.forkSubAgent(roster.getActiveSessionId(), { anchorTurnId })
+				: roster.forkSubAgent(roster.getActiveSessionId()),
 		);
 		if (forked) {
 			return { handled: true, forked: true };

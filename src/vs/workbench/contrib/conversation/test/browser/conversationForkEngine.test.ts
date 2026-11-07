@@ -294,4 +294,44 @@ suite('conversationForkEngine', () => {
 		assert.deepStrictEqual(outcome, { handled: false, forked: false });
 		assert.deepStrictEqual(errors, []);
 	});
+
+	test('connected fork forwards trimmed anchorTurnId to forkSubAgent', async () => {
+		const forkCalls: { sessionId: string; options: unknown }[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent(sessionId: string, options?: unknown) {
+				forkCalls.push({ sessionId, options });
+				return true;
+			},
+		} as unknown as IConversationRosterService;
+
+		const outcome = await tryConnectedEngineFork(roster, { error() { } } as unknown as INotificationService, undefined, { anchorTurnId: '  turn-7  ' });
+
+		assert.deepStrictEqual(outcome, { handled: true, forked: true });
+		assert.deepStrictEqual(forkCalls, [{ sessionId: 's1', options: { anchorTurnId: 'turn-7' } }]);
+	});
+
+	test('connected fork without anchor passes no fork options', async () => {
+		const forkCalls: { sessionId: string; argCount: number }[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent(sessionId: string, ...rest: unknown[]) {
+				forkCalls.push({ sessionId, argCount: rest.length });
+				return true;
+			},
+		} as unknown as IConversationRosterService;
+		const notificationService = { error() { } } as unknown as INotificationService;
+
+		await tryConnectedEngineFork(roster, notificationService);
+		await tryConnectedEngineFork(roster, notificationService, undefined, { anchorTurnId: '   ' });
+
+		assert.deepStrictEqual(forkCalls, [
+			{ sessionId: 's1', argCount: 0 },
+			{ sessionId: 's1', argCount: 0 },
+		]);
+	});
 });
