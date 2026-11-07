@@ -742,7 +742,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			const session = viewModel ? chatEditingService.getEditingSession(viewModel.sessionResource) : undefined;
 			this._editingSession.set(undefined, undefined);
-			this.renderChatEditingSessionState().catch(onUnexpectedError).catch(onUnexpectedError); // this is necessary to make sure we dispose previous buttons, etc.
+			this.renderChatEditingSessionState().catch(onUnexpectedError); // this is necessary to make sure we dispose previous buttons, etc.
 
 			if (!session) {
 				// none or for a different chat widget
@@ -758,14 +758,14 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			r.store.add(session.onDidDispose(() => {
 				this._editingSession.set(undefined, undefined);
-				this.renderChatEditingSessionState().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.renderChatEditingSessionState().catch(onUnexpectedError);
 			}));
 			r.store.add(this.inputEditor.onDidChangeModelContent(() => {
 				if (this.getInput() === '') {
 					this.refreshParsedInput();
 				}
 			}));
-			this.renderChatEditingSessionState().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.renderChatEditingSessionState().catch(onUnexpectedError);
 		}));
 
 		this._register(this.codeEditorService.registerCodeEditorOpenHandler(async (input: ITextResourceEditorInput, _source: ICodeEditor | null, _sideBySide?: boolean): Promise<ICodeEditor | null> => {
@@ -1378,7 +1378,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				this.layoutDynamicChatTreeItemMode();
 			}
 
-			this.renderFollowups().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.renderFollowups().catch(onUnexpectedError);
 		}
 	}
 
@@ -2181,12 +2181,12 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}));
 
 		this._register(this.listWidget.onDidFocusOutside(() => {
-			void this.cancelEditing().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.cancelEditing().catch(onUnexpectedError);
 		}));
 
 		this._register(this.listWidget.onDidClickFollowup(item => {
 			// is this used anymore?
-			this.acceptInput(item.message).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.acceptInput(item.message).catch(onUnexpectedError);
 		}));
 
 		this._register(this.listWidget.onDidChangeContentHeight(() => {
@@ -2291,7 +2291,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				this.inputPart.element.classList.add('editing');
 			}
 			if (currentElement.modelId) {
-				void this.input.requestModelByIdentifier(currentElement.modelId).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.input.requestModelByIdentifier(currentElement.modelId).catch(onUnexpectedError);
 			}
 
 			this.inputPart.toggleChatInputOverlay(!isInput);
@@ -2345,7 +2345,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			this._register(this.inputPart.onDidClickOverlay(() => {
 				if (this.viewModel?.editing && this.configurationService.getValue<string>('chat.editRequests') !== 'input') {
-					void this.cancelEditing().catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.cancelEditing().catch(onUnexpectedError);
 				}
 			}));
 
@@ -2601,7 +2601,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			}
 
 			msg += e.followup.message;
-			this.acceptInput(msg).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.acceptInput(msg).catch(onUnexpectedError);
 
 			if (!e.response) {
 				// Followups can be shown by the welcome message, then there is no response associated.
@@ -2633,7 +2633,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		this._register(this.input.onDidChangeCurrentChatMode(() => {
 			this.renderWelcomeViewContentIfNeeded();
 			this.refreshParsedInput();
-			this.renderFollowups().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.renderFollowups().catch(onUnexpectedError);
 			this.renderChatSuggestNextWidget();
 		}));
 		const foregroundSessionCountContextKeys = new Set([ChatContextKeys.foregroundSessionCount.key]);
@@ -3654,8 +3654,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 						this.input.setValue(question, false);
 					}
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		return sent.data.responseCreatedPromise;
 	}

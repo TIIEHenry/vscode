@@ -1350,7 +1350,7 @@ export class ChatPetWidget extends Disposable {
 			if (this._transientState.get() === 'achievementUnlocked') {
 				this._transientScheduler.cancel();
 				this._transientState.set(undefined, undefined);
-				void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID).catch(onUnexpectedError);
 				return;
 			}
 			if (this.chatPetService.onTheRun.get()) {

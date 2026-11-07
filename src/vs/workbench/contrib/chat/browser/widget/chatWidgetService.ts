@@ -295,7 +295,7 @@ export class ChatWidgetService extends Disposable implements IChatWidgetService 
 					if (!this.getWidgetBySessionResource(previousSessionResource) && this.chatService.getSession(previousSessionResource)) {
 						this._onDidBackgroundSession.fire(previousSessionResource);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}),
 			toDisposable(() => {
 				this._widgets.splice(this._widgets.indexOf(newWidget), 1);

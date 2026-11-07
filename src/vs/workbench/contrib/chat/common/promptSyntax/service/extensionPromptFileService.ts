@@ -286,7 +286,7 @@ export class ExtensionPromptFileService extends Disposable {
 		// Mark all collected files as readonly in a single batch to avoid
 		// firing onDidChangeReadonly once per file (which causes a cascade
 		// of event handlers and can freeze the renderer).
-		void this.filesConfigService.updateReadonly(readonlyUris, true).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.filesConfigService.updateReadonly(readonlyUris, true).catch(onUnexpectedError);
 
 		return result;
 	}
@@ -314,7 +314,7 @@ export class ExtensionPromptFileService extends Disposable {
 				const uris = this._pendingReadonlyUris;
 				this._pendingReadonlyUris = [];
 				this._pendingReadonlyFlush = false;
-				void this.filesConfigService.updateReadonly(uris, true).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.filesConfigService.updateReadonly(uris, true).catch(onUnexpectedError);
 			});
 		}
 	}

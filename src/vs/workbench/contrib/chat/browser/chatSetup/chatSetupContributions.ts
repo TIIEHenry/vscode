@@ -106,7 +106,7 @@ export class ChatSetupContribution extends Disposable implements IWorkbenchContr
 		this.registerActions(context, requests, controller);
 		this.registerSignInTitleBarEntry(actionViewItemService);
 		this.registerUrlLinkHandler();
-		this.checkExtensionInstallation(context).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.checkExtensionInstallation(context).catch(onUnexpectedError);
 	}
 
 	private registerSetupAgents(context: ChatEntitlementContext, controller: Lazy<ChatSetupController>): void {
@@ -817,7 +817,7 @@ export class ChatTeardownContribution extends Disposable implements IWorkbenchCo
 			return; // disabled
 		}
 
-		this.registerListeners().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.registerListeners().catch(onUnexpectedError);
 		this.registerActions();
 
 		this.handleChatDisabled(false);
@@ -826,12 +826,12 @@ export class ChatTeardownContribution extends Disposable implements IWorkbenchCo
 	private handleChatDisabled(fromEvent: boolean): void {
 		const chatDisabled = this.configurationService.inspect(ChatAIDisabledSettingId);
 		if (chatDisabled.value === true) {
-			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.DisabledWorkspace : EnablementState.DisabledGlobally).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.DisabledWorkspace : EnablementState.DisabledGlobally).catch(onUnexpectedError);
 			if (fromEvent) {
 				this.maybeHideAuxiliaryBar();
 			}
 		} else if (chatDisabled.value === false && fromEvent /* do not enable extensions unless its an explicit settings change */) {
-			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === 'boolean' ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally).catch(onUnexpectedError);
 		}
 	}
 

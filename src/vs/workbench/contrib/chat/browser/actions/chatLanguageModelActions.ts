@@ -190,7 +190,7 @@ class ManageLanguageModelAuthenticationAction extends Action2 {
 					const extId = context.separator.id;
 					if (extId) {
 						// Open the extension in the editor
-						void extensionsWorkbenchService.open(extId).catch(onUnexpectedError).catch(onUnexpectedError);
+						void extensionsWorkbenchService.open(extId).catch(onUnexpectedError);
 					}
 				},
 				onDidTriggerItemButton(context) {
@@ -198,7 +198,7 @@ class ManageLanguageModelAuthenticationAction extends Action2 {
 					const extId = context.item.id;
 					if (extId) {
 						// Open the extension in the editor
-						void extensionsWorkbenchService.open(extId).catch(onUnexpectedError).catch(onUnexpectedError);
+						void extensionsWorkbenchService.open(extId).catch(onUnexpectedError);
 					}
 				},
 				title: localize('languageModelAuthTitle', 'Manage Language Model Access'),

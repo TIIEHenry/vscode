@@ -432,7 +432,7 @@ export class ChatSetup {
 					}
 				};
 				store.add(this.extensionService.onDidChangeExtensionsStatus(check));
-				void Promise.resolve(this.extensionService.whenInstalledExtensionsRegistered()).then(check).catch(onUnexpectedError).catch(onUnexpectedError);
+				void Promise.resolve(this.extensionService.whenInstalledExtensionsRegistered()).then(check).catch(onUnexpectedError);
 			}), timeoutMs);
 		} finally {
 			store.dispose();

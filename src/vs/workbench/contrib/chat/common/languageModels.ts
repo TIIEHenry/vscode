@@ -2549,7 +2549,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 			.catch(err => this._logService.warn('Failed to fetch chat control data', err))
 			.then(() => timeout(5 * 60 * 1000)) // every 5 minutes
 			.then(() => this._refreshChatControlData())
-			.catch(onUnexpectedError).catch(onUnexpectedError);
+			.catch(onUnexpectedError);
 	}
 
 	private async _fetchChatControlData(): Promise<void> {

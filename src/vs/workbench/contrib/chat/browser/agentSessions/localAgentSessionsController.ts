@@ -107,7 +107,7 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 				return;
 			}
 
-			this.tryUpdateLiveSessionItem(model).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.tryUpdateLiveSessionItem(model).catch(onUnexpectedError);
 
 			const requestChangeListener = model.lastRequestObs.map(last => last?.response && observableSignalFromEvent('chatSessions.modelRequestChangeListener', last.response.onDidChange));
 			const modelChangeListener = observableSignalFromEvent('chatSessions.modelChangeListener', model.onDidChange);
@@ -115,7 +115,7 @@ export class LocalAgentsSessionsController extends Disposable implements IChatSe
 				requestChangeListener.read(reader)?.read(reader);
 				modelChangeListener.read(reader);
 
-				this.tryUpdateLiveSessionItem(model).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.tryUpdateLiveSessionItem(model).catch(onUnexpectedError);
 			}));
 		};
 

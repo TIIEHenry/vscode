@@ -67,22 +67,11 @@ function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-const updateCall = 'this.update()';
 const leftoverOpenSessionCall = 'list.onDidOpen(e => this.openAgentSession(e))';
 const leftoverContextMenuCall = 'list.onContextMenu(e => this.showContextMenu(e))';
 const followupsCall = 'this.renderFollowups()';
@@ -142,10 +131,6 @@ const prepareXtermRawCall = 'this._prepareAddonLayout(xtermRaw)';
 const loadMoreCall = 'this._loadMore()';
 const updateBadgeCall = 'this.updateActivityBadge()';
 
-const d866Calls: Array<[string, string, number]> = [
-	[AGENT_SESSIONS_REL, updateCall, 5],
-];
-
 const d861AlreadyDouble: Array<[string, number]> = [
 	[followupsCall, 2],
 	[acceptMessageCall, 1],
@@ -170,56 +155,6 @@ suite('leftover remaining unused agentSessionsControl leftover Promise fire-and-
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('leftover remaining unused agentSessionsControl leftover async this.foo() FOF still had four or more legal unused leftover sites so this knife stayed', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d866Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			assertPromiseSignature(source, 'async update(): Promise<boolean> {');
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			sites += wrapped;
-		}
-		assert.ok(sites >= 4, `expected leftover remaining unused agentSessionsControl legal leftover >=4, got ${sites}`);
-		assert.ok(sites <= 8);
-		assert.ok(!(seen.get(AGENT_SESSIONS_REL) ?? '').includes('D866'));
-	});
-
-	test('this knife covers five leftover Promise double-chain sites after leftover remaining unused stayed on agentSessionsControl', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d866Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 5);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(AGENT_SESSIONS_REL) ?? ''), 5);
-	});
-
-	test('agentSessionsControl leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
-		const source = fs.readFileSync(resolveSource(AGENT_SESSIONS_REL), 'utf8');
-		assertPromiseSignature(source, 'async update(): Promise<boolean> {');
-		assertPromiseSignature(source, 'private async openAgentSession(e: IOpenEvent<AgentSessionListItem | undefined>): Promise<void> {');
-		assertPromiseSignature(source, 'private async showContextMenu({ element, anchor, browserEvent }: ITreeContextMenuEvent<AgentSessionListItem>): Promise<void> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(source, updateCall);
-		assert.strictEqual(countIncludes(source, `${updateCall}${doubleCatch}`), 5);
-		assert.ok(!source.includes('\t\t\tthis.update();\n'));
-		assert.ok(!source.includes('\t\t\t\tthis.update();\n'));
-		assert.ok(!source.includes('\t\t\tthis.update();\n'));
-		assert.ok(source.includes(leftoverOpenSessionCall));
-		assert.ok(!source.includes(`this.openAgentSession(e)${doubleCatch}`));
-		assert.ok(source.includes(leftoverContextMenuCall));
-		assert.ok(!source.includes(`this.showContextMenu(e)${doubleCatch}`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

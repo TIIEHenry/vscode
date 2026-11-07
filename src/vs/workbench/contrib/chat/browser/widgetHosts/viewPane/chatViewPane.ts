@@ -374,7 +374,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 						}
 					});
 
-				void this.restoringSession.finally(() => this.restoringSession = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.restoringSession.finally(() => this.restoringSession = undefined).catch(onUnexpectedError);
 			}
 		}
 
@@ -1788,7 +1788,7 @@ export class ChatViewPane extends ViewPane implements IViewWelcomeDelegate {
 					if (sessionResource) {
 						this.sessionsControl?.reveal(sessionResource);
 					}
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}
 

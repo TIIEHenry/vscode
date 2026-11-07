@@ -539,7 +539,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 		}));
 
 		this._register(sessionDataSource.onDidExpandRepositoryGroup(() => {
-			this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.update().catch(onUnexpectedError);
 		}));
 
 		const model = this.agentSessionsService.model;
@@ -547,13 +547,13 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 		this._register(this.options.filter.onDidChange(async () => {
 			if (this.visible) {
 				this.updateSectionCollapseStates();
-				this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.update().catch(onUnexpectedError);
 			}
 		}));
 
 		this._register(model.onDidChangeSessions(() => {
 			if (this.visible) {
-				this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.update().catch(onUnexpectedError);
 			}
 		}));
 
@@ -835,7 +835,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 			}
 			this.updatePauseOwner = undefined;
 			if (this.hasPendingUpdate && this.visible) {
-				this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.update().catch(onUnexpectedError);
 			}
 		});
 	}
@@ -848,7 +848,7 @@ export class AgentSessionsControl extends Disposable implements IAgentSessionsCo
 		this.visible = visible;
 
 		if (this.visible) {
-			this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.update().catch(onUnexpectedError);
 		}
 	}
 

@@ -150,14 +150,14 @@ export class TipEligibilityTracker extends Disposable {
 			if (tip.excludeWhenPromptFilesExist!.excludeUntilChecked) {
 				this._excludedByFiles.add(tip.id);
 			}
-			this._checkForPromptFiles(tip).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._checkForPromptFiles(tip).catch(onUnexpectedError);
 		}
 
 		// Re-check agent file exclusions when custom agents change (covers late discovery)
 		this._register(this._promptsService.onDidChangeCustomAgents(() => {
 			for (const tip of this._tipsWithFileExclusions) {
 				if (tip.excludeWhenPromptFilesExist!.promptType === PromptsType.agent) {
-					this._checkForPromptFiles(tip).catch(onUnexpectedError).catch(onUnexpectedError);
+					this._checkForPromptFiles(tip).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -249,7 +249,7 @@ export class TipEligibilityTracker extends Disposable {
 			if (tip.excludeWhenPromptFilesExist!.excludeUntilChecked) {
 				this._excludedByFiles.add(tip.id);
 			}
-			this._checkForPromptFiles(tip).catch(onUnexpectedError).catch(onUnexpectedError);
+			this._checkForPromptFiles(tip).catch(onUnexpectedError);
 		}
 	}
 

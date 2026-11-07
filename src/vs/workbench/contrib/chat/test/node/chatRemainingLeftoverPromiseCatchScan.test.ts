@@ -22,8 +22,6 @@ const VOICE_REL = 'src/vs/workbench/contrib/chat/browser/voiceClient/voiceSessio
 const PICKER_REL = 'src/vs/workbench/contrib/chat/browser/widget/input/modelPicker/modelPickerWidget.ts';
 const SESSIONS_REL = 'src/vs/workbench/contrib/chat/browser/chatSessions/chatSessions.contribution.ts';
 const FIND_REL = 'src/vs/workbench/contrib/chat/browser/widget/chatFind/chatFindWidget.ts';
-const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
-const FILES_CONFIG_REL = 'src/vs/workbench/services/filesConfiguration/common/filesConfigurationService.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -36,13 +34,6 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-
-function assertDoubleChain(source: string, call: string, count: number): void {
-	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
 
 function countDouble(rel: string, call: string): number {
 	const source = fs.readFileSync(resolveSource(rel), 'utf8');
@@ -77,22 +68,6 @@ suite('Chat remaining leftover Promise fire-and-forget catch scan (D728)', () =>
 		assert.strictEqual(countDouble(FIND_REL, 'void this.updateResultCount()'), 3);
 	});
 
-	test('chatModelFeedbackSurvey leftover resolveConfig voids are double-chain', () => {
-		const source = fs.readFileSync(resolveSource(SURVEY_REL), 'utf8');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.ok(source.includes('private async resolveConfig(): Promise<void> {'));
-		assertDoubleChain(source, 'void this.resolveConfig()', 2);
-	});
-
-	test('extensionPromptFile leftover updateReadonly voids are double-chain', () => {
-		const source = fs.readFileSync(resolveSource(PROMPT_REL), 'utf8');
-		const filesConfig = fs.readFileSync(resolveSource(FILES_CONFIG_REL), 'utf8');
-		assert.ok(source.includes("import { CancellationError, isCancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';"));
-		assert.ok(filesConfig.includes('updateReadonly(resource: URI | URI[], readonly: true | IMarkdownString | false | \'toggle\' | \'reset\'): Promise<void> {'));
-		assertDoubleChain(source, 'void this.filesConfigService.updateReadonly(readonlyUris, true)', 1);
-		assertDoubleChain(source, 'void this.filesConfigService.updateReadonly(uris, true)', 1);
-	});
-
 	test('chatService leftover migrate sendRequest is double-chain; await sendRequest stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
 		const call = `void this.sendRequest(targetResource, pending.request.message.text, {
@@ -106,31 +81,6 @@ suite('Chat remaining leftover Promise fire-and-forget catch scan (D728)', () =>
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(source.includes('await this.sendRequest(sessionResource, message, { ...sendOptions, attachedContext, queue: target.kind });'));
 		assert.ok(!source.includes('await this.sendRequest(sessionResource, message, { ...sendOptions, attachedContext, queue: target.kind }).catch'));
-	});
-
-	test('voicePlayback leftover executeCommand is double-chain', () => {
-		const source = fs.readFileSync(resolveSource(PLAYBACK_REL), 'utf8');
-		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
-		const call = `void this.commandService.executeCommand('_chat.voicePlayback.stop', {
-			sessionId: sessionResource?.toString(),
-		})`;
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(commands.includes('executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;'));
-		assert.ok(source.includes(`${call}${doubleCatch};`));
-		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-	});
-
-	test('chatPet leftover executeCommand is double-chain', () => {
-		const source = fs.readFileSync(resolveSource(PET_REL), 'utf8');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertDoubleChain(source, 'void this.commandService.executeCommand(CHAT_PET_OPEN_ACHIEVEMENTS_COMMAND_ID)', 1);
-	});
-
-	test('chatListRenderer leftover executeCommand is double-chain', () => {
-		const source = fs.readFileSync(resolveSource(LIST_REL), 'utf8');
-		assert.ok(source.includes("import { canceledName, onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertDoubleChain(source, 'void this.commandService.executeCommand(CHAT_OPEN_AGENT_HOST_CHAT_COMMAND_ID, { chatResource })', 1);
 	});
 
 	test('opener / Action.run / two-arg then / welcome leftover / D679 stay skipped', () => {
