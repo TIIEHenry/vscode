@@ -7,7 +7,7 @@ import { getErrorMessage } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
 import { IExtensionStorageService } from '../../../../platform/extensionManagement/common/extensionStorage.js';
-import { FileSystemProviderError, FileSystemProviderErrorCode, IFileService } from '../../../../platform/files/common/files.js';
+import { FileOperationResult, IFileService, toFileOperationResult } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -60,7 +60,7 @@ export async function migrateExtensionStorage(fromExtensionId: string, toExtensi
 				try {
 					await fileService.move(fromPath, toPath, true);
 				} catch (error) {
-					if ((<FileSystemProviderError>error).code !== FileSystemProviderErrorCode.FileNotFound) {
+					if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
 						// Keep the source state and do not mark as migrated so the migration is retried
 						logService.info(`Error while migrating ${global ? 'global' : 'workspace'} file storage from '${fromExtensionId}' to '${toExtensionId}'`, getErrorMessage(error));
 						return;
