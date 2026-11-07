@@ -68,14 +68,14 @@ export class HasByokModelsContribution extends Disposable implements IWorkbenchC
 				this._extensionsRegistered = true;
 				this._update();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._languageModelsConfigurationService.whenReady.then(() => {
 			if (!this._store.isDisposed) {
 				this._configurationLoaded = true;
 				this._update();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		this._register(Event.any(
 			Event.filter(this._configurationService.onDidChangeConfiguration, e => e.affectsConfiguration(ChatAIDisabledSettingId)),

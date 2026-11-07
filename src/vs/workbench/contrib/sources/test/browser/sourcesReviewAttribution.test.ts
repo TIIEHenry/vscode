@@ -717,4 +717,88 @@ suite('Sources - review attribution', () => {
 		assert.strictEqual(chipMap.get(resource.toString())?.length, 1);
 		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
 	});
+
+	function workRoot(overrides: Partial<IAgentWorkRoot>): IAgentWorkRoot {
+		return {
+			sessionId: 'session-1',
+			engineIdentityId: 'eng',
+			workDir: undefined,
+			source: 'none',
+			access: 'none',
+			localRoot: undefined,
+			projectKey: undefined,
+			...overrides,
+		};
+	}
+
+	test('local work root attributes without a note', function () {
+		const sessionRoot = workspaceRootFor(this);
+		const resource = URI.joinPath(sessionRoot, 'src/a.ts');
+		const service = createService(this, {
+			workRoot: workRoot({ workDir: sessionRoot.fsPath, source: 'session', access: 'local', localRoot: sessionRoot }),
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+
+		assert.strictEqual(service.buildChipMapForEntries([{ resource }]).get(resource.toString())?.length, 1);
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
+	});
+
+	test('session without a work root explains why attribution is omitted', function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const service = createService(this, {
+			workRoot: workRoot({}),
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+
+		assert.strictEqual(service.buildChipMapForEntries([{ resource }]).size, 0);
+		assert.strictEqual(service.isAttributionEnabled(), false);
+		assert.strictEqual(service.getWorkDirMismatchNote(), 'This session has no work root; attribution is omitted.');
+	});
+
+	test('a single local folder without a workDir is still a session without a work root', function () {
+		const sessionRoot = workspaceRootFor(this);
+		const service = createService(this, {
+			workRoot: workRoot({ access: 'local', localRoot: sessionRoot }),
+		});
+
+		assert.strictEqual(service.getWorkDirMismatchNote(), 'This session has no work root; attribution is omitted.');
+	});
+
+	test('unreadable engine work root names the root in the note', function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const service = createService(this, {
+			workRoot: workRoot({ workDir: '/remote/project', source: 'session', access: 'none' }),
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+
+		assert.strictEqual(service.buildChipMapForEntries([{ resource, gitPath: 'src/a.ts' }]).size, 0);
+		assert.strictEqual(service.getWorkDirMismatchNote(), 'Engine work root `/remote/project` is not readable from this window; attribution is omitted.');
+	});
+
+	test('engine work root with local SCM rows says the list is local and unattributed', function () {
+		const localResource = toResource.call(this, '/project/src/a.ts');
+		const engineResource = sourcesGitUnrootedChangeResource('src/a.ts');
+		const service = createService(this, {
+			workRoot: workRoot({ workDir: '/remote/project', source: 'session', access: 'engine', projectKey: 'eng\n/remote/project' }),
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+
+		assert.strictEqual(service.buildChipMapForEntries([{ resource: localResource }]).size, 0);
+		assert.strictEqual(service.getWorkDirMismatchNote(), 'Engine work root `/remote/project` is not in this window; this list comes from local SCM and attribution is omitted.');
+
+		assert.strictEqual(service.buildChipMapForEntries([{ resource: engineResource, gitPath: 'src/a.ts' }]).size, 1);
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
+
+		service.buildChipMapForEntries([]);
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined, 'an empty list has nothing to attribute');
+	});
+
+	test('work root notes stay off before the engine ever connected', function () {
+		const service = createService(this, {
+			connected: false,
+			workRoot: workRoot({}),
+		});
+
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
+	});
 });

@@ -89,12 +89,6 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 const initCall = 'this._init(\n\t\t\teditorResolverService,\n\t\t\tembedderTerminalService,\n\t\t\tworkbenchEnvironmentService,\n\t\t\tlabelService,\n\t\t\tlifecycleService,\n\t\t\tterminalService,\n\t\t\tterminalEditorService,\n\t\t\tterminalGroupService,\n\t\t\tterminalInstanceService\n\t\t)';
 const refreshDefaultCall = 'this._refreshDefaultProfileName()';
 const refreshAvailableCall = 'this._refreshAvailableProfilesNow()';
@@ -109,8 +103,6 @@ const leftoverMoveCall = 'this.moveToTerminalView(sourceInstance, instance, e.si
 const leftoverNoArgIncludesCall = '\t\tthis._register(this.inputPatternIncludes.onChangeSearchInEditorsBox(() => this.triggerSearch()));\n';
 const leftoverNoArgExcludesCall = '\t\tthis._register(this.inputPatternExcludes.onChangeIgnoreBox(() => this.triggerSearch()));\n';
 const leftoverNoArgMessageCall = '() => this.triggerSearch()';
-const leftoverKillTermCall = "run: () => this.killProcess?.(pid, 'SIGTERM')";
-const leftoverKillKillCall = "run: () => this.killProcess?.(pid, 'SIGKILL')";
 const assignedRunQueueThenCall = 'this._runQueue = this._runQueue.then(() => this._run(iterator));';
 const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
 const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
@@ -133,17 +125,6 @@ const refreshCall = 'this.refresh()';
 const checkInstallCall = 'this.checkExtensionInstallation(context)';
 const selectUndefinedCall = 'this.selectConfiguration(undefined)';
 const launchCall = 'this.launchOrAttachToSession(session)';
-const updateCall = 'this.update()';
-const onTreeKeyDownCall = 'this.onTreeKeyDown(e)';
-const doUpdateCall = 'this._doUpdate()';
-const restartCall = 'this._restart()';
-
-const d867Calls: Array<[string, string, number]> = [
-	[PROCESS_EXPLORER_REL, updateCall, 2],
-	[PROCESS_EXPLORER_REL, onTreeKeyDownCall, 1],
-	[LANG_DETECT_REL, doUpdateCall, 1],
-	[EDIT_TELEMETRY_REL, restartCall, 1],
-];
 
 const d862AlreadyDouble: Array<[string, string, number]> = [
 	[MAIN_REL, initCall, 1],
@@ -210,58 +191,6 @@ suite('leftover remaining unused after D748 leftover remaining unused terminal l
 			d862Sites += count;
 		}
 		assert.strictEqual(d862Sites, 5);
-	});
-
-	test('this knife covers five leftover Promise double-chain sites after leftover remaining unused overflowed to leftover remaining unused processExplorer leftover remaining unused this.foo()', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d867Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 5);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(PROCESS_EXPLORER_REL) ?? ''), 3);
-		assert.strictEqual(countDoubleChains(seen.get(LANG_DETECT_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(EDIT_TELEMETRY_REL) ?? ''), 1);
-	});
-
-	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
-		const processExplorer = fs.readFileSync(resolveSource(PROCESS_EXPLORER_REL), 'utf8');
-		const langDetect = fs.readFileSync(resolveSource(LANG_DETECT_REL), 'utf8');
-		const editTelemetry = fs.readFileSync(resolveSource(EDIT_TELEMETRY_REL), 'utf8');
-		assertPromiseSignature(processExplorer, 'private async update(): Promise<void> {');
-		assertPromiseSignature(processExplorer, 'private async onTreeKeyDown(e: KeyboardEvent): Promise<void> {');
-		assertPromiseSignature(langDetect, 'private async _doUpdate(): Promise<void> {');
-		assertPromiseSignature(editTelemetry, 'async _restart(): Promise<void> {');
-		assert.ok(processExplorer.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(langDetect.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(editTelemetry.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(processExplorer, updateCall);
-		assertWrapped(processExplorer, onTreeKeyDownCall);
-		assertWrapped(langDetect, doUpdateCall);
-		assertWrapped(editTelemetry, restartCall);
-		assert.strictEqual(countIncludes(processExplorer, `${updateCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(processExplorer, `${onTreeKeyDownCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(langDetect, `${doUpdateCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(editTelemetry, `${restartCall}${doubleCatch}`), 1);
-		assert.ok(!processExplorer.includes('\t\tthis.update();\n'));
-		assert.ok(!processExplorer.includes('() => this.update());'));
-		assert.ok(!processExplorer.includes('e => this.onTreeKeyDown(e)));'));
-		assert.ok(!langDetect.includes('() => this._doUpdate());'));
-		assert.ok(!editTelemetry.includes('\t\tthis._restart();\n'));
-		assert.ok(processExplorer.includes(leftoverKillTermCall));
-		assert.ok(!processExplorer.includes(`${leftoverKillTermCall}${doubleCatch}`));
-		assert.ok(processExplorer.includes(leftoverKillKillCall));
-		assert.ok(!processExplorer.includes(`${leftoverKillKillCall}${doubleCatch}`));
-		assert.ok(editTelemetry.includes(assignedRunQueueThenCall));
-		assert.ok(!editTelemetry.includes(`${assignedRunQueueThenCall}${doubleCatch}`));
-		assert.ok(editTelemetry.includes('await this._restart();'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

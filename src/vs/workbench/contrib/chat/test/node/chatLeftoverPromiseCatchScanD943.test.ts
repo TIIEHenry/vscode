@@ -68,25 +68,11 @@ function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-const checkPromptCall = 'this._checkForPromptFiles(tip)';
-const tryUpdateCall = 'this.tryUpdateLiveSessionItem(model)';
-const updateAssocCall = 'this._updateAssociations()';
-const checkRecsCall = 'this._checkForRecommendedPlugins()';
 const implicitCall = 'this.updateImplicitContext()';
 const implicitWidgetCall = 'this.updateImplicitContext(widget)';
 const mcpDetailCall = 'this.showEmbeddedMcpDetail(server)';
@@ -148,13 +134,6 @@ const refreshCall = 'this.refresh()';
 const selectUndefinedCall = 'this.selectConfiguration(undefined)';
 const launchCall = 'this.launchOrAttachToSession(session)';
 
-const d943Calls: Array<[string, string, number]> = [
-	[TIP_REL, checkPromptCall, 3],
-	[LOCAL_REL, tryUpdateCall, 2],
-	[SHARED_REL, updateAssocCall, 2],
-	[RECS_REL, checkRecsCall, 1],
-];
-
 const d823AlreadyDouble: Array<[string, number]> = [
 	[implicitCall, 7],
 	[implicitWidgetCall, 1],
@@ -200,77 +179,6 @@ suite('leftover remaining unused chat leftover Promise fire-and-forget catch sca
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('leftover remaining unused chat leftover async this.foo() FOF still had four or more legal unused leftover sites after discarding collision overflow so this knife stayed', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d943Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			sites += wrapped;
-		}
-		assert.ok(sites >= 4, `expected leftover remaining unused chat legal leftover >=4 after discarding collision overflow, got ${sites}`);
-		assert.ok(sites <= 8);
-		assert.strictEqual(sites, 8);
-		for (const source of seen.values()) {
-			assert.ok(!source.includes('D943'));
-		}
-	});
-
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on chat this.foo() FOF', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d943Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 8);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(TIP_REL) ?? ''), 3);
-		assert.strictEqual(countDoubleChains(seen.get(LOCAL_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(SHARED_REL) ?? ''), 5);
-		assert.strictEqual(countDoubleChains(seen.get(RECS_REL) ?? ''), 1);
-	});
-
-	test('chat leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
-		const tip = fs.readFileSync(resolveSource(TIP_REL), 'utf8');
-		const local = fs.readFileSync(resolveSource(LOCAL_REL), 'utf8');
-		const shared = fs.readFileSync(resolveSource(SHARED_REL), 'utf8');
-		const recs = fs.readFileSync(resolveSource(RECS_REL), 'utf8');
-
-		assertPromiseSignature(tip, 'private async _checkForPromptFiles(tip: ITipExclusionConfig): Promise<void> {');
-		assertPromiseSignature(local, 'private async tryUpdateLiveSessionItem(model: IChatModel): Promise<void> {');
-		assertPromiseSignature(shared, 'private async _updateAssociations(): Promise<void> {');
-		assertPromiseSignature(recs, 'private async _checkForRecommendedPlugins(): Promise<void> {');
-
-		assert.ok(tip.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(local.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.ok(shared.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(recs.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-
-		assertWrapped(tip, checkPromptCall);
-		assertWrapped(local, tryUpdateCall);
-		assertWrapped(shared, updateAssocCall);
-		assertWrapped(recs, checkRecsCall);
-		assert.strictEqual(countIncludes(tip, `${checkPromptCall}${doubleCatch}`), 3);
-		assert.strictEqual(countIncludes(local, `${tryUpdateCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(shared, `${updateAssocCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(recs, `${checkRecsCall}${doubleCatch}`), 1);
-		assert.ok(!tip.includes('\t\t\tthis._checkForPromptFiles(tip);\n'));
-		assert.ok(!tip.includes('\t\t\t\t\tthis._checkForPromptFiles(tip);\n'));
-		assert.ok(!local.includes('\t\t\tthis.tryUpdateLiveSessionItem(model);\n'));
-		assert.ok(!local.includes('\t\t\t\tthis.tryUpdateLiveSessionItem(model);\n'));
-		assert.ok(!shared.includes('\t\tthis._updateAssociations();\n'));
-		assert.ok(!shared.includes('\t\t\t\tthis._updateAssociations();\n'));
-		assert.ok(!recs.includes('\t\t\t\tthis._checkForRecommendedPlugins();\n'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

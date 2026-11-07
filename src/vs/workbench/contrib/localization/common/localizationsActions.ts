@@ -62,7 +62,7 @@ export class ConfigureDisplayLanguageAction extends Action2 {
 				];
 			}
 			qp.busy = false;
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		disposables.add(qp.onDidAccept(async () => {
 			const selectedLanguage = qp.activeItems[0] as ILanguagePackItem | undefined;

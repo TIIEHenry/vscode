@@ -859,7 +859,12 @@ export class McpServer extends Disposable implements IMcpServer {
 					}
 
 					const r = await this._elicitationService.elicit(this, Iterable.first(this.runningToolCalls), req, token || CancellationToken.None);
-					r.dispose();
+					if (r.kind === ElicitationKind.URL && r.value.action === 'accept') {
+						// The server sends notifications/elicitation/complete only after receiving our response
+						r.wait.then(() => r.dispose(), () => r.dispose());
+					} else {
+						r.dispose();
+					}
 					return r.value;
 				}
 			});

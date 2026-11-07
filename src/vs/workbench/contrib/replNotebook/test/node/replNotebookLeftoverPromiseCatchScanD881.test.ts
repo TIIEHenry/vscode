@@ -70,10 +70,6 @@ function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
@@ -135,13 +131,6 @@ const onTreeKeyDownCall = 'this.onTreeKeyDown(e)';
 const doUpdateCall = 'this._doUpdate()';
 const restartCall = 'this._restart()';
 
-const d881Calls: Array<[string, string, number]> = [
-	[REPL_CONTRIB_REL, installCall, 1],
-	[REPL_EDITOR_REL, setOptionsInputCall, 1],
-	[REPL_EDITOR_REL, setOptionsOverrideCall, 1],
-	[REPL_INPUT_REL, revertCall, 1],
-];
-
 const d792AlreadyDouble: Array<[string, string, number]> = [
 	[INTERACTIVE_CONTRIB_REL, installCall, 1],
 	[INTERACTIVE_INPUT_REL, interactiveRevertCall, 1],
@@ -157,52 +146,6 @@ suite('leftover remaining unused after D792 leftover remaining unused replNotebo
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('leftover remaining unused after D792 leftover remaining unused replNotebook leftover remaining unused after discarding collision overflow still had four or more legal unused leftover sites so this knife stayed on replNotebook leftover remaining unused', () => {
-		const contrib = fs.readFileSync(resolveSource(REPL_CONTRIB_REL), 'utf8');
-		const editor = fs.readFileSync(resolveSource(REPL_EDITOR_REL), 'utf8');
-		const input = fs.readFileSync(resolveSource(REPL_INPUT_REL), 'utf8');
-		const a11y = fs.readFileSync(resolveSource(REPL_A11Y_REL), 'utf8');
-		assert.ok(contrib.includes(`${installCall}${doubleCatch}`));
-		assert.ok(editor.includes(`${setOptionsInputCall}${doubleCatch}`));
-		assert.ok(editor.includes(`${setOptionsOverrideCall}${doubleCatch}`));
-		assert.ok(input.includes(`${revertCall}${doubleCatch}`));
-		assert.ok(!a11y.includes(doubleCatch));
-		let leftoverRemainingUnusedLegal = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d881Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			leftoverRemainingUnusedLegal += count;
-		}
-		assert.ok(leftoverRemainingUnusedLegal >= 4, `expected leftover remaining unused replNotebook legal leftover >=4 after discarding collision overflow, got ${leftoverRemainingUnusedLegal}`);
-		assert.ok(leftoverRemainingUnusedLegal <= 8);
-		assert.ok(!contrib.includes('D881'));
-		assert.ok(!editor.includes('D881'));
-		assert.ok(!input.includes('D881'));
-		assert.ok(!a11y.includes('D881'));
-	});
-
-	test('this knife covers four leftover Promise double-chain sites after leftover remaining unused stayed on replNotebook leftover remaining unused this.foo()', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d881Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 4);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(REPL_CONTRIB_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(REPL_EDITOR_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(REPL_INPUT_REL) ?? ''), 1);
 	});
 
 	test('leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {

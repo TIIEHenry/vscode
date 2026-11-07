@@ -120,7 +120,7 @@ function setupPicker(store: Pick<ReturnType<typeof ensureNoDisposablesAreLeakedI
 suite('AgentHostCodexApprovalsPicker', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('does not leak unhandled rejection when Learn more opener rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when Learn more opener rejects and onUnexpectedError logs it', async () => {
 		const { actionWidgetItems, onSelect, provider, getOpenCalls } = setupPicker(store);
 		const learnMoreItem = actionWidgetItems.at(-1)?.item;
 		const select = onSelect();
@@ -134,9 +134,6 @@ suite('AgentHostCodexApprovalsPicker', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			select(learnMoreItem);
@@ -149,7 +146,7 @@ suite('AgentHostCodexApprovalsPicker', () => {
 			}, {
 				unhandledRejections: [],
 				openCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 				setCalls: [],
 			});
 		} finally {

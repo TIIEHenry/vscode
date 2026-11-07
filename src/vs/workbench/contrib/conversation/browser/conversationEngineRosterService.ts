@@ -288,7 +288,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			if (!this.shouldAdvertiseClientWorkspaceTools()) {
 				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
 			}
-			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshEngineCatalog().catch(onUnexpectedError);
 		} else {
 			this.listCompleted = this.engineSessions.length > 0;
 		}
@@ -511,7 +511,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 						action: 'createSession',
 						error,
 					});
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 				return '';
 			case 'stub':
 				return this.stub.createSession();
@@ -553,7 +553,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 		return this.stub.getSessionGoal(sessionId);
 	}
 
-	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string; anchorTurnId?: string }): boolean {
 		return this.routeRosterBooleanWrite(
 			callRemote => this.forkEngineSubAgent(sessionId, options, callRemote),
 			() => this.stub.forkSubAgent(sessionId, options),
@@ -1134,7 +1134,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 
 	private forkEngineSubAgent(
 		sessionId: string,
-		options: { name?: string; task?: string; parentAgentId?: string } | undefined,
+		options: { name?: string; task?: string; parentAgentId?: string; anchorTurnId?: string } | undefined,
 		callRemote: boolean,
 	): boolean {
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
@@ -1147,6 +1147,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			const parentAgentId = options?.parentAgentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
 			const name = options?.name?.trim();
 			const task = options?.task?.trim();
+			const anchorTurnId = options?.anchorTurnId?.trim();
 			this.dispatchEngineAction(sessionId, 'forkAgent', this.wrapEngineQueueMutation(
 				'forkAgent',
 				() => this.uaConnection.forkAgent!({
@@ -1154,6 +1155,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 					parentAgentId,
 					...(name ? { name } : {}),
 					...(task ? { task } : {}),
+					...(anchorTurnId ? { anchorTurnId } : {}),
 				}),
 			));
 			return true;
@@ -1420,7 +1422,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			if (!pending) {
 				return false;
 			}
-			void pending.catch(onUnexpectedError).catch(onUnexpectedError);
+			void pending.catch(onUnexpectedError);
 			return true;
 		}
 		return false;
@@ -1804,7 +1806,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			}
 			this.testEngineConnected = undefined;
 			this.stub.setEngineConnected(true);
-			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshEngineCatalog().catch(onUnexpectedError);
 		} else {
 			this.connectionGeneration++;
 			this.captureEngineCache();
@@ -1883,9 +1885,9 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 		this.emitLiveAgentTreeFromLease(lease);
 		this.publishRosterDetailIfChanged(lease.sessionId);
 		if (pendingBind) {
-			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError);
 		} else {
-			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration).catch(onUnexpectedError);
 		}
 	}
 

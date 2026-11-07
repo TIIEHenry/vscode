@@ -2365,7 +2365,7 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceModeStopped, {
 				source: 'voiceMode.disconnect',
 				userGesture: true,
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 
@@ -3082,7 +3082,7 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 		void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStopped, {
 			source: userGesture ? 'voiceMode.explicitListeningStopped' : 'voiceMode.listeningStopped',
 			userGesture,
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	markUserCancelled(sessionId: string): void {
@@ -3292,14 +3292,14 @@ export class VoiceSessionController extends Disposable implements IVoiceSessionC
 			void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceModeStarted, {
 				source: 'voiceMode.connectListeningStarted',
 				userGesture: true,
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			return;
 		}
 
 		void this.accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStarted, {
 			source: 'voiceMode.explicitListeningStarted',
 			userGesture: true,
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	/**

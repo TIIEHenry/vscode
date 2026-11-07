@@ -39,7 +39,7 @@ export class InlineChatNotebookContribution {
 						// cancel all sibling sessions
 						for (const editor of editors) {
 							if (editor !== newSessionEditor) {
-								void InlineChatController.get(editor)?.acceptSession().catch(onUnexpectedError).catch(onUnexpectedError);
+								void InlineChatController.get(editor)?.acceptSession().catch(onUnexpectedError);
 							}
 						}
 						break;

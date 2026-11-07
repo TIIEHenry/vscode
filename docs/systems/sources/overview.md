@@ -47,6 +47,7 @@ Changes 勾选是当前可写叶子的选择状态，文件为布尔值，目录
 | Changes/Review 首拉 `readGit*` throw | 没有旧条目时空区写 `Unable to read git changes: …`，**不**写 `No changes.` / `No changes to review.`，底栏状态行不重复同一句、Commit 行也收起；已有旧条目时错误留在底栏失败色 + `role=status`，列表照旧 |
 | 无 SCM 提供者 | Changes / Review 空列表；不造假变更。Commit 在引擎回 `supported:false` 或没有可用写 hook 时写 `Git stage/commit commands are not available.`，不写「Unable to commit」 |
 | Review | 有变更时 hint `Review progress stays in this window.`；无仓库时只留空态、不画 hint；**无假 review comment** |
+| Review 归因省略（PRD-023.4；从未连上引擎时不写） | 会话工作根模式下：没有工作根写 `This session has no work root; attribution is omitted.`；工作根本窗口读不到写 ``Engine work root `{0}` is not readable from this window; attribution is omitted.``；工作根只在引擎侧而列表是本地 SCM 行（没有 `gitPath`）写 ``Engine work root `{0}` is not in this window; this list comes from local SCM and attribution is omitted.``。本地根或引擎行可归因时不写。无工作根钩子时仍是 connection `workDir` 与工作区不同的旧说明 |
 
 ## 4. 边界
 

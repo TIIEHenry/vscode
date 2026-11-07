@@ -71,7 +71,7 @@ class PromptValidatorContribution extends Disposable {
 		super();
 		this.validator = instantiationService.createInstance(PromptValidator);
 
-		void this.updateRegistration().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.updateRegistration().catch(onUnexpectedError);
 	}
 
 	async updateRegistration(): Promise<void> {
@@ -186,7 +186,7 @@ class ModelTracker extends Disposable {
 			if (!this._store.isDisposed && generation === this.validateGeneration) {
 				this.markerService.changeOne(MARKERS_OWNER_ID, this.textModel.uri, markers);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	public override dispose() {

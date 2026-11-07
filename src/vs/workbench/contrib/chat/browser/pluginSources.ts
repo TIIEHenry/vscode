@@ -527,7 +527,7 @@ export abstract class AbstractPackagePluginSource implements IPluginSource {
 				}
 				this._logService.warn(`[${this.kind}] Terminal command completion timed out`);
 				resolveAndDispose(undefined);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		});
 	}
 }

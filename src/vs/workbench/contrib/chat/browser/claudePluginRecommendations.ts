@@ -29,7 +29,7 @@ export class AgentPluginRecommendations extends Disposable implements IWorkbench
 		this._register(this._chatService.onDidSubmitRequest(() => {
 			if (!this._hasNotified) {
 				this._hasNotified = true;
-				this._checkForRecommendedPlugins().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._checkForRecommendedPlugins().catch(onUnexpectedError);
 			}
 		}));
 	}

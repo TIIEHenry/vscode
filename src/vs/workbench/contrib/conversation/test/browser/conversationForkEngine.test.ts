@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
-import { conversationForkEngineDisconnectedCopy, tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
+import { LocalChatSessionUri } from '../../../chat/common/model/chatUri.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
+import { conversationForkEngineDisconnectedCopy, resolveConversationEngineForkSessionId, tryConnectedEngineFork, tryConnectedEngineForkForSource } from '../../browser/conversationForkEngine.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
 
@@ -32,7 +35,7 @@ suite('conversationForkEngine', () => {
 			},
 		} as unknown as INotificationService;
 
-		const outcome = await tryConnectedEngineFork(roster, notificationService);
+		const outcome = await tryConnectedEngineFork(roster, 's1', notificationService);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.forked, false);
@@ -63,7 +66,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: false }),
 		};
 
-		const outcome = await tryConnectedEngineFork(roster, notificationService, ua);
+		const outcome = await tryConnectedEngineFork(roster, 's1', notificationService, ua);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.forked, true);
@@ -90,7 +93,7 @@ suite('conversationForkEngine', () => {
 		} as unknown as INotificationService;
 
 		let outcome: Awaited<ReturnType<typeof tryConnectedEngineFork>> | undefined;
-		const pending = tryConnectedEngineFork(roster, notificationService).then(next => {
+		const pending = tryConnectedEngineFork(roster, 's1', notificationService).then(next => {
 			outcome = next;
 			return next;
 		});
@@ -112,7 +115,7 @@ suite('conversationForkEngine', () => {
 			whenDispatchedEngineActionSettles: async () => false,
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -134,7 +137,7 @@ suite('conversationForkEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -159,7 +162,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: true }),
 		};
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -193,7 +196,7 @@ suite('conversationForkEngine', () => {
 		assert.strictEqual(ua.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(ua), false);
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -214,7 +217,7 @@ suite('conversationForkEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryConnectedEngineFork(roster, { error() { } } as unknown as INotificationService);
+		const outcome = await tryConnectedEngineFork(roster, 's1', { error() { } } as unknown as INotificationService);
 
 		assert.deepStrictEqual(outcome, { handled: false, forked: false });
 	});
@@ -234,7 +237,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: false }),
 		};
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -259,7 +262,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: true }),
 		};
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -285,7 +288,7 @@ suite('conversationForkEngine', () => {
 			getConnectionSnapshot: () => ({ pairingPending: true }),
 		};
 
-		const outcome = await tryConnectedEngineFork(roster, {
+		const outcome = await tryConnectedEngineFork(roster, 's1', {
 			error(message: string | Error) {
 				errors.push(typeof message === 'string' ? message : message.message);
 			},
@@ -293,5 +296,104 @@ suite('conversationForkEngine', () => {
 
 		assert.deepStrictEqual(outcome, { handled: false, forked: false });
 		assert.deepStrictEqual(errors, []);
+	});
+
+	test('connected fork forwards trimmed anchorTurnId to forkSubAgent', async () => {
+		const forkCalls: { sessionId: string; options: unknown }[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent(sessionId: string, options?: unknown) {
+				forkCalls.push({ sessionId, options });
+				return true;
+			},
+		} as unknown as IConversationRosterService;
+
+		const outcome = await tryConnectedEngineFork(roster, 's1', { error() { } } as unknown as INotificationService, undefined, { anchorTurnId: '  turn-7  ' });
+
+		assert.deepStrictEqual(outcome, { handled: true, forked: true });
+		assert.deepStrictEqual(forkCalls, [{ sessionId: 's1', options: { anchorTurnId: 'turn-7' } }]);
+	});
+
+	test('connected fork without anchor passes no fork options', async () => {
+		const forkCalls: { sessionId: string; argCount: number }[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 's1',
+			forkSubAgent(sessionId: string, ...rest: unknown[]) {
+				forkCalls.push({ sessionId, argCount: rest.length });
+				return true;
+			},
+		} as unknown as IConversationRosterService;
+		const notificationService = { error() { } } as unknown as INotificationService;
+
+		await tryConnectedEngineFork(roster, 's1', notificationService);
+		await tryConnectedEngineFork(roster, 's1', notificationService, undefined, { anchorTurnId: '   ' });
+
+		assert.deepStrictEqual(forkCalls, [
+			{ sessionId: 's1', argCount: 0 },
+			{ sessionId: 's1', argCount: 0 },
+		]);
+	});
+
+	function connectedForkRoster(forkCalls: string[]): IConversationRosterService {
+		return {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			getActiveSessionId: () => 'active',
+			getSessions: () => [{ id: 'active', title: 'Active', turns: [] }, { id: 'other', title: 'Other', turns: [] }],
+			forkSubAgent(sessionId: string) {
+				forkCalls.push(sessionId);
+				return true;
+			},
+		} as unknown as IConversationRosterService;
+	}
+
+	test('engine fork forks the given session, not the active one', async () => {
+		const forkCalls: string[] = [];
+		const outcome = await tryConnectedEngineFork(connectedForkRoster(forkCalls), 'other', { error() { } } as unknown as INotificationService);
+
+		assert.deepStrictEqual(outcome, { handled: true, forked: true });
+		assert.deepStrictEqual(forkCalls, ['other']);
+	});
+
+	test('only a conversation chat resource of a roster session resolves to an engine fork target', () => {
+		const roster = connectedForkRoster([]);
+
+		assert.strictEqual(resolveConversationEngineForkSessionId(roster, getConversationChatResource('other', 'default')), 'other');
+		assert.strictEqual(resolveConversationEngineForkSessionId(roster, getConversationChatResource('other', 'fork-1')), 'other');
+		assert.strictEqual(resolveConversationEngineForkSessionId(roster, getConversationChatResource('missing', 'default')), undefined);
+		assert.strictEqual(resolveConversationEngineForkSessionId(roster, URI.parse('agent-host-copilot:/active')), undefined);
+		assert.strictEqual(resolveConversationEngineForkSessionId(roster, LocalChatSessionUri.forSession('active')), undefined);
+	});
+
+	test('connected fork from a Chat contributed session leaves the roster alone', async () => {
+		const forkCalls: string[] = [];
+		const errors: unknown[] = [];
+		const outcome = await tryConnectedEngineForkForSource(
+			connectedForkRoster(forkCalls),
+			{ error(message: unknown) { errors.push(message); } } as unknown as INotificationService,
+			undefined,
+			URI.parse('agent-host-copilot:/fork-source'),
+		);
+
+		assert.deepStrictEqual(outcome, { handled: false, forked: false });
+		assert.deepStrictEqual(forkCalls, []);
+		assert.deepStrictEqual(errors, []);
+	});
+
+	test('connected fork from a roster conversation resource forks that session', async () => {
+		const forkCalls: string[] = [];
+		const outcome = await tryConnectedEngineForkForSource(
+			connectedForkRoster(forkCalls),
+			{ error() { } } as unknown as INotificationService,
+			undefined,
+			getConversationChatResource('other', 'default'),
+		);
+
+		assert.deepStrictEqual(outcome, { handled: true, forked: true });
+		assert.deepStrictEqual(forkCalls, ['other']);
 	});
 });

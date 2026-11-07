@@ -270,16 +270,16 @@ export class PromptFilesLocator {
 		};
 		disposables.add(this.configService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(key) || e.affectsConfiguration(PromptsConfig.USE_CUSTOMIZATIONS_IN_PARENT_REPOS)) {
-				void update().catch(onUnexpectedError).catch(onUnexpectedError);
+				void update().catch(onUnexpectedError);
 				eventEmitter.fire();
 			}
 		}));
 		disposables.add(this.onDidChangeWorkspaceFolders()(() => {
-			void update().catch(onUnexpectedError).catch(onUnexpectedError);
+			void update().catch(onUnexpectedError);
 			eventEmitter.fire();
 		}));
 		disposables.add(this.workspaceTrustManagementService.onDidChangeTrustedFolders(() => {
-			void update().catch(onUnexpectedError).catch(onUnexpectedError);
+			void update().catch(onUnexpectedError);
 			eventEmitter.fire();
 		}));
 		disposables.add(this.fileService.onDidFilesChange(e => {
@@ -294,7 +294,7 @@ export class PromptFilesLocator {
 		}));
 		disposables.add(this.fileService.watch(userDataFolder));
 
-		void update().catch(onUnexpectedError).catch(onUnexpectedError);
+		void update().catch(onUnexpectedError);
 
 		return { event: eventEmitter.event, dispose: () => disposables.dispose() };
 	}
@@ -358,7 +358,7 @@ export class PromptFilesLocator {
 		};
 
 		const refresh = () => {
-			void updateWatchers().catch(onUnexpectedError).catch(onUnexpectedError);
+			void updateWatchers().catch(onUnexpectedError);
 			eventEmitter.fire();
 		};
 
@@ -401,7 +401,7 @@ export class PromptFilesLocator {
 			}
 		}));
 
-		void updateWatchers().catch(onUnexpectedError).catch(onUnexpectedError);
+		void updateWatchers().catch(onUnexpectedError);
 
 		return { event: eventEmitter.event, dispose: () => disposables.dispose() };
 	}

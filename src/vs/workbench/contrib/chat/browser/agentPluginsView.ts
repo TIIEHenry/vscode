@@ -278,7 +278,7 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 	private _showGeneration = 0;
 	private readonly refreshOnPluginsChangedScheduler = this._register(new RunOnceScheduler(() => {
 		if (this.list) {
-			void this.show(this.currentQuery).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.show(this.currentQuery).catch(onUnexpectedError);
 		}
 	}, 0));
 	private bodyTemplate: {
@@ -363,7 +363,7 @@ export class AgentPluginsListView extends AbstractExtensionsListView<IAgentPlugi
 			void this.editorService.openEditor(
 				this.instantiationService.createInstance(AgentPluginEditorInput, options.element!),
 				options.editorOptions
-			).catch(onUnexpectedError).catch(onUnexpectedError);
+			).catch(onUnexpectedError);
 		}));
 	}
 

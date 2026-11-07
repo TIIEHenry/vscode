@@ -80,8 +80,6 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
-const updateCall = 'this.updateImplicitContext()';
-const updateWidgetCall = 'this.updateImplicitContext(widget)';
 const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
 const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
 const autoUpdateCall = 'this.autoUpdateBuiltinExtensions()';
@@ -91,11 +89,6 @@ const updateRunningCall = 'this.updateRunningExtensions()';
 const syncGalleryFirstPageCall = 'this.syncInstalledExtensionsWithGallery(pager.firstPage)';
 const syncGalleryPageCall = 'this.syncInstalledExtensionsWithGallery(page)';
 const syncGalleryExtsCall = 'this.syncInstalledExtensionsWithGallery(galleryExtensions)';
-
-const d823Calls: Array<[string, string, number]> = [
-	[IMPLICIT_REL, updateCall, 7],
-	[IMPLICIT_REL, updateWidgetCall, 1],
-];
 
 suite('unused leftover remaining after D820 moved to chatImplicitContext leftover Promise fire-and-forget catch scan (D823)', () => {
 
@@ -128,38 +121,6 @@ suite('unused leftover remaining after D820 moved to chatImplicitContext leftove
 		assert.ok(!folding.includes('D823'));
 		assert.ok(!inlayHints.includes('D823'));
 		assert.ok(!languageStatus.includes('D823'));
-	});
-
-	test('this knife covers eight leftover Promise double-chain sites after unused leftover remaining after D820 moved', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d823Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 8);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(IMPLICIT_REL) ?? ''), 8);
-	});
-
-	test('chatImplicitContext leftover updateImplicitContext leftover void promises are Promise/async + double-chain', () => {
-		const implicit = fs.readFileSync(resolveSource(IMPLICIT_REL), 'utf8');
-		assertPromiseSignature(implicit, 'private async updateImplicitContext(updateWidget?: IChatWidget): Promise<void> {');
-		assert.ok(implicit.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(implicit, updateCall);
-		assertWrapped(implicit, updateWidgetCall);
-		assert.strictEqual(countIncludes(implicit, `${updateCall}${doubleCatch}`), 7);
-		assert.strictEqual(countIncludes(implicit, `${updateWidgetCall}${doubleCatch}`), 1);
-		assert.ok(!implicit.includes('\t\t\t\t\t\t500)(() => this.updateImplicitContext()));\n'));
-		assert.ok(!implicit.includes('\t\t\t\t\t\tthis.updateImplicitContext();\n'));
-		assert.ok(!implicit.includes('\t\t\t\tthis.updateImplicitContext();\n'));
-		assert.ok(!implicit.includes('\t\t\tthis.updateImplicitContext();\n'));
-		assert.ok(!implicit.includes('\t\t\tawait this.updateImplicitContext(widget);\n'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

@@ -18,21 +18,6 @@ const WIDGETS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWidge
 const CONTRIB_REL = 'src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts';
 const ACTIONS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsActions.ts';
 const NOTIFICATION_REL = 'src/vs/workbench/services/notification/common/notificationService.ts';
-const PROGRESS_REL = 'src/vs/workbench/services/progress/browser/progressService.ts';
-const USER_DATA_REL = 'src/vs/workbench/services/userData/browser/userDataInit.ts';
-const TEXT_RES_REL = 'src/vs/workbench/services/textresourceProperties/common/textResourcePropertiesService.ts';
-const SECRETS_REL = 'src/vs/workbench/services/secrets/electron-browser/secretStorageService.ts';
-const INTEGRITY_REL = 'src/vs/workbench/services/integrity/electron-browser/integrityService.ts';
-const LABEL_REL = 'src/vs/workbench/services/label/common/labelService.ts';
-const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts';
-const POLICY_REL = 'src/vs/workbench/contrib/policyExport/electron-browser/policyExport.contribution.ts';
-const QUICKACCESS_REL = 'src/vs/workbench/contrib/quickaccess/browser/commandsQuickAccess.ts';
-const THEMES_TEST_REL = 'src/vs/workbench/contrib/themes/browser/themes.test.contribution.ts';
-const LIFECYCLE_REL = 'src/vs/workbench/services/lifecycle/electron-browser/lifecycleService.ts';
-const USER_ACTIVITY_REL = 'src/vs/workbench/services/userActivity/common/userActivityService.ts';
-const CAROUSEL_REL = 'src/vs/workbench/contrib/imageCarousel/browser/imageCarouselEditor.ts';
-const TYPE_CONTRIB_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchy.contribution.ts';
-const CALL_CONTRIB_REL = 'src/vs/workbench/contrib/callHierarchy/browser/callHierarchy.contribution.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -208,58 +193,4 @@ suite('notification leftover remaining moved to extensionsWorkbench leftover Pro
 		}
 	});
 
-	test('D815 leftover remaining already-double stays already-double; loopCheck / openView leftover remaining stay leftover remaining; this knife did not overflow into dirty leftover modules', () => {
-		const workbench = fs.readFileSync(resolveSource(WORKBENCH_SVC_REL), 'utf8');
-		const viewlet = fs.readFileSync(resolveSource(VIEWLET_REL), 'utf8');
-		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
-		const typeContrib = fs.readFileSync(resolveSource(TYPE_CONTRIB_REL), 'utf8');
-		const callContrib = fs.readFileSync(resolveSource(CALL_CONTRIB_REL), 'utf8');
-		const carousel = fs.readFileSync(resolveSource(CAROUSEL_REL), 'utf8');
-		const notification = fs.readFileSync(resolveSource(NOTIFICATION_REL), 'utf8');
-		const progress = fs.readFileSync(resolveSource(PROGRESS_REL), 'utf8');
-		const userData = fs.readFileSync(resolveSource(USER_DATA_REL), 'utf8');
-		const textRes = fs.readFileSync(resolveSource(TEXT_RES_REL), 'utf8');
-		const secrets = fs.readFileSync(resolveSource(SECRETS_REL), 'utf8');
-		const integrity = fs.readFileSync(resolveSource(INTEGRITY_REL), 'utf8');
-		const label = fs.readFileSync(resolveSource(LABEL_REL), 'utf8');
-		const tasks = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
-		const policy = fs.readFileSync(resolveSource(POLICY_REL), 'utf8');
-		const quickaccess = fs.readFileSync(resolveSource(QUICKACCESS_REL), 'utf8');
-		const themes = fs.readFileSync(resolveSource(THEMES_TEST_REL), 'utf8');
-		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
-		const userActivity = fs.readFileSync(resolveSource(USER_ACTIVITY_REL), 'utf8');
-
-		assert.ok(workbench.includes(`${enabledAutoCheckCall}${singleCatch}`));
-		assert.ok(!workbench.includes(`${enabledAutoCheckCall}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(workbench), 0);
-		assert.strictEqual(countDoubleChains(viewlet), 0);
-		assert.strictEqual(countDoubleChains(widgets), 0);
-		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
-		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
-		assert.ok(widgets.includes(`${openViewThenCall};`));
-		assert.ok(!widgets.includes(`${openViewThenCall}${doubleCatch}`));
-		assert.ok(typeContrib.includes(doubleCatch));
-		assert.ok(callContrib.includes(doubleCatch));
-		assert.ok(carousel.includes(`this.updateCurrentImage()${doubleCatch}`));
-
-		for (const [rel, source] of [
-			[NOTIFICATION_REL, notification],
-			[PROGRESS_REL, progress],
-			[USER_DATA_REL, userData],
-			[TEXT_RES_REL, textRes],
-			[SECRETS_REL, secrets],
-			[INTEGRITY_REL, integrity],
-			[LABEL_REL, label],
-			[TASKS_REL, tasks],
-			[POLICY_REL, policy],
-			[QUICKACCESS_REL, quickaccess],
-			[THEMES_TEST_REL, themes],
-			[LIFECYCLE_REL, lifecycle],
-			[USER_ACTIVITY_REL, userActivity],
-		] as const) {
-			assert.ok(!source.includes('D819'), `${rel} should not mention D819`);
-		}
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/notification/test/node/notificationLeftoverPromiseCatchScanD819.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/policyExport/test/node/unusedLeftoverPromiseCatchScanD819.test.ts')));
-	});
 });

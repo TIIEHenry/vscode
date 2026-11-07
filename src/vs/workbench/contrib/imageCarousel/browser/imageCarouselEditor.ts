@@ -210,13 +210,13 @@ export class ImageCarouselEditor extends EditorPane {
 		this._contentDisposables.add(addDisposableListener(this._elements.prevBtn, 'click', () => {
 			if (this._currentIndex > 0) {
 				this._currentIndex--;
-				this.updateCurrentImage().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateCurrentImage().catch(onUnexpectedError);
 			}
 		}));
 		this._contentDisposables.add(addDisposableListener(this._elements.nextBtn, 'click', () => {
 			if (this._currentIndex < this._flatImages.length - 1) {
 				this._currentIndex++;
-				this.updateCurrentImage().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateCurrentImage().catch(onUnexpectedError);
 			}
 		}));
 
@@ -372,7 +372,7 @@ export class ImageCarouselEditor extends EditorPane {
 
 				this._contentDisposables.add(addDisposableListener(btn, 'click', () => {
 					this._currentIndex = currentFlatIndex;
-					this.updateCurrentImage().catch(onUnexpectedError).catch(onUnexpectedError);
+					this.updateCurrentImage().catch(onUnexpectedError);
 				}));
 
 				this._elements.sectionsContainer.appendChild(btn);
@@ -384,7 +384,7 @@ export class ImageCarouselEditor extends EditorPane {
 		this._container.appendChild(elements.root);
 
 		// Set initial image
-		this.updateCurrentImage().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.updateCurrentImage().catch(onUnexpectedError);
 	}
 
 	/**
@@ -599,7 +599,7 @@ window.addEventListener("message",function(e){var m=e.data;if(m.type==="loadVide
 						const img = new Image();
 						img.src = url;
 						img.decode().catch(() => { /* invalid image */ });
-					}).catch(onUnexpectedError).catch(onUnexpectedError);
+					}).catch(onUnexpectedError);
 				}
 			}
 		}
@@ -608,14 +608,14 @@ window.addEventListener("message",function(e){var m=e.data;if(m.type==="loadVide
 	previous(): void {
 		if (this._currentIndex > 0) {
 			this._currentIndex--;
-			this.updateCurrentImage().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateCurrentImage().catch(onUnexpectedError);
 		}
 	}
 
 	next(): void {
 		if (this._currentIndex < this._flatImages.length - 1) {
 			this._currentIndex++;
-			this.updateCurrentImage().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateCurrentImage().catch(onUnexpectedError);
 		}
 	}
 

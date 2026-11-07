@@ -620,7 +620,7 @@ export class MarkerViewModel extends Disposable {
 	}
 
 	showLightBulb(): void {
-		void this.setQuickFixes(true).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.setQuickFixes(true).catch(onUnexpectedError);
 	}
 
 	private async setQuickFixes(waitForModel: boolean): Promise<void> {

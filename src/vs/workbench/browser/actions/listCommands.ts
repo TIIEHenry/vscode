@@ -518,7 +518,7 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 						}
 					}
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 });

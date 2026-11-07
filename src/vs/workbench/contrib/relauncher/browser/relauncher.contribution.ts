@@ -226,8 +226,8 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
 				isNative ?
 					localize({ key: 'restart', comment: ['&& denotes a mnemonic'] }, "&&Restart") :
 					localize({ key: 'restartWeb', comment: ['&& denotes a mnemonic'] }, "&&Reload"),
-				() => this.hostService.restart().catch(onUnexpectedError).catch(onUnexpectedError)
-			).catch(onUnexpectedError).catch(onUnexpectedError);
+				() => this.hostService.restart().catch(onUnexpectedError)
+			).catch(onUnexpectedError);
 		}
 	}
 
@@ -292,11 +292,11 @@ export class WorkspaceChangeExtHostRelauncher extends Disposable implements IWor
 			}
 
 			if (environmentService.remoteAuthority) {
-				hostService.reload().catch(onUnexpectedError).catch(onUnexpectedError); // TODO@aeschli, workaround
+				hostService.reload().catch(onUnexpectedError); // TODO@aeschli, workaround
 			} else if (isNative) {
 				const stopped = await extensionService.stopExtensionHosts(localize('restartExtensionHost.reason', "Changing workspace folders"));
 				if (stopped) {
-					extensionService.startExtensionHosts().catch(onUnexpectedError).catch(onUnexpectedError);
+					extensionService.startExtensionHosts().catch(onUnexpectedError);
 				}
 			}
 		}, 10));
@@ -306,7 +306,7 @@ export class WorkspaceChangeExtHostRelauncher extends Disposable implements IWor
 				this.firstFolderResource = workspace.folders.length > 0 ? workspace.folders[0].uri : undefined;
 				this.handleWorkbenchState();
 				this._register(this.contextService.onDidChangeWorkbenchState(() => setTimeout(() => this.handleWorkbenchState())));
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 		this._register(toDisposable(() => {
 			this.onDidChangeWorkspaceFoldersUnbind?.dispose();

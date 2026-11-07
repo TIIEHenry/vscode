@@ -362,9 +362,8 @@ suite('SessionInputBanners', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when PR model refresh rejects and onUnexpectedError warn-then-rethrows', async () => {
-		// `refresh()` has no inner try/catch at this call site. A lone
-		// `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('does not leak unhandled rejection when PR model refresh rejects and onUnexpectedError logs it', async () => {
+		// `refresh()` has no inner try/catch at this call site.
 		let prRefreshCalls = 0;
 		let ciRefreshCalls = 0;
 		const { banners } = mountCompletedSessionBanners(store, {
@@ -386,9 +385,6 @@ suite('SessionInputBanners', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			banners.setActive(true);
@@ -397,7 +393,7 @@ suite('SessionInputBanners', () => {
 				unhandledRejections: [],
 				prRefreshCalls: 1,
 				ciRefreshCalls: 0,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -405,7 +401,7 @@ suite('SessionInputBanners', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when CI model refresh rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when CI model refresh rejects and onUnexpectedError logs it', async () => {
 		// Draft PRs skip CI refresh. Open PRs still fire `ciModel.refresh()` after PR refresh.
 		let prRefreshCalls = 0;
 		let ciRefreshCalls = 0;
@@ -427,9 +423,6 @@ suite('SessionInputBanners', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			banners.setActive(true);
@@ -438,7 +431,7 @@ suite('SessionInputBanners', () => {
 				unhandledRejections: [],
 				prRefreshCalls: 1,
 				ciRefreshCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

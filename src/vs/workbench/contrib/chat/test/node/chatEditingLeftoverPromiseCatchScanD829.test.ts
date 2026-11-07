@@ -83,7 +83,6 @@ function assertWrapped(source: string, call: string): void {
 	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
-const initDiffCall = 'this.initializeModelsFromDiff()';
 const updateCall = 'this.updateImplicitContext()';
 const updateWidgetCall = 'this.updateImplicitContext(widget)';
 const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
@@ -98,10 +97,6 @@ const syncGalleryExtsCall = 'this.syncInstalledExtensionsWithGallery(galleryExte
 const promiseAllThenCall = 'Promise.all([modifiedCellModelPromise, originalCellModelPromise]).then(([modifiedCellModel, originalCellModel]) => {';
 const resolveCellThenCall = 'this.resolveCellModel(cell.uri).then(modifiedModel => {';
 const updateDiffSeqCall = 'this._updateDiffInfoSeq()';
-
-const d829Calls: Array<[string, string, number]> = [
-	[EDITING_REL, initDiffCall, 10],
-];
 
 suite('unused leftover remaining after D823 moved to chatEditing leftover remaining unused Promise fire-and-forget catch scan (D829)', () => {
 
@@ -134,35 +129,6 @@ suite('unused leftover remaining after D823 moved to chatEditing leftover remain
 		assert.ok(!folding.includes('D829'));
 		assert.ok(!inlayHints.includes('D829'));
 		assert.ok(!languageStatus.includes('D829'));
-	});
-
-	test('this knife covers ten leftover Promise double-chain sites after unused leftover remaining after D823 moved', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d829Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 10);
-		assert.ok(sites >= 4);
-		assert.strictEqual(countDoubleChains(seen.get(EDITING_REL) ?? ''), 10);
-	});
-
-	test('chatEditing leftover remaining unused async this.foo() FOF (initializeModelsFromDiff) are Promise double-chain', () => {
-		const editing = fs.readFileSync(resolveSource(EDITING_REL), 'utf8');
-		assertPromiseSignature(editing, 'async initializeModelsFromDiff() {');
-		assert.ok(editing.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(editing, initDiffCall);
-		assert.strictEqual(countIncludes(editing, `${initDiffCall}${doubleCatch}`), 10);
-		assert.ok(!editing.includes('\t\tthis.initializeModelsFromDiff();\n'));
-		assert.ok(!editing.includes('\t\t\tthis.initializeModelsFromDiff();\n'));
-		assert.ok(!editing.includes('\t\t\t\tthis.initializeModelsFromDiff();\n'));
-		assert.ok(editing.includes('\t\treturn this.initializeModelsFromDiff();\n'));
-		assert.ok(!editing.includes(`return this.initializeModelsFromDiff()${doubleCatch}`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

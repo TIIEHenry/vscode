@@ -17,23 +17,13 @@ const TERMINAL_IFACE_REL = 'src/vs/workbench/contrib/terminal/browser/terminal.t
 const FIND_REL = 'src/vs/workbench/contrib/terminalContrib/find/browser/terminalFindWidget.ts';
 const STICKY_REL = 'src/vs/workbench/contrib/terminalContrib/stickyScroll/browser/terminalStickyScrollOverlay.ts';
 const RESIZE_REL = 'src/vs/workbench/contrib/terminalContrib/resizeDimensionsOverlay/browser/terminal.resizeDimensionsOverlay.contribution.ts';
-const NOTIFY_REL = 'src/vs/workbench/contrib/terminalContrib/notification/browser/terminal.notification.contribution.ts';
-const VOICE_REL = 'src/vs/workbench/contrib/terminalContrib/voice/browser/terminalVoice.ts';
 const CHAT_WIDGET_REL = 'src/vs/workbench/contrib/terminalContrib/chat/browser/terminalChatWidget.ts';
 const CHAT_ACTIONS_REL = 'src/vs/workbench/contrib/terminalContrib/chat/browser/terminalChatActions.ts';
-const QUICKFIX_SVC_REL = 'src/vs/workbench/contrib/terminalContrib/quickFix/browser/terminalQuickFixService.ts';
 const QUICKFIX_ADDON_REL = 'src/vs/workbench/contrib/terminalContrib/quickFix/browser/quickFixAddon.ts';
 const SUGGEST_REL = 'src/vs/workbench/contrib/terminalContrib/suggest/browser/terminalSuggestAddon.ts';
 const RUN_TOOL_REL = 'src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/tools/runInTerminalTool.ts';
-const CONTRIB_REL = 'src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/terminal.chatAgentTools.contribution.ts';
-const OUTPUT_REL = 'src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/tools/monitoring/outputMonitor.ts';
 const LINKS_REL = 'src/vs/workbench/contrib/terminalContrib/links/browser/terminalLinkOpeners.ts';
 const DEV_REL = 'src/vs/workbench/contrib/terminalContrib/developer/browser/terminal.developer.contribution.ts';
-const KEYBINDINGS_EXPORT_REL = 'src/vs/workbench/contrib/keybindingsExport/electron-browser/keybindingsExport.contribution.ts';
-const CALL_HIERARCHY_REL = 'src/vs/workbench/contrib/callHierarchy/browser/callHierarchy.contribution.ts';
-const TIMELINE_REL = 'src/vs/workbench/contrib/timeline/common/timelineService.ts';
-const INTERACTIVE_REL = 'src/vs/workbench/contrib/interactive/browser/interactive.contribution.ts';
-const SPEECH_SIGNAL_REL = 'src/vs/workbench/contrib/speech/browser/speechAccessibilitySignal.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -161,47 +151,6 @@ suite('terminalContrib leftover Promise fire-and-forget catch scan (D798)', () =
 		assertThenWrapped(sticky, ligaturesThen);
 		assert.ok(sticky.includes(`})${singleCatch};\n\t\t})${singleCatch};`));
 		assert.strictEqual(countDoubleChains(sticky), 0);
-	});
-
-	test('terminalContrib leftover remaining and preferred overflow modules stay unwrapped because this knife already has eight legal sites', () => {
-		const notify = fs.readFileSync(resolveSource(NOTIFY_REL), 'utf8');
-		const voice = fs.readFileSync(resolveSource(VOICE_REL), 'utf8');
-		const chat = fs.readFileSync(resolveSource(CHAT_WIDGET_REL), 'utf8');
-		const resize = fs.readFileSync(resolveSource(RESIZE_REL), 'utf8');
-		const quickFix = fs.readFileSync(resolveSource(QUICKFIX_SVC_REL), 'utf8');
-		const output = fs.readFileSync(resolveSource(OUTPUT_REL), 'utf8');
-		const runTool = fs.readFileSync(resolveSource(RUN_TOOL_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
-		const keybindingsExport = fs.readFileSync(resolveSource(KEYBINDINGS_EXPORT_REL), 'utf8');
-		const callHierarchy = fs.readFileSync(resolveSource(CALL_HIERARCHY_REL), 'utf8');
-		const timeline = fs.readFileSync(resolveSource(TIMELINE_REL), 'utf8');
-		const interactive = fs.readFileSync(resolveSource(INTERACTIVE_REL), 'utf8');
-		const speech = fs.readFileSync(resolveSource(SPEECH_SIGNAL_REL), 'utf8');
-
-		assert.ok(notify.includes('void this._ctx.instance.sendText(data, false);'));
-		assert.ok(!notify.includes(`sendText(data, false)${doubleCatch}`));
-		assert.ok(voice.includes('void this._chatSpeechToTextService.cancel();'));
-		assert.ok(!voice.includes(`cancel()${doubleCatch}`));
-		assert.ok(chat.includes("void this._chatService.cancelCurrentRequestForSession(model?.sessionResource, 'terminalChat');"));
-		assert.ok(!chat.includes(`cancelCurrentRequestForSession(model?.sessionResource, 'terminalChat')${doubleCatch}`));
-		assert.ok(resize.includes('this._ctx.processManager.ptyProcessReady.then(() => {'));
-		assert.ok(resize.includes('timeout(1000).then(() => {'));
-		assert.strictEqual(countDoubleChains(resize), 0);
-		assert.ok(quickFix.includes('this.extensionQuickFixes.then(selectors => {'));
-		assert.strictEqual(countDoubleChains(quickFix), 0);
-		assert.ok(output.includes('timeout(0).then(() => {'));
-		assert.strictEqual(countDoubleChains(output), 0);
-		assert.ok(runTool.includes('this._commandArtifactCollector.capture(toolSpecificData, terminalInstance, command.id).then(() => {'));
-		assert.ok(!runTool.includes(`capture(toolSpecificData, terminalInstance, command.id).then(() => {${doubleCatch}`));
-		assert.ok(contrib.includes('this._instantiationService.invokeFunction(createRunInTerminalToolData).then(runInTerminalToolData => {'));
-		assert.strictEqual(countDoubleChains(contrib), 0);
-		assert.strictEqual(countDoubleChains(keybindingsExport), 0);
-		assert.ok(keybindingsExport.includes('void this.extensionService.whenInstalledExtensionsRegistered()'));
-		assert.strictEqual(countDoubleChains(callHierarchy), 3);
-		assert.ok(callHierarchy.includes('model.then(model => {'));
-		assert.strictEqual(countDoubleChains(timeline), 0);
-		assert.ok(!interactive.includes('D798'));
-		assert.ok(!speech.includes('D798'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

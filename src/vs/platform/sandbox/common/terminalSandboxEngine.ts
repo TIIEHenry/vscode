@@ -130,7 +130,7 @@ export class TerminalSandboxEngine extends Disposable {
 	private static readonly _hostRegex = /(?:^|[\s'"`(=])([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?::\d+)?(?=(?:\/[^\s'"`|&;<>]*)?(?:$|[\s'"`)\]|,;|&<>]))/gi;
 
 	private readonly _sandboxSettingsId: string = generateUuid();
-	private _runtimeResolved = false;
+	private _runtimeResolved: Promise<void> | undefined;
 	private _appRoot: string | undefined;
 	private _execPath: string | undefined;
 	private _runAsNode = false;
@@ -616,11 +616,15 @@ export class TerminalSandboxEngine extends Disposable {
 		return isAgentSandboxEnabledValue(value);
 	}
 
-	private async _resolveRuntimeInfo(): Promise<void> {
-		if (this._runtimeResolved) {
-			return;
-		}
-		this._runtimeResolved = true;
+	private _resolveRuntimeInfo(): Promise<void> {
+		this._runtimeResolved ??= this._doResolveRuntimeInfo().catch(error => {
+			this._runtimeResolved = undefined;
+			throw error;
+		});
+		return this._runtimeResolved;
+	}
+
+	private async _doResolveRuntimeInfo(): Promise<void> {
 		const runtimeInfo = await this._host.getRuntimeInfo();
 		this._appRoot = runtimeInfo.appRoot;
 		this._execPath = runtimeInfo.execPath;
@@ -798,6 +802,11 @@ export class TerminalSandboxEngine extends Disposable {
 	 * - Glob: `/workspace/project/package.json` matches `/workspace/project/*.json`.
 	 */
 	private _matchesFileSystemPath(path: string, matcher: string): boolean {
+		// macOS config paths keep `~` for sandbox-runtime, so expand them before comparing.
+		if (this._os === OperatingSystem.Macintosh) {
+			path = this._expandHomePath(path);
+			matcher = this._expandHomePath(matcher);
+		}
 		const normalizedPath = this._normalizeFileSystemAccessPath(path);
 		const normalizedMatcher = this._normalizeFileSystemAccessPath(matcher, true);
 		const ignoreCase = this._os === OperatingSystem.Windows;

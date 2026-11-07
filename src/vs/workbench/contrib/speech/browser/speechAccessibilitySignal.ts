@@ -19,7 +19,7 @@ export class SpeechAccessibilitySignalContribution extends Disposable implements
 	) {
 		super();
 
-		this._register(this._speechService.onDidStartSpeechToTextSession(() => this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStarted).catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this._speechService.onDidEndSpeechToTextSession(() => this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStopped).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this._speechService.onDidStartSpeechToTextSession(() => this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStarted).catch(onUnexpectedError)));
+		this._register(this._speechService.onDidEndSpeechToTextSession(() => this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStopped).catch(onUnexpectedError)));
 	}
 }

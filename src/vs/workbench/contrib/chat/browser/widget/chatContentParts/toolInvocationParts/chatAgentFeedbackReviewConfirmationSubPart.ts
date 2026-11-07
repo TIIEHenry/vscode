@@ -85,7 +85,7 @@ export class ChatAgentFeedbackReviewConfirmationSubPart extends AbstractToolConf
 		this._resourceLabels = this._register(this.instantiationService.createInstance(ResourceLabels, DEFAULT_LABELS_CONTAINER));
 
 		const listElement = dom.$('.chat-agent-feedback-review-list');
-		void this._populate(listElement).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._populate(listElement).catch(onUnexpectedError);
 
 		const revealLabel = data.options[0] ?? localize('agentFeedback.reveal', "Reveal Selected");
 		const buttons: IChatConfirmationButton<() => void>[] = [

@@ -556,7 +556,7 @@ export class ImageAttachmentWidget extends AbstractChatAttachmentWidget {
 
 		// Hydrated attachments need disk bytes so the preview does not fall back to a generic file icon.
 		if (!imageData && resource && omittedState !== OmittedState.Full && omittedState !== OmittedState.ImageLimitExceeded) {
-			void this.loadImageBytes(resource, renderImageElements).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.loadImageBytes(resource, renderImageElements).catch(onUnexpectedError);
 		}
 		this.attachSaveButton(resource, imageData, attachment.name, options.supportsDeletion);
 
@@ -683,7 +683,7 @@ export function createImageHoverContent(resource: URI | undefined, fullName: str
 		hoverImage.src = url;
 		onImageUrl?.(url, !!thumbnail, hoverImage);
 	};
-	void renderPreviewImage().catch(onUnexpectedError).catch(onUnexpectedError);
+	void renderPreviewImage().catch(onUnexpectedError);
 
 	return { element: hoverElement, disposable };
 }
@@ -1605,7 +1605,7 @@ export class ElementChatAttachmentWidget extends AbstractChatAttachmentWidget {
 					section.remove();
 					onContentsChanged();
 				}
-			).catch(onUnexpectedError).catch(onUnexpectedError);
+			).catch(onUnexpectedError);
 		}
 	}
 

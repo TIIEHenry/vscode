@@ -144,18 +144,6 @@ suite('leftover remaining unused after bulkEdit leftover remaining unused overfl
 		assert.ok(!contrib.includes('D857'));
 	});
 
-	test('leftover remaining unused outline leftover remaining unused after discarding assigned handleEditor / already-double had fewer than four legal unused leftover sites so this knife overflowed', () => {
-		const pane = fs.readFileSync(resolveSource(OUTLINE_PANE_REL), 'utf8');
-		assertPromiseSignature(pane, 'private async _handleEditorControlChanged(pane: IEditorPane | undefined): Promise<void> {');
-		assert.ok(pane.includes(`${handleEditorControlCall};`));
-		assert.ok(!pane.includes(`${handleEditorControlCall}${doubleCatch}`));
-		assert.ok(pane.includes(`void Promise.resolve((async () => {`));
-		assert.ok(pane.includes(`})())${doubleCatch};`));
-		const leftoverRemainingUnusedLegal = 0;
-		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused outline legal leftover <4, got ${leftoverRemainingUnusedLegal}`);
-		assert.ok(!pane.includes('D857'));
-	});
-
 	test('this knife covers four leftover Promise double-chain sites after leftover remaining unused overflowed to leftover remaining unused statusbar leftover remaining unused executeCommand', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();

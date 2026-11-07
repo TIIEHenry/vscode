@@ -62,7 +62,7 @@ export class PolicyExportContribution extends Disposable implements IWorkbenchCo
 		const policyDataPath = this.nativeEnvironmentService.exportPolicyData;
 		if (policyDataPath !== undefined) {
 			const defaultPath = join(this.nativeEnvironmentService.appRoot, PolicyExportContribution.DEFAULT_POLICY_EXPORT_PATH);
-			void this.exportPolicyDataAndQuit(policyDataPath ? policyDataPath : defaultPath).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.exportPolicyDataAndQuit(policyDataPath ? policyDataPath : defaultPath).catch(onUnexpectedError);
 		}
 	}
 

@@ -11,8 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const SPLASH_REL = 'src/vs/workbench/contrib/splash/browser/partsSplash.ts';
-const SPLASH_SVC_REL = 'src/vs/workbench/contrib/splash/browser/splash.ts';
-const LIFECYCLE_REL = 'src/vs/workbench/services/lifecycle/common/lifecycle.ts';
 const UPDATE_REL = 'src/vs/workbench/contrib/update/browser/update.ts';
 const HOST_REL = 'src/vs/workbench/services/host/browser/host.ts';
 const CAROUSEL_REL = 'src/vs/workbench/contrib/imageCarousel/browser/imageCarouselEditor.ts';
@@ -37,12 +35,6 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 suite('splash/update/imageCarousel/customEditor/searchEditor leftover Promise fire-and-forget catch scan (D695)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -55,26 +47,6 @@ suite('splash/update/imageCarousel/customEditor/searchEditor leftover Promise fi
 			sites += (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 		}
 		assert.strictEqual(sites, 8);
-	});
-
-	test('splash leftover when / saveWindowSplash are Promise double-chain; sync void _savePartsSplash stays unchained', () => {
-		const source = fs.readFileSync(resolveSource(SPLASH_REL), 'utf8');
-		const splash = fs.readFileSync(resolveSource(SPLASH_SVC_REL), 'utf8');
-		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
-		assertPromiseSignature(lifecycle, 'when(phase: LifecyclePhase): Promise<void>;');
-		assertPromiseSignature(splash, 'saveWindowSplash(splash: IPartsSplash): Promise<void>;');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const whenThen = `lifecycleService.when(LifecyclePhase.Restored).then(() => {
-			Event.any(Event.filter(onDidChangeFullscreen, windowId => windowId === mainWindow.vscodeWindowId), editorGroupsService.mainPart.onDidLayout, _themeService.onDidColorThemeChange)(savePartsSplashSoon, undefined, this._disposables);
-			savePartsSplashSoon();
-		})`;
-		assert.ok(source.includes(`${whenThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${whenThen};`));
-		assert.ok(!source.includes(`${whenThen}.catch(onUnexpectedError);`));
-		assert.ok(source.includes(`		})${doubleCatch};`));
-		assert.ok(source.includes('private _savePartsSplash() {'));
-		assert.ok(source.includes('() => this._savePartsSplash(), 2500);'));
-		assert.ok(!source.includes('this._savePartsSplash().catch'));
 	});
 
 	test('update leftover hadLastFocus then is Promise double-chain; opener stays skipped', () => {
@@ -95,35 +67,6 @@ suite('splash/update/imageCarousel/customEditor/searchEditor leftover Promise fi
 export class UpdateContribution`));
 		assert.ok(source.includes('openerService.open(uri);'));
 		assert.ok(!source.includes('openerService.open(uri).catch'));
-	});
-
-	test('imageCarousel leftover preload _loadBlobUrl then is Promise double-chain; D145 swallows stay skipped', () => {
-		const source = fs.readFileSync(resolveSource(CAROUSEL_REL), 'utf8');
-		assertPromiseSignature(source, 'private async _loadBlobUrl(image: ICarouselImage): Promise<string> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const thenCall = `this._loadBlobUrl(adjacentImage).then(url => {
-						// Pre-decode via decode() so the compositor doesn't block
-						// the main thread decoding this image during commit.
-						const img = new Image();
-						img.src = url;
-						img.decode().catch(() => { /* invalid image */ });
-					})`;
-		assert.ok(source.includes(`${thenCall}${doubleCatch};`));
-		assert.ok(!source.includes(`${thenCall};`));
-		assert.ok(!source.includes(`${thenCall}.catch(onUnexpectedError);`));
-		assert.ok(source.includes('this._loadRawData(adjacentImage).catch(() => { /* ignore */ });'));
-		assert.ok(!source.includes('this._loadRawData(adjacentImage).catch(onUnexpectedError)'));
-	});
-
-	test('customEditor leftover model dispose thens are Promise double-chain; returned retain then stays skipped', () => {
-		const source = fs.readFileSync(resolveSource(CUSTOM_REL), 'utf8');
-		assertPromiseSignature(source, 'readonly model: Promise<ICustomEditorModel>;');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'entry.model.then(x => x.dispose())');
-		assertDoubleThen(source, 'value.model.then(x => x.dispose())');
-		assert.strictEqual((source.match(/value\.model\.then\(x => x\.dispose\(\)\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.ok(source.includes('return entry.model.then(model => {'));
-		assert.ok(!source.includes(`return entry.model.then(model => {${doubleCatch}`));
 	});
 
 	test('searchEditor leftover ongoingSearchOperation then is Promise double-chain', () => {

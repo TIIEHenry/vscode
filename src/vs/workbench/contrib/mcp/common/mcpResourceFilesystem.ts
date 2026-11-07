@@ -9,7 +9,7 @@ import { decodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenPool, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Lazy } from '../../../../base/common/lazy.js';
-import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { newWriteableStream, ReadableStreamEvents } from '../../../../base/common/stream.js';
@@ -111,6 +111,17 @@ export class McpResourceFilesystem extends Disposable implements IWorkbenchContr
 
 		const store = new DisposableStore();
 		let watchedOnHandler: McpServerRequestHandler | undefined;
+		let subscribedHandler: McpServerRequestHandler | undefined;
+		const unsubscribe = (handler: McpServerRequestHandler) => {
+			handler.unsubscribe({ uri: resourceURI.toString() }).catch(err => {
+				handler.logger.warn(`Failed to unsubscribe from resource changes for ${resourceURI}: ${err}`);
+			});
+		};
+		store.add(toDisposable(() => {
+			if (subscribedHandler) {
+				unsubscribe(subscribedHandler);
+			}
+		}));
 		const watchListener = store.add(new MutableDisposable());
 		const callCts = store.add(new MutableDisposable<CancellationTokenSource>());
 		store.add(autorun(reader => {
@@ -127,11 +138,15 @@ export class McpResourceFilesystem extends Disposable implements IWorkbenchContr
 			callCts.value?.dispose(true);
 			callCts.value = new CancellationTokenSource();
 			watchedOnHandler = handler;
+			subscribedHandler = undefined;
 
 			const token = callCts.value.token;
 			handler.subscribe({ uri: resourceURI.toString() }, token).then(
 				() => {
-					if (!token.isCancellationRequested) {
+					if (store.isDisposed) {
+						unsubscribe(handler);
+					} else if (!token.isCancellationRequested) {
+						subscribedHandler = handler;
 						watchListener.value = handler.onDidUpdateResource(e => {
 							if (equalsUrlPath(e.params.uri, resourceURI)) {
 								this._onDidChangeFile.fire([{ resource: uri, type: FileChangeType.UPDATED }]);

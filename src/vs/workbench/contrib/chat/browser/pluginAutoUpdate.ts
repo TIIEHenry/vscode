@@ -47,7 +47,7 @@ export class PluginAutoUpdate extends Disposable implements IWorkbenchContributi
 			if (marketplaceIds.size === 0) {
 				return;
 			}
-			void this._triggerAutoUpdate(marketplaceIds).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._triggerAutoUpdate(marketplaceIds).catch(onUnexpectedError);
 		}));
 
 		this._register(this._meteredConnectionService.onDidChangeIsConnectionMetered(isMetered => {
@@ -60,7 +60,7 @@ export class PluginAutoUpdate extends Disposable implements IWorkbenchContributi
 	private _triggerQueuedAutoUpdate(): void {
 		const marketplaceIds = this._pluginMarketplaceService.marketplacesWithUpdates.get();
 		if (marketplaceIds.size > 0) {
-			void this._triggerAutoUpdate(marketplaceIds).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._triggerAutoUpdate(marketplaceIds).catch(onUnexpectedError);
 		}
 	}
 

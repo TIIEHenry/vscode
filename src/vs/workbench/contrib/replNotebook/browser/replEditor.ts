@@ -439,7 +439,7 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 		model.notebook.setCellCollapseDefault(this._notebookOptions.getCellCollapseDefault());
 		this._notebookWidget.value!.setOptions({
 			isReadOnly: true
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 		this._widgetDisposableStore.add(this._notebookWidget.value!.onDidResizeOutput((cvm) => {
 			this._scrollIfNecessary(cvm);
 		}));
@@ -593,7 +593,7 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 	}
 
 	override setOptions(options: INotebookEditorOptions | undefined): void {
-		void Promise.resolve(this._notebookWidget.value?.setOptions(options)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void Promise.resolve(this._notebookWidget.value?.setOptions(options)).catch(onUnexpectedError);
 		super.setOptions(options);
 	}
 

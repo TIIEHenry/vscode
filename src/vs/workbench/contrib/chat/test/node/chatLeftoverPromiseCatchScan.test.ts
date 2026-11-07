@@ -14,7 +14,6 @@ const FIND_REL = 'src/vs/workbench/contrib/chat/browser/widget/chatFind/chatFind
 const PICKER_REL = 'src/vs/workbench/contrib/chat/browser/widget/input/modelPicker/modelPickerWidget.ts';
 const PASTE_REL = 'src/vs/workbench/contrib/chat/browser/widget/input/editor/chatPasteProviders.ts';
 const NOTIFY_REL = 'src/vs/workbench/contrib/chat/browser/widget/input/chatInputNotificationWidget.ts';
-const FEEDBACK_REL = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/toolInvocationParts/chatAgentFeedbackReviewConfirmationSubPart.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -27,13 +26,6 @@ function resolveSource(rel: string): string {
 }
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-
-function assertDoubleChain(source: string, call: string, count: number): void {
-	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
-	assert.ok(source.includes(`${call}${doubleCatch};`));
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
 
 function assertSingleChain(source: string, call: string, count: number): void {
 	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count);
@@ -75,10 +67,4 @@ suite('Chat leftover Promise fire-and-forget catch scan (D679)', () => {
 		assertSingleChain(source, 'void this._executeAction(notification, action)', 1);
 	});
 
-	test('chatAgentFeedbackReviewConfirmationSubPart _populate leftover is double-chain', () => {
-		const source = fs.readFileSync(resolveSource(FEEDBACK_REL), 'utf8');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../../../base/common/errors.js';"));
-		assert.ok(source.includes('private async _populate(listElement: HTMLElement): Promise<void> {'));
-		assertDoubleChain(source, 'void this._populate(listElement)', 1);
-	});
 });

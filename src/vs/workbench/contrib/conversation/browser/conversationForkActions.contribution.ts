@@ -13,7 +13,7 @@ import { ForkConversationAction } from '../../chat/browser/actions/chatForkActio
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../chat/common/model/chatUri.js';
-import { tryConnectedEngineFork } from './conversationForkEngine.js';
+import { tryConnectedEngineForkForSource } from './conversationForkEngine.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -46,7 +46,7 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 			return false;
 		}
 
-		const outcome = await tryConnectedEngineFork(services.roster, services.notificationService, services.connection);
+		const outcome = await tryConnectedEngineForkForSource(services.roster, services.notificationService, services.connection, sourceSessionResource);
 		if (outcome.handled) {
 			this.engineForkHandledWithoutSuccess = !outcome.forked;
 			return outcome.forked;

@@ -594,7 +594,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 		this.renderPicker();
 
 		if (this.mediaDevices) {
-			this._register(dom.addDisposableListener(this.mediaDevices, 'devicechange', () => void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError)));
+			this._register(dom.addDisposableListener(this.mediaDevices, 'devicechange', () => void this.refreshMicrophones().catch(onUnexpectedError)));
 		}
 
 		const waveformContainer = dom.append(device, dom.$('.dictation-onboarding-waveform'));
@@ -613,13 +613,13 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 			this.hint.setAttribute('aria-live', 'polite');
 			this.updateHint();
 
-			void this.startPreview().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.startPreview().catch(onUnexpectedError);
 		} else {
 			this.waveform = this._register(instantiationService.createInstance(MicrophoneWaveform, waveformContainer, {
 				getLevel: () => readMicrophoneLevel(this.dictationAnalyser, this.dictationWaveform),
 				isAvailable: () => this.dictationAnalyser !== undefined,
 			}, undefined));
-			void this.refreshMicrophones().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshMicrophones().catch(onUnexpectedError);
 		}
 		this.waveform.start();
 		this.logAction('shown');
@@ -635,7 +635,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 		if (visible) {
 			this.waveform.start();
 			if (this.preview) {
-				void this.startPreview().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.startPreview().catch(onUnexpectedError);
 			}
 		} else {
 			this.waveform.stop();
@@ -669,7 +669,7 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 						: [CONFIGURE_DICTATION_INSTRUCTIONS_ACTION_ID];
 					this.logAction(index === '0' ? 'openSettings' : 'openInstructions');
 					void this.commandService.executeCommand(commandId as string, ...args)
-						.catch(onUnexpectedError).catch(onUnexpectedError);
+						.catch(onUnexpectedError);
 				},
 				disposables: this._store,
 			},
@@ -803,9 +803,9 @@ export class DictationOnboardingBanner extends ChatInputNoticeWidget implements 
 
 		status(localize('dictation.onboarding.microphoneSelected', "{0} selected.", option.label));
 		if (this.preview) {
-			void this.preview.listen(option.deviceId).then(() => this.updateHint()).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.preview.listen(option.deviceId).then(() => this.updateHint()).catch(onUnexpectedError);
 		} else if (this.switchMicrophone) {
-			void this.switchMicrophone(option.deviceId).then(analyser => this.refreshMicrophones(analyser)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.switchMicrophone(option.deviceId).then(analyser => this.refreshMicrophones(analyser)).catch(onUnexpectedError);
 		}
 	}
 
@@ -927,7 +927,7 @@ export class DictationOnboardingService extends Disposable implements IDictation
 
 	refreshMicrophones(analyserNode?: AnalyserNode, switchMicrophone?: SwitchMicrophone): void {
 		if (this.onboarding.isVisible) {
-			void Promise.resolve(this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void Promise.resolve(this.currentBanner?.refreshMicrophones(analyserNode, switchMicrophone)).catch(onUnexpectedError);
 		}
 	}
 

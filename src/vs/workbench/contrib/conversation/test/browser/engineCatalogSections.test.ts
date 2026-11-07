@@ -5993,10 +5993,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(listMcpServersCalls >= 2);
 	});
 
-	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError logs it', async () => {
 		// refresh() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -6005,9 +6004,6 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -6029,7 +6025,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -6038,10 +6034,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when removeSelectedServer catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when removeSelectedServer catch-path paint throws and onUnexpectedError logs it', async () => {
 		// removeSelectedServer() already catches RPC throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -6050,9 +6045,6 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -6085,7 +6077,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -6094,10 +6086,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when toggleServer catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when toggleServer catch-path paint throws and onUnexpectedError logs it', async () => {
 		// toggleServer() already catches RPC throw; a lone inner reject does not leak.
 		// The row-renderer call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -6106,9 +6097,6 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -6137,7 +6125,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {

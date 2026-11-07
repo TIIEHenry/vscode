@@ -11,13 +11,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const GITHUB_REL = 'src/vs/workbench/contrib/github/browser/githubLinkPresentation.contribution.ts';
 const LANGUAGE_SURVEYS_REL = 'src/vs/workbench/contrib/surveys/browser/languageSurveys.contribution.ts';
-const SURVEY_PANE_REL = 'src/vs/workbench/contrib/surveys/browser/surveyEditorPane.ts';
 const NPS_REL = 'src/vs/workbench/contrib/surveys/browser/nps.contribution.ts';
 const SURVEY_CONTRIB_REL = 'src/vs/workbench/contrib/surveys/browser/survey.contribution.ts';
 const WELCOME_BANNER_REL = 'src/vs/workbench/contrib/welcomeBanner/browser/welcomeBanner.contribution.ts';
-const EDITOR_REL = 'src/vs/workbench/services/editor/common/editorService.ts';
 const BANNER_REL = 'src/vs/workbench/services/banner/browser/bannerService.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 
@@ -42,13 +39,6 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleChain(source: string, call: string, count: number): void {
-	assert.strictEqual((source.match(new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length, count, `count mismatch: ${call}`);
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`), `single-chain remains: ${call}`);
-}
-
 suite('surveys leftover Promise fire-and-forget catch scan (D791)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -57,34 +47,6 @@ suite('surveys leftover Promise fire-and-forget catch scan (D791)', () => {
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('github leftover remaining three sites plus surveys wraps are Promise/async + double-chain', () => {
-		const github = fs.readFileSync(resolveSource(GITHUB_REL), 'utf8');
-		const languageSurveys = fs.readFileSync(resolveSource(LANGUAGE_SURVEYS_REL), 'utf8');
-		const surveyPane = fs.readFileSync(resolveSource(SURVEY_PANE_REL), 'utf8');
-		const editor = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
-		assert.ok(github.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(languageSurveys.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(surveyPane.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertPromiseSignature(github, 'private async _flush(): Promise<void> {');
-		assertPromiseSignature(github, 'private async _initializeSubscription(target: GitHubLinkTarget, generation: number, controller: AbortController, store: DisposableStore): Promise<void> {');
-		assertPromiseSignature(github, 'hydrate(target: GitHubLinkTarget, account: GitHubAccountHandle): Promise<void> {');
-		assertPromiseSignature(languageSurveys, 'private async handleSurveys() {');
-		assertPromiseSignature(editor, 'closeEditor(editor: IEditorIdentifier, options?: ICloseEditorOptions): Promise<void>;');
-		assertDoubleChain(github, 'void this._flush()', 1);
-		assertDoubleChain(github, 'void this._initializeSubscription(target, generation, controller, store)', 1);
-		const hydrateThen = `void this._hydrator.hydrate(target, account).catch(error => {
-				this._logService.trace(\`[GitHubLinkPresentation] Bulk hydration failed for \${formatTarget(target)}; falling back to resource fetch\`, error);
-			})`;
-		assert.ok(github.includes(`${hydrateThen}${doubleCatch};`));
-		assert.ok(!github.includes(`${hydrateThen};`));
-		assert.ok(!github.includes(`${hydrateThen}.catch(onUnexpectedError);`));
-		assertDoubleChain(languageSurveys, 'this.handleSurveys()', 1);
-		assertDoubleChain(surveyPane, 'this.editorService.closeEditor({ editor: submittedInput, groupId: this.group.id })', 1);
-		assert.strictEqual(countDouble(github), 3);
-		assert.strictEqual(countDouble(languageSurveys) + countDouble(surveyPane), 2);
-		assert.strictEqual(countDouble(github) + countDouble(languageSurveys) + countDouble(surveyPane), 5);
 	});
 
 	test('opener / D145 / Resolve / Connect / Watch / Pty / Action2.run / returned Promise / already-double / invented proto / nps / welcomeBanner stay skipped', () => {

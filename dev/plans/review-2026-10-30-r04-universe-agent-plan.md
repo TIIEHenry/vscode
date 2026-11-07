@@ -3,8 +3,8 @@ title: "十六路审查 r04：universeAgent 方案"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-11-01
-summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 4，weaken 0。r04-3 删去入口代际递增那一句，入口递增不变。未实施，不升 PRD。"
+updated: 2026-11-07
+summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 4，weaken 0。r04-3 删去入口代际递增那一句，入口递增不变。2026-11-07 字母槽 D（wave27/D）四条已实施并配行为测试，待合入；不升 PRD。"
 ---
 
 # 十六路审查 r04：universeAgent 方案
@@ -157,3 +157,16 @@ summary: "2026-11-01 agent:kiro 受用户委托签收（收窄）。hold 4，wea
 | r04-2 | 签 | 置 false 的 7 处与方案一一对应。另有一处读者（expectedOwner 校验，10-28 加入）不在清单里，清掉残留标志对它同样成立。 |
 | r04-3 | 签（收窄） | 删去「进入时那次递增若会作废另一个 Hub，就不要无条件做」一句：进入登出时 `_activeHubBaseUrl` 就是正在登出的那个 Hub，这句没有可执行的改法。入口那次递增保持不变，只改收尾。 |
 | r04-4 | 签 | skip-auth 失败分支仍不关旧通道，`_connectLocalSkipAuth` 直接提交新通道。 |
+
+## 实施（2026-11-07，字母槽 D）
+
+分支 `wave27/D`，基于 `codex/merge` `3892c35e411`。四条按上文不变量实施，待 merge 槽合入。
+
+| 条目 | 提交 | 做法 |
+|:-----|:-----|:-----|
+| r04-1 | `65309e96d8b` | `_startProfilePairing` 加 `persistClearedTrust`。`startPairing` 返回 ok 且 `_canMutateDial(epoch)` 仍为真之后才 `put(trust: null)`。失败路径不 `put`。 |
+| r04-2 | `65309e96d8b` | 新增 `_pairingPendingEpoch`，置位与清除都走 `_setPairingPending` / `_clearPairingPending`。`_bumpConnectEpoch` 清旧标志；`startPairing` 之后两处作废返回改走 `_stalePairingDial(epoch)`，只清本 epoch 仍持有的标志。 |
+| r04-3 | `f0879eeb29d` | `IHubSessionStore` 公开 `getSessionGeneration`，`clear(hubBaseUrl, expectedGeneration?)` 返回是否清除，两个实现一起改。`logout` 代际变了就直接返回；活动 Hub 已换就只清登出那个 Hub 并发 auth 变更。入口递增不变。 |
+| r04-4 | `bfab082229f` | 新增 `_closeInstalledTransport`（close、解引用、dispose 链路订阅、清已发布链接），skip-auth 失败分支和 `_connectLocalSkipAuth` 提交前各调一次。 |
+
+本地验证：`npx tsc -p src/tsconfig.json --noEmit` 0 错误；改动文件 eslint 0 错误。`node test/unit/node/index.js --run` 跑 `universeAgentConnection` / `universeAgentHubService` / `hubSessionStore` / `grpcClientSessionToken`，以及 `pairingOrchestrator` / `connectionResolver` / `hubControlPlane` / `hubDirectoryClient` / `universeAgentConnectionIpcChannel` / `universeAgentChannel` / `connectionProfileStore`：871 通过、0 失败。新增 10 条测试，其中 6 条在把连接服务和 Hub 服务换回修复前版本后会失败：3 条配对 trust / 标志、1 条 skip-auth、2 条 Hub 重叠登录。另外 2 条守的是本来就对的行为，修复前也通过：「旧拨号不清新拨号的标志」和「无重叠登出照常清除」。剩下 2 条代际条件 `clear` 依赖新接口，修复前无法运行。r04-2 单独验证过：只去掉 epoch 清标志、保留其余修复时，「被取代后 trust 与标志」那条在 `pairingPending` 断言上失败。

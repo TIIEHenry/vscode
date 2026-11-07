@@ -107,7 +107,7 @@ export class SystemWideKeybindingsContribution extends Disposable implements IWo
 	) {
 		super();
 
-		this.syncScheduler = this._register(new RunOnceScheduler(() => this.sync().catch(onUnexpectedError).catch(onUnexpectedError), 200));
+		this.syncScheduler = this._register(new RunOnceScheduler(() => this.sync().catch(onUnexpectedError), 200));
 
 		// Re-sync when keybindings change (also fires on keyboard-layout changes, which affect
 		// the accelerator strings).

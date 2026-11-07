@@ -156,7 +156,7 @@ export class PluginInstallService implements IPluginInstallService {
 					: { success: true };
 			}
 
-			void this._pluginRepositoryService.cleanupPluginSource(tempPlugin).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._pluginRepositoryService.cleanupPluginSource(tempPlugin).catch(onUnexpectedError);
 			return {
 				success: false,
 				message: localize('noPluginsFound', "No plugins found in '{0}'. This does not appear to be a valid plugin marketplace.", reference.displayLabel),

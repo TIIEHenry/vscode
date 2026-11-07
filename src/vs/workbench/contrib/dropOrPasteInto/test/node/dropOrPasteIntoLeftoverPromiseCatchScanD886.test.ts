@@ -11,7 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const DROP_COMMANDS_REL = 'src/vs/workbench/contrib/dropOrPasteInto/browser/commands.ts';
 const DROP_SCHEMA_REL = 'src/vs/workbench/contrib/dropOrPasteInto/browser/configurationSchema.ts';
 const DROP_CONTRIB_REL = 'src/vs/workbench/contrib/dropOrPasteInto/browser/dropOrPasteInto.contribution.ts';
@@ -27,7 +26,6 @@ const TREE_VIEW_REL = 'src/vs/workbench/browser/parts/views/treeView.ts';
 const REPL_CONTRIB_REL = 'src/vs/workbench/contrib/replNotebook/browser/repl.contribution.ts';
 const REPL_EDITOR_REL = 'src/vs/workbench/contrib/replNotebook/browser/replEditor.ts';
 const REPL_INPUT_REL = 'src/vs/workbench/contrib/replNotebook/browser/replEditorInput.ts';
-const INTERACTIVE_CONTRIB_REL = 'src/vs/workbench/contrib/interactive/browser/interactive.contribution.ts';
 const SHARE_CONTRIB_REL = 'src/vs/workbench/contrib/share/browser/share.contribution.ts';
 const BASE_REPORTER_REL = 'src/vs/workbench/contrib/issue/browser/baseIssueReporterService.ts';
 const TAGS_REL = 'src/vs/workbench/contrib/tags/electron-browser/workspaceTags.ts';
@@ -58,7 +56,6 @@ const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts
 const TESTING_REL = 'src/vs/workbench/contrib/testing/browser/testingOutputPeek.ts';
 const GETTING_STARTED_REL = 'src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts';
 const GETTING_STARTED_CONTRIB_REL = 'src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts';
-const INLINE_CHAT_REL = 'src/vs/workbench/contrib/inlineChat/browser/inlineChatController.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -152,7 +149,6 @@ const processUpdateCall = 'this.update()';
 const onTreeKeyDownCall = 'this.onTreeKeyDown(e)';
 const doUpdateCall = 'this._doUpdate()';
 const restartCall = 'this._restart()';
-const leftoverAcceptSessionCall = 'ctrl.acceptSession();';
 
 const d886Calls: Array<[string, string, number]> = [
 	[EDITOR_PARTS_REL, restorePartsCall, 1],
@@ -280,55 +276,6 @@ suite('leftover remaining unused dropOrPasteInto leftover remaining unused overf
 		assert.ok(breadcrumbs.includes(`${leftoverRevealCall};`));
 		assert.ok(!breadcrumbs.includes(`${leftoverRevealCall}${doubleCatch}`));
 		assertPromiseSignature(breadcrumbs, 'private async _revealInEditor(event: IBreadcrumbsItemEvent, element: FileElement | OutlineElement2, group: SIDE_GROUP_TYPE | ACTIVE_GROUP_TYPE | undefined, pinned: boolean = false): Promise<void> {');
-	});
-
-	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
-		const commands = fs.readFileSync(resolveSource(DROP_COMMANDS_REL), 'utf8');
-		const schema = fs.readFileSync(resolveSource(DROP_SCHEMA_REL), 'utf8');
-		const parts = fs.readFileSync(resolveSource(EDITOR_PARTS_REL), 'utf8');
-		const groupView = fs.readFileSync(resolveSource(GROUP_VIEW_REL), 'utf8');
-		const opener = fs.readFileSync(resolveSource(OPENER_REL), 'utf8');
-		const inlineChat = fs.readFileSync(resolveSource(INLINE_CHAT_REL), 'utf8');
-		const share = fs.readFileSync(resolveSource(SHARE_CONTRIB_REL), 'utf8');
-		const interactive = fs.readFileSync(resolveSource(INTERACTIVE_CONTRIB_REL), 'utf8');
-
-		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
-		assertPromiseSignature(inlineChat, 'async acceptSession() {');
-		assertPromiseSignature(parts, 'private async restoreParts(): Promise<void> {');
-
-		assert.ok(!commands.includes('openerService.open'));
-		assert.ok(!schema.includes('openerService.open'));
-		assert.ok(!parts.includes('IOpenerService'));
-		assert.ok(commands.includes(leftoverPasteCall));
-		assert.ok(commands.includes(leftoverDropCall));
-		assert.ok(!commands.includes('extends Action2'));
-		assert.ok(share.includes('override async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {'));
-		assert.ok(share.includes(leftoverShareOpenerCall));
-		assert.ok(!share.includes(`urlService.open(result, { openExternal: true })${doubleCatch}`));
-		assert.ok(share.includes(leftoverShareRegisterCall));
-		assert.ok(!share.includes(`this.registerActions()${doubleCatch}`));
-		assert.ok(inlineChat.includes(leftoverAcceptSessionCall) || inlineChat.includes('async acceptSession() {'));
-		assert.ok(!inlineChat.includes(`ctrl.acceptSession()${doubleCatch}`));
-		assert.ok(interactive.includes(`${installCall}${doubleCatch}`));
-		assert.ok(groupView.includes(assignedOpenCall));
-		assert.ok(!groupView.includes(`${assignedOpenCall}${doubleCatch}`));
-		assert.ok(groupView.includes('return this.doOpenEditor(editor, options, {'));
-		assert.ok(!groupView.includes(`return this.doOpenEditor(editor, options, {${doubleCatch}`));
-		assert.ok(!commands.includes('.then(undefined,'));
-		assert.ok(!schema.includes('.then(undefined,'));
-
-		for (const source of [commands, schema, parts, groupView]) {
-			assert.ok(!source.includes('acknowledge('));
-			assert.ok(!source.includes('releaseLease('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/ResolveTurn\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
-			assert.ok(!source.includes('D886'));
-		}
 	});
 
 	test('locked leftover remaining stay leftover remaining unused; D881/D876/D883 already-double stay already-double; this knife did not occupy comments / chatSetup / searchWidget / searchEditor / testing / debug leftover remaining unused', () => {

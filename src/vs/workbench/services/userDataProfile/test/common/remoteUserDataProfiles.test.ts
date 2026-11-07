@@ -275,4 +275,31 @@ suite('RemoteUserDataProfilesService', () => {
 		assert.ok(stores >= 2);
 	});
 
+	test('associates the newly created remote profile, not the current one', async () => {
+		const defaultProfile = makeProfile('default', 'Default', true);
+		const currentProfile = makeProfile('current', 'Current', false);
+		const otherProfile = makeProfile('other', 'Other', false);
+		const values = new Map<string, string>();
+		const { service } = createService({
+			remoteAuthority: 'test-remote',
+			connection: { getChannel: () => channelFor([defaultProfile]) },
+			getEnvironment: async () => environment([defaultProfile]),
+			currentProfile,
+			localProfiles: [defaultProfile, currentProfile, otherProfile],
+			storage: {
+				get: key => values.get(key),
+				store: (key, value) => { values.set(key, value); },
+				remove: key => { values.delete(key); },
+			},
+		});
+		store.add(service);
+
+		await service.getRemoteProfiles();
+		const created = await service.getRemoteProfile(otherProfile);
+
+		assert.strictEqual(created.id, 'other');
+		const associations = [...values.values()].map(value => JSON.parse(value)['test-remote']);
+		assert.deepStrictEqual(associations, [['current', 'other']]);
+	});
+
 });

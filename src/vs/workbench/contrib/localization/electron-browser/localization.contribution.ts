@@ -36,9 +36,9 @@ class NativeLocalizationWorkbenchContribution extends BaseLocalizationWorkbenchC
 	) {
 		super();
 
-		this.checkAndInstall().catch(onUnexpectedError).catch(onUnexpectedError);
-		this._register(this.extensionManagementService.onDidInstallExtensions(e => this.onDidInstallExtensions(e).catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this.extensionManagementService.onDidUninstallExtension(e => this.onDidUninstallExtension(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.checkAndInstall().catch(onUnexpectedError);
+		this._register(this.extensionManagementService.onDidInstallExtensions(e => this.onDidInstallExtensions(e).catch(onUnexpectedError)));
+		this._register(this.extensionManagementService.onDidUninstallExtension(e => this.onDidUninstallExtension(e).catch(onUnexpectedError)));
 	}
 
 	private async onDidInstallExtensions(results: readonly InstallExtensionResult[]): Promise<void> {
@@ -85,7 +85,7 @@ class NativeLocalizationWorkbenchContribution extends BaseLocalizationWorkbenchC
 			this.localeService.setLocale({
 				id: 'en',
 				label: 'English'
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 

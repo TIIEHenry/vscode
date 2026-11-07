@@ -20,8 +20,6 @@ const EDIT_SESSIONS_REL = 'src/vs/workbench/contrib/editSessions/browser/editSes
 const STORAGE_REL = 'src/vs/workbench/contrib/editSessions/browser/editSessionsStorageService.ts';
 const VIEWS_REL = 'src/vs/workbench/contrib/editSessions/browser/editSessionsViews.ts';
 const WORKSPACE_STATE_REL = 'src/vs/workbench/contrib/editSessions/common/workspaceStateSync.ts';
-const OUTPUT_REL = 'src/vs/workbench/services/output/common/output.ts';
-const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
 const MACHINES_REL = 'src/vs/platform/userDataSync/common/userDataSyncMachines.ts';
 const EDIT_SESSIONS_IFACE_REL = 'src/vs/workbench/contrib/editSessions/common/editSessions.ts';
 
@@ -137,19 +135,6 @@ suite('policies leftover Promise fire-and-forget overflowed to editSessions left
 			this.maybeShowManagedSettingsDialog();
 		});`));
 		assert.ok(!gate.includes('void this.defaultAccountService.refresh({ forceRefresh: true, retryManagedSettings: true });'));
-	});
-
-	test('editSessions leftover remaining showChannel / executeCommand voids are Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(EDIT_SESSIONS_REL), 'utf8');
-		const output = fs.readFileSync(resolveSource(OUTPUT_REL), 'utf8');
-		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
-		assertPromiseSignature(output, 'showChannel(id: string, preserveFocus?: boolean): Promise<void>;');
-		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
-		assert.ok(source.includes("import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(source, showChannelCall);
-		assertWrapped(source, executeCommandCall);
-		assert.ok(!source.includes('void outputChannel.showChannel(editSessionsLogId);'));
-		assert.ok(!source.includes('void this.commandService.executeCommand(installAdditionalContinueOnOptionsCommand.id);'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / D145 stay skipped', () => {

@@ -164,8 +164,8 @@ export class ChatModelFeedbackSurveyService extends Disposable implements IChatM
 	) {
 		super();
 
-		void this.resolveConfig().catch(onUnexpectedError).catch(onUnexpectedError);
-		this._register(this.assignmentService.onDidRefetchAssignments(() => void this.resolveConfig().catch(onUnexpectedError).catch(onUnexpectedError)));
+		void this.resolveConfig().catch(onUnexpectedError);
+		this._register(this.assignmentService.onDidRefetchAssignments(() => void this.resolveConfig().catch(onUnexpectedError)));
 		this._register(this.chatService.onDidDisposeSession(e => this.forgetSessions(e.sessionResources)));
 	}
 

@@ -198,7 +198,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		this.originalModel = this._register(originalResourceRef).object.notebook;
 		this.originalURI = this.originalModel.uri;
 		this.initialContent = initialContent;
-		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeModelsFromDiff().catch(onUnexpectedError);
 		this._register(this.modifiedModel.onDidChangeContent(this.mirrorNotebookEdits, this));
 	}
 
@@ -273,7 +273,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (currentState === ModifiedFileEntryState.Modified && didResetToOriginalContent) {
 			this._stateObs.set(ModifiedFileEntryState.Rejected, undefined);
 			this.updateCellDiffInfo([], undefined);
-			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.initializeModelsFromDiff().catch(onUnexpectedError);
 			this._notifySessionAction('rejected');
 			return;
 		}
@@ -410,7 +410,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (currentState === ModifiedFileEntryState.Modified && didResetToOriginalContent) {
 			this._stateObs.set(ModifiedFileEntryState.Rejected, undefined);
 			this.updateCellDiffInfo([], undefined);
-			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.initializeModelsFromDiff().catch(onUnexpectedError);
 			return;
 		}
 	}
@@ -419,7 +419,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		this.updateCellDiffInfo([], undefined);
 		const snapshot = createSnapshot(this.modifiedModel, this.transientOptions, this.configurationService);
 		restoreSnapshot(this.originalModel, snapshot);
-		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeModelsFromDiff().catch(onUnexpectedError);
 		await this._collapse(undefined);
 		if (this._store.isDisposed) {
 			return;
@@ -470,7 +470,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 			if (this._store.isDisposed) {
 				return;
 			}
-			this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.initializeModelsFromDiff().catch(onUnexpectedError);
 			await this._collapse(undefined);
 		}
 	}
@@ -523,7 +523,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				redoState = this._stateObs.get() === ModifiedFileEntryState.Accepted ? ModifiedFileEntryState.Accepted : ModifiedFileEntryState.Rejected;
 				this._stateObs.set(ModifiedFileEntryState.Rejected, undefined);
 				this.updateCellDiffInfo([], undefined);
-				this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.initializeModelsFromDiff().catch(onUnexpectedError);
 				this._notifySessionAction('userModified');
 			},
 			redo: async () => {
@@ -537,7 +537,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				}
 				this._stateObs.set(redoState, undefined);
 				this.updateCellDiffInfo([], undefined);
-				this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.initializeModelsFromDiff().catch(onUnexpectedError);
 				this._notifySessionAction('userModified');
 			}
 		};
@@ -1034,7 +1034,7 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (restoreToDisk) {
 			this.restoreSnapshotInModifiedModel(snapshot.current);
 		}
-		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeModelsFromDiff().catch(onUnexpectedError);
 	}
 
 	async resetEditTrackerToInitialContent() {
@@ -1043,13 +1043,13 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		}
 
 		this.updateCellDiffInfo([], undefined);
-		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeModelsFromDiff().catch(onUnexpectedError);
 	}
 
 	override async resetToInitialContent(): Promise<void> {
 		this.updateCellDiffInfo([], undefined);
 		this.restoreSnapshotInModifiedModel(this.initialContent);
-		this.initializeModelsFromDiff().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initializeModelsFromDiff().catch(onUnexpectedError);
 	}
 
 	public restoreModifiedModelFromSnapshot(snapshot: string) {

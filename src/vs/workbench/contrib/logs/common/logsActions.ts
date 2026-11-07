@@ -90,7 +90,7 @@ export class SetLogLevelAction extends Action {
 			let selectedItem: IQuickPickItem | undefined;
 			disposables.add(quickPick.onDidTriggerItemButton(e => {
 				quickPick.hide();
-				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level).catch(onUnexpectedError);
 			}));
 			disposables.add(quickPick.onDidAccept(e => {
 				selectedItem = quickPick.selectedItems[0];
@@ -119,7 +119,7 @@ export class SetLogLevelAction extends Action {
 			let selectedItem: LogLevelQuickPickItem | undefined;
 			disposables.add(quickPick.onDidTriggerItemButton(e => {
 				quickPick.hide();
-				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level, logChannel.channel.extensionId).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.defaultLogLevelsService.setDefaultLogLevel((<LogLevelQuickPickItem>e.item).level, logChannel.channel.extensionId).catch(onUnexpectedError);
 			}));
 			disposables.add(quickPick.onDidAccept(e => {
 				selectedItem = quickPick.selectedItems[0] as LogLevelQuickPickItem;
