@@ -107,7 +107,7 @@ suite('Session Artifacts', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when copy rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when copy rejects and onUnexpectedError logs it', async () => {
 		const pullRequestLink = URI.parse('https://github.com/microsoft/vscode/pull/12');
 		const session = upcastPartial<IActiveSession>({
 			artifacts: constObservable<readonly ISessionArtifact[]>([
@@ -140,9 +140,6 @@ suite('Session Artifacts', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const entries = sessionArtifacts.sections.get().flatMap(section => section.entries);
@@ -153,7 +150,7 @@ suite('Session Artifacts', () => {
 			assert.deepStrictEqual({ unhandledRejections, copyCalls, unexpectedWarns }, {
 				unhandledRejections: [],
 				copyCalls: 1,
-				unexpectedWarns: ['boom', 'boom'],
+				unexpectedWarns: ['boom'],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

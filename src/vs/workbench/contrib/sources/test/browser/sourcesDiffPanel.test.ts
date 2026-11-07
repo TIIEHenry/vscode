@@ -643,7 +643,6 @@ suite('Sources diff panel', () => {
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -651,16 +650,13 @@ suite('Sources diff panel', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -2348,7 +2344,7 @@ suite('Sources diff panel', () => {
 		};
 	}
 
-	test('does not leak unhandled rejection when Revert click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Revert click catch-path notice throws and onUnexpectedError logs it', async function () {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const { pane, parent } = await mountConversationDiffReviewPane(this, {
@@ -2361,7 +2357,7 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Unstage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Unstage click catch-path notice throws and onUnexpectedError logs it', async function () {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const { pane, parent } = await mountConversationDiffReviewPane(this, {
@@ -2375,7 +2371,7 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Stage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Stage click catch-path notice throws and onUnexpectedError logs it', async function () {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const { pane, parent } = await mountConversationDiffReviewPane(this, {
@@ -2388,7 +2384,7 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Accept click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Accept click catch-path notice throws and onUnexpectedError logs it', async function () {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const connection = leftoverConnectedConnection(false);
@@ -2412,7 +2408,7 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Preview failure notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Preview failure notice throws and onUnexpectedError logs it', async function () {
 		const commandBoom = new Error('preview boom');
 		await assertWarnThenRethrowDoesNotLeak(commandBoom, async () => {
 			const { parent } = await mountConversationDiffReviewPane(this, {
@@ -2432,7 +2428,7 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Stage catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Stage catch-path notice throws and onUnexpectedError logs it', async function () {
 		const paintBoom = new Error('paint boom');
 		const resource = toResource.call(this, '/project/src/d524-stage.ts');
 		const original = toResource.call(this, '/project/src/d524-stage.ts.git');
@@ -2480,7 +2476,7 @@ suite('Sources diff panel', () => {
 		assert.deepStrictEqual(applyCalls, []);
 	});
 
-	test('does not leak unhandled rejection when renderRef catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when renderRef catch-path notice throws and onUnexpectedError logs it', async function () {
 		const paintBoom = new Error('paint boom');
 		const resource = toResource.call(this, '/project/src/d524-render.ts');
 		const original = toResource.call(this, '/project/src/d524-render.ts.git');

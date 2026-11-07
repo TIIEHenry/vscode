@@ -20,6 +20,7 @@ NODE_FILES = (
     "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
 )
 DOMAINS = ("conversation", "sources", "sourcesNode", "universeAgent", "universeAgentNode")
+UA_NODE_UNLOADABLE_LIST = "test/unit/electron/d17-ua-node-unloadable.json"
 
 # Both official entry points are replaced only inside the temporary repository.
 # This records the shell's real argv and writes reporter-shaped XML; it does not
@@ -32,6 +33,9 @@ import sys
 import xml.etree.ElementTree as ET
 
 args = sys.argv[1:]
+if "--tfs" not in args and Path(sys.argv[0]).name == "node":
+    # Non-runner node calls (the wrapper reading its JSON name list) use the real node.
+    os.execv(os.environ["STUB_REAL_NODE"], [os.environ["STUB_REAL_NODE"], *args])
 domain = args[args.index("--tfs") + 1]
 with open(os.environ["STUB_CALLS"], "a", encoding="utf-8") as output:
     output.write(json.dumps({"node": Path(sys.argv[0]).name == "node", "args": args}) + "\n")
@@ -89,9 +93,13 @@ class UnitCustomSourcesTests(unittest.TestCase):
             encoding="utf-8",
         )
         wrapper = (REPO_ROOT / "scripts/run-unit-custom.sh").read_text(encoding="utf-8")
-        names = re.search(r"UA_NODE_UNLOADABLE=\((.*?)\n\)", wrapper, re.S)
-        self.assertIsNotNone(names)
-        self.ua_names = names.group(1).split()
+        self.assertIn(f'"$REPO_ROOT/{UA_NODE_UNLOADABLE_LIST}"', wrapper)
+        self.assertIn('mapfile -t UA_NODE_UNLOADABLE', wrapper)
+        self.ua_names = json.loads((REPO_ROOT / UA_NODE_UNLOADABLE_LIST).read_text(encoding="utf-8"))
+        self.assertTrue(self.ua_names)
+        self.assertTrue(all(isinstance(name, str) and name for name in self.ua_names))
+        (self.root / UA_NODE_UNLOADABLE_LIST).parent.mkdir(parents=True)
+        shutil.copy2(REPO_ROOT / UA_NODE_UNLOADABLE_LIST, self.root / UA_NODE_UNLOADABLE_LIST)
         for name in self.ua_names + ["keptNode"]:
             self.touch(f"src/vs/platform/universeAgent/test/node/{name}.test.ts")
         self.touch("src/vs/platform/universeAgent/test/browser/keptBrowser.test.ts")
@@ -99,6 +107,8 @@ class UnitCustomSourcesTests(unittest.TestCase):
             self.touch(name)
         self.touch("src/vs/workbench/contrib/sources/test/browser/example.test.ts")
         self.calls = self.root / "calls.jsonl"
+        real_node = shutil.which("node")
+        self.assertIsNotNone(real_node, "run-unit-custom.sh reads its name list with node")
         self.bin = self.root / "stub-bin"
         self.bin.mkdir()
         self.executable(self.bin / "node", RUNNER_STUB)
@@ -106,7 +116,8 @@ class UnitCustomSourcesTests(unittest.TestCase):
         self.workspace = Path(temporary.name) / "workspace with spaces"
         self.workspace.mkdir()
         self.env = {**os.environ, "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
-                    "GITHUB_WORKSPACE": str(self.workspace), "STUB_CALLS": str(self.calls)}
+                    "GITHUB_WORKSPACE": str(self.workspace), "STUB_CALLS": str(self.calls),
+                    "STUB_REAL_NODE": real_node}
         self.env.pop("BUILD_ARTIFACTSTAGINGDIRECTORY", None)
         self.env.pop("STUB_CONFIG", None)
 
@@ -151,7 +162,7 @@ class UnitCustomSourcesTests(unittest.TestCase):
         self.assertIn("baseline check passed", result.stdout)
         calls = self.read_calls()
         self.assertEqual(len(calls), 5)
-        self.assertEqual(calls[0], {"node": False, "args": ["--glob", "**/vs/workbench/contrib/conversation/test/**/*.test.js", "--tfs", "conversation"]})
+        self.assertEqual(calls[0], {"node": False, "args": ["--glob", "**/vs/workbench/contrib/conversation/test/**/*.test.js", "--excludeRunGlob", "**/conversationSessionsFocus.test.js", "--tfs", "conversation"]})
         self.assertEqual(calls[1], {"node": False, "args": ["--glob", "**/vs/workbench/contrib/sources/test/browser/**/*.test.js", "--tfs", "sources"]})
         self.assertEqual(calls[2], {"node": True, "args": ["test/unit/node/index.js", "--tfs", "sourcesNode", "--run", NODE_FILES[0], "--run", NODE_FILES[1]]})
         kept = sorted([f"src/vs/platform/universeAgent/test/{kind}/{name}.test.ts"

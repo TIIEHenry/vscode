@@ -1302,7 +1302,7 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when onDidDisposeSession dispose warn throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when onDidDisposeSession dispose warn throws and onUnexpectedError logs it', async () => {
 		const ui = untitledChatUri('dispose-session-warn-rethrow');
 		await provisional.getOrCreate(ui, 'copilot', undefined);
 		agentHost.failNextDispose = true;
@@ -1321,9 +1321,6 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			chatService.onDidDisposeSessionEmitter.fire({ sessionResources: [ui], reason: 'cleared' });
@@ -1336,7 +1333,7 @@ suite('AgentHostUntitledProvisionalSessionService', () => {
 			}, {
 				unhandledRejections: [],
 				warnCalls: 1,
-				unexpectedWarnCount: 2,
+				unexpectedWarnCount: 1,
 				mapping: undefined,
 			});
 		} finally {

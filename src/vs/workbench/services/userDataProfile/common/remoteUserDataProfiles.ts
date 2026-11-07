@@ -153,7 +153,7 @@ export class RemoteUserDataProfilesService extends Disposable implements IRemote
 				transient: localProfile.isTransient,
 				useDefaultFlags: localProfile.useDefaultFlags,
 			});
-			this.setAssociatedRemoteProfiles([...this.getAssociatedRemoteProfiles(), this.userDataProfileService.currentProfile.id]);
+			this.setAssociatedRemoteProfiles([...this.getAssociatedRemoteProfiles(), profile.id]);
 		}
 		return profile;
 	}

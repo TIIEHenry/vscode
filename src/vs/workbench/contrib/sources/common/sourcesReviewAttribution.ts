@@ -47,8 +47,9 @@ export interface ISourcesReviewAttributionService {
 	isAttributionEnabled(): boolean;
 
 	/**
-	 * Legacy note when the connection work_dir is not a workspace root.
-	 * Undefined once the session work root is available: engine roots still attribute.
+	 * Header note when attribution is omitted. Legacy: the connection work_dir is not a workspace root.
+	 * Session work root: no work root, a root this window cannot read, or an engine root shown with
+	 * local SCM rows (reads the entries last passed to `buildChipMapForEntries`).
 	 */
 	getWorkDirMismatchNote(): string | undefined;
 

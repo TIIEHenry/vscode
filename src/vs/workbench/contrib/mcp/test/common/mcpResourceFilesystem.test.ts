@@ -251,6 +251,28 @@ suite('Workbench - MCP - ResourceFilesystem', () => {
 		watchDisposable.dispose();
 	});
 
+	test('disposing a watch unsubscribes from the resource', async () => {
+		const didSubscribe = new Barrier();
+		transport.setResponder('resources/subscribe', msg => {
+			didSubscribe.open();
+			return { id: (msg as { id: string | number }).id, jsonrpc: '2.0', result: {} };
+		});
+		const unsubscribed: string[] = [];
+		transport.setResponder('resources/unsubscribe', msg => {
+			const request = msg as { id: string | number; params: { uri: string } };
+			unsubscribed.push(request.params.uri);
+			return { id: request.id, jsonrpc: '2.0', result: {} };
+		});
+
+		const watchDisposable = fs.watch(URI.parse('mcp-resource://746573742D736572766572/custom/hello/file.txt'), { excludes: [], recursive: false });
+		await didSubscribe.wait();
+		await timeout(10); // wait for the subscribe response
+
+		watchDisposable.dispose();
+		await timeout(10); // wait for the unsubscribe response
+		assert.deepStrictEqual(unsubscribed, ['custom://hello/file.txt']);
+	});
+
 	test('read blob resource', async () => {
 		const blobBase64 = 'SGVsbG8gV29ybGQgYXMgQmxvYg=='; // "Hello World as Blob" in base64
 

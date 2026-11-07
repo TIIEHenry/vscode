@@ -44,7 +44,7 @@ export class NodeRemoteTunnel extends Disposable implements RemoteTunnel {
 
 	private readonly _options: IConnectionOptions;
 	private readonly _server: net.Server;
-	private readonly _barrier: Barrier;
+	private _barrier: Barrier;
 
 	private readonly _listeningListener: () => void;
 	private readonly _connectionListener: (socket: net.Socket) => void;
@@ -64,8 +64,9 @@ export class NodeRemoteTunnel extends Disposable implements RemoteTunnel {
 		this._connectionListener = (socket) => this._onConnection(socket);
 		this._server.on('connection', this._connectionListener);
 
-		// If there is no error listener and there is an error it will crash the whole window
-		this._errorListener = () => { };
+		// If there is no error listener and there is an error it will crash the whole window.
+		// A failed listen() never emits 'listening', so release the waiter here as well.
+		this._errorListener = () => this._barrier.open();
 		this._server.on('error', this._errorListener);
 
 		this.tunnelRemotePort = tunnelRemotePort;
@@ -99,6 +100,7 @@ export class NodeRemoteTunnel extends Disposable implements RemoteTunnel {
 		// It is possible for findFreePortFaster to return a port that there is already a server listening on. This causes the previous listen call to error out.
 		if (!address) {
 			localPort = 0;
+			this._barrier = new Barrier();
 			this._server.listen(localPort, this.defaultTunnelHost);
 			await this._barrier.wait();
 			address = <net.AddressInfo>this._server.address();

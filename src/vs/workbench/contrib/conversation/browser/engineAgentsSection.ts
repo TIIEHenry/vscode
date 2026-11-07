@@ -37,7 +37,8 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
-import { captureEnginePublishedLinkOwner, captureEngineWriteLink, EngineRefreshGate, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner, isSameEngineWriteLink, type EngineWriteLink } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, EngineRefreshGate, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner } from './engineWriteGate.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogSectionController } from './engineCatalogSectionController.js';
@@ -312,7 +313,7 @@ export class EngineAgentsSection extends Disposable {
 	private listEntries: EngineAgentListEntry[] = [];
 	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
 	/** Owner of the successful List that supplied the selected DTO; never recaptured from a row. */
-	private listedProfilesOwner: EngineWriteLink | undefined;
+	private listedProfilesOwner: UniverseAgentPublishedLinkOwner | undefined;
 	private selectionGeneration = 0;
 	private agentsEditorLoadGeneration = 0;
 	private loadedAgentsMarkdown: string | undefined;
@@ -322,7 +323,7 @@ export class EngineAgentsSection extends Disposable {
 		readonly source: UniverseAgentAgentProfileSource;
 		readonly selectionGeneration: number;
 		readonly loadGeneration: number;
-		readonly owner: EngineWriteLink;
+		readonly owner: UniverseAgentPublishedLinkOwner;
 		readonly rawBody: string | undefined;
 		readonly display: string;
 	} | undefined;
@@ -779,28 +780,23 @@ export class EngineAgentsSection extends Disposable {
 		);
 	}
 
-	private captureWriteLink(): EngineWriteLink | undefined {
+	private captureWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
 		if (!this.canWrite() || this._store.isDisposed) {
 			return undefined;
 		}
 		return this.publishedWriteLink();
 	}
 
-	private publishedWriteLink(): EngineWriteLink | undefined {
-		const link = captureEngineWriteLink(this.connection);
-		const owner = captureEnginePublishedLinkOwner(this.connection);
-		if (!link || !owner || !isSameEnginePublishedLinkOwner(this.connection, link) || !isSameEngineWriteLink(this.connection, link)) {
-			return undefined;
-		}
-		return link;
+	private publishedWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
+		return captureEnginePublishedLinkOwner(this.connection);
 	}
 
 	/** Published identity and link. Disconnect and pairing-hold still drop the result; catalog mode does not. */
-	private sameWriteLink(link: EngineWriteLink): boolean {
+	private sameWriteLink(link: UniverseAgentPublishedLinkOwner): boolean {
 		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
 			return false;
 		}
-		return isSameEnginePublishedLinkOwner(this.connection, link) && isSameEngineWriteLink(this.connection, link);
+		return isSameEnginePublishedLinkOwner(this.connection, link);
 	}
 
 	private sameSelectedProfile(profileId: string, selectionGeneration: number): boolean {
@@ -1020,7 +1016,7 @@ export class EngineAgentsSection extends Disposable {
 		}, link);
 	}
 
-	async createProfile(profile?: UniverseAgentAgentProfileDetail, expectedOwner?: EngineWriteLink): Promise<boolean> {
+	async createProfile(profile?: UniverseAgentAgentProfileDetail, expectedOwner?: UniverseAgentPublishedLinkOwner): Promise<boolean> {
 		if (this._store.isDisposed || !this.canWrite()) {
 			return false;
 		}
@@ -1085,7 +1081,7 @@ export class EngineAgentsSection extends Disposable {
 		await this.deleteSelectedProfile({ profile: selected, owner: link });
 	}
 
-	async deleteSelectedProfile(intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: EngineWriteLink }): Promise<boolean> {
+	async deleteSelectedProfile(intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: UniverseAgentPublishedLinkOwner }): Promise<boolean> {
 		const selected = intent?.profile ?? this.selectedProfile;
 		if (this._store.isDisposed || !this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
 			return false;
@@ -1189,7 +1185,7 @@ export class EngineAgentsSection extends Disposable {
 		}
 	}
 
-	async saveSelectedProfile(updates: Partial<UniverseAgentAgentProfileDetail> = {}, intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: EngineWriteLink; readonly onCancelled?: () => void; readonly onContentRejected?: (issue: string) => void; readonly isContextCurrent?: () => boolean }): Promise<boolean> {
+	async saveSelectedProfile(updates: Partial<UniverseAgentAgentProfileDetail> = {}, intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: UniverseAgentPublishedLinkOwner; readonly onCancelled?: () => void; readonly onContentRejected?: (issue: string) => void; readonly isContextCurrent?: () => boolean }): Promise<boolean> {
 		const selected = intent?.profile ?? this.selectedProfile;
 		if (this._store.isDisposed || !this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
 			return false;
@@ -1367,7 +1363,7 @@ export class EngineAgentsSection extends Disposable {
 		return ++this.catalogWriteStatusGeneration;
 	}
 
-	private async restoreCatalogWriteSuccessAfterRefresh(copy: string, link: EngineWriteLink, isContextCurrent: () => boolean = () => true): Promise<boolean> {
+	private async restoreCatalogWriteSuccessAfterRefresh(copy: string, link: UniverseAgentPublishedLinkOwner, isContextCurrent: () => boolean = () => true): Promise<boolean> {
 		if (this._store.isDisposed || !this.sameWriteLink(link) || !isContextCurrent()) {
 			return false;
 		}
@@ -1399,7 +1395,7 @@ export class EngineAgentsSection extends Disposable {
 		return stillSame;
 	}
 
-	private async restoreMarkdownSaveSuccessIfListed(profileId: string, link?: EngineWriteLink, isCurrent: () => boolean = () => true): Promise<void> {
+	private async restoreMarkdownSaveSuccessIfListed(profileId: string, link?: UniverseAgentPublishedLinkOwner, isCurrent: () => boolean = () => true): Promise<void> {
 		if (this._store.isDisposed || this.selectedProfile?.id !== profileId || !isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
 			return;
 		}

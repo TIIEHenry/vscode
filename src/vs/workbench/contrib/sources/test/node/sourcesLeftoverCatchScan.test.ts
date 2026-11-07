@@ -8,6 +8,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/virtualScheduling/index.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
@@ -52,10 +53,10 @@ suite('Sources leftover fire-and-forget catch (D677)', () => {
 			getWorkspace: () => ({ folders: [] }),
 		} as unknown as IWorkspaceContextService;
 		const model = store.add(new SourcesChangesModel(connection, scmService, workspaceContext, session));
-		return { model, state, boom };
+		return { model, state, boom, sessionChanges };
 	}
 
-	async function captureUnexpected(run: () => void): Promise<{ unexpected: unknown[]; unhandledRejections: unknown[] }> {
+	async function captureUnexpected(run: () => void | Promise<void>): Promise<{ unexpected: unknown[]; unhandledRejections: unknown[] }> {
 		const unexpected: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -63,7 +64,7 @@ suite('Sources leftover fire-and-forget catch (D677)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => unexpected.push(error));
 		try {
-			run();
+			await run();
 			await timeout(0);
 			return { unexpected, unhandledRejections };
 		} finally {
@@ -93,4 +94,17 @@ suite('Sources leftover fire-and-forget catch (D677)', () => {
 			assert.deepStrictEqual({ settled: model.getSnapshot().settled, state: model.getSnapshot().state }, { settled: true, state: { kind: 'scm' } });
 		});
 	}
+
+	test('a rejected refresh fired by the scheduler timer reaches onUnexpectedError once and an active-session event still lands the next round', () => runWithFakedTimers({}, async () => {
+		const { model, state, boom, sessionChanges } = createModel();
+		state.failing = true;
+
+		const result = await captureUnexpected(() => timeout(250));
+
+		assert.deepStrictEqual({ ...result, settled: model.getSnapshot().settled }, { unexpected: [boom], unhandledRejections: [], settled: false });
+		state.failing = false;
+		sessionChanges.fire('session-a');
+		await timeout(250);
+		assert.deepStrictEqual({ settled: model.getSnapshot().settled, state: model.getSnapshot().state }, { settled: true, state: { kind: 'scm' } });
+	}));
 });
