@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-11-02
+updated: 2026-11-05
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -11,6 +11,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 
 | 文件 | 说明 |
 |------|------|
+| [SGLang Provider 与任务评测验证](sglang-provider-validation-2026-11-05.md) | retry10 八场景终态、任务与路由分层诊断、显式 deep_think 协议及运行时探针；F21 与默认窗口接入未验收。 |
 | [Tools/Wiki集成与真实窗口分层证据](tools-wiki-wave-2026-11-02-evidence.md) | Node24组合绿与A206/B18保留；真实交互子集通过、Save来源未定P2；D1397 catalog mutation P1另立hard hold，own2只读现场保留，不混证据层。 |
 | [其余设置页视觉验证](preferences-visual-alignment-evidence/verification.md) | Connection/Client/Engine组合：1101过、4pending；47张受控截图，非真实引擎验收 |
 | [Engine 设置参考图视觉验证](engine-settings-visual-evidence/verification.md) | 生产组件受控目录：Electron 48过；浅深/高对比/窄短五种渲染，非真实引擎验收 |

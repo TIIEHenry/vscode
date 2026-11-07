@@ -3,7 +3,7 @@ title: "并行看板索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-11-02
+updated: 2026-11-05
 summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查、自有界面视觉审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
@@ -14,6 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
+| [GPT 视觉交互与真实 SGLang 持续优化](active/gpt-visual-sglang-goal.md) | Sol 实现、Terra 真实诊断；Team/页签组件已验，真实 editor 身份缺口修复中。 |
 | [tools-wiki-wave-2026-11-02](active/tools-wiki-wave-2026-11-02.md) | A/B旧波未闭；D1398 A1源码与同主题文档已在 merge HEAD 本地合入（`cca88013437`，`compile-client`/`valid-layers-check` 0 错误），真实默认窗口/钉死引擎门仍待。D1398 global hold、D1395 open，B 只读 F；C/E/F/main 与外部 WIP 保留，不宣称产品发布。 |
 | [session-owner-wave-2026-11-02](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md) | 已发布并归档；完整compile及D1393全链验收通过，外部提交保全，主工位WIP快进拒绝已原样记录 |
 | [其余设置页视觉并行实施](active/preferences-visual-alignment.md) | 三路组合完成；1101过/4pending，真实引擎窗口未验 |

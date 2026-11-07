@@ -3,7 +3,7 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-11-02
+updated: 2026-11-05
 summary: "官方单测与五域自定义入口；Sources pending严格读取根汇总，私有短TMP避免Unix socket路径过长；焦点与真实产品窗口分别验收。"
 ---
 
@@ -120,6 +120,16 @@ rtk proxy node test/unit/browser/index.js --browser chromium-chrome \
 
 测量窗口与元素用 `getWindow(element)` 取得，避免多窗口下读错文档。对比度按真实层叠背景合成；主题允许图标前景与文字前景不同，分别核对配对 token 和可读性。焦点前景立即变化时，背景过渡也须核查，不能仅等过渡结束来掩盖切换瞬间的低对比。产品初始 palette 的 DOM 回归与完整主题、真实产品窗口实拍分别记录。
 
+## Component Explorer 渲染回归
+
+编辑器页签模式回归位于 [`editorTabBarModes.spec.ts`](../../../test/componentFixtures/playwright/tests/editorTabBarModes.spec.ts)。先使 Node 与根 `.nvmrc` 一致，已有 Component Explorer 服务也须用同版本；在 `test/componentFixtures/playwright` 目录运行：
+
+```bash
+rtk proxy npx playwright test editorTabBarModes.spec.ts --workers=1
+```
+
+配置会启动或接入 Component Explorer。测试覆盖 Modern UI 开/关下的默认多页签、single、none 和三种固定页签分行模式；等待 `component-explorer:ready` 后再核 tablist 数量与每行水平语义。单纯可见 DOM 不能代替 renderer 完成，超时须保留失败。该 spec 单独关闭 trace：本机启用 trace 时 renderer completion 超时，关闭截图仍复现，具体机制未定；关闭 trace 后在 Node 24 完成全部模式。此配置保留 ready 与 DOM 断言，不改公共 harness 或放宽超时。该结果属于生产组件在受控 fixture 中的渲染证据，不等于关闭/拖动行为或默认产品窗口联调。
+
 ## 集成测试
 
 [test/integration/browser/README.md](../../../test/integration/browser/README.md)：
@@ -136,6 +146,38 @@ scripts/test-web-integration.sh --browser chromium   # 或 webkit；可加 --deb
 本仓适配的产品壳是默认编辑器窗口。自动剧本、断言和证据目录见 [壳冒烟验证](../../guides/shell-smoke-verification.md) §8。入口是 `test/scenario/scenarios/editor-shell.cjs`。命令里不要加 `--agents`。
 
 `src/vs/sessions/test/e2e` 里的 `npm test` 用 `scripts/code-sessions-web.js --mock` 打开 Sessions 网页工作台，测的是 Agents 窗口。主区域可以停在 “Connect a host to get started”。那不是编辑器窗口，也不能当作本仓产品壳联调。`scripts/test-integration.sh` 仍是上游 API / 扩展宿主集成测，同样不代替这条剧本。
+
+### 默认编辑器连接真实模型
+
+[`run-universe-agent-real-editor.sh`](../../../test/scenario/scripts/run-universe-agent-real-editor.sh) 使用调用者提供的生产引擎和模型目录，运行 [`universe-agent-real-editor.cjs`](../../../test/scenario/scenarios/universe-agent-real-editor.cjs)。它不会自行启动 SSE fixture。先准备合成且仅属主可访问的 engine home/workspace，并按该预包的模型配置合同写入 provider state、catalog 和一致的默认 profile；仅设置 API 环境变量不足以保证 Composer 有选项。
+
+执行环境路径如下。引擎 home、工作目录和产物目录取自本轮新建目录：
+
+| 设置 | 用途 |
+| --- | --- |
+| `UNIVERSE_AGENT_HOME` / `UA_REAL_EDITOR_WORKDIR` | 隔离引擎数据与合成工作目录 |
+| `UA_ENGINE_BIN` / `UA_REAL_EDITOR_PORT` | 已核 VERSION/库清单的生产预包及空闲端口；wrapper 默认 50161 |
+| `TMPDIR` | 未设置、空、或解析为 `/tmp` 时，wrapper 用 `mktemp -d` 自建私有目录，并只在 cleanup 删除该目录；调用者提供的其他目录保持不动。隔离 runner 会清理的 vscsmoke；user-data/extensions/shared-data 均在其中 |
+| `VSCODE_SCENARIO_ARTIFACT_ROOT` | 统一 logs/crashes/videos/evidence；显式空值、相对路径、文件系统根、用户主目录或其祖先会在清理前报错 |
+| JVM `-Duser.home` 与独立日志配置 | 由调用者设置，避免 JVM 默认日志落入日常目录 |
+
+未设置 artifact 覆盖时保留历史 `.build/vscode-playwright-mcp` 默认目录，启动会清理其中 logs；并行或需要保留历史证据的运行必须给独立绝对路径。Electron shared-data 由单独实参默认指向本次 profile 根，显式调用方参数仍可覆盖；本隔离流程不提供覆盖。wrapper 会 unset 继承的 `VSCODE_PORTABLE` / `VSCODE_APPDATA`，它们优先于 CLI user-data，会破坏原目录的 settings 预置。
+
+先用 `.nvmrc` 的 Node 编译与验证工具，再执行一次原剧本：
+
+```bash
+rtk proxy npm run compile --prefix test/scenario
+rtk proxy python3 -m unittest scripts.tests.test_scenario_artifact_paths scripts.tests.test_real_editor_engine_lifecycle scripts.tests.test_real_editor_scenario scripts.tests.test_session_timeline_order -v
+rtk proxy bash test/scenario/scripts/run-universe-agent-real-editor.sh
+```
+
+`test_real_editor_scenario` 使用已安装的 Playwright Chromium，直接执行真实场景的 live/reload 回调与合成 DOM，不启动引擎或模型。它覆盖工具前助手与流式预览并存、外层 article busy、持久身份、重复 marker/工具/root、重载身份变化及晚到失败。仅夹具缩短拒绝例等待，并校验原场景仍传 60 秒；CJS 等待逻辑单独变化不需要 client 编译。
+
+`test_session_timeline_order` 使用正式编译的 Node demux/Actor 生成匿名合成快照，再交给 Chromium 的实际投影/TimelineHost；先挂 seq3/5/7，后追加seq12，检查顺序与最终 article 均正确。live 和真实 history adapter 两条入口都覆盖；history 变体通过 streamEvent 入 Actor，不代表完整 historyResult mailbox 或实际 reload。该测试不导入真实DB，也不在 browser 中导入 node 层；超时只清理自有进程组。产品TS发生变化时先更新相应编译输出，再跑此测试。
+
+真实场景允许多条助手说明，但包含 marker 的助手行必须恰好一个且有持久 root/turn 身份、外层 article 非 busy；工具数量及重载身份检查保持。仅点击提交、出现流式 marker 或收到持久事件都不计完整通过。
+
+wrapper 将 runner 放后台并 wait，正常结束时退出码即 runner 的退出码；仅 wrapper 收到 INT/TERM 时先 TERM runner 并等待，再 TERM 引擎，以 128+信号退出。EXIT trap 回收仍在运行的本轮引擎。已有 server.lock 或 server.sock 则启动前失败且不删除。就绪须同时满足：本轮 owned PID 仍存活、引擎已写出 server.lock 或 server.sock、127.0.0.1 上该端口已接受 TCP；引擎在等待中退出则立即失败并指向日志。步骤分为连接、提交、工具/助手结果、reload；点击提交不代表模型请求成功。当前 [SGLang 采样记录](../../../dev/progress/sglang-provider-validation-2026-11-05.md#默认编辑器的首次真实模型配置采样) 的目录配置、模型选择与实际调用分开记账，不能把历史 SSE fixture 的 4/4 当作真实 Provider 验收。
 
 ## 何时 typecheck / 编译
 
