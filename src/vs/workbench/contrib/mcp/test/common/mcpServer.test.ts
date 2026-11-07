@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { derived, waitForState } from '../../../../../base/common/observable.js';
 import { upcast } from '../../../../../base/common/types.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
@@ -30,6 +32,7 @@ import { IMcpHostDelegate, IMcpMessageTransport, IMcpRegistry } from '../../comm
 import { McpServer, McpServerMetadataCache, McpPrefixGenerator } from '../../common/mcpServer.js';
 import { IMcpSandboxService } from '../../common/mcpSandboxService.js';
 import {
+	ElicitationKind,
 	IMcpElicitationService,
 	IMcpSamplingService,
 	McpConnectionState,
@@ -37,6 +40,7 @@ import {
 	McpServerLaunch,
 	UserInteractionRequiredError,
 } from '../../common/mcpTypes.js';
+import { MCP } from '../../common/modelContextProtocol.js';
 import { TestEnablementModel } from './testMcpService.js';
 import { TestMcpMessageTransport, TestMcpRegistry } from './mcpRegistryTypes.js';
 
@@ -74,9 +78,11 @@ suite('Workbench - MCP - McpServer', () => {
 	let instantiationService: TestInstantiationService;
 	let registry: TestMcpRegistry;
 	let delegate: ErrorThenRunningDelegate;
+	let elicit: IMcpElicitationService['elicit'];
 
 	setup(() => {
 		delegate = store.add(new ErrorThenRunningDelegate());
+		elicit = async () => ({ kind: ElicitationKind.Form, dispose: () => { }, value: { action: 'cancel' } });
 
 		const services = new ServiceCollection(
 			[IStorageService, store.add(new TestStorageService())],
@@ -112,10 +118,10 @@ suite('Workbench - MCP - McpServer', () => {
 				getConfig: () => ({} as never),
 				updateConfig: async () => ({} as never),
 			}],
-			[IMcpElicitationService, {
+			[IMcpElicitationService, upcast<IMcpElicitationService>({
 				_serviceBrand: undefined,
-				elicit: async () => ({ dispose: () => { }, value: { action: 'cancel' as const } }),
-			}],
+				elicit: (server, context, elicitation, token) => elicit(server, context, elicitation, token),
+			})],
 		);
 
 		const parentInstantiationService = store.add(new TestInstantiationService(services));
@@ -168,5 +174,37 @@ suite('Workbench - MCP - McpServer', () => {
 				return true;
 			},
 		);
+	});
+
+	test('accepted URL elicitation keeps waiting for completion after responding', async () => {
+		delegate.startCallCount = 1; // next start is Running
+		let transport: TestMcpMessageTransport | undefined;
+		const start = delegate.start.bind(delegate);
+		delegate.start = () => transport = start() as TestMcpMessageTransport;
+
+		const wait = new DeferredPromise<void>();
+		let disposed = 0;
+		elicit = async () => ({ kind: ElicitationKind.URL, value: { action: 'accept' }, wait: wait.p, dispose: () => { disposed++; } });
+
+		const server = createServer();
+		const state = await server.start();
+		assert.strictEqual(state.state, McpConnectionState.Kind.Running);
+		await waitForState(derived(reader => server.connection.read(reader)?.handler.read(reader)));
+
+		transport!.simulateReceiveMessage({
+			jsonrpc: MCP.JSONRPC_VERSION,
+			id: 99,
+			method: 'elicitation/create',
+			params: { mode: 'url', message: 'Sign in', elicitationId: 'e1', url: 'https://example.com' },
+		});
+		while (!transport!.getSentMessages().some(m => (m as Partial<MCP.JSONRPCResultResponse>).id === 99 && (m as Partial<MCP.JSONRPCResultResponse>).result !== undefined)) {
+			await timeout(1);
+		}
+
+		assert.strictEqual(disposed, 0, 'URL elicitation must not be disposed before the completion notification');
+		wait.complete();
+		await wait.p;
+		await timeout(0);
+		assert.strictEqual(disposed, 1);
 	});
 });

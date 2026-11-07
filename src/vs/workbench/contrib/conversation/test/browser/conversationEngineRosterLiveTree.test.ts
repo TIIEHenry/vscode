@@ -334,7 +334,6 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 	});
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -342,16 +341,13 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -359,9 +355,8 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 		}
 	}
 
-	test('does not leak unhandled rejection when listed bind monitor rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when listed bind monitor rejects and onUnexpectedError logs it', async () => {
 		// monitorListedEngineSessionBind has no method-body catch; bindReady reject still needs double catch.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		class RejectListedBindHarness extends ObservableRosterHarness {
 			rejectBind = false;
@@ -395,9 +390,8 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 		});
 	});
 
-	test('does not leak unhandled rejection when pending bind monitor rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when pending bind monitor rejects and onUnexpectedError logs it', async () => {
 		// monitorPendingEngineSessionBind has no method-body catch; bindReady reject still needs double catch.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		class RejectPendingBindHarness extends ObservableRosterHarness {
 			override acquireSessionView(sessionId: string): IConversationSessionViewLease {

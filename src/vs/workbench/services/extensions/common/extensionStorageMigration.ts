@@ -51,7 +51,6 @@ export async function migrateExtensionStorage(fromExtensionId: string, toExtensi
 			const value = extensionStorageService.getExtensionState(fromExtensionId, global);
 			if (value) {
 				extensionStorageService.setExtensionState(toExtensionId, value, global);
-				extensionStorageService.setExtensionState(fromExtensionId, undefined, global);
 			}
 
 			// Migrate stored files
@@ -62,9 +61,14 @@ export async function migrateExtensionStorage(fromExtensionId: string, toExtensi
 					await fileService.move(fromPath, toPath, true);
 				} catch (error) {
 					if ((<FileSystemProviderError>error).code !== FileSystemProviderErrorCode.FileNotFound) {
+						// Keep the source state and do not mark as migrated so the migration is retried
 						logService.info(`Error while migrating ${global ? 'global' : 'workspace'} file storage from '${fromExtensionId}' to '${toExtensionId}'`, getErrorMessage(error));
+						return;
 					}
 				}
+			}
+			if (value) {
+				extensionStorageService.setExtensionState(fromExtensionId, undefined, global);
 			}
 			logService.info(`Migrated ${global ? 'global' : 'workspace'} extension storage from ${fromExtensionId} to ${toExtensionId}`);
 			storageService.store(storageMigratedKey, true, storageScope, StorageTarget.MACHINE);

@@ -185,9 +185,10 @@ export interface IConversationRosterService {
 	 * AgentService.Fork (create SubAgent). Engine-connected forwards unary
 	 * (empty parent → last streaming agent else `root`). Does not invent a
 	 * local catalog id — liveAgentTree remains the catalog source.
-	 * Stub / disconnected cache / missing hook returns false.
+	 * `anchorTurnId` must be an engine L1 turn id; omitted or blank forks the
+	 * whole live path. Stub / disconnected cache / missing hook returns false.
 	 */
-	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean;
+	forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string; anchorTurnId?: string }): boolean;
 	/**
 	 * AgentService.Kill (terminate SubAgent; ≠ Cancel / CancelToolCall).
 	 * Engine-connected forwards unary. Empty `agentId` is sent as-is (not
@@ -539,7 +540,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		return undefined;
 	}
 
-	forkSubAgent(_sessionId: string, _options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+	forkSubAgent(_sessionId: string, _options?: { name?: string; task?: string; parentAgentId?: string; anchorTurnId?: string }): boolean {
 		return false;
 	}
 

@@ -10,8 +10,9 @@ export type UniverseAgentTransportState = 'idle' | 'ok' | 'failed';
 
 /**
  * Keys consumed by the Engine page capability matrix (customizations-engine §2)
- * and by advertised RPC gates. Matrix rows are a subset; write buttons and
- * Sources git-read use the probe keys below and are not overview rows.
+ * and by advertised RPC gates. Overview rows cover the Engine page keys;
+ * `models` has its own row, and the Navigator, snapshot and Sources git-read
+ * keys are not overview rows.
  */
 export type UniverseAgentCapabilityKey =
 	| 'skills'

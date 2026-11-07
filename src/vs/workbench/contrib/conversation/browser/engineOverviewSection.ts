@@ -32,7 +32,7 @@ export function formatOverviewCapabilitySupportLabel(
 
 const $ = DOM.$;
 
-function getOverviewCapabilityLabel(key: UniverseAgentCapabilityKey): string {
+function getOverviewCapabilityLabel(key: OverviewCapabilityKey): string {
 	switch (key) {
 		case 'skills':
 			return localize('ua.engineOverviewCapSkills', "Skills");
@@ -50,8 +50,26 @@ function getOverviewCapabilityLabel(key: UniverseAgentCapabilityKey): string {
 			return localize('ua.engineOverviewCapHooks', "Hooks");
 		case 'plugins':
 			return localize('ua.engineOverviewCapPlugins', "Plugins");
-		default:
-			return key;
+		case 'mcpRuntime':
+			return localize('ua.engineOverviewCapMcpRuntime', "MCP runtime");
+		case 'providerConfig':
+			return localize('ua.engineOverviewCapProviderStatus', "Provider status");
+		case 'fireTrigger':
+			return localize('ua.engineOverviewCapFireTrigger', "Triggers: Fire");
+		case 'upsertTrigger':
+			return localize('ua.engineOverviewCapUpsertTrigger', "Triggers: Save");
+		case 'setTriggerEnabled':
+			return localize('ua.engineOverviewCapSetTriggerEnabled', "Triggers: Enable");
+		case 'deleteTrigger':
+			return localize('ua.engineOverviewCapDeleteTrigger', "Triggers: Delete");
+		case 'readClipboard':
+			return localize('ua.engineOverviewCapReadClipboard', "Clipboard: Read");
+		case 'writeClipboard':
+			return localize('ua.engineOverviewCapWriteClipboard', "Clipboard: Write");
+		case 'clearClipboard':
+			return localize('ua.engineOverviewCapClearClipboard', "Clipboard: Clear");
+		case 'readContextVariable':
+			return localize('ua.engineOverviewCapContextVariables', "Context variables");
 	}
 }
 
@@ -114,7 +132,8 @@ export function formatOverviewRegistryUnavailable(support: UniverseAgentCapabili
 	return localize('ua.engineOverviewRegistryUnknown', "Unknown — model registry capability not advertised.");
 }
 
-const OVERVIEW_CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
+/** Row order. Rows added after the first eight go at the end. */
+const OVERVIEW_CAPABILITY_KEYS = [
 	'skills',
 	'agentProfiles',
 	'tools',
@@ -123,7 +142,36 @@ const OVERVIEW_CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
 	'projectRules',
 	'hooksMetadata',
 	'plugins',
-];
+	'mcpRuntime',
+	'providerConfig',
+	'fireTrigger',
+	'upsertTrigger',
+	'setTriggerEnabled',
+	'deleteTrigger',
+	'readClipboard',
+	'writeClipboard',
+	'clearClipboard',
+	'readContextVariable',
+] as const satisfies readonly UniverseAgentCapabilityKey[];
+
+/**
+ * Keys with no capability row. `models` has the Model row. `agentTree` / `team` belong to the
+ * Navigator, `restoreSnapshot` / `deleteSnapshot` to the conversation snapshot list, and
+ * `readGitChanges` to Sources, like the dedicated session-list and git-write snapshot fields.
+ */
+const OVERVIEW_OMITTED_CAPABILITY_KEYS = [
+	'models',
+	'agentTree',
+	'team',
+	'restoreSnapshot',
+	'deleteSnapshot',
+	'readGitChanges',
+] as const satisfies readonly UniverseAgentCapabilityKey[];
+
+type OverviewCapabilityKey = typeof OVERVIEW_CAPABILITY_KEYS[number];
+type OverviewCapabilityKeysComplete = UniverseAgentCapabilityKey extends OverviewCapabilityKey | typeof OVERVIEW_OMITTED_CAPABILITY_KEYS[number] ? true : never;
+const overviewCapabilityKeysComplete: OverviewCapabilityKeysComplete = true;
+void overviewCapabilityKeysComplete;
 
 export class EngineOverviewSection extends Disposable {
 

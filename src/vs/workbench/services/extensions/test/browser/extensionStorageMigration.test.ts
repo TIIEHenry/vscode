@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
-import { IFileService } from '../../../../../platform/files/common/files.js';
+import { createFileSystemProviderError, FileSystemProviderErrorCode, IFileService } from '../../../../../platform/files/common/files.js';
 import { FileService } from '../../../../../platform/files/common/fileService.js';
 import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -94,5 +94,30 @@ suite('ExtensionStorageMigration', () => {
 
 	});
 
+	test('failed file move keeps source state and is retried', async () => {
+		const fromExtensionId = 'pub.from', toExtensionId = 'pub.to', storageMigratedKey = `extensionStorage.migrate.${fromExtensionId}-${toExtensionId}`;
+		const extensionStorageService = instantiationService.get(IExtensionStorageService), fileService = instantiationService.get(IFileService), storageService = instantiationService.get(IStorageService), userDataProfilesService = instantiationService.get(IUserDataProfilesService);
+		const fromPath = joinPath(userDataProfilesService.defaultProfile.globalStorageHome, fromExtensionId);
+		const toPath = joinPath(userDataProfilesService.defaultProfile.globalStorageHome, toExtensionId);
+
+		extensionStorageService.setExtensionState(fromExtensionId, { globalKey: 'hello global state' }, true);
+		await fileService.writeFile(fromPath, VSBuffer.fromString('hello global storage'));
+
+		const move = fileService.move;
+		fileService.move = () => Promise.reject(createFileSystemProviderError('denied', FileSystemProviderErrorCode.NoPermissions));
+		await migrateExtensionStorage(fromExtensionId, toExtensionId, true, instantiationService);
+
+		assert.deepStrictEqual(extensionStorageService.getExtensionState(fromExtensionId, true), { globalKey: 'hello global state' });
+		assert.deepStrictEqual(await fileService.exists(fromPath), true);
+		assert.deepStrictEqual(storageService.get(storageMigratedKey, StorageScope.PROFILE), undefined);
+
+		fileService.move = move;
+		await migrateExtensionStorage(fromExtensionId, toExtensionId, true, instantiationService);
+
+		assert.deepStrictEqual(extensionStorageService.getExtensionState(fromExtensionId, true), undefined);
+		assert.deepStrictEqual(extensionStorageService.getExtensionState(toExtensionId, true), { globalKey: 'hello global state' });
+		assert.deepStrictEqual((await fileService.readFile(toPath)).value.toString(), 'hello global storage');
+		assert.deepStrictEqual(storageService.get(storageMigratedKey, StorageScope.PROFILE), 'true');
+	});
 
 });

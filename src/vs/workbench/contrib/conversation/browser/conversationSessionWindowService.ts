@@ -566,7 +566,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (this.pendingLayoutRestore || this.savedLeavesMatchRoster()) {
 				this.pendingLayoutRestore = false;
 				this.pendingReveal = undefined;
-				void this.restorePersistedLeaves().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.restorePersistedLeaves().catch(onUnexpectedError);
 				return;
 			}
 			this.pendingReveal = undefined;
@@ -897,7 +897,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.pendingLayoutRestore = true;
 			return true;
 		}
-		void this.restorePersistedLeaves().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.restorePersistedLeaves().catch(onUnexpectedError);
 		return true;
 	}
 

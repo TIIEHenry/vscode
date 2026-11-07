@@ -300,7 +300,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 		this._register(chatService.onDidDisposeSession(e => {
 			for (const sessionResource of e.sessionResources) {
 				if (this._entries.has(sessionResource)) {
-					void this.disposeSession(sessionResource).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.disposeSession(sessionResource).catch(onUnexpectedError);
 				}
 				this._resolvedConfigs.delete(sessionResource);
 				this._resolvedConfigRequestSeq.delete(sessionResource);
@@ -327,7 +327,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 		this._register(this._newSessionFolderService.onDidChangeFolder(sessionResource => {
 			const folder = this._newSessionFolderService.getFolder(sessionResource);
 			if (folder && this._entries.has(sessionResource)) {
-				void this._changeWorkingDirectory(sessionResource, folder).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._changeWorkingDirectory(sessionResource, folder).catch(onUnexpectedError);
 			}
 		}));
 		// If workspace folders change, recompute the desired directory set. If it
@@ -341,7 +341,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 				}
 				// Untitled drafts reselect removed primaries; rebound sessions retain their immutable primary.
 				if (isUntitledChatSession(sessionResource) && this._primaryWasRemoved(entry, e)) {
-					void this._changeWorkingDirectory(sessionResource, this._newSessionFolderService.resolveNewSessionPrimary(sessionResource)).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this._changeWorkingDirectory(sessionResource, this._newSessionFolderService.resolveNewSessionPrimary(sessionResource)).catch(onUnexpectedError);
 					continue;
 				}
 				this._reconcileWorkspaceRootSet(sessionResource, entry);
@@ -431,7 +431,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 		}
 		this._updateActiveClientScope(entry);
 		if (entry.usesWorkspaceRootSet && !this._generationMatchingDesiredState(entry)) {
-			void this._queue(sessionResource, () => this._reconcileGeneration(sessionResource, entry)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._queue(sessionResource, () => this._reconcileGeneration(sessionResource, entry)).catch(onUnexpectedError);
 		}
 	}
 
@@ -699,7 +699,7 @@ export class AgentHostUntitledProvisionalSessionService extends Disposable imple
 
 	private _retryPendingBackendDisposals(): void {
 		for (const backendSession of this._pendingBackendDisposals) {
-			void this._disposeBackend(backendSession, 'pending provisional cleanup').catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._disposeBackend(backendSession, 'pending provisional cleanup').catch(onUnexpectedError);
 		}
 	}
 

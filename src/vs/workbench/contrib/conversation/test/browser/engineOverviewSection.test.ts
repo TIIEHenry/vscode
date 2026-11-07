@@ -307,6 +307,16 @@ suite('EngineOverviewSection', () => {
 					globalRules: { support: 'SUPPORTED' },
 					projectRules: { support: 'SUPPORTED' },
 					hooksMetadata: { support: 'SUPPORTED' },
+					mcpRuntime: { support: 'SUPPORTED' },
+					providerConfig: { support: 'SUPPORTED' },
+					fireTrigger: { support: 'SUPPORTED' },
+					upsertTrigger: { support: 'SUPPORTED' },
+					setTriggerEnabled: { support: 'SUPPORTED' },
+					deleteTrigger: { support: 'SUPPORTED' },
+					readClipboard: { support: 'SUPPORTED' },
+					writeClipboard: { support: 'SUPPORTED' },
+					clearClipboard: { support: 'SUPPORTED' },
+					readContextVariable: { support: 'SUPPORTED' },
 				},
 			}),
 		});
@@ -323,6 +333,108 @@ suite('EngineOverviewSection', () => {
 		assert.ok(!supports.includes(formatCapabilitySupportLabel('UNKNOWN')), supports.join(','));
 		assert.ok(!supports.includes(formatCapabilitySupportLabel('UNSUPPORTED')), supports.join(','));
 		parent.remove();
+	});
+
+	function overviewCapabilityRows(root: HTMLElement): { name: string; support: string; title: string }[] {
+		return [...root.querySelectorAll('.engine-overview-capability-row')].map(row => {
+			const support = row.querySelector('.engine-overview-capability-support') as HTMLElement;
+			return {
+				name: row.querySelector('.engine-overview-capability-name')?.textContent ?? '',
+				support: support.textContent ?? '',
+				title: support.title,
+			};
+		});
+	}
+
+	async function renderConnectedOverview(capabilities: UniverseAgentConnectionSnapshot['capabilities']): Promise<HTMLElement> {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				authenticated: true,
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
+				capabilities,
+			}),
+		});
+		const parent = document.createElement('div');
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+		return section.getDomNode();
+	}
+
+	test('capability rows cover every Engine page capability in a fixed order', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		const root = await renderConnectedOverview({
+			...capabilities,
+			mcpRuntime: { support: 'SUPPORTED' },
+			providerConfig: { support: 'UNSUPPORTED', reason: 'ListProviderStatus not advertised' },
+			fireTrigger: { support: 'SUPPORTED' },
+			readClipboard: { support: 'UNSUPPORTED' },
+			readContextVariable: { support: 'SUPPORTED' },
+			models: { support: 'UNSUPPORTED' },
+			agentTree: { support: 'SUPPORTED' },
+			readGitChanges: { support: 'SUPPORTED' },
+		});
+		const rows = overviewCapabilityRows(root);
+		assert.deepStrictEqual(rows.map(row => row.name), [
+			'Skills',
+			'Agents',
+			'Tools',
+			'MCP',
+			'Global rules',
+			'Project rules',
+			'Hooks',
+			'Plugins',
+			'MCP runtime',
+			'Provider status',
+			'Triggers: Fire',
+			'Triggers: Save',
+			'Triggers: Enable',
+			'Triggers: Delete',
+			'Clipboard: Read',
+			'Clipboard: Write',
+			'Clipboard: Clear',
+			'Context variables',
+		]);
+		const byName = new Map(rows.map(row => [row.name, row]));
+		assert.strictEqual(byName.get('MCP runtime')?.support, 'Supported');
+		assert.strictEqual(byName.get('Provider status')?.support, 'Unsupported');
+		assert.strictEqual(byName.get('Provider status')?.title, 'ListProviderStatus not advertised');
+		assert.strictEqual(byName.get('Triggers: Fire')?.support, 'Supported');
+		assert.strictEqual(byName.get('Triggers: Save')?.support, 'Unknown');
+		assert.strictEqual(byName.get('Clipboard: Read')?.support, 'Unsupported');
+		assert.strictEqual(byName.get('Context variables')?.support, 'Supported');
+		assertProviderRowOmitted(root.textContent ?? '', root);
+	});
+
+	test('capability rows stay honest when the snapshot lacks newer keys', async () => {
+		const full = createEmptyTestCapabilitySnapshot();
+		const partial = {
+			skills: { support: 'SUPPORTED' },
+			agentProfiles: full.agentProfiles,
+			tools: full.tools,
+			mcp: full.mcp,
+			globalRules: full.globalRules,
+			projectRules: full.projectRules,
+			hooksMetadata: full.hooksMetadata,
+			plugins: full.plugins,
+			models: { support: 'UNSUPPORTED' },
+		} as unknown as UniverseAgentConnectionSnapshot['capabilities'];
+		const rows = overviewCapabilityRows(await renderConnectedOverview(partial));
+		assert.strictEqual(rows.length, 18);
+		const missing = rows.filter(row => ['MCP runtime', 'Provider status', 'Triggers: Fire', 'Clipboard: Clear', 'Context variables'].includes(row.name));
+		assert.strictEqual(missing.length, 5);
+		for (const row of missing) {
+			assert.strictEqual(row.support, formatCapabilitySupportLabel('UNKNOWN'), row.name);
+			assert.strictEqual(row.title, '', row.name);
+		}
 	});
 
 	test('SUPPORTED listModels failure shows read failure copy', async () => {

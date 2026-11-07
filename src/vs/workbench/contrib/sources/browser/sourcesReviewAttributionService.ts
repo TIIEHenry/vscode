@@ -54,6 +54,8 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	private activeSessionId = '';
 	private connectionSnapshot: UniverseAgentConnectionSnapshot;
 	private everConnected = false;
+	/** Last entries passed to `buildChipMapForEntries` were all local SCM rows. */
+	private entriesLocalOnly = false;
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
 	readonly onDidChange = this._onDidChange.event;
@@ -117,9 +119,8 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	}
 
 	getWorkDirMismatchNote(): string | undefined {
-		// Session work root attributes engine rows; the legacy omission note does not apply.
 		if (this.session.getWorkRoot) {
-			return undefined;
+			return this.getWorkRootNote();
 		}
 		const workDir = this.connectionSnapshot.workDir;
 		if (!workDir || !this.everConnected) {
@@ -133,6 +134,35 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			"Engine workspace `{0}` differs from this workspace; attribution is omitted.",
 			workDir,
 		);
+	}
+
+	private getWorkRootNote(): string | undefined {
+		if (!this.everConnected) {
+			return undefined;
+		}
+		const facts = this.indexFacts(this.activeSessionId);
+		if (!facts.workDir) {
+			return localize(
+				'sourcesReviewAttribution.noWorkRoot',
+				"This session has no work root; attribution is omitted.",
+			);
+		}
+		if (facts.access === 'none') {
+			return localize(
+				'sourcesReviewAttribution.workRootUnreadable',
+				"Engine work root `{0}` is not readable from this window; attribution is omitted.",
+				facts.workDir,
+			);
+		}
+		// Engine-root chips join on `gitPath`; local SCM rows have none.
+		if (facts.access === 'engine' && this.entriesLocalOnly) {
+			return localize(
+				'sourcesReviewAttribution.workRootLocalList',
+				"Engine work root `{0}` is not in this window; this list comes from local SCM and attribution is omitted.",
+				facts.workDir,
+			);
+		}
+		return undefined;
 	}
 
 	getAttributionHeaderSuffix(): string | undefined {
@@ -168,6 +198,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 
 	buildChipMapForEntries(entries: readonly { readonly resource: URI; readonly gitPath?: string }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]> {
 		const result = new Map<string, readonly IReviewAttributionChipDisplay[]>();
+		this.entriesLocalOnly = entries.length > 0 && entries.every(entry => entry.gitPath === undefined);
 		const facts = this.indexFacts(this.activeSessionId);
 		if (!this.canAttribute(facts)) {
 			return result;
