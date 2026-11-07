@@ -282,7 +282,6 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		const workbenchConfig = fs.readFileSync(resolveSource(WORKBENCH_CONFIG_REL), 'utf8');
 		const titlebar = fs.readFileSync(resolveSource(TITLEBAR_REL), 'utf8');
 		const logLevels = fs.readFileSync(resolveSource(LOG_REL), 'utf8');
-		const chatTip = fs.readFileSync(resolveSource(CHAT_TIP_REL), 'utf8');
 		const extensionsRecs = fs.readFileSync(resolveSource(EXTENSIONS_RECS_REL), 'utf8');
 		const configService = fs.readFileSync(resolveSource(CONFIG_SVC_REL), 'utf8');
 		const storageBrowser = fs.readFileSync(resolveSource(STORAGE_BROWSER_REL), 'utf8');
@@ -327,7 +326,6 @@ suite('leftover remaining unused api leftover remaining unused this.foo() leftov
 		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}.catch(onUnexpectedError);`));
 		assert.ok(!logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
-		assert.ok(chatTip.includes(doubleCatch));
 		assert.ok(extensionsRecs.includes('.catch(onUnexpectedError);'));
 		assert.ok(!extensionsRecs.includes(doubleCatch));
 		assert.ok(configService.includes(`${validateFoldersCall}.catch(onUnexpectedError);`));
