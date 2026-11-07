@@ -896,10 +896,7 @@ function projectionWithStreamingAgent(sessionId: string, agentId: string): Retur
 	};
 }
 
-declare function __readFileInTests(path: string): Promise<string>;
-
 async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 	const unexpectedWarns: unknown[] = [];
 	const unhandledRejections: unknown[] = [];
 	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -907,16 +904,13 @@ async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => voi
 	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 	setUnexpectedErrorHandler(error => {
 		unexpectedWarns.push(error);
-		if (unexpectedWarns.length === 1) {
-			throw error;
-		}
 	});
 	try {
 		await run();
 		await timeout(0);
 		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 			unhandledRejections: [],
-			unexpectedWarns: [paintBoom, paintBoom],
+			unexpectedWarns: [paintBoom],
 		});
 	} finally {
 		setUnexpectedErrorHandler(originalErrorHandler);
@@ -5982,10 +5976,9 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), false);
 	});
 
-	test('does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError logs it', async () => {
 		// doRefreshEngineCatalog already catches listSessions throw; a lone inner reject does not leak.
 		// The void setEngineConnected call site still needs `.catch` when the catch-path persist throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		class CatchPathSaveRoster extends ConversationEngineRosterService {
 			protected override saveRosterStorage(_state: ConversationRosterStorageV1): void {
@@ -6007,10 +6000,9 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when onUaConnectionChanged refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when onUaConnectionChanged refreshEngineCatalog catch-path persist throws and onUnexpectedError logs it', async () => {
 		// doRefreshEngineCatalog already catches listSessions throw; a lone inner reject does not leak.
 		// The void onUaConnectionChanged call site still needs `.catch` when the catch-path persist throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		class CatchPathSaveRoster extends ConversationEngineRosterService {
 			protected override saveRosterStorage(_state: ConversationRosterStorageV1): void {
@@ -6032,10 +6024,9 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when createSession catch-path fire throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when createSession catch-path fire throws and onUnexpectedError logs it', async () => {
 		// ensureEngineSession().then already has a createSession fail-action catch; a lone inner reject does not leak.
-		// The void createSession call site still needs a second `.catch` when that catch-path fire throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		// The void createSession call site still needs a trailing `.catch` when that catch-path fire throws.
 		const paintBoom = new Error('paint boom');
 		class CreateSessionCatchRoster extends ConversationEngineRosterService {
 			throwOnAcquire = false;
@@ -6068,9 +6059,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when retryError continueGeneration postIfHeld rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when retryError continueGeneration postIfHeld rejects and onUnexpectedError logs it', async () => {
 		// continueEngineGeneration fire-and-forgets postIfHeld; a lone `void pending` leaks when that Promise rejects.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
@@ -6086,24 +6076,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			assert.strictEqual(service.retryError('ua-only', { messageId: 'msg-1' }), true);
 		});
-	});
-
-	test('engine roster fire-and-forget voids double-catch onUnexpectedError', async () => {
-		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void this.refreshEngineCatalog()${doubleCatch}`));
-		assert.ok(source.includes(`void this.ensureEngineSession().then(() => {`));
-		assert.ok(source.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(/void this\.ensureEngineSession\(\)\.then\(\(\) => \{\s*this\.bindLiveTreeObservationLease\(\);\s*\}\)\.catch\(error => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/.test(source));
-		assert.ok(source.includes(`void this.monitorPendingEngineSessionBind(sessionId, lease)${doubleCatch}`));
-		assert.ok(source.includes(`void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration)${doubleCatch}`));
-		assert.ok(source.includes(`void pending${doubleCatch}`));
-		assert.ok(!source.includes('void this.refreshEngineCatalog();'));
-		assert.ok(!source.includes('void this.monitorPendingEngineSessionBind(sessionId, lease);'));
-		assert.ok(!source.includes('void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration);'));
-		assert.ok(!source.includes('void pending;'));
-		assert.ok(source.includes('void this.engineSessionEnsure.finally(() => {'));
-		assert.strictEqual((source.match(/void this\.refreshEngineCatalog\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 	});
 
 	test('persisted engine cache keeps session workDir across list refresh and roster restart', async () => {

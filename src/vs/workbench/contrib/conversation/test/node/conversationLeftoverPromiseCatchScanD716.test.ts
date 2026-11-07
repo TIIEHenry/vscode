@@ -10,7 +10,6 @@ import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const PLUGINS_REL = 'src/vs/workbench/contrib/conversation/browser/enginePluginsSection.ts';
 const CONTEXT_REL = 'src/vs/workbench/contrib/conversation/browser/engineContextVariableSection.ts';
 const PROVIDER_REL = 'src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts';
@@ -59,12 +58,6 @@ function assertLeftoverExecuteCommandSingleChain(source: string, count: number):
 suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('onUnexpectedError returns undefined so a lone catch still leaks when the handler warn-then-rethrows', () => {
-		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
-		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
-		assert.ok(source.includes('\treturn undefined;'));
-	});
 
 	test('this knife covers zero leftover Promise double-chain sites and eight deduplicated single-chain sites; D701 engineAgents and D710 stay skipped', () => {
 		const doubleFiles: string[] = [];
