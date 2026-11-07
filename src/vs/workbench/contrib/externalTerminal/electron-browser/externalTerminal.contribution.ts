@@ -113,7 +113,7 @@ export class ExternalTerminalContribution implements IWorkbenchContribution {
 
 	public _serviceBrand: undefined;
 	constructor(@IExternalTerminalService private readonly _externalTerminalService: IExternalTerminalService) {
-		this._updateConfiguration().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._updateConfiguration().catch(onUnexpectedError);
 	}
 
 	private async _updateConfiguration(): Promise<void> {

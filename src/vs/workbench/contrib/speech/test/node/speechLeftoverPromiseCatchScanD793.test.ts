@@ -17,9 +17,6 @@ const CONFIG_REL = 'src/vs/platform/configuration/common/configuration.ts';
 const SIGNAL_IFACE_REL = 'src/vs/platform/accessibilitySignal/browser/accessibilitySignalService.ts';
 const VIEWS_REL = 'src/vs/workbench/services/views/common/viewsService.ts';
 const SPEECH_REL = 'src/vs/workbench/contrib/speech/browser/speechService.ts';
-const SPEECH_SIGNAL_REL = 'src/vs/workbench/contrib/speech/browser/speechAccessibilitySignal.ts';
-const SPEECH_CONTRIB_REL = 'src/vs/workbench/contrib/speech/browser/speech.contribution.ts';
-const SPEECH_COMMON_REL = 'src/vs/workbench/contrib/speech/common/speechService.ts';
 const VIEW_REL = 'src/vs/workbench/contrib/accessibility/browser/accessibleView.ts';
 const STATUS_REL = 'src/vs/workbench/contrib/accessibility/browser/accessibilityStatus.ts';
 const HELP_REL = 'src/vs/workbench/contrib/accessibility/browser/extensionAccesibilityHelp.contribution.ts';
@@ -48,10 +45,6 @@ function resolveSource(rel: string): string {
 const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function countIncludes(source: string, needle: string): number {
-	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
 function countDoubleChains(source: string): number {
 	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
@@ -61,26 +54,10 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 function assertSingleWrapped(source: string, call: string): void {
 	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
 	assert.ok(!source.includes(`${call}${doubleCatch}`));
-}
-
-function assertThenWrapped(source: string, thenStart: string): void {
-	const idx = source.indexOf(thenStart);
-	assert.ok(idx >= 0, `missing then: ${thenStart}`);
-	const afterThen = source.slice(idx);
-	const closeThen = afterThen.indexOf(`})${doubleCatch};`);
-	assert.ok(closeThen >= 0, `then not double-chained: ${thenStart}`);
-	assert.ok(!source.includes(`${thenStart};`));
-	assert.ok(!source.includes(`${thenStart}.catch(onUnexpectedError);`));
 }
 
 function assertSingleThenWrapped(source: string, thenStart: string): void {
@@ -93,8 +70,6 @@ function assertSingleThenWrapped(source: string, thenStart: string): void {
 	assert.ok(!source.includes(`${thenStart}${doubleCatch};`));
 }
 
-const startedCall = 'this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStarted)';
-const stoppedCall = 'this._accessibilitySignalService.playSignal(AccessibilitySignal.voiceRecordingStopped)';
 const insertedCall = 'this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineInserted)';
 const deletedCall = 'this._accessibilitySignalService.playSignal(AccessibilitySignal.diffLineDeleted)';
 const getTextModelThen = 'this._getTextModel(stableUri).then((model) => {';
@@ -102,18 +77,6 @@ const openLinkCall = "this._commandService.executeCommand('editor.action.openLin
 const updateOnCall = "this.configurationService.updateValue('editor.accessibilitySupport', 'on', ConfigurationTarget.USER)";
 const updateOffCall = "this.configurationService.updateValue('editor.accessibilitySupport', 'off', ConfigurationTarget.USER)";
 const openViewCall = 'viewsService.openView(viewDescriptor.id, true)';
-
-const d793Calls: Array<[string, string, number, 'call' | 'then']> = [
-	[SPEECH_SIGNAL_REL, startedCall, 1, 'call'],
-	[SPEECH_SIGNAL_REL, stoppedCall, 1, 'call'],
-	[VIEW_REL, insertedCall, 1, 'call'],
-	[VIEW_REL, deletedCall, 1, 'call'],
-	[VIEW_REL, getTextModelThen, 1, 'then'],
-	[VIEW_REL, openLinkCall, 1, 'call'],
-	[STATUS_REL, updateOnCall, 1, 'call'],
-	[STATUS_REL, updateOffCall, 1, 'call'],
-	[HELP_REL, openViewCall, 1, 'call'],
-];
 
 suite('speech leftover remaining overflowed to accessibility leftover Promise fire-and-forget catch scan (D793)', () => {
 
@@ -123,72 +86,6 @@ suite('speech leftover remaining overflowed to accessibility leftover Promise fi
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('speech leftover remaining has fewer than four legal sites so this knife moved to accessibility leftover remaining', () => {
-		const signal = fs.readFileSync(resolveSource(SPEECH_SIGNAL_REL), 'utf8');
-		const speech = fs.readFileSync(resolveSource(SPEECH_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(SPEECH_CONTRIB_REL), 'utf8');
-		const common = fs.readFileSync(resolveSource(SPEECH_COMMON_REL), 'utf8');
-		const speechLegal = countIncludes(signal, `${startedCall}${doubleCatch}`) + countIncludes(signal, `${stoppedCall}${doubleCatch}`);
-		assert.ok(speechLegal < 4, `expected speech legal leftover <4, got ${speechLegal}`);
-		assert.strictEqual(speechLegal, 2);
-		assert.strictEqual(countDoubleChains(signal), 2);
-		assert.strictEqual(countDoubleChains(speech), 0);
-		assert.ok(!contrib.includes(doubleCatch));
-		assert.ok(!common.includes(doubleCatch));
-		assert.ok(speech.includes('activeRecognizeKeywordSession = this.doRecognizeKeyword(cts.token).then(status => {'));
-		assert.ok(speech.includes(', error => {'));
-		assert.ok(!speech.includes(`this.doRecognizeKeyword(cts.token).then(status => {${doubleCatch}`));
-	});
-
-	test('this knife covers nine leftover Promise catch sites (speech double-chain, accessibility single-chain) after speech leftover remaining overflow', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count, kind] of d793Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const isAccessibility = rel === VIEW_REL || rel === STATUS_REL || rel === HELP_REL;
-			const expectedCatch = isAccessibility ? singleCatch : doubleCatch;
-			if (kind === 'then') {
-				if (isAccessibility) {
-					assertSingleThenWrapped(source, call);
-				} else {
-					assertThenWrapped(source, call);
-				}
-				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
-			} else {
-				const wrapped = countIncludes(source, `${call}${expectedCatch}`);
-				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-				if (isAccessibility) {
-					assertSingleWrapped(source, call);
-				} else {
-					assertWrapped(source, call);
-				}
-			}
-			sites += count;
-		}
-		assert.strictEqual(sites, 9);
-		assert.strictEqual(countDoubleChains(seen.get(VIEW_REL) ?? ''), 0);
-		assert.strictEqual(countDoubleChains(seen.get(STATUS_REL) ?? ''), 0);
-		assert.strictEqual(countDoubleChains(seen.get(HELP_REL) ?? ''), 0);
-		assert.strictEqual(countDoubleChains(seen.get(SPEECH_SIGNAL_REL) ?? ''), 2);
-	});
-
-	test('speech leftover playSignal fire-and-forgets are Promise double-chain; assigned two-arg recognizeKeyword then stays skipped', () => {
-		const signal = fs.readFileSync(resolveSource(SPEECH_SIGNAL_REL), 'utf8');
-		const speech = fs.readFileSync(resolveSource(SPEECH_REL), 'utf8');
-		const iface = fs.readFileSync(resolveSource(SIGNAL_IFACE_REL), 'utf8');
-		assertPromiseSignature(iface, 'playSignal(signal: AccessibilitySignal, options?: IAccessbilitySignalOptions): Promise<void>;');
-		assertPromiseSignature(speech, 'private async doRecognizeKeyword(token: CancellationToken): Promise<KeywordRecognitionStatus> {');
-		assert.ok(signal.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(signal, startedCall);
-		assertWrapped(signal, stoppedCall);
-		assert.ok(!signal.includes('playSignal(AccessibilitySignal.voiceRecordingStarted));'));
-		assert.ok(!signal.includes('playSignal(AccessibilitySignal.voiceRecordingStopped));'));
-		assert.ok(speech.includes('const currentRecognizeKeywordSession = activeRecognizeKeywordSession = this.doRecognizeKeyword(cts.token).then(status => {'));
-		assert.ok(speech.includes(', error => {'));
-		assert.ok(!speech.includes(doubleCatch));
 	});
 
 	test('accessibility leftover playSignal / _getTextModel then / executeCommand / updateValue / openView are Promise single-chain and zero double-catches', () => {

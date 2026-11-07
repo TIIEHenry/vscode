@@ -150,7 +150,7 @@ class CallHierarchyController implements IEditorContribution {
 			}
 			if (model) {
 				this._sessionDisposables.add(model);
-				void this._widget!.showModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._widget!.showModel(model).catch(onUnexpectedError);
 			}
 			else {
 				this._widget!.showMessage(localize('no.item', "No results"));
@@ -167,12 +167,12 @@ class CallHierarchyController implements IEditorContribution {
 	}
 
 	showOutgoingCalls(): void {
-		void this._widget?.updateDirection(CallHierarchyDirection.CallsFrom)?.catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._widget?.updateDirection(CallHierarchyDirection.CallsFrom)?.catch(onUnexpectedError);
 		this._ctxDirection.set(CallHierarchyDirection.CallsFrom);
 	}
 
 	showIncomingCalls(): void {
-		void this._widget?.updateDirection(CallHierarchyDirection.CallsTo)?.catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._widget?.updateDirection(CallHierarchyDirection.CallsTo)?.catch(onUnexpectedError);
 		this._ctxDirection.set(CallHierarchyDirection.CallsTo);
 	}
 

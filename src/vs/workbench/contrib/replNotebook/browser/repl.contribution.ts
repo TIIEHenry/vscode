@@ -193,7 +193,7 @@ class ReplWindowWorkingCopyEditorHandler extends Disposable implements IWorkbenc
 	) {
 		super();
 
-		this._installHandler().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._installHandler().catch(onUnexpectedError);
 	}
 
 	async handles(workingCopy: IWorkingCopyIdentifier) {

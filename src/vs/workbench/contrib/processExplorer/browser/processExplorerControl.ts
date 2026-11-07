@@ -355,7 +355,7 @@ export abstract class ProcessExplorerControl extends Disposable {
 	protected create(container: HTMLElement): void {
 		this.createProcessTree(container);
 
-		this.update().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.update().catch(onUnexpectedError);
 	}
 
 	private createProcessTree(container: HTMLElement): void {
@@ -383,7 +383,7 @@ export abstract class ProcessExplorerControl extends Disposable {
 				renderIndentGuides: RenderIndentGuides.OnHover
 			}));
 
-		this._register(this.tree.onKeyDown(e => this.onTreeKeyDown(e).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.tree.onKeyDown(e => this.onTreeKeyDown(e).catch(onUnexpectedError)));
 		this._register(this.tree.onContextMenu(e => this.onTreeContextMenu(container, e)));
 
 		this.tree.setInput(this.model);
@@ -512,7 +512,7 @@ export abstract class ProcessExplorerControl extends Disposable {
 		this.tree?.updateChildren();
 		this.layoutTree();
 
-		this.delayer.trigger(() => this.update().catch(onUnexpectedError).catch(onUnexpectedError));
+		this.delayer.trigger(() => this.update().catch(onUnexpectedError));
 	}
 
 	focus(): void {

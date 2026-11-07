@@ -96,7 +96,7 @@ export class OpenerValidatorContributions implements IWorkbenchContribution {
 					{
 						label: localize({ key: 'copy', comment: ['&& denotes a mnemonic'] }, '&&Copy'),
 						run: () => {
-							this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true)).catch(onUnexpectedError).catch(onUnexpectedError);
+							this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true)).catch(onUnexpectedError);
 							return false;
 						}
 					},

@@ -137,7 +137,7 @@ class LanguageSurveysContribution implements IWorkbenchContribution {
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IExtensionService private readonly extensionService: IExtensionService
 	) {
-		this.handleSurveys().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.handleSurveys().catch(onUnexpectedError);
 	}
 
 	private async handleSurveys() {

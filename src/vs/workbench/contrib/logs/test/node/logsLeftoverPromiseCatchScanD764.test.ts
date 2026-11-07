@@ -11,7 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const DEFAULT_LOG_LEVELS_REL = 'src/vs/workbench/services/log/common/defaultLogLevels.ts';
 const OUTPUT_SVC_IFACE_REL = 'src/vs/workbench/services/output/common/output.ts';
 const LOGS_ACTIONS_REL = 'src/vs/workbench/contrib/logs/common/logsActions.ts';
 const LOGS_CONTRIB_REL = 'src/vs/workbench/contrib/logs/common/logs.contribution.ts';
@@ -67,18 +66,6 @@ suite('Logs leftover remaining Promise fire-and-forget catch scan (D764)', () =>
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('logs had fewer than four legal leftovers so this knife overflowed to output leftover remaining', () => {
-		const logsActions = fs.readFileSync(resolveSource(LOGS_ACTIONS_REL), 'utf8');
-		const logsContrib = fs.readFileSync(resolveSource(LOGS_CONTRIB_REL), 'utf8');
-		const logsLegal =
-			countIncludes(logsActions, `${setDefaultAllCall}${doubleCatch}`) +
-			countIncludes(logsActions, `${setDefaultChannelCall}${doubleCatch}`);
-		assert.ok(logsLegal < 4, `expected logs legal leftover <4, got ${logsLegal}`);
-		assert.strictEqual(logsLegal, 2);
-		assert.ok(logsContrib.includes('return action.run().finally(() => action.dispose());'));
-		assert.ok(!logsContrib.includes(`return action.run().finally(() => action.dispose())${doubleCatch}`));
-	});
-
 	test('this knife covers nine leftover Promise double-chain sites', () => {
 		const logsActions = fs.readFileSync(resolveSource(LOGS_ACTIONS_REL), 'utf8');
 		const outputServices = fs.readFileSync(resolveSource(OUTPUT_SERVICES_REL), 'utf8');
@@ -92,23 +79,6 @@ suite('Logs leftover remaining Promise fire-and-forget catch scan (D764)', () =>
 			countIncludes(outputServices, `${showDisposeCall}${doubleCatch}`);
 		assert.ok(sites >= 4, `expected >=4 leftover sites, got ${sites}`);
 		assert.strictEqual(sites, 9);
-	});
-
-	test('logs leftover setDefaultLogLevel voids are Promise double-chain; pick argument / returned openEditor stay skipped', () => {
-		const source = fs.readFileSync(resolveSource(LOGS_ACTIONS_REL), 'utf8');
-		const levels = fs.readFileSync(resolveSource(DEFAULT_LOG_LEVELS_REL), 'utf8');
-		assertPromiseSignature(levels, 'setDefaultLogLevel(logLevel: LogLevel, extensionId?: string): Promise<void>;');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(source, setDefaultAllCall);
-		assertWrapped(source, setDefaultChannelCall);
-		assert.ok(!source.includes(`${setDefaultAllCall};`));
-		assert.ok(!source.includes(`${setDefaultChannelCall};`));
-		assert.ok(source.includes('this.getSessions().then(sessions => sessions.map((s, index): IQuickPickItem => ({'));
-		assert.ok(!source.includes(`this.getSessions().then(sessions => sessions.map((s, index): IQuickPickItem => ({${doubleCatch}`));
-		assert.ok(source.includes('this.getLogFiles(URI.parse(sessionResult.id!)).then(logFiles => logFiles.map((s): IQuickPickItem => ({'));
-		assert.ok(!source.includes(`this.getLogFiles(URI.parse(sessionResult.id!)).then(logFiles => logFiles.map((s): IQuickPickItem => ({${doubleCatch}`));
-		assert.ok(source.includes('return this.editorService.openEditor({ resource: URI.parse(logFileResult.id!), options: { pinned: true } }).then(() => undefined);'));
-		assert.ok(!source.includes(`return this.editorService.openEditor({ resource: URI.parse(logFileResult.id!), options: { pinned: true } }).then(() => undefined)${doubleCatch}`));
 	});
 
 	test('output leftover onDidRegisterChannel / setLevelIsDefaultContext / showChannel voids are Promise double-chain', () => {

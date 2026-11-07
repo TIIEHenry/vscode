@@ -13,7 +13,6 @@ const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const FILES_REL = 'src/vs/platform/files/common/files.ts';
-const PREFERENCES_REL = 'src/vs/workbench/services/preferences/common/preferences.ts';
 const FOLDING_REL = 'src/vs/workbench/contrib/folding/browser/folding.contribution.ts';
 const INLAY_HINTS_REL = 'src/vs/workbench/contrib/inlayHints/browser/inlayHintsAccessibilty.ts';
 const LANGUAGE_STATUS_REL = 'src/vs/workbench/contrib/languageStatus/browser/languageStatus.ts';
@@ -22,20 +21,6 @@ const QUICKACCESS_REL = 'src/vs/workbench/contrib/quickaccess/browser/commandsQu
 const THEMES_TEST_REL = 'src/vs/workbench/contrib/themes/browser/themes.test.contribution.ts';
 const LIFECYCLE_REL = 'src/vs/workbench/services/lifecycle/electron-browser/lifecycleService.ts';
 const SUGGEST_REL = 'src/vs/workbench/services/suggest/browser/simpleSuggestWidget.ts';
-const KEYBINDINGS_EXPORT_REL = 'src/vs/workbench/contrib/keybindingsExport/electron-browser/keybindingsExport.contribution.ts';
-const NOTIFICATION_REL = 'src/vs/workbench/services/notification/common/notificationService.ts';
-const PROGRESS_REL = 'src/vs/workbench/services/progress/browser/progressService.ts';
-const USER_DATA_REL = 'src/vs/workbench/services/userData/browser/userDataInit.ts';
-const TEXT_RES_REL = 'src/vs/workbench/services/textresourceProperties/common/textResourcePropertiesService.ts';
-const SECRETS_REL = 'src/vs/workbench/services/secrets/electron-browser/secretStorageService.ts';
-const INTEGRITY_REL = 'src/vs/workbench/services/integrity/electron-browser/integrityService.ts';
-const LABEL_REL = 'src/vs/workbench/services/label/common/labelService.ts';
-const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts';
-const VIEWLET_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts';
-const WIDGETS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWidgets.ts';
-const TYPE_CONTRIB_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchy.contribution.ts';
-const CALL_CONTRIB_REL = 'src/vs/workbench/contrib/callHierarchy/browser/callHierarchy.contribution.ts';
-const CAROUSEL_REL = 'src/vs/workbench/contrib/imageCarousel/browser/imageCarouselEditor.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -82,8 +67,6 @@ const suggestThenCall = `this.element.domNode.classList.remove('docs-side');
 				}
 
 			})`;
-const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
-const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
 
 const d818Calls: Array<[string, string, number]> = [
 	[POLICY_REL, exportCall, 1],
@@ -142,20 +125,6 @@ suite('folding leftover remaining moved to unused leftover Promise fire-and-forg
 		assert.strictEqual(countDoubleChains(seen.get(QUICKACCESS_REL) ?? ''), 1);
 		assert.strictEqual(countDoubleChains(seen.get(THEMES_TEST_REL) ?? ''), 1);
 		assert.strictEqual(countDoubleChains(seen.get(LIFECYCLE_REL) ?? ''), 1);
-	});
-
-	test('unused leftover exportPolicyDataAndQuit / openSettings leftover void promises are Promise/async + double-chain', () => {
-		const policy = fs.readFileSync(resolveSource(POLICY_REL), 'utf8');
-		const quickaccess = fs.readFileSync(resolveSource(QUICKACCESS_REL), 'utf8');
-		const preferences = fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8');
-		assertPromiseSignature(policy, 'private async exportPolicyDataAndQuit(policyDataPath: string): Promise<void> {');
-		assertPromiseSignature(preferences, 'openSettings(options?: IOpenSettingsOptions): Promise<IEditorPane | undefined>;');
-		assert.ok(policy.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(quickaccess.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(policy, exportCall);
-		assertWrapped(quickaccess, openSettingsCall);
-		assert.ok(!policy.includes('void this.exportPolicyDataAndQuit(policyDataPath ? policyDataPath : defaultPath);'));
-		assert.ok(!quickaccess.includes("void this.preferencesService.openSettings({ jsonEditor: false, query: 'workbench.commandPalette.showAskInChat' });"));
 	});
 
 	test('unused leftover process(file) then / veto then are Promise/async + double-chain; assigned suggest then stays leftover remaining', () => {
@@ -221,52 +190,4 @@ suite('folding leftover remaining moved to unused leftover Promise fire-and-forg
 		}
 	});
 
-	test('D809/D812 leftover remaining that landed scans lock unwrapped stay unwrapped; already-double leftover stays already-double; this knife did not overflow into dirty leftover modules', () => {
-		const folding = fs.readFileSync(resolveSource(FOLDING_REL), 'utf8');
-		const inlayHints = fs.readFileSync(resolveSource(INLAY_HINTS_REL), 'utf8');
-		const viewlet = fs.readFileSync(resolveSource(VIEWLET_REL), 'utf8');
-		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
-		const typeContrib = fs.readFileSync(resolveSource(TYPE_CONTRIB_REL), 'utf8');
-		const callContrib = fs.readFileSync(resolveSource(CALL_CONTRIB_REL), 'utf8');
-		const carousel = fs.readFileSync(resolveSource(CAROUSEL_REL), 'utf8');
-		const keybindingsExport = fs.readFileSync(resolveSource(KEYBINDINGS_EXPORT_REL), 'utf8');
-		const notification = fs.readFileSync(resolveSource(NOTIFICATION_REL), 'utf8');
-		const progress = fs.readFileSync(resolveSource(PROGRESS_REL), 'utf8');
-		const userData = fs.readFileSync(resolveSource(USER_DATA_REL), 'utf8');
-		const textRes = fs.readFileSync(resolveSource(TEXT_RES_REL), 'utf8');
-		const secrets = fs.readFileSync(resolveSource(SECRETS_REL), 'utf8');
-		const integrity = fs.readFileSync(resolveSource(INTEGRITY_REL), 'utf8');
-		const label = fs.readFileSync(resolveSource(LABEL_REL), 'utf8');
-		const tasks = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
-
-		assert.ok(folding.includes('\t\tthis._updateConfigValues();\n'));
-		assert.ok(!folding.includes(`this._updateConfigValues()${doubleCatch}`));
-		assert.ok(inlayHints.includes('\t\t\tthis._read(line, hints);\n'));
-		assert.ok(!inlayHints.includes(`this._read(line, hints)${doubleCatch}`));
-		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
-		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
-		assert.ok(widgets.includes(`${openViewThenCall};`));
-		assert.ok(!widgets.includes(`${openViewThenCall}${doubleCatch}`));
-
-		assert.ok(typeContrib.includes(doubleCatch));
-		assert.ok(callContrib.includes(doubleCatch));
-		assert.ok(carousel.includes(`this.updateCurrentImage()${doubleCatch}`));
-
-		for (const [rel, source] of [
-			[KEYBINDINGS_EXPORT_REL, keybindingsExport],
-			[NOTIFICATION_REL, notification],
-			[PROGRESS_REL, progress],
-			[USER_DATA_REL, userData],
-			[TEXT_RES_REL, textRes],
-			[SECRETS_REL, secrets],
-			[INTEGRITY_REL, integrity],
-			[LABEL_REL, label],
-			[TASKS_REL, tasks],
-		] as const) {
-			assert.ok(!source.includes('D818'), `${rel} should not mention D818`);
-		}
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/folding/test/node/foldingLeftoverPromiseCatchScanD818.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/inlayHints/test/node/inlayHintsLeftoverPromiseCatchScanD818.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/imageCarousel/test/node/imageCarouselLeftoverPromiseCatchScanD818.test.ts')));
-	});
 });

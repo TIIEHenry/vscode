@@ -21,7 +21,7 @@ export class EncryptionContribution implements IWorkbenchContribution {
 		@IFileService private readonly fileService: IFileService,
 		@IStorageService private readonly storageService: IStorageService
 	) {
-		this.migrateToGnomeLibsecret().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.migrateToGnomeLibsecret().catch(onUnexpectedError);
 	}
 
 	/**

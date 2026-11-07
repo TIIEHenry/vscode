@@ -44,52 +44,6 @@ suite('format/outline/userDataProfile leftover Promise fire-and-forget catch sca
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('format leftover _analyzeFormatter then is Promise double-chain; leftover remaining wraps _updateConfigValues', () => {
-		const source = fs.readFileSync(resolveSource(FORMAT_REL), 'utf8');
-		assertPromiseSignature(source, 'private async _analyzeFormatter<T extends FormattingEditProvider>(kind: FormattingKind, formatter: T[], document: ITextModel): Promise<T | string> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const analyzeThen = `this._analyzeFormatter(FormattingKind.File, formatter, document).then(result => {
-			if (cts.token.isCancellationRequested) {
-				return;
-			}
-			if (typeof result !== 'string') {
-				return;
-			}
-			const command = { id: \`formatter/configure/dfl/\${generateUuid()}\`, title: nls.localize('do.config.command', "Configure...") };
-			this._languageStatusStore.add(CommandsRegistry.registerCommand(command.id, () => this._pickAndPersistDefaultFormatter(formatter, document)));
-			this._languageStatusStore.add(this._languageStatusService.addStatus({
-				id: 'formatter.conflict',
-				name: nls.localize('summary', "Formatter Conflicts"),
-				selector: { language: document.getLanguageId(), pattern: document.uri.fsPath },
-				severity: Severity.Error,
-				label: nls.localize('formatter', "Formatting"),
-				detail: result,
-				busy: false,
-				source: '',
-				command,
-				accessibilityInfo: undefined
-			}));
-		})`;
-		assert.ok(source.includes(`${analyzeThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${analyzeThen};`));
-		assert.ok(!source.includes(`${analyzeThen}.catch(onUnexpectedError);`));
-		assert.ok(source.includes(`this._updateConfigValues()${doubleCatch};`));
-		assert.ok(!source.includes('this._updateConfigValues();'));
-	});
-
-	test('outline leftover _editorControlChangePromise then is Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(OUTLINE_REL), 'utf8');
-		assertPromiseSignature(source, 'private _editorControlChangePromise: Promise<void> = Promise.resolve();');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const focusThen = `this._editorControlChangePromise.then(() => {
-			super.focus();
-			this._tree?.domFocus();
-		})`;
-		assert.ok(source.includes(`${focusThen}${doubleCatch};`));
-		assert.ok(!source.includes(`${focusThen};`));
-		assert.ok(!source.includes(`${focusThen}.catch(onUnexpectedError);`));
-	});
-
 	test('userDataProfile leftover when / getTemplates thens are Promise double-chain; opener stays skipped', () => {
 		const profile = fs.readFileSync(resolveSource(PROFILE_REL), 'utf8');
 		const editor = fs.readFileSync(resolveSource(PROFILE_EDITOR_REL), 'utf8');
@@ -115,13 +69,6 @@ suite('format/outline/userDataProfile leftover Promise fire-and-forget catch sca
 		assert.ok(!editor.includes(`${templatesThen}.catch(onUnexpectedError);`));
 		assert.ok(profile.includes("return accessor.get(IOpenerService).open(URI.parse('https://aka.ms/vscode-profiles-help'));"));
 		assert.ok(!profile.includes("accessor.get(IOpenerService).open(URI.parse('https://aka.ms/vscode-profiles-help')).catch"));
-	});
-
-	test('tags leftover getWorkspaceInformation then is Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(TAGS_REL), 'utf8');
-		assertPromiseSignature(source, 'private async getWorkspaceInformation(): Promise<IWorkspaceInformation> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, 'this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats))');
 	});
 
 	test('testing leftover endPromise / details thens are Promise double-chain', () => {

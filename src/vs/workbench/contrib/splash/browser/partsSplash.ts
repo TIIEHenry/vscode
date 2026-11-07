@@ -55,7 +55,7 @@ export class PartsSplash {
 		lifecycleService.when(LifecyclePhase.Restored).then(() => {
 			Event.any(Event.filter(onDidChangeFullscreen, windowId => windowId === mainWindow.vscodeWindowId), editorGroupsService.mainPart.onDidLayout, _themeService.onDidColorThemeChange)(savePartsSplashSoon, undefined, this._disposables);
 			savePartsSplashSoon();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		_configService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TitleBarSetting.TITLE_BAR_STYLE)) {
@@ -120,7 +120,7 @@ export class PartsSplash {
 					editor: this._getPartBounds(Parts.EDITOR_PART)
 				} : undefined
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _getPartBounds(part: Parts.ACTIVITYBAR_PART | Parts.SIDEBAR_PART | Parts.AUXILIARYBAR_PART | Parts.PANEL_PART | Parts.EDITOR_PART): IPartsSplashPartBounds | undefined {

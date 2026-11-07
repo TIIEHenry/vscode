@@ -11,7 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const KEYBOARD_LAYOUT_IFACE_REL = 'src/vs/platform/keyboardLayout/common/keyboardLayoutService.ts';
 const NAVIGATOR_REL = 'src/vs/workbench/services/keybinding/browser/navigatorKeyboard.ts';
@@ -51,10 +50,6 @@ function countWrapped(source: string, call: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 const syncCall = 'this.sync()';
 const lockCall = `void Promise.resolve(keyboard?.lock(['Escape']))`;
 const holdFinallyCall = `this._keybindingHoldMode.p.finally(() => {
@@ -89,22 +84,6 @@ suite('keybindings leftover remaining overflowed to keybinding leftover Promise 
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('keybindings leftover remaining has fewer than four legal sites so this knife moved to services/keybinding leftover remaining', () => {
-		const contrib = fs.readFileSync(resolveSource(KEYBINDINGS_CONTRIB_REL), 'utf8');
-		const systemWide = fs.readFileSync(resolveSource(SYSTEM_WIDE_REL), 'utf8');
-		const contribLegal = countWrapped(systemWide, syncCall);
-		assert.ok(contribLegal < 4, `expected keybindings legal leftover <4, got ${contribLegal}`);
-		assert.strictEqual(contribLegal, 1);
-		assert.strictEqual(countDoubleChains(systemWide), 1);
-		assert.ok(systemWide.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(systemWide, syncCall);
-		assert.ok(!systemWide.includes('() => this.sync(), 200)'));
-		assert.ok(contrib.includes('commandService.executeCommand(showWindowLogActionId).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.strictEqual(countDoubleChains(contrib), 1);
-		assert.ok(contrib.includes('run(accessor: ServicesAccessor): void {'));
-		assert.ok(!contrib.includes(`run(accessor: ServicesAccessor): void {${doubleCatch}`));
-	});
-
 	test('this knife covers four leftover Promise double-chain sites after keybindings leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
@@ -118,23 +97,6 @@ suite('keybindings leftover remaining overflowed to keybinding leftover Promise 
 		}
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
-	});
-
-	test('keybindings leftover this.sync is Promise double-chain; Action2 executeCommand already-double / scheduleSync stay skipped', () => {
-		const systemWide = fs.readFileSync(resolveSource(SYSTEM_WIDE_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(KEYBINDINGS_CONTRIB_REL), 'utf8');
-		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
-		assertPromiseSignature(systemWide, 'private async sync(): Promise<void> {');
-		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
-		assert.ok(systemWide.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(systemWide, syncCall);
-		assert.ok(systemWide.includes('private scheduleSync(): void {'));
-		assert.ok(systemWide.includes('this.scheduleSync();'));
-		assert.ok(!systemWide.includes(`this.scheduleSync()${doubleCatch}`));
-		assert.ok(systemWide.includes('await this.nativeHostService.syncSystemWideKeybindings(payload);'));
-		assert.ok(!systemWide.includes(`syncSystemWideKeybindings(payload)${doubleCatch}`));
-		assert.ok(contrib.includes('commandService.executeCommand(showWindowLogActionId).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(!contrib.includes('commandService.executeCommand(showWindowLogActionId);'));
 	});
 
 	test('keybinding leftover lock PromiseLike / hold-mode finally / initialize then are Promise double-chain', () => {

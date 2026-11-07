@@ -258,7 +258,7 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 			void this._editorService.openEditor({
 				resource: focus.item.uri,
 				options: { selection: target.range! }
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 
 		}));
 
@@ -272,7 +272,7 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 				void this._editorService.openEditor({
 					resource: e.element.item.uri,
 					options: { selection: e.element.item.selectionRange, pinned: true }
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}));
 
@@ -284,7 +284,7 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 				void this._editorService.openEditor({
 					resource: element.item.uri,
 					options: { selection: element.item.selectionRange, pinned: true }
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -398,7 +398,7 @@ export class TypeHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 				this._tree.setFocus([root.children[0].element]);
 			}
 			this._tree.domFocus();
-			void this._updatePreview().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._updatePreview().catch(onUnexpectedError);
 		}
 	}
 

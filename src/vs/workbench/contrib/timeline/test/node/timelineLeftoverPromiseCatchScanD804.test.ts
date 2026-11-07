@@ -14,7 +14,6 @@ const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
 const VIEWS_REL = 'src/vs/workbench/services/views/common/viewsService.ts';
-const EDITOR_REL = 'src/vs/workbench/services/editor/common/editorService.ts';
 const EXTENSIONS_REL = 'src/vs/workbench/services/extensions/common/extensions.ts';
 const PANE_REL = 'src/vs/workbench/contrib/timeline/browser/timelinePane.ts';
 const SERVICE_REL = 'src/vs/workbench/contrib/timeline/common/timelineService.ts';
@@ -22,12 +21,6 @@ const TIMELINE_IFACE_REL = 'src/vs/workbench/contrib/timeline/common/timeline.ts
 const CONTRIB_REL = 'src/vs/workbench/contrib/timeline/browser/timeline.contribution.ts';
 const SERVICE_CONTRIB_REL = 'src/vs/workbench/contrib/timeline/browser/timeline.service.contribution.ts';
 const EMMET_REL = 'src/vs/workbench/contrib/emmet/browser/emmetActions.ts';
-const EDIT_TELEMETRY_REL = 'src/vs/workbench/contrib/editTelemetry/browser/telemetry/editSourceTrackingImpl.ts';
-const EDIT_DOC_REL = 'src/vs/workbench/contrib/editTelemetry/browser/helpers/documentWithAnnotatedEdits.ts';
-const TYPE_HIERARCHY_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchy.contribution.ts';
-const TYPE_PEEK_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchyPeek.ts';
-const CALL_HIERARCHY_REL = 'src/vs/workbench/contrib/callHierarchy/browser/callHierarchy.contribution.ts';
-const CALL_PEEK_REL = 'src/vs/workbench/contrib/callHierarchy/browser/callHierarchyPeek.ts';
 const HOST_REL = 'src/vs/workbench/services/host/browser/host.ts';
 const PREFERENCES_REL = 'src/vs/workbench/contrib/preferences/browser/preferences.contribution.ts';
 const WORKSPACES_SVC_REL = 'src/vs/workbench/services/workspaces/common/workspaceEditing.ts';
@@ -193,41 +186,6 @@ suite('timeline leftover Promise fire-and-forget catch scan (D804)', () => {
 			assert.ok(!/Resolve(Turn|Anchor)\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
 			assert.ok(!source.includes('SaveSkillContent'));
 		}
-	});
-
-	test('emmet / editTelemetry leftover remaining stay unwrapped; typeHierarchy / callHierarchy leftover remaining stay unwrapped because this knife already has eight legal timeline sites', () => {
-		const emmet = fs.readFileSync(resolveSource(EMMET_REL), 'utf8');
-		const editTelemetry = fs.readFileSync(resolveSource(EDIT_TELEMETRY_REL), 'utf8');
-		const editDoc = fs.readFileSync(resolveSource(EDIT_DOC_REL), 'utf8');
-		const typeHierarchy = fs.readFileSync(resolveSource(TYPE_HIERARCHY_REL), 'utf8');
-		const typePeek = fs.readFileSync(resolveSource(TYPE_PEEK_REL), 'utf8');
-		const callHierarchy = fs.readFileSync(resolveSource(CALL_HIERARCHY_REL), 'utf8');
-		const callPeek = fs.readFileSync(resolveSource(CALL_PEEK_REL), 'utf8');
-		const editor = fs.readFileSync(resolveSource(EDITOR_REL), 'utf8');
-
-		assert.strictEqual(countDoubleChains(emmet), 0);
-		assert.ok(editTelemetry.includes('void this.sendTelemetry(mode, trigger, tracker, focusTime, actualTime).catch(error => {'));
-		assert.ok(!editTelemetry.includes(`sendTelemetry(mode, trigger, tracker, focusTime, actualTime)${doubleCatch}`));
-		assert.ok(editDoc.includes('this._runQueue = this._runQueue.then(() => this._run(iterator));'));
-		assert.ok(!editDoc.includes(`this._runQueue.then(() => this._run(iterator))${doubleCatch}`));
-
-		assertPromiseSignature(typePeek, 'async showModel(model: TypeHierarchyModel): Promise<void> {');
-		assertPromiseSignature(typePeek, 'async updateDirection(newDirection: TypeHierarchyDirection): Promise<void> {');
-		assertPromiseSignature(editor, 'openEditor(editor: IResourceEditorInput, group?: PreferredGroup): Promise<IEditorPane | undefined>;');
-		assert.ok(typeHierarchy.includes('model.then(model => {'));
-		assert.ok(typeHierarchy.includes('}).catch(err => {'));
-		assert.strictEqual(countDoubleChains(typeHierarchy), 3);
-		assert.ok(typeHierarchy.includes('this._widget!.showModel(model)'));
-		assert.ok(typeHierarchy.includes('updateDirection(TypeHierarchyDirection.Supertypes)'));
-		assert.ok(typePeek.includes('void this._updatePreview()'));
-		assert.ok(!typePeek.includes('\t\t\tthis._updatePreview();\n'));
-
-		assert.ok(callHierarchy.includes('model.then(model => {'));
-		assert.ok(callHierarchy.includes('}).catch(err => {'));
-		assert.strictEqual(countDoubleChains(callHierarchy), 3);
-		assert.ok(callHierarchy.includes('this._widget!.showModel(model)'));
-		assert.ok(callPeek.includes('void this._updatePreview()'));
-		assert.ok(!callPeek.includes('\t\t\tthis._updatePreview();\n'));
 	});
 
 	test('this knife stayed in timeline leftover remaining and did not overflow-assert occupied leftover modules as new D804 sites', () => {

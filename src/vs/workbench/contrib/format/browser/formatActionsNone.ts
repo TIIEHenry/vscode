@@ -61,7 +61,7 @@ registerEditorAction(class FormatDocumentMultipleAction extends EditorAction {
 				primaryButton: nls.localize({ key: 'install.formatter', comment: ['&& denotes a mnemonic'] }, "&&Install Formatter...")
 			});
 			if (confirmed) {
-				extensionsWorkbenchService.openSearch(`category:formatters ${langName}`).catch(onUnexpectedError).catch(onUnexpectedError);
+				extensionsWorkbenchService.openSearch(`category:formatters ${langName}`).catch(onUnexpectedError);
 			}
 		}
 	}

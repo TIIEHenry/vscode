@@ -118,12 +118,12 @@ export class CustomEditorService extends Disposable implements ICustomEditorServ
 		this._register(this.editorGroupService.registerContextKeyProvider(customEditorTextDiffContextKeyProvider));
 
 		this._register(this.textResourceConfigurationService.onDidChangeConfiguration(e => {
-			void this.updateCustomDiffEditorsForDiffConfigurationChange(e).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.updateCustomDiffEditorsForDiffConfigurationChange(e).catch(onUnexpectedError);
 		}));
 
 		this._register(fileService.onDidRunOperation(e => {
 			if (e.isOperation(FileOperation.MOVE)) {
-				this.handleMovedFileInOpenedFileEditors(e.resource, this.uriIdentityService.asCanonicalUri(e.target.resource)).catch(onUnexpectedError).catch(onUnexpectedError);
+				this.handleMovedFileInOpenedFileEditors(e.resource, this.uriIdentityService.asCanonicalUri(e.target.resource)).catch(onUnexpectedError);
 			}
 			if (e.isOperation(FileOperation.DELETE)) {
 				this.handleDeletedFile(e.resource);
@@ -467,7 +467,7 @@ export class CustomEditorService extends Disposable implements ICustomEditorServ
 						preserveFocus: true,
 					}
 				};
-			}), group).catch(onUnexpectedError).catch(onUnexpectedError);
+			}), group).catch(onUnexpectedError);
 		}
 	}
 }

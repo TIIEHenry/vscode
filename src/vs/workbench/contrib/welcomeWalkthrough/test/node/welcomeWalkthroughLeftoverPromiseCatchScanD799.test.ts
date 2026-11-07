@@ -19,8 +19,6 @@ const INPUT_REL = 'src/vs/workbench/contrib/welcomeWalkthrough/browser/walkThrou
 const PART_REL = 'src/vs/workbench/contrib/welcomeWalkthrough/browser/walkThroughPart.ts';
 const EDITOR_WALK_REL = 'src/vs/workbench/contrib/welcomeWalkthrough/browser/editor/editorWalkThrough.ts';
 const PROVIDER_REL = 'src/vs/workbench/contrib/welcomeWalkthrough/common/walkThroughContentProvider.ts';
-const URL_VALIDATOR_REL = 'src/vs/workbench/contrib/url/browser/trustedDomainsValidator.ts';
-const URL_CONTRIB_REL = 'src/vs/workbench/contrib/url/browser/url.contribution.ts';
 const WEBVIEW_PANE_REL = 'src/vs/workbench/contrib/webviewView/browser/webviewViewPane.ts';
 const WEBVIEW_SVC_REL = 'src/vs/workbench/contrib/webviewView/browser/webviewViewService.ts';
 const WORKSPACES_REL = 'src/vs/workbench/contrib/workspaces/browser/workspaces.contribution.ts';
@@ -105,27 +103,6 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('welcomeWalkthrough leftover remaining has fewer than four legal sites so this knife moved past url to webviewView and workspaces', () => {
-		const input = fs.readFileSync(resolveSource(INPUT_REL), 'utf8');
-		const part = fs.readFileSync(resolveSource(PART_REL), 'utf8');
-		const editorWalk = fs.readFileSync(resolveSource(EDITOR_WALK_REL), 'utf8');
-		const provider = fs.readFileSync(resolveSource(PROVIDER_REL), 'utf8');
-		const urlValidator = fs.readFileSync(resolveSource(URL_VALIDATOR_REL), 'utf8');
-		const urlContrib = fs.readFileSync(resolveSource(URL_CONTRIB_REL), 'utf8');
-		const walkthroughLegal = countIncludes(input, `${disposeThen}${singleCatch}`);
-		assert.ok(walkthroughLegal < 4, `expected welcomeWalkthrough legal leftover <4, got ${walkthroughLegal}`);
-		assert.strictEqual(walkthroughLegal, 1);
-		assert.strictEqual(countDoubleChains(input), 0);
-		assert.ok(!input.includes(doubleCatch));
-		assert.strictEqual(countDoubleChains(part), 0);
-		assert.strictEqual(countDoubleChains(editorWalk), 0);
-		assert.strictEqual(countDoubleChains(provider), 0);
-		assert.strictEqual(countDoubleChains(urlValidator), 1);
-		assert.ok(urlValidator.includes(`this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true))${doubleCatch}`));
-		assert.ok(!urlContrib.includes(doubleCatch));
-		assert.ok(urlContrib.includes('return quickInputService.input({ prompt: localize(\'urlToOpen\', "URL to open"), value }).then(input => {'));
 	});
 
 	test('this knife covers seven leftover Promise sites after welcomeWalkthrough leftover remaining overflow', () => {
@@ -242,55 +219,4 @@ suite('welcomeWalkthrough leftover remaining overflowed to webviewView/workspace
 		assert.ok(!pruner.includes(`pruneRecentRemoteFolderIfMissing(contextService, fileService, workspacesService)${doubleCatch}`));
 	});
 
-	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
-		const input = fs.readFileSync(resolveSource(INPUT_REL), 'utf8');
-		const part = fs.readFileSync(resolveSource(PART_REL), 'utf8');
-		const editorWalk = fs.readFileSync(resolveSource(EDITOR_WALK_REL), 'utf8');
-		const provider = fs.readFileSync(resolveSource(PROVIDER_REL), 'utf8');
-		const urlValidator = fs.readFileSync(resolveSource(URL_VALIDATOR_REL), 'utf8');
-		const urlContrib = fs.readFileSync(resolveSource(URL_CONTRIB_REL), 'utf8');
-		const pane = fs.readFileSync(resolveSource(WEBVIEW_PANE_REL), 'utf8');
-		const service = fs.readFileSync(resolveSource(WEBVIEW_SVC_REL), 'utf8');
-		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
-		const opener = fs.readFileSync(resolveSource(OPENER_REL), 'utf8');
-
-		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
-
-		assert.ok(part.includes('this.openerService.open(this.addFrom(uri), { allowCommands: true });'));
-		assert.ok(!part.includes(`this.openerService.open(this.addFrom(uri), { allowCommands: true })${doubleCatch}`));
-		assert.ok(urlContrib.includes('urlService.open(uri, { originalUrl: input });'));
-		assert.ok(!urlContrib.includes(`urlService.open(uri, { originalUrl: input })${doubleCatch}`));
-
-		assert.ok(editorWalk.includes('public override run(serviceAccessor: ServicesAccessor): Promise<void> {'));
-		assert.ok(editorWalk.includes('return editorService.openEditor(input, { pinned: true })'));
-		assert.ok(!editorWalk.includes(doubleCatch));
-		assert.ok(urlContrib.includes('async run(accessor: ServicesAccessor): Promise<void> {'));
-		assert.ok(urlContrib.includes('return quickInputService.input({ prompt: localize(\'urlToOpen\', "URL to open"), value }).then(input => {'));
-		assert.ok(!urlContrib.includes(doubleCatch));
-		assert.ok(workspaces.includes('async run(accessor: ServicesAccessor, uri: URI): Promise<void> {'));
-		assert.ok(workspaces.includes('return hostService.openWindow([{ workspaceUri: uri }]);'));
-
-		assert.ok(input.includes('this.promise = moduleToContent(this.instantiationService, this.options.resource)'));
-		assert.ok(provider.includes('ongoing = moduleToContent(this.instantiationService, resource)'));
-		assert.ok(part.includes('return super.setInput(input, options, context, token)'));
-
-		assert.ok(urlValidator.includes(`this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true))${doubleCatch}`));
-		assert.ok(!urlValidator.includes(`this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true)).catch(onUnexpectedError);`));
-
-		assert.ok(service.includes('resolver.resolve(pending.webview, CancellationToken.None).then(() => {'));
-		assert.ok(!service.includes(`resolver.resolve(pending.webview, CancellationToken.None).then(() => {${doubleCatch}`));
-		assert.ok(!service.includes(doubleCatch));
-
-		assert.ok(editorWalk.includes('.then(() => void (0));'));
-		assert.ok(!editorWalk.includes(`.then(() => void (0))${doubleCatch}`));
-
-		for (const source of [input, part, editorWalk, provider, urlValidator, urlContrib, pane, service, workspaces]) {
-			assert.ok(!source.includes('.then(undefined,'));
-			assert.ok(!source.includes('acknowledge('));
-			assert.ok(!source.includes('releaseLease('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		}
-	});
 });

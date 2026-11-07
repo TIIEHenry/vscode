@@ -37,13 +37,13 @@ export class WorkspaceTags implements IWorkbenchContribution {
 		@INativeHostService private readonly nativeHostService: INativeHostService
 	) {
 		if (this.telemetryService.telemetryLevel === TelemetryLevel.USAGE) {
-			this.report().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.report().catch(onUnexpectedError);
 		}
 	}
 
 	private async report(): Promise<void> {
 		// Windows-only Edition Event
-		this.reportWindowsEdition().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.reportWindowsEdition().catch(onUnexpectedError);
 
 		// Workspace Tags
 		this.workspaceTagsService.getTags()
@@ -54,7 +54,7 @@ export class WorkspaceTags implements IWorkbenchContribution {
 
 		this.reportProxyStats();
 
-		this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats)).catch(onUnexpectedError);
 	}
 
 	private async reportWindowsEdition(): Promise<void> {

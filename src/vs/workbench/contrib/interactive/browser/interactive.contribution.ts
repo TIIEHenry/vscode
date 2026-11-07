@@ -243,7 +243,7 @@ class InteractiveWindowWorkingCopyEditorHandler extends Disposable implements IW
 	) {
 		super();
 
-		this._installHandler().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._installHandler().catch(onUnexpectedError);
 	}
 
 	handles(workingCopy: IWorkingCopyIdentifier): boolean {

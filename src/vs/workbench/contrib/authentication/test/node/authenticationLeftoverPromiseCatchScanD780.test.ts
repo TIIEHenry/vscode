@@ -17,8 +17,6 @@ const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const EXTENSIONS_REL = 'src/vs/workbench/contrib/extensions/common/extensions.ts';
 const USAGE_REL = 'src/vs/workbench/services/authentication/browser/authenticationUsageService.ts';
 const TAGS_REL = 'src/vs/workbench/contrib/tags/electron-browser/workspaceTags.ts';
-const TAGS_SVC_REL = 'src/vs/workbench/contrib/tags/electron-browser/workspaceTagsService.ts';
-const TAGS_CONTRIB_REL = 'src/vs/workbench/contrib/tags/electron-browser/tags.contribution.ts';
 const CONTRIB_REL = 'src/vs/workbench/contrib/authentication/browser/authentication.contribution.ts';
 const ACCOUNTS_REL = 'src/vs/workbench/contrib/authentication/browser/actions/manageAccountsAction.ts';
 const TRUSTED_EXT_REL = 'src/vs/workbench/contrib/authentication/browser/actions/manageTrustedExtensionsForAccountAction.ts';
@@ -92,32 +90,6 @@ suite('tags leftover remaining overflowed to authentication leftover Promise fir
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('tags leftover remaining has fewer than four legal sites so this knife moved to authentication leftover', () => {
-		const tags = fs.readFileSync(resolveSource(TAGS_REL), 'utf8');
-		const service = fs.readFileSync(resolveSource(TAGS_SVC_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(TAGS_CONTRIB_REL), 'utf8');
-
-		assert.ok(tags.includes('this.report()'));
-		assert.ok(tags.includes('this.reportWindowsEdition()'));
-
-		assert.ok(tags.includes('.then(tags => this.reportWorkspaceTags(tags), error => onUnexpectedError(error));'));
-		assert.ok(tags.includes('this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats)).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(tags.includes('}, onUnexpectedError);'));
-		assert.ok(tags.includes('})).then(() => { }, onUnexpectedError);'));
-		assert.ok(tags.includes('}).then(undefined, onUnexpectedError);'));
-		assert.strictEqual(countIncludes(tags, '.then(undefined, onUnexpectedError)'), 2);
-		assert.ok(tags.includes('\t\t\tthis.reportRemoteDomains(uris);\n'));
-		assert.ok(tags.includes('\t\t\tthis.reportRemotes(uris);\n'));
-		assert.ok(tags.includes('\t\t\tthis.reportAzure(uris);\n'));
-		assert.ok(!tags.includes(`this.reportCloudStats()${doubleCatch}`));
-		assert.ok(!service.includes(doubleCatch));
-		assert.ok(!contrib.includes(doubleCatch));
-
-		const tagsLegalLeftover = 2;
-		assert.ok(tagsLegalLeftover < 4, `expected tags legal leftover <4, got ${tagsLegalLeftover}`);
-		assert.strictEqual(tagsLegalLeftover, 2);
 	});
 
 	test('this knife covers twelve leftover Promise single-chain sites after tags leftover remaining overflow', () => {

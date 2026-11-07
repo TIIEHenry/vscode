@@ -67,7 +67,7 @@ class LanguageDetectionStatusContribution implements IWorkbenchContribution {
 			this._combinedEntry?.dispose();
 			this._combinedEntry = undefined;
 		}
-		this._delayer.trigger(() => this._doUpdate().catch(onUnexpectedError).catch(onUnexpectedError));
+		this._delayer.trigger(() => this._doUpdate().catch(onUnexpectedError));
 	}
 
 	private async _doUpdate(): Promise<void> {

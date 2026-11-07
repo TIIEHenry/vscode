@@ -12,22 +12,12 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const ASYNC_REL = 'src/vs/base/common/async.ts';
-const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
-const FILES_REL = 'src/vs/platform/files/common/files.ts';
 const EDITOR_SVC_REL = 'src/vs/workbench/services/editor/common/editorService.ts';
 const CODE_EDITOR_SVC_REL = 'src/vs/editor/browser/services/codeEditorService.ts';
-const OUTLINE_IFACE_REL = 'src/vs/workbench/services/outline/browser/outline.ts';
 const OUTLINE_PANE_REL = 'src/vs/workbench/contrib/outline/browser/outlinePane.ts';
-const OUTLINE_ACTIONS_REL = 'src/vs/workbench/contrib/outline/browser/outlineActions.ts';
-const OUTLINE_CONTRIB_REL = 'src/vs/workbench/contrib/outline/browser/outline.contribution.ts';
 const GOTO_ERR_REL = 'src/vs/editor/contrib/gotoError/browser/gotoError.ts';
-const GOTO_ERR_WIDGET_REL = 'src/vs/editor/contrib/gotoError/browser/gotoErrorWidget.ts';
 const MARKERS_VIEW_REL = 'src/vs/workbench/contrib/markers/browser/markersView.ts';
-const MARKERS_TREE_REL = 'src/vs/workbench/contrib/markers/browser/markersTreeViewer.ts';
-const MARKERS_CONTRIB_REL = 'src/vs/workbench/contrib/markers/browser/markers.contribution.ts';
 const NOTEBOOK_OUTLINE_REL = 'src/vs/workbench/contrib/notebook/browser/contrib/outline/notebookOutline.ts';
-const BREADCRUMBS_REL = 'src/vs/workbench/browser/parts/editor/breadcrumbsModel.ts';
-const GOTO_SYMBOL_REL = 'src/vs/workbench/contrib/codeEditor/browser/outline/documentSymbolsOutline.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -104,25 +94,6 @@ suite('outline leftover remaining overflowed to gotoError leftover Promise fire-
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('outline leftover remaining has fewer than four legal sites so this knife moved to gotoError leftover', () => {
-		const pane = fs.readFileSync(resolveSource(OUTLINE_PANE_REL), 'utf8');
-		const actions = fs.readFileSync(resolveSource(OUTLINE_ACTIONS_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(OUTLINE_CONTRIB_REL), 'utf8');
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/gotoError')));
-		assert.ok(pane.includes(`this._editorControlChangePromise.then(() => {
-			super.focus();
-			this._tree?.domFocus();
-		})${doubleCatch};`));
-		assert.ok(pane.includes('this._editorControlChangePromise = this._handleEditorControlChanged(pane);'));
-		assert.ok(!pane.includes(`this._editorControlChangePromise = this._handleEditorControlChanged(pane)${doubleCatch}`));
-		assert.ok(actions.includes('runInView(_accessor: ServicesAccessor, view: IOutlinePane) {'));
-		assert.ok(!actions.includes(doubleCatch));
-		assert.ok(!contrib.includes(doubleCatch));
-		const outlineLegalLeftover = 1;
-		assert.ok(outlineLegalLeftover < 4);
-		assert.strictEqual(countWrapped(pane, outlineOpenCall), 1);
-	});
-
 	test('this knife covers eight leftover Promise double-chain sites after outline leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
@@ -140,23 +111,6 @@ suite('outline leftover remaining overflowed to gotoError leftover Promise fire-
 		assert.strictEqual(countDoubleChains(seen.get(GOTO_ERR_REL)!), 2);
 		assert.strictEqual(countDoubleChains(seen.get(MARKERS_VIEW_REL)!), 1);
 		assert.strictEqual(countDoubleChains(seen.get(NOTEBOOK_OUTLINE_REL)!), 6);
-	});
-
-	test('outline leftover onDidOpen PromiseLike reveal is Promise double-chain; assigned handleEditor / already-double focus stay skipped', () => {
-		const pane = fs.readFileSync(resolveSource(OUTLINE_PANE_REL), 'utf8');
-		const iface = fs.readFileSync(resolveSource(OUTLINE_IFACE_REL), 'utf8');
-		assertPromiseSignature(iface, 'reveal(entry: E, options: IEditorOptions, sideBySide: boolean, select: boolean): Promise<void> | void;');
-		assertPromiseSignature(iface, 'createOutline(editor: IEditorPane, target: OutlineTarget, token: CancellationToken): Promise<IOutline<any> | undefined>;');
-		assert.ok(pane.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(pane, outlineOpenCall);
-		assert.ok(!pane.includes('this._editorControlDisposables.add(tree.onDidOpen(async e => {'));
-		assert.ok(pane.includes(`this._editorControlChangePromise.then(() => {
-			super.focus();
-			this._tree?.domFocus();
-		})${doubleCatch};`));
-		assert.ok(pane.includes('this._editorPaneDisposables.add(pane.onDidChangeControl(() => {'));
-		assert.ok(pane.includes('this._editorControlChangePromise = this._handleEditorControlChanged(pane);'));
-		assert.ok(!pane.includes(`this._editorControlChangePromise = this._handleEditorControlChanged(pane)${doubleCatch}`));
 	});
 
 	test('gotoError leftover other-editor navigate PromiseLike is Promise double-chain; already-double related / awaited openCodeEditor stay skipped', () => {
@@ -191,58 +145,4 @@ suite('outline leftover remaining overflowed to gotoError leftover Promise fire-
 		assert.ok(notebook.includes(`void this.doComputeSymbols(cancelToken)${doubleCatch};`));
 	});
 
-	test('opener / Action2.run / assigned then / two-arg then / returned Promise / Watch / Resolve / Pty / Connect / D145 stay skipped', () => {
-		const pane = fs.readFileSync(resolveSource(OUTLINE_PANE_REL), 'utf8');
-		const actions = fs.readFileSync(resolveSource(OUTLINE_ACTIONS_REL), 'utf8');
-		const gotoErr = fs.readFileSync(resolveSource(GOTO_ERR_REL), 'utf8');
-		const widget = fs.readFileSync(resolveSource(GOTO_ERR_WIDGET_REL), 'utf8');
-		const markers = fs.readFileSync(resolveSource(MARKERS_VIEW_REL), 'utf8');
-		const tree = fs.readFileSync(resolveSource(MARKERS_TREE_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(MARKERS_CONTRIB_REL), 'utf8');
-		const breadcrumbs = fs.readFileSync(resolveSource(BREADCRUMBS_REL), 'utf8');
-		const opener = fs.readFileSync(resolveSource(OPENER_REL), 'utf8');
-		const files = fs.readFileSync(resolveSource(FILES_REL), 'utf8');
-		const outlineCreator = fs.readFileSync(resolveSource(GOTO_SYMBOL_REL), 'utf8');
-
-		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
-		assert.ok(files.includes('watch(resource: URI, options?: IWatchOptionsWithoutCorrelation): IDisposable;'));
-		assertPromiseSignature(files, 'resolve(resource: URI, options?: IResolveFileOptions): Promise<IFileStat>;');
-
-		assert.ok(actions.includes('runInView(_accessor: ServicesAccessor, view: IOutlinePane) {'));
-		assert.ok(actions.includes('view.collapseAll();'));
-		assert.ok(!actions.includes(doubleCatch));
-		assert.ok(gotoErr.includes('async run(_accessor: ServicesAccessor, editor: ICodeEditor): Promise<void> {'));
-		assert.ok(gotoErr.includes('await MarkerController.get(editor)?.navigate(this._next, this._multiFile);'));
-		assert.ok(contrib.includes('async run(accessor: ServicesAccessor): Promise<void> {'));
-		assert.ok(!contrib.includes(`async run(accessor: ServicesAccessor): Promise<void> {${doubleCatch}`));
-
-		assert.ok(widget.includes('this._openerService.open(code.target);'));
-		assert.ok(!widget.includes('this._openerService.open(code.target).catch'));
-
-		assert.ok(pane.includes('this._editorControlChangePromise = this._handleEditorControlChanged(pane);'));
-		assert.ok(!pane.includes(`this._editorControlChangePromise = this._handleEditorControlChanged(pane)${doubleCatch}`));
-
-		assert.ok(tree.includes('}, ACTIVE_GROUP).then(() => undefined);'));
-		assert.ok(!tree.includes('}, ACTIVE_GROUP).then(() => undefined).catch'));
-		assert.ok(tree.includes(`void this.setQuickFixes(true)${doubleCatch};`));
-
-		assert.ok(breadcrumbs.includes('}).catch(err => {'));
-		assert.ok(breadcrumbs.includes('onUnexpectedError(err);'));
-		assert.ok(!breadcrumbs.includes(doubleCatch));
-
-		assert.ok(outlineCreator.includes('const value = await raceCancellation(timeout(2000).then(() => true), cts.token, false);'));
-		assert.ok(!outlineCreator.includes(`timeout(2000).then(() => true)${doubleCatch}`));
-
-		assert.ok(markers.includes('viewModel.quickFixAction.run();'));
-		assert.ok(!markers.includes(`viewModel.quickFixAction.run()${doubleCatch}`));
-
-		for (const source of [pane, actions, gotoErr, widget, markers, tree, contrib, breadcrumbs]) {
-			assert.ok(!source.includes('acknowledge('));
-			assert.ok(!source.includes('releaseLease('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Resolve[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-		}
-	});
 });

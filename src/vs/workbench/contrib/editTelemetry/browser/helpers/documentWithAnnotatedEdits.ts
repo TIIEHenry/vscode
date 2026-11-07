@@ -230,7 +230,7 @@ export class CombineStreamedChanges<TEditData extends (EditKeySourceData | EditS
 
 		this._diffService = this._instantiationService.createInstance(DiffService);
 		this.value = this._value = observableValue(this, _originalDoc.value.get());
-		this._restart().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._restart().catch(onUnexpectedError);
 
 	}
 
