@@ -248,8 +248,11 @@ suite('WorkbenchThemeService', () => {
 		assert.strictEqual(productLightTheme.colors['widget.border'], '#E2E2E2');
 		assert.strictEqual(productLightTheme.colors['chat.requestBubbleBackground'], '#F4F4F4');
 		assert.strictEqual(productLightTheme.colors['badge.background'], '#6A6A6A');
+		assert.strictEqual(productLightTheme.colors['button.secondaryBackground'], '#00000000');
+		assert.strictEqual(productLightTheme.colors['button.secondaryBorder'], '#2020201F');
 		assert.strictEqual(productDarkTheme.include, './2026-dark.json');
 		assert.strictEqual(productDarkTheme.colors['badge.background'], '#767676');
+		assert.strictEqual(productDarkTheme.colors['conversation.background'], '#121314');
 		assert.deepStrictEqual(Object.keys(productDarkTheme.colors).sort(), [
 			'activityBar.activeBackground',
 			'activityBar.inactiveForeground',
