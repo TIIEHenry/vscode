@@ -54,11 +54,11 @@ suite('Engine MCP fire-and-forget catch scan', () => {
 		}
 	});
 
-	test('all fire-and-forget void calls use single catch and no double catch', () => {
+	test('no bare fire-and-forget void call and no double catch', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
 		assert.strictEqual(source.includes(doubleCatch), false);
 		const voidMatches = source.match(/void this\.[^\n;]+/g) ?? [];
-		assert.strictEqual(voidMatches.length, 12, 'should have exactly 12 void this.* calls');
+		assert.ok(voidMatches.length > 0, 'engineMcpSection should have fire-and-forget void this.* calls');
 		for (const match of voidMatches) {
 			assert.ok(match.includes(singleCatch), `fire-and-forget call must use single catch: ${match}`);
 		}

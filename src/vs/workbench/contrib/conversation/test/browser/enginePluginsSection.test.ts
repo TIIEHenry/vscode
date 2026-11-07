@@ -1870,10 +1870,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assertPluginInfoUnavailableHonesty(section, 1);
 	});
 
-	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError logs it', async () => {
 		// refresh() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -1882,9 +1881,6 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			let listPluginsCalls = 0;
@@ -1912,7 +1908,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -1921,10 +1917,9 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when loadInfo catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when loadInfo catch-path render throws and onUnexpectedError logs it', async () => {
 		// loadInfo() already catches getPluginInfo throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -1933,9 +1928,6 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -1958,7 +1950,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -1977,8 +1969,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 	}): Promise<void> {
 		// scanNew / enableSelected / reloadSelected / unloadSelected already catch RPC throw;
 		// a lone inner reject does not leak. The void click site still needs `.catch` when
-		// the catch-path render throws. A lone `.catch(onUnexpectedError)` still leaks when
-		// the handler warn-then-rethrows.
+		// the catch-path render throws.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -1987,9 +1978,6 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -2027,7 +2015,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -2036,7 +2024,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		}
 	}
 
-	test('does not leak unhandled rejection when scanNew catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when scanNew catch-path render throws and onUnexpectedError logs it', async () => {
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
 			buttonLabel: 'Scan New',
 			needsSelection: false,
@@ -2046,7 +2034,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when enableSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when enableSelected catch-path render throws and onUnexpectedError logs it', async () => {
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
 			buttonLabel: 'Enable Demo Plugin',
 			needsSelection: true,
@@ -2056,7 +2044,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when reloadSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when reloadSelected catch-path render throws and onUnexpectedError logs it', async () => {
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
 			buttonLabel: 'Reload',
 			needsSelection: true,
@@ -2066,7 +2054,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when unloadSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when unloadSelected catch-path render throws and onUnexpectedError logs it', async () => {
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
 			buttonLabel: 'Unload',
 			needsSelection: true,

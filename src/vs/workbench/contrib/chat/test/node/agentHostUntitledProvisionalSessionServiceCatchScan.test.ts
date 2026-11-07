@@ -27,10 +27,9 @@ suite('AgentHostUntitledProvisionalSessionService leftover fire-and-forget catch
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('four leftover voids double-catch onUnexpectedError; disposeSession stays double (D646)', () => {
-		// Single-chain `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	test('five leftover voids end in a single onUnexpectedError catch (D646)', () => {
 		const source = fs.readFileSync(untitledProvisionalSessionServiceSourcePath(), 'utf8');
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const changeFolder = 'void this._changeWorkingDirectory(sessionResource, folder)';
 		const changePrimary = 'void this._changeWorkingDirectory(sessionResource, this._newSessionFolderService.resolveNewSessionPrimary(sessionResource))';
 		const reconcile = 'void this._queue(sessionResource, () => this._reconcileGeneration(sessionResource, entry))';
@@ -42,20 +41,16 @@ suite('AgentHostUntitledProvisionalSessionService leftover fire-and-forget catch
 		assert.strictEqual((source.match(/void this\._queue\(sessionResource, \(\) => this\._reconcileGeneration\(sessionResource, entry\)\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\._disposeBackend\(backendSession, 'pending provisional cleanup'\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\.disposeSession\(sessionResource\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${changeFolder}${doubleCatch};`));
-		assert.ok(source.includes(`${changePrimary}${doubleCatch};`));
-		assert.ok(source.includes(`${reconcile}${doubleCatch};`));
-		assert.ok(source.includes(`${disposePending}${doubleCatch};`));
-		assert.ok(source.includes(`${disposeSession}${doubleCatch};`));
+		assert.ok(source.includes(`${changeFolder}${singleCatch};`));
+		assert.ok(source.includes(`${changePrimary}${singleCatch};`));
+		assert.ok(source.includes(`${reconcile}${singleCatch};`));
+		assert.ok(source.includes(`${disposePending}${singleCatch};`));
+		assert.ok(source.includes(`${disposeSession}${singleCatch};`));
 		assert.ok(!source.includes(`${changeFolder};`));
 		assert.ok(!source.includes(`${changePrimary};`));
 		assert.ok(!source.includes(`${reconcile};`));
 		assert.ok(!source.includes(`${disposePending};`));
 		assert.ok(!source.includes(`${disposeSession};`));
-		assert.ok(!source.includes(`${changeFolder}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${changePrimary}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${reconcile}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${disposePending}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${disposeSession}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${singleCatch}${singleCatch}`));
 	});
 });

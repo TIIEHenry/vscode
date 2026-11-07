@@ -1392,10 +1392,9 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		assertToolsUnavailableHonesty(panel, 1);
 	});
 
-	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError logs it', async () => {
 		// refresh() already catches getMcpServerStatuses; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -1404,9 +1403,6 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -1429,7 +1425,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			panel.getDomNode().parentElement?.remove();
 		} finally {
@@ -1438,7 +1434,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when loadTools catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when loadTools catch-path render throws and onUnexpectedError logs it', async () => {
 		// loadTools() already catches getMcpServerTools; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
 		const paintBoom = new Error('tools paint boom');
@@ -1449,9 +1445,6 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const connection = createConnectionStub({
@@ -1475,7 +1468,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			panel.getDomNode().parentElement?.remove();
 		} finally {

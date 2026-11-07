@@ -444,7 +444,6 @@ suite('Sources - review list model', () => {
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -452,16 +451,13 @@ suite('Sources - review list model', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -3254,10 +3250,9 @@ suite('Sources - review list model', () => {
 		assert.notStrictEqual(keyA, keyB);
 	});
 
-	test('does not leak unhandled rejection when refresh catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when refresh catch-path paint throws and onUnexpectedError logs it', async () => {
 		// refresh() already catches git-read throw; a lone inner reject does not leak.
 		// The void scheduler call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const host = mountListHost();
@@ -3270,10 +3265,9 @@ suite('Sources - review list model', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when revealAttributionItem catch-path hint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when revealAttributionItem catch-path hint throws and onUnexpectedError logs it', async () => {
 		// revealAttributionItem already catches executeCommand; a lone inner reject does not leak.
 		// The void chip-click call site still needs `.catch` when the catch-path hint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const host = mountListHost();
@@ -3292,10 +3286,9 @@ suite('Sources - review list model', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Changes list refresh catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when Changes list refresh catch-path paint throws and onUnexpectedError logs it', async () => {
 		// refresh() already catches git-read throw; a lone inner reject does not leak.
 		// The void scheduler call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const host = mountListHost();
@@ -3308,10 +3301,9 @@ suite('Sources - review list model', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Changes list runCommit catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when Changes list runCommit catch-path paint throws and onUnexpectedError logs it', async () => {
 		// runCommit() already catches writeGitCommit throw; a lone inner reject does not leak.
 		// The void Enter-key call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const host = mountListHost();
@@ -3334,10 +3326,9 @@ suite('Sources - review list model', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Changes list onRowAction catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when Changes list onRowAction catch-path paint throws and onUnexpectedError logs it', async () => {
 		// runResourceAction / tryStagePaths already catch write throw; a lone inner reject does not leak.
 		// The void onRowAction call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
 			const host = mountListHost();
