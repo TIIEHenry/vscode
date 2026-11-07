@@ -151,8 +151,7 @@ import {
 
 /**
  * D546: mermaid resolve is fire-and-forget. A lone `.then` leaks reject /
- * then-throw, and a lone `.catch(onUnexpectedError)` still leaks when the
- * handler warn-then-rethrows (D480).
+ * then-throw, so the chain ends in a single `.catch(onUnexpectedError)`.
  */
 export function scheduleConversationMermaidExtensionResolve(host: {
 	readonly extensionService: IExtensionService;
@@ -168,7 +167,7 @@ export function scheduleConversationMermaidExtensionResolve(host: {
 		host.mermaidExtensionInfo = info;
 		host.timelineTree.setMermaidExtensionInfo(info);
 		host.applySessionViewTimeline({ kind: 'baseline' });
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 }
 
 function admittedSnapshotUsageNumber(summary: object, key: 'inputTokens' | 'outputTokens' | 'contextPct'): number | undefined {

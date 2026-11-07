@@ -123,8 +123,8 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 }
 
 /**
- * D539: `executeCommand` returns a Promise. A lone void still leaks when
- * `setUnexpectedErrorHandler` warn-then-rethrows, so double-catch (D480).
+ * D539: `executeCommand` returns a Promise; a bare void leaks its rejection,
+ * so the call ends in a single `.catch(onUnexpectedError)`.
  * Do not add catch on catalog `OPEN_CONNECTION` from this file.
  */
 export function executeReadingColumnSourcesReview(
@@ -134,7 +134,7 @@ export function executeReadingColumnSourcesReview(
 	void commandService.executeCommand(
 		SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND,
 		paths.map(path => URI.parse(path)),
-	).catch(onUnexpectedError).catch(onUnexpectedError);
+	).catch(onUnexpectedError);
 }
 
 function resolveReadingColumnSessionId(host: {

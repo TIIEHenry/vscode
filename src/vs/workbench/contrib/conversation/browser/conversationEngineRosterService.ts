@@ -288,7 +288,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			if (!this.shouldAdvertiseClientWorkspaceTools()) {
 				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
 			}
-			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshEngineCatalog().catch(onUnexpectedError);
 		} else {
 			this.listCompleted = this.engineSessions.length > 0;
 		}
@@ -511,7 +511,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 						action: 'createSession',
 						error,
 					});
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 				return '';
 			case 'stub':
 				return this.stub.createSession();
@@ -1420,7 +1420,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			if (!pending) {
 				return false;
 			}
-			void pending.catch(onUnexpectedError).catch(onUnexpectedError);
+			void pending.catch(onUnexpectedError);
 			return true;
 		}
 		return false;
@@ -1804,7 +1804,7 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 			}
 			this.testEngineConnected = undefined;
 			this.stub.setEngineConnected(true);
-			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refreshEngineCatalog().catch(onUnexpectedError);
 		} else {
 			this.connectionGeneration++;
 			this.captureEngineCache();
@@ -1883,9 +1883,9 @@ export class ConversationEngineRosterService extends Disposable implements IConv
 		this.emitLiveAgentTreeFromLease(lease);
 		this.publishRosterDetailIfChanged(lease.sessionId);
 		if (pendingBind) {
-			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError);
 		} else {
-			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration).catch(onUnexpectedError);
 		}
 	}
 
