@@ -39,9 +39,11 @@ Skills创建/保存/对话框按published link防串写。成功重读规范化�
 
 ## 1. 已知服务与 RPC
 
+本地自动连接在原可信 UDS / pinned TCP transport 上通过公开 GetAuthNonce 获取真实 engineIdentityId，和新 linkId、能力一起发布；只有完整 owner 才能读取 Composer 等受保护目录。请求仅使用一次内存 Ed25519 公钥与其 hash，不访问持久 identity store 或创建 Grant。TCP 交叉核验响应指纹与打开 transport 前捕获的 pin；UDS 信任来自已验证的 owner-only socket。空身份/nonce、指纹不符或 RPC 失败不发布 connected owner；过期请求不能覆盖新的连接。不兼容未实现 GetAuthNonce 的旧引擎：此类引擎在本地自动连接中持续重试且不进入 connected，不按 `methods` 降级。代码与运行证据分层见[身份发布方案](../../../archive/dev/plans/loopback-engine-identity-publication.md)。
+
 | 服务 | RPC | 本仓消费面 | 备注 |
 |------|-----|-----------|------|
-| `SystemService` | `GetAuthNonce` | `IUniverseAgentConnection.connect` / pairing orchestrator S2–S4 | 请求：`client_identity_id`、`client_public_key` → `auth_nonce` + `engine_cert_fingerprint`（**transcript 只用本地 TLS 观测指纹**，自述值不一致 fail-closed） |
+| `SystemService` | `GetAuthNonce` | `IUniverseAgentConnection.connect` / pairing orchestrator S2–S4 / 本地连接身份读取 | 请求：`client_identity_id`、`client_public_key` → `auth_nonce` + `engine_identity_id` + `engine_cert_fingerprint`（**transcript 只用本地 TLS 观测指纹**，自述值不一致 fail-closed） |
 | `SystemService` | `Connect` + `device_auth` | 手填 Direct Address / Hub 仍带 DeviceAuth。桌面自动探测的回环引擎省略 field 12 | `DeviceAuth{ client_identity_id, client_public_key, auth_nonce, signature }`；transcript = `engineIdentityId ‖ 观测 leaf 指纹 ‖ authNonce ‖ clientIdentityId ‖ protocolVersion`；`supported_tools=[]` 于 provisional 首配。回环免 SAS 的 Connect 只带协议整数字段 |
 | `SystemService` | `ConnectResponse` | `session_token` → `isEngineConnected()`；capabilities | 已 Grant：`session_token` 非空 → connected。回环免 SAS 且响应没有 token 时，先对 `Session/List` 探一次：回 `UNAUTHENTICATED`（16）则不提交，并停止本次进程的自动发现；其他状态码才把活 channel 算 connected（`path: 'loopback'`，状态栏 Engine · Loopback）。**未配对**：`pairing_nonce` + `sas_code`（Crockford `XXXX-XXXX`），**无** `session_token`；pairing-pending ≠ connected（ADR-003 D7）。自动探测若收到 pairing nonce 则停在断连，不再重试。S4 意外 token → 丢弃、recoverTrust。已提交 TLS 链路上，非豁免调用带 `authorization: Bearer <session_token>`（引擎 `--hub` 或非回环绑定时强制）。豁免且忽略该头：`HealthCheck`、`GetAuthNonce`、`Connect`、`grpc.health.v1.Health/Check`。token 默认 12 小时。过期、被拒或 `UNAVAILABLE` 换一条新链路，不在同一 channel 重跑 Connect |
 | `SystemService` | `HealthCheck` | `IUniverseAgentConnection.healthCheck?`（unary） | **已进** `UniverseAgentGrpcServices.System` + node unary `healthCheck`（空 request `{}`；响应 `status`/`version`/`active_sessions`/`uptime_ms`）。合同可选。空 `status` / 空 `version` 原样映射；`active_sessions` / `uptime_ms` 0 原样映射。桌面本机发现在通过属主校验的 UDS 或 pinned TCP 锚上做一次 HealthCheck，不再扫固定端口。≠ `Connect` / `GetAuthNonce` / `Doctor` / `Shutdown` |
@@ -430,6 +432,12 @@ Connect 后 `probeEngineCapabilities`：**仅**广告了 method 且 probe 非 `U
 
 **附件。** `SessionInput.attachments` 是 field 3（`media_type`、`data`、`filename`、`file_path`、`transfer_id`、`total_size`、`checksum_sha256`）。`UploadAttachment` 成功响应只有 `success`、`file_path`、`checksum_sha256`；`file_path` 形如 `attachments/<客户端 transfer_id>`。`queue_item_id` 是上传头入参，响应不返回它；对不存在的 `queue_item_id` 上传仍 `success=true`。把返回的 `file_path` 和 `transfer_id` 放进下一条 `Chat` 的 `attachments` 后，`envelope_batch_appended` 的用户信封只有 `RUNTIME_ENVIRONMENT` 与 `TEXT`。不存在的 `file_path` 同样 RPC 成功，没有 `INVALID_ARGUMENT`。本仓 `encodeSessionInput` 只写 `message_id`、`text`、`model_profile_id`、`operation_id`。`file_path` 还不能当作已打通的发送引用。
 
+
+### 5b. 数字消息序号与呈现排序键
+
+`sessionStreamDemux::demuxEnvelope` 将已校验的非负 safe-integer `seq` 转为左补零16位的十进制 `orderKey`，使词法顺序与数字顺序一致。live appended/batch、range replacement 与 `historyFillRowFromGetHistoryEnvelope` 的 raw envelope 分支使用同一转换。`event.seq`、游标和缺口判断仍用原数字；opaque domain orderKey 原样保留，renderer 不把任意 key 解析成数字。字符串 seq 沿用既有 Number 接纳范围，不因格式修复收紧协议。
+
+该边界避免第12条被排在第3条之前；时间线会保留先前锚点，因此错误地插入旧端可能使新消息存在于快照却不挂入 DOM。回归须验证分阶段到达的顺序与实际 DOM，不能只查条目集合包含正文。长期回归见[测试与校验](../../architecture/cross-cutting/testing.md#默认编辑器连接真实模型)，过程见[顺序修复方案](../../../archive/dev/plans/engine-envelope-sequence-order.md)。
 
 ## 7. Engine catalog 消费面（15 节 @ HEAD；写路径自 `f49615a1`）
 | 会话枚举 / 创建 / 删除 | `getSessions` … `deleteSession` | `SessionService.List` / `Create` / `Delete`；`work_dir` 过滤随 Connect。已连接时首次 `List` 完成前 roster **不**含 stub 种子行 |

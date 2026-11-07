@@ -23,7 +23,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定�
 | 项 | 值 |
 |----|-----|
 | 源码 | 分离头指针 worktree `vscode-debug-engine/universe-agent-027ab/`，实际目录与 SHA 以 `PIN` 的 worktree/pin_sha 为准 |
-| 实际执行 | `start-engine.sh` 执行 PIN 登记的 `engine_bin` 预包，不执行当前 worktree 的 Gradle run；版本以该包 `VERSION` 与 `lib.SHA256SUMS` 为准 |
+| 实际执行 | `start-engine.sh` 执行 `UA_ENGINE_BIN` 或脚本默认预包路径（当前与 PIN 的 `engine_bin` 相同），不执行当前 worktree 的 Gradle run；版本以实际包 `VERSION` 与 `lib.SHA256SUMS` 为准 |
 | 数据 / TLS / Grant | `vscode-debug-engine/agent-home/`（`UNIVERSE_AGENT_HOME`），**不是** `~/.universe-agent` |
 | 监听 | `127.0.0.1:50061`（避开 UA 默认 `50051`） |
 | 形态 | HeadlessServer TCP `--no-uds`，**不加** `--hub` |
@@ -43,7 +43,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定�
 
 源码钉与 TLS 指纹只写在仓外 `PIN`。线上实际运行的版本以本仓 `engine/VERSION` 的 `source_sha`、`source_dirty`、`built_at` 和 `lib.SHA256SUMS` 为准；不能只拿 `PIN` 推断运行中二进制。
 
-当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:44:32+08:00`，运行时模块清单哈希见 `engine/VERSION`。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
+当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:51:44+08:00`，运行时模块清单哈希见 `engine/VERSION`。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
 
 ## 3. 在 Agent IDE 里连
 
@@ -68,7 +68,7 @@ IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer
 
 日志归属以本次owned进程实际fd和appender为准。启动时可把stdout/stderr重定向到本波专用文件，并用 `readlink /proc/<owned-pid>/fd/1` 与 `/fd/2` 核实；本波已实证两fd均绑定自有日志。旧文所记 `~/.universe-agent/logs` 是历史共享user.home日志位置，不能未经当前归属核验就视为本份JVM的专用完整日志。单行缺PID、client/call/target标识时，两个worker线程号不能证明同一请求、同profile或某次失败导致最终字段变化。身份、会话、Grant仍在隔离 `agent-home/`。
 
-占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。当前 027ab 钉已包含 `UpsertModel` / `DeleteModel` / `SetModelEnabled` 与 `GetPermissionMode` 的引擎实现；这只证明二进制已换钉，不等于 IDE 产品路径已验收。模型目录仍由 seed 脚本提供启动基线。本仓 Composer 发送时带 `SessionInput.model_profile_id`（选中 catalog 的 `id`；诚实空选项不带）。
+占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 在 `ANTHROPIC_API_KEY` 为空时会从 `~/.claude/settings.json` 导出 key / base / model；仅设置 `SGLANG_*` 或 Anthropic base/model 不能阻止覆盖。随后无条件运行 `seed-model-catalog.sh`（不打印 key）：start/seed 都读取 PIN 并使用其中的 `agent_home`，外部仅设置 `UNIVERSE_AGENT_HOME` 不能改变写入目标。seed 会覆盖整个 `models.json` 与 `provider:state`，但仅在缺失时补 `defaultProvider`/`modelId`，所以旧默认可能残留。改配置前须核实际目标、现有模型与默认项；SGLang 受控联测不能直接把这个通用 seed 当作可隔离的启动入口。配置改动后须重启自有引擎。当前 027ab 钉已包含 `UpsertModel` / `DeleteModel` / `SetModelEnabled` 与 `GetPermissionMode` 的引擎实现；这只证明二进制已换钉，不等于 IDE 产品路径已验收。模型目录仍由 seed 脚本提供启动基线。本仓 Composer 发送时带 `SessionInput.model_profile_id`（选中 catalog 的 `id`；诚实空选项不带）。
 
 ### 启动前核对预包与测试数据
 
@@ -92,13 +92,11 @@ export SGLANG_ANTHROPIC_AUTH_TOKEN="<token>" # 不要提交或打印
 scripts/run-sglang-integration-tests.sh --protocol anthropic
 ```
 
-也可用 `--protocol chat`、`responses`、`both` 或 `all` 验证对应的 OpenAI-compatible 路径。2026-11-05 在 UniverseAgent commit `1e253d6aeeb856b13e02e6db14868f95ca0dbc26`、campaign `sglang-l4-1e253d6aee-20261105`、同一 SGLang `Local` 模型上分别跑了 Anthropic、OpenAI Chat 和 OpenAI Responses 探针，三种协议各覆盖文本流终止、工具调用回灌和权限拒绝，汇总为 **9 个协议/场景组合通过**；五次尝试合计 **45/45 pass**，包含 78 次 LLM 请求和 30 次 root tool start，`usageQuality=unverified`。这里的证据只覆盖 UniverseAgent 三个协议适配器到该 endpoint/model 的这些真实调用场景，不代表其他 Provider、模型或业务任务；F21 两模型 `k=3` 稳定性矩阵也未覆盖。日志中的未知 context window 警告在本次调用中未导致这些 case 失败；本次 endpoint 对缺省或错误 token 也未表现出认证拒绝，因此认证门禁仍未验证。上述结果不等于默认编辑器窗口或 50061 引擎已经完成 UI / Composer 端到端验收。
+也可用 `--protocol chat`、`responses`、`both` 或 `all` 验证对应的 OpenAI-compatible 路径。每次记录实际 commit/dirty、endpoint、model、protocol、campaign 和终态；协议探针、任务 verifier、路由诊断与默认编辑器 UI 验收分别报告。无认证/无效 token 返回 200 不构成认证拒绝验收；Responses 的预算约束 400 也不能代替认证错误。
 
-同日 Terra 追加了真实最小请求探针：`/v1/messages` 带完整 `model=Local`、`messages=[ping]`、`max_tokens=1` 时，无 `Authorization`、`Bearer invalid` 和 `x-api-key invalid` 都返回 HTTP 200，并产生 thinking token（`usage input=11/output=1`）；`/v1/chat/completions` 也在无认证和 `Bearer invalid` 下 HTTP 200（`prompt=11/completion=1`）；`/v1/responses` 在满足 SGLang reasoning 最小预算的 `n=16`、`n=256` 下同样无认证和无效 token 都 HTTP 200。三协议 endpoint 均未执行有效认证校验；Responses 的 `n=1` HTTP 400 是 `max_new_tokens` 预算约束，不是认证拒绝，不能把此前的字段校验 400 当成认证通过。当前 `127.0.0.1:50061` 未监听，shell 中也没有可重跑 L4 的 SGLang token。
+2026-11-05 的三协议 45/45 历史记录、retry10 八场景终态及整体 strict gate 失败、Terra 的 deep_think 诊断及受控运行时探针集中在[本轮验证记录](../../dev/progress/sglang-provider-validation-2026-11-05.md)。F21 两模型矩阵与默认编辑器完整接入尚未验收。不要从过期编译日志或缺失 observation 的空列表推断当前构建或运行行为。
 
-Terra 随后用临时环境凭据实际重跑 `--protocol all` 和 Anthropic 单协议，但两次都在 UniverseAgent Kotlin 编译阶段出现 Gradle daemon disappeared，未产生新的 live 记录；降低 Gradle 堆上限后仍复现。该次失败没有 OOM 文本，重跑时根盘约剩 18G、`/sdd` 约剩 528G，swap 已满，因此不能把它记作新的通过或替代 45/45 证据。
-
-Terra 的后续只读刷新再次命中同一 endpoint：Anthropic 无认证/无效 Bearer 均 HTTP 200（usage input=11/output=1），Chat 同样 HTTP 200（prompt=11/completion=1），Responses 在 `max_output_tokens=16` 下无认证/无效 Bearer 均 HTTP 200（input=11/output=14/reasoning=14），三协议认证未执行有效校验。随后完成的 Responses ablation retry9（报告目录 `/sdd/tmpworkteees/UniverseAgent-continue/build/reports/task-level-eval/sglang-workspace-v2-responses-ablation-k3-retry9-1e253d6aee-20261105`，同一 commit 且 `dirty=false`）最终记录：`short-alerts` normal/ablated 各 3/3 通过；`short-orders` normal 3/3、ablated 2/3（1 次 assertion fail）；`parallel-checkout` normal/ablated 各 2/3，双方 `routeConformance=fail`；`parallel-collections` 2 次通过但 `routeConformance=fail`。`long-ledger`、`long-inventory` 仍无报告，因此 F21 / `k=3` 仍是 incomplete。retry10 的报告目录为 `/sdd/tmpworkteees/UniverseAgent-continue/build/reports/task-level-eval/sglang-workspace-v2-responses-ablation-k3-retry10-1e253d6aee-20261105`；已为 short/parallel、long-ledger、long-inventory 与 deep-storage 写出完整 `k=3` summary：short-alerts、parallel-collections、deep-storage 均 normal/ablated 3/3；short-orders normal 3/3、ablated 2/3；parallel-checkout normal 1/3、ablated 3/3；long-ledger 与 long-inventory normal/ablated 均 0/3。deep-storage 六次调用虽 result=pass，但每次 routeConformance 都因缺少 `deep_think` route/tool 失败；long 场景失败主要是 compact route 缺失。deep-queue summary 已完成：normal 2/3、ablated 3/3，normal 含 1 次 executor `IllegalStateException`，其余调用 result=pass 但 `deep_think` routeConformance 失败；retry10 的 Gradle worker 已退出，XML 终态记录 1 test / 1 failure / 0 errors（`L5 ablation strict failures`：parallel-checkout、long-ledger、long-inventory、deep-queue），报告齐全，但 F21 仍因 long-ledger/long-inventory 0/3 与多项 routeConformance 失败而 incomplete。
+只为定位运行时问题而复用既有 Java class 时，使用唯一临时 cwd、独立日志配置与 user.home；JShell 的 `-J-D` 仅作用启动器，实际执行 JVM 必须用 `-R-Duser.home=...`、`-R-Dlogback.configurationFile=...`。先核实际 home、cwd、日志目标，再发模型请求。临时 Gradle worker classpath 不是稳定测试入口，mtime 或干净源码树也不能证明全部二进制与 HEAD 一致；正式验收仍走仓库脚本并记录构建来源。
 
 [D25](../../dev/progress/deferred-gaps.md) / [D26](../../dev/progress/deferred-gaps.md) 的 List / Create PASS 属旧钉历史；027ab 新钉尚未重跑业务验收，不能把旧证据迁移到当前版本。空 catalog 当时不并入那两行；本仓不加兼容层。
 

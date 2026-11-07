@@ -1019,6 +1019,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 			const current = sourcesEditorOpenSlot(this.configurationService);
 			this.contextMenuService.showContextMenu({
+				getMenuClassName: () => 'ua-rounded-menu',
 				getAnchor: () => e.anchor,
 				getActions: () => [sourcesAlternateOpenAction(current, slot => {
 					void this.openChangeEntry(element, { preserveFocus: true, slot }).catch(onUnexpectedError);

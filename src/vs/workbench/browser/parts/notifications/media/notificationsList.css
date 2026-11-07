@@ -69,10 +69,27 @@
 	}
 }
 
+.monaco-workbench.monaco-reduce-motion .notifications-list-container .notification-list-item .notification-list-item-message a {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .notifications-list-container .notification-list-item .notification-list-item-message a {
+		transition: none;
+	}
+}
+
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-message a:focus {
-	outline-width: 1px;
-	outline-style: solid;
-	outline-color: var(--vscode-focusBorder);
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .notifications-list-container .notification-list-item .notification-list-item-message a:focus-visible {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench.hc-black .notifications-list-container .notification-list-item .notification-list-item-message a:focus-visible,
+.monaco-workbench.hc-light .notifications-list-container .notification-list-item .notification-list-item-message a:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
 }
 
 .monaco-workbench .notifications-list-container .notification-list-item.expanded .notification-list-item-message {
@@ -127,6 +144,16 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .notifications-list-container .monaco-list-row {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .notifications-list-container .monaco-list-row {
+		transition: none;
+	}
+}
+
 .monaco-workbench .notifications-list-container .monaco-list-row:active {
 	background-color: var(--vscode-list-activeSelectionBackground);
 }
@@ -136,6 +163,20 @@
 	margin: 4px 5px; /* allows button focus outline to be visible */
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.08s ease, filter 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button-dropdown,
+.monaco-workbench.monaco-reduce-motion .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button,
+.monaco-workbench.monaco-reduce-motion .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-dropdown-button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button-dropdown,
+	.monaco-workbench:not(.monaco-enable-motion) .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button,
+	.monaco-workbench:not(.monaco-enable-motion) .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-dropdown-button {
+		transition: none;
+	}
 }
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button:active,

@@ -79,6 +79,17 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation > .conversation-region-chrome .title-actions .action-label:focus-visible {
+	outline: none !important;
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation > .conversation-region-chrome .title-actions .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
+}
+
 .monaco-workbench .part.conversation > .content {
 	display: flex;
 	flex-direction: column;

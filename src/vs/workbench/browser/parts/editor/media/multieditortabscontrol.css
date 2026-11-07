@@ -106,6 +106,16 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action {
 	width: var(--vscode-spacing-size240, 24px);
 	height: var(--vscode-spacing-size240, 24px);
@@ -118,9 +128,10 @@
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-item.disabled > .action-label.add-tab-action {
@@ -128,8 +139,10 @@
 	opacity: 0.6;
 }
 
-.monaco-workbench:is(.hc-black, .hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
-	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label:active {
@@ -161,6 +174,16 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .tabs-container > .tab {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tab {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab:not(.empty-placeholder):active {
 	background-color: var(--vscode-tab-activeBackground);
 }
@@ -177,6 +200,16 @@
 }
 .monaco-workbench .part.editor > .content .editor-group-container.active > .title .tabs-container > .tab.active {
 	background-color: var(--vscode-tab-activeBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tab:focus-visible {
+	outline: none;
+}
+
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tab:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -2px;
 }
 
 /* Tab Foreground Color in/active group/tab */
@@ -521,9 +554,41 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:active,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container.active > .title .tabs-container > .tab.sticky.dirty > .tab-actions .action-label:not(:hover)::before,
@@ -590,6 +655,16 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item {
 	margin-right: 4px;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .editor-actions {

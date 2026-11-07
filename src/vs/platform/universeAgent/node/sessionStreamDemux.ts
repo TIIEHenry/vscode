@@ -671,7 +671,8 @@ function demuxEnvelope(envelope: unknown): unknown | undefined {
 			}
 		}
 	}
-	const mapped = mapByPriority(id, String(seq), readField(envelope, 'role'), blocks, turnIdFields(envelope));
+	// Order keys compare lexically; every admitted non-negative safe integer fits in 16 digits.
+	const mapped = mapByPriority(id, String(seq).padStart(16, '0'), readField(envelope, 'role'), blocks, turnIdFields(envelope));
 	if (!mapped) {
 		return undefined;
 	}

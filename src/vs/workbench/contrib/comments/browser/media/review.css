@@ -258,7 +258,19 @@
 }
 
 .review-widget .body .comment-body a:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .review-widget .body .comment-body a:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .review-widget .body .comment-body a:focus-visible,
+.monaco-workbench.hc-light .review-widget .body .comment-body a:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 1px;
 }
 
 .review-widget .body .comment-body p,

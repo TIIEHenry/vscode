@@ -47,7 +47,7 @@
 	display: flex;
 	overflow: hidden;
 	width: var(--activity-bar-width, 48px);
-	height: var(--activity-bar-action-height, 48px);
+	height: var(--activity-bar-action-height, 44px);
 	margin-right: 0;
 	box-sizing: border-box;
 
@@ -55,15 +55,15 @@
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label:not(.codicon) {
 	font-size: 15px;
-	line-height: var(--activity-bar-action-height, 48px);
+	line-height: var(--activity-bar-action-height, 44px);
 	padding: 0 0 0 var(--activity-bar-width, 48px);
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label.codicon {
-	font-size: var(--activity-bar-icon-size, 24px);
+	font-size: var(--activity-bar-icon-size, 20px);
 	align-items: center;
 	justify-content: center;
-	transition: color 0.15s ease;
+	transition: color 100ms ease;
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:active .action-label.codicon,
@@ -123,8 +123,36 @@
 	height: auto;
 	z-index: 0;
 	border-radius: 8px;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked .active-item-indicator:before {
 	background: var(--vscode-activityBar-activeBackground);
-	transition: background-color 0.15s ease;
+}
+
+/* Keyboard focus gets a quiet hover surface; selected actions keep their active surface. */
+.monaco-workbench:not(.hc-black):not(.hc-light) .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:focus:not(.clicked):not(.checked) .active-item-indicator:before {
+	background: var(--vscode-toolbar-hoverBackground, var(--vscode-activityBar-activeBackground));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked:focus-visible .active-item-indicator::before {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
+}
+
+.monaco-workbench.monaco-reduce-motion .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label.codicon,
+.monaco-workbench.monaco-reduce-motion .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .active-item-indicator::before,
+.monaco-workbench.monaco-reduce-motion .activitybar > .content .composite-bar > .monaco-action-bar .action-item::before,
+.monaco-workbench.monaco-reduce-motion .activitybar > .content .composite-bar > .monaco-action-bar .action-item::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label.codicon,
+	.monaco-workbench:not(.monaco-enable-motion) .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .active-item-indicator::before,
+	.monaco-workbench:not(.monaco-enable-motion) .activitybar > .content .composite-bar > .monaco-action-bar .action-item::before,
+	.monaco-workbench:not(.monaco-enable-motion) .activitybar > .content .composite-bar > .monaco-action-bar .action-item::after {
+		transition: none;
+	}
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:active .active-item-indicator:before {

@@ -699,8 +699,12 @@ export class SessionViewHost extends Disposable {
 			this.disposeQuietly(stream, 'closeContinuationStream dispose failed', { sessionId });
 		}
 		this.continuationStreams.clear();
-		for (const binding of this.leases.values()) {
-			this.postAndDrain(binding.sessionId as SessionId, {
+		const sessionIds = new Set<string>([
+			...Array.from(this.leases.values(), binding => binding.sessionId),
+			...this.knownSessions,
+		]);
+		for (const sessionId of sessionIds) {
+			this.postAndDrain(sessionId as SessionId, {
 				t: 'connectionDown',
 				reason: { kind: 'transport' },
 			});
@@ -2036,7 +2040,14 @@ export class SessionViewHost extends Disposable {
 		}
 		this.diagnostics.count('stream.reopen_fired' as DiagnosticMetric);
 		if (this.failClosedRecovery.has(sessionId)) {
+			this.failClosedSessions.delete(sessionId);
 			this.postFailClosedRecoveryUp(sessionId);
+			if (this.core.attemptId(sessionId as SessionId) === null && !this.failClosedSessions.has(sessionId)) {
+				this.postFailClosedRecoveryUp(sessionId);
+			}
+			if (this.core.attemptId(sessionId as SessionId) !== null && !this.failClosedSessions.has(sessionId)) {
+				this.failClosedRecovery.delete(sessionId);
+			}
 		} else {
 			this.postAndDrain(sessionId as SessionId, {
 				t: 'connectionUp',

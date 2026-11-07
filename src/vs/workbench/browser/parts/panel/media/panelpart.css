@@ -67,6 +67,16 @@
 	transition: color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:active .action-label {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

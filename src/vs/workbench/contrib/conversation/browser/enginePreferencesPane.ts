@@ -6,6 +6,7 @@
 import './media/enginePreferencesPane.css';
 import './media/engineEditorSettings.css';
 import './media/engineCatalogSettings.css';
+import '../../../browser/media/uaRoundedIcons.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';

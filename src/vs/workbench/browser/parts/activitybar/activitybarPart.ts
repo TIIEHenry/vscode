@@ -5,6 +5,7 @@
 
 import './media/activitybarpart.css';
 import './media/activityaction.css';
+import '../../media/uaRoundedIcons.css';
 import { localize, localize2 } from '../../../../nls.js';
 import { ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { Part } from '../../part.js';
@@ -823,6 +824,9 @@ registerThemingParticipant((theme, collector) => {
 		collector.addRule(`
 			.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked .active-item-indicator {
 				z-index: 0;
+			}
+
+			.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked .active-item-indicator::before {
 				background-color: ${activityBarActiveBackgroundColor};
 			}
 		`);

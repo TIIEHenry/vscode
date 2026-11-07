@@ -42,6 +42,17 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .repl .repl-tree .monaco-tl-contents .expression .lazy-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .repl .repl-tree .monaco-tl-contents .expression .lazy-button:focus-visible,
+.monaco-workbench.hc-light .repl .repl-tree .monaco-tl-contents .expression .lazy-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .monaco-workbench .repl .repl-tree .monaco-tl-twistie {
 	background-position-y: calc(100% - (var(--vscode-repl-font-size-for-twistie)));
 }
@@ -109,6 +120,21 @@
 .monaco-workbench .repl .repl-tree .output.expression.value-and-source .source:active,
 .monaco-workbench .repl .repl-tree .group .source:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .repl .repl-tree .output.expression.value-and-source .source:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .repl .repl-tree .group .source:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .repl .repl-tree .output.expression.value-and-source .source:focus-visible,
+.monaco-workbench.hc-black .repl .repl-tree .group .source:focus-visible,
+.monaco-workbench.hc-light .repl .repl-tree .output.expression.value-and-source .source:focus-visible,
+.monaco-workbench.hc-light .repl .repl-tree .group .source:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .repl .repl-tree .output.expression > .value,

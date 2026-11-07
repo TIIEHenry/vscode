@@ -153,17 +153,18 @@
 	background: var(--vscode-toolbar-activeBackground) !important;
 }
 
-.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:focus {
+		.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:focus-visible {
 	border-bottom: none;
 	outline: none;
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-focusBorder) 35%, transparent);
+			background: var(--vscode-toolbar-hoverBackground) !important;
+			color: var(--vscode-foreground);
 }
 
 :is(.hc-black, .hc-light) .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label.checked,
-:is(.hc-black, .hc-light) .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:focus {
+		:is(.hc-black, .hc-light) .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:focus-visible {
 	background: none !important;
 	box-shadow: none;
-	outline: 1px solid var(--vscode-contrastActiveBorder);
+			outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 }
 

@@ -73,7 +73,7 @@
 
 /* Keep the active split legible while focus moves between its editor and chrome. */
 .monaco-workbench .part.conversation .conversation-session-leaf:focus-within > .conversation-session-leaf-session-bar > .conversation-lens-session-bar {
-	box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vscode-focusBorder) 55%, transparent);
+	box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-session-leaf:focus-within > .conversation-session-leaf-session-bar > .conversation-lens-session-bar {
@@ -116,14 +116,13 @@
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench.hc-black .part.conversation .conversation-session-leaf-hide:focus-visible,
 .monaco-workbench.hc-light .part.conversation .conversation-session-leaf-hide:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 }

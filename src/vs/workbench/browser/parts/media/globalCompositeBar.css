@@ -15,6 +15,16 @@
 	transition: opacity 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-action-bar .action-label .accounts-avatar {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-action-bar .action-label .accounts-avatar {
+		transition: none;
+	}
+}
+
 .monaco-workbench .monaco-action-bar .action-item:active .accounts-avatar {
 	opacity: 0.8;
 }

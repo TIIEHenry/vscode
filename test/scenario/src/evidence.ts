@@ -7,11 +7,8 @@ import type { Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ApplicationService, getProductVersion, JSONValue } from './application';
+import { evidenceRootPath, logsRootPath } from './artifactPaths';
 
-const rootPath = path.join(__dirname, '..', '..', '..');
-const artifactRootPath = path.join(rootPath, '.build', 'vscode-playwright-mcp');
-const evidenceRootPath = path.join(artifactRootPath, 'evidence');
-const logsRootPath = path.join(artifactRootPath, 'logs');
 const qualityNames = ['Dev', 'Insiders', 'Stable', 'Exploration', 'OSS'];
 
 export type StepStatus = 'started' | 'passed' | 'failed' | 'skipped';

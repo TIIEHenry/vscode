@@ -83,6 +83,7 @@ const FORWARDED_CONNECTION_EVENTS = {
 
 /** Owner arguments are independent of each method's engine request. */
 const EXPECTED_OWNER_ARGUMENT_INDEXES = {
+	getSessionInfo: 1,
 	upsertProviderCredentials: 1,
 	clearProviderCredentials: 1,
 	upsertModel: 1,

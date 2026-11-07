@@ -11,15 +11,14 @@ import * as sqlite3 from '@vscode/sqlite3';
 import type { Page } from '@playwright/test';
 import { createApp, parseVersion } from './utils';
 import { opts } from './options';
+import { logsRootPath, crashesRootPath, videoRootPath } from './artifactPaths';
+import { withIsolatedSharedDataDirectory } from './launchArguments';
 
 export type JSONValue = string | number | boolean | null | JSONValue[] | { [key: string]: JSONValue };
 
 type ApplicationLaunchOptions = { recordVideo?: boolean; workspacePath?: string; userSettings?: Record<string, JSONValue>; extraArgs?: string[] };
 
 const rootPath = path.join(__dirname, '..', '..', '..');
-const logsRootPath = path.join(rootPath, '.build', 'vscode-playwright-mcp', 'logs');
-const crashesRootPath = path.join(rootPath, '.build', 'vscode-playwright-mcp', 'crashes');
-const videoRootPath = path.join(rootPath, '.build', 'vscode-playwright-mcp', 'videos');
 const sourceVersion = (JSON.parse(fs.readFileSync(path.join(rootPath, 'package.json'), 'utf8')) as { version: string }).version;
 
 const logger = createLogger();
@@ -318,10 +317,10 @@ export async function getApplication({ recordVideo, workspacePath, userSettings,
 		tracing: true,
 		headless: opts.headless,
 		browser: opts.browser,
-		extraArgs: [
+		extraArgs: withIsolatedSharedDataDirectory(testDataPath, [
 			...(opts.electronArgs || '').split(' ').map(arg => arg.trim()).filter(arg => !!arg),
 			...(extraArgs ?? [])
-		],
+		]),
 		extensionDevelopmentPath: opts.extensionDevelopmentPath,
 	});
 	try {

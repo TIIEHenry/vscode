@@ -1236,7 +1236,8 @@
 		"--vg-ring-width",
 		"--vg-ring-opacity",
 		"--vg-corner-alpha",
-		"--vg-inner-fade"
+		"--vg-inner-fade",
+		"--ua-rounded-icon"
 	],
 	"sizes": [
 		"--segmented-icon-toggle-cell-radius",

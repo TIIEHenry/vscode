@@ -10,6 +10,18 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-workspace,
+.monaco-workbench.monaco-reduce-motion .quick-input-list .quick-input-list-entry-action-bar .action-label.opened-workspace {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-workspace,
+	.monaco-workbench:not(.monaco-enable-motion) .quick-input-list .quick-input-list-entry-action-bar .action-label.opened-workspace {
+		transition: none;
+	}
+}
+
 .monaco-workbench .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-workspace:active,
 .monaco-workbench .quick-input-list .quick-input-list-entry-action-bar .action-label.opened-workspace:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
@@ -49,6 +61,16 @@
 
 .monaco-workbench.monaco-enable-motion .screencast-keyboard {
 	transition: opacity 0.3s ease-out;
+}
+
+.monaco-workbench.monaco-reduce-motion .screencast-keyboard {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .screencast-keyboard {
+		transition: none;
+	}
 }
 
 .monaco-workbench .screencast-keyboard:empty {

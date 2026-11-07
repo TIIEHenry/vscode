@@ -40,6 +40,16 @@
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type {
+		transition: none;
+	}
+}
+
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
@@ -52,14 +62,16 @@
 	color: var(--vscode-breadcrumb-focusForeground);
 }
 
-.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-breadcrumb-focusForeground);
 }
 
 .monaco-workbench.hc-black .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible,
 .monaco-workbench.hc-light .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible {
-	outline-color: var(--vscode-contrastActiveBorder);
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type > .label {
@@ -101,8 +113,28 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-breadcrumbs-picker .picker-item {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-breadcrumbs-picker .picker-item {
+		transition: none;
+	}
+}
+
 .monaco-workbench .monaco-breadcrumbs-picker .tree .monaco-list-row:active .picker-item {
 	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-breadcrumbs-picker .tree .monaco-list:focus .monaco-list-row.focused {
+	outline: none;
+}
+
+.monaco-workbench.hc-black .monaco-breadcrumbs-picker .tree .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench.hc-light .monaco-breadcrumbs-picker .tree .monaco-list:focus .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .monaco-breadcrumbs-picker .highlighting-tree {

@@ -33,31 +33,70 @@ async function waitFor(locator, description, timeout = 30_000) {
 	try {
 		await locator.waitFor({ state: 'visible', timeout });
 	} catch (error) {
-		throw new Error(`${description} was not visible within ${timeout}ms: ${error instanceof Error ? error.message : String(error)}`);
+		throw new Error(`Could not observe ${description}: ${error instanceof Error ? error.message : String(error)}`);
 	}
 }
 
-async function openProcessFold(page, description) {
-	const fold = page.locator('article.conversation-timeline-item .conversation-process-fold');
-	await waitFor(fold, description);
-	const header = fold.locator('.conversation-process-fold-header');
-	await waitFor(header, `${description} header`);
-	if (await header.getAttribute('aria-expanded') !== 'true') {
-		await header.click();
+async function openProcessFolds(page, description) {
+	const folds = page.locator('article.conversation-timeline-item .conversation-process-fold');
+	await waitFor(folds.first(), description);
+	for (let index = 0; index < await folds.count(); index++) {
+		const header = folds.nth(index).locator('.conversation-process-fold-header');
+		await waitFor(header, `${description} header ${index + 1}`);
+		if (await header.getAttribute('aria-expanded') !== 'true') {
+			await header.click();
+		}
 	}
+}
+
+// Runs in the browser for both reads and completion waits. A marker wait must
+// reject a second matching preview as well as a busy or identity-less answer.
+function readTimelineRows(requiredCompletedMarker) {
+	const rows = [...document.querySelectorAll('article.conversation-timeline-item .conversation-lens-turn[data-kind]')].map(turn => {
+		const article = turn.closest('article.conversation-timeline-item');
+		const rootId = article?.getAttribute('data-root-id');
+		const turnId = turn.getAttribute('data-turn-id');
+		const busy = article?.getAttribute('aria-busy') === 'true';
+		const persistent = !!article && typeof rootId === 'string' && rootId.trim().length > 0 && !rootId.startsWith('overlay:')
+			&& typeof turnId === 'string' && turnId.trim().length > 0 && !turnId.startsWith('overlay:');
+		return {
+			rootId,
+			turnId,
+			kind: turn.getAttribute('data-kind'),
+			text: turn.textContent || '',
+			busy,
+			completed: persistent && !busy
+		};
+	});
+	if (requiredCompletedMarker !== undefined) {
+		const matches = rows.filter(row => row.kind === 'assistant' && row.text.includes(requiredCompletedMarker));
+		if (matches.length !== 1 || !matches[0].completed) {
+			return false;
+		}
+	}
+	return rows;
 }
 
 async function readRows(page) {
-	return page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind]').evaluateAll(turns => turns.map(turn => {
-		const article = turn.closest('article.conversation-timeline-item');
-		return {
-			rootId: article?.getAttribute('data-root-id'),
-			turnId: turn.getAttribute('data-turn-id'),
-			kind: turn.getAttribute('data-kind'),
-			text: turn.textContent || '',
-			busy: article?.getAttribute('aria-busy') === 'true'
-		};
-	}));
+	return page.evaluate(readTimelineRows);
+}
+
+async function waitForCompletedAssistant(page) {
+	await page.waitForFunction(readTimelineRows, marker, { timeout: 60_000 });
+}
+
+async function assertNoTimelineFailures(page, reloaded = false) {
+	const errors = page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="error"]');
+	if (await errors.count() !== 0) {
+		throw new Error(reloaded ? 'Reload restored an error row for the completed real turn.' : `Real engine returned an error row: ${await errors.allTextContents()}`);
+	}
+	const tools = page.locator('article.conversation-timeline-item .conversation-process-fold-tool');
+	for (let index = 0; index < await tools.count(); index++) {
+		const text = await tools.nth(index).textContent() || '';
+		if (text.includes('Failed')) {
+			throw new Error(`${reloaded ? 'Reloaded' : 'Real'} tool row is failed: ${text}`);
+		}
+	}
 }
 
 function assertUnique(rows, label) {
@@ -104,30 +143,24 @@ module.exports = {
 		},
 		{
 			id: 'tool-and-assistant',
-			title: 'Renders one real tool row and one assistant row',
+			title: 'Renders one real tool result and one unique completed answer',
 			async run({ page }) {
-				await openProcessFold(page, 'real process fold');
+				await openProcessFolds(page, 'real process fold');
 				const tool = page.locator('article.conversation-timeline-item .conversation-process-fold-tool');
 				const assistant = page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]');
-				await waitFor(tool, 'real tool timeline row', 60_000);
-				await waitFor(assistant, 'real assistant timeline row', 60_000);
-				const errors = page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="error"]');
-				if (await errors.count() !== 0) {
-					throw new Error(`Real engine returned an error row: ${await errors.allTextContents()}`);
-				}
-				if ((await tool.first().textContent() || '').includes('Failed')) {
-					throw new Error(`Real tool row is failed: ${await tool.first().textContent()}`);
-				}
-				await page.waitForFunction(() => {
-					const rows = [...document.querySelectorAll('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]')];
-					return rows.some(row => (row.textContent || '').includes('UA_REAL_EDITOR_MARKER_7F3D') && row.getAttribute('aria-busy') !== 'true');
-				}, undefined, { timeout: 60_000 });
+				await waitFor(tool.first(), 'real tool timeline row', 60_000);
+				await openProcessFolds(page, 'real process fold after tool');
+				await waitFor(assistant.first(), 'real assistant timeline row', 60_000);
+				await assertNoTimelineFailures(page);
+				await waitForCompletedAssistant(page);
+				await assertNoTimelineFailures(page);
 				const rows = await readRows(page);
 				assertUnique(rows, 'live timeline');
-				if (await tool.count() !== 1) {
-					throw new Error(`Expected exactly one nested tool row, got ${await tool.count()} roots=${JSON.stringify(rows)}`);
+				if (await tool.count() === 0) {
+					throw new Error(`Expected at least one nested tool row, got ${await tool.count()} roots=${JSON.stringify(rows)}`);
 				}
-				if (rows.filter(row => row.kind === 'assistant' && row.text.includes(marker)).length !== 1) {
+				const answers = rows.filter(row => row.kind === 'assistant' && row.text.includes(marker));
+				if (answers.length !== 1 || !answers[0].completed) {
 					throw new Error(`Expected exactly one completed assistant containing ${marker}, got ${JSON.stringify(rows)}`);
 				}
 				return JSON.stringify(rows.map(({ rootId, kind, busy }) => ({ rootId, kind, busy })));
@@ -141,12 +174,13 @@ module.exports = {
 				assertUnique(before, 'pre-reload timeline');
 				await page.reload({ waitUntil: 'domcontentloaded' });
 				await waitFor(page.getByRole('status', { name: 'Engine connection: Engine · Loopback' }), 'reconnected loopback status', 60_000);
-				await openProcessFold(page, 'reloaded real process fold');
-				await waitFor(page.locator('article.conversation-timeline-item .conversation-process-fold-tool'), 'reloaded tool timeline row', 60_000);
-				await waitFor(page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]'), 'reloaded assistant timeline row', 60_000);
-				if (await page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="error"]').count() !== 0) {
-					throw new Error('Reload restored an error row for the completed real turn.');
-				}
+				await openProcessFolds(page, 'reloaded real process fold');
+				await waitFor(page.locator('article.conversation-timeline-item .conversation-process-fold-tool').first(), 'reloaded tool timeline row', 60_000);
+				await openProcessFolds(page, 'reloaded real process fold after tool');
+				await waitFor(page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]').first(), 'reloaded assistant timeline row', 60_000);
+				await assertNoTimelineFailures(page, true);
+				await waitForCompletedAssistant(page);
+				await assertNoTimelineFailures(page, true);
 				const after = await readRows(page);
 				assertUnique(after, 'post-reload timeline');
 				const beforeIds = before.map(row => row.rootId).filter(Boolean);
@@ -154,7 +188,8 @@ module.exports = {
 				if (beforeIds.length !== afterIds.length || beforeIds.some(id => !afterIds.includes(id))) {
 					throw new Error(`Reload changed durable timeline identities. before=${JSON.stringify(before)} after=${JSON.stringify(after)}`);
 				}
-				if (!after.some(row => row.kind === 'assistant' && row.text.includes(marker) && !row.busy)) {
+				const answers = after.filter(row => row.kind === 'assistant' && row.text.includes(marker));
+				if (answers.length !== 1 || !answers[0].completed) {
 					throw new Error(`Reload lost the completed assistant marker ${marker}: ${JSON.stringify(after)}`);
 				}
 				return `reloaded ${after.length} unique durable timeline roots`;

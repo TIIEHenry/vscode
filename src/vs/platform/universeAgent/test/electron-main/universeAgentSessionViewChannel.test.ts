@@ -192,4 +192,29 @@ suite('UniverseAgentSessionViewChannel', () => {
 	test('windowConnectionContext formats window id prefix', () => {
 		assert.strictEqual(windowConnectionContext(7), 'window:7');
 	});
+
+	test('onDynamicDidApplyFrame converts changedIds Set into JSON-serializable array across IPC', async () => {
+		const connection = new OwnerCheckConnection();
+		const sessionView = store.add(new UniverseAgentSessionViewService(connection, connection, new NullLogService()));
+		const viewHost = (sessionView as unknown as { host: SessionViewHost }).host;
+		viewHost.onEngineConnectionChanged();
+		const channel = new UniverseAgentSessionViewChannel(sessionView);
+		const leaseId = await channel.call<string>('window:1', 'acquireLease', ['sess-ipc-ids']);
+		await channel.call('window:1', 'whenEngineSessionReady', ['sess-ipc-ids']);
+
+		const received: unknown[] = [];
+		store.add(channel.listen('window:1', 'onDynamicDidApplyFrame', leaseId)(event => received.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		connection.pushStreamEvent('sess-ipc-ids', {
+			streaming_delta: { turn_id: 'turn-ipc-1', text_delta: 'hello' },
+		});
+
+		const patchEvents = received
+			.map(item => JSON.parse(JSON.stringify(item)) as { applied: { kind: string; changedIds?: unknown } })
+			.filter(item => item.applied.kind === 'patches');
+		assert.ok(patchEvents.length > 0);
+		assert.ok(patchEvents.every(item => Array.isArray(item.applied.changedIds)));
+		assert.ok(patchEvents.some(item => (item.applied.changedIds as string[]).includes('overlay:turn-ipc-1')));
+	});
 });

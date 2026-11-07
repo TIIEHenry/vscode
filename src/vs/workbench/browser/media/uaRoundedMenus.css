@@ -67,7 +67,7 @@
 }
 @media (forced-colors: none) {
 	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-rounded-menu .action-item.focused > .action-menu-item {
-		background-color: color-mix(in srgb, var(--vscode-foreground) 4%, var(--vscode-menu-background)) !important;
+		background-color: color-mix(in srgb, var(--vscode-foreground) 8%, var(--vscode-menu-background)) !important;
 		color: var(--vscode-menu-foreground) !important;
 	}
 }
@@ -112,7 +112,25 @@
 		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%202.5H3a1%201%200%200%200-1%201v9a1%201%200%200%200%201%201h7a1%201%200%200%200%201-1V10M9%202.5h4.5V7M7%209l6.5-6.5%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
 	}
 }
-.monaco-workbench .ua-project-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:nth-child(2) > .action-menu-item::before {
+.monaco-workbench .ua-project-workdir-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:first-child > .action-menu-item::before {
+	content: "\ea60" / "";
+	font-family: codicon;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	flex: 0 0 16px;
+	margin-right: 8px;
+	pointer-events: none;
+}
+@media (forced-colors: none) {
+	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-project-workdir-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:first-child > .action-menu-item::before {
+		content: '';
+		background-color: currentColor;
+		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%203v10M3%208h10%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;
+	}
+}
+.monaco-workbench :is(.ua-session-menu, .ua-project-session-menu) > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:nth-child(2) > .action-menu-item::before {
 	content: "\ea81" / "";
 	font-family: codicon;
 	font-size: 16px;
@@ -124,7 +142,7 @@
 	pointer-events: none;
 }
 @media (forced-colors: none) {
-	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-project-session-menu > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:nth-child(2) > .action-menu-item::before {
+	.monaco-workbench:not(.hc-black):not(.hc-light) :is(.ua-session-menu, .ua-project-session-menu) > .monaco-scrollable-element > .monaco-menu > .monaco-action-bar > .actions-container > .action-item:nth-child(2) > .action-menu-item::before {
 		content: '';
 		background-color: currentColor;
 		mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.5%204h11M6%202h4M4%204l.6%209.5h6.8L12%204M6.5%206.5v4.5M9.5%206.5v4.5%22%2F%3E%3C%2Fsvg%3E") center / contain no-repeat;

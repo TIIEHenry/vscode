@@ -801,9 +801,17 @@
 	outline-offset: 0;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .step-list-container button:focus-visible {
-	box-shadow: inset 0 0 0 1px var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .gettingStartedContainer .step-list-container button:focus-visible {
+	box-shadow: none;
 	outline: none;
+	background: var(--vscode-welcomePage-tileHoverBackground, var(--vscode-toolbar-hoverBackground));
+}
+
+.monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer .step-list-container button:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer .step-list-container button:focus-visible {
+	box-shadow: none;
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 0;
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .prev-button.button-link {
@@ -953,8 +961,15 @@
 	outline: none;
 }
 
-.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .codicon:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .codicon:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .codicon:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .codicon:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 0;
 }
 
@@ -1103,6 +1118,17 @@
 	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .getting-started-category:focus-visible {
+	outline: none;
+	background: var(--vscode-welcomePage-tileHoverBackground, var(--vscode-toolbar-hoverBackground));
+}
+
+.monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .getting-started-category:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .getting-started-category:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 0;
+}
+
 .monaco-workbench .part.editor > .content .gettingStartedContainer button:not(.expanded):active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
@@ -1169,8 +1195,44 @@
 	color: var(--vscode-textLink-activeForeground);
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .gettingStartedContainer .start-container .button-link:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer .start-container .button-link:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer .start-container .button-link:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 0;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .gettingStartedContainer .done-next-container .button-link:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer .done-next-container .button-link:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer .done-next-container .button-link:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 0;
+}
+
 .monaco-workbench .part.editor > .content .gettingStartedContainer a:not(.codicon-close):focus {
-	outline-color: var(--vscode-focusBorder);
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .gettingStartedContainer a:not(.codicon-close):focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .gettingStartedContainer a:not(.codicon-close):focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .gettingStartedContainer a:not(.codicon-close):focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 0;
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer button {

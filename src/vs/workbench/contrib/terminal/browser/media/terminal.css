@@ -344,6 +344,17 @@
 	text-align: left;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .tabs-container > .monaco-toolbar .action-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .pane-body.integrated-terminal .tabs-container > .monaco-toolbar .action-label:focus-visible,
+.monaco-workbench.hc-light .pane-body.integrated-terminal .tabs-container > .monaco-toolbar .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry {
 	flex-shrink: 0;
 	height: 22px;
@@ -360,6 +371,17 @@
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .terminal-tabs-chat-entry:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .pane-body.integrated-terminal .terminal-tabs-chat-entry:focus-visible,
+.monaco-workbench.hc-light .pane-body.integrated-terminal .terminal-tabs-chat-entry:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-entry {
@@ -426,6 +448,19 @@
 	opacity: 1;
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 3px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:focus-visible {
+	opacity: 1;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:focus-visible,
+.monaco-workbench.hc-light .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:focus-visible {
+	opacity: 1;
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-container:not(.has-text) .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete,
@@ -504,6 +539,17 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .tabs-list .actions .action-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .pane-body.integrated-terminal .tabs-list .actions .action-label:focus-visible,
+.monaco-workbench.hc-light .pane-body.integrated-terminal .tabs-list .actions .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:hover .actions,
 .monaco-workbench .pane-body.integrated-terminal .tabs-list:focus-within .monaco-list-row.selected .actions,
 .monaco-workbench .pane-body.integrated-terminal .tabs-list:focus-within .monaco-list-row.focused .actions {
@@ -519,6 +565,17 @@
 
 .monaco-action-bar .action-item .single-terminal-tab:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-action-bar .action-item .single-terminal-tab:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .monaco-action-bar .action-item .single-terminal-tab:focus-visible,
+.monaco-workbench.hc-light .monaco-action-bar .action-item .single-terminal-tab:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-action-bar .action-item .single-terminal-tab .codicon:first-child {

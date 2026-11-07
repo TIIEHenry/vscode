@@ -143,6 +143,18 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-list-row .expression .value a.link.pointer:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .monaco-list-row .expression .value a.link.pointer:focus-visible,
+.monaco-workbench.hc-light .monaco-list-row .expression .value a.link.pointer:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 /* White color when element is selected and list is focused. White looks better on blue selection background. */
 .monaco-workbench .monaco-list:focus .monaco-list-row.selected .expression .name,
 .monaco-workbench .monaco-list:focus .monaco-list-row.selected .expression .value {

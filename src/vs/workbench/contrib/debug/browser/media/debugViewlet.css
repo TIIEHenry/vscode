@@ -92,7 +92,18 @@
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:focus-visible,
+.monaco-workbench.hc-light .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label .start-debug-action-item-label {
@@ -213,6 +224,17 @@
 
 .debug-pane .monaco-list-row .monaco-action-bar .action-label:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .debug-pane .monaco-list-row .monaco-action-bar .action-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .debug-pane .monaco-list-row .monaco-action-bar .action-label:focus-visible,
+.monaco-workbench.hc-light .debug-pane .monaco-list-row .monaco-action-bar .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .debug-pane .session .codicon {

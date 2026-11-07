@@ -162,9 +162,17 @@
 	color: var(--vscode-foreground);
 }
 
-.image-carousel-editor .nav-arrow:focus-visible:not(:disabled) {
+.monaco-workbench:not(.hc-black):not(.hc-light) .image-carousel-editor .nav-arrow:focus-visible:not(:disabled) {
 	opacity: 1 !important;
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background: var(--vscode-toolbar-activeBackground, var(--vscode-toolbar-hoverBackground));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench.hc-black .image-carousel-editor .nav-arrow:focus-visible:not(:disabled),
+.monaco-workbench.hc-light .image-carousel-editor .nav-arrow:focus-visible:not(:disabled) {
+	opacity: 1 !important;
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 

@@ -61,6 +61,27 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
+		transition: none;
+	}
+}
+
 .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button:active {
 	filter: brightness(0.92);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button:focus-visible,
+.monaco-workbench.hc-light .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 2px;
 }

@@ -476,6 +476,7 @@ export function renderEditorTabBarFixture(ctx: ComponentFixtureContext, options:
 		override createEditorActions(disposables: DisposableStore, menuId = MenuId.EditorTitle) { return createEditorActions(disposables, menuId); }
 		override relayout() { this.relayoutFn(); }
 		override readonly onDidActiveEditorChange = Event.None;
+		override readonly onDidModelChange = model.onDidModelChange;
 	};
 
 	// Separate reference returned as the active group when this group is inactive, so that
@@ -546,9 +547,11 @@ export function renderEditorTabBarFixture(ctx: ComponentFixtureContext, options:
 
 	titleControl.openEditors(model.getEditors(EditorsOrder.SEQUENTIAL));
 	titleControl.setActive(isGroupActive);
-	const tabsContainer = titleContainer.querySelector<HTMLElement>('.tabs-container');
-	if (tabsContainer?.getAttribute('aria-orientation') !== 'horizontal') {
-		throw new Error('Editor tab bar must expose a horizontal tablist orientation.');
+	if (partOptions.showTabs === 'multiple') {
+		const tabsContainers = titleContainer.querySelectorAll<HTMLElement>('.tabs-container');
+		if (tabsContainers.length === 0 || Array.from(tabsContainers).some(tabsContainer => tabsContainer.getAttribute('aria-orientation') !== 'horizontal')) {
+			throw new Error('Editor tab bar must expose a horizontal tablist orientation on every tab row.');
+		}
 	}
 	const tabs = titleContainer.querySelectorAll<HTMLElement>('.tabs-container > .tab');
 	if (options.dropTargetBetweenTabs) {
