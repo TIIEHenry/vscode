@@ -1336,6 +1336,36 @@ suite('Workbench - MCP - Registry', () => {
 
 			assert.strictEqual(connection1, undefined, 'First connection should not be created when user cancels');
 			assert.strictEqual(connection2, undefined, 'Second connection should not be created when user cancels');
+			assert.strictEqual(trustNonceBearer.trustedAtNonce, 'nonce-a', 'Cancelling should not persist a trust decision');
+			assert.strictEqual(trustNonceBearer2.trustedAtNonce, 'nonce-b', 'Cancelling should not persist a trust decision');
+		});
+
+		test('user cancelling trust dialog does not mark server as untrusted', async () => {
+			const { collection, definition } = setupRegistry(McpServerTrust.Kind.TrustedOnNonce, 'nonce-b');
+			trustNonceBearer.trustedAtNonce = 'nonce-a';
+			registry.nextDefinitionIdsToTrust = undefined;
+
+			const connection = await registry.resolveConnection({
+				collectionRef: collection,
+				definitionRef: definition,
+				logger,
+				trustNonceBearer,
+				taskManager,
+			});
+			assert.strictEqual(connection, undefined);
+			assert.strictEqual(trustNonceBearer.trustedAtNonce, 'nonce-a');
+
+			registry.nextDefinitionIdsToTrust = [definition.id];
+			const retried = await registry.resolveConnection({
+				collectionRef: collection,
+				definitionRef: definition,
+				logger,
+				trustNonceBearer,
+				taskManager,
+			});
+			assert.ok(retried, 'Server should be prompted again after a cancelled prompt');
+			assert.strictEqual(trustNonceBearer.trustedAtNonce, 'nonce-b');
+			retried!.dispose();
 		});
 
 		test('partial trust selection in grouped interaction', async () => {
