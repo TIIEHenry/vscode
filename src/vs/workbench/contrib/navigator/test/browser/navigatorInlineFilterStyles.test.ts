@@ -15,7 +15,7 @@ const FOCUS_BORDER = 'rgb(1, 2, 3)';
 const CONTRAST_ACTIVE_BORDER = 'rgb(4, 5, 6)';
 const TRANSPARENT = 'rgba(0, 0, 0, 0)';
 
-async function loadStylesheet(store: DisposableStore, relativePath: string): Promise<void> {
+async function loadStylesheet(store: Pick<DisposableStore, 'add'>, relativePath: string): Promise<void> {
 	const stylesheet = document.createElement('link');
 	stylesheet.rel = 'stylesheet';
 	stylesheet.href = new URL(relativePath, import.meta.url).href;

@@ -11,7 +11,7 @@ import { DisposableStore, toDisposable } from '../../../../../base/common/lifecy
  * root so tests can read computed styles. Transitions are off because a computed
  * value right after a state change would report the transition start.
  */
-export async function mountSourcesStyleRoot(store: DisposableStore, stylesheets: readonly string[], variables: Readonly<Record<string, string>>): Promise<HTMLElement> {
+export async function mountSourcesStyleRoot(store: Pick<DisposableStore, 'add'>, stylesheets: readonly string[], variables: Readonly<Record<string, string>>): Promise<HTMLElement> {
 	const sheets: CSSStyleSheet[] = [];
 	for (const name of stylesheets) {
 		const link = document.createElement('link');
