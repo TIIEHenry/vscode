@@ -3,7 +3,7 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-11-05
+updated: 2026-11-07
 summary: "官方单测与五域自定义入口；Sources pending严格读取根汇总，私有短TMP避免Unix socket路径过长；焦点与真实产品窗口分别验收。"
 ---
 
@@ -53,6 +53,8 @@ Copilot Instructions 要求：尽量加针对性选择器（如 `--grep`）。
 Node runner的文件选择以[`test/unit/node/index.js`](../../../test/unit/node/index.js)为准：`--run`可重复指定文件，`--runGlob`按out根下的glob选文件。当前runner未把`--grep`传给Mocha，附带该参数仍会运行选中文件的完整套件；报告聚焦数量前须核实际JUnit或输出计数。需要验证某文件内补修时直接运行该文件，并保留官方`Errors`元校验，不为缩小数量临时替换Mocha执行流程。
 
 Electron runner的[`renderer.html`](../../../test/unit/electron/renderer.html)和[`renderer.js`](../../../test/unit/electron/renderer.js)会忽略name为`Canceled`的未处理异常。因此“取消已消费”的回归须直接await动作正常resolve，并核请求次数、正文/按钮/反馈等业务状态；DOM的void动作增加局部无泄漏观察或等效的明确收尾证据。`Errors`元校验通过不能单独证明取消已被调用方处理，也不应为此修改全局runner。
+
+fire-and-forget 的 Promise 在产品代码里统一单链 `void p.catch(onUnexpectedError)`，不写 `.catch(onUnexpectedError).catch(onUnexpectedError)`。测试用 `setUnexpectedErrorHandler` 换上的 handler 只收集、不得抛；无泄漏用例断言 handler 收到 1 次且没有 unhandled rejection。约定登记见 [D1400](../../../dev/progress/deferred-gaps.md)。
 
 跑单测前若只要新鲜输出文件，用 `npm run transpile-client`，不要先 `compile` 再仪式性 typecheck。
 
