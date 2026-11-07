@@ -54,6 +54,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -124,6 +125,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -180,6 +182,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -230,6 +233,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -291,6 +295,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -327,6 +332,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -376,6 +382,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => '',
@@ -429,6 +436,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: before,
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: {
 				fire: (e: vscode.AuthenticationProviderAuthenticationSessionsChangeEvent) => {
 					added.push(...(e.added ?? []));
@@ -484,6 +492,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: before,
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
@@ -533,6 +542,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: staleRead,
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: { fire: () => { } },
 			_accountLinks: new AccountLinks(new TestMemento(), 'github.auth.microsoftAccountLinks', new Log(AuthProviderType.github)),
 			_keychain: {
@@ -576,6 +586,7 @@ suite('GitHub session persistence', () => {
 			_persistedSessionsPromise: Promise.resolve([sessionToRemove]),
 			_accountsSeen: new Set<string>(),
 			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
 			_sessionChangeEmitter: {
 				fire: (e: vscode.AuthenticationProviderAuthenticationSessionsChangeEvent) => {
 					removed.push(...(e.removed ?? []).map(session => session.id));
@@ -612,6 +623,88 @@ suite('GitHub session persistence', () => {
 			removed: ['sign-out-me'],
 			ids: []
 		});
+	});
+
+	/**
+	 * A provider whose first keychain write stays pending until released, so a second login or
+	 * logout in the same window gets to run while the first one is still storing.
+	 */
+	function providerWithSlowFirstWrite(persisted: vscode.AuthenticationSession[], logins: string[]) {
+		let releaseFirstWrite!: () => void;
+		const firstWriteReleased = new Promise<void>(resolve => releaseFirstWrite = resolve);
+		let firstWriteStarted!: () => void;
+		const firstWriteStartedPromise = new Promise<void>(resolve => firstWriteStarted = resolve);
+		const writes: string[] = [];
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve(persisted),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionWrites: Promise.resolve(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_accountLinks: new AccountLinks(new TestMemento(), 'github.auth.microsoftAccountLinks', new Log(AuthProviderType.github)),
+			_keychain: {
+				getToken: async () => '',
+				deleteToken: async () => { },
+				setToken: async (value: string) => {
+					writes.push(value);
+					if (writes.length === 1) {
+						firstWriteStarted();
+						await firstWriteReleased;
+					}
+				}
+			},
+			_githubServer: {
+				login: async () => logins.shift()!,
+				getUserInfo: async (token: string) => ({ id: `account-for-${token}`, accountName: token, avatarUrl: undefined }),
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+		return {
+			provider,
+			firstWriteStarted: firstWriteStartedPromise,
+			releaseFirstWrite,
+			lastWrite: () => (JSON.parse(writes[writes.length - 1]) as vscode.AuthenticationSession[]).map(session => session.accessToken).sort()
+		};
+	}
+
+	test('two logins in the same window both end up in the keychain', async () => {
+		const { provider, firstWriteStarted, releaseFirstWrite, lastWrite } = providerWithSlowFirstWrite([], ['token-a', 'token-b']);
+
+		const first = provider.createSession(['repo']);
+		await firstWriteStarted;
+		const second = provider.createSession(['repo']);
+		await new Promise(resolve => setTimeout(resolve, 10));
+		releaseFirstWrite();
+		await Promise.all([first, second]);
+
+		assert.deepStrictEqual(lastWrite(), ['token-a', 'token-b']);
+		assert.deepStrictEqual((await provider._persistedSessionsPromise).map(session => session.accessToken).sort(), ['token-a', 'token-b']);
+	});
+
+	test('a logout in the same window does not drop a login that is still being stored', async () => {
+		const signedIn: vscode.AuthenticationSession = {
+			id: 'signed-in',
+			accessToken: 'token-old',
+			account: { id: 'account-old', label: 'hubot' },
+			scopes: ['repo']
+		};
+		const { provider, firstWriteStarted, releaseFirstWrite, lastWrite } = providerWithSlowFirstWrite([signedIn], ['token-a']);
+
+		const login = provider.createSession(['repo']);
+		await firstWriteStarted;
+		const logout = provider.removeSession('signed-in');
+		await new Promise(resolve => setTimeout(resolve, 10));
+		releaseFirstWrite();
+		await Promise.all([login, logout]);
+
+		assert.deepStrictEqual(lastWrite(), ['token-a']);
+		assert.deepStrictEqual((await provider._persistedSessionsPromise).map(session => session.accessToken), ['token-a']);
 	});
 });
 

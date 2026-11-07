@@ -198,6 +198,10 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 	 * removed the only way in to. See {@link microsoftAccountStillSignedIn}.
 	 */
 	private _microsoftGeneration = 0;
+	/**
+	 * The tail of the logins and logouts writing the persisted sessions, see {@link queueSessionWrite}.
+	 */
+	private _sessionWrites: Promise<unknown> = Promise.resolve();
 
 	constructor(
 		private readonly context: vscode.ExtensionContext,
@@ -752,6 +756,19 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 		}
 	}
 
+	/**
+	 * Runs a read-modify-write of the persisted sessions after the ones already queued in this window.
+	 *
+	 * {@link _persistedSessionsPromise} only moves once the keychain accepts a write, so two of these
+	 * running side by side would both copy the list from before either of them, and whichever stored
+	 * last would drop the other's login or bring back its logout.
+	 */
+	private queueSessionWrite<T>(write: () => Promise<T>): Promise<T> {
+		const result = this._sessionWrites.then(write);
+		this._sessionWrites = result.catch(() => undefined);
+		return result;
+	}
+
 	public async createSession(scopes: string[], options?: GitHubAuthenticationProviderOptions): Promise<vscode.AuthenticationSession> {
 		try {
 			// For GitHub scope list, order doesn't matter so we use a sorted scope to determine
@@ -790,15 +807,18 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 			const session = await this.tokenToSession(token, scopes);
 			this.afterSessionLoad(session);
 
-			const sessions = await this.copyPersistedSessionsForWrite();
-			const sessionIndex = sessions.findIndex(s => s.account.id === session.account.id && arrayEquals([...s.scopes].sort(), sortedScopes));
-			const removed = new Array<vscode.AuthenticationSession>();
-			if (sessionIndex > -1) {
-				removed.push(...sessions.splice(sessionIndex, 1, session));
-			} else {
-				sessions.push(session);
-			}
-			await this.storeSessions(sessions);
+			const removed = await this.queueSessionWrite(async () => {
+				const sessions = await this.copyPersistedSessionsForWrite();
+				const sessionIndex = sessions.findIndex(s => s.account.id === session.account.id && arrayEquals([...s.scopes].sort(), sortedScopes));
+				const replaced = new Array<vscode.AuthenticationSession>();
+				if (sessionIndex > -1) {
+					replaced.push(...sessions.splice(sessionIndex, 1, session));
+				} else {
+					sessions.push(session);
+				}
+				await this.storeSessions(sessions);
+				return replaced;
+			});
 
 			this._sessionChangeEmitter.fire({ added: [session], removed, changed: [] });
 
@@ -936,11 +956,13 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 				return;
 			}
 
-			const sessions = await this.copyPersistedSessionsForWrite();
-			const sessionIndex = sessions.findIndex(session => session.id === id);
-			if (sessionIndex > -1) {
-				const session = sessions[sessionIndex];
-				sessions.splice(sessionIndex, 1);
+			const session = await this.queueSessionWrite(async () => {
+				const sessions = await this.copyPersistedSessionsForWrite();
+				const sessionIndex = sessions.findIndex(session => session.id === id);
+				if (sessionIndex === -1) {
+					return undefined;
+				}
+				const [removedSession] = sessions.splice(sessionIndex, 1);
 
 				try {
 					await this.storeSessions(sessions);
@@ -950,6 +972,9 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 					this._logger.error(`Error storing sessions: ${e}`);
 					this._persistedSessionsPromise = Promise.resolve(sessions);
 				}
+				return removedSession;
+			});
+			if (session) {
 				await this._githubServer.logout(session);
 				await this.forgetAccountLinkIfSignedOut(session.account);
 
