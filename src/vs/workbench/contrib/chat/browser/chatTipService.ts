@@ -863,7 +863,7 @@ export class ChatTipService extends Disposable implements IChatTipService {
 			if (typeof value === 'string' && value.length > 0) {
 				this._experimentalTipMessages.set(ChatTipExperiment.OpenAgentsWindowTip, value);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private _createTip(tipDef: ITipDefinition): IChatTip {

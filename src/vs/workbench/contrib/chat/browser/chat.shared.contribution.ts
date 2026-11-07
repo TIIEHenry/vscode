@@ -2827,7 +2827,7 @@ class ChatAgentSettingContribution extends Disposable implements IWorkbenchContr
 				};
 				configurationRegistry.updateConfigurations({ remove: lastNode ? [lastNode] : [], add: [node] });
 				lastNode = node;
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		};
 		this._register(Event.runAndSubscribe(Event.debounce(this.entitlementService.onDidChangeEntitlement, () => { }, 1000), () => registerMaxRequestsSetting()));
 	}
@@ -2840,7 +2840,7 @@ class ChatAgentSettingContribution extends Disposable implements IWorkbenchContr
 			} else {
 				this.newChatButtonExperimentIcon.reset();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private registerDefaultModeSetting(): void {
@@ -2858,7 +2858,7 @@ class ChatAgentSettingContribution extends Disposable implements IWorkbenchContr
 				}
 			};
 			configurationRegistry.updateConfigurations({ add: [node], remove: [] });
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 }
 
@@ -3014,10 +3014,10 @@ class HookSchemaAssociationContribution extends Disposable implements IWorkbench
 		@IPathService private readonly _pathService: IPathService,
 	) {
 		super();
-		this._updateAssociations().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._updateAssociations().catch(onUnexpectedError);
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(PromptsConfig.HOOKS_LOCATION_KEY)) {
-				this._updateAssociations().catch(onUnexpectedError).catch(onUnexpectedError);
+				this._updateAssociations().catch(onUnexpectedError);
 			}
 		}));
 	}

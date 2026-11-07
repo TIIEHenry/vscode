@@ -18,11 +18,8 @@ const CLIPBOARD_REL = 'src/vs/platform/clipboard/common/clipboardService.ts';
 const DIALOGS_REL = 'src/vs/platform/dialogs/common/dialogs.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const HOST_REL = 'src/vs/workbench/services/host/browser/host.ts';
-const OUTLINE_IFACE_REL = 'src/vs/workbench/services/outline/browser/outline.ts';
 const OUTLINE_PANE_REL = 'src/vs/workbench/contrib/outline/browser/outlinePane.ts';
 const OUTLINE_ACTIONS_REL = 'src/vs/workbench/contrib/outline/browser/outlineActions.ts';
-const OUTLINE_CONTRIB_REL = 'src/vs/workbench/contrib/outline/browser/outline.contribution.ts';
-const OUTLINE_STATE_REL = 'src/vs/workbench/contrib/outline/browser/outlineViewState.ts';
 const MARKDOWN_SETTING_REL = 'src/vs/workbench/contrib/markdown/browser/markdownSettingRenderer.ts';
 const UPDATE_REL = 'src/vs/workbench/contrib/update/browser/update.ts';
 const UPDATE_TITLE_REL = 'src/vs/workbench/contrib/update/browser/updateTitleBarEntry.ts';
@@ -115,29 +112,6 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('outline leftover remaining has fewer than four legal sites so this knife moved to update leftover remaining', () => {
-		const pane = fs.readFileSync(resolveSource(OUTLINE_PANE_REL), 'utf8');
-		const actions = fs.readFileSync(resolveSource(OUTLINE_ACTIONS_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(OUTLINE_CONTRIB_REL), 'utf8');
-		const state = fs.readFileSync(resolveSource(OUTLINE_STATE_REL), 'utf8');
-		assert.ok(pane.includes(`this._editorControlChangePromise.then(() => {
-			super.focus();
-			this._tree?.domFocus();
-		})${doubleCatch};`));
-		assert.ok(pane.includes('this._editorControlChangePromise = this._handleEditorControlChanged(pane);'));
-		assert.ok(!pane.includes(`this._editorControlChangePromise = this._handleEditorControlChanged(pane)${doubleCatch}`));
-		assert.ok(actions.includes('runInView(_accessor: ServicesAccessor, view: IOutlinePane) {'));
-		assert.ok(!actions.includes(doubleCatch));
-		assert.ok(!contrib.includes(doubleCatch));
-		assert.ok(state.includes('persist(storageService: IStorageService): void {'));
-		assert.ok(state.includes('restore(storageService: IStorageService): void {'));
-		assert.ok(!state.includes(doubleCatch));
-		const outlineLegal = countWrapped(pane, outlineOpenCall);
-		assert.ok(outlineLegal < 4, `expected outline legal leftover <4, got ${outlineLegal}`);
-		assert.strictEqual(outlineLegal, 1);
-		assert.strictEqual(countDoubleChains(pane), 2);
-	});
-
 	test('this knife covers fifteen leftover Promise double-chain sites after outline leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
@@ -156,22 +130,6 @@ suite('outline leftover remaining overflowed to update leftover Promise fire-and
 		assert.strictEqual(countDoubleChains(seen.get(UPDATE_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(UPDATE_NOTES_REL) ?? ''), 0);
 		assert.strictEqual(countDoubleChains(seen.get(UPDATE_TOOLTIP_REL) ?? ''), 0);
-	});
-
-	test('outline leftover onDidOpen PromiseLike reveal is Promise double-chain; assigned handleEditor / already-double focus stay skipped', () => {
-		const pane = fs.readFileSync(resolveSource(OUTLINE_PANE_REL), 'utf8');
-		const iface = fs.readFileSync(resolveSource(OUTLINE_IFACE_REL), 'utf8');
-		assertPromiseSignature(iface, 'reveal(entry: E, options: IEditorOptions, sideBySide: boolean, select: boolean): Promise<void> | void;');
-		assertPromiseSignature(iface, 'createOutline(editor: IEditorPane, target: OutlineTarget, token: CancellationToken): Promise<IOutline<any> | undefined>;');
-		assert.ok(pane.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(pane, outlineOpenCall);
-		assert.ok(!pane.includes('this._editorControlDisposables.add(tree.onDidOpen(async e => {'));
-		assert.ok(pane.includes(`this._editorControlChangePromise.then(() => {
-			super.focus();
-			this._tree?.domFocus();
-		})${doubleCatch};`));
-		assert.ok(pane.includes('this._editorControlChangePromise = this._handleEditorControlChanged(pane);'));
-		assert.ok(!pane.includes(`this._editorControlChangePromise = this._handleEditorControlChanged(pane)${doubleCatch}`));
 	});
 
 	test('update leftover onStateChange / tryShowOnStartup voids are Promise double-chain; title-bar entry onStateChange stays sync void', () => {

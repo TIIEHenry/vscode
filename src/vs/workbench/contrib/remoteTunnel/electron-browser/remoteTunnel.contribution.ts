@@ -131,9 +131,9 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 
 		this.registerCommands();
 
-		this.initialize().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.initialize().catch(onUnexpectedError);
 
-		this.recommendRemoteExtensionIfNeeded().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.recommendRemoteExtensionIfNeeded().catch(onUnexpectedError);
 	}
 
 	private handleTunnelStatusUpdate(status: TunnelStatus) {
@@ -294,7 +294,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 				doInitialStateDiscovery
 			);
 		} else {
-			doInitialStateDiscovery(undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+			doInitialStateDiscovery(undefined).catch(onUnexpectedError);
 		}
 	}
 
@@ -372,7 +372,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 									s(undefined);
 								}
 							}
-						}).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).catch(onUnexpectedError);
 					});
 				}
 			);
@@ -813,7 +813,7 @@ export class RemoteTunnelWorkbenchContribution extends Disposable implements IWo
 			quickPick.items = items;
 			disposables.add(quickPick.onDidAccept(() => {
 				if (quickPick.selectedItems[0] && quickPick.selectedItems[0].id) {
-					this.commandService.executeCommand(quickPick.selectedItems[0].id).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.commandService.executeCommand(quickPick.selectedItems[0].id).catch(onUnexpectedError);
 				}
 				quickPick.hide();
 			}));

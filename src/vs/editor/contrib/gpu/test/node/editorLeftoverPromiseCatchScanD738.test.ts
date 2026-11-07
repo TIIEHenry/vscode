@@ -12,9 +12,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const WIDGET_REL = 'src/vs/editor/browser/widget/codeEditor/codeEditorWidget.ts';
 const SUGGEST_REL = 'src/vs/editor/contrib/suggest/browser/suggestController.ts';
-const CODELENS_REL = 'src/vs/editor/contrib/codelens/browser/codelensController.ts';
 const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
-const NOTIFY_REL = 'src/vs/platform/notification/common/notification.ts';
 const GPU_REL = 'src/vs/editor/contrib/gpu/browser/gpuActions.ts';
 const MARKER_REL = 'src/vs/editor/contrib/hover/browser/markerHoverParticipant.ts';
 const LINKS_REL = 'src/vs/editor/contrib/links/browser/links.ts';
@@ -44,20 +42,6 @@ suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers four leftover Promise sites', () => {
-		const widget = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
-		const suggest = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
-		const codelens = fs.readFileSync(resolveSource(CODELENS_REL), 'utf8');
-		const compositionEnd = (widget.match(/executeCommand\(editorCommon\.Handler\.CompositionEnd, \{\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		const cut = (widget.match(/executeCommand\(editorCommon\.Handler\.Cut, \{\}\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		const fallback = (suggest.match(/executeCommand\(arg\.fallback\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		const notifyThenSingle = (codelens.match(/\.catch\(err => this\._notificationService\.error\(err\)\)\.catch\(onUnexpectedError\);/g) ?? []).length;
-		assert.strictEqual(compositionEnd + cut + fallback + notifyThenSingle, 4);
-		assert.ok(!widget.includes(doubleCatch));
-		assert.ok(!codelens.includes(doubleCatch));
-		assert.ok(!suggest.includes(doubleCatch));
-	});
-
 	test('codeEditorWidget leftover CompositionEnd / Cut executeCommand FOFs are Promise single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WIDGET_REL), 'utf8');
 		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
@@ -85,22 +69,6 @@ suite('editor leftover Promise fire-and-forget catch scan (D738)', () => {
 		assert.ok(!source.includes(doubleCatch));
 		assert.ok(source.includes('Promise.all(tasks).finally(() => {'));
 		assert.ok(!/Promise\.all\(tasks\)\.finally\(\(\) => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)/.test(source));
-	});
-
-	test('codelens leftover executeCommand keeps notification then is Promise single-catch', () => {
-		const source = fs.readFileSync(resolveSource(CODELENS_REL), 'utf8');
-		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
-		const notify = fs.readFileSync(resolveSource(NOTIFY_REL), 'utf8');
-		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
-		assert.ok(notify.includes('error(message: NotificationMessage | NotificationMessage[]): void;'));
-		assert.ok(source.includes("import { onUnexpectedError, onUnexpectedExternalError } from '../../../../base/common/errors.js';"));
-		const call = 'this._commandService.executeCommand(command.id, ...(command.arguments || []))';
-		const notifyCatch = '.catch(err => this._notificationService.error(err))';
-		assert.ok(source.includes(`${call}${notifyCatch}.catch(onUnexpectedError);`));
-		assert.ok(!source.includes(`${call}${notifyCatch}${doubleCatch};`));
-		assert.ok(!source.includes(`${call};`));
-		assert.ok(!source.includes(doubleCatch));
-		assert.ok(source.includes('await commandService.executeCommand(command.id, ...(command.arguments || []));'));
 	});
 
 	test('opener / Resolve / two-arg then / Action2.run / assigned Action.run / gpu sync void / Promise.all().finally / Connect / Watch / Pty stay skipped', () => {

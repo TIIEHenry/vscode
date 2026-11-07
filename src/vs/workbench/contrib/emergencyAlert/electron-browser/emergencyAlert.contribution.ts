@@ -56,10 +56,10 @@ export class EmergencyAlert extends Disposable implements IWorkbenchContribution
 			return; // no emergency alert configured
 		}
 
-		this.fetchAlerts(emergencyAlertUrl).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.fetchAlerts(emergencyAlertUrl).catch(onUnexpectedError);
 
 		const pollingTimer = this._register(new IntervalTimer());
-		pollingTimer.cancelAndSet(() => void this.fetchAlerts(emergencyAlertUrl).catch(onUnexpectedError).catch(onUnexpectedError), POLLING_INTERVAL, mainWindow);
+		pollingTimer.cancelAndSet(() => void this.fetchAlerts(emergencyAlertUrl).catch(onUnexpectedError), POLLING_INTERVAL, mainWindow);
 	}
 
 	private async fetchAlerts(url: string): Promise<void> {

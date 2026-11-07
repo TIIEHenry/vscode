@@ -77,21 +77,6 @@ suite('customEditor leftover remaining overflowed to webviewPanel leftover Promi
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('customEditor leftover remaining has fewer than four legal sites so this knife moved to webviewPanel leftover', () => {
-		const editors = fs.readFileSync(resolveSource(EDITORS_REL), 'utf8');
-		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
-		const customLegal =
-			countIncludes(editors, `${updateCall}${doubleCatch}`) +
-			countIncludes(editors, `${movedCall}${doubleCatch}`) +
-			countIncludes(editors, `${replaceCall}${doubleCatch}`);
-		assert.ok(customLegal < 4, `expected customEditor legal leftover <4, got ${customLegal}`);
-		assert.strictEqual(customLegal, 3);
-		assert.ok(model.includes('return entry.model.then(model => {'));
-		assert.ok(!model.includes(`return entry.model.then(model => {${doubleCatch}`));
-		assert.ok(model.includes('entry.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(model.includes('value.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);'));
-	});
-
 	test('this knife covers four leftover Promise double-chain sites after customEditor leftover remaining overflow', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
@@ -105,22 +90,6 @@ suite('customEditor leftover remaining overflowed to webviewPanel leftover Promi
 		}
 		assert.strictEqual(sites, 4);
 		assert.ok(sites >= 4);
-	});
-
-	test('leftover updateCustomDiffEditors / handleMovedFile / replaceEditors voids are Promise double-chain', () => {
-		const editors = fs.readFileSync(resolveSource(EDITORS_REL), 'utf8');
-		const editorSvc = fs.readFileSync(resolveSource(EDITOR_SVC_REL), 'utf8');
-		assertPromiseSignature(editors, 'private async updateCustomDiffEditorsForDiffConfigurationChange(e: ITextResourceConfigurationChangeEvent): Promise<void> {');
-		assertPromiseSignature(editors, 'private async handleMovedFileInOpenedFileEditors(oldResource: URI, newResource: URI): Promise<void> {');
-		assertPromiseSignature(editorSvc, 'replaceEditors(replacements: IUntypedEditorReplacement[], group: IEditorGroup | GroupIdentifier): Promise<void>;');
-		assert.ok(editors.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(editors, updateCall);
-		assertWrapped(editors, movedCall);
-		assertWrapped(editors, replaceCall);
-		assert.ok(!editors.includes('void this.updateCustomDiffEditorsForDiffConfigurationChange(e);'));
-		assert.ok(!editors.includes('this.handleMovedFileInOpenedFileEditors(e.resource, this.uriIdentityService.asCanonicalUri(e.target.resource));'));
-		assert.ok(editors.includes('await this.editorService.replaceEditors(replacements, group);'));
-		assert.ok(!editors.includes(`await this.editorService.replaceEditors(replacements, group)${doubleCatch}`));
 	});
 
 	test('webviewPanel leftover closeEditor is Promise double-chain', () => {

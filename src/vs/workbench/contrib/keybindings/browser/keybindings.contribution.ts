@@ -33,7 +33,7 @@ class ToggleKeybindingsLogAction extends Action2 {
 		const logging = accessor.get(IKeybindingService).toggleLogging();
 		if (logging) {
 			const commandService = accessor.get(ICommandService);
-			commandService.executeCommand(showWindowLogActionId).catch(onUnexpectedError).catch(onUnexpectedError);
+			commandService.executeCommand(showWindowLogActionId).catch(onUnexpectedError);
 		}
 
 		if (ToggleKeybindingsLogAction.disposable) {

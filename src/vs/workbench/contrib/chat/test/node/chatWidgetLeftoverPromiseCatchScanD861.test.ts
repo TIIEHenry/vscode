@@ -59,30 +59,14 @@ function countIncludes(source: string, needle: string): number {
 	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
 }
 
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-const followupsCall = 'this.renderFollowups()';
-const acceptMessageCall = 'this.acceptInput(item.message)';
-const acceptMsgCall = 'this.acceptInput(msg)';
-const renderEditingCall = 'this.renderChatEditingSessionState()';
 const leftoverUpdateCall = 'this.update();';
 const leftoverOpenSessionCall = 'list.onDidOpen(e => this.openAgentSession(e))';
 const leftoverContextMenuCall = 'list.onContextMenu(e => this.showContextMenu(e))';
-const leftoverHandoffAcceptCall = "this.acceptInput().catch(e => this.logService.error(`[Handoff] Failed to submit delegated handoff to '@${agentId}'`, e));";
-const leftoverHandoffSendCall = "this.acceptInput().catch(e => this.logService.error(`[Handoff] Failed to submit handoff to '${handoff.agent}'`, e));";
 const leftoverEnterReviewCall = '() => void this.enterReviewMode()';
 const leftoverSubmitFeedbackCall = 'submitFeedback: () => this.submitFeedback(),';
 const returnedSubmitActionCall = 'submitAction: action => this.submitApproval(action),';
@@ -123,19 +107,10 @@ const leftoverSelectStepLooseCall = '\t\t\teditorPane.selectStepLoose(stepID);\n
 const assignedInProgressScroll = 'this.inProgressScroll = this.inProgressScroll.then(async () => {';
 const updateDiffSeqCall = 'this._updateDiffInfoSeq()';
 const initializeCall = 'this.initialize()';
-const cancelEditingCall = 'void this.cancelEditing()';
-const requestModelCall = 'void this.input.requestModelByIdentifier(currentElement.modelId)';
 const promiseLikeCreatedCall = 'void Promise.resolve(sent.data.responseCreatedPromise).then((responseModel) => {';
 const promiseLikeCompleteCall = 'void Promise.resolve(sent.data.responseCompletePromise).then(() => {';
 const loadMoreCall = 'this._loadMore()';
 const updateBadgeCall = 'this.updateActivityBadge()';
-
-const d861Calls: Array<[string, string, number]> = [
-	[CHAT_WIDGET_REL, followupsCall, 2],
-	[CHAT_WIDGET_REL, acceptMessageCall, 1],
-	[CHAT_WIDGET_REL, acceptMsgCall, 1],
-	[CHAT_WIDGET_REL, renderEditingCall, 3],
-];
 
 const d856AlreadyDouble: Array<[string, number]> = [
 	[clearAllCall, 1],
@@ -154,69 +129,6 @@ suite('leftover remaining unused chatWidget leftover Promise fire-and-forget cat
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('leftover remaining unused chatWidget leftover async this.foo() FOF still had four or more legal unused leftover sites so this knife stayed', () => {
-		const source = fs.readFileSync(resolveSource(CHAT_WIDGET_REL), 'utf8');
-		assertPromiseSignature(source, 'private async renderFollowups(): Promise<void> {');
-		assertPromiseSignature(source, 'async acceptInput(query?: string, options?: IChatAcceptInputOptions): Promise<IChatResponseModel | undefined> {');
-		assertPromiseSignature(source, 'private async renderChatEditingSessionState() {');
-		let sites = 0;
-		for (const [, call, count] of d861Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
-			sites += wrapped;
-		}
-		assert.ok(sites >= 4, `expected leftover remaining unused chatWidget legal leftover >=4, got ${sites}`);
-		assert.ok(sites <= 8);
-		assert.ok(!source.includes('D861'));
-	});
-
-	test('this knife covers seven leftover Promise double-chain sites after leftover remaining unused stayed on chatWidget', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d861Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 7);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(CHAT_WIDGET_REL) ?? ''), 12);
-	});
-
-	test('chatWidget leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
-		const source = fs.readFileSync(resolveSource(CHAT_WIDGET_REL), 'utf8');
-		assertPromiseSignature(source, 'private async renderFollowups(): Promise<void> {');
-		assertPromiseSignature(source, 'async acceptInput(query?: string, options?: IChatAcceptInputOptions): Promise<IChatResponseModel | undefined> {');
-		assertPromiseSignature(source, 'private async renderChatEditingSessionState() {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(source, followupsCall);
-		assertWrapped(source, acceptMessageCall);
-		assertWrapped(source, acceptMsgCall);
-		assertWrapped(source, renderEditingCall);
-		assert.strictEqual(countIncludes(source, `${followupsCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(source, `${acceptMessageCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${acceptMsgCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(source, `${renderEditingCall}${doubleCatch}`), 3);
-		assert.ok(!source.includes('\t\t\tthis.renderFollowups();\n'));
-		assert.ok(!source.includes('\t\t\tthis.acceptInput(item.message);\n'));
-		assert.ok(!source.includes('\t\t\tthis.acceptInput(msg);\n'));
-		assert.ok(!source.includes('\t\t\tthis.renderChatEditingSessionState();\n'));
-		assert.ok(!source.includes('\t\t\t\tthis.renderChatEditingSessionState();\n'));
-		assert.ok(source.includes(leftoverHandoffAcceptCall));
-		assert.ok(source.includes(leftoverHandoffSendCall));
-		assert.ok(!source.includes(`this.acceptInput()${doubleCatch}`));
-		assert.ok(source.includes(`${cancelEditingCall}${doubleCatch}`));
-		assert.ok(source.includes(`${requestModelCall}${doubleCatch}`));
-		assert.ok(source.includes(`${promiseLikeCreatedCall}`));
-		assert.ok(source.includes(`${promiseLikeCompleteCall}`));
-		assert.ok(source.includes(`${promiseLikeCreatedCall}`) && source.includes(doubleCatch));
-		assert.strictEqual(countIncludes(source, `${cancelEditingCall}${doubleCatch}`), 2);
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

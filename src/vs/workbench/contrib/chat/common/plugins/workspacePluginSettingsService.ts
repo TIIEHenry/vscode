@@ -144,7 +144,7 @@ class WorkspaceSettingsReader extends Disposable {
 
 			// Coalesce rapid file-change events into a single read.
 			const scheduler = new RunOnceScheduler(() => {
-				void this._readSettings(dirs, logPrefix, fileService).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._readSettings(dirs, logPrefix, fileService).catch(onUnexpectedError);
 			}, 100);
 			watcherStore.add(scheduler);
 
@@ -159,7 +159,7 @@ class WorkspaceSettingsReader extends Disposable {
 			}
 
 			// Perform initial read immediately.
-			void this._readSettings(dirs, logPrefix, fileService).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._readSettings(dirs, logPrefix, fileService).catch(onUnexpectedError);
 		}));
 	}
 

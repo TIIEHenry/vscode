@@ -48,7 +48,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 				object: model,
 				dispose: createSingleCallFunction(() => {
 					if (--entry.counter <= 0) {
-						entry.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+						entry.model.then(x => x.dispose()).catch(onUnexpectedError);
 						this._references.delete(key);
 					}
 				}),
@@ -70,7 +70,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 	public disposeAllModelsForView(viewType: string): void {
 		for (const [key, value] of this._references) {
 			if (value.viewType === viewType) {
-				value.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+				value.model.then(x => x.dispose()).catch(onUnexpectedError);
 				this._references.delete(key);
 			}
 		}
@@ -80,7 +80,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 		const keyStart = `${resource.toString()}@@@`;
 		for (const [key, value] of this._references) {
 			if (key.startsWith(keyStart)) {
-				value.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);
+				value.model.then(x => x.dispose()).catch(onUnexpectedError);
 				this._references.delete(key);
 			}
 		}

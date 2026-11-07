@@ -305,7 +305,7 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
 
 			run(accessor: ServicesAccessor, ...args: unknown[]) {
 				const outputChannel = accessor.get(IOutputService);
-				void outputChannel.showChannel(editSessionsLogId).catch(onUnexpectedError).catch(onUnexpectedError);
+				void outputChannel.showChannel(editSessionsLogId).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -1011,7 +1011,7 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
 				const selection = quickPick.activeItems[0].command;
 
 				if (selection === installAdditionalContinueOnOptionsCommand.id) {
-					void this.commandService.executeCommand(installAdditionalContinueOnOptionsCommand.id).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.commandService.executeCommand(installAdditionalContinueOnOptionsCommand.id).catch(onUnexpectedError);
 				} else {
 					resolve(selection);
 					quickPick.hide();

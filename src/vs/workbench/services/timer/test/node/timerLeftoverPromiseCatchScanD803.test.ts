@@ -12,13 +12,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
-const WORKSPACE_REL = 'src/vs/platform/workspace/common/workspace.ts';
 const EXTENSIONS_REL = 'src/vs/workbench/services/extensions/common/extensions.ts';
-const HOST_REL = 'src/vs/workbench/services/host/browser/host.ts';
 const LAYOUT_REL = 'src/vs/workbench/services/layout/browser/layoutService.ts';
 const LIFECYCLE_REL = 'src/vs/workbench/services/lifecycle/common/lifecycle.ts';
 const PATH_REL = 'src/vs/workbench/services/path/common/pathService.ts';
-const ASSIGN_REL = 'src/vs/workbench/services/assignment/common/assignmentService.ts';
 const BASE_RESOLVER_REL = 'src/vs/workbench/services/configurationResolver/browser/baseConfigurationResolverService.ts';
 const BROWSER_RESOLVER_REL = 'src/vs/workbench/services/configurationResolver/browser/configurationResolverService.ts';
 const ELECTRON_RESOLVER_REL = 'src/vs/workbench/services/configurationResolver/electron-browser/configurationResolverService.ts';
@@ -59,10 +56,6 @@ function resolveSource(rel: string): string {
 const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function countIncludes(source: string, needle: string): number {
-	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
 function countDoubleChains(source: string): number {
 	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
@@ -70,12 +63,6 @@ function countDoubleChains(source: string): number {
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
-}
-
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
 function assertThenWrapped(source: string, thenStart: string, isSingleCatch = false): void {
@@ -102,35 +89,6 @@ const timerAllThen = `]).then(() => {
 			this._reportStartupTimes(metrics);
 			this._barrier.open();
 		})`;
-const doPumpCall = 'this._doPump()';
-const enqueueCall = 'this._enqueue(scenario)';
-const workspaceThen = 'this.contextService.getCompleteWorkspace()\n\t\t\t.then(workspace => {';
-const doConfirmCall = `this.doConfirm(
-				isNative ?
-					localize('relaunchSettingMessage', "A setting has changed that requires a restart to take effect.") :
-					localize('relaunchSettingMessageWeb', "A setting has changed that requires a reload to take effect."),
-				isNative ?
-					localize('relaunchSettingDetail', "Press the restart button to restart {0} and enable the setting.", this.productService.nameLong) :
-					localize('relaunchSettingDetailWeb', "Press the reload button to reload {0} and enable the setting.", this.productService.nameLong),
-				isNative ?
-					localize({ key: 'restart', comment: ['&& denotes a mnemonic'] }, "&&Restart") :
-					localize({ key: 'restartWeb', comment: ['&& denotes a mnemonic'] }, "&&Reload"),
-				() => this.hostService.restart().catch(onUnexpectedError).catch(onUnexpectedError)
-			)`;
-const reloadCall = 'hostService.reload()';
-const startHostsCall = 'extensionService.startExtensionHosts()';
-const restartCall = 'this.hostService.restart()';
-
-const d803Calls: Array<[string, string, number, 'call' | 'then']> = [
-	[TIMER_REL, timerAllThen, 1, 'then'],
-	[ONBOARDING_REL, doPumpCall, 1, 'call'],
-	[ONBOARDING_REL, enqueueCall, 1, 'call'],
-	[RELAUNCHER_REL, workspaceThen, 1, 'then'],
-	[RELAUNCHER_REL, doConfirmCall, 1, 'call'],
-	[RELAUNCHER_REL, reloadCall, 1, 'call'],
-	[RELAUNCHER_REL, startHostsCall, 1, 'call'],
-	[RELAUNCHER_REL, restartCall, 1, 'call'],
-];
 
 suite('configurationResolver leftover remaining overflowed to timer/onboarding/relauncher leftover Promise fire-and-forget catch scan (D803)', () => {
 
@@ -163,32 +121,6 @@ suite('configurationResolver leftover remaining overflowed to timer/onboarding/r
 		assert.ok(resolverLegal < 4, `expected configurationResolver legal leftover <4, got ${resolverLegal}`);
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after configurationResolver leftover remaining overflow', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count, kind] of d803Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const isSingle = rel === TIMER_REL;
-			if (kind === 'then') {
-				assertThenWrapped(source, call, isSingle);
-				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
-			} else {
-				const expected = isSingle ? singleCatch : doubleCatch;
-				const wrapped = countIncludes(source, `${call}${expected}`);
-				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-				assertWrapped(source, call);
-			}
-			sites += count;
-		}
-		assert.strictEqual(sites, 8);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(TIMER_REL)!), 0);
-		assert.strictEqual(countDoubleChains(seen.get(ONBOARDING_REL)!), 2);
-		assert.strictEqual(countDoubleChains(seen.get(RELAUNCHER_REL)!), 5);
-	});
-
 	test('timer leftover Promise.all then is Promise single-chain; assigned perfBaseline stays skipped', () => {
 		const timer = fs.readFileSync(resolveSource(TIMER_REL), 'utf8');
 		const electron = fs.readFileSync(resolveSource(TIMER_ELECTRON_REL), 'utf8');
@@ -209,46 +141,6 @@ suite('configurationResolver leftover remaining overflowed to timer/onboarding/r
 		assert.ok(timer.includes('.then(() => this._lifecycleService.when(LifecyclePhase.Eventually))'));
 		assert.ok(!timer.includes(`this._lifecycleService.when(LifecyclePhase.Eventually))${doubleCatch}`));
 		assert.ok(!electron.includes(doubleCatch));
-	});
-
-	test('onboarding leftover _doPump / _enqueue are Promise double-chain; two-arg getTreatment then stays skipped', () => {
-		const onboarding = fs.readFileSync(resolveSource(ONBOARDING_REL), 'utf8');
-		const contrib = fs.readFileSync(resolveSource(ONBOARDING_CONTRIB_REL), 'utf8');
-		const assignment = fs.readFileSync(resolveSource(ASSIGN_REL), 'utf8');
-		assertPromiseSignature(onboarding, 'private async _doPump(): Promise<void> {');
-		assertPromiseSignature(onboarding, 'private _enqueue(scenario: IOnboardingScenario): Promise<OnboardingOutcome> {');
-		assertPromiseSignature(assignment, 'async getTreatment<T extends string | number | boolean>(name: string): Promise<T | undefined> {');
-		assert.ok(onboarding.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(onboarding, doPumpCall);
-		assert.strictEqual(countIncludes(onboarding, `${enqueueCall}${doubleCatch}`), 1);
-		assert.ok(onboarding.includes(`return this._enqueue(scenario);`));
-		assert.ok(!onboarding.includes(`return this._enqueue(scenario)${doubleCatch}`));
-		assert.ok(onboarding.includes('}, error => onUnexpectedError(error));'));
-		assert.ok(!onboarding.includes(`]).then(([behavior, assignmentContextId]) => {${doubleCatch}`));
-		assert.ok(contrib.includes('run(accessor: ServicesAccessor): void {'));
-		assert.ok(!contrib.includes(doubleCatch));
-		assert.ok(contrib.includes('accessor.get(IOnboardingScenarioService).resetAll();'));
-	});
-
-	test('relauncher leftover getCompleteWorkspace then / doConfirm / reload / startExtensionHosts / restart are Promise double-chain', () => {
-		const relauncher = fs.readFileSync(resolveSource(RELAUNCHER_REL), 'utf8');
-		const workspace = fs.readFileSync(resolveSource(WORKSPACE_REL), 'utf8');
-		const host = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
-		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
-		assertPromiseSignature(workspace, 'getCompleteWorkspace(): Promise<IWorkspace>;');
-		assertPromiseSignature(relauncher, 'private async doConfirm(message: string, detail: string, primaryButton: string, confirmedFn: () => void): Promise<void> {');
-		assertPromiseSignature(host, 'restart(): Promise<void>;');
-		assertPromiseSignature(host, 'reload(options?: { disableExtensions?: boolean }): Promise<void>;');
-		assertPromiseSignature(extensions, 'startExtensionHosts(updates?: { readonly toAdd: readonly IExtension[]; readonly toRemove: readonly string[] }): Promise<void>;');
-		assert.ok(relauncher.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertThenWrapped(relauncher, workspaceThen);
-		assertWrapped(relauncher, doConfirmCall);
-		assertWrapped(relauncher, reloadCall);
-		assertWrapped(relauncher, startHostsCall);
-		assertWrapped(relauncher, restartCall);
-		assert.ok(!relauncher.includes('hostService.reload();'));
-		assert.ok(!relauncher.includes('extensionService.startExtensionHosts();'));
-		assert.ok(!relauncher.includes('() => this.hostService.restart()\n'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch stay skipped', () => {

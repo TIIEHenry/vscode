@@ -295,7 +295,7 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 
 	override dispose() {
 		// we support closing the interactive window without prompt, so the editor model should not be dirty
-		void Promise.resolve(this._editorModelReference?.revert({ soft: true })).catch(onUnexpectedError).catch(onUnexpectedError);
+		void Promise.resolve(this._editorModelReference?.revert({ soft: true })).catch(onUnexpectedError);
 
 		this._notebookEditorInput?.dispose();
 		this._editorModelReference?.dispose();

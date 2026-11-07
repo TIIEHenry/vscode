@@ -458,9 +458,9 @@ export class VoiceInputModeActionViewItem extends BaseActionViewItem {
 		// in hands-free mode.
 		this._register(dom.addDisposableListener(this._voiceCell, dom.EventType.CLICK, e => {
 			dom.EventHelper.stop(e, true);
-			void this._onClickVoicePowerToggle().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._onClickVoicePowerToggle().catch(onUnexpectedError);
 		}));
-		this._registerActivationKeys(this._voiceCell, () => void this._onClickVoicePowerToggle().catch(onUnexpectedError).catch(onUnexpectedError));
+		this._registerActivationKeys(this._voiceCell, () => void this._onClickVoicePowerToggle().catch(onUnexpectedError));
 		this._register(addMicButtonContextMenuListener(
 			this._voiceCell,
 			() => getVoiceModeContextMenuActions(this.commandService, this.configurationService, this.keybindingService, VOICE_START_COMMAND_ID),

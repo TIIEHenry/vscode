@@ -128,7 +128,7 @@ export class OutlinePane extends ViewPane implements IOutlinePane {
 		this._editorControlChangePromise.then(() => {
 			super.focus();
 			this._tree?.domFocus();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	protected override renderBody(container: HTMLElement): void {
@@ -328,7 +328,7 @@ export class OutlinePane extends ViewPane implements IOutlinePane {
 					}
 				}
 				await newOutline.reveal(e.element, e.editorOptions, e.sideBySide, isDoubleClick);
-			})()).catch(onUnexpectedError).catch(onUnexpectedError);
+			})()).catch(onUnexpectedError);
 		}));
 		// feature: reveal editor selection in outline
 		const revealActiveElement = () => {

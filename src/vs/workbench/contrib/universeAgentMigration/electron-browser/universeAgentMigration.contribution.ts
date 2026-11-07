@@ -103,7 +103,7 @@ export class UniverseAgentMigrationContribution extends Disposable implements IW
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
-		void this.maybeOffer().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.maybeOffer().catch(onUnexpectedError);
 	}
 
 	private async maybeOffer(): Promise<void> {

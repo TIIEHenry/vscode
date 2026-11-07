@@ -21,19 +21,6 @@ const EDITOR_IFACE_REL = 'src/vs/workbench/services/editor/common/editorService.
 const HOST_REL = 'src/vs/workbench/services/host/browser/host.ts';
 const TREE_REL = 'src/vs/base/browser/ui/tree/asyncDataTree.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
-const SPLASH_REL = 'src/vs/workbench/contrib/splash/browser/partsSplash.ts';
-const PREFERENCES_REL = 'src/vs/workbench/contrib/preferences/browser/preferences.contribution.ts';
-const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts';
-const INTERACTIVE_REL = 'src/vs/workbench/contrib/interactive/browser/interactive.contribution.ts';
-const SPEECH_REL = 'src/vs/workbench/contrib/speech/browser/speechAccessibilitySignal.ts';
-const SEARCH_REL = 'src/vs/workbench/contrib/search/browser/searchView.ts';
-const SEARCH_EDITOR_REL = 'src/vs/workbench/contrib/searchEditor/browser/searchEditor.ts';
-const SURVEYS_REL = 'src/vs/workbench/contrib/surveys/browser/languageSurveys.contribution.ts';
-const REMOTE_REL = 'src/vs/workbench/contrib/remote/browser/remote.ts';
-const WALKTHROUGH_REL = 'src/vs/workbench/contrib/welcomeWalkthrough/browser/walkThroughInput.ts';
-const URL_REL = 'src/vs/workbench/contrib/url/browser/trustedDomainsValidator.ts';
-const WEBVIEW_VIEW_REL = 'src/vs/workbench/contrib/webviewView/browser/webviewViewPane.ts';
-const WORKSPACES_REL = 'src/vs/workbench/contrib/workspaces/browser/workspaces.contribution.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -222,35 +209,4 @@ suite('userDataProfile leftover Promise fire-and-forget catch scan (D797)', () =
 		}
 	});
 
-	test('this knife stayed in userDataProfile leftover remaining and did not overflow-assert occupied leftover modules as new D797 sites', () => {
-		const splash = fs.readFileSync(resolveSource(SPLASH_REL), 'utf8');
-		const preferences = fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8');
-		const tasks = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
-		const interactive = fs.readFileSync(resolveSource(INTERACTIVE_REL), 'utf8');
-		const speech = fs.readFileSync(resolveSource(SPEECH_REL), 'utf8');
-		const search = fs.readFileSync(resolveSource(SEARCH_REL), 'utf8');
-		const searchEditor = fs.readFileSync(resolveSource(SEARCH_EDITOR_REL), 'utf8');
-		const surveys = fs.readFileSync(resolveSource(SURVEYS_REL), 'utf8');
-		const remote = fs.readFileSync(resolveSource(REMOTE_REL), 'utf8');
-		const walkthrough = fs.readFileSync(resolveSource(WALKTHROUGH_REL), 'utf8');
-		const url = fs.readFileSync(resolveSource(URL_REL), 'utf8');
-		const webviewView = fs.readFileSync(resolveSource(WEBVIEW_VIEW_REL), 'utf8');
-		const workspaces = fs.readFileSync(resolveSource(WORKSPACES_REL), 'utf8');
-
-		for (const source of [splash, preferences, tasks, interactive, speech, search, searchEditor, surveys, remote]) {
-			assert.ok(!source.includes('D797'));
-		}
-		assert.ok(walkthrough.includes('this.promise.then(model => model.dispose()).catch(onUnexpectedError);'));
-		assert.ok(!walkthrough.includes(`this.promise.then(model => model.dispose())${doubleCatch}`));
-		assert.ok(!walkthrough.includes(doubleCatch));
-		assert.ok(url.includes('this._clipboardService.writeText(typeof originalResource === \'string\' ? originalResource : resourceUri.toString(true)).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(!url.includes('D797'));
-		assert.ok(webviewView.includes('this.viewService.openView(this.id, !preserveFocus).catch(onUnexpectedError);'));
-		assert.ok(!webviewView.includes(`openView(this.id, !preserveFocus)${doubleCatch}`));
-		assert.ok(workspaces.includes('this.findWorkspaces().catch(onUnexpectedError);'));
-		assert.ok(!workspaces.includes(`this.findWorkspaces()${doubleCatch}`));
-		assert.ok(!speech.includes('D797'));
-		assert.ok(!search.includes('D797'));
-		assert.ok(!searchEditor.includes('D797'));
-	});
 });

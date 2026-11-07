@@ -310,7 +310,7 @@ export class SnippetsService implements ISnippetsService {
 			for (const file of this._files.values()) {
 				// kick off loading (which is a noop in case it's already loaded)
 				// and optimistically collect snippets
-				file.load().catch(_err => { /*ignore*/ }).catch(onUnexpectedError);
+				file.load().catch(_err => { /*ignore*/ });
 				file.select(languageId, result);
 			}
 		}

@@ -104,9 +104,9 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 				tracked.startExternalEdit();
 			}
 			this._externalEditListener.value = response.onDidChange(() => {
-				void this._processExternalEdits(response).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._processExternalEdits(response).catch(onUnexpectedError);
 			});
-			void this._processExternalEdits(response).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._processExternalEdits(response).catch(onUnexpectedError);
 		} catch (error) {
 			this._logService.error(`Failed to prepare inline chat review for ${this._targetUri}`, error);
 			await this._resetReadonlyLocks();
@@ -165,7 +165,7 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 		for (const entry of this._entries.values()) {
 			entry.stopExternalEdit();
 		}
-		void this._resetReadonlyLocks().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._resetReadonlyLocks().catch(onUnexpectedError);
 		super.dispose();
 	}
 

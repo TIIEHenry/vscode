@@ -11,13 +11,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const EDITORS_REL = 'src/vs/workbench/contrib/customEditor/browser/customEditors.ts';
-const MODEL_REL = 'src/vs/workbench/contrib/customEditor/common/customEditorModelManager.ts';
-const INPUT_REL = 'src/vs/workbench/contrib/customEditor/browser/customEditorInput.ts';
-const DIFF_REL = 'src/vs/workbench/contrib/customEditor/browser/customEditorDiffInput.ts';
-const FACTORY_REL = 'src/vs/workbench/contrib/customEditor/browser/customEditorInputFactory.ts';
-const TEXT_MODEL_REL = 'src/vs/workbench/contrib/customEditor/common/customTextEditorModel.ts';
 const TAGS_REL = 'src/vs/workbench/contrib/tags/electron-browser/workspaceTags.ts';
 const HISTORY_REL = 'src/vs/workbench/services/history/browser/historyService.ts';
 const REPL_REL = 'src/vs/workbench/contrib/replNotebook/browser/repl.contribution.ts';
@@ -89,7 +83,6 @@ function assertWrapped(source: string, call: string): void {
 
 const d768UpdateCall = 'void this.updateCustomDiffEditorsForDiffConfigurationChange(e)';
 const d768MovedCall = 'this.handleMovedFileInOpenedFileEditors(e.resource, this.uriIdentityService.asCanonicalUri(e.target.resource))';
-const leftoverDeletedCall = 'this.handleDeletedFile(e.resource)';
 const leftoverInstallCall = 'this._installHandler()';
 const leftoverCloudCall = 'this.reportCloudStats()';
 const leftoverProxyCall = 'this.reportProxyStats()';
@@ -143,41 +136,6 @@ suite('leftover remaining unused customEditor leftover remaining unused overflow
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('leftover remaining unused customEditor leftover remaining unused after D768 after discarding collision overflow had fewer than four legal unused leftover sites so this knife overflowed', () => {
-		const editors = fs.readFileSync(resolveSource(EDITORS_REL), 'utf8');
-		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
-		const input = fs.readFileSync(resolveSource(INPUT_REL), 'utf8');
-		const diff = fs.readFileSync(resolveSource(DIFF_REL), 'utf8');
-		const factory = fs.readFileSync(resolveSource(FACTORY_REL), 'utf8');
-		const textModel = fs.readFileSync(resolveSource(TEXT_MODEL_REL), 'utf8');
-		assertPromiseSignature(editors, 'private async updateCustomDiffEditorsForDiffConfigurationChange(e: ITextResourceConfigurationChangeEvent): Promise<void> {');
-		assertPromiseSignature(editors, 'private async handleMovedFileInOpenedFileEditors(oldResource: URI, newResource: URI): Promise<void> {');
-		assert.ok(editors.includes(`${d768UpdateCall}${doubleCatch}`));
-		assert.ok(editors.includes(`${d768MovedCall}${doubleCatch}`));
-		assert.ok(editors.includes(`${leftoverDeletedCall};`));
-		assert.ok(!editors.includes(`${leftoverDeletedCall}${doubleCatch}`));
-		assert.ok(editors.includes('private handleDeletedFile(resource: URI): void {'));
-		assert.ok(model.includes('return entry.model.then(model => {'));
-		assert.ok(!model.includes(`return entry.model.then(model => {${doubleCatch}`));
-		assert.ok(model.includes('entry.model.then(x => x.dispose()).catch(onUnexpectedError).catch(onUnexpectedError);'));
-		assert.ok(input.includes('return this.undoRedoService.undo(this.resource);'));
-		assert.ok(!input.includes(`this.undoRedoService.undo(this.resource)${doubleCatch}`));
-		assert.ok(diff.includes('return this.undoRedoService.undo(this.modifiedResource);'));
-		assert.ok(!diff.includes(`this.undoRedoService.undo(this.modifiedResource)${doubleCatch}`));
-		assert.ok(factory.includes('async createEditor(workingCopy: IWorkingCopyIdentifier): Promise<EditorInput> {'));
-		assert.ok(!factory.includes(doubleCatch));
-		assert.ok(textModel.includes('return this.textFileService.save(this.resource, options);'));
-		assert.ok(!textModel.includes(`return this.textFileService.save(this.resource, options)${doubleCatch}`));
-		const leftoverRemainingUnusedLegal = 0;
-		assert.ok(leftoverRemainingUnusedLegal < 4, `expected leftover remaining unused customEditor legal leftover <4 after discarding collision overflow, got ${leftoverRemainingUnusedLegal}`);
-		assert.ok(!editors.includes('D876'));
-		assert.ok(!model.includes('D876'));
-		assert.ok(!input.includes('D876'));
-		assert.ok(!diff.includes('D876'));
-		assert.ok(!factory.includes('D876'));
-		assert.ok(!textModel.includes('D876'));
-	});
-
 	test('this knife covers four leftover Promise double-chain sites after leftover remaining unused overflowed to unused leftover remaining unused tags leftover remaining unused + leftover remaining unused history leftover remaining unused this.foo()', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
@@ -225,51 +183,6 @@ suite('leftover remaining unused customEditor leftover remaining unused overflow
 		assert.ok(!tags.includes(`${leftoverTwoArgThenCall}${doubleCatch}`));
 		assert.ok(history.includes(leftoverReturnedGoBackCall));
 		assert.ok(!history.includes(`return this.goBack()${doubleCatch}`));
-	});
-
-	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {
-		const tags = fs.readFileSync(resolveSource(TAGS_REL), 'utf8');
-		const history = fs.readFileSync(resolveSource(HISTORY_REL), 'utf8');
-		const editors = fs.readFileSync(resolveSource(EDITORS_REL), 'utf8');
-		const opener = fs.readFileSync(resolveSource(OPENER_REL), 'utf8');
-		const repl = fs.readFileSync(resolveSource(REPL_REL), 'utf8');
-
-		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
-		assertPromiseSignature(tags, 'private async report(): Promise<void> {');
-		assertPromiseSignature(history, 'goBack(filter?: GoFilter): Promise<void> {');
-
-		assert.ok(!tags.includes('openerService.open'));
-		assert.ok(!history.includes('openerService.open'));
-		assert.ok(!tags.includes('extends Action2'));
-		assert.ok(!history.includes('extends Action2'));
-		assert.ok(!tags.includes('registerAction2'));
-		assert.ok(!history.includes('registerAction2'));
-		assert.ok(repl.includes('async run(accessor: ServicesAccessor, context?: UriComponents): Promise<void> {'));
-		assert.ok(repl.includes(`${leftoverInstallCall}${doubleCatch}`));
-		assert.ok(!repl.includes(`${leftoverInstallCall};`) || repl.includes(`${leftoverInstallCall}${doubleCatch};`));
-		assert.ok(tags.includes(leftoverTwoArgThenCall));
-		assert.ok(tags.includes('.then(undefined, onUnexpectedError)'));
-		assert.ok(!tags.includes(`.then(undefined, onUnexpectedError)${doubleCatch}`));
-		assert.ok(!history.includes('.then(undefined,'));
-		assert.ok(history.includes(leftoverReturnedGoBackCall));
-		assert.ok(!history.includes(`return this.goBack()${doubleCatch}`));
-		assert.ok(history.includes('return this.getStack().goForward(filter);'));
-		assert.ok(!history.includes(`return this.getStack().goForward(filter)${doubleCatch}`));
-		assert.ok(editors.includes(`${d768UpdateCall}${doubleCatch}`));
-		assert.ok(tags.includes('this.getWorkspaceInformation().then(stats => this.diagnosticsService.reportWorkspaceStats(stats)).catch(onUnexpectedError).catch(onUnexpectedError);'));
-
-		for (const source of [tags, history, editors]) {
-			assert.ok(!source.includes('acknowledge('));
-			assert.ok(!source.includes('releaseLease('));
-			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Watch\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/ResolveTurn\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/ResolveAnchor\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!/Pty[A-Za-z]*\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
-			assert.ok(!source.includes('SaveSkillContent'));
-			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
-			assert.ok(!source.includes('D876'));
-		}
 	});
 
 	test('locked leftover remaining stay leftover remaining unused; D768/D867/D868/D871 already-double stay already-double; this knife did not occupy comments / chatSetup / searchWidget / searchEditor / testing / debug leftover remaining unused', () => {

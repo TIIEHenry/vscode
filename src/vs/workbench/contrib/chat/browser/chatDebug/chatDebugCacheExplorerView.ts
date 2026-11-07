@@ -611,7 +611,7 @@ export class ChatDebugCacheExplorerView extends Disposable {
 			}
 		}
 		const token = ++this.renderToken;
-		void this.renderContentInner(token, () => token === this.renderToken).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.renderContentInner(token, () => token === this.renderToken).catch(onUnexpectedError);
 	}
 
 	/** Move the selection to the previous/next visible turn row (arrow keys). */
@@ -728,7 +728,7 @@ export class ChatDebugCacheExplorerView extends Disposable {
 		this.contentDisposables.add(DOM.addDisposableListener(toggle, DOM.EventType.CLICK, () => {
 			this.sigBreakdownOpen = !this.sigBreakdownOpen;
 			const token = ++this.renderToken;
-			void this.renderContentInner(token, () => token === this.renderToken, true).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.renderContentInner(token, () => token === this.renderToken, true).catch(onUnexpectedError);
 		}));
 		if (!this.sigBreakdownOpen) {
 			return;

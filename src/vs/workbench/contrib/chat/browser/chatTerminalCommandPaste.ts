@@ -142,5 +142,5 @@ export function handleTerminalCommandPaste(
 		if (result === 'paste') {
 			editor.trigger('keyboard', Handler.Paste, { text: pastedText });
 		}
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 }

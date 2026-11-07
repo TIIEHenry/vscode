@@ -151,7 +151,7 @@ export class TelemetryContribution extends Disposable implements IWorkbenchContr
 		this._register(lifecycleService.onDidShutdown(() => this.dispose()));
 
 		if (supportsTelemetry(productService, environmentService)) {
-			this.handleTelemetryOutputVisibility().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.handleTelemetryOutputVisibility().catch(onUnexpectedError);
 		}
 	}
 

@@ -48,29 +48,11 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function countIncludes(source: string, needle: string): number {
-	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-const checkInstallCall = 'this.checkExtensionInstallation(context)';
-const registerListenersCall = 'this.registerListeners()';
-const maybeDisableCall = 'this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === \'boolean\' ? EnablementState.DisabledWorkspace : EnablementState.DisabledGlobally)';
-const maybeEnableCall = 'this.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === \'boolean\' ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally)';
 const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
 const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
 const assignedThenCall = 'this._currentSuggestionDetails.then(() => {';
@@ -82,13 +64,6 @@ const leftoverSelectStepUndefinedCall = '\t\t\t\tthis.selectStep(undefined);\n';
 const leftoverSelectStepLooseCall = '\t\t\teditorPane.selectStepLoose(stepID);\n';
 const assignedInProgressScroll = 'this.inProgressScroll = this.inProgressScroll.then(async () => {';
 
-const d840Calls: Array<[string, string, number]> = [
-	[SETUP_REL, checkInstallCall, 1],
-	[SETUP_REL, registerListenersCall, 1],
-	[SETUP_REL, maybeDisableCall, 1],
-	[SETUP_REL, maybeEnableCall, 1],
-];
-
 suite('leftover remaining unused chatSetup leftover Promise fire-and-forget catch scan (D840)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -97,55 +72,6 @@ suite('leftover remaining unused chatSetup leftover Promise fire-and-forget catc
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('leftover remaining unused chatSetup leftover async this.foo() FOF still had four or more legal unused leftover sites so this knife stayed', () => {
-		const source = fs.readFileSync(resolveSource(SETUP_REL), 'utf8');
-		assertPromiseSignature(source, 'private async checkExtensionInstallation(context: ChatEntitlementContext): Promise<void> {');
-		assertPromiseSignature(source, 'private async registerListeners(): Promise<void> {');
-		assertPromiseSignature(source, 'private async maybeEnableOrDisableExtension(state: EnablementState.EnabledGlobally | EnablementState.EnabledWorkspace | EnablementState.DisabledGlobally | EnablementState.DisabledWorkspace): Promise<void> {');
-		let sites = 0;
-		for (const [, call, count] of d840Calls) {
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${call}: expected ${count} wrapped, got ${wrapped}`);
-			sites += wrapped;
-		}
-		assert.ok(sites >= 4, `expected leftover remaining unused chatSetup legal leftover >=4, got ${sites}`);
-		assert.ok(sites <= 8);
-		assert.ok(!source.includes('D840'));
-	});
-
-	test('this knife covers four leftover Promise double-chain sites after leftover remaining unused stayed on chatSetup', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d840Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 4);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SETUP_REL) ?? ''), 4);
-	});
-
-	test('chatSetup leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
-		const source = fs.readFileSync(resolveSource(SETUP_REL), 'utf8');
-		assertPromiseSignature(source, 'private async checkExtensionInstallation(context: ChatEntitlementContext): Promise<void> {');
-		assertPromiseSignature(source, 'private async registerListeners(): Promise<void> {');
-		assertPromiseSignature(source, 'private async maybeEnableOrDisableExtension(state: EnablementState.EnabledGlobally | EnablementState.EnabledWorkspace | EnablementState.DisabledGlobally | EnablementState.DisabledWorkspace): Promise<void> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assertWrapped(source, checkInstallCall);
-		assertWrapped(source, registerListenersCall);
-		assertWrapped(source, maybeDisableCall);
-		assertWrapped(source, maybeEnableCall);
-		assert.ok(!source.includes('\t\tthis.checkExtensionInstallation(context);\n'));
-		assert.ok(!source.includes('\t\tthis.registerListeners();\n'));
-		assert.ok(!source.includes('\t\t\tthis.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === \'boolean\' ? EnablementState.DisabledWorkspace : EnablementState.DisabledGlobally);\n'));
-		assert.ok(!source.includes('\t\t\tthis.maybeEnableOrDisableExtension(typeof chatDisabled.workspaceValue === \'boolean\' ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally);\n'));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

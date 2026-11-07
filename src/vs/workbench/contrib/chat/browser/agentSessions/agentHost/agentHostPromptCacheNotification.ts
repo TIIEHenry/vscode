@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RunOnceScheduler } from '../../../../../../base/common/async.js';
-import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore, toDisposable, type IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../../../base/common/map.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
@@ -57,7 +56,7 @@ export class AgentHostPromptCacheNotification extends Disposable {
 			for (const sessionResource of this._cacheExpirations.keys()) {
 				this._updateNotification(sessionResource);
 			}
-		}).catch(error => this._logService.warn(`[AgentHostPromptCacheNotification] Failed to resolve experiment: ${error}`)).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(error => this._logService.warn(`[AgentHostPromptCacheNotification] Failed to resolve experiment: ${error}`));
 	}
 
 	trackSession(sessionResource: URI, subscription: IAgentSubscription<SessionState>): IDisposable {

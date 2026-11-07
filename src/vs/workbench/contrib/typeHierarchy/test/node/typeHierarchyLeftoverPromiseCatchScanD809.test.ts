@@ -12,9 +12,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
-const ASYNC_TREE_REL = 'src/vs/base/browser/ui/tree/asyncDataTree.ts';
 const CODE_EDITOR_REL = 'src/vs/editor/browser/services/codeEditorService.ts';
-const EDITOR_SVC_REL = 'src/vs/workbench/services/editor/common/editorService.ts';
 const CONTRIB_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchy.contribution.ts';
 const PEEK_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchyPeek.ts';
 const TREE_REL = 'src/vs/workbench/contrib/typeHierarchy/browser/typeHierarchyTree.ts';
@@ -41,51 +39,10 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function countIncludes(source: string, needle: string): number {
-	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
-function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
-
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-const showModelCall = 'this._widget!.showModel(model)';
-const superDirectionCall = 'this._widget?.updateDirection(TypeHierarchyDirection.Supertypes)?';
-const subDirectionCall = 'this._widget?.updateDirection(TypeHierarchyDirection.Subtypes)?';
-const updatePreviewCall = 'this._updatePreview()';
-const mouseDownOpenCall = `this._editorService.openEditor({
-				resource: focus.item.uri,
-				options: { selection: target.range! }
-			})`;
-const dblClickOpenCall = `this._editorService.openEditor({
-					resource: e.element.item.uri,
-					options: { selection: e.element.item.selectionRange, pinned: true }
-				})`;
-const selectionOpenCall = `this._editorService.openEditor({
-					resource: element.item.uri,
-					options: { selection: element.item.selectionRange, pinned: true }
-				})`;
-
-const d809Calls: Array<[string, string, number]> = [
-	[CONTRIB_REL, showModelCall, 1],
-	[CONTRIB_REL, superDirectionCall, 1],
-	[CONTRIB_REL, subDirectionCall, 1],
-	[PEEK_REL, updatePreviewCall, 1],
-	[PEEK_REL, mouseDownOpenCall, 1],
-	[PEEK_REL, dblClickOpenCall, 1],
-	[PEEK_REL, selectionOpenCall, 1],
-];
 
 suite('typeHierarchy leftover Promise fire-and-forget catch scan (D809)', () => {
 
@@ -95,78 +52,6 @@ suite('typeHierarchy leftover Promise fire-and-forget catch scan (D809)', () => 
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('this knife covers seven leftover Promise double-chain sites in contrib/typeHierarchy and did not overflow', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count] of d809Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-			assertWrapped(source, call);
-			sites += count;
-		}
-		assert.strictEqual(sites, 7);
-		assert.ok(sites >= 4);
-		assert.ok(sites <= 8);
-		const contrib = seen.get(CONTRIB_REL) ?? fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
-		const peek = seen.get(PEEK_REL) ?? fs.readFileSync(resolveSource(PEEK_REL), 'utf8');
-		const tree = fs.readFileSync(resolveSource(TREE_REL), 'utf8');
-		const model = fs.readFileSync(resolveSource(MODEL_REL), 'utf8');
-		assert.strictEqual(countDoubleChains(contrib), 3);
-		assert.strictEqual(countDoubleChains(peek), 4);
-		assert.strictEqual(countDoubleChains(tree), 0);
-		assert.strictEqual(countDoubleChains(model), 0);
-		assert.ok(fs.readFileSync(resolveSource(CALL_CONTRIB_REL), 'utf8').includes(doubleCatch));
-		assert.ok(fs.readFileSync(resolveSource(CALL_PEEK_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(KEYBINDINGS_EXPORT_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(INLAY_HINTS_REL), 'utf8').includes(doubleCatch));
-		assert.ok(!fs.readFileSync(resolveSource(LANGUAGE_STATUS_REL), 'utf8').includes(doubleCatch));
-	});
-
-	test('typeHierarchy leftover showModel / updateDirection are Promise double-chain; model.then custom catch stays skipped', () => {
-		const contrib = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
-		const peek = fs.readFileSync(resolveSource(PEEK_REL), 'utf8');
-		assertPromiseSignature(peek, 'async showModel(model: TypeHierarchyModel): Promise<void> {');
-		assertPromiseSignature(peek, 'async updateDirection(newDirection: TypeHierarchyDirection): Promise<void> {');
-		assert.ok(contrib.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(contrib, showModelCall);
-		assertWrapped(contrib, superDirectionCall);
-		assertWrapped(contrib, subDirectionCall);
-		assert.ok(!contrib.includes('\t\t\t\tthis._widget!.showModel(model);\n'));
-		assert.ok(!contrib.includes('\t\tthis._widget?.updateDirection(TypeHierarchyDirection.Supertypes);\n'));
-		assert.ok(!contrib.includes('\t\tthis._widget?.updateDirection(TypeHierarchyDirection.Subtypes);\n'));
-		assert.ok(contrib.includes('model.then(model => {'));
-		assert.ok(contrib.includes('}).catch(err => {'));
-		assert.ok(contrib.includes('this._widget!.showMessage(localize(\'error\', "Failed to show type hierarchy"));'));
-		assert.ok(!contrib.includes(`model.then(model => {${doubleCatch}`));
-		assert.ok(!contrib.includes(`}).catch(err => {${doubleCatch}`));
-	});
-
-	test('typeHierarchy leftover _updatePreview / discarded openEditor are Promise double-chain; await setInput/expand/showModel stay skipped', () => {
-		const peek = fs.readFileSync(resolveSource(PEEK_REL), 'utf8');
-		const editor = fs.readFileSync(resolveSource(EDITOR_SVC_REL), 'utf8');
-		const asyncTree = fs.readFileSync(resolveSource(ASYNC_TREE_REL), 'utf8');
-		assertPromiseSignature(peek, 'private async _updatePreview() {');
-		assertPromiseSignature(editor, 'openEditor(editor: IUntypedEditorInput, group?: PreferredGroup): Promise<IEditorPane | undefined>;');
-		assertPromiseSignature(asyncTree, 'async setInput(input: TInput, viewState?: IAsyncDataTreeViewState): Promise<void> {');
-		assertPromiseSignature(asyncTree, 'async expand(element: T, recursive: boolean = false): Promise<boolean> {');
-		assert.ok(peek.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(peek, updatePreviewCall);
-		assertWrapped(peek, mouseDownOpenCall);
-		assertWrapped(peek, dblClickOpenCall);
-		assertWrapped(peek, selectionOpenCall);
-		assert.ok(!peek.includes('\t\t\tthis._updatePreview();\n'));
-		assert.ok(peek.includes('await this._tree.setInput(model, viewState);'));
-		assert.ok(!peek.includes(`await this._tree.setInput(model, viewState)${doubleCatch}`));
-		assert.ok(peek.includes('await this._tree.expand(root.element);'));
-		assert.ok(!peek.includes(`await this._tree.expand(root.element)${doubleCatch}`));
-		assert.ok(peek.includes('await this.showModel(model);'));
-		assert.ok(!peek.includes(`await this.showModel(model)${doubleCatch}`));
-		assert.ok(peek.includes('const value = await this._textModelService.createModelReference(previewUri);'));
-		assert.ok(!peek.includes(`await this._textModelService.createModelReference(previewUri)${doubleCatch}`));
 	});
 
 	test('opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped', () => {

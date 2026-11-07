@@ -102,7 +102,7 @@ export class AgentHostGenericConfigChips extends Disposable {
 			this._subRef.clear();
 			if (!this._initialResolved || this._initialResolved.sessionResource.toString() !== sessionResource.toString()) {
 				this._initialResolved = undefined;
-				void this._refreshInitialResolved(sessionResource, backendSession).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._refreshInitialResolved(sessionResource, backendSession).catch(onUnexpectedError);
 			}
 			this._sync();
 			return;

@@ -325,7 +325,7 @@ export class MarkersView extends FilterViewPane implements IMarkersView {
 				} else {
 					this.rangeHighlightDecorations.removeHighlightRange();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			return true;
 		} else {
 			this.rangeHighlightDecorations.removeHighlightRange();

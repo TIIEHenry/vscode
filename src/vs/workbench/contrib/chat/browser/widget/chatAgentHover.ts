@@ -116,7 +116,7 @@ export class ChatAgentHover extends Disposable {
 					this.domNode.classList.toggle('verifiedPublisher', true);
 					this._onDidChangeContents.fire();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}
 	}
 }

@@ -15,13 +15,6 @@ const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const CONFIG_REL = 'src/vs/workbench/services/configuration/browser/configuration.ts';
 const SERVICE_REL = 'src/vs/workbench/services/configuration/browser/configurationService.ts';
 const EDITING_REL = 'src/vs/workbench/services/configuration/common/configurationEditing.ts';
-const SEARCH_WIDGET_REL = 'src/vs/workbench/contrib/search/browser/searchWidget.ts';
-const SEARCH_EDITOR_REL = 'src/vs/workbench/contrib/searchEditor/browser/searchEditor.ts';
-const COMMENTS_VIEW_REL = 'src/vs/workbench/contrib/comments/browser/commentsView.ts';
-const SETUP_REL = 'src/vs/workbench/contrib/chat/browser/chatSetup/chatSetupContributions.ts';
-const TESTING_REL = 'src/vs/workbench/contrib/testing/browser/testingOutputPeek.ts';
-const DEBUG_CONFIG_REL = 'src/vs/workbench/contrib/debug/browser/debugConfigurationManager.ts';
-const DEBUG_SERVICE_REL = 'src/vs/workbench/contrib/debug/browser/debugService.ts';
 const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts';
 const MCP_WORKBENCH_REL = 'src/vs/workbench/services/mcp/browser/mcpWorkbenchManagementService.ts';
 const EXT_MGMT_REL = 'src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts';
@@ -43,13 +36,6 @@ const SEARCH_SVC_REL = 'src/vs/workbench/services/search/common/searchService.ts
 const ISSUE_REL = 'src/vs/workbench/contrib/issue/browser/issueFormService.ts';
 const EXTERNAL_OPENER_REL = 'src/vs/workbench/contrib/externalUriOpener/common/externalUriOpenerService.ts';
 const PROCESS_EXPLORER_REL = 'src/vs/workbench/contrib/processExplorer/browser/processExplorerControl.ts';
-const COMPOSITE_BAR_REL = 'src/vs/workbench/browser/parts/compositeBar.ts';
-const PANE_PART_REL = 'src/vs/workbench/browser/parts/paneCompositePart.ts';
-const WORKBENCH_CONFIG_REL = 'src/vs/workbench/common/configuration.ts';
-const TITLEBAR_REL = 'src/vs/workbench/electron-browser/parts/titlebar/titlebarPart.ts';
-const LOG_REL = 'src/vs/workbench/services/log/common/defaultLogLevels.ts';
-const CHAT_TIP_REL = 'src/vs/workbench/contrib/chat/browser/chatTipEligibilityTracker.ts';
-const EXTENSIONS_RECS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionRecommendationsService.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -89,23 +75,11 @@ const processExperimentalCall = 'this.processExperimentalSettings(properties, fa
 const folderChangeListenerCall = 'this.onWorkspaceFolderConfigurationChanged(folder)';
 const writeStandaloneCall = 'this.writeConfiguration(operation.target, { key, value: operation.value }, { handleDirtyFile: \'save\', scopes })';
 const writeSettingsCall = 'this.writeConfiguration(operation.target, { key: operation.key, value: operation.value }, { handleDirtyFile: \'save\', scopes })';
-const onDidWorkspaceChangeCall = 'this.onDidWorkspaceConfigurationChange(false, true)';
-const onDidWorkspaceListenerCall = 'this.onDidWorkspaceConfigurationChange(true, false)';
-const updateCacheCall = 'this.updateCache()';
-const updateCachedDefaultsCall = 'this.updateCachedConfigurationDefaultsOverrides()';
-const waitAndInitializeCall = 'this.waitAndInitialize(this._workspaceIdentifier)';
 const leftoverDoOpenHostCall = 'this.doOpen(undefined, { payload: Array.from(environment.entries()) })';
 const leftoverReloadCall = '\t\tthis.reload();\n';
 const leftoverApplyThemeCall = 'this.applyTheme(themeData, undefined, true)';
 const leftoverReplaceEditorsCall = 'this.replaceEditors(replacements, group)';
 const leftoverSyncActiveCall = 'this._syncActiveBrowserTab()';
-const leftoverPinCall = 'this.pin(id, true)';
-const leftoverDoOpenCall = 'this.doOpenPaneComposite(containerToOpen.id)';
-const leftoverMigrateCall = 'this.migrateConfigurations(configurationMigrationRegistry.migrations)';
-const leftoverCreateCall = 'this.create()';
-const leftoverAlwaysOnTopCall = 'this.handleWindowsAlwaysOnTop(targetWindow.vscodeWindowId)';
-const leftoverArgvCall = 'this.onDidChangeArgv()';
-const d794LockedCall = 'this.onConfigUpdate(undefined, true, true)';
 
 const d955Calls: Array<[string, string, number]> = [
 	[SERVICE_REL, validateFoldersCall, 1],
@@ -114,12 +88,6 @@ const d955Calls: Array<[string, string, number]> = [
 	[SERVICE_REL, folderChangeListenerCall, 1],
 	[EDITING_REL, writeStandaloneCall, 1],
 	[EDITING_REL, writeSettingsCall, 1],
-];
-
-const d827AlreadyDouble: Array<[string, string, number]> = [
-	[CONFIG_REL, updateCachedDefaultsCall, 2],
-	[CONFIG_REL, updateCacheCall, 4],
-	[CONFIG_REL, waitAndInitializeCall, 1],
 ];
 
 suite('leftover remaining unused configuration leftover remaining unused this.foo() leftover remaining unused Promise fire-and-forget catch scan (D955)', () => {
@@ -242,115 +210,6 @@ suite('leftover remaining unused configuration leftover remaining unused this.fo
 			assert.ok(!source.includes(`${doubleCatch}.catch(onUnexpectedError)`));
 			assert.ok(!source.includes('D955'));
 		}
-	});
-
-	test('locked leftover remaining stay leftover remaining unused; D827 already-double stay already-double; this knife did not occupy comments / chatSetup / searchWidget / searchEditor / testing / debug leftover remaining unused', () => {
-		const configuration = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
-		const service = fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
-		const editing = fs.readFileSync(resolveSource(EDITING_REL), 'utf8');
-		const searchWidget = fs.readFileSync(resolveSource(SEARCH_WIDGET_REL), 'utf8');
-		const searchEditor = fs.readFileSync(resolveSource(SEARCH_EDITOR_REL), 'utf8');
-		const comments = fs.readFileSync(resolveSource(COMMENTS_VIEW_REL), 'utf8');
-		const setup = fs.readFileSync(resolveSource(SETUP_REL), 'utf8');
-		const testing = fs.readFileSync(resolveSource(TESTING_REL), 'utf8');
-		const debugConfig = fs.readFileSync(resolveSource(DEBUG_CONFIG_REL), 'utf8');
-		const debugService = fs.readFileSync(resolveSource(DEBUG_SERVICE_REL), 'utf8');
-		const tasks = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
-		const mcpWorkbench = fs.readFileSync(resolveSource(MCP_WORKBENCH_REL), 'utf8');
-		const settings = fs.readFileSync(resolveSource(SETTINGS_REL), 'utf8');
-		const host = fs.readFileSync(resolveSource(HOST_REL), 'utf8');
-		const editor = fs.readFileSync(resolveSource(EDITOR_SVC_REL), 'utf8');
-		const themeService = fs.readFileSync(resolveSource(THEME_SVC_REL), 'utf8');
-		const browsers = fs.readFileSync(resolveSource(BROWSERS_REL), 'utf8');
-		const compositeBar = fs.readFileSync(resolveSource(COMPOSITE_BAR_REL), 'utf8');
-		const panePart = fs.readFileSync(resolveSource(PANE_PART_REL), 'utf8');
-		const workbenchConfig = fs.readFileSync(resolveSource(WORKBENCH_CONFIG_REL), 'utf8');
-		const titlebar = fs.readFileSync(resolveSource(TITLEBAR_REL), 'utf8');
-		const logLevels = fs.readFileSync(resolveSource(LOG_REL), 'utf8');
-		const chatTip = fs.readFileSync(resolveSource(CHAT_TIP_REL), 'utf8');
-		const extensionsRecs = fs.readFileSync(resolveSource(EXTENSIONS_RECS_REL), 'utf8');
-
-		for (const [rel, call, count] of d827AlreadyDouble) {
-			const source = fs.readFileSync(resolveSource(rel), 'utf8');
-			assert.strictEqual(countIncludes(source, `${call}${singleCatch}`), count, `D827 single-chain drifted: ${rel} ${call}`);
-			assert.strictEqual(countIncludes(source, `${call}${doubleCatch}`), 0);
-		}
-		assert.strictEqual(countDoubleChains(configuration), 0);
-		assert.ok(configuration.includes(`${onDidWorkspaceChangeCall};\n`));
-		assert.ok(!configuration.includes(`${onDidWorkspaceChangeCall}${doubleCatch}`));
-		assert.ok(configuration.includes(`${onDidWorkspaceListenerCall}`));
-		assert.ok(!configuration.includes(`${onDidWorkspaceListenerCall}${doubleCatch}`));
-
-		assert.ok(settings.includes(`${d794LockedCall};`));
-		assert.ok(!settings.includes(`${d794LockedCall}${doubleCatch}`));
-		assert.ok(host.includes(leftoverDoOpenHostCall));
-		assert.ok(!host.includes(`${leftoverDoOpenHostCall}${doubleCatch}`));
-		assert.ok(host.includes(leftoverReloadCall));
-		assert.ok(!host.includes(`this.reload()${doubleCatch}`));
-		assert.ok(themeService.includes(`${leftoverApplyThemeCall};`));
-		assert.ok(!themeService.includes(`${leftoverApplyThemeCall}${doubleCatch}`));
-		assert.ok(editor.includes(`${leftoverReplaceEditorsCall};`));
-		assert.ok(!editor.includes(`${leftoverReplaceEditorsCall}${doubleCatch}`));
-		assert.ok(browsers.includes(`${leftoverSyncActiveCall};`));
-		assert.ok(!browsers.includes(`${leftoverSyncActiveCall}${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`));
-		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
-		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${singleCatch}`));
-		assert.ok(!workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${singleCatch}`));
-		assert.ok(!workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`));
-		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
-		assert.ok(logLevels.includes(`${leftoverArgvCall}${singleCatch}`));
-		assert.ok(!logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
-		assert.ok(chatTip.includes(doubleCatch));
-		assert.ok(extensionsRecs.includes(singleCatch));
-		assert.ok(!extensionsRecs.includes(doubleCatch));
-
-		assert.ok(!searchWidget.includes('D955'));
-		assert.ok(!searchEditor.includes('D955'));
-		assert.ok(!comments.includes('D955'));
-		assert.ok(!setup.includes('D955'));
-		assert.ok(!testing.includes('D955'));
-		assert.ok(!debugConfig.includes('D955'));
-		assert.ok(!debugService.includes('D955'));
-		assert.ok(!tasks.includes('D955'));
-		assert.ok(!mcpWorkbench.includes('D955'));
-
-		for (const [rel, file] of [
-			[SEARCH_WIDGET_REL, searchWidget],
-			[SEARCH_EDITOR_REL, searchEditor],
-			[COMMENTS_VIEW_REL, comments],
-			[SETUP_REL, setup],
-			[TESTING_REL, testing],
-			[DEBUG_CONFIG_REL, debugConfig],
-			[DEBUG_SERVICE_REL, debugService],
-			[TASKS_REL, tasks],
-			[MCP_WORKBENCH_REL, mcpWorkbench],
-			[HOST_REL, host],
-			[EDITOR_SVC_REL, editor],
-			[THEME_SVC_REL, themeService],
-			[BROWSERS_REL, browsers],
-			[CONFIG_REL, configuration],
-			[SERVICE_REL, service],
-			[EDITING_REL, editing],
-		] as const) {
-			assert.ok(!file.includes('D955'), `${rel} should stay off this knife`);
-		}
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/comments/test/node/commentsLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/chat/test/node/chatSetupLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/search/test/node/searchLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/searchEditor/test/node/searchEditorLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/testing/test/node/testingLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/debug/test/node/debugLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/tasks/test/node/tasksLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/editor/test/node/editorLeftoverPromiseCatchScanD955.test.ts')));
-		assert.ok(fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts')));
-		assert.ok(fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/test/node/workbenchLeftoverPromiseCatchScanD922.test.ts')));
-		assert.ok(fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/extensions/test/node/extensionsLeftoverPromiseCatchScanD939.test.ts')));
-		assert.ok(fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/chat/test/node/chatLeftoverPromiseCatchScanD943.test.ts')));
 	});
 
 	test('this knife did not occupy parallel leftover remaining unused views / host / keybinding / clipboard / lifecycle / editor leftover remaining unused or discarded collision overflow leftover remaining unused', () => {

@@ -499,7 +499,7 @@ export class InlineChatController implements IEditorContribution {
 				for (const entry of otherEntries) {
 					// OPEN other modified files in side group. This is a workaround, temp-solution until we have no more backend
 					// that modifies other files
-					this.#editorService.openEditor({ resource: entry.modifiedURI }, SIDE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
+					this.#editorService.openEditor({ resource: entry.modifiedURI }, SIDE_GROUP).catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -642,7 +642,7 @@ export class InlineChatController implements IEditorContribution {
 		}
 
 		// Must remain un-awaited so the shared widget clears its submit guard before the replay submits.
-		void controller.run({ message, autoSend: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+		void controller.run({ message, autoSend: true }).catch(onUnexpectedError);
 	}
 
 	#waitForSavedEditorController(resource: URI): Promise<InlineChatController | undefined> {

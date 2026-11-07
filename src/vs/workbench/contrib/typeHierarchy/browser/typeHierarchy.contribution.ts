@@ -122,7 +122,7 @@ class TypeHierarchyController implements IEditorContribution {
 			}
 			if (model) {
 				this._sessionDisposables.add(model);
-				void this._widget!.showModel(model).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this._widget!.showModel(model).catch(onUnexpectedError);
 			}
 			else {
 				this._widget!.showMessage(localize('no.item', "No results"));
@@ -170,12 +170,12 @@ class TypeHierarchyController implements IEditorContribution {
 	}
 
 	showSupertypes(): void {
-		void this._widget?.updateDirection(TypeHierarchyDirection.Supertypes)?.catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._widget?.updateDirection(TypeHierarchyDirection.Supertypes)?.catch(onUnexpectedError);
 		this._ctxDirection.set(TypeHierarchyDirection.Supertypes);
 	}
 
 	showSubtypes(): void {
-		void this._widget?.updateDirection(TypeHierarchyDirection.Subtypes)?.catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._widget?.updateDirection(TypeHierarchyDirection.Subtypes)?.catch(onUnexpectedError);
 		this._ctxDirection.set(TypeHierarchyDirection.Subtypes);
 	}
 

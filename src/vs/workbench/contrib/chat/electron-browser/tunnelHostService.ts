@@ -77,7 +77,7 @@ export class TunnelHostService extends Disposable implements ITunnelHostService 
 			if (status.active) {
 				this._onDidChangeStatus.fire();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	get isSharing(): boolean {

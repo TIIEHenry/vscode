@@ -16,14 +16,12 @@ const EDITOR_PANES_REL = 'src/vs/workbench/browser/parts/editor/editorPanes.ts';
 const EDITOR_DROP_REL = 'src/vs/workbench/browser/parts/editor/editorDropTarget.ts';
 const NATIVE_MENUBAR_REL = 'src/vs/workbench/electron-browser/parts/titlebar/menubarControl.ts';
 const TREE_VIEW_REL = 'src/vs/workbench/browser/parts/views/treeView.ts';
-const LIST_COMMANDS_REL = 'src/vs/workbench/browser/actions/listCommands.ts';
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const EXTENSIONS_REL = 'src/vs/workbench/services/extensions/common/extensions.ts';
 const EDITOR_VIEW_REL = 'src/vs/workbench/browser/parts/editor/editor.ts';
 const EDITOR_SERVICE_REL = 'src/vs/workbench/services/editor/common/editorService.ts';
 const WORKSPACES_REL = 'src/vs/platform/workspaces/common/workspaces.ts';
 const PROGRESS_REL = 'src/vs/platform/progress/common/progress.ts';
-const ASYNC_TREE_REL = 'src/vs/base/browser/ui/tree/asyncDataTree.ts';
 const BREADCRUMBS_REL = 'src/vs/workbench/browser/parts/editor/breadcrumbsModel.ts';
 const EDITOR_PARTS_REL = 'src/vs/workbench/browser/parts/editor/editorParts.ts';
 const WEB_FACTORY_REL = 'src/vs/workbench/browser/web.factory.ts';
@@ -48,12 +46,6 @@ const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
-}
-
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 }
 
 function assertSingleCatch(source: string, call: string): void {
@@ -85,22 +77,6 @@ const treeProgressThen = `this.progressService.withProgress({ location: this.id 
 				.then(() => {
 					this.updateMessage();
 				})`;
-const expandThen = `widget.expand(focus).then(didExpand => {
-				if (focus && !didExpand) {
-					const child = widget.getFirstElementChild(focus);
-
-					if (child) {
-						const node = widget.getNode(child);
-
-						if (node.visible) {
-							navigate(widget, widget => {
-								const fakeKeyboardEvent = new KeyboardEvent('keydown');
-								widget.setFocus([child], fakeKeyboardEvent);
-							});
-						}
-					}
-				}
-			})`;
 
 suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 
@@ -110,37 +86,6 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('this knife covers leftover Promise catch sites', () => {
-		const editorConfig = fs.readFileSync(resolveSource(EDITOR_CONFIG_REL), 'utf8');
-		const modal = fs.readFileSync(resolveSource(MODAL_REL), 'utf8');
-		const editorPanes = fs.readFileSync(resolveSource(EDITOR_PANES_REL), 'utf8');
-		const editorDrop = fs.readFileSync(resolveSource(EDITOR_DROP_REL), 'utf8');
-		const nativeMenubar = fs.readFileSync(resolveSource(NATIVE_MENUBAR_REL), 'utf8');
-		const treeView = fs.readFileSync(resolveSource(TREE_VIEW_REL), 'utf8');
-		const listCommands = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
-		const doubleCalls = [
-			[listCommands, expandThen],
-		] as const;
-		assert.strictEqual(doubleCalls.length, 1);
-		for (const [source, call] of doubleCalls) {
-			assertDoubleThen(source, call);
-		}
-
-		const singleCalls = [
-			[modal, modalClose],
-			[treeView, treeProgressThen],
-			[editorConfig, configIife],
-			[editorPanes, trustOpen],
-			[editorDrop, dropOpenEditors],
-			[nativeMenubar, nativeMenubarIife],
-		] as const;
-		assert.strictEqual(singleCalls.length, 6);
-		for (const [source, call] of singleCalls) {
-			assertSingleCatch(source, call);
-			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
-		}
 	});
 
 	test('editorConfiguration leftover ctor IIFE has single catch', () => {
@@ -200,14 +145,6 @@ suite('workbench leftover Promise fire-and-forget catch scan (D737)', () => {
 		assert.ok(source.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertSingleCatch(source, treeProgressThen);
 		assert.ok(!source.includes(doubleCatch));
-	});
-
-	test('listCommands leftover AsyncDataTree expand then is Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(LIST_COMMANDS_REL), 'utf8');
-		const tree = fs.readFileSync(resolveSource(ASYNC_TREE_REL), 'utf8');
-		assertPromiseSignature(tree, 'async expand(element: T, recursive: boolean = false): Promise<boolean> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
-		assertDoubleThen(source, expandThen);
 	});
 
 	test('opener / D145 / custom-catch breadcrumbs / web.factory / already-double D697/D706/D714/D722/D731 stay skipped; D746 editorParts is chained', () => {

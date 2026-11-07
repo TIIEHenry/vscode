@@ -11,7 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const COMMANDS_REL = 'src/vs/platform/commands/common/commands.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const CLIPBOARD_REL = 'src/vs/platform/clipboard/common/clipboardService.ts';
 const TUNNEL_REL = 'src/vs/platform/remoteTunnel/common/remoteTunnel.ts';
@@ -33,46 +32,10 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
-function countIncludes(source: string, needle: string): number {
-	return (source.match(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length;
-}
-
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
-
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
-function assertThenWrapped(source: string, thenStart: string): void {
-	const idx = source.indexOf(thenStart);
-	assert.ok(idx >= 0, `missing then: ${thenStart}`);
-	const rest = source.slice(idx + thenStart.length);
-	const closeThen = rest.search(/\}\)/);
-	assert.ok(closeThen >= 0, `missing then close after: ${thenStart}`);
-	const afterClose = rest.slice(closeThen + 2);
-	assert.ok(afterClose.startsWith(doubleCatch), `then not double-chained: ${thenStart}`);
-	assert.ok(!afterClose.startsWith('.catch(onUnexpectedError);') || afterClose.startsWith(doubleCatch));
-	assert.ok(!source.includes(`${thenStart};`));
-}
-
-const initializeCall = 'this.initialize()';
-const recommendCall = 'this.recommendRemoteExtensionIfNeeded()';
-const discoveryCall = 'doInitialStateDiscovery(undefined)';
-const startTunnelThen = 'this.remoteTunnelService.startTunnel({ active: true, asService, session: account }).then(status => {';
-const executeCommandCall = 'this.commandService.executeCommand(quickPick.selectedItems[0].id)';
-
-const d790Calls: Array<[string, string, number, 'call' | 'then']> = [
-	[CONTRIB_REL, initializeCall, 1, 'call'],
-	[CONTRIB_REL, recommendCall, 1, 'call'],
-	[CONTRIB_REL, discoveryCall, 1, 'call'],
-	[CONTRIB_REL, startTunnelThen, 1, 'then'],
-	[CONTRIB_REL, executeCommandCall, 1, 'call'],
-];
 
 suite('remoteTunnel leftover Promise fire-and-forget catch scan (D790)', () => {
 
@@ -82,56 +45,6 @@ suite('remoteTunnel leftover Promise fire-and-forget catch scan (D790)', () => {
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('this knife covers five leftover Promise double-chain sites in remoteTunnel only', () => {
-		let sites = 0;
-		const seen = new Map<string, string>();
-		for (const [rel, call, count, kind] of d790Calls) {
-			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
-			seen.set(rel, source);
-			if (kind === 'then') {
-				assertThenWrapped(source, call);
-				assert.strictEqual(countIncludes(source, call), count, `${rel} ${call}: expected ${count} then starts, got ${countIncludes(source, call)}`);
-			} else {
-				const wrapped = countIncludes(source, `${call}${doubleCatch}`);
-				assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
-				assertWrapped(source, call);
-			}
-			sites += count;
-		}
-		assert.strictEqual(sites, 5);
-		assert.ok(sites >= 4);
-		const contrib = seen.get(CONTRIB_REL) ?? fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
-		assert.strictEqual(countIncludes(contrib, doubleCatch), 5);
-	});
-
-	test('remoteTunnel leftover initialize / recommendRemoteExtensionIfNeeded / doInitialStateDiscovery fire-and-forgets are Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
-		assertPromiseSignature(source, 'private async initialize(): Promise<void> {');
-		assertPromiseSignature(source, 'private async recommendRemoteExtensionIfNeeded() {');
-		assertPromiseSignature(source, 'const doInitialStateDiscovery = async (progress?: IProgress<IProgressStep>) => {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertWrapped(source, initializeCall);
-		assertWrapped(source, recommendCall);
-		assertWrapped(source, discoveryCall);
-		assert.ok(!source.includes('\t\tthis.initialize();\n'));
-		assert.ok(!source.includes('\t\tthis.recommendRemoteExtensionIfNeeded();\n'));
-		assert.ok(!source.includes('\t\t\tdoInitialStateDiscovery(undefined);\n'));
-		assert.ok(source.includes('await this.progressService.withProgress('));
-		assert.ok(!source.includes(`await this.progressService.withProgress(${doubleCatch}`));
-	});
-
-	test('remoteTunnel leftover startTunnel then and manage executeCommand fire-and-forgets are Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(CONTRIB_REL), 'utf8');
-		const tunnel = fs.readFileSync(resolveSource(TUNNEL_REL), 'utf8');
-		const commands = fs.readFileSync(resolveSource(COMMANDS_REL), 'utf8');
-		assertPromiseSignature(tunnel, 'startTunnel(mode: ActiveTunnelMode): Promise<TunnelStatus>;');
-		assertPromiseSignature(commands, 'executeCommand<R = unknown>(commandId: string, ...args: unknown[]): Promise<R | undefined>;');
-		assertThenWrapped(source, startTunnelThen);
-		assertWrapped(source, executeCommandCall);
-		assert.ok(/startTunnel\(\{ active: true, asService, session: account \}\)\.then\(status => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/.test(source));
-		assert.ok(!source.includes('this.commandService.executeCommand(quickPick.selectedItems[0].id);'));
 	});
 
 	test('speech leftover remaining stays unwrapped because remoteTunnel already has five legal sites', () => {

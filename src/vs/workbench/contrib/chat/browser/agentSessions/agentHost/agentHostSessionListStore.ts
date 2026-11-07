@@ -109,7 +109,7 @@ export class AgentHostSessionListStore extends Disposable {
 		this._register(this._workspaceContextService.onDidChangeWorkspaceFolders(() => {
 			this._cacheValid = false;
 			this._filterEntriesToWorkspace();
-			void this.refresh(CancellationToken.None).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh(CancellationToken.None).catch(onUnexpectedError);
 		}));
 	}
 

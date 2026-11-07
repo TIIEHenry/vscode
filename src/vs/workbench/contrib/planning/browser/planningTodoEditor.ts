@@ -89,7 +89,7 @@ export class PlanningTodoEditor extends EditorPane {
 		if (!this.container || !this.input || this._store.isDisposed) {
 			return;
 		}
-		void this.reload().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.reload().catch(onUnexpectedError);
 	}
 
 	private async reload(): Promise<void> {

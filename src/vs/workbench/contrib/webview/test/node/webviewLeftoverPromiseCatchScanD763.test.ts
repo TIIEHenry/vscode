@@ -11,8 +11,6 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
-const CLIPBOARD_REL = 'src/vs/platform/clipboard/common/clipboardService.ts';
-const URL_SERVICE_REL = 'src/vs/platform/url/common/url.ts';
 const WEBVIEW_MANAGER_REL = 'src/vs/platform/webview/common/webviewManagerService.ts';
 const ASYNC_REL = 'src/vs/base/common/async.ts';
 const IFRAME_REL = 'src/vs/base/browser/iframe.ts';
@@ -112,24 +110,6 @@ suite('url leftover remaining overflowed to webview leftover Promise fire-and-fo
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
 		assert.ok(source.includes('\treturn undefined;'));
-	});
-
-	test('url leftover remaining has fewer than four legal sites so this knife moved to webview leftover', () => {
-		const contrib = fs.readFileSync(resolveSource(URL_CONTRIB_REL), 'utf8');
-		const validator = fs.readFileSync(resolveSource(URL_VALIDATOR_REL), 'utf8');
-		const urlService = fs.readFileSync(resolveSource(URL_SERVICE_REL), 'utf8');
-		const clipboard = fs.readFileSync(resolveSource(CLIPBOARD_REL), 'utf8');
-		assertPromiseSignature(urlService, 'open(url: URI, options?: IOpenURLOptions): Promise<boolean>;');
-		assertPromiseSignature(clipboard, 'writeText(text: string, type?: string): Promise<void>;');
-		assert.ok(validator.includes(`this._clipboardService.writeText(typeof originalResource === 'string' ? originalResource : resourceUri.toString(true))${doubleCatch};`));
-		assert.strictEqual((validator.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
-		assert.ok(!contrib.includes(doubleCatch));
-		assert.ok(contrib.includes('return quickInputService.input({ prompt: localize(\'urlToOpen\', "URL to open"), value }).then(input => {'));
-		assert.ok(!contrib.includes(`return quickInputService.input({ prompt: localize('urlToOpen', "URL to open"), value }).then(input => {${doubleCatch}`));
-		assert.ok(contrib.includes('urlService.open(uri, { originalUrl: input });'));
-		assert.ok(!contrib.includes(`urlService.open(uri, { originalUrl: input })${doubleCatch}`));
-		const urlLegalLeftover = 0;
-		assert.ok(urlLegalLeftover < 4);
 	});
 
 	test('this knife covers nine leftover Promise single-chain sites after url leftover remaining overflow', () => {

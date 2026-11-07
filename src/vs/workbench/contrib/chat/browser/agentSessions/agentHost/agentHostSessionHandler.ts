@@ -2433,7 +2433,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 				return;
 			}
 			previousServers = servers;
-			void this._filterAutoGrantedMcpAuthentication(sessionResource, servers).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this._filterAutoGrantedMcpAuthentication(sessionResource, servers).catch(onUnexpectedError);
 		};
 		const disposables = new DisposableStore();
 		disposables.add(sessionSub.onDidChange(reconcile));
@@ -2600,7 +2600,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 							} else if (execution.activeAttempts === 0 && clientToolExecutions.get(key) !== execution) {
 								execution.source.dispose();
 							}
-						}).catch(onUnexpectedError).catch(onUnexpectedError);
+						}).catch(onUnexpectedError);
 					};
 					if (claimant) {
 						execute(claimant);
@@ -3215,7 +3215,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 				});
 		}).catch(err => {
 			this._logService.warn(`[AgentHost] Tool confirmation failed for toolCallId=${toolCallId}`, err);
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		});
 	}
 
 	// ---- Per-turn observable graph ------------------------------------------
@@ -3676,7 +3676,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 					ownedIds.add(server.id);
 				}
 				part.servers.set(servers.filter(server => ownedIds.has(server.id)), undefined);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 		}));
 	}
 
@@ -4427,7 +4427,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 					answers,
 				});
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		if (opts.cancellationToken.isCancellationRequested) {
 			carousel.completion.complete({ answers: undefined });
@@ -4500,7 +4500,7 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 				requestId: inputReq.id,
 				...completion,
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 
 		if (opts.cancellationToken.isCancellationRequested) {
 			review.dismiss();

@@ -283,7 +283,7 @@ export class CodeLensContribution implements IEditorContribution {
 						if (this._isDisposed || this._disposables.isDisposed || this._localToDispose.isDisposed) {
 							break;
 						}
-						this._commandService.executeCommand(command.id, ...(command.arguments || [])).catch(err => this._notificationService.error(err)).catch(onUnexpectedError);
+						this._commandService.executeCommand(command.id, ...(command.arguments || [])).catch(err => this._notificationService.error(err));
 						break;
 					}
 				}

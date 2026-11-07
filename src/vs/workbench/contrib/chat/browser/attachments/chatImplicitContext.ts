@@ -68,7 +68,7 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 							codeEditor.onDidChangeCursorSelection,
 							codeEditor.onDidScrollChange),
 						() => undefined,
-						500)(() => this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError)));
+						500)(() => this.updateImplicitContext().catch(onUnexpectedError)));
 				}
 
 				const notebookEditor = this.findActiveNotebookEditor();
@@ -84,7 +84,7 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 									codeEditor.onDidChangeCursorSelection,
 									codeEditor.onDidScrollChange),
 								() => undefined,
-								500)(() => this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError)));
+								500)(() => this.updateImplicitContext().catch(onUnexpectedError)));
 						}
 					}));
 
@@ -94,25 +94,25 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 							notebookEditor.onDidChangeActiveCell
 						),
 						() => undefined,
-						500)(() => this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError)));
+						500)(() => this.updateImplicitContext().catch(onUnexpectedError)));
 				}
 				const webviewEditor = this.findActiveWebviewEditor();
 				if (webviewEditor) {
 					activeEditorDisposables.add(Event.debounce((webviewEditor.input as WebviewInput).webview.onMessage, () => undefined, 500)(() => {
-						this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
+						this.updateImplicitContext().catch(onUnexpectedError);
 					}));
 				}
 
-				this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateImplicitContext().catch(onUnexpectedError);
 			})));
 		this._register(autorun((reader) => {
 			this.chatEditingService.editingSessionsObs.read(reader);
-			this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateImplicitContext().catch(onUnexpectedError);
 		}));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('chat.implicitContext.enabled')) {
 				this._implicitContextEnablement = this.configurationService.getValue<{ [mode: string]: string }>('chat.implicitContext.enabled');
-				this.updateImplicitContext().catch(onUnexpectedError).catch(onUnexpectedError);
+				this.updateImplicitContext().catch(onUnexpectedError);
 			}
 		}));
 		this._register(this.chatService.onDidSubmitRequest(({ chatSessionResource }) => {
@@ -125,7 +125,7 @@ export class ChatImplicitContextContribution extends Disposable implements IWork
 			}
 		}));
 		this._register(this.chatWidgetService.onDidAddWidget(widget => {
-			this.updateImplicitContext(widget).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.updateImplicitContext(widget).catch(onUnexpectedError);
 		}));
 	}
 

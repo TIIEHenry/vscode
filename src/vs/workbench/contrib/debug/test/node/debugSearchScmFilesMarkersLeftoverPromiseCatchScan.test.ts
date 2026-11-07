@@ -15,7 +15,6 @@ const ADAPTER_REL = 'src/vs/workbench/contrib/debug/browser/debugAdapterManager.
 const SEARCH_VIEW_REL = 'src/vs/workbench/contrib/search/browser/searchView.ts';
 const EXPLORER_REL = 'src/vs/workbench/contrib/files/browser/views/explorerView.ts';
 const SCM_REPOS_REL = 'src/vs/workbench/contrib/scm/browser/scmRepositoriesViewPane.ts';
-const MARKERS_REL = 'src/vs/workbench/contrib/markers/browser/markersTreeViewer.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -88,12 +87,4 @@ suite('debug/search/scm/files/markers leftover Promise fire-and-forget catch sca
 		assertDoubleChain(source, 'void this.commandService.executeCommand(e.element.artifact.command.id, e.element.repository.provider, e.element.artifact)', 1);
 	});
 
-	test('markers setQuickFixes leftover is double-chain; openEditor stays skipped', () => {
-		const source = fs.readFileSync(resolveSource(MARKERS_REL), 'utf8');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.ok(source.includes('private async setQuickFixes(waitForModel: boolean): Promise<void> {'));
-		assertDoubleChain(source, 'void this.setQuickFixes(true)', 1);
-		assert.ok(source.includes('}, ACTIVE_GROUP).then(() => undefined);'));
-		assert.ok(!source.includes('}, ACTIVE_GROUP).then(() => undefined).catch'));
-	});
 });

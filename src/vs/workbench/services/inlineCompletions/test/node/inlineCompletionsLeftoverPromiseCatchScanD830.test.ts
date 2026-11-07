@@ -13,28 +13,11 @@ const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const OPENER_REL = 'src/vs/platform/opener/common/opener.ts';
 const UNIFICATION_REL = 'src/vs/workbench/services/inlineCompletions/common/inlineCompletionsUnification.ts';
-const EDITING_REL = 'src/vs/workbench/contrib/chat/browser/chatEditing/chatEditingModifiedNotebookEntry.ts';
-const TEXT_MODEL_REL = 'src/vs/workbench/contrib/chat/browser/chatEditing/chatEditingTextModelChangeService.ts';
-const IMPLICIT_REL = 'src/vs/workbench/contrib/chat/browser/attachments/chatImplicitContext.ts';
-const WORKBENCH_SVC_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts';
-const CHAT_ENTITLEMENT_REL = 'src/vs/workbench/services/chat/common/chatEntitlementService.ts';
-const ENABLEMENT_REL = 'src/vs/workbench/services/extensionManagement/browser/extensionEnablementService.ts';
-const ACCOUNT_REL = 'src/vs/workbench/services/policies/common/accountPolicyService.ts';
-const SETTINGS_REL = 'src/vs/workbench/contrib/preferences/browser/settingsEditor2.ts';
-const XTERM_REL = 'src/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.ts';
-const PROGRESS_REL = 'src/vs/workbench/services/progress/browser/progressService.ts';
-const NOTEBOOK_REL = 'src/vs/workbench/contrib/notebook/browser/notebookEditorWidget.ts';
-const SECRETS_REL = 'src/vs/workbench/services/secrets/electron-browser/secretStorageService.ts';
-const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts';
-const GETTING_STARTED_REL = 'src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts';
-const CONFIG_REL = 'src/vs/workbench/services/configuration/browser/configuration.ts';
 const FOLDING_REL = 'src/vs/workbench/contrib/folding/browser/folding.contribution.ts';
 const INLAY_HINTS_REL = 'src/vs/workbench/contrib/inlayHints/browser/inlayHintsAccessibilty.ts';
 const LANGUAGE_STATUS_REL = 'src/vs/workbench/contrib/languageStatus/browser/languageStatus.ts';
 const SUGGEST_REL = 'src/vs/workbench/services/suggest/browser/simpleSuggestWidget.ts';
 const NOTIFICATION_REL = 'src/vs/workbench/services/notification/common/notificationService.ts';
-const VIEWLET_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts';
-const WIDGETS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWidgets.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -62,12 +45,6 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
-}
-
 function assertSingleWrapped(source: string, call: string): void {
 	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call}${doubleCatch}`), `double catch remains: ${call}`);
@@ -76,12 +53,6 @@ function assertSingleWrapped(source: string, call: string): void {
 
 const updateCall = 'this._update()';
 const refetchThenCall = '() => this._update()';
-const initDiffCall = 'this.initializeModelsFromDiff()';
-const updateDiffSeqCall = 'this._updateDiffInfoSeq()';
-const updateImplicitCall = 'this.updateImplicitContext()';
-const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
-const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
-const autoUpdateCall = 'this.autoUpdateBuiltinExtensions()';
 
 const d830Calls: Array<[string, string, number]> = [
 	[UNIFICATION_REL, updateCall, 5],
@@ -180,60 +151,4 @@ suite('leftover remaining unused after D829 moved to inlineCompletions leftover 
 		}
 	});
 
-	test('D829 chatEditing already-double stays already-double; owned leftover modules stay untouched; leftover remaining unused leftover stays leftover remaining unused', () => {
-		const editing = fs.readFileSync(resolveSource(EDITING_REL), 'utf8');
-		const textModel = fs.readFileSync(resolveSource(TEXT_MODEL_REL), 'utf8');
-		const implicit = fs.readFileSync(resolveSource(IMPLICIT_REL), 'utf8');
-		const workbench = fs.readFileSync(resolveSource(WORKBENCH_SVC_REL), 'utf8');
-		const entitlement = fs.readFileSync(resolveSource(CHAT_ENTITLEMENT_REL), 'utf8');
-		const enablement = fs.readFileSync(resolveSource(ENABLEMENT_REL), 'utf8');
-		const account = fs.readFileSync(resolveSource(ACCOUNT_REL), 'utf8');
-		const settings = fs.readFileSync(resolveSource(SETTINGS_REL), 'utf8');
-		const xterm = fs.readFileSync(resolveSource(XTERM_REL), 'utf8');
-		const progress = fs.readFileSync(resolveSource(PROGRESS_REL), 'utf8');
-		const notebook = fs.readFileSync(resolveSource(NOTEBOOK_REL), 'utf8');
-		const secrets = fs.readFileSync(resolveSource(SECRETS_REL), 'utf8');
-		const tasks = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
-		const gettingStarted = fs.readFileSync(resolveSource(GETTING_STARTED_REL), 'utf8');
-		const config = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
-		const viewlet = fs.readFileSync(resolveSource(VIEWLET_REL), 'utf8');
-		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
-
-		assertWrapped(editing, initDiffCall);
-		assert.strictEqual(countIncludes(editing, `${initDiffCall}${doubleCatch}`), 10);
-		assert.ok(textModel.includes(`${updateDiffSeqCall};`) || textModel.includes(`\t\t\tthis._updateDiffInfoSeq();\n`));
-		assert.ok(!textModel.includes(`${updateDiffSeqCall}${doubleCatch}`));
-		assert.ok(implicit.includes(`${updateImplicitCall}${doubleCatch}`));
-		assert.ok(workbench.includes(`${autoUpdateCall}${singleCatch}`));
-		assert.ok(!workbench.includes(`${autoUpdateCall}${doubleCatch}`));
-		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
-		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
-		assert.ok(widgets.includes(`${openViewThenCall};`));
-		assert.ok(!widgets.includes(`${openViewThenCall}${doubleCatch}`));
-
-		for (const [rel, source] of [
-			[EDITING_REL, editing],
-			[TEXT_MODEL_REL, textModel],
-			[IMPLICIT_REL, implicit],
-			[WORKBENCH_SVC_REL, workbench],
-			[CHAT_ENTITLEMENT_REL, entitlement],
-			[ENABLEMENT_REL, enablement],
-			[ACCOUNT_REL, account],
-			[SETTINGS_REL, settings],
-			[XTERM_REL, xterm],
-			[PROGRESS_REL, progress],
-			[NOTEBOOK_REL, notebook],
-			[SECRETS_REL, secrets],
-			[TASKS_REL, tasks],
-			[GETTING_STARTED_REL, gettingStarted],
-			[CONFIG_REL, config],
-		] as const) {
-			assert.ok(!source.includes('D830'), `${rel} should not mention D830`);
-		}
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/emergencyAlert/test/node/unusedLeftoverPromiseCatchScanD830.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/chat/test/node/chatImplicitContextLeftoverPromiseCatchScanD830.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/chat/test/node/chatEditingLeftoverPromiseCatchScanD830.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/chat/test/node/chatEntitlementLeftoverPromiseCatchScanD830.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD830.test.ts')));
-	});
 });

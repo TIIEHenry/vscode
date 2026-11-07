@@ -17,27 +17,6 @@ const OUTPUT_CONTRIB_REL = 'src/vs/workbench/contrib/output/browser/output.contr
 const OUTPUT_MODEL_REL = 'src/vs/workbench/contrib/output/common/outputChannelModel.ts';
 const OUTPUT_VIEW_REL = 'src/vs/workbench/contrib/output/browser/outputView.ts';
 const FIND_MODEL_REL = 'src/vs/workbench/contrib/notebook/browser/contrib/find/findModel.ts';
-const SEARCH_WIDGET_REL = 'src/vs/workbench/contrib/search/browser/searchWidget.ts';
-const SEARCH_EDITOR_REL = 'src/vs/workbench/contrib/searchEditor/browser/searchEditor.ts';
-const TESTING_REL = 'src/vs/workbench/contrib/testing/browser/testingOutputPeek.ts';
-const GETTING_STARTED_REL = 'src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.ts';
-const GETTING_STARTED_CONTRIB_REL = 'src/vs/workbench/contrib/welcomeGettingStarted/browser/gettingStarted.contribution.ts';
-const INLINE_REL = 'src/vs/workbench/services/inlineCompletions/common/inlineCompletionsUnification.ts';
-const MGMT_REL = 'src/vs/workbench/services/userDataProfile/browser/userDataProfileManagement.ts';
-const TEXT_MODEL_REL = 'src/vs/workbench/contrib/chat/browser/chatEditing/chatEditingTextModelChangeService.ts';
-const PROFILE_MODEL_REL = 'src/vs/workbench/contrib/userDataProfile/browser/userDataProfilesEditorModel.ts';
-const COMMENTS_VIEW_REL = 'src/vs/workbench/contrib/comments/browser/commentsView.ts';
-const SETUP_REL = 'src/vs/workbench/contrib/chat/browser/chatSetup/chatSetupContributions.ts';
-const DEBUG_CONFIG_REL = 'src/vs/workbench/contrib/debug/browser/debugConfigurationManager.ts';
-const TASKS_REL = 'src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts';
-const VIEWLET_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts';
-const WIDGETS_REL = 'src/vs/workbench/contrib/extensions/browser/extensionsWidgets.ts';
-const SUGGEST_REL = 'src/vs/workbench/services/suggest/browser/simpleSuggestWidget.ts';
-const SETTINGS_REL = 'src/vs/workbench/contrib/preferences/browser/settingsEditor2.ts';
-const EDITING_REL = 'src/vs/workbench/contrib/chat/browser/chatEditing/chatEditingModifiedNotebookEntry.ts';
-const AICUSTOM_REL = 'src/vs/workbench/contrib/chat/browser/aiCustomization/aiCustomizationManagementEditor.ts';
-const MCP_DISCOVERY_REL = 'src/vs/workbench/contrib/mcp/common/discovery/installedMcpServersDiscovery.ts';
-const CONFIGURATION_REL = 'src/vs/workbench/services/configuration/browser/configuration.ts';
 
 function resolveSource(rel: string): string {
 	const candidates = [
@@ -76,24 +55,6 @@ const registerEventCall = 'this.onDidRegisterChannel(id)';
 const setLevelCall = 'this.setLevelIsDefaultContext()';
 const showRemovedCall = 'this.showChannel(channels[0].id)';
 const showDisposeCall = 'this.showChannel(channel.id)';
-const loopCheckThenCall = '.then(() => this.loopCheckForMaliciousExtensions())';
-const openViewThenCall = 'this.viewsService.openView(EXPLORER_VIEW_ID, true).then(() => this.explorerService.select(location, true))';
-const assignedThenCall = 'this._currentSuggestionDetails.then(() => {';
-const d794LockedCall = 'this.onConfigUpdate(undefined, true, true)';
-const leftoverScrollPrevCall = '\t\t\tthis.scrollPrev();\n';
-const leftoverSelectStepIdCall = '\t\t\tthis.selectStep(id);\n';
-const leftoverSelectStepToSelectCall = '\t\t\tthis.selectStep(toSelect);\n';
-const leftoverSelectStepUndefinedCall = '\t\t\t\tthis.selectStep(undefined);\n';
-const leftoverSelectStepLooseCall = '\t\t\teditorPane.selectStepLoose(stepID);\n';
-const assignedInProgressScroll = 'this.inProgressScroll = this.inProgressScroll.then(async () => {';
-const updateDiffSeqCall = 'this._updateDiffInfoSeq()';
-const initializeCall = 'this.initialize()';
-const refreshCall = 'this.refresh()';
-const checkInstallCall = 'this.checkExtensionInstallation(context)';
-const selectUndefinedCall = 'this.selectConfiguration(undefined)';
-const submitSearchCall = 'this.submitSearch()';
-const triggerSearchCall = 'this.triggerSearch({ resetCursor: false })';
-const openAndShowCall = 'this.openAndShow(messageItReferenceToUri(m))';
 
 const d844Calls: Array<[string, string, number]> = [
 	[FIND_MODEL_REL, researchCall, 4],
@@ -209,103 +170,4 @@ suite('leftover remaining unused after output leftover remaining unused moved to
 		assert.ok(!view.includes('D844'));
 	});
 
-	test('D828 leftover remaining locks stay leftover remaining unused; loopCheck / openView / assigned _currentSuggestionDetails.then stay leftover remaining unused; already-double stay already-double; this knife did not overflow into dirty leftover modules', () => {
-		const source = fs.readFileSync(resolveSource(FIND_MODEL_REL), 'utf8');
-		const gettingStarted = fs.readFileSync(resolveSource(GETTING_STARTED_REL), 'utf8');
-		const gettingStartedContrib = fs.readFileSync(resolveSource(GETTING_STARTED_CONTRIB_REL), 'utf8');
-		const viewlet = fs.readFileSync(resolveSource(VIEWLET_REL), 'utf8');
-		const widgets = fs.readFileSync(resolveSource(WIDGETS_REL), 'utf8');
-		const suggest = fs.readFileSync(resolveSource(SUGGEST_REL), 'utf8');
-		const settings = fs.readFileSync(resolveSource(SETTINGS_REL), 'utf8');
-		const textModel = fs.readFileSync(resolveSource(TEXT_MODEL_REL), 'utf8');
-		const profileModel = fs.readFileSync(resolveSource(PROFILE_MODEL_REL), 'utf8');
-		const comments = fs.readFileSync(resolveSource(COMMENTS_VIEW_REL), 'utf8');
-		const setup = fs.readFileSync(resolveSource(SETUP_REL), 'utf8');
-		const debugConfig = fs.readFileSync(resolveSource(DEBUG_CONFIG_REL), 'utf8');
-		const unification = fs.readFileSync(resolveSource(INLINE_REL), 'utf8');
-		const mgmt = fs.readFileSync(resolveSource(MGMT_REL), 'utf8');
-		const searchWidget = fs.readFileSync(resolveSource(SEARCH_WIDGET_REL), 'utf8');
-		const searchEditor = fs.readFileSync(resolveSource(SEARCH_EDITOR_REL), 'utf8');
-		const testing = fs.readFileSync(resolveSource(TESTING_REL), 'utf8');
-		const tasks = fs.readFileSync(resolveSource(TASKS_REL), 'utf8');
-		const editing = fs.readFileSync(resolveSource(EDITING_REL), 'utf8');
-		const aicustom = fs.readFileSync(resolveSource(AICUSTOM_REL), 'utf8');
-		const discovery = fs.readFileSync(resolveSource(MCP_DISCOVERY_REL), 'utf8');
-		const configuration = fs.readFileSync(resolveSource(CONFIGURATION_REL), 'utf8');
-
-		assert.ok(viewlet.includes(`${loopCheckThenCall};`));
-		assert.ok(!viewlet.includes(`${loopCheckThenCall}${doubleCatch}`));
-		assert.ok(widgets.includes(`${openViewThenCall};`));
-		assert.ok(!widgets.includes(`${openViewThenCall}${doubleCatch}`));
-		assert.ok(suggest.includes(assignedThenCall));
-		assert.ok(!suggest.includes(`${assignedThenCall}${doubleCatch}`));
-		assert.ok(settings.includes(`${d794LockedCall};`));
-		assert.ok(!settings.includes(`${d794LockedCall}${doubleCatch}`));
-
-		assert.ok(gettingStarted.includes(leftoverScrollPrevCall));
-		assert.ok(gettingStarted.includes(leftoverSelectStepIdCall));
-		assert.ok(gettingStarted.includes(leftoverSelectStepToSelectCall));
-		assert.ok(gettingStarted.includes(leftoverSelectStepUndefinedCall));
-		assert.ok(!gettingStarted.includes(`this.selectStep(id)${doubleCatch}`));
-		assert.ok(!gettingStarted.includes(`this.selectStep(toSelect)${doubleCatch}`));
-		assert.ok(!gettingStarted.includes(`this.selectStep(undefined)${doubleCatch}`));
-		assert.ok(gettingStarted.includes(assignedInProgressScroll));
-		assert.ok(!gettingStarted.includes(`${assignedInProgressScroll}${doubleCatch}`));
-		assert.ok(gettingStartedContrib.includes(leftoverSelectStepLooseCall));
-		assert.ok(!gettingStartedContrib.includes(`editorPane.selectStepLoose(stepID)${doubleCatch}`));
-
-		assert.ok(textModel.includes(`${updateDiffSeqCall};`) || textModel.includes('\t\t\tthis._updateDiffInfoSeq();\n'));
-		assert.ok(!textModel.includes(`${updateDiffSeqCall}${doubleCatch}`));
-		assert.ok(profileModel.includes(`${initializeCall};`));
-		assert.ok(!profileModel.includes(`${initializeCall}${doubleCatch}`));
-		assert.ok(!searchWidget.includes(`${submitSearchCall}${doubleCatch}`));
-		assert.ok(!searchEditor.includes(`${triggerSearchCall}${doubleCatch}`));
-		assert.ok(testing.includes(`${openAndShowCall};`));
-		assert.ok(!testing.includes(`${openAndShowCall}${doubleCatch}`));
-
-		assert.ok(comments.includes(`${refreshCall}.catch(onUnexpectedError)`));
-		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
-		assert.ok(debugConfig.includes(`${selectUndefinedCall}.catch(onUnexpectedError)`));
-		assert.ok(unification.includes(`this._update().catch(onUnexpectedError)`));
-		assert.ok(mgmt.includes(`this.switchProfile(profileToUse).catch(onUnexpectedError)`));
-		assert.ok(editing.includes(`this.initializeModelsFromDiff()${doubleCatch}`));
-		assert.ok(aicustom.includes(`this.showEmbeddedMcpDetail(server).catch(onUnexpectedError)`) || aicustom.includes(`this.showPluginDetail(item).catch(onUnexpectedError)`));
-		assert.ok(discovery.includes(`this.sync().catch(onUnexpectedError)`));
-		assert.ok(configuration.includes(`this.updateCache().catch(onUnexpectedError)`));
-
-		for (const [rel, file] of [
-			[GETTING_STARTED_REL, gettingStarted],
-			[GETTING_STARTED_CONTRIB_REL, gettingStartedContrib],
-			[VIEWLET_REL, viewlet],
-			[WIDGETS_REL, widgets],
-			[SUGGEST_REL, suggest],
-			[SETTINGS_REL, settings],
-			[TEXT_MODEL_REL, textModel],
-			[PROFILE_MODEL_REL, profileModel],
-			[COMMENTS_VIEW_REL, comments],
-			[SETUP_REL, setup],
-			[DEBUG_CONFIG_REL, debugConfig],
-			[INLINE_REL, unification],
-			[MGMT_REL, mgmt],
-			[SEARCH_WIDGET_REL, searchWidget],
-			[SEARCH_EDITOR_REL, searchEditor],
-			[TESTING_REL, testing],
-			[TASKS_REL, tasks],
-			[EDITING_REL, editing],
-			[AICUSTOM_REL, aicustom],
-			[MCP_DISCOVERY_REL, discovery],
-			[CONFIGURATION_REL, configuration],
-		] as const) {
-			assert.ok(!file.includes('D844'), `${rel} should stay off this knife`);
-		}
-		assert.ok(!source.includes('D844'));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/search/test/node/searchLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/testing/test/node/testingLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/comments/test/node/commentsLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/chat/test/node/chatSetupLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/debug/test/node/debugLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/contrib/welcomeGettingStarted/test/node/welcomeGettingStartedLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/inlineCompletions/test/node/inlineCompletionsLeftoverPromiseCatchScanD844.test.ts')));
-		assert.ok(!fs.existsSync(path.join(process.cwd(), 'src/vs/workbench/services/userDataProfile/test/node/userDataProfileManagementLeftoverPromiseCatchScanD844.test.ts')));
-	});
 });

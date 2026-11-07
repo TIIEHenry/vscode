@@ -207,8 +207,8 @@ export class ChatPetCustomizationAchievementContribution extends Disposable impl
 				return;
 			}
 			this.observationInitializationStarted = true;
-			void this.initializeCustomizationObservation().catch(onUnexpectedError).catch(onUnexpectedError);
-			void this.initializeMcpObservation().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.initializeCustomizationObservation().catch(onUnexpectedError);
+			void this.initializeMcpObservation().catch(onUnexpectedError);
 		}));
 	}
 
@@ -238,7 +238,7 @@ export class ChatPetCustomizationAchievementContribution extends Disposable impl
 			if (source !== this.observedCustomizationSource) {
 				this.observedCustomizationSource = source;
 				this.customizationBaselineReady = false;
-				void this.establishCustomizationBaseline(skills, instructions, source, true).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.establishCustomizationBaseline(skills, instructions, source, true).catch(onUnexpectedError);
 				return;
 			}
 			if (!this.customizationBaselineReady) {

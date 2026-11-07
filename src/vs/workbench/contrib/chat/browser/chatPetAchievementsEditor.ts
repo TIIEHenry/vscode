@@ -50,7 +50,7 @@ export class ChatPetAchievementsEditor extends EditorPane {
 		this._register(toDisposable(() => this.focusedContextKey.reset()));
 		this._register(autorun(reader => {
 			if (!this.chatPetService.enabled.read(reader) && this.input) {
-				void this.group.closeEditor(this.input).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.group.closeEditor(this.input).catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -63,7 +63,7 @@ export class ChatPetAchievementsEditor extends EditorPane {
 		this.editorDisposables.add(focusTracker.onDidBlur(() => this.focusedContextKey.set(false)));
 		this.widget = this.editorDisposables.add(this.instantiationService.createInstance(ChatPetAchievementsWidget, this.container, () => {
 			if (this.input) {
-				void this.group.closeEditor(this.input).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.group.closeEditor(this.input).catch(onUnexpectedError);
 			}
 		}));
 	}
