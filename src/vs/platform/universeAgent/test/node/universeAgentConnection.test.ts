@@ -14713,6 +14713,52 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		service.dispose();
 	});
 
+	test('loopback skip-auth DEADLINE_EXCEEDED closes the old channel before rediscovery commits a new one', async () => {
+		const clock = createReconnectClock();
+		class CountingTransport extends MockUniverseAgentGrpcTransport {
+			closes = 0;
+			override close(): void {
+				this.closes++;
+				super.close();
+			}
+		}
+		const skipAuthConnect = async (): Promise<UniverseAgentConnectResult> => ({ workDir: '/tmp/work', methods: ['ToolService.ListSkills'], events: [] });
+		const first = new CountingTransport({
+			connect: skipAuthConnect,
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.DEADLINE_EXCEEDED, 'deadline');
+			},
+		});
+		const second = new CountingTransport({ connect: skipAuthConnect });
+		const transports = [first, second];
+		const service = new UniverseAgentConnectionService(localEngineFixtureOptions(first, {
+			openLocalEngineTransport: () => transports.shift() as unknown as GrpcUniverseAgentClient,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		const dial = service as unknown as { _transport?: MockUniverseAgentGrpcTransport; _loopbackSkipAuth: boolean };
+		await Promise.resolve();
+		await Promise.resolve();
+		clock.fireAll();
+		await settleLocalTurns();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(dial._transport, first);
+		assert.strictEqual(dial._loopbackSkipAuth, true);
+
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(first.closes, 1);
+		assert.strictEqual(dial._transport, undefined);
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await settleLocalTurns();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(dial._transport, second);
+		assert.strictEqual(first.closes, 1);
+		assert.strictEqual(second.closes, 0);
+		service.dispose();
+	});
+
 	test('reconnect transport_failed still reschedules backoff (D410)', async () => {
 		const clock = createReconnectClock();
 		let resolves = 0;

@@ -2534,6 +2534,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._connectionPhase = { kind: 'connecting', reason: 'transport_lost' };
 				this._scheduleReconnect();
 			} else if (this._loopbackSkipAuth) {
+				this._closeInstalledTransport();
 				this._loopbackSkipAuth = false;
 				this._sessionToken = undefined;
 				this._connectionPhase = { kind: 'disconnected' };
@@ -2701,6 +2702,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._abandonLoopbackAttempt(attempt);
 				return;
 			}
+			if (this._transport !== transport) {
+				this._closeInstalledTransport();
+			}
 			this._applyConnectedCommit({
 				epoch,
 				transport,
@@ -2771,6 +2775,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			&& !this._suppressLocalEngineDiscovery
 			&& !this._activeProfileId
 			&& this._connectionPhase.kind === 'connecting';
+	}
+
+	/** Close only the channel; unlike `_dropPublishedTransport`, phase and skip-auth state stay with the caller. */
+	private _closeInstalledTransport(): void {
+		const current = this._transport;
+		if (!current) {
+			return;
+		}
+		this._disposeLinkEvents();
+		this._transport = undefined;
+		this._clearPublishedLink();
+		current.close();
 	}
 
 	private _abandonLoopbackAttempt(attempt: AuthenticatedLinkAttempt): void {
