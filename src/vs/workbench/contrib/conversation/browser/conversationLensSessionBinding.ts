@@ -394,7 +394,7 @@ export function copyTurn(host: IConversationLensSessionBindingHost, text: string
 
 	void host.clipboardService.writeText(text).catch(() => {
 		host.showPostFailure('failed');
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 
 }
 
@@ -575,7 +575,7 @@ export function regenerateTurn(
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
 			host.showPostFailure('failed');
 		}
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 
 }
 
@@ -609,7 +609,7 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
 			host.showPostFailure('failed');
 		}
-	}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}).catch(onUnexpectedError);
 
 }
 

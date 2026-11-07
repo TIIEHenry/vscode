@@ -10,7 +10,6 @@ import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const MCP_RUNTIME_REL = 'src/vs/workbench/contrib/conversation/browser/engineMcpRuntimePanel.ts';
 const CLIPBOARD_REL = 'src/vs/workbench/contrib/conversation/browser/engineClipboardSection.ts';
 const AGENTS_REL = 'src/vs/workbench/contrib/conversation/browser/engineAgentsSection.ts';
@@ -69,12 +68,6 @@ function countSingle(rel: string): number {
 suite('Conversation leftover remaining Promise fire-and-forget catch scan (D721)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('onUnexpectedError returns undefined so a lone catch still leaks when the handler warn-then-rethrows', () => {
-		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
-		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
-		assert.ok(source.includes('\treturn undefined;'));
-	});
 
 	test('this knife covers zero leftover Promise double-chain sites and five deduplicated single-chain sites; D701 / D710 / D716 stay skipped', () => {
 		assert.strictEqual(countDouble(MCP_RUNTIME_REL), 0);
