@@ -9,7 +9,7 @@ import { VSBuffer, newWriteableBufferStream } from '../../../../../base/common/b
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { isCancellationError } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { joinPath } from '../../../../../base/common/resources.js';
+import { basename, joinPath } from '../../../../../base/common/resources.js';
 import { listenStream } from '../../../../../base/common/stream.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -1348,7 +1348,7 @@ suite('Files - Browser upload cancel', () => {
 	// FileSystemProviderCapabilities is a const enum and is erased from this test bundle.
 	const PathCaseSensitive = 1 << 10;
 
-	function uploadFileService(files: Map<string, URI>, onWrite?: (resource: URI) => void, caseSensitive = false) {
+	function uploadFileService(files: Map<string, URI>, onWrite?: (resource: URI) => void, caseSensitive = false, contents = new Map<string, VSBuffer>()) {
 		return {
 			hasCapability: (_resource: URI, capability: number) => caseSensitive && capability === PathCaseSensitive,
 			exists: async (resource: URI) => files.has(resource.toString()),
@@ -1373,8 +1373,17 @@ suite('Files - Browser upload cancel', () => {
 			createFolder: async (resource: URI) => {
 				files.set(resource.toString(), resource);
 			},
-			writeFile: async (resource: URI) => {
+			readFile: async (resource: URI) => {
+				if (!files.has(resource.toString())) {
+					throw new FileOperationError('missing', FileOperationResult.FILE_NOT_FOUND);
+				}
+				return { resource, value: contents.get(resource.toString()) ?? VSBuffer.alloc(0) };
+			},
+			writeFile: async (resource: URI, value?: unknown) => {
 				files.set(resource.toString(), resource);
+				if (value instanceof VSBuffer) {
+					contents.set(resource.toString(), value);
+				}
 				onWrite?.(resource);
 			},
 			del: async (resource: URI, options?: { recursive?: boolean }) => {
@@ -1385,10 +1394,89 @@ suite('Files - Browser upload cancel', () => {
 				}
 				for (const victim of victims) {
 					files.delete(victim);
+					contents.delete(victim);
 				}
 			},
 		};
 	}
+
+	function uploadIntoExistingDirectory(fileService: ReturnType<typeof uploadFileService>, root: URI, folder: URI, children: IUploadEntry[], token: CancellationToken): Promise<IUploadResult[]> {
+		const upload = new BrowserFileUpload(
+			undefined!,
+			{ confirm: async () => ({ confirmed: true }) } as never,
+			{ applyBulkEdit: async () => { throw new Error('directories are not deleted before upload'); } } as never,
+			{ openEditor: async () => undefined } as never,
+			fileService as unknown as IFileService,
+			{ undo: async () => undefined } as unknown as IUndoRedoService,
+		) as unknown as IUploadApi;
+		const target = new ExplorerItem(root, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'upload-root');
+		target.addChild(new ExplorerItem(folder, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, basename(folder)));
+		return upload.doUpload(target, {
+			items: [{ webkitGetAsEntry: () => directoryEntry(basename(folder), children) }],
+		}, { report() { } }, token);
+	}
+
+	test('canceled upload into an existing directory restores the bytes of a file it overwrote', async () => {
+		installFileReader('load');
+		const root = URI.file('/upload-root');
+		const folder = joinPath(root, 'kept');
+		const oldFile = joinPath(folder, 'old.txt');
+		const createdFile = joinPath(folder, 'new.txt');
+		const files = rememberUploadFiles([folder, oldFile]);
+		const contents = new Map([[oldFile.toString(), VSBuffer.wrap(new Uint8Array([1, 2, 3]))]]);
+		const cts = store.add(new CancellationTokenSource());
+		const overwrittenWith: number[][] = [];
+		const fileService = uploadFileService(files, resource => {
+			if (resource.toString() === oldFile.toString() && overwrittenWith.length === 0) {
+				overwrittenWith.push([...contents.get(oldFile.toString())!.buffer]);
+				cts.cancel();
+			}
+		}, false, contents);
+
+		const results = await uploadIntoExistingDirectory(fileService, root, folder, [
+			fileEntry('old.txt', { name: 'old.txt', size: 3 } as File),
+			fileEntry('new.txt', { name: 'new.txt', size: 3 } as File),
+		], cts.token);
+
+		assert.deepStrictEqual(results, []);
+		assert.deepStrictEqual(overwrittenWith, [[4, 5, 6]]);
+		assert.deepStrictEqual([...contents.get(oldFile.toString())!.buffer], [1, 2, 3]);
+		assert.strictEqual(files.has(createdFile.toString()), false);
+	});
+
+	test('failed upload into an existing directory restores the bytes of a file it overwrote', async () => {
+		installFileReader('load');
+		const root = URI.file('/upload-root');
+		const folder = joinPath(root, 'kept');
+		const oldFile = joinPath(folder, 'old.txt');
+		const failingFile = joinPath(folder, 'bad.txt');
+		const files = rememberUploadFiles([folder, oldFile]);
+		const contents = new Map([[oldFile.toString(), VSBuffer.wrap(new Uint8Array([1, 2, 3]))]]);
+		const cts = store.add(new CancellationTokenSource());
+		const base = uploadFileService(files, undefined, false, contents);
+		let overwritten = false;
+		const fileService = {
+			...base,
+			writeFile: async (resource: URI, value?: unknown) => {
+				if (resource.toString() === failingFile.toString()) {
+					throw new Error('disk full');
+				}
+				await base.writeFile(resource, value);
+				overwritten ||= resource.toString() === oldFile.toString() && bytesEqual(contents.get(oldFile.toString())?.buffer, new Uint8Array([4, 5, 6]));
+			},
+		};
+
+		const results = await uploadIntoExistingDirectory(fileService, root, folder, [
+			fileEntry('old.txt', { name: 'old.txt', size: 3 } as File),
+			fileEntry('bad.txt', { name: 'bad.txt', size: 3 } as File),
+		], cts.token);
+
+		assert.strictEqual(cts.token.isCancellationRequested, false);
+		assert.deepStrictEqual(results, []);
+		assert.strictEqual(overwritten, true);
+		assert.deepStrictEqual([...contents.get(oldFile.toString())!.buffer], [1, 2, 3]);
+		assert.strictEqual(files.has(failingFile.toString()), false);
+	});
 
 	test('canceled new directory upload removes the directory and its child file', async () => {
 		installFileReader('load');

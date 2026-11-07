@@ -6,7 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { getFileNamesMessage, IConfirmation, IDialogService, IFileDialogService, IPromptButton } from '../../../../platform/dialogs/common/dialogs.js';
-import { ByteSize, FileOperationResult, FileSystemProviderCapabilities, IFileService, IFileStatWithMetadata, toFileOperationResult } from '../../../../platform/files/common/files.js';
+import { ByteSize, FileOperationResult, FileSystemProviderCapabilities, IFileService, IFileStat, IFileStatWithMetadata, toFileOperationResult } from '../../../../platform/files/common/files.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IProgress, IProgressService, IProgressStep, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IExplorerService } from './files.js';
@@ -47,6 +47,13 @@ interface IBrowserUploadOperation {
 	filesUploaded: number;
 
 	totalBytesUploaded: number;
+}
+
+interface IBrowserUploadRollback {
+	/** Names this upload created inside directories that already existed. */
+	readonly created: URI[];
+	/** Original contents of existing files this upload overwrote. */
+	readonly overwritten: { resource: URI; contents: VSBuffer }[];
 }
 
 interface IWebkitDataTransfer {
@@ -284,13 +291,13 @@ export class BrowserFileUpload {
 		return name.toLowerCase();
 	}
 
-	private async listUploadChildNames(resource: URI): Promise<ReadonlySet<string>> {
+	private async listUploadChildren(resource: URI): Promise<ReadonlyMap<string, IFileStat>> {
 		const stat = await this.fileService.resolve(resource);
-		const names = new Set<string>();
+		const children = new Map<string, IFileStat>();
 		for (const child of stat.children ?? []) {
-			names.add(this.uploadChildKey(resource, child.name));
+			children.set(this.uploadChildKey(resource, child.name), child);
 		}
-		return names;
+		return children;
 	}
 
 	private async deleteCreatedUploadTree(resource: URI): Promise<void> {
@@ -303,7 +310,7 @@ export class BrowserFileUpload {
 		}
 	}
 
-	private async doUploadEntry(entry: IWebkitDataTransferItemEntry, parentResource: URI, target: ExplorerItem | undefined, progress: IProgress<IProgressStep>, operation: IBrowserUploadOperation, token: CancellationToken, createdResources?: URI[]): Promise<{ isFile: boolean; resource: URI } | undefined> {
+	private async doUploadEntry(entry: IWebkitDataTransferItemEntry, parentResource: URI, target: ExplorerItem | undefined, progress: IProgress<IProgressStep>, operation: IBrowserUploadOperation, token: CancellationToken, parentRollback?: IBrowserUploadRollback): Promise<{ isFile: boolean; resource: URI } | undefined> {
 		if (token.isCancellationRequested || !entry.name || (!entry.isFile && !entry.isDirectory)) {
 			return undefined;
 		}
@@ -371,18 +378,18 @@ export class BrowserFileUpload {
 				return undefined;
 			}
 
-			// Nested folders share the root upload's list. Only the outermost
-			// folder deletes it, after every nested level has recorded the
-			// names created inside an already-existing directory.
-			const ownsCleanup = createdResources === undefined;
-			const created = createdResources ?? [];
-			let preExistingChildNames: ReadonlySet<string> | undefined;
+			// Nested folders share the root upload's rollback. Only the outermost
+			// folder applies it, after every nested level has recorded the names
+			// it created and the files it overwrote in already-existing directories.
+			const ownsCleanup = parentRollback === undefined;
+			const rollback = parentRollback ?? { created: [], overwritten: [] };
+			let preExistingChildren: ReadonlyMap<string, IFileStat> | undefined;
 			let succeeded = false;
 			try {
 				// Create target folder
 				await this.fileService.createFolder(resource);
 				if (folderExisted) {
-					preExistingChildNames = await this.listUploadChildNames(resource);
+					preExistingChildren = await this.listUploadChildren(resource);
 				}
 
 				if (token.isCancellationRequested) {
@@ -415,20 +422,29 @@ export class BrowserFileUpload {
 					} else if (childEntry.isDirectory) {
 						folderChildEntries.push(childEntry);
 					}
-					if (folderExisted && preExistingChildNames && childEntry.name && !preExistingChildNames.has(this.uploadChildKey(resource, childEntry.name))) {
-						created.push(joinPath(resource, childEntry.name));
+					if (folderExisted && preExistingChildren && childEntry.name && !preExistingChildren.has(this.uploadChildKey(resource, childEntry.name))) {
+						rollback.created.push(joinPath(resource, childEntry.name));
 					}
 				}
 
 				// Upload files (up to `MAX_PARALLEL_UPLOADS` in parallel)
 				const fileUploadQueue = new Limiter(BrowserFileUpload.MAX_PARALLEL_UPLOADS);
 				await Promises.settled(fileChildEntries.map(fileChildEntry => {
-					return fileUploadQueue.queue(() => this.doUploadEntry(fileChildEntry, resource, folderTarget, progress, operation, token, created));
+					return fileUploadQueue.queue(async () => {
+						// Keep the bytes of a file this upload is about to overwrite so
+						// that a cancelled or failed upload can write them back.
+						const existingChild = fileChildEntry.name ? preExistingChildren?.get(this.uploadChildKey(resource, fileChildEntry.name)) : undefined;
+						if (existingChild && !existingChild.isDirectory && !token.isCancellationRequested) {
+							const { value } = await this.fileService.readFile(existingChild.resource);
+							rollback.overwritten.push({ resource: existingChild.resource, contents: value });
+						}
+						return this.doUploadEntry(fileChildEntry, resource, folderTarget, progress, operation, token, rollback);
+					});
 				}));
 
 				// Upload folders (sequentially give we don't know their sizes)
 				for (const folderChildEntry of folderChildEntries) {
-					await this.doUploadEntry(folderChildEntry, resource, folderTarget, progress, operation, token, created);
+					await this.doUploadEntry(folderChildEntry, resource, folderTarget, progress, operation, token, rollback);
 				}
 
 				if (token.isCancellationRequested) {
@@ -439,8 +455,11 @@ export class BrowserFileUpload {
 				return { isFile: false, resource };
 			} finally {
 				if (!succeeded && ownsCleanup) {
+					for (const { resource: overwrittenResource, contents } of rollback.overwritten) {
+						await this.fileService.writeFile(overwrittenResource, contents);
+					}
 					if (folderExisted) {
-						for (const createdResource of created) {
+						for (const createdResource of rollback.created) {
 							await this.deleteCreatedUploadTree(createdResource);
 						}
 					} else {
