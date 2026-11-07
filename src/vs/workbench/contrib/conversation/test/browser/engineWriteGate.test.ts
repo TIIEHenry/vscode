@@ -73,6 +73,34 @@ suite('EngineWriteGate', () => {
 		assert.strictEqual(gate.isCurrent(third), false);
 	});
 
+	test('refresh token without a published identity dies on a link change', () => {
+		const gateStore = store.add(new DisposableStore());
+		const published: { engineIdentityId?: string; linkId?: number } = { linkId: 1 };
+		const gate = new EngineRefreshGate(connection(published), gateStore);
+		const token = gate.begin();
+		assert.strictEqual(gate.isCurrent(token), true);
+		published.linkId = 2;
+		assert.strictEqual(gate.isCurrent(token), false);
+		published.linkId = 1;
+		published.engineIdentityId = 'engine-a';
+		assert.strictEqual(gate.isCurrent(token), false);
+		gateStore.dispose();
+	});
+
+	test('refresh token dies on disconnect with or without a published identity', () => {
+		const gateStore = store.add(new DisposableStore());
+		for (const engineIdentityId of [undefined, 'engine-a']) {
+			const published: { engineIdentityId?: string; linkId?: number } = { engineIdentityId, linkId: 1 };
+			const gate = new EngineRefreshGate(connection(published), gateStore);
+			const token = gate.begin();
+			assert.strictEqual(gate.isCurrent(token), true);
+			published.linkId = undefined;
+			published.engineIdentityId = undefined;
+			assert.strictEqual(gate.isCurrent(token), false, `identity ${engineIdentityId}`);
+		}
+		gateStore.dispose();
+	});
+
 	test('selection mismatch and in-flight generation reuse the existing copies', () => {
 		const gateStore = store.add(new DisposableStore());
 		const linked = connection({ engineIdentityId: 'engine-a', linkId: 3 });

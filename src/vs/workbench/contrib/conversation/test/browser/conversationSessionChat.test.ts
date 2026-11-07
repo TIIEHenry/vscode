@@ -58,7 +58,7 @@ import { ForkConversationAction } from '../../../chat/browser/actions/chatForkAc
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';
 import { IChatSessionsService } from '../../../chat/common/chatSessionsService.js';
 import { getChatSessionType } from '../../../chat/common/model/chatUri.js';
-import { conversationForkEngineDisconnectedCopy, tryConnectedEngineFork } from '../../browser/conversationForkEngine.js';
+import { conversationForkEngineDisconnectedCopy, tryConnectedEngineForkForSource } from '../../browser/conversationForkEngine.js';
 
 const TEST_CONVERSATION_CHAT_EDITOR_ID = 'workbench.editor.conversationChat.test';
 
@@ -339,7 +339,7 @@ suite('Conversation session chat (S3)', () => {
 				return false;
 			}
 
-			const outcome = await tryConnectedEngineFork(services.roster, services.notificationService, services.connection);
+			const outcome = await tryConnectedEngineForkForSource(services.roster, services.notificationService, services.connection, sourceSessionResource);
 			if (outcome.handled) {
 				return outcome.forked;
 			}
@@ -532,7 +532,7 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
 	});
 
-	test('connected fork action forwards AgentService.Fork and skips local fork tab', async () => {
+	test('connected fork of a Chat contributed session uses Chat fork, not the active roster session', async () => {
 		const roster = store.add(new ConnectedForkRoster());
 		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster);
 		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
@@ -558,7 +558,34 @@ suite('Conversation session chat (S3)', () => {
 			URI.parse('agent-host-copilot:/fork-source'),
 		);
 		assert.strictEqual(handled, true);
-		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.deepStrictEqual(roster.forkCalls, []);
+		assert.strictEqual(forkCalls, 1);
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.ok(sessionChatService.findOpenTabForChat(SESSION_KEY, 'peer-1'));
+	});
+
+	test('connected fork of a roster conversation resource forwards AgentService.Fork and skips local fork tab', async () => {
+		const roster = store.add(new ConnectedForkRoster());
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness(roster);
+		instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+		instantiationService.stub(IConversationSessionChatService, sessionChatService);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		let forkCalls = 0;
+		instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+			getContentProviderSchemes: () => ['agent-host-copilot'],
+			forkChatSession: async () => {
+				forkCalls++;
+				throw new Error('must not Chat-fork a roster session');
+			},
+		}));
+
+		const handled = await new TestConversationForkAction().tryForkAsChat(
+			instantiationService,
+			getConversationChatResource(SESSION_KEY, 'default'),
+		);
+		assert.strictEqual(handled, true);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: SESSION_KEY }]);
 		assert.strictEqual(forkCalls, 0);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
@@ -592,11 +619,11 @@ suite('Conversation session chat (S3)', () => {
 
 		const forked = await new TestConversationForkAction().tryForkAsChat(
 			instantiationService,
-			URI.parse('agent-host-copilot:/fork-source'),
+			getConversationChatResource(SESSION_KEY, 'default'),
 		);
 		assert.strictEqual(forked, false);
 		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
-		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: SESSION_KEY }]);
 		assert.strictEqual(forkCalls, 0);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
@@ -630,11 +657,11 @@ suite('Conversation session chat (S3)', () => {
 
 		const forked = await new TestConversationForkAction().tryForkAsChat(
 			instantiationService,
-			URI.parse('agent-host-copilot:/fork-source'),
+			getConversationChatResource(SESSION_KEY, 'default'),
 		);
 		assert.strictEqual(forked, false);
 		assert.deepStrictEqual(errors, ['Could not fork conversation.']);
-		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: roster.getActiveSessionId() }]);
+		assert.deepStrictEqual(roster.forkCalls, [{ sessionId: SESSION_KEY }]);
 		assert.strictEqual(forkCalls, 0);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).length, 0);
@@ -675,7 +702,7 @@ suite('Conversation session chat (S3)', () => {
 
 		const forked = await new TestConversationForkAction().tryForkAsChat(
 			instantiationService,
-			URI.parse('agent-host-copilot:/fork-source'),
+			getConversationChatResource(SESSION_KEY, 'default'),
 		);
 		assert.strictEqual(forked, false);
 		assert.deepStrictEqual(errors, [conversationForkEngineDisconnectedCopy]);

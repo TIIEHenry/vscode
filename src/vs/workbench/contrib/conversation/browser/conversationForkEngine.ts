@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { parseConversationChatResource } from '../common/conversationChatInput.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { IConversationRosterService, settleDispatchedEngineWrite } from './conversationStubService.js';
@@ -41,8 +43,36 @@ function isKeepLeftoverListFailWrite(roster: IConversationRosterService): boolea
 	return isConversationSessionNotReady(roster);
 }
 
+/**
+ * Roster session a fork source names. Only a conversation chat resource is
+ * keyed by a roster session id. Chat contributed sessions (agent host,
+ * extensions) have no roster counterpart and must keep their own fork path.
+ */
+export function resolveConversationEngineForkSessionId(
+	roster: Pick<IConversationRosterService, 'getSessions'>,
+	sourceSessionResource: URI,
+): string | undefined {
+	const sessionKey = parseConversationChatResource(sourceSessionResource)?.sessionKey;
+	return sessionKey && roster.getSessions().some(session => session.id === sessionKey) ? sessionKey : undefined;
+}
+
+/** Unhandled when the source is not a roster session. */
+export async function tryConnectedEngineForkForSource(
+	roster: IConversationRosterService,
+	notificationService: INotificationService,
+	ua: IConversationPairingHoldSource | undefined,
+	sourceSessionResource: URI,
+): Promise<ConversationEngineForkOutcome> {
+	const sessionId = resolveConversationEngineForkSessionId(roster, sourceSessionResource);
+	if (sessionId === undefined) {
+		return { handled: false, forked: false };
+	}
+	return tryConnectedEngineFork(roster, sessionId, notificationService, ua);
+}
+
 export async function tryConnectedEngineFork(
 	roster: IConversationRosterService,
+	sessionId: string,
 	notificationService: INotificationService,
 	ua?: IConversationPairingHoldSource,
 	options?: { readonly anchorTurnId?: string },
@@ -66,8 +96,8 @@ export async function tryConnectedEngineFork(
 		const forked = await settleDispatchedEngineWrite(
 			roster,
 			anchorTurnId
-				? roster.forkSubAgent(roster.getActiveSessionId(), { anchorTurnId })
-				: roster.forkSubAgent(roster.getActiveSessionId()),
+				? roster.forkSubAgent(sessionId, { anchorTurnId })
+				: roster.forkSubAgent(sessionId),
 		);
 		if (forked) {
 			return { handled: true, forked: true };
