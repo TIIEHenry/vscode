@@ -19,6 +19,18 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .notifications-list-container .notification-list-item .notification-list-item-toolbar-container .action-label,
+.monaco-workbench.monaco-reduce-motion > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .notifications-list-container .notification-list-item .notification-list-item-toolbar-container .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .action-label {
+		transition: none;
+	}
+}
+
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-toolbar-container .action-label:active,
 .monaco-workbench > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .action-label:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));

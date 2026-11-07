@@ -81,6 +81,16 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .activitybar .menubar.compact .toolbar-toggle-more {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .activitybar .menubar.compact .toolbar-toggle-more {
+		transition: none;
+	}
+}
+
 .monaco-workbench .activitybar .menubar.compact .toolbar-toggle-more:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

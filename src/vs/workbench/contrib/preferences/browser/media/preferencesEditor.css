@@ -158,6 +158,16 @@
 	}
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .preferences-editor .back-to-client-settings.monaco-button:focus-visible {
+	outline: none;
+}
+
+.monaco-workbench.hc-black .preferences-editor .back-to-client-settings.monaco-button:focus-visible,
+.monaco-workbench.hc-light .preferences-editor .back-to-client-settings.monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 :is(.hc-black, .hc-light) .preferences-editor .preferences-editor-header .preferences-tabs-container {
 	border-bottom: 1px solid var(--vscode-contrastBorder);
 }
@@ -222,4 +232,16 @@
 
 .preferences-editor:has(:is(.engine-preferences-pane, .connection-preferences-pane).is-narrow) .preferences-editor-header {
 	padding-inline: 16px;
+}
+
+.monaco-workbench.monaco-reduce-motion .preferences-editor .back-to-client-settings.monaco-button,
+.monaco-workbench.monaco-reduce-motion .preferences-editor .preferences-tabs-container .action-item .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .preferences-editor .back-to-client-settings.monaco-button,
+	.monaco-workbench:not(.monaco-enable-motion) .preferences-editor .preferences-tabs-container .action-item .action-label {
+		transition: none;
+	}
 }

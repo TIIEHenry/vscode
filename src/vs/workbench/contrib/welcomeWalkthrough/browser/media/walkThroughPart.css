@@ -154,7 +154,51 @@
 }
 
 .monaco-workbench .part.editor > .content .walkThroughContent a[href]:focus {
-	outline-color: var(--vscode-focusBorder);
+	outline: none;
+}
+
+.monaco-workbench .part.editor > .content .walkThroughContent select:focus {
+	outline: none;
+}
+
+.monaco-workbench .part.editor > .content .walkThroughContent input:focus {
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .walkThroughContent input:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .walkThroughContent input:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .walkThroughContent input:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .walkThroughContent select:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .walkThroughContent select:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .walkThroughContent select:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .walkThroughContent a[href]:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .part.editor > .content .walkThroughContent a[href]:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .walkThroughContent a[href]:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.editor > .content .walkThroughContent code,

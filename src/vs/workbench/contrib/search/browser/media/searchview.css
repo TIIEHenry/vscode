@@ -44,6 +44,17 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .search-widget .toggle-replace-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .search-view .search-widget .toggle-replace-button:focus-visible,
+.monaco-workbench.hc-light .search-view .search-widget .toggle-replace-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .monaco-workbench .search-view .search-widget .toggle-replace-button:active {
 	background-color: var(--vscode-toolbar-activeBackground);
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
@@ -126,6 +137,17 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .search-widget .replace-container .monaco-action-bar .action-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .search-view .search-widget .replace-container .monaco-action-bar .action-label:focus-visible,
+.monaco-workbench.hc-light .search-view .search-widget .replace-container .monaco-action-bar .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .search-view .query-details {
 	min-height: 1em;
 	position: relative;
@@ -147,6 +169,17 @@
 
 .search-view .query-details .more:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .query-details .more:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .search-view .query-details .more:focus-visible,
+.monaco-workbench.hc-light .search-view .query-details .more:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .search-view .query-details .file-types {
@@ -220,6 +253,18 @@
 
 .search-view .message a:hover {
 	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .message a:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .search-view .message a:focus-visible,
+.monaco-workbench.hc-light .search-view .message a:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .search-view .message .keyword-refresh {
@@ -474,6 +519,18 @@
 .text-search-provider-messages .providerMessage a:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .text-search-provider-messages .providerMessage a:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .text-search-provider-messages .providerMessage a:focus-visible,
+.monaco-workbench.hc-light .text-search-provider-messages .providerMessage a:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .search-view .monaco-list.element-focused .monaco-list-row.focused.selected:not(.highlighted) .action-label:focus {

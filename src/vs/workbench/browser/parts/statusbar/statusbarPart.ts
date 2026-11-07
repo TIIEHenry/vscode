@@ -431,8 +431,10 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 	focus(preserveEntryFocus = true): void {
 		this.getContainer()?.focus();
 		const lastFocusedEntry = this.viewModel.lastFocusedEntry;
-		if (preserveEntryFocus && lastFocusedEntry) {
+		if (preserveEntryFocus && lastFocusedEntry?.labelContainer.isConnected) {
 			setTimeout(() => lastFocusedEntry.labelContainer.focus(), 0); // Need a timeout, for some reason without it the inner label container will not get focused
+		} else {
+			setTimeout(() => this.focusNextEntry(), 0);
 		}
 	}
 
@@ -743,8 +745,9 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 
 				/* Status bar item focus outline */
 				.monaco-workbench .part.statusbar > .items-container > .statusbar-item a:focus-visible {
-					outline: 1px solid ${this.getColor(activeContrastBorder) ?? itemBorderColor};
-					outline-offset: ${borderColor ? '-2px' : '-1px'};
+					${isHighContrast(this.theme.type)
+						? `outline: 1px solid ${this.getColor(activeContrastBorder) ?? itemBorderColor};\n\t\t\t\t\toutline-offset: ${borderColor ? '-2px' : '-1px'};`
+						: 'outline: none;\n\t\t\t\t\tbackground-color: var(--vscode-statusBarItem-hoverBackground);'}
 				}
 
 				/* Notification Beak */

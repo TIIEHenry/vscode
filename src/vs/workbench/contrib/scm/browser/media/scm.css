@@ -463,6 +463,18 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .scm-view .button-container > .monaco-button-dropdown > .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench.hc-black .scm-view .button-container > .monaco-button-dropdown > .monaco-button:focus-visible,
+.monaco-workbench.hc-light .scm-view .button-container > .monaco-button-dropdown > .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .scm-view .button-container > .monaco-button-dropdown > .monaco-dropdown-button {
 	display:flex;
 	align-items: center;

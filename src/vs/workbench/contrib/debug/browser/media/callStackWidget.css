@@ -79,6 +79,17 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .multiCallStackFrame .collapse-button a:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .multiCallStackFrame .collapse-button a:focus-visible,
+.monaco-workbench.hc-light .multiCallStackFrame .collapse-button a:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .multiCallStackFrame .title[role="link"] {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: opacity 0.12s ease;
@@ -88,6 +99,17 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .multiCallStackFrame .title[role="link"]:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .multiCallStackFrame .title[role="link"]:focus-visible,
+.monaco-workbench.hc-light .multiCallStackFrame .title[role="link"]:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .monaco-editor .call-stack-go-to-file-link {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: opacity 0.12s ease;
@@ -95,4 +117,16 @@
 
 .monaco-editor .call-stack-go-to-file-link:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .call-stack-go-to-file-link:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench.hc-black .monaco-editor .call-stack-go-to-file-link:focus-visible,
+.monaco-workbench.hc-light .monaco-editor .call-stack-go-to-file-link:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }

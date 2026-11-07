@@ -26,8 +26,15 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
-.pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench.hc-black .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible,
+.monaco-workbench.hc-light .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 2px;
 }
 

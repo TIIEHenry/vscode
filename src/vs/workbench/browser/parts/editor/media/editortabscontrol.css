@@ -26,6 +26,18 @@
 	transition: opacity 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .title-label a,
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .title-label a,
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container > .title .title-label a:active,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a:active {
 	opacity: 0.85;

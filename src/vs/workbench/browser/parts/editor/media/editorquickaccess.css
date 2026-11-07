@@ -9,9 +9,31 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor {
+		transition: none;
+	}
+}
+
 .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:focus-visible,
+.monaco-workbench.hc-light .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .quick-input-list .quick-input-list-entry.has-actions:hover .quick-input-list-entry-action-bar .action-label.dirty-editor::before {
 	/* Close icon flips between black dot and "X" for dirty open editors */
 	content: var(--vscode-icon-x-content);

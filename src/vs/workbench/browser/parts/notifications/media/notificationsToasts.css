@@ -67,6 +67,12 @@
 	transition: transform 0ms ease-out, opacity 0ms ease-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) > .notifications-toasts .notification-toast-container > .notification-toast {
+		transition: none;
+	}
+}
+
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast.notification-fade-in {
 	opacity: 1;
 	transform: none;

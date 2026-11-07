@@ -24,8 +24,29 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .screen-reader-detected-explanation .cancel {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .cancel {
+		transition: none;
+	}
+}
+
 .monaco-workbench .screen-reader-detected-explanation .cancel:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .screen-reader-detected-explanation .cancel:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .screen-reader-detected-explanation .cancel:focus-visible,
+.monaco-workbench.hc-light .screen-reader-detected-explanation .cancel:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .screen-reader-detected-explanation h2 {
@@ -56,6 +77,27 @@
 	max-width: fit-content;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .screen-reader-detected-explanation .buttons a {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .buttons a {
+		transition: none;
+	}
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .screen-reader-detected-explanation .buttons a:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .screen-reader-detected-explanation .buttons a:focus-visible,
+.monaco-workbench.hc-light .screen-reader-detected-explanation .buttons a:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .screen-reader-detected-explanation .buttons a:active {

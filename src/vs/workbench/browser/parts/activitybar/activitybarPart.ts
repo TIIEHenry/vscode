@@ -824,6 +824,9 @@ registerThemingParticipant((theme, collector) => {
 		collector.addRule(`
 			.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked .active-item-indicator {
 				z-index: 0;
+			}
+
+			.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.checked .active-item-indicator::before {
 				background-color: ${activityBarActiveBackgroundColor};
 			}
 		`);

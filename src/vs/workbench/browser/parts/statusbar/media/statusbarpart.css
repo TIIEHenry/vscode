@@ -14,7 +14,17 @@
 }
 
 .monaco-workbench.monaco-enable-motion .part.statusbar {
-	transition: background-color 0.15s ease-out;
+	transition: background-color 100ms ease-out;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.statusbar {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.statusbar {
+		transition: none;
+	}
 }
 
 .monaco-workbench.mac:not(.fullscreen) .part.statusbar:focus {
@@ -26,6 +36,16 @@
 	/* macOS Tahoe increased rounded corners size */
 	border-bottom-right-radius: 16px;
 	border-bottom-left-radius: 16px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.statusbar:focus-visible {
+	outline: none;
+}
+
+.monaco-workbench.hc-black .part.statusbar:focus-visible,
+.monaco-workbench.hc-light .part.statusbar:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.statusbar:not(:focus).status-border-top::after {
@@ -111,9 +131,30 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item a:active:not(.disabled) .statusbar-item-label,
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label:active {
 	background-color: var(--vscode-statusBarItem-activeBackground, rgba(255, 255, 255, 0.18));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label:focus-visible {
+	outline: none;
+	background-color: var(--vscode-statusBarItem-hoverBackground, var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1)));
+}
+
+.monaco-workbench.hc-black .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label:focus-visible,
+.monaco-workbench.hc-light .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item.compact-left > .statusbar-item-label {

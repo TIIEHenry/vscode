@@ -80,3 +80,14 @@
 .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button:focus-visible,
+.monaco-workbench.hc-light .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
