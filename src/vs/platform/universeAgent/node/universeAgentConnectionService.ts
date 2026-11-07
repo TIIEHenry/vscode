@@ -544,6 +544,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _workDir: string | undefined;
 	private _sharedFsRootSent = false;
 	private _pairingPending = false;
+	/** `_connectEpoch` that set `_pairingPending`; an older epoch never owns the flag. */
+	private _pairingPendingEpoch: number | undefined;
 	private _agentTreeProbeUnsupported = false;
 	private _agentTreeFetchFailed = false;
 	private _fetchToolDetailUnsupported = false;
@@ -951,7 +953,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 		if (!result.sessionToken) {
 			this._abandonCaptured(captured);
-			this._pairingPending = false;
+			this._clearPairingPending();
 			this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason: MISSING_SESSION_TOKEN_REASON };
 			this._transportState = this._transportState === 'ok' ? 'idle' : this._transportState;
 			this._fireSnapshotChanged();
@@ -1073,9 +1075,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 						state: 'pairingPending',
 						allowPrivateNetwork: false,
 					};
-				this._connectionProfileStore?.put(cleared);
 				this._abandonCaptured(captured);
-				return this._startProfilePairing(profileId, cleared, reconnect, epoch);
+				return this._startProfilePairing(profileId, cleared, reconnect, epoch, true);
 			}
 			const token = handshake.result.sessionToken ?? '';
 			attempt = this._armAuthenticatedLink(captured, token);
@@ -1201,7 +1202,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 
 		if (confirmResult.snapshot.phase === 'grant_pending') {
-			this._pairingPending = true;
+			this._setPairingPending();
 			this._cancelReconnectTimer();
 			this._connectionPhase = { kind: 'connecting', reason: 'initial' };
 			this._fireSnapshotChanged();
@@ -1225,7 +1226,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				reason: 'no pairing awaiting confirmation',
 			};
 		}
-		this._pairingPending = false;
+		this._clearPairingPending();
 		return this.connectProfile(dialId);
 	}
 
@@ -1275,7 +1276,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._sessionToken = undefined;
 		this._workDir = undefined;
 		this._sharedFsRootSent = false;
-		this._pairingPending = false;
+		this._clearPairingPending();
 		this._resetCapabilitiesAndProbeFlags();
 		this._clearSaveSkillContentBinding();
 		this._transportState = 'idle';
@@ -2408,7 +2409,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._bumpConnectEpoch();
 		this._reconnectDisposed = true;
 		this._sessionToken = undefined;
-		this._pairingPending = false;
+		this._clearPairingPending();
 		this._cancelLocalEngineDiscoveryTimer();
 		this._resetReconnectBackoff();
 		this._disposeLinkEvents();
@@ -3000,6 +3001,25 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _bumpConnectEpoch(): void {
 		this._connectEpoch++;
 		this._pairingContextProfileId = undefined;
+		this._clearPairingPending();
+	}
+
+	private _setPairingPending(): void {
+		this._pairingPending = true;
+		this._pairingPendingEpoch = this._connectEpoch;
+	}
+
+	private _clearPairingPending(): void {
+		this._pairingPending = false;
+		this._pairingPendingEpoch = undefined;
+	}
+
+	/** A newer dial may already own the flag; only the epoch that set it may clear it. */
+	private _stalePairingDial(epoch: number): UniverseAgentConnectProfileResult {
+		if (this._pairingPending && this._pairingPendingEpoch === epoch) {
+			this._clearPairingPending();
+		}
+		return this._staleDial();
 	}
 
 	private _beginUserDial(): number {
@@ -3160,7 +3180,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._sessionToken = input.token;
 		this._loopbackSkipAuth = input.skipAuth;
 		this._workDir = input.workDir;
-		this._pairingPending = false;
+		this._clearPairingPending();
 		this._transportState = 'ok';
 		this._rememberAdvertisedMethods(input.methods);
 		this._agentTreeProbeUnsupported = false;
@@ -3240,11 +3260,16 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._authenticatedLinkFailure(attempt);
 	}
 
+	/**
+	 * @param persistClearedTrust `profile` is an in-memory `trust: null` copy; the stored trust
+	 * stays until `startPairing` reaches a confirmable phase on a still-current epoch.
+	 */
 	private async _startProfilePairing(
 		profileId: string,
 		profile: ConnectionProfile,
 		reconnect: boolean,
 		epoch: number,
+		persistClearedTrust = false,
 	): Promise<UniverseAgentConnectProfileResult> {
 		if (!this._epochCurrent(epoch) || this._blockedBySameEpochWinner(epoch)) {
 			return this._staleDial();
@@ -3278,7 +3303,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._activeProfileId = undefined;
 		}
 		this._pairingContextProfileId = profileId;
-		this._pairingPending = true;
+		this._setPairingPending();
 		this._cancelReconnectTimer();
 		this._transportState = 'idle';
 		this._connectionPhase = {
@@ -3294,23 +3319,26 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
 		} catch (error) {
 			if (!this._canMutateDial(epoch) || this._liveConnectedPublished()) {
-				return this._staleDial();
+				return this._stalePairingDial(epoch);
 			}
 			const reason = error instanceof Error ? error.message : String(error);
-			this._pairingPending = false;
+			this._clearPairingPending();
 			this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason };
 			this._fireSnapshotChanged();
 			return { ok: false, code: 'transport_failed', reason };
 		}
 		if (!this._canMutateDial(epoch) || this._liveConnectedPublished()) {
-			return this._staleDial();
+			return this._stalePairingDial(epoch);
 		}
 		if (!startResult.ok) {
 			const code = this._mapPairingFailureCode(startResult.code);
-			this._pairingPending = false;
+			this._clearPairingPending();
 			this._connectionPhase = { kind: 'failed', code, reason: startResult.reason };
 			this._fireSnapshotChanged();
 			return { ok: false, code, reason: startResult.reason };
+		}
+		if (persistClearedTrust) {
+			this._connectionProfileStore?.put(profile);
 		}
 
 		const snapshot = startResult.snapshot;

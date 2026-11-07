@@ -17598,6 +17598,207 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		}
 		service.dispose();
 	});
+
+	const awaitingSasStart = {
+		ok: true as const,
+		awaitingUserConfirm: true,
+		snapshot: {
+			phase: 'awaiting_sas_confirm' as const,
+			profileId: PAIRING_PROFILE_ID,
+			sasCode: 'ABCD-EFGH',
+			engineIdentityId: 'engine-id',
+			sessionTokenInstalled: false,
+		},
+	};
+
+	/** Pinned profile whose formal handshake answers `pairing_pending`. */
+	function formalPairingPendingFixture(
+		startPairing: (next: ConnectionProfile) => Promise<unknown>,
+		options: { readonly failUserDialsAfterFirst?: boolean; readonly service?: Partial<UniverseAgentConnectionServiceOptions> } = {},
+	) {
+		const leafDer = new Uint8Array([1, 2, 3, 4]);
+		const trust = createEngineTrustRecord({ leafDer, engineIdentityId: 'engine-id', establishedAt: 1 });
+		const profiles = new PairingTestProfileStore({
+			profileId: PAIRING_PROFILE_ID,
+			displayName: 'Direct',
+			target: { kind: 'directAddress', host: '203.0.113.10', port: 7443 },
+			trust,
+			state: 'active',
+			allowPrivateNetwork: true,
+		});
+		const tlsEndpoint = {
+			...plainDialEndpoint,
+			authority: '203.0.113.10:7443',
+			port: 7443,
+			resolvedIp: '203.0.113.10',
+			servername: 'engine.example',
+			tls: {
+				trustAnchorLeafDer: leafDer,
+				expectedLeafSha256Hex: trust.leafSha256Hex,
+				hostnameVerification: 'replaced-by-pin' as const,
+			},
+		};
+		let userDials = 0;
+		const service = new UniverseAgentConnectionService({
+			createPinnedTransport: () => new class extends MockUniverseAgentGrpcTransport {
+				override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+					return { authNonce: new Uint8Array(32), engineIdentityId: 'engine-id', engineCertFingerprint: trust.leafSha256Hex };
+				}
+				override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+					return { pairingNonce: 'nonce-1', methods: ['ToolService.ListSkills'], events: [] };
+				}
+			}(),
+			connectionProfileStore: profiles,
+			connectionResolver: {
+				resolve: async (_profileId: string, resolveOptions?: { readonly forPairing?: boolean }) => {
+					if (!resolveOptions?.forPairing && ++userDials > 1 && options.failUserDialsAfterFirst) {
+						return { ok: false as const, code: 'transport_failed' as const, reason: 'later dial refused', allowRelayFallback: false as const };
+					}
+					return { ok: true as const, allowRelayFallback: false as const, endpoint: resolveOptions?.forPairing ? plainDialEndpoint : tlsEndpoint };
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+			pairingOrchestrator: {
+				startPairing,
+				confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				getSnapshot: () => undefined,
+				abandonRecoverTrust: () => { },
+			} as unknown as PairingOrchestrator,
+			...options.service,
+		});
+		return { service, profiles, trust };
+	}
+
+	test('formal pairing_pending keeps the stored trust when startPairing fails or throws', async () => {
+		const failures: Array<() => Promise<unknown>> = [
+			async () => ({ ok: false as const, code: 'sas_mismatch', reason: 'sas mismatch' }),
+			async () => { throw new Error('pairing dial failed'); },
+		];
+		for (const startPairing of failures) {
+			const { service, profiles, trust } = formalPairingPendingFixture(startPairing);
+			const result = await service.connectProfile(PAIRING_PROFILE_ID);
+			assert.strictEqual(result.ok, false);
+			const stored = profiles.get(PAIRING_PROFILE_ID);
+			assert.strictEqual(stored?.trust?.engineIdentityId, trust.engineIdentityId);
+			assert.strictEqual(stored?.trust?.leafSha256Hex, trust.leafSha256Hex);
+			assert.strictEqual(stored?.state, 'active');
+			assert.strictEqual(service.getConnectionSnapshot().pairingPending, false);
+			service.dispose();
+		}
+	});
+
+	test('formal pairing_pending persists trust: null only once startPairing is confirmable', async () => {
+		let markEntered!: () => void;
+		const entered = new Promise<void>(resolve => { markEntered = resolve; });
+		let release!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const { service, profiles, trust } = formalPairingPendingFixture(async () => {
+			markEntered();
+			await gate;
+			return awaitingSasStart;
+		});
+		const pending = service.connectProfile(PAIRING_PROFILE_ID);
+		await entered;
+		assert.strictEqual(profiles.get(PAIRING_PROFILE_ID)?.trust?.leafSha256Hex, trust.leafSha256Hex);
+		release();
+		const result = await pending;
+		assert.strictEqual(result.ok, true);
+		const stored = profiles.get(PAIRING_PROFILE_ID);
+		assert.strictEqual(stored?.trust, null);
+		assert.strictEqual(stored?.state, 'pairingPending');
+		service.dispose();
+	});
+
+	test('superseded formal pairing keeps the stored trust and leaves no pairing flag behind', async () => {
+		const clock = createReconnectClock();
+		let markEntered!: () => void;
+		const entered = new Promise<void>(resolve => { markEntered = resolve; });
+		let release!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const { service, profiles, trust } = formalPairingPendingFixture(async () => {
+			markEntered();
+			await gate;
+			return awaitingSasStart;
+		}, {
+			failUserDialsAfterFirst: true,
+			service: { reconnectJitterRatio: 0, setTimeoutFn: clock.setTimeoutFn, clearTimeoutFn: clock.clearTimeoutFn },
+		});
+		const first = service.connectProfile(PAIRING_PROFILE_ID);
+		await entered;
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		const second = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(second.ok, false);
+		release();
+		const firstResult = await first;
+		assert.strictEqual(firstResult.ok, false);
+		if (!firstResult.ok) {
+			assert.strictEqual(firstResult.reason, 'dial superseded');
+		}
+
+		assert.strictEqual(profiles.get(PAIRING_PROFILE_ID)?.trust?.leafSha256Hex, trust.leafSha256Hex);
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		const confirmed = await service.confirmPairing();
+		assert.strictEqual(confirmed.ok, false);
+		if (!confirmed.ok) {
+			assert.strictEqual(confirmed.reason, 'no pairing awaiting confirmation');
+		}
+
+		assert.strictEqual(clock.pending.size, 0);
+		const dial = service as unknown as { _transport?: MockUniverseAgentGrpcTransport; _activeProfileId?: string; _transportState?: string };
+		dial._transport = new MockUniverseAgentGrpcTransport({
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		dial._activeProfileId = PAIRING_PROFILE_ID;
+		dial._transportState = 'ok';
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.pending.size, 1, 'a cleared pairing flag must not block reconnect');
+		service.dispose();
+	});
+
+	test('a stale pairing dial does not clear the pairing flag owned by the newer dial', async () => {
+		const releases: Array<() => void> = [];
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile()),
+			connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
+			pairingOrchestrator: {
+				startPairing: () => new Promise(resolve => releases.push(() => resolve(awaitingSasStart))),
+				confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				getSnapshot: () => undefined,
+				abandonRecoverTrust: () => { },
+			} as unknown as PairingOrchestrator,
+		});
+		const waitForStarts = async (count: number) => {
+			for (let i = 0; i < 50 && releases.length < count; i++) {
+				await timeout(0);
+			}
+			assert.strictEqual(releases.length, count);
+		};
+		const first = service.connectProfile(PAIRING_PROFILE_ID);
+		await waitForStarts(1);
+		const second = service.connectProfile(PAIRING_PROFILE_ID);
+		await waitForStarts(2);
+
+		releases[0]();
+		const firstResult = await first;
+		assert.strictEqual(firstResult.ok, false);
+		if (!firstResult.ok) {
+			assert.strictEqual(firstResult.reason, 'dial superseded');
+		}
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(dialOf(service)._pairingContextProfileId, PAIRING_PROFILE_ID);
+
+		releases[1]();
+		const secondResult = await second;
+		assert.strictEqual(secondResult.ok, true);
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+		service.dispose();
+	});
 });
 
 suite('UniverseAgentConnectionService dispose snapshot', () => {
