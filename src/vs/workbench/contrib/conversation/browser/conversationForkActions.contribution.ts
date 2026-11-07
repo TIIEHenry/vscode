@@ -82,9 +82,7 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 			const chatSessionsService = accessor.get(IChatSessionsService);
 			const sessionChatService = accessor.get(IConversationSessionChatService);
 			const notificationService = accessor.get(INotificationService);
-			const openViaConversationForkTab = chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(forkedSessionResource))
-				&& !accessor.get(IConversationRosterService).isEngineConnected();
-			if (!openViaConversationForkTab) {
+			if (!chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(forkedSessionResource))) {
 				return super._openForkedSession(instantiationService, parentSessionResource, forkedSessionResource);
 			}
 			try {
