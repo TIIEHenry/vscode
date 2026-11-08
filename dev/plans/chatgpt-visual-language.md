@@ -2468,3 +2468,11 @@ Editor 空态 watermark 的普通 icon action 保留原生命中区、命令、A
 AuxiliaryBar 标题栏的普通 `title-actions` 是未承载 checked/selected 语义的工具栏操作。保留命中区、命令、ARIA/键盘和 HC 焦点，将普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
 
 验证：`auxiliaryBarPartCss.test.ts` 4 passing；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。
+
+### §349 Workbench status and composite state face read-only audit（2026-11-08）
+
+复查 statusbar、Panel composite、AuxiliaryBar 与 ActivityBar 的直接 hover/active/focus 面。status item 承载 status、warning、error、prominent 语义，Panel/AuxiliaryBar composite actions 承载 checked/tab 语义，ActivityBar 使用 selected/status 伪层。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+
+### §350 Workbench stateful face audit second pass（2026-11-08）
+
+复查 statusbar、Panel composite、ActivityBar、AuxiliaryBar 与 Editor 的直接宿主面，确认 status item 的 warning/error/prominent 状态、composite checked/tab 状态和 ActivityBar selected/status 伪层仍是产品语义。Editor 与 modal action 为次级或状态操作，未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
