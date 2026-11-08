@@ -16,10 +16,12 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { ActiveEditorContext, ResourceContextKey } from '../../../common/contextkeys.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { sourcesGitDiffOpenFailureMessage } from '../common/sourcesChangesGitRead.js';
+import { SOURCES_GIT_DIFF_SCHEME } from './sourcesGitDiffContent.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
@@ -36,6 +38,7 @@ function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeE
 		instantiationService: accessor.get(IInstantiationService),
 		sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
 		editorGroupsService: accessor.get(IEditorGroupsService),
+		layoutService: accessor.get(IWorkbenchLayoutService),
 		session: accessor.get(IAgentSessionContext),
 	};
 }
@@ -47,7 +50,11 @@ export const SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND = 'sources.diff.moveToPreview'
 export const SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND = 'sources.diff.moveToPreviewFromView';
 
 const previewDiffTitleWhen = ContextKeyExpr.and(
-	ResourceContextKey.Scheme.isEqualTo(Schemas.file),
+	ContextKeyExpr.or(
+		ResourceContextKey.Scheme.isEqualTo(Schemas.file),
+		ResourceContextKey.Scheme.isEqualTo('git'),
+		ResourceContextKey.Scheme.isEqualTo(SOURCES_GIT_DIFF_SCHEME),
+	),
 	ContextKeyExpr.has('isInDiffEditor'),
 );
 

@@ -9,7 +9,7 @@ import { NullCommandService } from '../../../../../platform/commands/test/common
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore, isDisposable } from '../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { mock } from '../../../../../base/test/common/mock.js';
@@ -68,6 +68,8 @@ import { rememberSourcesDiffOpenIdentity, sourcesDiffOpenIdentity } from '../../
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
+import type { IAction } from '../../../../../base/common/actions.js';
 
 // Isolate the active A pane without changing diff identity, matching or model behavior.
 class SourcesHostDiffInput extends DiffEditorInput { }
@@ -2610,6 +2612,96 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(readCalls, 2);
 	});
 
+	function gatedReadConnection() {
+		let calls = 0;
+		const gates = new Map<number, DeferredPromise<void>>();
+		const connection = createGitReadConnection({
+			readGitChanges: async () => {
+				const call = ++calls;
+				await gates.get(call)?.p;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: `src/read-${call}.ts`, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
+			},
+		});
+		const gate = (call: number): DeferredPromise<void> => {
+			const deferred = new DeferredPromise<void>();
+			gates.set(call, deferred);
+			store.add({ dispose: () => { void deferred.complete(); } });
+			return deferred;
+		};
+		return { connection, calls: () => calls, gate };
+	}
+
+	async function waitForReadCalls(calls: () => number, expected: number): Promise<void> {
+		const deadline = Date.now() + 2000;
+		while (calls() < expected && Date.now() < deadline) {
+			await timeout(10);
+		}
+		assert.strictEqual(calls(), expected);
+	}
+
+	async function waitForSnapshotPath(model: ISourcesChangesModel, path: string): Promise<void> {
+		const deadline = Date.now() + 2000;
+		while (model.getSnapshot().entries[0]?.gitPath !== path && Date.now() < deadline) {
+			await timeout(10);
+		}
+		assert.strictEqual(model.getSnapshot().entries[0]?.gitPath, path);
+	}
+
+	async function startOverlappingManualRefresh() {
+		const reads = gatedReadConnection();
+		const instantiationService = stubChangesListServices(reads.connection);
+		store.add(instantiationService.createInstance(SourcesChangesList, mountHost()));
+		const model = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel));
+		await waitForReadCalls(reads.calls, 1);
+		await waitForSnapshotPath(model, 'src/read-1.ts');
+		const scheduledGate = reads.gate(2);
+		const manualGate = reads.gate(3);
+		model.scheduleRefresh();
+		await waitForReadCalls(reads.calls, 2);
+		const manual = model.refresh();
+		await waitForReadCalls(reads.calls, 3);
+		const settle = async (order: 'scheduled first' | 'manual first') => {
+			if (order === 'scheduled first') {
+				await scheduledGate.complete();
+				await manualGate.complete();
+			} else {
+				await manualGate.complete();
+				await scheduledGate.complete();
+			}
+			await manual;
+		};
+		return { reads, model, settle };
+	}
+
+	for (const order of ['scheduled first', 'manual first'] as const) {
+		test(`manual refresh overlapping a scheduled ReadGitChanges keeps later scheduled reads (${order} settles)`, async function () {
+			const { reads, model, settle } = await startOverlappingManualRefresh();
+			await settle(order);
+			await timeout(400);
+			assert.strictEqual(reads.calls(), 3, 'settling the overlap must not start a read by itself');
+			assert.strictEqual(model.getSnapshot().entries[0]?.gitPath, 'src/read-3.ts');
+
+			model.scheduleRefresh();
+			await waitForReadCalls(reads.calls, 4);
+			await waitForSnapshotPath(model, 'src/read-4.ts');
+		});
+
+		test(`ReadGitChanges requested during an overlapping manual refresh runs once after both reads settle (${order} settles)`, async function () {
+			const { reads, model, settle } = await startOverlappingManualRefresh();
+			model.scheduleRefresh();
+			await settle(order);
+			await waitForReadCalls(reads.calls, 4);
+			await waitForSnapshotPath(model, 'src/read-4.ts');
+			await timeout(400);
+			assert.strictEqual(reads.calls(), 4, 'one request during the overlap starts exactly one follow-up read');
+		});
+	}
+
 	test('scm snapshot with local rows keeps scm when readGitChanges throws again and Stage stays on git.stage', async function () {
 		let connected = false;
 		let readCalls = 0;
@@ -4657,7 +4749,18 @@ suite('Sources - Changes list leftover honesty', () => {
 			} as IUniverseAgentConnection;
 			const host = mountHost();
 			host.style.height = '800px';
-			const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+			const instantiationService = stubChangesListServices(connection);
+			const menu: { actions: readonly IAction[] | undefined } = { actions: undefined };
+			instantiationService.stub(IContextMenuService, {
+				onDidShowContextMenu: Event.None,
+				onDidHideContextMenu: Event.None,
+				showContextMenu: (delegate: { getActions(): readonly IAction[] }) => {
+					const actions = delegate.getActions();
+					menu.actions = actions;
+					store.add({ dispose: () => actions.forEach(action => isDisposable(action) && action.dispose()) });
+				},
+			} as unknown as IContextMenuService);
+			const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
 			const height = options.height ?? 600;
 			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = `${height}px`;
 			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
@@ -4665,7 +4768,7 @@ suite('Sources - Changes list leftover honesty', () => {
 			await timeout(0);
 			const entries = Array.from({ length: list.length }, (_, index) => list.element(index));
 			return {
-				host, widget, list, entries, rpc, stageCalls,
+				host, widget, list, entries, rpc, stageCalls, menu,
 				holdPairing: async () => {
 					pairingPending = true;
 					changed.fire(snapshot());
@@ -4675,6 +4778,16 @@ suite('Sources - Changes list leftover honesty', () => {
 						await timeout(20);
 					}
 					assert.strictEqual(host.querySelector('.monaco-list-row.is-group-start .sources-change-group .sources-change-checkbox')?.getAttribute('aria-disabled'), 'true');
+				},
+				refresh: async () => {
+					const summaries = rpc.summary;
+					changed.fire(snapshot());
+					const deadline = Date.now() + 2000;
+					while (rpc.summary === summaries && Date.now() < deadline) {
+						await timeout(20);
+					}
+					assert.ok(rpc.summary > summaries, 'the connection change must re-read Git changes');
+					await timeout(0);
 				},
 			};
 		}
@@ -5005,6 +5118,287 @@ suite('Sources - Changes list leftover honesty', () => {
 				assert.deepStrictEqual(fixture.stageCalls, []);
 			});
 		}
+
+		function listIndexOf(fixture: SelectionFixture, path: string): number {
+			for (let index = 0; index < fixture.list.length; index++) {
+				if (fixture.list.element(index).gitPath === path) {
+					return index;
+				}
+			}
+			throw new Error(`row ${path} is not listed`);
+		}
+
+		function typeFilter(fixture: SelectionFixture, value: string): HTMLInputElement {
+			const input = fixture.host.querySelector<HTMLInputElement>('.sources-list-filter-input');
+			assert.ok(input);
+			input.value = value;
+			input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+			return input;
+		}
+
+		function contextMenuActions(fixture: SelectionFixture, path: string): readonly IAction[] {
+			const row = fixture.host.querySelector<HTMLElement>(`.monaco-list-row[data-index="${listIndexOf(fixture, path)}"]`);
+			assert.ok(row, `row ${path} must be rendered`);
+			fixture.menu.actions = undefined;
+			row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+			return fixture.menu.actions ?? [];
+		}
+
+		test('checked leaves survive a filter that hides them and return when the filter clears', async () => {
+			const fixture = await createSelectionFixture();
+			fileCheckbox(fixture, 'src/a.ts').click();
+			typeFilter(fixture, 'd.ts');
+			assert.strictEqual(fixture.list.length, 1);
+			typeFilter(fixture, '');
+			assertSelection(fixture, ['src/a.ts'], { src: 'mixed', nested: false, other: false }, 'mixed');
+		});
+
+		test('Enter on a collapsed folder or group anchor expands it instead of opening the hidden file', async () => {
+			const fixture = await createSelectionFixture();
+			const before = { ...fixture.rpc };
+			folderCheckbox(fixture, 'nested').parentElement!.click();
+			const folderAnchor = listIndexOf(fixture, 'src/nested/b.ts');
+			fixture.list.setFocus([folderAnchor]);
+			fixture.list.setSelection([folderAnchor], getSelectionKeyboardEvent('keydown', false, false));
+			await timeout(50);
+			const afterFolder = { rpc: { ...fixture.rpc }, rows: fixture.list.length };
+			fixture.widget.toggleGroup('workingTree');
+			assert.strictEqual(fixture.list.length, 1);
+			fixture.list.setFocus([0]);
+			fixture.list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+			await timeout(50);
+			assert.deepStrictEqual({ afterFolder, rpc: fixture.rpc, groupExpanded: fixture.widget.isGroupExpanded('workingTree'), rows: fixture.list.length }, {
+				afterFolder: { rpc: before, rows: 4 },
+				rpc: before,
+				groupExpanded: true,
+				rows: 4,
+			});
+		});
+
+		test('Space and arrows on a collapsed group row toggle its checkbox and expansion', async () => {
+			const fixture = await createSelectionFixture();
+			const listNode = fixture.list.getHTMLElement();
+			fixture.widget.toggleGroup('workingTree');
+			fixture.list.setFocus([0]);
+			keyboardActivate(listNode, 32);
+			const checked = fixture.widget.groupCheckboxState('workingTree');
+			keyboardActivate(listNode, 39);
+			const expanded = { group: fixture.widget.isGroupExpanded('workingTree'), rows: fixture.list.length };
+			fixture.list.setFocus([listIndexOf(fixture, 'src/nested/c.ts')]);
+			keyboardActivate(listNode, 37);
+			assert.deepStrictEqual({ checked, expanded, rows: fixture.list.length, focused: fixture.list.getFocusedElements().map(element => element.gitPath) }, {
+				checked: true,
+				expanded: { group: true, rows: 4 },
+				rows: 3,
+				focused: ['src/nested/b.ts'],
+			});
+		});
+
+		function nestedFolderHeader(widget: SourcesChangesList, nested: ISourcesChangeEntry) {
+			return widget.folderHeaders(nested).find(header => header.label === 'nested');
+		}
+
+		test('collapsed folders and groups stay collapsed across filter input and model refreshes', async () => {
+			const fixture = await createSelectionFixture();
+			const setAllFoldersExpanded = (expanded: boolean) => (fixture.widget as unknown as { setAllFoldersExpanded(expanded: boolean): void }).setAllFoldersExpanded(expanded);
+			const state = () => ({
+				rows: fixture.list.length,
+				group: fixture.widget.isGroupExpanded('workingTree'),
+				nested: nestedFolderHeader(fixture.widget, entry(fixture, 'src/nested/b.ts'))?.expanded,
+			});
+
+			folderCheckbox(fixture, 'nested').parentElement!.click();
+			const collapsed = state();
+			typeFilter(fixture, 'a.ts');
+			typeFilter(fixture, '');
+			const afterFilter = state();
+			await fixture.refresh();
+			const afterRefresh = state();
+
+			fixture.widget.toggleGroup('workingTree');
+			await fixture.refresh();
+			const groupAfterRefresh = state();
+			fixture.widget.toggleGroup('workingTree');
+
+			setAllFoldersExpanded(false);
+			await fixture.refresh();
+			const allCollapsed = state();
+			setAllFoldersExpanded(true);
+			await fixture.refresh();
+			const allExpanded = state();
+
+			assert.deepStrictEqual({ collapsed, afterFilter, afterRefresh, groupAfterRefresh, allCollapsed, allExpanded }, {
+				collapsed: { rows: 3, group: true, nested: false },
+				afterFilter: { rows: 3, group: true, nested: false },
+				afterRefresh: { rows: 3, group: true, nested: false },
+				groupAfterRefresh: { rows: 1, group: false, nested: undefined },
+				allCollapsed: { rows: 1, group: false, nested: undefined },
+				allExpanded: { rows: 4, group: true, nested: true },
+			});
+		});
+
+		test('a collapsed folder that leaves the snapshot and comes back starts expanded', async () => {
+			const paths = [...defaultPaths];
+			const fixture = await createSelectionFixture({ paths });
+			folderCheckbox(fixture, 'nested').parentElement!.click();
+			const collapsedRows = fixture.list.length;
+			paths.splice(0, paths.length, 'src/a.ts', 'other/d.ts');
+			await fixture.refresh();
+			const withoutFolderRows = fixture.list.length;
+			paths.splice(0, paths.length, ...defaultPaths);
+			await fixture.refresh();
+			assert.deepStrictEqual({
+				collapsedRows,
+				withoutFolderRows,
+				rows: fixture.list.length,
+				nested: nestedFolderHeader(fixture.widget, entry(fixture, 'src/nested/b.ts'))?.expanded,
+			}, { collapsedRows: 3, withoutFolderRows: 2, rows: 4, nested: true });
+		});
+
+		for (const scope of ['work directory', 'resource root'] as const) {
+			test(`collapse records follow the tree scope, so the same folder under another session ${scope} starts expanded`, async () => {
+				const rooted = scope === 'resource root';
+				const workDirFor = (sessionId: string) => sessionId === 'session-a' ? '/repo-a' : '/repo-b';
+				let active = 'session-a';
+				const sessionChanged = store.add(new Emitter<string>());
+				const roster = {
+					getActiveSessionId: () => active,
+					onDidChangeActiveSession: sessionChanged.event,
+					onDidChangeSession: Event.None,
+					isEngineSessionReady: () => true,
+				} as unknown as IConversationRosterService;
+				const workRoot: IAgentWorkRoot = {
+					get sessionId(): string { return active; },
+					engineIdentityId: undefined,
+					get workDir(): string { return workDirFor(active); },
+					source: 'session',
+					get access(): IAgentWorkRoot['access'] { return rooted ? 'local' : 'engine'; },
+					get localRoot(): URI | undefined { return rooted ? URI.file(workDirFor(active)) : undefined; },
+					projectKey: undefined,
+				};
+				const repositories = (rooted ? ['/repo-a', '/repo-b'] : []).map(root => ({
+					provider: {
+						groups: [],
+						rootUri: URI.file(root),
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+						inputBoxTextModel: { setValue: () => { } },
+					},
+					input: { value: '', setValue: () => { }, onDidChange: Event.None },
+				}));
+				const scmService = {
+					_serviceBrand: undefined,
+					get repositories() { return repositories; },
+					get repositoryCount() { return repositories.length; },
+					onDidAddRepository: Event.None,
+					onDidRemoveRepository: Event.None,
+					registerSCMProvider: () => { throw new Error('not implemented'); },
+					getRepository: () => undefined,
+				} as unknown as ISCMService;
+				const connection = createGitReadConnection({
+					readGitChanges: async () => ({
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: defaultPaths.map(path => ({ path, oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' })),
+					}),
+				});
+				const host = mountHost();
+				host.style.height = '800px';
+				const instantiationService = stubChangesListServices(connection, scmService, undefined, undefined, roster, undefined, workRoot);
+				const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+				(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '600px';
+				const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+				list.layout(600, 400);
+				const model = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel));
+				const treeScope = () => (widget as unknown as { treeScope: string }).treeScope;
+				const expectedScope = (sessionId: string) => rooted ? URI.file(workDirFor(sessionId)).toString() : workDirFor(sessionId);
+				const nestedEntry = (): ISourcesChangeEntry => {
+					const found = Array.from({ length: list.length }, (_, index) => list.element(index)).find(element => element.gitPath === 'src/nested/b.ts');
+					assert.ok(found);
+					return found;
+				};
+				const showSession = async (sessionId: string) => {
+					active = sessionId;
+					sessionChanged.fire(sessionId);
+					const deadline = Date.now() + 2000;
+					const landed = () => {
+						const state = model.getSnapshot().state;
+						return state.kind !== 'scm' && state.sessionId === sessionId;
+					};
+					while (!landed() && Date.now() < deadline) {
+						await timeout(20);
+					}
+					assert.ok(landed(), `snapshot for ${sessionId} must land`);
+					await timeout(0);
+				};
+
+				const header = nestedFolderHeader(widget, nestedEntry());
+				assert.ok(header);
+				widget.toggleFolder(header.id);
+				const inA = { scope: treeScope(), rows: list.length };
+				await showSession('session-b');
+				const inB = { scope: treeScope(), rows: list.length, nested: nestedFolderHeader(widget, nestedEntry())?.expanded };
+				await showSession('session-a');
+				const backInA = { scope: treeScope(), rows: list.length, nested: nestedFolderHeader(widget, nestedEntry())?.expanded };
+				assert.deepStrictEqual({ inA, inB, backInA }, {
+					inA: { scope: expectedScope('session-a'), rows: 3 },
+					inB: { scope: expectedScope('session-b'), rows: 4, nested: true },
+					backInA: { scope: expectedScope('session-a'), rows: 4, nested: true },
+				});
+			});
+		}
+
+		test('row context menu offers Stage only where the row write action is supported', async () => {
+			const fixture = await createSelectionFixture({ indexPaths: ['locked/readonly.ts'] });
+			const writeIds = new Set(['sources.changes.stage', 'sources.changes.unstage']);
+			const readonlyWrites = contextMenuActions(fixture, 'locked/readonly.ts').filter(action => writeIds.has(action.id)).map(action => action.id);
+			const stage = contextMenuActions(fixture, 'src/a.ts').find(action => action.id === 'sources.changes.stage');
+			assert.ok(stage);
+			const enabled = stage.enabled;
+			await stage.run();
+			const deadline = Date.now() + 2000;
+			while (fixture.stageCalls.length === 0 && Date.now() < deadline) {
+				await timeout(10);
+			}
+			fixture.widget.toggleGroup('workingTree');
+			const anchorPath = Array.from({ length: fixture.list.length }, (_, index) => fixture.list.element(index)).find(element => element.groupId === 'workingTree')?.gitPath;
+			assert.ok(anchorPath);
+			const collapsedAnchor = contextMenuActions(fixture, anchorPath).map(action => action.id);
+			assert.deepStrictEqual({ readonlyWrites, enabled, label: stage.label, argv: fixture.stageCalls.map(call => call.commands[0]?.argv), collapsedAnchor }, {
+				readonlyWrites: [],
+				enabled: true,
+				label: localize('sourcesChangesList.stage', "Stage"),
+				argv: [['src/a.ts']],
+				collapsedAnchor: [],
+			});
+		});
+
+		test('filter box Down enters the first row, Escape on an empty box returns to the list, and a miss offers Clear filter', async () => {
+			const fixture = await createSelectionFixture();
+			const listNode = fixture.list.getHTMLElement();
+			const input = typeFilter(fixture, '');
+			input.focus();
+			keyboardActivate(input, 40);
+			const afterDown = { listFocused: listNode.contains(document.activeElement), focus: fixture.list.getFocus() };
+			fixture.list.setFocus([2]);
+			input.focus();
+			keyboardActivate(input, 27);
+			const afterEscape = { listFocused: listNode.contains(document.activeElement), focus: fixture.list.getFocus() };
+			typeFilter(fixture, 'zzz');
+			const link = fixture.host.querySelector<HTMLElement>('.sources-changes-empty .sources-list-filter-clear-link');
+			const missText = fixture.host.querySelector('.sources-changes-empty')?.textContent;
+			link?.click();
+			assert.deepStrictEqual({ afterDown, afterEscape, missText, link: link?.textContent, value: input.value, rows: fixture.list.length, inputFocused: document.activeElement === input }, {
+				afterDown: { listFocused: true, focus: [0] },
+				afterEscape: { listFocused: true, focus: [2] },
+				missText: `${localize('sourcesChangesList.noMatching', "No matching changes.")}${localize('sourcesListFilter.clearFilterLink', "Clear filter")}`,
+				link: localize('sourcesListFilter.clearFilterLink', "Clear filter"),
+				value: '',
+				rows: 4,
+				inputFocused: true,
+			});
+		});
 	});
 
 	test('renders IDEA-style folder rows with counts, checkboxes, and collapse behavior', async function () {

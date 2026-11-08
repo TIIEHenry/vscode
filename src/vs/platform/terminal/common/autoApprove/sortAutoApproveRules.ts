@@ -12,6 +12,10 @@ export const sortAutoApproveRules: Readonly<Record<string, boolean>> = {
 	// - `-o`: Writes output to a file.
 	// - `-S`: Can request enough memory to cause denial of service.
 	'/^sort\\b.*\\s-(o|S)\\b/': false,
+	// `-o` may also carry its value attached or end a cluster of short options without arguments,
+	// and `--output` accepts every abbreviation from `--o`.
+	'/^sort\\b(?!-)[\\s\\S]*\\s(?-i:(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\|[bdfghiMnRrVcCmsuz])*o)/': false,
+	'/^sort\\b(?!-)[\\s\\S]*\\s(?-i:(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*o)/': false,
 
 	// GNU sort accepts unique long-option abbreviations. `--co` is the shortest unique
 	// abbreviation for `--compress-program`; deny it and every longer spelling. Ignore

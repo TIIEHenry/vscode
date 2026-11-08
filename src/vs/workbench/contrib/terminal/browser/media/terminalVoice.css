@@ -29,6 +29,16 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .terminal-voice.recording.codicon.codicon-mic-filled {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .terminal-voice.recording.codicon.codicon-mic-filled {
+		transition: none;
+	}
+}
+
 .terminal-voice.recording.codicon.codicon-mic-filled:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

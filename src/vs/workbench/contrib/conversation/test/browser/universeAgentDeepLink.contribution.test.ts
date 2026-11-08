@@ -4,18 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { URI } from '../../../../base/common/uri.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
-import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
-import { GroupsOrder, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
-import { SettingsEditor2Input } from '../../../services/preferences/common/preferencesEditorInput.js';
-import { TestEditorGroupsService } from '../../../test/browser/workbenchTestServices.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
+import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
+import { GroupsOrder, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { SettingsEditor2Input } from '../../../../services/preferences/common/preferencesEditorInput.js';
+import { TestEditorGroupsService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	UniverseAgentDeepLinkHandler,
 	UNIVERSE_AGENT_SCHEME,
-} from './universeAgentDeepLink.contribution.js';
-import { UA_ENGINE_PANE_ID } from '../common/uaPreferencesPanes.js';
+} from '../../browser/universeAgentDeepLink.contribution.js';
+import { UA_ENGINE_PANE_ID } from '../../common/uaPreferencesPanes.js';
 
 suite('UniverseAgentDeepLinkHandler', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();

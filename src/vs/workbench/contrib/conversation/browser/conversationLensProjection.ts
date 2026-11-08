@@ -25,13 +25,19 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
-import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
+import { refreshStaleSnapshotBanner, requestReadingColumnDetail } from './conversationLensReadingColumn.js';
 import { conversationTimelineEmptyKind, engineQueueEditMustKeepHold, getConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
 export type ConversationLensId = 'conversation' | 'trajectory';
+
+let nextConversationLensAriaId = 0;
+
+export function createConversationLensAriaId(): string {
+	return `conversation-lens-${++nextConversationLensAriaId}`;
+}
 
 /** Session-layer key. The window key stays a one-time seed and is not removed. */
 export function conversationLensIdStorageKey(sessionId: string): string {
@@ -59,6 +65,7 @@ export interface IConversationLensProjectionHost {
 	/** Same dispose gate Mermaid resolve uses. */
 	readonly isDisposed: boolean;
 	lensId: ConversationLensId;
+	readonly lensAriaId: string;
 	filterAgentId: string | undefined;
 	inputMaximized: boolean;
 	conversationPhase: 'prefirst' | 'active' | undefined;
@@ -132,6 +139,16 @@ export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 
 const projectionCacheByHost = new WeakMap<IConversationLensProjectionHost, ConversationProjectionCache>();
 const reviewNavCacheByHost = new WeakMap<IConversationLensProjectionHost, ReviewNavAttachCache>();
+const requestedVisualizeDetailsByHost = new WeakMap<IConversationLensProjectionHost, Set<string>>();
+
+function requestedVisualizeDetailsFor(host: IConversationLensProjectionHost): Set<string> {
+	let set = requestedVisualizeDetailsByHost.get(host);
+	if (!set) {
+		set = new Set<string>();
+		requestedVisualizeDetailsByHost.set(host, set);
+	}
+	return set;
+}
 
 function projectionCacheFor(host: IConversationLensProjectionHost): ConversationProjectionCache {
 	let cache = projectionCacheByHost.get(host);
@@ -162,6 +179,22 @@ export function applySessionViewTimeline(host: IConversationLensProjectionHost, 
 		}
 		if (host.sessionViewLease.sessionId !== host.getBoundSessionId()) {
 			return;
+		}
+		if (host.sessionViewLease.requestDetail && !isConversationPairingHold(host.uaConnection)) {
+			const requested = requestedVisualizeDetailsFor(host);
+			for (const item of host.sessionViewLease.snapshot.timeline) {
+				if (item.summary.kind === 'tool' && item.summary.toolName === 'visualize' && item.detail !== undefined) {
+					const ref = String(item.detail);
+					if (!host.sessionViewLease.details.has(ref) && !requested.has(ref)) {
+						requested.add(ref);
+						void requestReadingColumnDetail(host, ref).finally(() => {
+							if (!host.sessionViewLease?.details.has(ref)) {
+								requested.delete(ref);
+							}
+						});
+					}
+				}
+			}
 		}
 		const baseEntries = projectSnapshotToEntries(
 			host.sessionViewLease.snapshot,
@@ -240,6 +273,15 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		}
 		const nextPhase = preFirst ? 'prefirst' : 'active';
 		if (host.conversationPhase === nextPhase) {
+			if (!preFirst) {
+				if (!host.filterAgentId) {
+					if (host.identityStrip.element.parentElement !== host.readingColumn) {
+						host.readingColumn.insertBefore(host.identityStrip.element, host.readingColumn.firstChild);
+					}
+				} else if (host.identityStrip.element.parentElement) {
+					host.identityStrip.element.remove();
+				}
+			}
 			// Agent SelectBox mounts after the first phase apply; keep PreFirst XOR in sync.
 			host.updateSessionConfigVisibility(preFirst);
 			(host as { updateComposerSingleLineLayout?(): void }).updateComposerSingleLineLayout?.();
@@ -318,18 +360,16 @@ export function navigateToTurnFromTrajectory(host: IConversationLensProjectionHo
 		if (host.inputMaximized) {
 			host.setInputMaximized(false);
 		}
-		host.timelineTree.revealTurn(turnId);
+		host.timelineTree.focusRecord(turnId);
 	
 }
 
+/** Always lands on the Trajectory lens; a turn without a record says so there instead of doing nothing. */
 export function navigateToTrajectoryFromTurn(host: IConversationLensProjectionHost, turnId: string): void {
 
 		const sessionId = host.getBoundSessionId();
 		const records = host.stubService.getTrajectoryRecords(sessionId, trajectoryProjectionOptions(host));
 		const recordId = findTrajectoryRecordIdForTurn(turnId, records);
-		if (!recordId) {
-			return;
-		}
 		if (host.lensId !== 'trajectory') {
 			host.lensId = 'trajectory';
 			storeLensId(host, 'trajectory');
@@ -338,7 +378,11 @@ export function navigateToTrajectoryFromTurn(host: IConversationLensProjectionHo
 			host.trajectoryView.show();
 			refreshTrajectoryRecords(host, sessionId);
 		}
-		host.trajectoryView.revealRecord(recordId);
+		if (!recordId) {
+			host.trajectoryView.reportUnmappedReveal({ focus: true });
+			return;
+		}
+		host.trajectoryView.revealRecord(recordId, { focus: true });
 	
 }
 
@@ -384,8 +428,8 @@ export function updateLensTabs(host: IConversationLensProjectionHost): void {
 		const isConversation = host.lensId === 'conversation';
 		host.lensTabConversation.setAttribute('aria-selected', String(isConversation));
 		host.lensTabTrajectory.setAttribute('aria-selected', String(!isConversation));
-		host.lensTabConversation.setAttribute('aria-controls', 'conversation-lens-panel-conversation');
-		host.lensTabTrajectory.setAttribute('aria-controls', 'conversation-lens-panel-trajectory');
+		host.lensTabConversation.setAttribute('aria-controls', `${host.lensAriaId}-panel-conversation`);
+		host.lensTabTrajectory.setAttribute('aria-controls', `${host.lensAriaId}-panel-trajectory`);
 		host.lensTabConversation.tabIndex = isConversation ? 0 : -1;
 		host.lensTabTrajectory.tabIndex = isConversation ? -1 : 0;
 	

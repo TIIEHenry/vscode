@@ -217,12 +217,13 @@ class FileContentProvider extends Disposable implements IContentProvider {
 		return this.logEntries;
 	}
 
-	async getContent(donotConsumeLogEntries?: boolean): Promise<{ readonly name: string; readonly content: string; readonly consume: () => boolean }> {
+	async getContent(donotConsumeLogEntries?: boolean): Promise<{ readonly name: string; readonly content: string; readonly canConsume: () => boolean; readonly consume: () => boolean }> {
 		try {
 			if (!this.fileService.hasProvider(this.resource)) {
 				return {
 					name: this.name,
 					content: '',
+					canConsume: () => true,
 					consume: () => true
 				};
 			}
@@ -232,15 +233,17 @@ class FileContentProvider extends Disposable implements IContentProvider {
 			const content = fileContent.value.toString();
 			const logEntries = donotConsumeLogEntries ? [] : this.parseLogEntries(content, this.logEntries[this.logEntries.length - 1]);
 			let consumed = false;
+			const ownsReadOffset = () => generation === this.contentGeneration && !this._store.isDisposed && this.endOffset === readOffset;
 			return {
 				name: this.name,
 				content,
+				canConsume: () => !consumed && ownsReadOffset(),
 				consume: () => {
 					if (consumed) {
 						return false;
 					}
 					consumed = true;
-					if (generation !== this.contentGeneration || this._store.isDisposed || this.endOffset !== readOffset) {
+					if (!ownsReadOffset()) {
 						return false;
 					}
 					this.endOffset += fileContent.value.byteLength;
@@ -256,6 +259,7 @@ class FileContentProvider extends Disposable implements IContentProvider {
 			return {
 				name: this.name,
 				content: '',
+				canConsume: () => true,
 				consume: () => true
 			};
 		}
@@ -382,11 +386,15 @@ class MultiFileContentProvider extends Disposable implements IContentProvider {
 					return false;
 				}
 				consumed = true;
-				const accepted = outputs.map(({ consume }) => consume()).every(ok => ok);
-				if (accepted) {
-					this.logEntries.push(...logEntries);
+				/* All or nothing: a rejected file must not leave the other files' offsets past bytes that were never written */
+				if (!outputs.every(({ canConsume }) => canConsume())) {
+					return false;
 				}
-				return accepted;
+				for (const { consume } of outputs) {
+					consume();
+				}
+				this.logEntries.push(...logEntries);
+				return true;
 			}
 		};
 	}
@@ -493,6 +501,7 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 
 	private readonly modelDisposable = this._register(new MutableDisposable<DisposableStore>());
 	protected model: ITextModel | null = null;
+	private placedModel: ITextModel | null = null;
 	private modelUpdateInProgress: boolean = false;
 	private readonly modelUpdateCancellationSource = this._register(new MutableDisposable<CancellationTokenSource>());
 	private readonly appendThrottler = this._register(new ThrottledDelayer(300));
@@ -528,6 +537,7 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 					if (consume()) {
 						this.doAppendContent(model, content);
 						placed = true;
+						this.placedModel = model;
 					}
 				}
 				this.modelDisposable.value.add(this.outputContentProvider.onDidReset(() => this.onDidContentChange(true, true)));
@@ -539,6 +549,7 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 					this.modelDisposable.value = undefined;
 					this.cancelModelUpdate();
 					this.model = null;
+					this.placedModel = null;
 				}));
 				c(model);
 			} catch (error) {
@@ -563,7 +574,8 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 		if (mode === OutputChannelUpdateMode.Clear || mode === OutputChannelUpdateMode.Replace) {
 			this.cancelModelUpdate();
 		}
-		if (!this.model) {
+		/* While loadModel has not placed the initial content it is the only reader: it reads the current sources from the current offsets. A second reader would void its reads. */
+		if (!this.model || this.model !== this.placedModel) {
 			return;
 		}
 
@@ -639,25 +651,46 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 	}
 
 	private async replaceContent(model: ITextModel, token: CancellationToken): Promise<void> {
-		/* Get content to replace */
-		const { content, consume } = await this.outputContentProvider.getContent();
-		/* Abort if operation is cancelled */
-		if (token.isCancellationRequested) {
-			return;
+		/* Get content to replace. Claim each read before computing edits: a rejected claim leaves the offset at the replace start, so read again instead of leaving these bytes to an append. */
+		let content = '';
+		let claimed = false;
+		while (!claimed) {
+			const read = await this.outputContentProvider.getContent();
+			/* Abort if operation is cancelled, the channel is disposed, or the model went away */
+			if (this.isReplaceAbandoned(model, token)) {
+				return;
+			}
+			if (read.consume()) {
+				content = read.content;
+				claimed = true;
+			}
 		}
 
 		/* Compute Edits */
-		const edits = await this.getReplaceEdits(model, content.toString());
-		/* Abort if operation is cancelled */
-		if (token.isCancellationRequested) {
+		let edits: ISingleEditOperation[] | undefined;
+		try {
+			edits = await this.getReplaceEdits(model, content);
+		} catch (error) {
+			onUnexpectedError(error);
+		}
+		/* Abort if operation is cancelled, the channel is disposed, or the model went away */
+		if (this.isReplaceAbandoned(model, token)) {
 			return;
 		}
+		/* The claimed bytes cannot be read again, so a failed diff still replaces the whole model */
+		if (!edits) {
+			edits = [EditOperation.replace(model.getFullModelRange(), content)];
+		}
 
-		if (consume() && edits.length) {
+		if (edits.length) {
 			/* Apply Edits */
 			model.applyEdits(edits);
 		}
 		this.modelUpdateInProgress = false;
+	}
+
+	private isReplaceAbandoned(model: ITextModel, token: CancellationToken): boolean {
+		return token.isCancellationRequested || this._store.isDisposed || this.model !== model || model.isDisposed();
 	}
 
 	private async getReplaceEdits(model: ITextModel, contentToReplace: string): Promise<ISingleEditOperation[]> {

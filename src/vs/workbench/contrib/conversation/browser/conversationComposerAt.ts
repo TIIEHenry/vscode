@@ -20,6 +20,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { disambiguateSwitcherLabels, sessionSwitcherRows } from './conversationLensSessionBar.js';
 import { appendConversationRefAnchor, conversationSessionPillHoverLines } from './conversationSessionPill.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import {
 	acceptComposerAtMention,
 	composerDraftText,
@@ -73,6 +74,8 @@ export interface IComposerAddHost extends IComposerAtHost {
 	addContextView: IOpenContextView | undefined;
 	readonly contextViewService: IContextViewService;
 	addButton: { readonly element: HTMLElement };
+	engineHistoryList?: { close(options?: { readonly restoreFocus?: boolean }): void };
+	engineSnapshotsList?: { close(options?: { readonly restoreFocus?: boolean }): void };
 }
 
 /** Plus button. Adds a session the composer already sends as a context chip. Not a file upload. */
@@ -81,6 +84,8 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 		host.addContextView.close();
 		return;
 	}
+	host.engineHistoryList?.close({ restoreFocus: false });
+	host.engineSnapshotsList?.close({ restoreFocus: false });
 	const binding = bindings.get(host);
 	const owner = anchor ?? host.addButton.element;
 	host.addContextView = host.contextViewService.showContextView({
@@ -104,6 +109,7 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 				empty.hidden = true;
 				const painted = new DisposableStore();
 				store.add(painted);
+				const items: HTMLButtonElement[] = [];
 				const detailBySession = new Map(sessionSwitcherRows(sessions).map(row => [row.id, row.detail]));
 				const optionRows = disambiguateSwitcherLabels(candidates.map(candidate => ({
 					candidate,
@@ -112,6 +118,7 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 				})));
 				const paint = (query: string) => {
 					painted.clear();
+					items.length = 0;
 					const needle = query.trim().toLowerCase();
 					reset(list);
 					const shown = needle
@@ -130,6 +137,7 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 							meta.textContent = row.detail;
 						}
 						item.title = row.detail ? `${row.label} — ${row.detail}` : row.label;
+						items.push(item);
 						painted.add(addDisposableListener(item, 'click', event => {
 							event.preventDefault();
 							event.stopPropagation();
@@ -138,22 +146,63 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 						}));
 					}
 				};
+				let filter: HTMLInputElement | undefined;
 				if (candidates.length > 8) {
-					const filter = append(popup, $('input.conversation-lens-dock-add-filter')) as HTMLInputElement;
+					filter = append(popup, $('input.conversation-lens-dock-add-filter')) as HTMLInputElement;
 					filter.type = 'text';
 					filter.placeholder = localize('conversation.composerAddFilter', "Search sessions");
 					filter.setAttribute('aria-label', filter.placeholder);
 					popup.insertBefore(filter, list);
-					store.add(addDisposableListener(filter, 'input', () => paint(filter.value)));
+					store.add(addDisposableListener(filter, 'input', () => paint(filter!.value)));
 					store.add(addDisposableListener(filter, 'keydown', event => {
-						if (event.keyCode !== KeyCode.Escape) {
+						const isNav = event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End'
+							|| event.keyCode === 40 || event.keyCode === 38 || event.keyCode === 36 || event.keyCode === 35
+							|| event.keyCode === KeyCode.DownArrow || event.keyCode === KeyCode.UpArrow || event.keyCode === KeyCode.Home || event.keyCode === KeyCode.End;
+						if (event.keyCode !== KeyCode.Escape && event.key !== 'Escape' && !isNav) {
 							event.stopPropagation();
 						}
 					}));
 				}
+				store.add(addDisposableListener(popup, 'keydown', event => {
+					if (handleConversationOverlayTab(popup, event)) {
+						return;
+					}
+					const isDown = event.key === 'ArrowDown' || event.keyCode === 40 || event.keyCode === KeyCode.DownArrow;
+					const isUp = event.key === 'ArrowUp' || event.keyCode === 38 || event.keyCode === KeyCode.UpArrow;
+					const isHome = event.key === 'Home' || event.keyCode === 36 || event.keyCode === KeyCode.Home;
+					const isEnd = event.key === 'End' || event.keyCode === 35 || event.keyCode === KeyCode.End;
+					if (!isDown && !isUp && !isHome && !isEnd) {
+						return;
+					}
+					if (items.length === 0) {
+						return;
+					}
+					event.preventDefault();
+					event.stopPropagation();
+					const active = popup.ownerDocument.activeElement;
+					const current = items.indexOf(active as HTMLButtonElement);
+					if (isHome) {
+						items[0]?.focus?.();
+						return;
+					}
+					if (isEnd) {
+						items[items.length - 1]?.focus?.();
+						return;
+					}
+					const next = isDown
+						? (current < 0 ? 0 : (current + 1) % items.length)
+						: (current <= 0 ? items.length - 1 : current - 1);
+					items[next]?.focus?.();
+				}));
 				paint('');
+				if (filter && !filter.hidden) {
+					filter.focus?.();
+				} else {
+					items[0]?.focus?.();
+				}
 			}
 			return toDisposable(() => {
+				popup.remove();
 				store.dispose();
 				host.addContextView = undefined;
 			});
@@ -244,13 +293,14 @@ export function noteComposerAtInput(host: IComposerAtHost): void {
 	refreshComposerAtSuggest(host, binding);
 }
 
-export function onComposerAtKeyDown(host: IComposerAtHost, event: { keyCode: number; shiftKey?: boolean; preventDefault(): void }): boolean {
+export function onComposerAtKeyDown(host: IComposerAtHost, event: { keyCode: number; shiftKey?: boolean; preventDefault(): void; stopPropagation?(): void }): boolean {
 	const binding = bindings.get(host);
 	if (!binding || host.composerAtSuggest.hidden) {
 		return false;
 	}
 	if (event.keyCode === KeyCode.Escape) {
 		event.preventDefault();
+		event.stopPropagation?.();
 		suppressComposerAtSuggest(host, binding);
 		return true;
 	}
@@ -390,11 +440,13 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 		option.tabIndex = -1;
 		option.setAttribute('role', 'option');
 		option.textContent = conversationSessionPillHoverLines(candidate.hit)[0] ?? candidate.sessionTitle;
+		option.title = option.textContent;
 		const active = index === binding.activeIndex;
 		option.setAttribute('aria-selected', String(active));
 		option.classList.toggle('is-active', active);
 		if (active) {
 			activeId = option.id;
+			option.scrollIntoView?.({ block: 'nearest' });
 		}
 		binding.suggestDisposables.add(addDisposableListener(option, 'mousedown', event => event.preventDefault()));
 		binding.suggestDisposables.add(addDisposableListener(option, 'click', event => {

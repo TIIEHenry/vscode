@@ -22,6 +22,16 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .repl .repl-tree .monaco-tl-contents {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .repl .repl-tree .monaco-tl-contents {
+		transition: none;
+	}
+}
+
 .monaco-workbench .repl .repl-tree .monaco-list-row:active .monaco-tl-contents {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
@@ -36,6 +46,16 @@
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .repl .repl-tree .monaco-tl-contents .expression .lazy-button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .repl .repl-tree .monaco-tl-contents .expression .lazy-button {
+		transition: none;
+	}
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button:active {
@@ -115,6 +135,18 @@
 	-webkit-user-select: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .repl .repl-tree .output.expression.value-and-source .source,
+.monaco-workbench.monaco-reduce-motion .repl .repl-tree .group .source {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .repl .repl-tree .output.expression.value-and-source .source,
+	.monaco-workbench:not(.monaco-enable-motion) .repl .repl-tree .group .source {
+		transition: none;
+	}
 }
 
 .monaco-workbench .repl .repl-tree .output.expression.value-and-source .source:active,

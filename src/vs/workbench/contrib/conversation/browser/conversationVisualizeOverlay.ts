@@ -74,6 +74,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 		const titleId = `conversation-visualize-overlay-title-${Date.now()}`;
 		const titleEl = append(header, $(`h2#${titleId}.conversation-visualize-overlay-title`));
 		titleEl.textContent = options.title?.trim() || conversationVisualizeOverlayTitle;
+		titleEl.title = titleEl.textContent;
 		overlay.setAttribute('aria-labelledby', titleId);
 
 		const actions = append(header, $('div.conversation-visualize-overlay-actions'));
@@ -118,14 +119,14 @@ export class ConversationVisualizeOverlay extends Disposable {
 
 		session.add(closeButton.onDidClick(() => this.close()));
 		session.add(addDisposableListener(overlay, 'keydown', (e) => {
-			if (e.keyCode === KeyCode.Escape) {
+			if (e.key === 'Escape' || e.keyCode === 27 || (!e.key && e.keyCode === KeyCode.Escape)) {
 				e.preventDefault();
 				e.stopPropagation();
 				this.close();
 				return;
 			}
 			handleConversationOverlayTab(overlay, e);
-		}));
+		}, true));
 
 		overlay.tabIndex = -1;
 		this.overlayElement = overlay;

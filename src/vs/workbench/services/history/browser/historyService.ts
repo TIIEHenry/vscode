@@ -876,7 +876,12 @@ export class HistoryService extends Disposable implements IHistoryService {
 	private static readonly HISTORY_STORAGE_KEY = 'history.entries';
 
 	private history: Array<EditorInput | IResourceEditorInput> | undefined = undefined;
-	private historyMutationEpoch = 0;
+
+	// While the editor groups are not ready yet, removals and a clear are recorded so that
+	// the deferred load can replay them against the stored and opened editors it merges.
+	private historyLoadPending = false;
+	private historyRemovalsWhileLoadPending: Array<EditorInput | IResourceEditorInput | FileChangesEvent | FileOperationEvent> = [];
+	private historyClearedWhileLoadPending = false;
 
 	private readonly editorHistoryListeners = this._register(new DisposableMap<EditorInput, DisposableStore>());
 
@@ -924,8 +929,6 @@ export class HistoryService extends Disposable implements IHistoryService {
 		if (this.history.length > HistoryService.MAX_HISTORY_ITEMS) {
 			this.editorHelper.clearOnEditorDispose(this.history.pop()!, this.editorHistoryListeners);
 		}
-
-		this.historyMutationEpoch++;
 
 		// React to editor input disposing
 		if (isEditorInput(editor)) {
@@ -979,8 +982,6 @@ export class HistoryService extends Disposable implements IHistoryService {
 	private removeExcludedFromHistory(): void {
 		this.ensureHistoryLoaded(this.history);
 
-		const lengthBefore = this.history.length;
-
 		this.history = this.history.filter(entry => {
 			const include = this.includeInHistory(entry);
 
@@ -991,10 +992,6 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 			return include;
 		});
-
-		if (this.history.length !== lengthBefore) {
-			this.historyMutationEpoch++;
-		}
 	}
 
 	private moveInHistory(event: FileOperationEvent): void {
@@ -1011,6 +1008,10 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 		this.ensureHistoryLoaded(this.history);
 
+		if (this.historyLoadPending) {
+			this.historyRemovalsWhileLoadPending.push(arg1);
+		}
+
 		this.history = this.history.filter(entry => {
 			const matches = this.editorHelper.matchesEditor(arg1, entry);
 
@@ -1023,15 +1024,15 @@ export class HistoryService extends Disposable implements IHistoryService {
 			return !matches;
 		});
 
-		if (removed) {
-			this.historyMutationEpoch++;
-		}
-
 		return removed;
 	}
 
 	private replaceInHistory(editor: EditorInput | IResourceEditorInput, ...replacements: ReadonlyArray<EditorInput | IResourceEditorInput>): void {
 		this.ensureHistoryLoaded(this.history);
+
+		if (this.historyLoadPending) {
+			this.historyRemovalsWhileLoadPending.push(editor);
+		}
 
 		let replaced = false;
 
@@ -1065,15 +1066,15 @@ export class HistoryService extends Disposable implements IHistoryService {
 		}
 
 		this.history = newHistory;
-
-		if (replaced || replacements.length > 0) {
-			this.historyMutationEpoch++;
-		}
 	}
 
 	clearRecentlyOpened(): void {
 		this.history = [];
-		this.historyMutationEpoch++;
+
+		if (this.historyLoadPending) {
+			this.historyClearedWhileLoadPending = true;
+			this.historyRemovalsWhileLoadPending = [];
+		}
 
 		this.editorHistoryListeners.clearAndDisposeAll();
 	}
@@ -1096,24 +1097,31 @@ export class HistoryService extends Disposable implements IHistoryService {
 			if (this.editorGroupService.isReady) {
 				this.loadHistory();
 			} else {
-				const loadEpoch = this.historyMutationEpoch;
+				this.historyLoadPending = true;
+				this.historyRemovalsWhileLoadPending = [];
+				this.historyClearedWhileLoadPending = false;
 				(async () => {
-					await this.editorGroupService.whenReady;
+					try {
+						await this.editorGroupService.whenReady;
 
-					if (loadEpoch === this.historyMutationEpoch) {
-						this.loadHistory();
+						if (!this._store.isDisposed && !this.historyClearedWhileLoadPending) {
+							this.loadHistory();
+						}
+					} finally {
+						this.historyLoadPending = false;
+						this.historyRemovalsWhileLoadPending = [];
+						this.historyClearedWhileLoadPending = false;
 					}
-				})();
+				})().catch(onUnexpectedError);
 			}
 		}
 	}
 
 	private loadHistory(): void {
 
-		// Init as empty before adding - since we are about to
-		// populate the history from opened editors, we capture
-		// the right order here.
-		this.history = [];
+		// Entries added before the editor groups were ready stay
+		// first in their order, everything loaded here is appended
+		const history: Array<EditorInput | IResourceEditorInput> = this.history ??= [];
 
 		// All stored editors from previous session
 		const storedEditorHistory = this.loadHistoryFromStorage();
@@ -1128,11 +1136,12 @@ export class HistoryService extends Disposable implements IHistoryService {
 		// session. Because not all editors can be serialised
 		// we want to make sure to include all opened editors
 		// too.
-		// Opened editors should always be first in the history
+		// Opened editors come before the stored editors, after
+		// the entries added before the editor groups were ready
 
-		const handledEditors = new Set<string /* resource + editorId */>();
-
-		// Add all opened editors first
+		// Collect opened editors from most to least recently used
+		const openedEditors: EditorInput[] = [];
+		const handledOpenedEditors = new Set<string /* resource + editorId */>();
 		for (const { editor } of openedEditorsLru) {
 			if (!this.includeInHistory(editor)) {
 				continue;
@@ -1141,30 +1150,79 @@ export class HistoryService extends Disposable implements IHistoryService {
 			// Make sure to skip duplicates from the editors LRU
 			if (editor.resource) {
 				const historyEntryId = `${editor.resource.toString()}/${editor.editorId}`;
+				if (handledOpenedEditors.has(historyEntryId)) {
+					continue; // already added
+				}
+
+				handledOpenedEditors.add(historyEntryId);
+			}
+
+			openedEditors.unshift(editor);
+		}
+
+		// Add opened editors and then the remaining ones from storage
+		// if not there already. We check on resource and `editorId`
+		// (from `override`) to figure out if the editor has been
+		// already added.
+		const handledEditors = new Set<string /* resource + editorId */>();
+		for (const entry of history) {
+			const historyEntryId = this.toHistoryEntryId(entry);
+			if (historyEntryId) {
+				handledEditors.add(historyEntryId);
+			}
+		}
+
+		for (const candidate of [...openedEditors, ...storedEditorHistory]) {
+			if (history.length >= HistoryService.MAX_HISTORY_ITEMS) {
+				break;
+			}
+
+			const editor = this.replayRemovalsWhileLoadPending(candidate);
+			if (!editor || !this.includeInHistory(editor)) {
+				continue;
+			}
+
+			const historyEntryId = this.toHistoryEntryId(editor);
+			if (historyEntryId) {
 				if (handledEditors.has(historyEntryId)) {
 					continue; // already added
 				}
 
 				handledEditors.add(historyEntryId);
+			} else if (isEditorInput(editor) && history.some(entry => isEditorInput(entry) && entry.matches(editor))) {
+				continue; // already added
 			}
 
-			// Add into history
-			this.addToHistory(editor);
+			this.addToHistory(editor, false /* at the end */);
+		}
+	}
+
+	private toHistoryEntryId(editor: EditorInput | IResourceEditorInput): string | undefined {
+		if (isEditorInput(editor)) {
+			return editor.resource ? `${editor.resource.toString()}/${editor.editorId}` : undefined;
 		}
 
-		// Add remaining from storage if not there already
-		// We check on resource and `editorId` (from `override`)
-		// to figure out if the editor has been already added.
-		for (const editor of storedEditorHistory) {
-			const historyEntryId = `${editor.resource.toString()}/${editor.options?.override}`;
-			if (
-				!handledEditors.has(historyEntryId) &&
-				this.includeInHistory(editor)
-			) {
-				handledEditors.add(historyEntryId);
-				this.addToHistory(editor, false /* at the end */);
+		return `${editor.resource.toString()}/${editor.options?.override}`;
+	}
+
+	private replayRemovalsWhileLoadPending(editor: EditorInput | IResourceEditorInput): EditorInput | IResourceEditorInput | undefined {
+		let candidate = editor;
+		for (const removal of this.historyRemovalsWhileLoadPending) {
+			if (!this.editorHelper.matchesEditor(removal, candidate)) {
+				continue;
 			}
+
+			// Moves only reach the history for files (see `onDidFilesChange`),
+			// so a matching resource input follows the file to its target
+			if (removal instanceof FileOperationEvent && removal.isOperation(FileOperation.MOVE) && !isEditorInput(candidate)) {
+				candidate = { ...candidate, resource: removal.target.resource };
+				continue;
+			}
+
+			return undefined;
 		}
+
+		return candidate;
 	}
 
 	private loadHistoryFromStorage(): Array<IResourceEditorInput> {
@@ -1201,6 +1259,10 @@ export class HistoryService extends Disposable implements IHistoryService {
 	private saveState(): void {
 		if (!this.history) {
 			return; // nothing to save because history was not used
+		}
+
+		if (this.historyLoadPending && !this.historyClearedWhileLoadPending) {
+			return; // stored entries are not merged yet, keep them instead of writing a partial list
 		}
 
 		const entries: ISerializedEditorHistoryEntry[] = [];

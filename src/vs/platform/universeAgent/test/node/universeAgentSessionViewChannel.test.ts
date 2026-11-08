@@ -10,6 +10,7 @@ import * as path from '../../../../base/common/path.js';
 import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { encodeDetailRef, type ConversationWriteMessage, type DetailFetchOutcome, type PostOutcome } from '../../common/conversationViewFrame.js';
+import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { NullLogService } from '../../../log/common/log.js';
 import {
 	UniverseAgentSessionViewChannel,
@@ -60,8 +61,8 @@ class FakeSessionViewService implements UniverseAgentSessionViewChannelService {
 		return { ok: false as const, reason: 'unavailable' as const };
 	}
 
-	onDynamicDidApplyFrame(leaseId: string) {
-		this.forwarded.push(`onDynamicDidApplyFrame:${leaseId}`);
+	onDynamicDidApplyFrame(leaseId: string, owner: string) {
+		this.forwarded.push(`onDynamicDidApplyFrame:${leaseId}:${owner}`);
 		return Event.None;
 	}
 }
@@ -169,7 +170,7 @@ suite('UniverseAgentSessionViewChannel', () => {
 			'requestResync:lease-1:window:1',
 			'acknowledge:lease-1:window:1',
 			'requestDetail:lease-1:ref-1:window:1',
-			'onDynamicDidApplyFrame:lease-1',
+			'onDynamicDidApplyFrame:lease-1:window:1',
 		]);
 	});
 
@@ -214,5 +215,37 @@ suite('UniverseAgentSessionViewChannel', () => {
 		assert.ok(patchEvents.length > 0);
 		assert.ok(patchEvents.every(item => Array.isArray(item.applied.changedIds)));
 		assert.ok(patchEvents.some(item => (item.applied.changedIds as string[]).includes('overlay:turn-ipc-1')));
+	});
+
+	test('onDynamicDidApplyFrame from another window gets no frames and leaves the owner baseline buffered', async () => {
+		const connection = new OwnerCheckConnection();
+		const sessionView = store.add(new UniverseAgentSessionViewService(connection, connection, new NullLogService()));
+		const viewHost = (sessionView as unknown as { host: SessionViewHost }).host;
+		viewHost.onEngineConnectionChanged();
+		const channel = new UniverseAgentSessionViewChannel(sessionView);
+		const leaseId = await channel.call<string>('window:1', 'acquireLease', ['sess-ipc-owner']);
+		await channel.call('window:1', 'whenEngineSessionReady', ['sess-ipc-owner']);
+
+		assert.strictEqual(sessionView.onDynamicDidApplyFrame(leaseId, 'window:2'), Event.None);
+
+		const foreign: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(channel.listen<IUniverseAgentSessionViewFrameEvent>('window:2', 'onDynamicDidApplyFrame', leaseId)(event => foreign.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.deepStrictEqual(foreign, []);
+
+		// Await the first-listener flush before pushing: once a listener exists, new frames fire directly.
+		const owned: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(channel.listen<IUniverseAgentSessionViewFrameEvent>('window:1', 'onDynamicDidApplyFrame', leaseId)(event => owned.push(event)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.ok(owned.length >= 1);
+		assert.strictEqual(owned[0]!.applied.kind, 'baseline');
+
+		const flushed = owned.length;
+		connection.pushStreamEvent('sess-ipc-owner', {
+			streaming_delta: { turn_id: 'turn-ipc-owner', text_delta: 'hello' },
+		});
+
+		assert.ok(owned.slice(flushed).some(event => event.applied.kind === 'patches'));
+		assert.deepStrictEqual(foreign, []);
 	});
 });

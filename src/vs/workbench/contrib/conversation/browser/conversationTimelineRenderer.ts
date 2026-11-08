@@ -47,7 +47,29 @@ export const conversationLensUserBubbleShowLess = localize('conversationLens.use
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 export const conversationLensTurnRegenerate = localize('conversationLens.regenerateTurn', "Regenerate");
 export const conversationLensTurnWritesUnavailable = localize('conversationLens.turnWritesUnavailable', "This session cannot be edited right now.");
+export const conversationLensErrorRetrying = localize('conversationLens.errorRetrying', "Retrying…");
+export const conversationLensTurnRegenerating = localize('conversationLens.regeneratingTurn', "Regenerating…");
 const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Text");
+
+type TurnWriteInFlight = 'retry' | 'regenerate';
+
+/**
+ * One presentation for the timeline write buttons. A write that cannot run says why;
+ * the session gate wins over the streaming hold, which wins over an in-flight click.
+ */
+function presentTurnWriteButton(button: Button, label: string, writesEnabled: boolean, busyReason: string | undefined, inFlight: string | undefined): void {
+	const reason = !writesEnabled ? conversationLensTurnWritesUnavailable : (inFlight ?? busyReason);
+	button.enabled = reason === undefined;
+	button.setTitle(reason ?? label);
+	button.setAriaLabel(reason === undefined ? label : `${label}. ${reason}`);
+	if (inFlight && writesEnabled) {
+		button.element.setAttribute('aria-busy', 'true');
+	} else {
+		button.element.removeAttribute('aria-busy');
+	}
+}
+
+let nextTimelineDisclosureId = 0;
 const conversationLensTurnSending = localize('conversationLens.turnSending', "Sending…");
 
 export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
@@ -118,10 +140,17 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	private readonly openDecisionHold = new Map<string, string>();
 	/** Respondable client-tool id → text for a response posted before the next snapshot. */
 	private readonly openClientToolResponseHold = new Map<string, string>();
+	/** Seat id → reason a decision never left this window (no snapshot `respondFailure` exists for it). */
+	private readonly localRespondFailures = new Map<string, string>();
+	/** Row id → sentence for a Copy / Delete that failed on this row. */
+	private readonly turnActionFailures = new Map<string, string>();
+	/** Row id → Retry / Regenerate that was clicked and has no outcome yet. */
+	private readonly turnWritesInFlight = new Map<string, TurnWriteInFlight>();
 	private readonly userBubbleExpanded = new Map<string, boolean>();
+	private readonly errorDetailsExpanded = new Map<string, boolean>();
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
-	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
-	private readonly processFoldToolExpanded = new Map<string, boolean>();
+	private readonly processFoldThinkingExpanded: Map<string, boolean>;
+	private readonly processFoldToolExpanded: Map<string, boolean>;
 	private readonly visualizeExpanded = new Map<string, boolean>();
 	private readonly displayMode: () => ConversationDisplayMode;
 	private turnEditComposer: HTMLElement | undefined;
@@ -154,8 +183,53 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onRespondClientTool?: (turn: ConversationStubTurn) => void,
 		private readonly onInlineDiagramWheel?: () => void,
 		displayMode?: () => ConversationDisplayMode,
+		private readonly turnWriteHoldReason: () => string | undefined = () => undefined,
+		private readonly onProcessFoldLayout?: (rootId: string) => void,
+		thinkingExpanded?: Map<string, boolean>,
+		toolExpanded?: Map<string, boolean>,
 	) {
 		this.displayMode = displayMode ?? (() => this.showLiveChrome() ? 'live' : 'stub');
+		this.processFoldThinkingExpanded = thinkingExpanded ?? new Map<string, boolean>();
+		this.processFoldToolExpanded = toolExpanded ?? new Map<string, boolean>();
+	}
+
+	setLocalRespondFailure(turnId: string, error: string): void {
+		this.openDecisionHold.delete(turnId);
+		this.localRespondFailures.set(turnId, error);
+	}
+
+	/** An empty message clears the row's failure line. */
+	setTurnActionFailure(rowId: string, message: string): void {
+		if (message) {
+			this.turnActionFailures.set(rowId, message);
+		} else {
+			this.turnActionFailures.delete(rowId);
+		}
+	}
+
+	getTurnActionFailure(rowId: string): string | undefined {
+		return this.turnActionFailures.get(rowId);
+	}
+
+	/** Returns true when the row was waiting on this outcome. */
+	settleTurnWrite(rowId: string): boolean {
+		return this.turnWritesInFlight.delete(rowId);
+	}
+
+	clearTurnActionState(): void {
+		this.localRespondFailures.clear();
+		this.turnActionFailures.clear();
+		this.turnWritesInFlight.clear();
+		this.errorDetailsExpanded.clear();
+	}
+
+	private localRespondFailure(turn: ConversationStubTurn): { readonly retryable: boolean; readonly error: string } | undefined {
+		if (turn.respondFailure || (turn.status ?? 'pending') !== 'pending') {
+			this.localRespondFailures.delete(turn.id);
+			return turn.respondFailure;
+		}
+		const error = this.localRespondFailures.get(turn.id);
+		return error === undefined ? undefined : { retryable: true, error };
 	}
 
 	setTurnEditComposer(composer: HTMLElement | undefined): void {
@@ -242,6 +316,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					e.stopPropagation();
 					this.onReviewNavClick!(turn.reviewNavPaths!);
 				}));
+			} else {
+				button.disabled = true;
 			}
 			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
@@ -269,7 +345,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					: undefined,
 				writesEnabled: this.writesEnabled() && !responseInFlight && turn.responseState?.blocked !== true,
 				responseInFlight,
-				respondFailure: turn.respondFailure,
+				respondFailure: this.localRespondFailure(turn),
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
 			this.questionSeats.set(turn.id, seat);
@@ -278,7 +354,20 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			return;
 		}
 		if (honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
-			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onRetryError, this.writesEnabled());
+			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onRetryError, this.writesEnabled(), {
+				busyReason: this.turnWriteHoldReason(),
+				inFlight: this.turnWritesInFlight.get(turn.id) === 'retry',
+				onStart: () => this.turnWritesInFlight.set(turn.id, 'retry'),
+				onLayoutChange: () => this.onProcessFoldLayout?.(turn.id),
+				isDetailsExpanded: () => this.errorDetailsExpanded.get(turn.id) ?? false,
+				setDetailsExpanded: (expanded) => {
+					if (expanded) {
+						this.errorDetailsExpanded.set(turn.id, true);
+					} else {
+						this.errorDetailsExpanded.delete(turn.id);
+					}
+				},
+			});
 			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
@@ -294,7 +383,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				setExpanded: (turnId, expanded) => {
 					this.visualizeExpanded.set(turnId, expanded);
 				},
-				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen),
+				onLayoutChange: () => {
+					this.onProcessFoldLayout?.(turn.id);
+					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
+				},
 				mermaidHost,
 				onOpenFullscreen: this.onOpenVisualizeFullscreen,
 				onWheelDelegate: (e) => {
@@ -333,7 +425,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					: undefined,
 				writesEnabled: this.writesEnabled() && !responseInFlight && turn.responseState?.blocked !== true,
 				responseInFlight,
-				respondFailure: turn.respondFailure,
+				respondFailure: this.localRespondFailure(turn),
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
 			seat.element.classList.add('conversation-lens-turn', 'conversation-lens-turn--permission');
@@ -346,6 +438,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			renderStandaloneThinkingOrToolRow(templateData.container, turn, {
 				diffEditorPool: this.diffEditorPool,
 				instantiationService: this.instantiationService,
+				showToolInvocationDetails: this.showToolInvocationDetails(),
 				isToolExpanded: (turnId) => this.processFoldToolExpanded.get(turnId) ?? false,
 				setToolExpanded: (turnId, expanded) => {
 					if (expanded) {
@@ -390,6 +483,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				if (sourceName) {
 					const identity = append(header, $('span.conversation-lens-turn-source'));
 					identity.textContent = sourceName;
+					identity.title = sourceName;
 				}
 				if (sending) {
 					const status = append(header, $('span.conversation-lens-turn-honest-status'));
@@ -401,9 +495,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			}
 
 			const body = append(el, $('.conversation-lens-turn-body'));
+			const writeHold = this.turnWriteHoldReason();
 			if (turn.kind === 'user') {
 				body.classList.add('conversation-lens-turn-body--user-bubble');
-				if (!sending && this.writesEnabled()) {
+				if (!sending && this.writesEnabled() && !writeHold) {
 					body.classList.add('conversation-lens-turn-body--clickable');
 					body.setAttribute('role', 'button');
 					body.tabIndex = 0;
@@ -432,7 +527,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 						}
 					}));
 				} else if (!sending) {
-					body.title = conversationLensTurnWritesUnavailable;
+					body.title = this.writesEnabled() ? writeHold ?? conversationLensTurnWritesUnavailable : conversationLensTurnWritesUnavailable;
 				}
 			} else if (turn.kind === 'assistant') {
 				body.classList.add('conversation-lens-turn-body--reading-text');
@@ -443,6 +538,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			if (turn.kind === 'user' && shouldCollapseUserBubble(userBody)) {
 				const expanded = this.userBubbleExpanded.get(turn.id) ?? false;
 				body.classList.add('conversation-lens-turn-body--collapsible');
+				body.id = `conversation-lens-user-bubble-body-${++nextTimelineDisclosureId}`;
 				this.applyUserBubbleCollapseState(body, userBody, expanded);
 
 				const foldControl = append(el, $('.conversation-lens-turn-fold'));
@@ -450,6 +546,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				foldButton.type = 'button';
 				foldButton.textContent = expanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore;
 				foldButton.setAttribute('aria-expanded', String(expanded));
+				foldButton.setAttribute('aria-controls', body.id);
 				foldButton.setAttribute('aria-label', expanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore);
 				templateData.disposables.add(addDisposableListener(foldButton, 'click', (e) => {
 					e.stopPropagation();
@@ -459,6 +556,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					foldButton.textContent = nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore;
 					foldButton.setAttribute('aria-expanded', String(nextExpanded));
 					foldButton.setAttribute('aria-label', nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore);
+					this.onProcessFoldLayout?.(turn.id);
 					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 				}));
 			}
@@ -489,13 +587,18 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					ariaLabel: conversationLensTurnRegenerate,
 				}));
 				regenerateButton.icon = Codicon.refresh;
-				regenerateButton.enabled = this.writesEnabled();
-				if (!this.writesEnabled()) {
-					regenerateButton.setTitle(conversationLensTurnWritesUnavailable);
-					regenerateButton.setAriaLabel(`${conversationLensTurnRegenerate}. ${conversationLensTurnWritesUnavailable}`);
-				}
+				const writesEnabled = this.writesEnabled();
+				const regenerating = this.turnWritesInFlight.get(turn.id) === 'regenerate' ? conversationLensTurnRegenerating : undefined;
+				presentTurnWriteButton(regenerateButton, conversationLensTurnRegenerate, writesEnabled, writeHold, regenerating);
 				if (this.onRegenerateTurn) {
-					templateData.disposables.add(regenerateButton.onDidClick(() => this.onRegenerateTurn!(turn)));
+					templateData.disposables.add(regenerateButton.onDidClick(() => {
+						if (this.turnWritesInFlight.has(turn.id) || !this.writesEnabled() || this.turnWriteHoldReason()) {
+							return;
+						}
+						this.turnWritesInFlight.set(turn.id, 'regenerate');
+						presentTurnWriteButton(regenerateButton, conversationLensTurnRegenerate, true, undefined, conversationLensTurnRegenerating);
+						this.onRegenerateTurn!(turn);
+					}));
 				}
 
 				const deleteContainer = append(actions, $('span.conversation-lens-turn-action-delete'));
@@ -508,16 +611,24 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					ariaLabel: conversationLensTurnDelete,
 				}));
 				deleteButton.icon = Codicon.trash;
-				deleteButton.enabled = this.writesEnabled();
-				if (!this.writesEnabled()) {
-					deleteButton.setTitle(conversationLensTurnWritesUnavailable);
-					deleteButton.setAriaLabel(`${conversationLensTurnDelete}. ${conversationLensTurnWritesUnavailable}`);
-				}
+				presentTurnWriteButton(deleteButton, conversationLensTurnDelete, writesEnabled, writeHold, undefined);
 				if (this.onDeleteTurn) {
-					templateData.disposables.add(deleteButton.onDidClick(() => this.onDeleteTurn!(turn)));
+					templateData.disposables.add(deleteButton.onDidClick(() => {
+						if (!this.writesEnabled() || this.turnWriteHoldReason()) {
+							return;
+						}
+						this.onDeleteTurn!(turn);
+					}));
 				}
 				if (this.onViewInTrajectory) {
 					appendTurnTrajectoryButton(actions, turn.id, this.onViewInTrajectory, templateData.disposables);
+				}
+				const actionFailure = this.turnActionFailures.get(turn.id);
+				if (actionFailure) {
+					actions.classList.add('has-failure');
+					const failure = append(actions, $('span.conversation-lens-turn-action-failure'));
+					failure.textContent = actionFailure;
+					failure.setAttribute('role', 'alert');
 				}
 			}
 
@@ -572,6 +683,11 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				this.userBubbleExpanded.delete(id);
 			}
 		}
+		for (const id of this.errorDetailsExpanded.keys()) {
+			if (!knownIds.has(id)) {
+				this.errorDetailsExpanded.delete(id);
+			}
+		}
 	}
 
 	pruneProcessFoldExpanded(knownIds: ReadonlySet<string>): void {
@@ -621,6 +737,13 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		for (const id of this.openClientToolResponseHold.keys()) {
 			if (!knownIds.has(id)) {
 				this.openClientToolResponseHold.delete(id);
+			}
+		}
+		for (const map of [this.localRespondFailures, this.turnActionFailures, this.turnWritesInFlight]) {
+			for (const id of map.keys()) {
+				if (!knownIds.has(id)) {
+					map.delete(id);
+				}
 			}
 		}
 	}
@@ -673,6 +796,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	}
 
 	private noteFreshDecision(turn: ConversationStubTurn): void {
+		this.localRespondFailures.delete(turn.id);
 		if (turn.responseState) { return; }
 		if (turn.respondFailure || (turn.status ?? 'pending') !== 'pending') {
 			this.openDecisionHold.delete(turn.id);
@@ -836,6 +960,7 @@ export function summarizeConversationError(text: string): ConversationErrorSumma
 export interface StandaloneToolRowOptions {
 	readonly diffEditorPool?: DiffEditorPool;
 	readonly instantiationService?: IInstantiationService;
+	readonly showToolInvocationDetails?: boolean;
 	readonly isToolExpanded?: (turnId: string) => boolean;
 	readonly setToolExpanded?: (turnId: string, expanded: boolean) => void;
 	readonly onLayoutChange?: () => void;
@@ -859,7 +984,7 @@ export function renderStandaloneThinkingOrToolRow(
 	if (turn.toolName === 'file_edit') {
 		const store = disposables ?? new DisposableStore();
 		renderFileEditCard(el, [turn], {
-			showToolInvocationDetails: true,
+			showToolInvocationDetails: options?.showToolInvocationDetails ?? true,
 			isToolExpanded: options?.isToolExpanded,
 			setToolExpanded: options?.setToolExpanded,
 			onLayoutChange: options?.onLayoutChange,
@@ -894,6 +1019,14 @@ export function renderHonestTimelineRow(
 	disposables: DisposableStore,
 	onRetryError?: (turn: ConversationStubTurn) => void,
 	writesEnabled = true,
+	retryState?: {
+		readonly busyReason?: string;
+		readonly inFlight?: boolean;
+		readonly onStart?: () => void;
+		readonly onLayoutChange?: () => void;
+		readonly isDetailsExpanded?: () => boolean;
+		readonly setDetailsExpanded?: (expanded: boolean) => void;
+	},
 ): void {
 	const fields = getConversationHonestFields(turn);
 	const el = append(container, $(`div.conversation-lens-turn.conversation-lens-turn--${kind}`));
@@ -909,6 +1042,7 @@ export function renderHonestTimelineRow(
 	if (fields.agentId && fields.agentId !== 'default') {
 		const identity = append(header, $('span.conversation-lens-turn-agent-identity'));
 		identity.textContent = fields.agentId;
+		identity.title = fields.agentId;
 	}
 
 	if (kind === 'error') {
@@ -925,9 +1059,21 @@ export function renderHonestTimelineRow(
 				title: conversationLensErrorRetry,
 				ariaLabel: conversationLensErrorRetry,
 			}));
-			retry.label = conversationLensErrorRetry;
-			retry.enabled = writesEnabled;
-			disposables.add(retry.onDidClick(() => onRetryError(turn)));
+			let inFlight = retryState?.inFlight === true && writesEnabled;
+			const present = () => {
+				retry.label = inFlight ? conversationLensErrorRetrying : conversationLensErrorRetry;
+				presentTurnWriteButton(retry, conversationLensErrorRetry, writesEnabled, retryState?.busyReason, inFlight ? conversationLensErrorRetrying : undefined);
+			};
+			present();
+			disposables.add(retry.onDidClick(() => {
+				if (inFlight || !writesEnabled || retryState?.busyReason) {
+					return;
+				}
+				inFlight = true;
+				retryState?.onStart?.();
+				present();
+				onRetryError(turn);
+			}));
 		}
 	} else if (kind === 'unknown') {
 		const status = append(header, $('span.conversation-lens-turn-honest-status'));
@@ -941,18 +1087,24 @@ export function renderHonestTimelineRow(
 		summaryEl.textContent = summary;
 		summaryEl.title = summary;
 		if (detail) {
+			const initiallyExpanded = retryState?.isDetailsExpanded?.() ?? false;
 			const toggle = append(body, $('button.conversation-lens-turn-error-details-toggle')) as HTMLButtonElement;
 			toggle.type = 'button';
-			toggle.textContent = conversationErrorShowDetails;
+			toggle.textContent = initiallyExpanded ? conversationErrorHideDetails : conversationErrorShowDetails;
+			toggle.setAttribute('aria-expanded', String(initiallyExpanded));
 			const details = append(body, $('div.conversation-lens-turn-error-details'));
-			details.hidden = true;
+			details.id = `conversation-lens-turn-error-details-${++nextTimelineDisclosureId}`;
+			toggle.setAttribute('aria-controls', details.id);
+			details.hidden = !initiallyExpanded;
 			details.textContent = detail;
 			disposables.add(addDisposableListener(toggle, 'click', (e) => {
 				e.stopPropagation();
-				const open = details.hidden;
+				const open = Boolean(details.hidden);
 				details.hidden = !open;
+				retryState?.setDetailsExpanded?.(open);
 				toggle.textContent = open ? conversationErrorHideDetails : conversationErrorShowDetails;
 				toggle.setAttribute('aria-expanded', String(open));
+				retryState?.onLayoutChange?.();
 			}));
 		}
 	} else if (kind === 'unknown') {

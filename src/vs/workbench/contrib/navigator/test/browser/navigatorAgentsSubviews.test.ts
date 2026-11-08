@@ -683,6 +683,7 @@ suite('Navigator Agents subviews', () => {
 		const hierarchySubview = view.element.querySelector('.navigator-agents-subview.active');
 		assert.ok(hierarchySubview, 'expected active hierarchy subview');
 		assert.ok(hierarchySubview.classList.contains('navigator-agents-subview'));
+		assert.strictEqual(hierarchySubview.getAttribute('aria-hidden'), 'false');
 
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty');
 		assert.ok(hierarchyEmpty);
@@ -693,6 +694,7 @@ suite('Navigator Agents subviews', () => {
 
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview:not(.active) .navigator-stub-empty');
 		assert.ok(activityEmpty);
+		assert.strictEqual(view.element.querySelector('.navigator-agents-subview:not(.active)')?.getAttribute('aria-hidden'), 'true');
 		assert.strictEqual(activityEmpty?.textContent, 'No tool activity — no engine.');
 		assert.strictEqual(activityEmpty?.getAttribute('role'), 'status');
 	});
@@ -705,12 +707,16 @@ suite('Navigator Agents subviews', () => {
 
 		let activeSubview = view.element.querySelector('.navigator-agents-subview.active');
 		assert.ok(activeSubview?.querySelector('.navigator-agents-activity-list'));
+		assert.strictEqual(activeSubview?.getAttribute('aria-hidden'), 'false');
+		assert.strictEqual(view.element.querySelector('.navigator-agents-subview:not(.active)')?.getAttribute('aria-hidden'), 'true');
 
 		view.showHierarchy();
 		assert.strictEqual(view.getActiveSubview(), 'hierarchy');
 
 		activeSubview = view.element.querySelector('.navigator-agents-subview.active');
 		assert.ok(activeSubview?.querySelector('.navigator-agents-hierarchy-tree'));
+		assert.strictEqual(activeSubview?.getAttribute('aria-hidden'), 'false');
+		assert.strictEqual(view.element.querySelector('.navigator-agents-subview:not(.active)')?.getAttribute('aria-hidden'), 'true');
 	});
 
 	test('creates WorkbenchObjectTree and WorkbenchList bodies without engine data', () => {
@@ -2307,6 +2313,122 @@ suite('Navigator Agents subviews', () => {
 		await timeout(0);
 		assert.strictEqual(executeCommandCalls, 0);
 		assert.strictEqual((view as unknown as { inspectService: IAgentInspectService }).inspectService.getTarget()?.kind, 'activity');
+	});
+
+	function clickFirstRow(host: Element | null): void {
+		const row = host?.querySelector<HTMLElement>('.monaco-list-row');
+		assert.ok(row, 'row must render before it can be clicked');
+		row.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }));
+	}
+
+	test('single click on a hierarchy row only sets the Inspect target; Enter still reveals the agent', async () => {
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(undefined, undefined, inspectService, async () => undefined, { revealCalls, inspectOpenCalls });
+		setHierarchyEntries(view, [{ id: 'sub:alpha', label: 'Alpha' }]);
+		view['layoutBody'](300, 300);
+
+		clickFirstRow(view.element.querySelector('.navigator-agents-hierarchy-tree'));
+		await timeout(0);
+		const target = inspectService.getTarget();
+		const afterClick = {
+			target: target?.kind === 'agent' ? target.node.agentId : undefined,
+			reveals: revealCalls.length,
+			inspectOpens: inspectOpenCalls.length,
+		};
+
+		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
+		await forceOpenHierarchyRow(view, hierarchyTree.getNode(null)!.children[0]!.element!);
+
+		assert.deepStrictEqual({ afterClick, reveals: revealCalls.map(call => call.chatId) }, {
+			afterClick: { target: 'sub:alpha', reveals: 0, inspectOpens: 0 },
+			reveals: ['sub:alpha'],
+		});
+	});
+
+	test('single click on an activity row only sets the Inspect target; Enter reveals without focusing Inspect', async () => {
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const revealItemCalls: unknown[] = [];
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountAgentsView(undefined, undefined, inspectService, async (...args) => {
+			revealItemCalls.push(args);
+			return undefined;
+		}, { inspectOpenCalls });
+		setActivityEntries(view, [{ id: 'a1', label: 'Alpha Tool Run' }]);
+		view.showActivity();
+		view['layoutBody'](300, 300);
+
+		clickFirstRow(view.element.querySelector('.navigator-agents-activity-list'));
+		await timeout(0);
+		const target = inspectService.getTarget();
+		const afterClick = {
+			target: target?.kind === 'activity' ? target.item.itemId : undefined,
+			reveals: revealItemCalls.length,
+			inspectOpens: inspectOpenCalls.length,
+		};
+
+		await forceOpenActivityRow(view);
+
+		assert.deepStrictEqual({ afterClick, reveals: revealItemCalls.length, inspectOpenCalls }, {
+			afterClick: { target: 'a1', reveals: 0, inspectOpens: 0 },
+			reveals: 1,
+			inspectOpenCalls: [{ id: AGENT_INSPECT_VIEW_ID, focus: false }],
+		});
+	});
+
+	test('activity row keeps the engine status in a fixed column outside the truncated name', () => {
+		const view = mountAgentsView();
+		(view as unknown as { setActivityEntries: (entries: INavigatorAgentsActivityItem[]) => void }).setActivityEntries([
+			{ id: 'a1', itemId: 'a1', label: 'grep · sub:alpha · running', toolName: 'grep', agentId: 'sub:alpha', status: 'running' },
+		]);
+		view.showActivity();
+		view['layoutBody'](300, 300);
+		const row = view.element.querySelector('.navigator-agents-activity-list .monaco-list-row');
+		assert.deepStrictEqual({
+			name: row?.querySelector('.navigator-agents-activity-label')?.textContent,
+			status: row?.querySelector('.navigator-row-status-text')?.textContent,
+			statusInsideName: !!row?.querySelector('.navigator-agents-activity-label .navigator-row-status'),
+			aria: row?.getAttribute('aria-label'),
+		}, {
+			name: 'grep · sub:alpha',
+			status: 'running',
+			statusInsideName: false,
+			aria: 'grep · sub:alpha · running',
+		});
+	});
+
+	test('filter box: ArrowDown enters the first row, Escape clears and then hands focus back to the list', async () => {
+		const view = mountAgentsView();
+		const host = view.element.parentElement!;
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		setActivityEntries(view, [{ id: 'a1', label: 'Alpha Tool Run' }, { id: 'a2', label: 'Beta Tool Run' }]);
+		view.showActivity();
+		view['layoutBody'](300, 300);
+		const activityList = (view as unknown as { activityList: WorkbenchList<INavigatorAgentsActivityItem> }).activityList;
+		const input = getFilterInput(view)!;
+		const press = (key: string, keyCode: number) => input.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+		const listOwnsFocus = () => activityList.getHTMLElement().contains(document.activeElement);
+
+		activityList.setFocus([1]);
+		input.focus();
+		press('ArrowDown', 40);
+		const down = { listFocused: listOwnsFocus(), focusIndex: activityList.getFocus()[0] };
+
+		activityList.setFocus([1]);
+		await setFilterQuery(view, 'tool');
+		input.focus();
+		press('Escape', 27);
+		const firstEscape = { value: input.value, inputFocused: document.activeElement === input };
+		press('Escape', 27);
+		const secondEscape = { listFocused: listOwnsFocus(), focusIndex: activityList.getFocus()[0] };
+
+		assert.deepStrictEqual({ down, firstEscape, secondEscape }, {
+			down: { listFocused: true, focusIndex: 0 },
+			firstEscape: { value: '', inputFocused: true },
+			secondEscape: { listFocused: true, focusIndex: 1 },
+		});
 	});
 
 	test('dispose cleans up DOM elements, filterBox, inspect state, and guards subsequent calls', () => {

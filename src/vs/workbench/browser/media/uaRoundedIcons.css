@@ -80,6 +80,14 @@
 		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.75%208a5.25%205.25%200%201%200%201.54-3.71M2.75%202.5v3.25H6M8%205.25V8l2%201.5%22%2F%3E%3C%2Fsvg%3E");
 	}
 
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-discard {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2.75%208a5.25%205.25%200%201%200%201.54-3.71M2.75%202.5v3.25H6%22%2F%3E%3C%2Fsvg%3E");
+	}
+
+	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-comment-discussion {
+		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.25%202.75h9.5c.83%200%201.5.67%201.5%201.5v6c0%20.83-.67%201.5-1.5%201.5H8.5l-3.5%202.5v-2.5H3.25c-.83%200-1.5-.67-1.5-1.5v-6c0-.83.67-1.5%201.5-1.5z%22%2F%3E%3C%2Fsvg%3E");
+	}
+
 	.monaco-workbench:not(.hc-black):not(.hc-light) .codicon-layers {
 		--ua-rounded-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%202%201.75%205.25%208%208.5l6.25-3.25zM1.75%208%208%2011.25%2014.25%208M1.75%2010.75%208%2014l6.25-3.25%22%2F%3E%3C%2Fsvg%3E");
 	}
@@ -193,6 +201,8 @@
 		.codicon-root-folder,
 		.codicon-file,
 		.codicon-history,
+		.codicon-discard,
+		.codicon-comment-discussion,
 		.codicon-layers,
 		.codicon-list-tree,
 		.codicon-list-flat,

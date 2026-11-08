@@ -175,6 +175,8 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 	noteRefreshedKey(key: ISourcesReviewProgressKey): void {
 		const built = buildSourcesReviewProgressKey(key);
 		const keep = this.reviewed.has(built);
+		// No matching mutation record is not a content change; keep the mark recorded with one.
+		const missingEngineRecord = !keep && this.isMissingEngineRecord(key);
 		let changed = false;
 		for (const mapKey of [...this.reviewed.keys()]) {
 			const stored = this.reviewed.get(mapKey);
@@ -182,6 +184,9 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 				continue;
 			}
 			if (keep && mapKey === built) {
+				continue;
+			}
+			if (missingEngineRecord && stored.contentHash !== '') {
 				continue;
 			}
 			this.reviewed.delete(mapKey);
@@ -231,6 +236,10 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 	private remember(key: ISourcesReviewProgressKey): boolean {
 		const mapKey = buildSourcesReviewProgressKey(key);
 		if (this.reviewed.has(mapKey)) {
+			return false;
+		}
+		// One mark per identity: a record-less engine key does not add a second mark beside the existing one.
+		if (this.isMissingEngineRecord(key) && [...this.reviewed.values()].some(stored => this.sameIdentity(stored, key))) {
 			return false;
 		}
 		this.reviewed.set(mapKey, {
@@ -309,6 +318,14 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 		this.latestMutation.set(`${record.sessionId}\0${path}`, { record, seen });
 	}
 
+	private isMissingEngineRecord(key: ISourcesReviewProgressKey): boolean {
+		return key.origin === 'engine' && key.contentHash === '';
+	}
+
+	/**
+	 * Empty means no matching record: never seen, or evicted from `latestMutation`.
+	 * Callers must not treat it as a content change.
+	 */
 	private engineContentHash(sessionId: string, target: ISourcesReviewProgressTarget): string {
 		const root = this.progressRoot(sessionId);
 		const prefix = `${sessionId}\0`;

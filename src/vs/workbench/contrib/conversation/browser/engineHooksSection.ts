@@ -72,6 +72,7 @@ export class EngineHooksSection extends Disposable {
 		const pointsColumn = DOM.append(this.layoutHost, $('.engine-hooks-column.engine-hooks-column--points'));
 		DOM.append(pointsColumn, $('h4')).textContent = localize('ua.engineHooksPoints', "Hook points");
 		this.pointsList = DOM.append(pointsColumn, $('.engine-hooks-list.engine-catalog-list'));
+		this.pointsList.setAttribute('role', 'list');
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this._store.isDisposed) {
@@ -288,6 +289,7 @@ export class EngineHooksSection extends Disposable {
 		}
 		for (const point of points) {
 			const row = DOM.append(this.pointsList, $('.engine-catalog-row.engine-hooks-row'));
+			row.setAttribute('role', 'listitem');
 			const text = DOM.append(row, $('.engine-catalog-text'));
 			DOM.append(text, $('.engine-catalog-name')).textContent = point.methodName || point.id;
 			DOM.append(text, $('.engine-catalog-description')).textContent = [

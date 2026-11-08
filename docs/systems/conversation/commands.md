@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-30
+updated: 2026-11-07
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -16,10 +16,15 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | 命令 id | 标题 | 落点 | 默认键位 |
 |---------|------|------|----------|
 | `workbench.action.toggleSidebarVisibility` | Navigator（产品名；上游 Toggle Primary Side Bar） | titlebar `LayoutControlMenu` 首钮；View › Appearance | `Ctrl/Cmd+B`（上游继承） |
-| `workbench.action.toggleConversation` | Toggle Conversation Visibility | `LayoutControlMenu`「Conversation」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+C` |
+| `workbench.action.toggleConversation` | Toggle Conversation Visibility | `LayoutControlMenu`「Conversation」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+T` |
 | `workbench.action.toggleEditorVisibility` | Toggle Preview Visibility | `LayoutControlMenu`「Preview」（四钮之一，`CreateToggleLayoutItem`）；`LayoutControlMenuSubmenu` 亦有；Preview editor title 上的 Hide / Show Preview（`MenuId.EditorTitle` / `EditorTitleContext`）；F1 | `Ctrl/Cmd+Alt+Shift+P` |
 | `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+S` |
 | Panel / Auxiliary Bar toggles | 上游命令 | 退到 `LayoutControlMenuSubmenu`（D7） | 上游继承 |
+| `workbench.action.focusConversation` | Focus Conversation | F1（View 类别） | `Ctrl/Cmd+Alt+Shift+1` |
+| `workbench.action.focusPreview` | Focus Preview | F1（View 类别） | `Ctrl/Cmd+Alt+Shift+2` |
+| `workbench.action.focusSources` | Focus Sources | F1（View 类别） | `Ctrl/Cmd+Alt+Shift+3` |
+
+Conversation / Preview / Sources 三条显隐命令的默认键位带参数 `{ focus: true }`：用键位显示区域时同时聚焦它；点标题栏按钮、菜单或 F1 只切显隐。例外：辅助栏最大化时显示 Preview 或 Sources，会先退出最大化，退出时焦点交给辅助栏；由默认键位或 Focus 命令触发时，随后再聚焦目标区域。三条 Focus 命令在区域隐藏时先显示再聚焦。Navigator 的 `Ctrl/Cmd+B` 保持上游行为，不移动焦点。
 
 四钮之外，Conversation / Sources 区域内各有本地 hide（隐藏/折叠图标 −，`partRegionHideControl.ts`，可 Tab 到达），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。壳级 Part 焦点循环（F6）见 [§7](#7-键盘可达性现状)。
 
@@ -33,6 +38,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `workbench.action.conversation.splitSessionWindow` | Split Conversation Editor（类别 Conversation） | 当前叶内开 `CONVERSATION_SIDE_GROUP`；F1 | `Ctrl/Cmd+\`（`conversationPartFocus`） |
 | `workbench.action.conversation.nextChatTab` | Open Next Conversation Chat | F1 别名：当前 Conversation 叶内下一 chat tab / 下一 split 列；**不另绑键** | 无（复用 `workbench.action.nextEditor`：`Ctrl+PageDown` / mac `Cmd+Alt+→`） |
 | `workbench.action.conversation.previousChatTab` | Open Previous Conversation Chat | F1 别名：当前 Conversation 叶内上一 chat tab / 上一 split 列；**不另绑键** | 无（复用 `workbench.action.previousEditor`：`Ctrl+PageUp` / mac `Cmd+Alt+←`） |
+| 上面三条 Split / Next / Previous | 从 F1 运行且焦点不在 Conversation | 先聚焦 Conversation 再执行，不再静默返回 | — |
 | Conversation chat tablist ← / → | 焦点在 editor group tablist 上 | 只切同组 tab（循环）；Home / End 到首尾；不跨 split 列、不打到 Preview | 组件内键处理（`conversationSplitActions.contribution.ts`）；全局切 tab 走 editor group 命令 |
 | 会话栏上一级 | 按钮 | `goUpOneAgent`：当前 tool 子代理退到父级；父级是会话根时关对话框或关延伸 tab 回根。父级已经是延伸标签时聚焦那一列，不在当前列再开一张；从延伸标签离开时关掉这张。对话框这次是离开，前进能重新打开。根对话和 Fork 上禁用。窄宽度仍留在栏上 | 无 |
 | 会话栏下一级 | 按钮 | 弹出直接子代理。没有孩子时禁用。tool 聚焦已有延伸 tab 或开对话框；对话框开着时先聚焦已有标签再离开，前进能重新打开。fork 开延伸 tab。Escape / 点外面关闭。窄宽度与上一级一起留在栏上 | 无 |
@@ -54,7 +60,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `workbench.action.conversationSessions.openBeside` | 行右键「Open beside」；Alt+点击等价 |
 | 行单击 / `onDidOpen` | `switchSession` → 显示 Part → focus |
 
-行按 `groupSessionsForRoster` 分 Today / Yesterday / Earlier 三组，组内按 `lastAccessedAt` 从新到旧；没有访问时间的排在 Earlier 末尾，彼此保持引擎顺序；全无访问时间时不分组、保持引擎顺序（PRD-002 验收 5）。
+行按 `groupSessionsForRoster` 分 Today / Yesterday / Earlier 三组，组内按 `lastAccessedAt` 从新到旧；没有访问时间的排在 Earlier 末尾，彼此保持引擎顺序；全无访问时间时不分组、保持引擎顺序（PRD-002 验收 5）。本窗口刚建好的引擎会话，在名册已有带访问时间的行时，先用本机建好的时刻作访问时间，排进 Today；下一次拉目录时换成引擎给的值，引擎没给就回到没有访问时间（2026-11-07）。
 
 ## 4. UA Preferences 与深链
 
@@ -94,16 +100,28 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 ## 7. 键盘可达性现状
 
-**四钮默认键位（D14 @2026-09-02）** — 注册于 `workbench/browser/actions/layoutActions.ts`（`ProductLayoutToggleKeybindingPrimary`），Keyboard Shortcuts 可见；须不与 Open Conversation（`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）或 Navigator（`Ctrl/Cmd+B`）冲突：
+**四钮默认键位（D14 @2026-09-02；Conversation 2026-11-06 改键）** — 注册于 `workbench/browser/actions/layoutActions.ts`（`ProductLayoutToggleKeybindingPrimary`），Keyboard Shortcuts 可见；须不与 Open Conversation（`Ctrl+Alt+I` / mac `Cmd+Ctrl+I`）、Navigator（`Ctrl/Cmd+B`）或任何上游默认键位同键：
+
+| 区域 | 命令 id | 默认键位 | when |
+|------|---------|----------|------|
+| Navigator | `workbench.action.toggleSidebarVisibility` | `Ctrl/Cmd+B` | 无 |
+| Conversation | `workbench.action.toggleConversation` | `Ctrl/Cmd+Alt+Shift+T` | 无（precondition：默认窗口、非辅助窗口） |
+| Preview | `workbench.action.toggleEditorVisibility` | `Ctrl/Cmd+Alt+Shift+P` | 同上 |
+| Sources | `workbench.action.toggleSources` | `Ctrl/Cmd+Alt+Shift+S` | 同上 |
+
+Conversation 原用 `Ctrl/Cmd+Alt+Shift+C`。它在 Linux / macOS 上与上游 Copy Relative Path（`copyRelativeFilePath`，`fileCommands.ts`，when `!editorFocus`，同权重）同键，焦点在编辑器外（例如 Sources Files 树、Conversation）时两条命令抢同一键，所以改到 `T`。Preview 的 `P`、Sources 的 `S` 与上游默认键位不冲突。三平台无冲突由 `layoutControlMenu.test.ts` 对照默认键位表断言。
+
+**区域聚焦（2026-11-06）** — 同注册于 `layoutActions.ts`（`ProductLayoutFocusKeybindingPrimary`），数字按 F6 顺序排列：
 
 | 区域 | 命令 id | 默认键位 |
 |------|---------|----------|
-| Navigator | `workbench.action.toggleSidebarVisibility` | `Ctrl/Cmd+B` |
-| Conversation | `workbench.action.toggleConversation` | `Ctrl/Cmd+Alt+Shift+C` |
-| Preview | `workbench.action.toggleEditorVisibility` | `Ctrl/Cmd+Alt+Shift+P` |
-| Sources | `workbench.action.toggleSources` | `Ctrl/Cmd+Alt+Shift+S` |
+| Conversation | `workbench.action.focusConversation` | `Ctrl/Cmd+Alt+Shift+1` |
+| Preview | `workbench.action.focusPreview` | `Ctrl/Cmd+Alt+Shift+2` |
+| Sources | `workbench.action.focusSources` | `Ctrl/Cmd+Alt+Shift+3` |
 
-隐藏 Conversation 后可用 **`Ctrl/Cmd+Alt+Shift+C`**（toggle）或 **`Ctrl+Alt+I`**（Open Conversation，显示并聚焦）纯键盘回到对话。
+隐藏 Conversation 后可用 **`Ctrl/Cmd+Alt+Shift+T`**（toggle，键位触发时显示并聚焦）、**`Ctrl/Cmd+Alt+Shift+1`**（Focus Conversation）或 **`Ctrl+Alt+I`**（Open Conversation）纯键盘回到对话。隐藏持有焦点的 Conversation / Sources 时，焦点交给下一个可见区域（[parts-and-grid §4](../workbench/parts-and-grid.md#4-显隐-apit2--t3)）。
+
+上游 Navigate Left / Right / Up / Down（`workbench.action.navigateLeft` 等，`navigationActions.ts`，无默认键位）从 Conversation 或 Sources 出发时也按网格邻居移动焦点。
 
 **Part 焦点循环（D14 @2026-09-02）** — 键位注册于 `workbench/browser/actions/navigationActions.ts`；名义顺序与隐藏跳过逻辑于 `workbench/services/layout/browser/layoutService.ts`（`MAIN_WINDOW_PART_FOCUS_CYCLE`、`resolveVisiblePartFocusNeighbour`、`getDefaultPartFocusTarget`）：
 

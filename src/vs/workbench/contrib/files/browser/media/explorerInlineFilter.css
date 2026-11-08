@@ -84,7 +84,19 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: color 0.12s ease;
+	transition: color 100ms ease, background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .explorer-inline-filter-clear,
+.monaco-workbench.monaco-reduce-motion .explorer-inline-filter-input {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .explorer-inline-filter-clear,
+	.monaco-workbench:not(.monaco-enable-motion) .explorer-inline-filter-input {
+		transition: none;
+	}
 }
 
 .monaco-workbench .explorer-inline-filter-clear:active {

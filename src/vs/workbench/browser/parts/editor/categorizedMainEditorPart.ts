@@ -6,7 +6,7 @@
 import { $ } from '../../../../base/browser/dom.js';
 import { Direction, ISerializedNode, Orientation, Sizing } from '../../../../base/browser/ui/grid/grid.js';
 import { mainWindow } from '../../../../base/browser/window.js';
-import { GroupIdentifier, GroupModelChangeKind } from '../../../common/editor.js';
+import { GroupIdentifier, GroupModelChangeKind, IUntypedEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IPreviewCategoryService, isPreviewCategory, PREVIEW_CATEGORIES, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
 import { IPreviewCategoryRoutingPart, PreviewActiveCategoryContext, PreviewCategorizedContext } from '../../../services/editor/common/previewCategoryRouting.js';
@@ -414,6 +414,17 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		}
 
 		return this.addGroupInCategory(anchor, GroupDirection.RIGHT, category);
+	}
+
+	getTargetGroupForInput(input: EditorInput | IUntypedEditorInput): IEditorGroup {
+		const category = this.previewCategoryService.getCategoryForInput(input);
+		const active = this.activeGroup;
+		if (active && this.getGroupCategory(active) === category) {
+			return active;
+		}
+		const target = this.getMostRecentGroup(category) ?? this.ensureCategoryGroup(category);
+		this.revealCategory(category, target);
+		return target;
 	}
 
 	addGroupInCategory(location: IEditorGroup | GroupIdentifier, direction: GroupDirection, category: PreviewCategory): IEditorGroup {

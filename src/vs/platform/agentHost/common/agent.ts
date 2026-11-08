@@ -898,6 +898,14 @@ export interface IAgentToolPendingConfirmationSignal {
 	 */
 	readonly shellLanguage?: 'bash' | 'powershell';
 	/**
+	 * Host-only fact for shell requests: whether the command will start in the
+	 * session's primary working directory. `false` also covers "cannot tell",
+	 * and makes relative write redirects require confirmation. Omitted when the
+	 * producer cannot observe the shell, which keeps relative redirects
+	 * resolving against the primary working directory.
+	 */
+	readonly shellStartsInPrimaryWorkingDirectory?: boolean;
+	/**
 	 * If set, the tool call belongs to the subagent rooted at this
 	 * parent tool call. Used by the host to route the resulting
 	 * `ChatToolCallReady` to the subagent session — otherwise the

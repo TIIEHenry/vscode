@@ -43,9 +43,9 @@
 	font-size: 12px;
 }
 
-.monaco-workbench .monaco-list-row.selected .agent-inspect-entry-field,
-.monaco-workbench .monaco-list-row.focused .agent-inspect-entry-field {
-	color: var(--vscode-list-activeSelectionForeground);
+.monaco-workbench .agent-inspect-list .monaco-list-row.selected .agent-inspect-entry-field,
+.monaco-workbench .agent-inspect-list .monaco-list-row.focused .agent-inspect-entry-field {
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .agent-inspect-entry-value {
@@ -95,7 +95,18 @@
 
 .monaco-workbench .agent-inspect-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+	cursor: default;
+}
+
+.monaco-workbench.monaco-reduce-motion .agent-inspect-list .monaco-list-row {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .agent-inspect-list .monaco-list-row {
+		transition: none;
+	}
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .agent-inspect-list .monaco-list-row,
@@ -106,10 +117,21 @@
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .agent-inspect-list .monaco-list:focus-visible .monaco-list-row.focused {
-	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+	outline: none !important;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-focusBackground));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .agent-inspect-list .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
 	outline-offset: -1px;
 }
 
-.monaco-workbench .agent-inspect-list .monaco-list-row:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+.monaco-workbench:not(.hc-black):not(.hc-light) .agent-inspect-list .monaco-list-row:hover:not(.focused) {
+	background-color: transparent !important;
+	cursor: default;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .agent-inspect-list .monaco-list-row.selected:not(.focused) {
+	background-color: transparent !important;
+	color: var(--vscode-foreground);
 }

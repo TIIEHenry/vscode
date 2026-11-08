@@ -114,10 +114,6 @@
 					transition: background-color 100ms ease, color 100ms ease;
 				}
 
-				.action-label:active {
-					background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-				}
-
 				.action-label.checked {
 					color: var(--vscode-foreground);
 					background: var(--vscode-editor-background) !important;
@@ -134,6 +130,10 @@
 					border-radius: 6px;
 					border-bottom: none;
 					outline: none;
+				}
+
+				.action-label:active {
+					background: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent)) !important;
 				}
 
 				.action-label:focus {
@@ -156,6 +156,10 @@
 
 		}
 	}
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .preferences-editor .preferences-tabs-container .action-item .action-label.checked:focus-visible {
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 18%, transparent);
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .preferences-editor .back-to-client-settings.monaco-button:focus-visible {

@@ -77,6 +77,7 @@ export class TerminalTabbedView extends Disposable {
 
 	private _panelOrientation: Orientation | undefined;
 	private _emptyAreaDropTargetCount = 0;
+	private _chatEntryFocusGuardDepth = 0;
 
 	constructor(
 		parentElement: HTMLElement,
@@ -125,7 +126,7 @@ export class TerminalTabbedView extends Disposable {
 		this._register(_configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TerminalSettingId.TabsEnabled) ||
 				e.affectsConfiguration(TerminalSettingId.TabsHideCondition)) {
-				this._refreshShowTabs();
+				this._runPreservingChatEntryFocus(() => this._refreshShowTabs());
 			} else if (e.affectsConfiguration(TerminalSettingId.TabsLocation)) {
 				this._tabTreeIndex = this._terminalConfigurationService.config.tabs.location === 'left' ? 0 : 1;
 				this._terminalContainerIndex = this._terminalConfigurationService.config.tabs.location === 'left' ? 1 : 0;
@@ -138,19 +139,16 @@ export class TerminalTabbedView extends Disposable {
 			}
 		}));
 		this._register(Event.any(this._terminalGroupService.onDidChangeInstances, this._terminalGroupService.onDidChangeGroups)(() => {
-			this._refreshShowTabs();
-			this._updateChatTerminalsEntry();
+			this._refreshTabsAndChatEntry();
 		}));
 
 		this._register(Event.any(this._terminalChatService.onDidRegisterTerminalInstanceWithToolSession, this._terminalService.onDidChangeInstances, this._terminalService.onDidDisposeInstance)(() => {
-			this._refreshShowTabs();
-			this._updateChatTerminalsEntry();
+			this._refreshTabsAndChatEntry();
 		}));
 
 		this._register(contextKeyService.onDidChangeContext(e => {
 			if (e.affectsSome(new Set([TerminalContribContextKeyStrings.ChatHasHiddenTerminals]))) {
-				this._refreshShowTabs();
-				this._updateChatTerminalsEntry();
+				this._refreshTabsAndChatEntry();
 			}
 		}));
 		this._attachEventListeners(parentElement, this._terminalContainer);
@@ -218,6 +216,43 @@ export class TerminalTabbedView extends Disposable {
 		const visibilityChanged = this._chatEntry?.update();
 		if (visibilityChanged && this._panelWidth !== undefined && this._panelHeight !== undefined) {
 			this.layout(this._panelWidth, this._panelHeight);
+		}
+	}
+
+	private _refreshTabsAndChatEntry(): void {
+		this._runPreservingChatEntryFocus(() => {
+			this._refreshShowTabs();
+			this._updateChatTerminalsEntry();
+		});
+	}
+
+	private _runPreservingChatEntryFocus(refresh: () => void): void {
+		const entry = this._chatEntry?.element;
+		// Only the outermost refresh decides, so a layout re-entry cannot hand focus over twice.
+		if (!entry || this._chatEntryFocusGuardDepth > 0) {
+			refresh();
+			return;
+		}
+		const isShown = () => entry.isConnected && entry.style.display !== 'none';
+		// Read before refreshing: removing the tab tree detaches the entry and drops its focus.
+		const hadFocus = dom.isAncestorOfActiveElement(entry);
+		const wasShown = isShown();
+		this._chatEntryFocusGuardDepth++;
+		try {
+			refresh();
+		} finally {
+			this._chatEntryFocusGuardDepth--;
+		}
+		if (hadFocus && wasShown && !isShown()) {
+			this._focusAfterChatEntryHidden();
+		}
+	}
+
+	private _focusAfterChatEntryHidden(): void {
+		if (this._shouldShowTabs()) {
+			this.focusTabs();
+		} else if (this._terminalGroupService.activeInstance) {
+			this._focus();
 		}
 	}
 
@@ -356,7 +391,7 @@ export class TerminalTabbedView extends Disposable {
 			: this._tabList.hasText;
 		this._tabContainer.classList.toggle('has-text', hasText);
 		this._terminalIsTabsNarrowContextKey.set(!hasText);
-		this._updateChatTerminalsEntry();
+		this._runPreservingChatEntryFocus(() => this._updateChatTerminalsEntry());
 	}
 
 	layout(width: number, height: number): void {
@@ -376,7 +411,7 @@ export class TerminalTabbedView extends Disposable {
 	private _attachEventListeners(parentDomElement: HTMLElement, terminalContainer: HTMLElement): void {
 		this._register(dom.addDisposableListener(this._tabContainer, 'mouseleave', async (event: MouseEvent) => {
 			this._terminalTabsMouseContextKey.set(false);
-			this._refreshShowTabs();
+			this._runPreservingChatEntryFocus(() => this._refreshShowTabs());
 			event.stopPropagation();
 		}));
 		this._register(dom.addDisposableListener(this._tabContainer, 'mouseenter', async (event: MouseEvent) => {

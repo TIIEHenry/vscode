@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, clearNode, getActiveElement } from '../../../../base/browser/dom.js';
+import { $, append, clearNode, getActiveElement, isHTMLElement } from '../../../../base/browser/dom.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import type { ITreeNode } from '../../../../base/browser/ui/tree/tree.js';
 import type { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -11,7 +11,7 @@ import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/
 import { ProcessFoldSpanHandle, renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
-import { ConversationTimelineRenderer } from './conversationTimelineRenderer.js';
+import { ConversationTimelineRenderer, readingTurnSourceName } from './conversationTimelineRenderer.js';
 import { ConversationTimelineItem } from './conversationTimelineTypes.js';
 import { IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
 import type { ConversationDisplayMode } from './conversationLivePhase.js';
@@ -152,6 +152,9 @@ export class ConversationTimelineItemHost {
 	private fullRender(): void {
 		const active = getActiveElement();
 		const restoreFocus = !!active && active !== this.article && this.article.contains(active);
+		const restoreDescendant = restoreFocus && isHTMLElement(active)
+			? captureFocusedDescendant(this.inner, active)
+			: undefined;
 
 		this.disposables.clear();
 		this.foldHandle = undefined;
@@ -194,6 +197,14 @@ export class ConversationTimelineItemHost {
 		}
 
 		if (restoreFocus) {
+			const matched = restoreDescendant?.();
+			if (matched && !(matched as HTMLButtonElement).disabled && !matched.hidden && !matched.inert) {
+				if (matched.tabIndex < 0) {
+					matched.tabIndex = 0;
+				}
+				matched.focus({ preventScroll: true });
+				return;
+			}
 			if (this.article.tabIndex < 0) {
 				this.article.tabIndex = 0;
 			}
@@ -209,8 +220,18 @@ export class ConversationTimelineItemHost {
 		const row = append(this.inner, $('div.conversation-lens-turn'));
 		row.setAttribute('data-kind', turn.kind);
 		row.setAttribute('data-turn-id', turn.id);
-		const body = append(row, $('.conversation-lens-turn-body.conversation-lens-turn-body--reading-text'));
+		const sourceName = readingTurnSourceName(turn);
+		if (sourceName) {
+			const header = append(row, $('.conversation-lens-turn-header'));
+			const identity = append(header, $('span.conversation-lens-turn-source'));
+			identity.textContent = sourceName;
+			identity.title = sourceName;
+		}
+		const body = append(row, $('.conversation-lens-turn-body.conversation-lens-turn-body--reading-text.rendered-markdown'));
 		const handle = renderStreamingBody.call(this.hooks.contentAdapter, turn, body);
+		if (turn.text.length > 0) {
+			handle.update(turn.text);
+		}
 		this.streamingHandle = handle;
 		this.streamingText = turn.text;
 		let disposed = false;
@@ -225,4 +246,49 @@ export class ConversationTimelineItemHost {
 			}
 		}));
 	}
+}
+
+function collectMatchingDescendants(root: HTMLElement, predicate: (el: HTMLElement) => boolean, out: HTMLElement[] = []): HTMLElement[] {
+	for (const child of root.children) {
+		if (!isHTMLElement(child)) {
+			continue;
+		}
+		if (predicate(child)) {
+			out.push(child);
+		}
+		collectMatchingDescendants(child, predicate, out);
+	}
+	return out;
+}
+
+function captureFocusedDescendant(root: HTMLElement, active: HTMLElement): () => HTMLElement | undefined {
+	const turnId = active.closest<HTMLElement>('[data-turn-id]')?.dataset.turnId;
+	const tagName = active.tagName;
+	const isMonacoButton = active.classList.contains('monaco-button');
+	const parentClassName = isMonacoButton ? active.parentElement?.className : undefined;
+	const convClasses = [...active.classList].filter(cls => cls.startsWith('conversation-'));
+	const matches = (el: HTMLElement): boolean => {
+		if (el.tagName !== tagName) {
+			return false;
+		}
+		if (turnId !== undefined && el.closest<HTMLElement>('[data-turn-id]')?.dataset.turnId !== turnId) {
+			return false;
+		}
+		if (isMonacoButton) {
+			if (!el.classList.contains('monaco-button')) {
+				return false;
+			}
+			if (parentClassName && el.parentElement?.className !== parentClassName) {
+				return false;
+			}
+			return true;
+		}
+		return convClasses.length > 0 && convClasses.every(cls => el.classList.contains(cls));
+	};
+	const before = collectMatchingDescendants(root, matches);
+	const index = Math.max(0, before.indexOf(active));
+	return () => {
+		const after = collectMatchingDescendants(root, matches);
+		return after[index] ?? after[0];
+	};
 }

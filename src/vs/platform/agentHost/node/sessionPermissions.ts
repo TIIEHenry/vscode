@@ -22,6 +22,7 @@ import { ILogService } from '../../log/common/log.js';
 import { containsCmdDelayedExpansion } from '../../terminal/common/autoApprove/cmdDelayedExpansion.js';
 import { AgentHostEditAutoApprovePatternsConfigKey, AgentHostGlobalAutoApproveEnabledConfigKey, AgentHostTerminalAutoApproveEnabledConfigKey, AgentHostTerminalAutoApproveRulesConfigKey, platformRootSchema, platformSessionSchema } from '../common/agentHostSchema.js';
 import type { IAgentToolPendingConfirmationSignal } from '../common/agent.js';
+import { sameDirectory } from '../common/commandLineHelpers.js';
 import { ISessionDataService, isSessionAttachmentPath } from '../common/sessionDataService.js';
 import { SessionConfigKey } from '../common/sessionConfigKeys.js';
 import { ConfirmationOptionKind, type ConfirmationOption } from '../common/state/protocol/state.js';
@@ -50,6 +51,7 @@ export interface IToolApprovalEvent {
 	readonly toolInput?: string;
 	readonly requestSandboxBypass?: boolean;
 	readonly shellLanguage?: IAgentToolPendingConfirmationSignal['shellLanguage'];
+	readonly shellStartsInPrimaryWorkingDirectory?: IAgentToolPendingConfirmationSignal['shellStartsInPrimaryWorkingDirectory'];
 }
 
 /** Standard per-tool confirmation options presented to the user. */
@@ -340,12 +342,13 @@ export class SessionPermissionManager extends Disposable {
 				language: e.shellLanguage,
 			};
 			const writeDests = this._commandAutoApprover.getWriteRedirectDestinations(e.toolInput, shellOptions);
+			const relativeWriteDestsAllowed = writeDests.length > 0 && this._areRelativeShellWriteDestsAllowed(e.toolInput, e.shellLanguage, e.shellStartsInPrimaryWorkingDirectory, workingDirectories?.[0]);
 			const approvedWriteDests = new Map<string, boolean>();
 			for (const dest of writeDests) {
 				if (dest === undefined) {
 					return undefined;
 				}
-				const approved = await this._isShellWriteDestApproved(dest, workingDirectories);
+				const approved = await this._isShellWriteDestApproved(dest, workingDirectories, relativeWriteDestsAllowed);
 				if (!approved) {
 					return undefined;
 				}
@@ -423,12 +426,13 @@ export class SessionPermissionManager extends Disposable {
 		}
 		const workDirs = getEffectiveWorkingDirectories(this._stateManager, sessionKey);
 		const workingDirectories = workDirs?.map(d => URI.parse(d));
+		const relativeWriteDestsAllowed = this._areRelativeShellWriteDestsAllowed(e.toolInput, e.shellLanguage, e.shellStartsInPrimaryWorkingDirectory, workingDirectories?.[0]);
 		// Rule resolvability ignores symlink resolution; a symlink outside the
 		// workspace still requires confirmation via {@link getAutoApproval}.
 		return this._commandAutoApprover.evaluate(e.toolInput, {
 			autoApproveRules: this._configService.getRootValue(platformRootSchema, AgentHostTerminalAutoApproveRulesConfigKey),
 			isWriteDestApproved: dest => {
-				const resource = this._resolveShellRedirectResource(dest, workingDirectories?.[0]);
+				const resource = this._resolveShellRedirectResource(dest, workingDirectories?.[0], relativeWriteDestsAllowed);
 				return resource !== undefined && (workingDirectories ?? []).some(workingDirectory => this._checkWriteResource(resource, workingDirectory));
 			},
 			language: e.shellLanguage,
@@ -566,10 +570,11 @@ export class SessionPermissionManager extends Disposable {
 	 * rules that govern write tool calls: the destination must resolve to a
 	 * path inside the working directory and must not match a denied glob.
 	 */
-	private async _isShellWriteDestApproved(dest: string, workingDirectories: readonly URI[] | undefined): Promise<boolean> {
-		// A shell command runs in exactly one process cwd = the primary root
-		// (index 0), so a *relative* redirect can only resolve against that cwd.
-		const resource = this._resolveShellRedirectResource(dest, workingDirectories?.[0]);
+	private async _isShellWriteDestApproved(dest: string, workingDirectories: readonly URI[] | undefined, relativeDestsAllowed: boolean): Promise<boolean> {
+		// A shell process starts in exactly one cwd = the primary root (index 0),
+		// so a *relative* redirect resolves against that cwd only while nothing
+		// says the command runs elsewhere (see _areRelativeShellWriteDestsAllowed).
+		const resource = this._resolveShellRedirectResource(dest, workingDirectories?.[0], relativeDestsAllowed);
 		if (!resource) {
 			return false;
 		}
@@ -581,6 +586,20 @@ export class SessionPermissionManager extends Disposable {
 			return false;
 		}
 		return workingDirectories.some(workingDirectory => resourcesToCheck.every(candidate => this._checkWriteResource(candidate, workingDirectory)));
+	}
+
+	/**
+	 * Whether relative write redirects in `commandLine` may resolve against the
+	 * primary working directory: the command must not change directory (other
+	 * than a `cd` to the primary working directory itself), and the producer
+	 * must not have reported that the shell starts elsewhere or cannot tell.
+	 */
+	private _areRelativeShellWriteDestsAllowed(commandLine: string, language: 'bash' | 'powershell', shellStartsInPrimaryWorkingDirectory: boolean | undefined, primaryWorkingDirectory: URI | undefined): boolean {
+		if (shellStartsInPrimaryWorkingDirectory === false || !primaryWorkingDirectory) {
+			return false;
+		}
+		const targets = this._commandAutoApprover.getDirectoryChangeTargets(commandLine, { language });
+		return targets !== undefined && targets.every(target => target !== undefined && path.isAbsolute(target) && sameDirectory(target, primaryWorkingDirectory));
 	}
 
 	/**
@@ -601,10 +620,11 @@ export class SessionPermissionManager extends Disposable {
 	 * filesystem path. `~` is expanded to the user's home directory; the
 	 * downstream working-directory check rejects paths that end up outside
 	 * the workspace. Returns `undefined` when resolution would require a
-	 * working directory that isn't configured, or when the destination expands
-	 * at runtime and therefore cannot be resolved from its text alone.
+	 * working directory that isn't configured or isn't allowed
+	 * (`allowRelative`), or when the destination expands at runtime and
+	 * therefore cannot be resolved from its text alone.
 	 */
-	private _resolveShellRedirectResource(dest: string, workingDirectory: URI | undefined): URI | undefined {
+	private _resolveShellRedirectResource(dest: string, workingDirectory: URI | undefined, allowRelative: boolean): URI | undefined {
 		const trimmed = untildify(dest.trim(), homedir());
 		if (!trimmed) {
 			return undefined;
@@ -618,6 +638,10 @@ export class SessionPermissionManager extends Disposable {
 		}
 		if (path.isAbsolute(trimmed)) {
 			return URI.file(trimmed);
+		}
+		if (!allowRelative) {
+			this._logService.trace(`[SessionPermissionManager] Relative redirect destination may not run in the primary working directory, requiring confirmation: ${dest}`);
+			return undefined;
 		}
 		if (!workingDirectory) {
 			return undefined;

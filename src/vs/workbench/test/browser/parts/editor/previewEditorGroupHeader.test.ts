@@ -51,6 +51,7 @@ suite('Preview Editor Group Header Invariants', () => {
 	test('category bar count sits beside the 16px icon and empty state uses size tokens', () => {
 		const barCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/previewCategoryBar.css'), 'utf8');
 		const groupViewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorgroupview.css'), 'utf8');
+		const switcherTs = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/previewCategorySwitcher.ts'), 'utf8');
 
 		const countRule = barCss.slice(barCss.indexOf('.preview-category-tab .category-count {'));
 		assert.ok(countRule.startsWith('.preview-category-tab .category-count {'), 'category count rule exists');
@@ -64,6 +65,18 @@ suite('Preview Editor Group Header Invariants', () => {
 		assert.ok(barCss.includes('width: auto'), 'tab grows when the count is shown');
 		assert.ok(barCss.includes('--vscode-codiconFontSize'), 'category icon uses the 16px codicon size');
 		assert.ok(barCss.includes('.hide-counts .category-count'), 'a row that does not fit hides counts');
+		assert.ok(barCss.includes('flex: 1 1 auto;'), 'category switcher fills the available bar width');
+		assert.ok(barCss.includes('min-width: 0;'), 'category switcher can shrink to a narrow viewport');
+		assert.ok(barCss.includes('overflow-x: auto;'), 'category switcher scrolls internally when tabs do not fit');
+		assert.ok(barCss.includes('overflow-y: hidden;'), 'category switcher remains a single 28px row');
+		assert.ok(barCss.includes('scrollbar-width: none;'), 'internal scroll does not add a second visible bar row');
+		assert.ok(barCss.includes('flex-shrink: 0;'), 'category tabs remain intact hit targets while the switcher scrolls');
+		assert.ok(barCss.includes('height: 28px;'), 'category bar stays within the ADR-011 28px cap');
+		assert.ok(barCss.includes('max-height: 28px;'), 'category bar retains the ADR-011 maximum height');
+		assert.ok(!barCss.includes('preview-category-overflow'), 'category overflow does not add a separate overflow button');
+		assert.ok(switcherTs.includes('this.element.scrollWidth > this.element.clientWidth'), 'count fitting measures the internal switcher viewport');
+		assert.ok(!switcherTs.includes('this.element.scrollWidth > bar.clientWidth'), 'count fitting does not ignore the action slot width');
+		assert.ok(switcherTs.includes('resize.observe(this.element)'), 'count fitting observes the internal viewport when action slots resize it');
 		assert.ok(!groupViewCss.includes('.category-icon svg'), 'hand-drawn 18px category svg rules are gone');
 		assert.ok(!groupViewCss.includes('width: 18px'), 'category chrome does not keep an 18px icon');
 

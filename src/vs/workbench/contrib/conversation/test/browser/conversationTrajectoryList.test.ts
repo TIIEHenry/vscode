@@ -6,10 +6,11 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { getTrajectoryRecordPreview } from '../../browser/conversationTrajectory.js';
-import { getConversationTurnRoleLabel, getConversationTurnSummary } from '../../browser/conversationTrajectoryList.js';
+import { getConversationTurnRoleLabel, getConversationTurnSummary, ConversationTrajectoryList } from '../../browser/conversationTrajectoryList.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { CONVERSATION_REFS_MARKER } from '../../browser/conversationUserRefs.js';
 import { getConversationChatResource } from '../../common/conversationChatInput.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 
 suite('ConversationTrajectoryList', () => {
 
@@ -143,5 +144,27 @@ suite('ConversationTrajectoryList', () => {
 
 		const plain = getTrajectoryRecordPreview({ id: 't2', kind: 'tool', text: 'Grep' });
 		assert.strictEqual(plain, 'Grep');
+	});
+});
+
+suite('ConversationTrajectoryList (browser widget)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('setTurns([]) clears prior rows so empty sessions do not keep stale turn ids', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const trajectoryList = store.add(instantiationService.createInstance(ConversationTrajectoryList, parent, {}));
+		trajectoryList.show();
+		trajectoryList.layout(200, 320);
+
+		trajectoryList.setTurns([{ id: 'turn-session-a', kind: 'user', text: 'Session A' }]);
+		assert.strictEqual(parent.querySelectorAll('[data-turn-id="turn-session-a"]').length, 1);
+
+		trajectoryList.setTurns([]);
+		assert.strictEqual(parent.querySelectorAll('[data-turn-id]').length, 0);
 	});
 });

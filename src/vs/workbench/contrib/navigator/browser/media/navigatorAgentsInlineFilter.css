@@ -47,7 +47,7 @@
 	line-height: 20px;
 	box-sizing: border-box;
 	text-overflow: ellipsis;
-	transition: border-color 0.12s ease;
+	transition: border-color 100ms ease;
 }
 
 .monaco-workbench .navigator-agents-inline-filter.has-text .navigator-agents-inline-filter-input {
@@ -87,11 +87,11 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: color 0.12s ease;
+	transition: color 100ms ease;
 }
 
 .monaco-workbench .navigator-agents-inline-filter-clear:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .navigator-agents-inline-filter.has-text .navigator-agents-inline-filter-clear {
@@ -100,11 +100,31 @@
 
 .monaco-workbench .navigator-agents-inline-filter-clear:hover {
 	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.monaco-workbench .navigator-agents-inline-filter-clear:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-inline-filter-clear:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	color: var(--vscode-foreground);
+	border-radius: 4px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .navigator-agents-inline-filter-clear:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 4px;
+}
+
+.monaco-workbench.monaco-reduce-motion .navigator-agents-inline-filter-input,
+.monaco-workbench.monaco-reduce-motion .navigator-agents-inline-filter-clear {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .navigator-agents-inline-filter-input,
+	.monaco-workbench:not(.monaco-enable-motion) .navigator-agents-inline-filter-clear {
+		transition: none;
+	}
 }

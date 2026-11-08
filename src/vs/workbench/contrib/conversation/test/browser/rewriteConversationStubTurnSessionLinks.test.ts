@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { rewriteConversationStubTurnSessionLinks } from './rewriteConversationStubTurnSessionLinks.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { rewriteConversationStubTurnSessionLinks } from '../../browser/rewriteConversationStubTurnSessionLinks.js';
 
 suite('rewriteConversationStubTurnSessionLinks (browser)', () => {
 

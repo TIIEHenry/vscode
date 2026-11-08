@@ -153,6 +153,7 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 	readonly templateId = ProjectNodeRenderer.TEMPLATE_ID;
 
 	private readonly templates = new Set<IProjectNodeTemplateData>();
+	private openMenuNodeId: string | undefined;
 
 	constructor(
 		private readonly contextMenuService: IContextMenuService,
@@ -234,8 +235,9 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 		const element = node.element;
 		templateData.row.classList.toggle('is-group', element.kind === 'workdir' || element.kind === 'local-group');
 		templateData.row.classList.toggle('is-session', element.kind === 'session');
+		templateData.row.classList.toggle('is-note', element.kind === 'note');
 		templateData.element = element;
-		templateData.actions.classList.remove('is-menu-open');
+		templateData.actions.classList.toggle('is-menu-open', element.id === this.openMenuNodeId);
 		const icon = navigatorProjectsNodeIcon(element.kind);
 		templateData.icon.className = 'navigator-projects-node-icon';
 		if (icon) {
@@ -279,11 +281,13 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 
 	showContextMenu(element: INavigatorProjectsTreeNode | undefined, anchor: HTMLElement | IListContextMenuEvent<INavigatorProjectsTreeNode>['anchor']): void {
 		const sessionId = element?.kind === 'session' ? element.sessionId : undefined;
-		if (!sessionId) {
+		const isWorkDirTarget = element?.kind === 'workdir' && this.isWorkDirCreateTarget(element);
+		if (!sessionId && !isWorkDirTarget) {
 			return;
 		}
-		const menuActions = [...this.templates].find(template => template.element?.id === element?.id)?.actions;
-		menuActions?.classList.add('is-menu-open');
+		const nodeId = element!.id;
+		this.openMenuNodeId = nodeId;
+		this.syncRowActionChrome();
 		// Snapshot identity: a virtual row may be recycled while the menu is open.
 		const owner = this.getMenuOwner();
 		const isCurrent = () => {
@@ -292,27 +296,44 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 		};
 		const live = isCurrent();
 		const reason = this.getRowActionUnavailableReason();
-		const openLabel = localize('navigatorProjects.openSession', "Open");
-		const deleteLabel = localize('navigatorProjects.deleteSession', "Delete");
-		const actions = [
-			new Action('navigator.projects.openSession', live ? openLabel : `${openLabel}. ${reason}`, undefined, live, () => {
-				if (isCurrent()) {
-					this.onOpenSession(sessionId);
-				}
-			}),
-			new Action('navigator.projects.deleteSession', live ? deleteLabel : `${deleteLabel}. ${reason}`, undefined, live, () => {
-				if (isCurrent()) {
-					this.onDeleteSession(sessionId);
-				}
-			}),
-		];
+		let actions: Action[];
+		if (sessionId) {
+			const openLabel = localize('navigatorProjects.openSession', "Open");
+			const deleteLabel = localize('navigatorProjects.deleteSession', "Delete");
+			actions = [
+				new Action('navigator.projects.openSession', live ? openLabel : `${openLabel}. ${reason}`, undefined, live, () => {
+					if (isCurrent()) {
+						this.onOpenSession(sessionId);
+					}
+				}),
+				new Action('navigator.projects.deleteSession', live ? deleteLabel : `${deleteLabel}. ${reason}`, undefined, live, () => {
+					if (isCurrent()) {
+						this.onDeleteSession(sessionId);
+					}
+				}),
+			];
+		} else {
+			const workDirNode = element!;
+			const canCreate = live && this.canCreateInWorkDir(workDirNode);
+			const newSessionLabel = navigatorNewSessionInLabel(workDirNode.description);
+			actions = [
+				new Action('navigator.projects.newSession', canCreate || !reason ? newSessionLabel : `${newSessionLabel}. ${reason}`, undefined, canCreate, () => {
+					if (isCurrent() && this.canCreateInWorkDir(workDirNode)) {
+						this.onCreateSession();
+					}
+				}),
+			];
+		}
 		const menuClassName = sessionId ? 'ua-rounded-menu ua-project-session-menu' : 'ua-rounded-menu ua-project-workdir-menu';
 		this.contextMenuService.showContextMenu({
 			getMenuClassName: () => menuClassName,
 			getAnchor: () => anchor,
 			getActions: () => actions,
 			onHide: didCancel => {
-				menuActions?.classList.remove('is-menu-open');
+				if (this.openMenuNodeId === nodeId) {
+					this.openMenuNodeId = undefined;
+				}
+				this.syncRowActionChrome();
 				actions.forEach(action => action.dispose());
 				if (didCancel) {
 					this.restoreFocus();
@@ -330,10 +351,15 @@ export class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTree
 		const element = templateData.element;
 		const session = !!this.sessionIdOf(templateData);
 		const workdir = !!element && element.kind === 'workdir' && this.isWorkDirCreateTarget(element);
+		const canCreate = workdir && !!element && this.canCreateInWorkDir(element);
+		templateData.actions.classList.toggle('is-menu-open', !!element && element.id === this.openMenuNodeId);
 		templateData.actions.classList.toggle('is-available', session || workdir);
 		templateData.actions.classList.toggle('is-session-actions', session);
 		templateData.actions.classList.toggle('is-workdir-actions', workdir);
-		templateData.newSessionAction.enabled = workdir && !!element && this.canCreateInWorkDir(element);
+		templateData.moreAction.enabled = session;
+		templateData.newSessionAction.enabled = canCreate;
+		templateData.actionBar.setFocusable(false);
+		templateData.actionBar.setFocusable(session || (workdir && canCreate));
 		const holdReason = this.getRowActionUnavailableReason();
 		if (workdir && element) {
 			const label = navigatorNewSessionInLabel(element.description);
@@ -364,6 +390,7 @@ export class NavigatorProjectsView extends ViewPane {
 	private leftoverSessionSwitchClosed = false;
 	/** Last connection workDir seen on a painted snapshot. Only used to keep the New session row after the snapshot loses it. */
 	private lastConnectionWorkDir: string | undefined;
+	private syncedActiveSessionId: string | undefined;
 	private _rebuildSeq = 0;
 	private menuConnectionRevision = 0;
 
@@ -516,21 +543,28 @@ export class NavigatorProjectsView extends ViewPane {
 			container,
 			filterPlaceholder,
 			filterPlaceholder,
+			target => this.focusTreeFromFilter(target),
 		));
 		this.filterBox.setVisible(false);
 		this._register(this.filterBox.onDidChange(query => {
 			if (this._store.isDisposed) {
 				return;
 			}
+			const hadFilter = this.hasActiveFilter();
 			this.filterQuery = query;
+			if (hadFilter && !this.hasActiveFilter()) {
+				this.syncedActiveSessionId = undefined;
+			}
 			this.applyFilterToTree();
 		}));
 
 		this.recentsStatus = dom.append(container, $('.navigator-projects-recents-status'));
 		this.recentsStatus.setAttribute('role', 'status');
+		this.recentsStatus.setAttribute('aria-live', 'polite');
 		this.recentsStatus.style.display = 'none';
 		this.filterEmpty = dom.append(container, $('.navigator-projects-filter-empty'));
 		this.filterEmpty.setAttribute('role', 'status');
+		this.filterEmpty.setAttribute('aria-live', 'polite');
 		this.filterEmpty.textContent = PROJECTS_FILTER_NO_MATCH;
 		this.filterEmpty.style.display = 'none';
 		this.treeContainer = dom.append(container, $('.navigator-projects-list'));
@@ -538,14 +572,26 @@ export class NavigatorProjectsView extends ViewPane {
 		this.refresh();
 	}
 
+	private lastBodyHeight = 0;
+	private lastBodyWidth = 0;
+
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
 		if (this._store.isDisposed) {
 			return;
 		}
+		this.lastBodyHeight = height;
+		this.lastBodyWidth = width;
 		const narrow = width > 0 && width < 600;
 		this.element.classList.toggle('is-narrow', narrow);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
+		this.relayoutTree();
+	}
+
+	private relayoutTree(): void {
+		if (this._store.isDisposed || !this.tree || (this.lastBodyHeight === 0 && this.lastBodyWidth === 0)) {
+			return;
+		}
 		const filterHeight = this.treeNodes.length > 0 ? NavigatorProjectsInlineFilterBox.HEIGHT : 0;
 		const statusHeight = this.recentsStatus && this.recentsStatus.style.display !== 'none'
 			? this.recentsStatus.offsetHeight
@@ -553,7 +599,28 @@ export class NavigatorProjectsView extends ViewPane {
 		const emptyHeight = this.filterEmpty && this.filterEmpty.style.display !== 'none'
 			? this.filterEmpty.offsetHeight
 			: 0;
-		this.tree?.layout(height - filterHeight - statusHeight - emptyHeight, Math.max(0, width - 16));
+		this.tree.layout(Math.max(0, this.lastBodyHeight - filterHeight - statusHeight - emptyHeight), Math.max(0, this.lastBodyWidth - 16));
+	}
+
+	private focusTreeFromFilter(target: 'first' | 'current'): boolean {
+		if (this._store.isDisposed || !this.tree || this.filterTreeNodes(this.treeNodes).length === 0) {
+			return false;
+		}
+		if (target === 'first' || this.tree.getFocus().length === 0) {
+			this.tree.focusFirst();
+			if (this.tree.getFocus()[0]?.kind === 'note') {
+				const nav = this.tree.navigate();
+				for (let node = nav.next(); node; node = nav.next()) {
+					if (node.kind !== 'note') {
+						this.tree.setFocus([node]);
+						this.tree.reveal(node);
+						break;
+					}
+				}
+			}
+		}
+		this.tree.domFocus();
+		return true;
 	}
 
 	private ensureTree(): WorkbenchObjectTree<INavigatorProjectsTreeNode, void> {
@@ -644,6 +711,13 @@ export class NavigatorProjectsView extends ViewPane {
 		}
 		if (node.kind === 'session' && node.sessionId) {
 			this.openSession(node.sessionId);
+			return;
+		}
+		if (node.kind === 'workdir' && this.isWorkDirCreateTarget(node) && this.canCreateInWorkDir(node)) {
+			if (dom.isMouseEvent(browserEvent)) {
+				return;
+			}
+			this.createSessionInCurrentWorkDir();
 			return;
 		}
 		if (node.kind === 'local-folder' && node.openable) {
@@ -956,10 +1030,12 @@ export class NavigatorProjectsView extends ViewPane {
 		if (!copy) {
 			this.recentsStatus.textContent = '';
 			this.recentsStatus.style.display = 'none';
+			this.relayoutTree();
 			return;
 		}
 		this.recentsStatus.textContent = copy;
 		this.recentsStatus.style.display = '';
+		this.relayoutTree();
 	}
 
 	private withRecentsFailureNote(
@@ -984,18 +1060,27 @@ export class NavigatorProjectsView extends ViewPane {
 		if (!tree) {
 			return;
 		}
+		const treeHadFocus = !!this.treeContainer?.contains(this.treeContainer.ownerDocument.activeElement);
 		const filtered = this.filterTreeNodes(this.treeNodes);
 		const filterMiss = this.hasActiveFilter() && this.treeNodes.length > 0 && filtered.length === 0;
 		if (this.filterEmpty) {
 			this.filterEmpty.style.display = filterMiss ? 'flex' : 'none';
 			this.filterEmpty.classList.toggle('is-shown', filterMiss);
 		}
-		tree.setChildren(null, filtered.map(element => ({
+		const statusCopy = this.hasVisibleRecentsStatus() ? this.recentsStatus?.textContent : undefined;
+		const visibleNodes = statusCopy
+			? filtered.filter(element => !(element.kind === 'note' && element.label === statusCopy))
+			: filtered;
+		tree.setChildren(null, visibleNodes.map(element => ({
 			element,
 			collapsible: (element.children?.length ?? 0) > 0,
-			children: this.mapFilteredChildren(element, filtered),
+			children: this.mapFilteredChildren(element, visibleNodes),
 		})));
-		this.syncActiveSessionSelection(filtered);
+		this.syncActiveSessionSelection(visibleNodes);
+		this.relayoutTree();
+		if (filterMiss && treeHadFocus) {
+			this.filterBox?.focus();
+		}
 	}
 
 	private syncActiveSessionSelection(nodes: readonly INavigatorProjectsTreeNode[]): void {
@@ -1007,8 +1092,10 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		const active = this.findActiveSessionNode(nodes);
+		const prevSyncedActiveSessionId = this.syncedActiveSessionId;
+		this.syncedActiveSessionId = active?.sessionId;
 		try {
-			if (active) {
+			if (active && active.sessionId !== prevSyncedActiveSessionId) {
 				tree.expandTo(active);
 			}
 			tree.setSelection(active ? [active] : []);

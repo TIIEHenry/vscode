@@ -3964,6 +3964,7 @@ suite('Sources diff panel', () => {
 		unifiedDiff?: string;
 		applySuccess?: boolean;
 		applyErrorMessage?: string;
+		modifiedDirty?: boolean;
 	}): Promise<IAcceptHunkMount> {
 		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
 		const readCalls: UniverseAgentReadGitFileDiffRequest[] = [];
@@ -4005,6 +4006,9 @@ suite('Sources diff panel', () => {
 				gitCommands.push(String(commandId));
 			},
 		});
+		if (options.modifiedDirty) {
+			instantiationService.stub(ITextFileService, 'isDirty', () => true);
+		}
 		if (options.writeClosed || options.countRefresh) {
 			instantiationService.stub(ISourcesChangesModel, {
 				onDidChange: Event.None,
@@ -4239,6 +4243,83 @@ suite('Sources diff panel', () => {
 		assert.strictEqual(harness.refreshCount.n, 0);
 		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
 		assert.strictEqual(harness.parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
+	});
+
+	function gitIndexOriginal(test: Mocha.Context, path: string, ref = ''): URI {
+		const file = toResource.call(test, path);
+		return file.with({ scheme: 'git', path: `${file.path}.git`, query: JSON.stringify({ path: file.fsPath, ref }) });
+	}
+
+	function fullFileAcceptRef(test: Mocha.Context, name: string, original: URI | undefined): ISourcesChangeRef {
+		return engineAcceptRef(name, { modified: toResource.call(test, `/project/src/${name}.ts`), original });
+	}
+
+	function assertAcceptUnavailableNotice(harness: IAcceptHunkMount): void {
+		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
+		assert.strictEqual(harness.parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
+	}
+
+	test('full-file diff against the Git index applies the hunk at the caret file line on both hosts', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: fullFileAcceptRef(this, 'accept-file-line', gitIndexOriginal(this, '/project/src/accept-file-line.ts')),
+			countRefresh: true,
+		});
+		assertAcceptShown(harness);
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+
+		const expected = sourcesGitHunkPatchAtCursor(acceptCursorUnifiedDiff, 12, 'new', 'fileLine');
+		assert.ok(expected?.includes('@@ -10,2 +11,3 @@'));
+		assert.ok(!expected?.includes('@@ -1,3 +1,4 @@'));
+		assert.strictEqual(harness.applyCalls.length, 2);
+		for (const request of harness.applyCalls) {
+			assert.deepStrictEqual([...request.patches], [expected]);
+		}
+		assert.strictEqual(harness.refreshCount.n, 2);
+	});
+
+	test('full-file diff against the Git index does not apply a caret that is only a hunk body line', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: fullFileAcceptRef(this, 'accept-file-line-miss', gitIndexOriginal(this, '/project/src/accept-file-line-miss.ts')),
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.readCalls.length, 2);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assertAcceptUnavailableNotice(harness);
+	});
+
+	for (const [name, gitRef] of [['a git original that is not the index', 'HEAD'], ['a missing original', undefined]] as const) {
+		test(`${name} hides Accept and sends no FileDiff read or ApplyHunks`, async function () {
+			const original = gitRef === undefined ? undefined : gitIndexOriginal(this, '/project/src/accept-not-offered.ts', gitRef);
+			const harness = await mountAcceptHunkHosts(this, {
+				ref: fullFileAcceptRef(this, 'accept-not-offered', original),
+			});
+			assertAcceptHidden(harness);
+			pinAcceptCursor(harness.view, 12);
+			pinAcceptCursor(harness.pane, 12);
+			await runBothAccept(harness);
+			assert.deepStrictEqual({ reads: harness.readCalls, applies: harness.applyCalls }, { reads: [], applies: [] });
+		});
+	}
+
+	test('full-file diff with unsaved edits on the modified side shows unavailable and does not apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: fullFileAcceptRef(this, 'accept-file-line-dirty', gitIndexOriginal(this, '/project/src/accept-file-line-dirty.ts')),
+			countRefresh: true,
+			modifiedDirty: true,
+		});
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.readCalls.length, 2);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assertAcceptUnavailableNotice(harness);
 	});
 
 	test('binary diff does not apply', async function () {

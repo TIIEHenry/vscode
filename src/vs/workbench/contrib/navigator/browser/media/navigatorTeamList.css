@@ -41,6 +41,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: transparent;
 	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label2, 11px);
 	cursor: pointer;
 }
 
@@ -49,18 +50,30 @@
 	color: var(--vscode-foreground);
 }
 
+.monaco-workbench .navigator-team-status-filter:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .navigator-team-status-filter[aria-pressed="true"] {
 	background: var(--vscode-toolbar-activeBackground, var(--vscode-list-activeSelectionBackground));
 	color: var(--vscode-foreground);
 }
 
-.monaco-workbench .navigator-team-status-filter:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-status-filter:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-foreground);
+}
+
+/* A pressed filter keeps its active surface while keyboard-focused. */
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-status-filter[aria-pressed="true"]:focus-visible {
+	background-color: var(--vscode-toolbar-activeBackground, var(--vscode-list-activeSelectionBackground));
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .navigator-team-status-filter:focus-visible {
-	outline-color: var(--vscode-contrastActiveBorder);
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row,
@@ -74,9 +87,17 @@
 	outline: none !important;
 }
 
-.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus-visible .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list:focus-visible .monaco-list-row.focused {
-	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus-visible .monaco-list-row.focused:not(.selected),
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list:focus-visible .monaco-list-row.focused:not(.selected) {
+	outline: none !important;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-focusBackground, var(--vscode-list-hoverBackground)));
+}
+
+.monaco-workbench.hc-black .navigator-team-list .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-light .navigator-team-list .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-black .navigator-team-tasks-list .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-light .navigator-team-tasks-list .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 	outline-offset: -1px;
 }
 
@@ -95,10 +116,19 @@
 	display: none;
 }
 
+.monaco-workbench .navigator-team-row {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+}
+
 .monaco-workbench .navigator-team-list .monaco-list-row .navigator-team-member-label,
 .monaco-workbench .navigator-team-tasks-list .monaco-list-row .navigator-team-task-label {
+	flex: 1;
 	padding-left: 8px;
-	min-width: 0;
+	min-width: 4ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -107,7 +137,19 @@
 .monaco-workbench .navigator-team-list .monaco-list-row,
 .monaco-workbench .navigator-team-tasks-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-medium, 6px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .navigator-team-list .monaco-list-row,
+.monaco-workbench.monaco-reduce-motion .navigator-team-tasks-list .monaco-list-row {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .navigator-team-list .monaco-list-row,
+	.monaco-workbench:not(.monaco-enable-motion) .navigator-team-tasks-list .monaco-list-row {
+		transition: none;
+	}
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row:hover,
@@ -118,6 +160,17 @@
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row.selected,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list-row.selected {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 9%, transparent);
+	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list-row.focused {
+	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus-visible .monaco-list-row.focused.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list:focus-visible .monaco-list-row.focused.selected {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
 .monaco-workbench .navigator-team-list .monaco-list-row:active,

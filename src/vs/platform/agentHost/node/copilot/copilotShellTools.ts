@@ -15,6 +15,7 @@ import { IProductService } from '../../../product/common/productService.js';
 import { ISandboxHelperService } from '../../../sandbox/common/sandboxHelperService.js';
 import type { ITerminalSandboxResolvedNetworkDomains } from '../../../sandbox/common/terminalSandboxService.js';
 import { TerminalSandboxEngine } from '../../../sandbox/common/terminalSandboxEngine.js';
+import { sameDirectory } from '../../common/commandLineHelpers.js';
 import { TerminalClaimKind, TerminalLifecycleStatus, type TerminalSessionClaim } from '../../common/state/protocol/state.js';
 import { parseRequiredSessionUriFromChatUri } from '../../common/state/sessionState.js';
 import { isZsh } from '../agentHostShellUtils.js';
@@ -91,6 +92,8 @@ export class ShellManager extends Disposable {
 	private readonly _busyShellIds = new Set<string>();
 	/** Release listeners for shells held after a tool returns while the command is still running. */
 	private readonly _heldShellReleaseListeners = new Map<string, DisposableStore>();
+	/** Tool calls whose approval relied on starting at a working-directory prompt. */
+	private readonly _workingDirectoryStartToolCallIds = new Set<string>();
 
 	private readonly _onDidAssociateTerminal = this._register(new Emitter<{ toolCallId: string; terminalUri: string; displayName: string }>());
 	readonly onDidAssociateTerminal: Event<{ toolCallId: string; terminalUri: string; displayName: string }> = this._onDidAssociateTerminal.event;
@@ -121,6 +124,7 @@ export class ShellManager extends Disposable {
 			this._shells.clear();
 			this._toolCallShells.clear();
 			this._busyShellIds.clear();
+			this._workingDirectoryStartToolCallIds.clear();
 		}));
 	}
 
@@ -222,6 +226,67 @@ export class ShellManager extends Disposable {
 
 		this._logService.info(`[ShellManager] Created ${shellType} shell ${id} (terminal=${terminalUri},  executable=${executable})`);
 		return this._makeReference(shell);
+	}
+
+	/**
+	 * Whether a command for `toolCallId` can start in an idle shell of
+	 * `shellType` that sits at a clean prompt in {@link workingDirectory}, as
+	 * reported by shell integration after the last command ended. Does not
+	 * reserve the shell. A `true` result is remembered so that
+	 * {@link acquireShellForToolCall} hands this tool call only such a shell.
+	 */
+	checkStartsInWorkingDirectory(shellType: ShellType, toolCallId: string): boolean {
+		const startsInWorkingDirectory = this._findShellAtWorkingDirectoryPrompt(shellType) !== undefined;
+		if (startsInWorkingDirectory) {
+			this._workingDirectoryStartToolCallIds.add(toolCallId);
+		} else {
+			this._workingDirectoryStartToolCallIds.delete(toolCallId);
+		}
+		return startsInWorkingDirectory;
+	}
+
+	/** Drops the working-directory start requirement recorded for `toolCallId`. */
+	forgetWorkingDirectoryStart(toolCallId: string): void {
+		this._workingDirectoryStartToolCallIds.delete(toolCallId);
+	}
+
+	/**
+	 * Acquires the shell that runs the command of `toolCallId`. When its
+	 * approval relied on {@link checkStartsInWorkingDirectory}, only a shell
+	 * that still sits at a working-directory prompt is handed out, and
+	 * `undefined` is returned when there is none: a new shell's cwd is not
+	 * confirmed before its first prompt. Otherwise behaves like
+	 * {@link getOrCreateShell}.
+	 */
+	async acquireShellForToolCall(shellType: ShellType, chat: URI, turnId: string, toolCallId: string): Promise<IReference<IManagedShell> | undefined> {
+		if (!this._workingDirectoryStartToolCallIds.delete(toolCallId)) {
+			return this.getOrCreateShell(shellType, chat, turnId, toolCallId);
+		}
+		const shell = this._findShellAtWorkingDirectoryPrompt(shellType);
+		if (!shell) {
+			this._logService.info(`[ShellManager] No idle ${shellType} shell is at a working-directory prompt for tool call ${toolCallId}`);
+			return undefined;
+		}
+		this._busyShellIds.add(shell.id);
+		this._trackToolCall(toolCallId, shell.id);
+		return this._makeReference(shell);
+	}
+
+	private _findShellAtWorkingDirectoryPrompt(shellType: ShellType): IManagedShell | undefined {
+		const workingDirectory = this.workingDirectory;
+		if (!workingDirectory) {
+			return undefined;
+		}
+		for (const shell of this._shells.values()) {
+			if (shell.shellType !== shellType || this._busyShellIds.has(shell.id) || !this._terminalManager.hasTerminal(shell.terminalUri)) {
+				continue;
+			}
+			const cwd = this._terminalManager.getPromptConfirmedCwd(shell.terminalUri);
+			if (cwd !== undefined && sameDirectory(cwd, workingDirectory)) {
+				return shell;
+			}
+		}
+		return undefined;
 	}
 
 	private _makeReference(shell: IManagedShell): IReference<IManagedShell> {
@@ -449,12 +514,18 @@ export async function createShellTools(
 		overridesBuiltInTool: true,
 		handler: async (args, invocation) => {
 			const timeoutMs = args.timeout ?? DEFAULT_SHELL_COMMAND_TIMEOUT_MS;
-			const ref = await shellManager.getOrCreateShell(
+			const ref = await shellManager.acquireShellForToolCall(
 				shellType,
 				chat,
 				invocation.toolCallId,
 				invocation.toolCallId,
 			);
+			if (!ref) {
+				return makeFailureResult(
+					'The shell this command was approved to run in is no longer idle at the working directory. Run the command again.',
+					'shell_unavailable'
+				);
+			}
 			let shouldReleaseShell = true;
 			try {
 				let commandToRun = args.command;

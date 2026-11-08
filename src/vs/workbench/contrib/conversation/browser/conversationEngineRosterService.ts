@@ -49,7 +49,8 @@ import {
 } from './conversationMessageQueueModel.js';
 import { isPendingAttentionAction } from './conversationPendingSeat.js';
 import { projectSnapshotToEntries } from './conversationSessionView.js';
-import { isConversationRowActive } from './conversationLivePhase.js';
+import { orderSessionsForRoster } from './conversationSessionsViewStrings.js';
+import { isConversationRowStreaming } from './conversationLivePhase.js';
 import { allocateConversationStubSessionId, ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
 
@@ -1036,10 +1037,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.engineSessionEnsure;
 	}
 
-	private adoptEngineSession(sessionId: string, title: string, options?: { skipBindLease?: boolean }): string {
-		const existed = this.engineSessions.some(session => session.id === sessionId);
-		if (!existed) {
-			this.engineSessions = [...this.engineSessions, { id: sessionId, title, turns: [], source: 'engine-cache' }];
+	private adoptEngineSession(sessionId: string, title: string, options?: { skipBindLease?: boolean }): ConversationStubSession {
+		let record = this.engineSessions.find(session => session.id === sessionId);
+		if (!record) {
+			// The list groups by access time once any row has one; until the next List replaces it,
+			// the local adopt time keeps a new session out of Earlier. An undated list stays flat.
+			const catalogDated = this.engineSessions.some(session => typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0);
+			record = { id: sessionId, title, turns: [], source: 'engine-cache', ...(catalogDated ? { lastAccessedAt: Date.now() } : {}) };
+			this.engineSessions = [...this.engineSessions, record];
 			this._onDidChangeSession.fire(sessionId);
 		}
 		this.listCompleted = true;
@@ -1048,7 +1053,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (!options?.skipBindLease) {
 			this.bindLiveTreeObservationLease();
 		}
-		return sessionId;
+		return record;
 	}
 
 	private activateEngineSession(sessionId: string): void {
@@ -1644,7 +1649,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
 			for (let i = entries.length - 1; i >= 0; i--) {
 				const entry = entries[i];
-				if (entry && isConversationRowActive(entry, 'live')) {
+				if (entry && isConversationRowStreaming(entry, 'live')) {
 					const id = entry.agentId?.trim();
 					if (id) {
 						return id;
@@ -1655,7 +1660,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const turns = this.getTurns(sessionId);
 		for (let i = turns.length - 1; i >= 0; i--) {
 			const turn = turns[i];
-			if (turn && isConversationRowActive(turn, 'live')) {
+			if (turn && isConversationRowStreaming(turn, 'live')) {
 				const id = turn.agentId?.trim();
 				if (id) {
 					return id;
@@ -1752,6 +1757,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			previousBindFailed: this.engineSessionBindFailed,
 		};
 		const wasActive = this.getActiveSessionId() === sessionId;
+		const shownOrder = orderSessionsForRoster(this.engineSessions);
+		const shownIndex = shownOrder.findIndex(session => session.id === sessionId);
+		const nextShownId = (shownOrder[shownIndex + 1] ?? shownOrder[shownIndex - 1])?.id;
 		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
 		this.sessionGoals.delete(sessionId);
 		this.rosterDetailKeys.delete(sessionId);
@@ -1796,8 +1804,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					this.activeEngineSessionId = undefined;
 				}
 			} else if (wasActive) {
-				const newIndex = Math.min(index, this.engineSessions.length - 1);
-				const nextId = this.engineSessions[newIndex]!.id;
+				const nextId = nextShownId ?? this.engineSessions[Math.min(index, this.engineSessions.length - 1)]!.id;
 				this.activeEngineSessionId = nextId;
 				this._onDidChangeActiveSession.fire(nextId);
 				if (!scope.isCurrent()) {
@@ -2001,14 +2008,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				session.id === sessionId || (engineSessionId !== undefined && session.id === engineSessionId)
 			)?.title.trim();
 			const title = engineTitle || localize('conversationLens.sessionNew', "New session");
+			const existed = this.engineSessions.some(session => session.id === sessionId);
+			const ownerSnapshot = this.uaConnection.getConnectionSnapshot();
+			const owner = { engineIdentityId: readPublishedEngineIdentityId(ownerSnapshot), linkId: readPublishedLinkId(ownerSnapshot), generation: this.connectionGeneration };
+			let record: ConversationStubSession;
 			this.suppressBindLiveTreeObservationLease = true;
 			try {
-				this.adoptEngineSession(sessionId, title, { skipBindLease: true });
+				record = this.adoptEngineSession(sessionId, title, { skipBindLease: true });
 			} finally {
 				this.suppressBindLiveTreeObservationLease = false;
 			}
 			this.queueBoundLease = lease;
 			this.syncQueueReader();
+			if (!existed && engineSessionId) {
+				void this.hydrateNewSessionWorkDir(record, engineSessionId, owner);
+			}
 			return;
 		}
 		if (this.engineBoundSessionIds.size === 0) {
@@ -2030,6 +2044,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(this.getActiveSessionId());
 		this.persistEngineAwareRoster();
+	}
+
+	private async hydrateNewSessionWorkDir(record: ConversationStubSession, engineSessionId: string, owner: { engineIdentityId: string | undefined; linkId: number | undefined; generation: number }): Promise<void> {
+		try {
+			const { engineIdentityId, linkId, generation } = owner;
+			if (!this.uaConnection.getSessionInfo || !engineIdentityId || linkId === undefined) {
+				return;
+			}
+			const current = () => !this._store.isDisposed && this.isEngineConnected()
+				&& isConversationEngineLive(this.uaConnection.getConnectionPhase(), this.uaConnection.getConnectionSnapshot().pairingPending)
+				&& generation === this.connectionGeneration
+				&& readPublishedEngineIdentityId(this.uaConnection.getConnectionSnapshot()) === engineIdentityId
+				&& readPublishedLinkId(this.uaConnection.getConnectionSnapshot()) === linkId
+				&& this.engineSessions.find(session => session.id === record.id) === record && !record.workDir?.trim();
+			if (!current()) {
+				return;
+			}
+			const result = await this.uaConnection.getSessionInfo({ sessionId: engineSessionId }, { engineIdentityId, linkId });
+			if (!current() || result.sessionId !== engineSessionId || !result.workDir?.trim()) {
+				return;
+			}
+			record.workDir = result.workDir;
+			this.persistEngineAwareRoster();
+			this._onDidChangeSession.fire(record.id);
+		} catch {
+			// Metadata is optional: a successful bind keeps its connection work-root fallback.
+		}
 	}
 
 	private emitLiveAgentTreeFromLease(lease: IConversationSessionViewLease): void {

@@ -11,7 +11,7 @@ import { TestLayoutService, workbenchInstantiationService } from '../../../../te
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensPhasePreFirstClass, conversationLensShowingTrajectoryClass } from '../../browser/conversationLensDockStrings.js';
-import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
+import { ConversationTrajectory, conversationTrajectoryRevealUnmapped } from '../../browser/conversationTrajectory.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
@@ -275,6 +275,56 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		assert.strictEqual(getSelectedTrajectoryRecordId(slots), 'untitled-u1');
 		assert.ok(getTrajectoryRow(slots, 'untitled-u1').classList.contains('conversation-lens-trajectory-record-row--selected'));
 		assert.strictEqual(lens.isInputMaximized(), false);
+	});
+
+	test('View in trajectory moves keyboard focus to the target record row', async () => {
+		const { layoutReadingColumn, slots } = mountLens();
+		await flushTimelineHeightUpdates();
+
+		clickViewInTrajectory(slots, 'untitled-u1', 'header');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const tableScroll = slots.timeline.querySelector('.conversation-lens-trajectory-table-scroll')!;
+		assert.deepStrictEqual({
+			focusInTable: tableScroll.contains(document.activeElement),
+			focusedRow: tableScroll.querySelector('.monaco-list-row.focused .conversation-lens-trajectory-record-row')?.getAttribute('data-record-id'),
+		}, { focusInTable: true, focusedRow: 'untitled-u1' });
+	});
+
+	test('View in trajectory without a matching record switches lens and says why', async () => {
+		const { lens, layoutReadingColumn, slots } = mountLens();
+		await flushTimelineHeightUpdates();
+
+		lens.navigateToTrajectoryFromTurn('turn-without-record');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const notice = slots.timeline.querySelector('.conversation-lens-trajectory-reveal-notice') as HTMLElement | null;
+		assert.deepStrictEqual({
+			lens: getLensTab(slots, 'trajectory').getAttribute('aria-selected'),
+			notice: notice && !notice.hidden ? notice.textContent : undefined,
+		}, { lens: 'true', notice: conversationTrajectoryRevealUnmapped });
+	});
+
+	test('trajectory linked row click moves keyboard focus into the conversation timeline', async () => {
+		const { layoutReadingColumn, slots } = mountLens();
+		await flushTimelineHeightUpdates();
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		getTrajectoryRow(slots, 'untitled-a1').click();
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+		await flushAnimationFrames();
+
+		const focused = document.activeElement as HTMLElement | null;
+		assert.deepStrictEqual({
+			inTimeline: !!slots.timeline.querySelector('.conversation-lens-timeline')?.contains(focused),
+			turn: focused?.closest('[data-turn-id]')?.getAttribute('data-turn-id') ?? focused?.querySelector('[data-turn-id="untitled-a1"]')?.getAttribute('data-turn-id'),
+		}, { inTimeline: true, turn: 'untitled-a1' });
 	});
 
 	test('trajectory linked row click switches to Conversation lens and reveals the turn', async () => {

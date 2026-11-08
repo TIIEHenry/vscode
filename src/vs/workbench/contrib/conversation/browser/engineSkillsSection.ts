@@ -267,6 +267,9 @@ export class EngineSkillsSection extends Disposable {
 	/** Detached requests cannot release the current editor operation's lock. */
 	private bodySaveOperation: object | undefined;
 	private bodyDraftSuspended = false;
+	private readonly draftPrompt: HTMLElement;
+	private readonly draftPromptText: HTMLElement;
+	private pendingSkillName: string | undefined;
 	private bodyBaselineNeedsReload = false;
 	private loadedBodyWriteLink: UniverseAgentExpectedOwner | undefined;
 	private invalidatedOwner: UniverseAgentExpectedOwner | undefined;
@@ -338,6 +341,27 @@ export class EngineSkillsSection extends Disposable {
 				return;
 			}
 			void this.saveSelectedSkillBody().catch(onUnexpectedError);
+		}));
+
+		this.draftPrompt = DOM.append(this.bodyEditor, $('.engine-skill-draft-prompt.engine-catalog-status-actions'));
+		this.draftPrompt.setAttribute('role', 'status');
+		this.draftPrompt.style.display = 'none';
+		this.draftPromptText = DOM.append(this.draftPrompt, $('span.engine-skill-draft-prompt-text'));
+		const draftSave = this._register(new Button(this.draftPrompt, { ...defaultButtonStyles, secondary: true }));
+		draftSave.label = localize('ua.engineSkillDraftSave', "Save");
+		this._register(draftSave.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.resolvePendingSkill('save').catch(onUnexpectedError);
+		}));
+		const draftDiscard = this._register(new Button(this.draftPrompt, { ...defaultButtonStyles, secondary: true }));
+		draftDiscard.label = localize('ua.engineSkillDraftDiscard', "Discard");
+		this._register(draftDiscard.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.resolvePendingSkill('discard').catch(onUnexpectedError);
 		}));
 
 		this.bodyInput = this._register(new InputBox(this.bodyEditor, contextViewService, {
@@ -991,7 +1015,13 @@ export class EngineSkillsSection extends Disposable {
 				// Group headers are list rows. Leaving a dirty body for one drops the unsaved text.
 				if (this.bodyDirty && next?.name !== this.selectedSkill?.name) {
 					this.restoreSkillSelection();
+					if (next) {
+						this.showDraftPrompt(next.name);
+					}
 					return;
+				}
+				if (next?.name !== this.selectedSkill?.name) {
+					this.hideDraftPrompt();
 				}
 				this.selectedSkill = next;
 				if (!next) {
@@ -1022,7 +1052,42 @@ export class EngineSkillsSection extends Disposable {
 		if (!keptDraft) { this.clearBodyEditor(); }
 	}
 
+	private showDraftPrompt(skillName: string): void {
+		this.pendingSkillName = skillName;
+		this.draftPromptText.textContent = localize('ua.engineSkillDraftPrompt', "Unsaved changes. Save or discard them to open {0}.", skillName);
+		this.draftPrompt.style.display = '';
+	}
+
+	private hideDraftPrompt(): void {
+		this.pendingSkillName = undefined;
+		this.draftPromptText.textContent = '';
+		this.draftPrompt.style.display = 'none';
+	}
+
+	private async resolvePendingSkill(action: 'save' | 'discard'): Promise<void> {
+		const pending = this.pendingSkillName;
+		if (!pending) {
+			return;
+		}
+		if (action === 'save') {
+			const saved = await this.saveSelectedSkillBody();
+			if (!saved || this._store.isDisposed || this.bodyDirty || this.pendingSkillName !== pending) {
+				return;
+			}
+		} else {
+			if (this.bodySaveOperation) {
+				return;
+			}
+			this.bodyEditRevision++;
+			this.bodyInput.value = this.loadedBodyText ?? '';
+			this.bodyDirty = false;
+		}
+		this.hideDraftPrompt();
+		this.selectSkill(pending);
+	}
+
 	private clearBodyEditor(): void {
+		this.hideDraftPrompt();
 		this.bodyLoadGeneration++;
 		this.bodySaveOperation = undefined;
 		this.bodyDraftSuspended = false;

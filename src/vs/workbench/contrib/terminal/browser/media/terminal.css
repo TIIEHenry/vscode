@@ -47,6 +47,11 @@
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-entry.is-active::before {
 	background-color: var(--vscode-terminal-tab-activeBorder);
 }
+
+.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-entry.is-active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
 /* Override monaco's styles for terminal editors */
 .monaco-workbench .terminal-editor .xterm textarea:focus {
 	opacity: 0 !important;
@@ -145,6 +150,18 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.08s ease;
 	display: inline-block;
+}
+
+.monaco-workbench.monaco-reduce-motion .terminal-editor .xterm a:not(.xterm-invalid-link),
+.monaco-workbench.monaco-reduce-motion .pane-body.integrated-terminal .xterm a:not(.xterm-invalid-link) {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .terminal-editor .xterm a:not(.xterm-invalid-link),
+	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .xterm a:not(.xterm-invalid-link) {
+		transition: none;
+	}
 }
 
 .monaco-workbench .terminal-editor .xterm a:not(.xterm-invalid-link):active,
@@ -366,7 +383,17 @@
 	background-color: transparent;
 	color: inherit;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .pane-body.integrated-terminal .terminal-tabs-chat-entry {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .terminal-tabs-chat-entry {
+		transition: none;
+	}
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
@@ -432,7 +459,17 @@
 	opacity: 0.8;
 	flex-shrink: 0;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease, background-color 0.12s ease;
+	transition: opacity 100ms ease, background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete {
+		transition: none;
+	}
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:active {
@@ -471,8 +508,18 @@
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
 	box-sizing: border-box;
+}
+
+.monaco-workbench.monaco-reduce-motion .pane-body.integrated-terminal .tabs-list .monaco-list-row {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .tabs-list .monaco-list-row {
+		transition: none;
+	}
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:active {
@@ -532,7 +579,17 @@
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .pane-body.integrated-terminal .tabs-list .actions .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .tabs-list .actions .action-label {
+		transition: none;
+	}
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:active {
@@ -560,7 +617,17 @@
 	display: flex !important;
 	align-items: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-action-bar .action-item .single-terminal-tab {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-action-bar .action-item .single-terminal-tab {
+		transition: none;
+	}
 }
 
 .monaco-action-bar .action-item .single-terminal-tab:active {
@@ -635,6 +702,16 @@
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default) {
 	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .terminal .terminal-command-decoration:not(.default) {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .terminal .terminal-command-decoration:not(.default) {
+		transition: none;
+	}
 }
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover {

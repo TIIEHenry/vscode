@@ -10,9 +10,26 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { List } from '../../../../base/browser/ui/list/listWidget.js';
 import { localize } from '../../../../nls.js';
 
 const $ = dom.$;
+
+/**
+ * Moves keyboard focus from a filter box into its list. `first` puts the list
+ * focus on the first row; otherwise the current row is kept.
+ */
+export function focusSourcesListFromFilter<T>(list: List<T> | undefined, first: boolean): boolean {
+	if (!list || list.length === 0 || list.getHTMLElement().offsetParent === null) {
+		return false;
+	}
+	if (first || list.getFocus().length === 0) {
+		list.setFocus([0]);
+		list.reveal(0);
+	}
+	list.domFocus();
+	return true;
+}
 
 export class SourcesListFilterBox extends Disposable {
 
@@ -24,7 +41,11 @@ export class SourcesListFilterBox extends Disposable {
 	readonly onDidChange = this._onDidChange.event;
 	private dockHome: { parent: HTMLElement; next: ChildNode | null } | undefined;
 
-	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string) {
+	/**
+	 * @param focusList Escape on an empty box and Down hand focus to the list
+	 * through this callback; it returns false when there is no list to enter.
+	 */
+	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string, private readonly focusList?: (first: boolean) => boolean) {
 		super();
 
 		this.element = dom.append(parent, $('.sources-list-filter'));
@@ -37,9 +58,11 @@ export class SourcesListFilterBox extends Disposable {
 		this.input.placeholder = placeholder;
 		this.input.setAttribute('aria-label', ariaLabel);
 
+		const clearLabel = localize('sourcesListFilter.clearFilter', "Clear filter");
 		this.clearButton = dom.append(this.element, $('button.sources-list-filter-clear')) as HTMLButtonElement;
 		this.clearButton.type = 'button';
-		this.clearButton.setAttribute('aria-label', localize('sourcesListFilter.clearFilter', "Clear filter"));
+		this.clearButton.title = clearLabel;
+		this.clearButton.setAttribute('aria-label', clearLabel);
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {
@@ -48,27 +71,48 @@ export class SourcesListFilterBox extends Disposable {
 		}));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'keydown', e => {
-			if (e.keyCode === KeyCode.Escape && this.input.value) {
+			if (e.keyCode === KeyCode.Escape) {
+				if (this.input.value) {
+					e.preventDefault();
+					this.setValue('');
+				} else if (this.focusList?.(false)) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			} else if (e.keyCode === KeyCode.DownArrow && this.focusList?.(true)) {
 				e.preventDefault();
-				this.input.value = '';
-				this.updateClearVisibility();
-				this._onDidChange.fire('');
+				e.stopPropagation();
 			}
 		}));
 
 		this._register(dom.addStandardDisposableListener(this.clearButton, 'click', e => {
 			dom.EventHelper.stop(e, true);
-			if (this.input.value) {
-				this.input.value = '';
-				this.updateClearVisibility();
-				this._onDidChange.fire('');
-			}
-			this.input.focus();
+			this.clear();
 		}));
 	}
 
 	get value(): string {
 		return this.input.value;
+	}
+
+	clear(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.setValue('');
+		this.input.focus();
+	}
+
+	/** A text button for an empty state that clears this filter. */
+	createClearFilterLink(): HTMLButtonElement {
+		const link = $('button.sources-list-filter-clear-link') as HTMLButtonElement;
+		link.type = 'button';
+		link.textContent = localize('sourcesListFilter.clearFilterLink', "Clear filter");
+		this._register(dom.addDisposableListener(link, dom.EventType.CLICK, e => {
+			dom.EventHelper.stop(e, true);
+			this.clear();
+		}));
+		return link;
 	}
 
 	focus(): void {
@@ -112,6 +156,15 @@ export class SourcesListFilterBox extends Disposable {
 		dom.clearNode(this.element);
 		this.element.remove();
 		super.dispose();
+	}
+
+	private setValue(value: string): void {
+		if (this.input.value === value) {
+			return;
+		}
+		this.input.value = value;
+		this.updateClearVisibility();
+		this._onDidChange.fire(value);
 	}
 
 	private updateClearVisibility(): void {

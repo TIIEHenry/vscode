@@ -40,7 +40,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../common/uaClientSettingsKeys.js';
+import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS, UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR } from '../common/uaClientSettingsKeys.js';
 import { UA_CLIENT_DISPLAY_CONVERSATION_DENSITY } from '../common/uaClientSettingsHelpers.js';
 import {
 	applyConversationDensity,
@@ -80,6 +80,7 @@ import {
 	updateLensTabs,
 	updateReadingColumn,
 	updateSyncChrome,
+	createConversationLensAriaId,
 	type ConversationLensId,
 	CONVERSATION_LENS_ID_STORAGE_KEY,
 } from './conversationLensProjection.js';
@@ -98,7 +99,7 @@ import {
 	updateSessionBarWriteChrome,
 	updateSessionTitle,
 } from './conversationLensSessionBar.js';
-import { composerDraftText } from './conversationComposerRefs.js';
+import { composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
 import { mountDock } from './conversationLensDock.js';
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import {
@@ -130,6 +131,8 @@ import {
 	navigateInputHistory,
 	resetInputHistoryBrowse,
 	setSessionConfig,
+	clearPostFailure,
+	composerWriteBusyReason,
 	showPostFailure,
 	syncComposerPlacement,
 	syncSessionConfigSelects,
@@ -225,6 +228,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	sessionTitleButton!: HTMLButtonElement;
+	readonly lensAriaId = createConversationLensAriaId();
 	sessionTitleLive!: HTMLElement;
 	sessionTitleInput!: HTMLInputElement;
 	sessionTitleEditing = false;
@@ -249,6 +253,8 @@ export class ConversationLens extends Disposable {
 	composerRefRow!: HTMLElement;
 	composerAtSuggest!: HTMLElement;
 	readonly composerRefResources: string[] = [];
+	/** Assigned by `wireComposerAt` when the dock mounts. */
+	declare syncComposerRefs: (() => void) | undefined;
 	sendButton!: Button;
 	addButton!: Button;
 	addContextView: IOpenContextView | undefined;
@@ -305,6 +311,8 @@ export class ConversationLens extends Disposable {
 	lastReadingWidth = 0;
 	lastReadingHeight = 0;
 	postFailureVisible = false;
+	postFailureSerial = 0;
+	private lastTurnWriteHold: string | undefined;
 	composerCatalogGeneration = 0;
 	catalogToolNames: readonly string[] = [];
 	catalogModelIds: readonly string[] = [];
@@ -363,6 +371,9 @@ export class ConversationLens extends Disposable {
 			if (event.affectsConfiguration(UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS)) {
 				this.timelineTree.refreshPresentation();
 			}
+			if (event.affectsConfiguration(UA_CLIENT_KEYBOARD_ENTER_BEHAVIOR)) {
+				this.updateSendEnabled();
+			}
 		}));
 		this.bindReadingColumnLayout();
 
@@ -376,6 +387,13 @@ export class ConversationLens extends Disposable {
 		this._register(this.stubService.onDidChangeActiveSession(sessionId => {
 			if (this.boundSessionId !== undefined && sessionId !== this.boundSessionId) {
 				this.closeBoundInnerOverlays();
+				return;
+			}
+			if (this.boundSessionId !== undefined) {
+				// The bound session became the active session again: focus back from the
+				// other window, a hidden leaf restored, or a pick in the Sessions list.
+				// This lens's session did not change, so this is not a session switch.
+				this.refreshReactivatedBoundSession();
 				return;
 			}
 			this.applyActiveSession(sessionId);
@@ -469,9 +487,37 @@ export class ConversationLens extends Disposable {
 		this.visualizeOverlay.close({ restoreFocus: false });
 	}
 
+	/**
+	 * Edits, the failure row, and trajectory search stay. Readiness follows the
+	 * roster's active session, so gates and chrome still repaint. Config selects are
+	 * not re-selected: that would overwrite an in-flight model switch.
+	 */
+	private refreshReactivatedBoundSession(): void {
+		const sessionId = this.boundSessionId;
+		if (sessionId === undefined) {
+			return;
+		}
+		// A hidden leaf is re-bound by its pane when it becomes visible.
+		if (!this.sessionViewBindingSuspended && this.sessionViewLease?.sessionId !== sessionId) {
+			this.bindSessionView(sessionId);
+		}
+		if (!this.sessionTitleEditing) {
+			this.updateSessionTitle();
+		}
+		this.renderInboxStatus();
+		this.updateConversationPhase();
+		this.updateGateRow();
+		updateComposerSessionSelectsEnabled(this);
+		this.updateSendEnabled();
+		this.updateSyncChrome();
+	}
+
 	setFilterAgentId(agentId: string | undefined): void {
 		if (this.filterAgentId === agentId) {
 			return;
+		}
+		if (this.composerPolicy === 'turnEdit') {
+			this.exitComposerEdit(true);
 		}
 		if (this.dockTextarea && this.composerPolicy === 'compose') {
 			this.writeComposerDraft(this.getBoundSessionId(), composerDraftText(this));
@@ -594,6 +640,31 @@ export class ConversationLens extends Disposable {
 
 	updateSendEnabled(): void {
 		updateSendEnabled(this);
+		this.syncTurnWriteHold();
+	}
+
+	turnWriteHoldReason(): string | undefined {
+		return composerWriteBusyReason(this);
+	}
+
+	/** Timeline write buttons read the same hold as Send; repaint them only when it flips. */
+	private syncTurnWriteHold(): void {
+		const hold = composerWriteBusyReason(this);
+		if (hold === this.lastTurnWriteHold) {
+			return;
+		}
+		this.lastTurnWriteHold = hold;
+		this.timelineTree?.refreshTurnWriteHolds();
+		if (this.sendButton) {
+			updateSendEnabled(this);
+		}
+	}
+
+	focusComposerInput(): void {
+		const textarea = this.dockTextarea;
+		if (textarea?.isConnected && !textarea.disabled && !textarea.closest('[hidden]')) {
+			textarea.focus({ preventScroll: true });
+		}
 	}
 
 	updateComposerSingleLineLayout(): void {
@@ -794,6 +865,18 @@ export class ConversationLens extends Disposable {
 	}
 
 	releaseSessionViewLeaseForHiddenLeaf(): void {
+		// Hiding the leaf gives the result coming back to it used to give: the edit, the
+		// failure row, row-local action state, and input-history browse end here.
+		if (this.composerPolicy !== 'compose') {
+			// Never release the queue hold here. While this session is still active the
+			// queue is ready, and a release would requeue the pre-edit body. After a switch
+			// from the Sessions list the queue is already stale, so a release request would
+			// be refused by engineQueueEditMustKeepHold and the edit would stay open.
+			this.exitComposerEdit(true, false);
+		}
+		this.clearPostFailure();
+		this.timelineTree.clearTurnActionState();
+		this.resetInputHistoryBrowse();
 		this.sessionViewLifetime.clear();
 		this.sessionViewLease = undefined;
 		this.sessionViewBindingSuspended = true;
@@ -857,6 +940,22 @@ export class ConversationLens extends Disposable {
 		showPostFailure(this, reason);
 	}
 
+	clearPostFailure(): void {
+		clearPostFailure(this);
+	}
+
+	noteResponseFailure(turnId: string, error: string): void {
+		this.timelineTree.noteResponseFailure(turnId, error);
+	}
+
+	noteTurnActionFailure(rowId: string, message: string): void {
+		this.timelineTree.noteTurnActionFailure(rowId, message);
+	}
+
+	settleTurnWrite(rowId: string, _accepted: boolean): void {
+		this.timelineTree.settleTurnWrite(rowId);
+	}
+
 	updateSessionTitle(): void {
 		updateSessionTitle(this);
 	}
@@ -880,6 +979,7 @@ export class ConversationLens extends Disposable {
 	renderInboxStatus(): void {
 		this.inboxOverlay.setContextUsage(latestAdmittedInboxContextUsage(this.sessionViewLease?.snapshot));
 		renderInboxStatus(this);
+		this.syncTurnWriteHold();
 	}
 
 	scrollToFirstPendingConfirmation(): void {
@@ -907,7 +1007,7 @@ export class ConversationLens extends Disposable {
 			inputMaximized: this.inputMaximized,
 			setInputMaximized: maximized => this.setInputMaximized(maximized),
 			findFirstPendingConfirmationTurnId: () => turnId,
-			revealPendingTurn: id => this.timelineTree.revealPendingTurn(id),
+			revealPendingTurn: id => this.timelineTree.revealPendingTurn(id, { focusSeat: true }),
 		});
 	}
 
@@ -927,12 +1027,12 @@ export class ConversationLens extends Disposable {
 		focusTimelineRecord(this, turnId);
 	}
 
-	copyTurn(text: string): void {
-		copyTurn(this, text);
+	copyTurn(text: string, rowId?: string): void {
+		copyTurn(this, text, rowId);
 	}
 
-	deleteTurn(turnId: string, agentId?: string): void {
-		deleteTurn(this, turnId, agentId);
+	deleteTurn(turnId: string, agentId?: string, rowId?: string): void {
+		deleteTurn(this, turnId, agentId, rowId);
 	}
 
 	regenerateTurn(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void {
@@ -971,8 +1071,17 @@ export class ConversationLens extends Disposable {
 		return postBound(this, msg);
 	}
 
+	/** A send or edit save that adds no failure of its own clears the previous one. */
 	async submitDraft(): Promise<void> {
-		return submitDraft(this);
+		if (composerWriteBusyReason(this) || composerSubmitText(this) === undefined) {
+			return submitDraft(this);
+		}
+		const sessionId = this.getBoundSessionId();
+		const failures = this.postFailureSerial;
+		await submitDraft(this);
+		if (!this.isDisposed && this.getBoundSessionId() === sessionId && this.postFailureSerial === failures) {
+			clearPostFailure(this);
+		}
 	}
 
 	saveTurnEdit(): void {

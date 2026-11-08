@@ -117,4 +117,33 @@ suite('conversationTimelineReconcile', () => {
 		assert.deepStrictEqual(plan.removed, []);
 		assert.deepStrictEqual(plan.order, ['a', 'b']);
 	});
+
+	test('process-fold with nested filediff metadata reuses unchanged turn references in both turns and span.nodes', () => {
+		const turn1 = { id: 't1', kind: 'tool', text: 'file_edit', metadata: { filediff: { file: 'a.ts', additions: 2, deletions: 1 } } };
+		const turn2 = { id: 't2', kind: 'tool', text: 'bash', toolStatus: 'running' };
+		const prev = [fold('fold:t1', [
+			{ id: 't1', turn: turn1 },
+			{ id: 't2', turn: turn2 },
+		])];
+
+		const nextTurn1Clone = { id: 't1', kind: 'tool', text: 'file_edit', metadata: { filediff: { file: 'a.ts', additions: 2, deletions: 1 } } };
+		const nextTurn2Changed = { id: 't2', kind: 'tool', text: 'bash', toolStatus: 'completed' };
+		const nextRoot = {
+			...fold('fold:t1', [
+				{ id: 't1', turn: nextTurn1Clone },
+				{ id: 't2', turn: nextTurn2Changed },
+			]),
+			span: {
+				nodes: [
+					{ kind: 'tool', turn: nextTurn1Clone },
+					{ kind: 'tool', turn: nextTurn2Changed },
+				],
+			},
+		};
+		const plan = computeTimelineReconcile(prev, [nextRoot]);
+		assert.strictEqual(plan.mode, 'content');
+		assert.deepStrictEqual(plan.changed, ['fold:t1']);
+		assert.strictEqual(nextRoot.turns[0]!.turn, turn1);
+		assert.strictEqual(nextRoot.span.nodes[0]!.turn, turn1);
+	});
 });

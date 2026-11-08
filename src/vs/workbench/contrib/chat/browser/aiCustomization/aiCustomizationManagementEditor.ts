@@ -28,7 +28,7 @@ import { IThemeService } from '../../../../../platform/theme/common/themeService
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
-import { IEditorOpenContext } from '../../../../common/editor.js';
+import { IEditorOpenContext, SaveReason } from '../../../../common/editor.js';
 import { IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IContextKey, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
@@ -86,6 +86,7 @@ import { IResolvedTextEditorModel, ITextModelService } from '../../../../../edit
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { getSimpleEditorOptions } from '../../../codeEditor/browser/simpleEditorOptions.js';
 import { IWorkingCopyService } from '../../../../services/workingCopy/common/workingCopyService.js';
+import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { FileSystemProviderCapabilities, IFileService } from '../../../../../platform/files/common/files.js';
@@ -223,9 +224,12 @@ interface IBuiltinPromptSaveRequest {
 
 interface IExistingCustomizationSaveRequest {
 	readonly fileUri: URI;
-	readonly content: string;
+	/** Owned by the request and released once the save settles. */
+	readonly modelRef: IReference<IResolvedTextEditorModel>;
 	readonly projectRoot?: URI;
 }
+
+type BuiltinOverrideSaveEntry = 'actionButton' | 'saveHandler';
 
 class SectionItemDelegate implements IListVirtualDelegate<ISectionItem> {
 	getHeight(): number {
@@ -339,6 +343,8 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 	}, 200));
 	private readonly builtinEditingSessions = new Map<string, { model: ITextModel; originalContent: string }>();
+	/** Keyed like `builtinEditingSessions`; sessions in here are not disposed until their save settles. */
+	private readonly builtinOverrideSavesInFlight = new Map<string, Promise<boolean>>();
 	private currentEditingUri: URI | undefined;
 	private currentEditingProjectRoot: URI | undefined;
 	private currentEditingSource: AICustomizationSource | undefined;
@@ -443,6 +449,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		@IViewsService private readonly viewsService: IViewsService,
 		@ILabelService private readonly labelService: ILabelService,
 		@IAICustomizationItemsModel private readonly itemsModel: IAICustomizationItemsModel,
+		@ITextFileService private readonly textFileService: ITextFileService,
 	) {
 		super(AICustomizationManagementEditor.ID, group, telemetryService, themeService, storageService);
 
@@ -2744,7 +2751,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 		// Clear transient folder override on close
 		this.workspaceService.clearOverrideProjectRoot();
-		this.disposeBuiltinEditingSessions();
+		this.disposeIdleBuiltinEditingSessions();
 		super.clearInput();
 	}
 
@@ -3182,7 +3189,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 				saveTarget: 'existing',
 			});
 		}
-		if (fileUri && this.currentEditingSource === AICustomizationSources.builtin) {
+		if (fileUri && this.currentEditingSource === AICustomizationSources.builtin && !this.builtinOverrideSavesInFlight?.has(fileUri.toString())) {
 			this.disposeBuiltinEditingSession(fileUri);
 		}
 
@@ -3286,14 +3293,15 @@ export class AICustomizationManagementEditor extends EditorPane {
 			return undefined;
 		}
 
-		const model = this.currentModelRef?.object.textEditorModel;
-		if (!model) {
+		const modelRef = this.currentModelRef;
+		if (!modelRef) {
 			return undefined;
 		}
 
+		this.currentModelRef = undefined;
 		return {
 			fileUri: this.currentEditingUri,
-			content: model.getValue(),
+			modelRef,
 			projectRoot: this.currentEditingProjectRoot,
 		};
 	}
@@ -3315,9 +3323,15 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private async saveExistingCustomization(request: IExistingCustomizationSaveRequest): Promise<void> {
-		await this.fileService.writeFile(request.fileUri, VSBuffer.fromString(request.content));
-		if (request.projectRoot) {
-			await this.workspaceService.commitFiles(request.projectRoot, [request.fileUri]);
+		try {
+			// Saving through the text file model keeps its conflict check and clears its dirty state;
+			// the model URI is canonical, `fileUri` may not be.
+			const saved = await this.textFileService.save(request.modelRef.object.textEditorModel.uri, { reason: SaveReason.EXPLICIT, skipSaveParticipants: true });
+			if (saved && request.projectRoot) {
+				await this.workspaceService.commitFiles(request.projectRoot, [request.fileUri]);
+			}
+		} finally {
+			request.modelRef.dispose();
 		}
 	}
 
@@ -3366,37 +3380,13 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.updateEditorActionButton();
 
 		const editingUri = this.currentEditingUri;
-		let backgroundSaveRequest: IBuiltinPromptSaveRequest | undefined;
 		try {
 			if (this.shouldShowBuiltinSaveAction()) {
-				const selection = await this.pickBuiltinPromptSaveTarget();
-				if (this._store.isDisposed || !selection || selection.target === 'cancel') {
-					return;
-				}
-
-				if (this.viewMode !== 'editor' || !isEqual(this.currentEditingUri, editingUri)) {
-					return;
-				}
-
-				backgroundSaveRequest = this.createBuiltinPromptSaveRequest(selection);
-				if (backgroundSaveRequest) {
-					this.telemetryService.publicLog2<CustomizationEditorSaveItemEvent, CustomizationEditorSaveItemClassification>('chatCustomizationEditor.saveItem', {
-						promptType: this.currentEditingPromptType ?? '',
-						storage: String(this.currentEditingSource ?? ''),
-						saveTarget: selection.target,
-					});
-				}
+				await this.saveBuiltinOverride('actionButton');
+				return;
 			}
 
 			this.goBackToList();
-			if (backgroundSaveRequest) {
-				const saveRequest = backgroundSaveRequest;
-				void this.saveBuiltinPromptCopy(saveRequest).then(() => {
-					if (!this._store.isDisposed) {
-						void this.listWidget?.refresh();
-					}
-				}).catch(onUnexpectedError);
-			}
 		} finally {
 			this.editorActionButtonInProgress = false;
 			if (this.viewMode === 'editor' && isEqual(this.currentEditingUri, editingUri)) {
@@ -3447,37 +3437,123 @@ export class AICustomizationManagementEditor extends EditorPane {
 			return false;
 		}
 
-		const target = await this.pickBuiltinPromptSaveTarget();
-		if (!target || target.target === 'cancel') {
-			return false;
+		return this.saveBuiltinOverride('saveHandler');
+	}
+
+	/**
+	 * Shared by the "Save override" button and the input save handler (Ctrl+S, close confirmation).
+	 * While a save for the same item is running (including its target pick), callers join it instead
+	 * of picking a target and writing a second time.
+	 */
+	private saveBuiltinOverride(entry: BuiltinOverrideSaveEntry): Promise<boolean> {
+		const editingUri = this.currentEditingUri;
+		if (!editingUri) {
+			return Promise.resolve(false);
 		}
 
-		const saveRequest = this.createBuiltinPromptSaveRequest(target);
-		if (!saveRequest) {
-			return false;
+		const key = editingUri.toString();
+		const inFlight = this.builtinOverrideSavesInFlight.get(key);
+		if (inFlight) {
+			return inFlight;
 		}
 
+		const save = this.runBuiltinOverrideSave(editingUri, entry);
+		this.builtinOverrideSavesInFlight.set(key, save);
+		return save;
+	}
+
+	private async runBuiltinOverrideSave(editingUri: URI, entry: BuiltinOverrideSaveEntry): Promise<boolean> {
+		let saveRequest: IBuiltinPromptSaveRequest | undefined;
+		let saved = false;
 		try {
-			await this.saveBuiltinPromptCopy(saveRequest);
-			this.telemetryService.publicLog2<CustomizationEditorSaveItemEvent, CustomizationEditorSaveItemClassification>('chatCustomizationEditor.saveItem', {
-				promptType: this.currentEditingPromptType ?? '',
-				storage: String(this.currentEditingSource ?? ''),
-				saveTarget: target.target,
-			});
+			const target = await this.pickBuiltinPromptSaveTarget();
+			if (this._store.isDisposed || !target || target.target === 'cancel') {
+				this.releaseBuiltinEditingSessionIfLeft(editingUri);
+				return false;
+			}
 
-			if (this.viewMode === 'editor' && isEqual(this.currentEditingUri, saveRequest.sourceUri)) {
+			if (this.viewMode !== 'editor' || !isEqual(this.currentEditingUri, editingUri)) {
+				this.releaseBuiltinEditingSessionIfLeft(editingUri);
+				return false;
+			}
+
+			saveRequest = this.createBuiltinPromptSaveRequest(target);
+			if (saveRequest) {
+				if (entry === 'actionButton') {
+					this.logBuiltinOverrideSave(saveRequest);
+				}
+				try {
+					await this.saveBuiltinPromptCopy(saveRequest);
+					saved = true;
+				} catch (error) {
+					console.error('Failed to save built-in override:', error);
+					this.notificationService.warn(saveRequest.target === 'workspace'
+						? localize('saveBuiltinCopyFailedWorkspace', "Could not save the override to the workspace.")
+						: localize('saveBuiltinCopyFailedUser', "Could not save the override to your user folder."));
+				}
+			}
+		} finally {
+			this.builtinOverrideSavesInFlight.delete(editingUri.toString());
+		}
+
+		if (!saveRequest) {
+			if (entry === 'actionButton') {
+				this.goBackToList();
+			}
+			return false;
+		}
+
+		if (saved) {
+			if (entry === 'saveHandler') {
+				this.logBuiltinOverrideSave(saveRequest);
+			}
+			this.finishBuiltinOverrideSave(saveRequest, entry);
+		}
+		return saved;
+	}
+
+	/**
+	 * `goBackToList` skips sessions with a save in flight; when that save ends without writing
+	 * and the item is no longer open, nothing else would release the session.
+	 */
+	private releaseBuiltinEditingSessionIfLeft(uri: URI): void {
+		if (this.viewMode !== 'editor' || !isEqual(this.currentEditingUri, uri)) {
+			this.disposeBuiltinEditingSession(uri);
+		}
+	}
+
+	/** Must run after the in-flight entry is removed so that `goBackToList` disposes the session again. */
+	private finishBuiltinOverrideSave(request: IBuiltinPromptSaveRequest, entry: BuiltinOverrideSaveEntry): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+
+		// Edits made after the snapshot are not on disk yet.
+		const session = this.builtinEditingSessions.get(request.sourceUri.toString());
+		if (session && !session.model.isDisposed() && session.model.getValue() !== request.content) {
+			return;
+		}
+
+		if (this.viewMode === 'editor' && isEqual(this.currentEditingUri, request.sourceUri)) {
+			if (entry === 'actionButton') {
+				this.goBackToList();
+			} else {
 				this._editorContentChanged = false;
 				this.updateEditorActionButton();
 			}
-
-			return true;
-		} catch (error) {
-			console.error('Failed to save built-in override:', error);
-			this.notificationService.warn(target.target === 'workspace'
-				? localize('saveBuiltinCopyFailedWorkspace', "Could not save the override to the workspace.")
-				: localize('saveBuiltinCopyFailedUser', "Could not save the override to your user folder."));
-			return false;
+			return;
 		}
+
+		this.disposeBuiltinEditingSession(request.sourceUri);
+		void this.listWidget?.refresh();
+	}
+
+	private logBuiltinOverrideSave(request: IBuiltinPromptSaveRequest): void {
+		this.telemetryService.publicLog2<CustomizationEditorSaveItemEvent, CustomizationEditorSaveItemClassification>('chatCustomizationEditor.saveItem', {
+			promptType: request.promptType,
+			storage: AICustomizationSources.builtin,
+			saveTarget: request.target,
+		});
 	}
 
 	private resetEditorSaveIndicator(): void {
@@ -3773,6 +3849,16 @@ export class AICustomizationManagementEditor extends EditorPane {
 			session.model.dispose();
 		}
 		this.builtinEditingSessions.clear();
+	}
+
+	private disposeIdleBuiltinEditingSessions(): void {
+		for (const [key, session] of this.builtinEditingSessions) {
+			if (this.builtinOverrideSavesInFlight?.has(key)) {
+				continue;
+			}
+			session.model.dispose();
+			this.builtinEditingSessions.delete(key);
+		}
 	}
 
 	private disposeBuiltinEditingSession(uri: URI): void {

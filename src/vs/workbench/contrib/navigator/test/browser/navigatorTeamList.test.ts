@@ -30,7 +30,7 @@ import { AGENT_INSPECT_VIEW_ID } from '../../browser/agentInspectIds.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
 import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
-import { INavigatorTeamMember, NAVIGATOR_TEAM_REFRESH_COMMAND_ID, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
+import { INavigatorTeamMember, NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY, NAVIGATOR_TEAM_REFRESH_COMMAND_ID, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
 function visibleSessionWindowStub(): IConversationSessionWindowService {
@@ -164,13 +164,17 @@ suite('NavigatorTeamView', () => {
 		assert.ok(refreshItem, 'Team ViewTitle must expose Refresh');
 		assert.ok(refreshItem.command.precondition, 'Team Refresh must have engine-connected precondition');
 		let refreshCalls = 0;
-		const connection = createNavigatorConnectionTestStub({ requestAgentTreeRefresh: () => refreshCalls++ });
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			requestAgentTreeRefresh: () => refreshCalls++,
+		});
 		const roster = store.add(new ConversationStubService());
 		roster.setEngineConnected(true);
 		const view = await mountView(connection, roster);
 		const scopedContextKeyService = view['scopedContextKeyService'];
 		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true, 'Team must bind the engine state in its own scoped context');
-		assert.ok(refreshItem.command.precondition?.equals(UA_ENGINE_CONNECTED_KEY), 'Team Refresh must use the Team-scoped engine state');
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(scopedContextKeyService), true, 'Team must bind Refresh availability in its own scoped context');
+		assert.ok(refreshItem.command.precondition?.equals(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY), 'Team Refresh must use the Team-scoped availability');
 		view.refresh();
 		assert.strictEqual(refreshCalls, 1);
 	});

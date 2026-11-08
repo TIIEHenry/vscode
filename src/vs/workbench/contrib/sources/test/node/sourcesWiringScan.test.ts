@@ -487,6 +487,18 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(filesCss.includes('.sources-files-empty.is-error'));
 		assert.ok(filesCss.includes('.sources-files-status.is-error'));
 	});
+	test('Files rows honor reduced motion without overriding explicit motion opt-in', () => {
+		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
+		assert.match(filesCss, /\.sources-file-row\s*\{[\s\S]*?transition:\s*background-color 0\.08s ease;/);
+		assert.match(filesCss, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.sources-file-row\s*\{[\s\S]*?transition:\s*none;/);
+		assert.match(filesCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\)[\s\S]*?\.sources-file-row\s*\{[\s\S]*?transition:\s*none;/);
+	});
+	test('Files mode focus follows product treatment while HC keeps a contrast ring', () => {
+		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
+		assert.match(filesCss, /\.monaco-workbench:not\(\.hc-black\):not\(\.hc-light\) \.part\.sources \.sources-files-mode:focus-visible\s*\{[\s\S]*?outline:\s*none\s*!important[\s\S]*?background-color:\s*var\(--vscode-toolbar-hoverBackground\)/);
+		assert.match(filesCss, /\.monaco-workbench\.hc-black \.part\.sources \.sources-files-mode:focus-visible[\s\S]*?outline:\s*1px solid var\(--vscode-contrastActiveBorder/);
+		assert.match(filesCss, /\.monaco-workbench\.hc-light \.part\.sources \.sources-files-mode:focus-visible[\s\S]*?outline:\s*1px solid var\(--vscode-contrastActiveBorder/);
+	});
 	test('Files list scheduler and onDidOpen use single catch', () => {
 		const list = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
 		const schedulerStart = list.indexOf('this.refreshScheduler = this._register(new RunOnceScheduler');
@@ -644,6 +656,20 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(!changes.includes('no git changes API'));
 	});
 
+	test('Files empty state has a compact text action with an honest folder command gate', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesExplorer.css'), 'utf8');
+		const explorer = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesExplorer.ts'), 'utf8');
+		assert.match(css, /\.sources-files-explorer-empty\s*\{[\s\S]*?flex-direction:\s*column;/);
+		assert.match(css, /\.sources-files-explorer-empty\s*\{[\s\S]*?font-size:\s*var\(--vscode-fontSize-label1/);
+		assert.match(css, /\.sources-files-explorer-open-folder\s*\{[\s\S]*?background:\s*transparent;/);
+		assert.match(css, /\.monaco-workbench:not\(\.hc-black\):not\(\.hc-light\) \.part\.sources \.sources-files-explorer-open-folder:focus-visible\s*\{[\s\S]*?outline:\s*none;/);
+		assert.match(css, /\.sources-files-explorer-open-folder:focus-visible\s*\{[\s\S]*?background-color:\s*var\(--vscode-toolbar-hoverBackground\)/);
+		assert.match(css, /\.monaco-workbench\.hc-black \.part\.sources \.sources-files-explorer-open-folder:focus-visible[\s\S]*?outline-color:\s*var\(--vscode-contrastActiveBorder/);
+		assert.ok(explorer.includes('workbench.action.files.openFolder'));
+		assert.ok(explorer.includes('OpenFolderWorkspaceSupportContext'));
+		assert.ok(explorer.includes('sources-files-explorer-open-folder'));
+	});
+
 	test('Sources hide control is a remove glyph; Files leftover status and Diff notices use error tone', () => {
 		const hide = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts'), 'utf8');
 		const files = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
@@ -765,5 +791,128 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(actions.includes('common/editor/conversationDiffReviewInput'));
 		assert.ok(open.includes("return 'stale'"));
 		assert.ok(open.includes('boolean | \'stale\'') || open.includes('Promise<boolean | \'stale\'>'));
+	});
+
+	test('Sources review rows honor reduced-motion opt-in', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesReviewList.css'), 'utf8');
+		assert.ok(css.includes('transition: background-color 0.08s ease;'));
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-row'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-row'));
+		assert.ok(css.includes('transition: none;'));
+	});
+
+	test('Sources review rows keep the hit target while pressing an inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesReviewList.css'), 'utf8');
+		assert.match(css, /\.sources-review-row\s*\{[^}]*position:\s*relative[^}]*isolation:\s*isolate/s);
+		assert.match(css, /\.sources-review-row::before\s*\{[^}]*inset:\s*1px 4px[^}]*border-radius:\s*var\(--vscode-cornerRadius-small/s);
+		assert.match(css, /\.sources-review-list \.monaco-list-row:active \.sources-review-row\s*\{[^}]*background-color:\s*transparent/s);
+		assert.match(css, /\.sources-review-list \.monaco-list-row:active \.sources-review-row::before\s*\{[^}]*background-color:\s*var\(--vscode-list-activeSelectionBackground\)/s);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.sources-review-row::before[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.sources-review-row::before[\s\S]*?transition:\s*none/);
+	});
+
+	test('Sources changes rows honor reduced-motion opt-in', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.ok(css.includes('.sources-change-folder-row'));
+		assert.ok(css.includes('.sources-change-file'));
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-folder-row'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-file'));
+		assert.ok(css.includes('transition: none;'));
+	});
+
+	test('Sources change folder rows keep the hit target while pressing an inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.match(css, /\.sources-change-folder-row\s*\{[^}]*position:\s*relative[^}]*isolation:\s*isolate/s);
+		assert.match(css, /\.sources-change-folder-row::before\s*\{[^}]*inset:\s*1px 4px[^}]*border-radius:\s*var\(--vscode-cornerRadius-small/s);
+		assert.match(css, /\.sources-change-folder-row:hover,[\s\S]*?background-color:\s*transparent/s);
+		assert.match(css, /\.sources-change-folder-row:hover::before,[\s\S]*?background-color:\s*var\(--vscode-list-hoverBackground\)/s);
+		assert.match(css, /\.monaco-list-row:active \.sources-change-folder-row::before\s*\{[^}]*toolbar-activeBackground/s);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.sources-change-folder-row::before[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.sources-change-folder-row::before[\s\S]*?transition:\s*none/);
+	});
+
+	test('Sources changes toolbar motion stays within the 100ms contract and honors reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.ok(css.includes('transition: background-color 100ms ease;'));
+		assert.doesNotMatch(css, /sources-changes-toolbar[\s\S]*transition:\s*background-color\s+0\.12s/);
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-changes-toolbar .monaco-button'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-changes-toolbar .monaco-button'));
+	});
+
+	test('Sources changes inline actions and commit motion stay within the 100ms contract and honor reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.ok(css.includes('transition: background-color 0.1s ease, color 0.1s ease;'));
+		assert.ok(css.includes('transition: background-color 0.1s ease;'));
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-action'));
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-group-action'));
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-changes-commit .monaco-button'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-action'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-group-action'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-changes-commit .monaco-button'));
+		assert.ok(css.includes('transition: none;'));
+	});
+
+	test('Sources changes inline actions keep the hit target while painting an inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
+		assert.match(css, /\.sources-change-action,\s*\n\.monaco-workbench \.part\.sources \.sources-change-group-action\s*\{[^}]*position:\s*relative[^}]*isolation:\s*isolate/s);
+		assert.match(css, /\.sources-change-action::after,\s*\n\.monaco-workbench \.part\.sources \.sources-change-group-action::after\s*\{[^}]*inset:\s*1px 2px[^}]*border-radius:\s*var\(--vscode-cornerRadius-xSmall/s);
+		assert.match(css, /\.sources-change-action:hover:not\(\.disabled\),[\s\S]*?background-color:\s*transparent\s*!important/s);
+		assert.match(css, /\.sources-change-action:hover:not\(\.disabled\)::after,[\s\S]*?background-color:\s*var\(--vscode-toolbar-hoverBackground/s);
+		assert.match(css, /\.sources-change-action:active:not\(\.disabled\)::after,[\s\S]*?background-color:\s*var\(--vscode-toolbar-activeBackground/s);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.sources-change-action::after[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.sources-change-action::after[\s\S]*?transition:\s*none/);
+	});
+
+	test('Sources title actions keep the hit target while painting an inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/sources/media/sourcesPart.css'), 'utf8');
+		assert.match(css, /\.part\.sources > \.title > \.title-actions \.action-label\s*\{[^}]*position:\s*relative[^}]*isolation:\s*isolate/s);
+		assert.match(css, /\.part\.sources > \.title > \.title-actions \.action-label::after\s*\{[^}]*inset:\s*1px 2px[^}]*border-radius:\s*var\(--vscode-cornerRadius-xSmall/s);
+		assert.match(css, /\.part\.sources > \.title > \.title-actions \.action-label:hover\s*\{[^}]*background-color:\s*transparent/s);
+		assert.match(css, /\.part\.sources > \.title > \.title-actions \.action-label:hover::after\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground\)/s);
+		assert.match(css, /\.part\.sources > \.title > \.title-actions \.action-label:active::after\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-activeBackground/s);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.part\.sources > \.title > \.title-actions \.action-label::after[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.part\.sources > \.title > \.title-actions \.action-label::after[\s\S]*?transition:\s*none/);
+	});
+
+	test('Sources list filter motion stays within the 100ms contract and honors reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesListFilter.css'), 'utf8');
+		assert.ok(css.includes('transition: border-color 100ms ease;'));
+		assert.ok(css.includes('transition: background-color 100ms ease, color 100ms ease;'));
+		assert.doesNotMatch(css, /transition:\s*[^;]*0\.12s/);
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .part.sources .sources-list-filter-input'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-list-filter-clear'));
+		assert.ok(css.includes('transition: none;'));
+	});
+
+	test('Sources diff panel actions stay within the 100ms contract and honor reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
+		assert.ok(css.includes('transition: background-color 100ms ease;'));
+		assert.doesNotMatch(css, /transition:\s*background-color\s+0\.12s/);
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .sources-diff-panel .sources-diff-panel-actions button'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .sources-diff-panel .sources-diff-panel-actions button'));
+		assert.ok(css.includes('transition: none;'));
+	});
+
+	test('Conversation diff review toolbar motion stays within the 100ms contract and honors reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css'), 'utf8');
+		assert.ok(css.includes('transition: background-color 100ms ease;'));
+		assert.doesNotMatch(css, /transition:\s*background-color\s+0\.12s/);
+		assert.ok(css.includes('.monaco-workbench.monaco-reduce-motion .conversation-diff-review-pane .conversation-diff-review-toolbar button'));
+		assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'));
+		assert.ok(css.includes('.monaco-workbench:not(.monaco-enable-motion) .conversation-diff-review-pane .conversation-diff-review-toolbar button'));
+		assert.ok(css.includes('transition: none;'));
+	});
+
+	test('Sources review state focus follows product treatment while HC keeps a contrast ring', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesReviewList.css'), 'utf8');
+		assert.match(css, /\.monaco-workbench:not\(\.hc-black\):not\(\.hc-light\) \.part\.sources \.sources-review-state:focus-visible\s*\{[\s\S]*?outline:\s*none\s*!important[\s\S]*?background-color:\s*var\(--vscode-toolbar-hoverBackground\)/);
+		assert.match(css, /\.monaco-workbench\.hc-black \.part\.sources \.sources-review-state:focus-visible[\s\S]*?outline:\s*1px solid var\(--vscode-contrastActiveBorder/);
+		assert.match(css, /\.monaco-workbench\.hc-light \.part\.sources \.sources-review-state:focus-visible[\s\S]*?outline:\s*1px solid var\(--vscode-contrastActiveBorder/);
 	});
 });

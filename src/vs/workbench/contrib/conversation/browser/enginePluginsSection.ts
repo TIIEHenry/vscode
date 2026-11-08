@@ -99,8 +99,12 @@ class EnginePluginRowRenderer implements IListRenderer<EnginePluginListEntry, IP
 	}
 
 	renderElement(entry: EnginePluginListEntry, _index: number, templateData: IPluginRowTemplateData): void {
-		templateData.name.textContent = entry.plugin.displayName || entry.plugin.id;
-		templateData.summary.textContent = formatPluginRowSummary(entry.plugin);
+		const pluginName = entry.plugin.displayName || entry.plugin.id;
+		const summaryText = formatPluginRowSummary(entry.plugin);
+		templateData.name.textContent = pluginName;
+		templateData.name.title = pluginName;
+		templateData.summary.textContent = summaryText;
+		templateData.summary.title = summaryText;
 	}
 
 	disposeTemplate(): void {
@@ -341,7 +345,10 @@ export class EnginePluginsSection extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.list?.layout(Math.max(80, Math.floor(height * 0.45)), width);
+		const contentWidth = Math.max(0, DOM.getContentWidth(this.container) || width);
+		const listHeight = Math.max(80, Math.floor(height * 0.45));
+		this.listContainer.style.height = `${listHeight}px`;
+		this.list?.layout(listHeight, contentWidth);
 	}
 
 	override dispose(): void {

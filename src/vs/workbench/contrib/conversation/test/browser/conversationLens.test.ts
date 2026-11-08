@@ -1762,6 +1762,43 @@ suite('ConversationLens', () => {
 		assert.strictEqual(slots.dock.querySelector('.monaco-button[aria-label*="Sign in"]'), null);
 	});
 
+	test('send failure row clears after the next send succeeds', async () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		stubService.createSession();
+		const gateRow = (slots.dock.querySelector('.conversation-lens-dock-gate-row') ?? slots.timeline.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement;
+		lens.showPostFailure('failed');
+		const shown = { hidden: gateRow.hidden, error: gateRow.classList.contains('is-error') };
+
+		await sendDockDraft(slots, 'second try');
+
+		assert.deepStrictEqual({ shown, after: { hidden: gateRow.hidden, error: gateRow.classList.contains('is-error'), visible: lens.postFailureVisible } }, {
+			shown: { hidden: false, error: true },
+			after: { hidden: true, error: false, visible: false },
+		});
+	});
+
+	test('send failure row clears on session switch and has a labelled dismiss button', () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const first = stubService.createSession();
+		const gateRow = (slots.dock.querySelector('.conversation-lens-dock-gate-row') ?? slots.timeline.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement;
+		const dismiss = gateRow.querySelector('.conversation-lens-dock-gate-dismiss-button') as HTMLElement;
+		lens.showPostFailure('engine_disconnected');
+		const shown = { hidden: gateRow.hidden, dismissHidden: dismiss.hidden, dismissLabel: dismiss.getAttribute('aria-label') };
+		stubService.createSession();
+		const afterSwitch = { hidden: gateRow.hidden, dismissHidden: dismiss.hidden };
+		stubService.switchSession(first);
+		lens.showPostFailure('failed');
+		dismiss.click();
+
+		assert.deepStrictEqual({ shown, afterSwitch, afterDismiss: gateRow.hidden }, {
+			shown: { hidden: false, dismissHidden: false, dismissLabel: 'Dismiss' },
+			afterSwitch: { hidden: true, dismissHidden: true },
+			afterDismiss: true,
+		});
+	});
+
 	test('connected dock hides gate, sends without stub model, and fills catalog labels', async () => {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		const connection = createConversationConnectionTestStub({
@@ -2367,22 +2404,38 @@ suite('ConversationLens', () => {
 		const snapshots = lens.engineSnapshotsList;
 		assert.ok(history);
 		assert.ok(snapshots);
+
 		lens.openVisualizeOverlay('graph TD; A-->B', 'Bound diagram');
-		history.show();
-		snapshots.show();
-		const chip = lens.inboxOverlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement | null;
-		assert.ok(chip);
-		chip.click();
 		assert.strictEqual(lens.visualizeOverlay.isOpen(), true);
-		assert.strictEqual(history.isOpen(), true);
-		assert.strictEqual(snapshots.isOpen(), true);
-		assert.strictEqual(chip.getAttribute('aria-pressed'), 'true');
-
+		assert.strictEqual(history.isOpen(), false);
+		assert.strictEqual(snapshots.isOpen(), false);
 		stubService.switchSession(sessionB);
-
 		assert.strictEqual(lens.visualizeOverlay.isOpen(), false);
 		assert.strictEqual(history.isOpen(), false);
 		assert.strictEqual(snapshots.isOpen(), false);
+		stubService.switchSession(sessionA);
+
+		history.show();
+		assert.strictEqual(lens.visualizeOverlay.isOpen(), false);
+		assert.strictEqual(history.isOpen(), true);
+		assert.strictEqual(snapshots.isOpen(), false);
+		stubService.switchSession(sessionB);
+		assert.strictEqual(history.isOpen(), false);
+		stubService.switchSession(sessionA);
+
+		snapshots.show();
+		assert.strictEqual(lens.visualizeOverlay.isOpen(), false);
+		assert.strictEqual(history.isOpen(), false);
+		assert.strictEqual(snapshots.isOpen(), true);
+		stubService.switchSession(sessionB);
+		assert.strictEqual(snapshots.isOpen(), false);
+		stubService.switchSession(sessionA);
+
+		const chip = lens.inboxOverlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement | null;
+		assert.ok(chip);
+		chip.click();
+		assert.strictEqual(chip.getAttribute('aria-pressed'), 'true');
+		stubService.switchSession(sessionB);
 		assert.strictEqual(chip.getAttribute('aria-pressed'), 'false');
 	});
 
@@ -2420,6 +2473,210 @@ suite('ConversationLens', () => {
 		assert.ok(rebound);
 		assert.notStrictEqual(rebound, restored, 'public bind must restore subsequent connection-event binding');
 		assert.strictEqual(rebound.sessionId, sessionA);
+	});
+
+	function seedHeldQueueItem(stubService: ConversationStubService, sessionId: string): void {
+		stubService.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-edit',
+				content: 'queued body',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		stubService.holdMessageQueueItem(sessionId, 'q-edit', 'EDITING');
+	}
+
+	test('bound leaf keeps a turn edit when its session becomes active again', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'Edit me');
+		assert.ok(userTurn);
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		lens.dockTextarea.value = 'compose draft';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		lens.dockTextarea.value = 'Edit me, changed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		stubService.switchSession(sessionB);
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.editingTurnId, userTurn.id);
+		assert.strictEqual(lens.dockTextarea.value, 'Edit me, changed');
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'compose draft');
+	});
+
+	test('bound leaf keeps a queue edit and its hold when its session becomes active again', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionA, 'keep session active');
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		seedHeldQueueItem(stubService, sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		lens.beginQueueEdit('q-edit');
+		assert.strictEqual(lens.composerPolicy, 'queueEdit');
+		lens.dockTextarea.value = 'queued body, changed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		stubService.switchSession(sessionB);
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(lens.composerPolicy, 'queueEdit');
+		assert.strictEqual(lens.editingQueueItemId, 'q-edit');
+		assert.strictEqual(lens.dockTextarea.value, 'queued body, changed');
+		assert.strictEqual(stubService.getMessageQueueState(sessionA).items[0]?.hold, 'EDITING');
+	});
+
+	test('bound leaf keeps its failure row, trajectory state, and lease when its session becomes active again', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionA, 'Alpha');
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		const lease = lens.sessionViewLease;
+		assert.ok(lease);
+		let trajectoryClears = 0;
+		const clearSessionState = lens.trajectoryView.clearSessionState.bind(lens.trajectoryView);
+		lens.trajectoryView.clearSessionState = () => {
+			trajectoryClears++;
+			clearSessionState();
+		};
+		lens.showPostFailure('failed');
+		assert.strictEqual(lens.postFailureVisible, true);
+
+		stubService.switchSession(sessionB);
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(lens.postFailureVisible, true);
+		assert.strictEqual(trajectoryClears, 0);
+		assert.strictEqual(lens.sessionViewLease, lease);
+	});
+
+	test('bound leaf rebinding to another session still leaves the edit', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'Edit me');
+		assert.ok(userTurn);
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		lens.writeComposerDraft(sessionB, 'draft for B');
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+
+		lens.setBoundSessionId(sessionB);
+
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.dockTextarea.value, 'draft for B');
+	});
+
+	test('bound leaf hidden during a turn edit leaves the edit and clears the failure row when it hides', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'Edit me');
+		assert.ok(userTurn);
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		lens.dockTextarea.value = 'compose draft';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		lens.beginTurnEdit(userTurn.id);
+		lens.dockTextarea.value = 'Edit me, changed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		lens.showPostFailure('failed');
+		assert.strictEqual(lens.postFailureVisible, true);
+
+		lens.releaseSessionViewLeaseForHiddenLeaf();
+		stubService.switchSession(sessionB);
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.dockTextarea.value, 'compose draft');
+		assert.strictEqual(lens.postFailureVisible, false);
+
+		lens.bindSessionView(sessionA);
+		stubService.switchSession(sessionA);
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.dockTextarea.value, 'compose draft');
+	});
+
+	test('bound leaf hidden during a queue edit keeps the queue hold', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionA, 'keep session active');
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		seedHeldQueueItem(stubService, sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		lens.beginQueueEdit('q-edit');
+		lens.dockTextarea.value = 'queued body, changed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		lens.releaseSessionViewLeaseForHiddenLeaf();
+		stubService.switchSession(sessionB);
+		lens.bindSessionView(sessionA);
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(stubService.getMessageQueueState(sessionA).items[0]?.hold, 'EDITING');
+	});
+
+	test('bound leaf without a lease rebinds when its session becomes active again', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		stubService.switchSession(sessionB);
+		lens.sessionViewLifetime.clear();
+		lens.sessionViewLease = undefined;
+		assert.strictEqual(lens.sessionViewBindingSuspended, false);
+		let binds = 0;
+		const bindSessionView = lens.bindSessionView.bind(lens);
+		lens.bindSessionView = sessionId => {
+			binds++;
+			bindSessionView(sessionId);
+		};
+
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(binds, 1);
+		const readSessionViewLease = (): ConversationLens['sessionViewLease'] => lens.sessionViewLease;
+		assert.strictEqual(readSessionViewLease()?.sessionId, sessionA);
+	});
+
+	test('bound leaf whose lease is suspended for a hidden leaf does not rebind when its session becomes active again', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, tablistOnly: true });
+		lens.releaseSessionViewLeaseForHiddenLeaf();
+		stubService.switchSession(sessionB);
+		let binds = 0;
+		const bindSessionView = lens.bindSessionView.bind(lens);
+		lens.bindSessionView = sessionId => {
+			binds++;
+			bindSessionView(sessionId);
+		};
+
+		stubService.switchSession(sessionA);
+
+		assert.strictEqual(binds, 0, 'the pane rebinds a hidden leaf when it becomes visible');
+		assert.strictEqual(lens.sessionViewLease, undefined);
+		assert.strictEqual(lens.sessionViewBindingSuspended, true);
 	});
 
 	test('pinned lens does not write the shared lens id', () => {
@@ -2575,8 +2832,10 @@ suite('ConversationLens', () => {
 		assert.ok(tablist.getAttribute('aria-label')?.includes('Conversation lens'));
 		const conversationTab = getLensTab(slots, 'conversation');
 		const trajectoryTab = getLensTab(slots, 'trajectory');
-		assert.strictEqual(conversationTab.getAttribute('aria-controls'), 'conversation-lens-panel-conversation');
-		assert.strictEqual(trajectoryTab.getAttribute('aria-controls'), 'conversation-lens-panel-trajectory');
+		assert.strictEqual(conversationTab.getAttribute('aria-controls'), slots.timeline.querySelector('.conversation-lens-timeline')?.id);
+		assert.strictEqual(trajectoryTab.getAttribute('aria-controls'), slots.timeline.querySelector('.conversation-lens-trajectory')?.id);
+		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-timeline')?.getAttribute('aria-labelledby'), conversationTab.id);
+		assert.strictEqual(slots.timeline.querySelector('.conversation-lens-trajectory')?.getAttribute('aria-labelledby'), trajectoryTab.id);
 		assert.strictEqual(conversationTab.tabIndex, 0);
 		assert.strictEqual(trajectoryTab.tabIndex, -1);
 
@@ -3124,7 +3383,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(titleInput.value, previousTitle);
 
 		titleInput.value = 'Renamed from test';
-		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
 
 		assert.ok(!titleButton.hidden);
 		assert.ok(titleInput.hidden);
@@ -3150,7 +3409,7 @@ suite('ConversationLens', () => {
 
 		titleButton.click();
 		titleInput.value = 'Temporary edit';
-		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: KeyCode.Escape, bubbles: true }));
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
 
 		assert.strictEqual(stubService.getActiveSession().title, previousTitle);
 		assert.strictEqual(titleButton.textContent, previousTitle);
@@ -3171,7 +3430,7 @@ suite('ConversationLens', () => {
 
 		titleButton.click();
 		titleInput.value = 'Renamed for select sync';
-		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
 
 		assert.strictEqual(titleButton.textContent, 'Renamed for select sync');
 		assert.strictEqual(titleLive.textContent, 'Renamed for select sync');
@@ -3179,7 +3438,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getSessions().find(s => s.id === sessionId)?.title, 'Renamed for select sync');
 	});
 
-	test('SessionBar renameSession false shows failed notice and keeps previous title', () => {
+	test('SessionBar renameSession false keeps the editor open with an inline error and the previous title', () => {
 		class RejectingRenameRoster extends ConversationStubService {
 			override renameSession(_sessionId: string, _title: string): boolean {
 				return false;
@@ -3196,23 +3455,26 @@ suite('ConversationLens', () => {
 
 		titleButton.click();
 		titleInput.value = 'Rejected rename';
-		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
 
 		assert.strictEqual(roster.getActiveSession().title, previousTitle);
 		assert.strictEqual(roster.getSessions().find(s => s.id === sessionId)?.title, previousTitle);
 		assert.strictEqual(titleButton.textContent, previousTitle);
 		assert.strictEqual(titleLive.textContent, previousTitle);
 		assert.strictEqual(getSessionSelectLabel(slots), previousTitle);
-		assert.ok(!titleButton.hidden);
-		assert.ok(titleInput.hidden);
-		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
-			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
-		assert.ok(gateRow);
-		assert.strictEqual(gateRow.hidden, false);
-		assert.ok(gateRow.textContent?.includes(conversationLensPostFailed));
+		assert.ok(titleButton.hidden);
+		assert.ok(!titleInput.hidden);
+		assert.strictEqual(titleInput.value, 'Rejected rename');
+		const titleError = slots.sessionBar!.querySelector('.conversation-lens-session-title-error') as HTMLElement | null;
+		assert.ok(titleError);
+		assert.strictEqual(titleError.hidden, false);
+		assert.strictEqual(titleError.getAttribute('role'), 'alert');
+		assert.strictEqual(titleError.textContent, 'Could not rename the session.');
+		assert.strictEqual(titleInput.getAttribute('aria-invalid'), 'true');
+		assert.strictEqual(titleInput.getAttribute('aria-describedby'), titleError.id);
 	});
 
-	test('SessionBar renameSession false after engine-cache disconnect shows disconnected notice', () => {
+	test('SessionBar renameSession false after engine-cache disconnect keeps the editor open with the disconnected reason', () => {
 		class EngineCacheRejectingRenameRoster extends ConversationStubService {
 			override hasEngineConnectionHistory(): boolean {
 				return true;
@@ -3231,17 +3493,18 @@ suite('ConversationLens', () => {
 
 		titleButton.click();
 		titleInput.value = 'Rejected while disconnected';
-		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: KeyCode.Enter, bubbles: true }));
+		titleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
 
 		assert.strictEqual(roster.getActiveSession().title, previousTitle);
 		assert.strictEqual(roster.getSessions().find(s => s.id === sessionId)?.title, previousTitle);
 		assert.strictEqual(titleButton.textContent, previousTitle);
 		assert.strictEqual(getSessionSelectLabel(slots), previousTitle);
-		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
-			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement | null;
-		assert.ok(gateRow);
-		assert.strictEqual(gateRow.hidden, false);
-		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
+		assert.ok(!titleInput.hidden);
+		assert.strictEqual(titleInput.value, 'Rejected while disconnected');
+		const titleError = slots.sessionBar!.querySelector('.conversation-lens-session-title-error') as HTMLElement | null;
+		assert.ok(titleError);
+		assert.strictEqual(titleError.hidden, false);
+		assert.strictEqual(titleError.textContent, conversationLensDockEngineNotConnected);
 	});
 
 	test('SessionBar deleteSession false shows failed notice and keeps the session', async () => {
@@ -3753,7 +4016,44 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(roster.getActiveSessionId(), sessionId);
 		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
+		// The open edit keeps its text; the compose draft returns when the edit exits.
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(getDockTextarea(slots).value, 'B');
+		lens.exitComposerEdit();
 		assert.strictEqual(getDockTextarea(slots).value, 'A');
+	});
+
+	test('turnEdit pending delete rollback without an active change keeps the edit text', async () => {
+		class SessionOnlyRollbackRoster extends ConversationStubService {
+			private hidden: string | undefined;
+			override getSessions() { return super.getSessions().filter(session => session.id !== this.hidden); }
+			override deleteSession(id: string): boolean { this.hidden = id; return true; }
+			rollback(id: string): void {
+				this.hidden = undefined;
+				this._onDidChangeSession.fire(id);
+			}
+		}
+		const roster = store.add(new SessionOnlyRollbackRoster());
+		const { part, lens } = mountLens({ stubService: roster });
+		const slots = getLensSlots(part);
+		const sessionId = roster.getActiveSessionId();
+		const userTurn = roster.appendUserTurn(sessionId, 'B');
+		assert.ok(userTurn);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		lens.beginTurnEdit(userTurn.id);
+		lens.dockTextarea.value = 'B edited';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		lens.dialogService.confirm = async () => ({ confirmed: true });
+		await lens.deleteActiveSession();
+		roster.rollback(sessionId);
+
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(getDockTextarea(slots).value, 'B edited');
+		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
 	});
 
 	test('turnEdit deleteSession optimistic rollback restores compose draft snapshot not bubble text', async () => {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { strictEqual } from 'assert';
+import { notStrictEqual, ok, strictEqual } from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -12,8 +12,11 @@ import { TerminalTabList, TerminalTabsListSizes } from '../../browser/terminalTa
 import { ITerminalChatService, ITerminalConfigurationService, ITerminalEditingService, ITerminalGroupService, ITerminalInstance, ITerminalService, TerminalConnectionState } from '../../browser/terminal.js';
 import { TestTerminalConfigurationService, TestTerminalGroupService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IEditableData } from '../../../../common/views.js';
-import { ITerminalBackend } from '../../../../../platform/terminal/common/terminal.js';
+import { ITerminalBackend, TerminalSettingId } from '../../../../../platform/terminal/common/terminal.js';
 import { ResourceLabels } from '../../../../browser/labels.js';
+import { ConfigurationTarget, IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ITerminalConfiguration } from '../../common/terminal.js';
 
 class TestTerminalServiceTabbedView extends Disposable implements Partial<ITerminalService> {
 	readonly onDidChangeInstances = Event.None;
@@ -73,14 +76,43 @@ class TestTerminalEditingService implements ITerminalEditingService {
 	setEditingTerminal(_instance: ITerminalInstance | undefined): void { }
 }
 
+interface ITabbedViewInternals {
+	readonly _chatEntry: { readonly element: HTMLElement };
+	readonly _tabList: TerminalTabList;
+	readonly _splitView: { readonly length: number };
+	readonly _tabContainer: HTMLElement;
+}
+
+function tabbedViewInternals(tabbedView: TerminalTabbedView): ITabbedViewInternals {
+	return tabbedView as unknown as ITabbedViewInternals;
+}
+
 suite('TerminalTabbedView', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	let terminalService: TestTerminalServiceTabbedView;
 	let chatService: TestTerminalChatServiceTabbedView;
 	let groupService: TestTerminalGroupService;
+	let terminalConfigService: TestTerminalConfigurationService;
+	let configurationService: TestConfigurationService;
 
-	function setupTabbedView(parent: HTMLElement) {
+	function setTabsConfig(enabled: boolean, hideCondition: ITerminalConfiguration['tabs']['hideCondition']) {
+		terminalConfigService.setConfig({
+			tabs: {
+				enabled,
+				hideCondition,
+				showActiveTerminal: 'always',
+				location: 'left',
+				focusMode: 'singleClick',
+				title: '${process}',
+				description: '',
+				separator: ' - ',
+				allowAgentCliTitle: false
+			}
+		});
+	}
+
+	function setupTabbedView(parent: HTMLElement, hideCondition: ITerminalConfiguration['tabs']['hideCondition'] = 'never') {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		terminalService = store.add(new TestTerminalServiceTabbedView(store));
 		chatService = store.add(new TestTerminalChatServiceTabbedView(store));
@@ -101,25 +133,59 @@ suite('TerminalTabbedView', () => {
 			return instance;
 		};
 
-		const configService = instantiationService.get(ITerminalConfigurationService) as TestTerminalConfigurationService;
-		configService.setConfig({
-			tabs: {
-				enabled: true,
-				hideCondition: 'never',
-				showActiveTerminal: 'always',
-				location: 'left',
-				focusMode: 'singleClick',
-				title: '${process}',
-				description: '',
-				separator: ' - ',
-				allowAgentCliTitle: false
-			}
-		} as any);
+		terminalConfigService = instantiationService.get(ITerminalConfigurationService) as TestTerminalConfigurationService;
+		configurationService = instantiationService.get(IConfigurationService) as TestConfigurationService;
+		setTabsConfig(true, hideCondition);
 
 		const tabbedView = store.add(instantiationService.createInstance(TerminalTabbedView, parent));
 		store.add((tabbedView as unknown as { _splitView: Disposable })._splitView);
 		store.add(toDisposable(() => (tabbedView as unknown as { _removeSashListener(): void })._removeSashListener()));
 		return tabbedView;
+	}
+
+	function attachToDocument<T extends HTMLElement>(element: T): T {
+		document.body.appendChild(element);
+		store.add(toDisposable(() => element.remove()));
+		return element;
+	}
+
+	function stubActiveInstance(): { readonly focusWhenReadyCalls: number } {
+		const counter = { focusWhenReadyCalls: 0 };
+		groupService.activeInstance = {
+			focusWhenReady: async () => { counter.focusWhenReadyCalls++; }
+		} satisfies Partial<ITerminalInstance> as unknown as ITerminalInstance;
+		return counter;
+	}
+
+	function showHiddenChatEntry(): ITerminalInstance {
+		const instance = { instanceId: 1 } as unknown as ITerminalInstance;
+		chatService.hiddenInstances = [instance];
+		chatService.fireRegisterInstance(instance);
+		return instance;
+	}
+
+	function hideHiddenChatEntry(instance: ITerminalInstance): void {
+		chatService.hiddenInstances = [];
+		terminalService.fireDisposeInstance(instance);
+	}
+
+	function disableTabs(): void {
+		setTabsConfig(false, 'never');
+		const event: IConfigurationChangeEvent = {
+			source: ConfigurationTarget.USER,
+			affectedKeys: new Set<string>([TerminalSettingId.TabsEnabled]),
+			change: { keys: [TerminalSettingId.TabsEnabled], overrides: [] },
+			affectsConfiguration: configuration => configuration === TerminalSettingId.TabsEnabled
+		};
+		configurationService.onDidChangeConfigurationEmitter.fire(event);
+	}
+
+	function focusDeleteButton(view: ITabbedViewInternals): HTMLElement {
+		const deleteButton = view._chatEntry.element.querySelector<HTMLElement>('.terminal-tabs-chat-entry-delete');
+		ok(deleteButton);
+		deleteButton.focus();
+		strictEqual(document.activeElement, deleteButton);
+		return deleteButton;
 	}
 
 	test('should adjust tabList layout height when chat entry visibility changes and preserve panel height', () => {
@@ -197,6 +263,106 @@ suite('TerminalTabbedView', () => {
 		strictEqual(splitView.getViewSize(0), TerminalTabsListSizes.WideViewMinimumWidth);
 		strictEqual(tabList.hasText, true);
 		strictEqual(tabContainer.classList.contains('has-text'), true);
+	});
+
+	test('moves focus to the tab list when the focused hidden chat entry hides', () => {
+		const tabbedView = setupTabbedView(attachToDocument(document.createElement('div')));
+		const view = tabbedViewInternals(tabbedView);
+		tabbedView.layout(300, 500);
+		const instance = showHiddenChatEntry();
+		focusDeleteButton(view);
+
+		hideHiddenChatEntry(instance);
+
+		strictEqual(view._chatEntry.element.style.display, 'none');
+		ok(view._tabList.getHTMLElement().contains(document.activeElement));
+		notStrictEqual(document.activeElement, document.body);
+	});
+
+	test('moves focus to the active terminal once when the focused hidden chat entry leaves with the tab tree', () => {
+		const tabbedView = setupTabbedView(attachToDocument(document.createElement('div')), 'singleTerminal');
+		const view = tabbedViewInternals(tabbedView);
+		const activeInstance = stubActiveInstance();
+		// Show before the first panel layout: the tab tree is added here, and an entry relayout
+		// inside SplitView.addView would hit resizeView while the split view is busy.
+		const instance = showHiddenChatEntry();
+		strictEqual(view._splitView.length, 2);
+		tabbedView.layout(300, 500);
+		focusDeleteButton(view);
+
+		hideHiddenChatEntry(instance);
+
+		strictEqual(view._splitView.length, 1);
+		strictEqual(activeInstance.focusWhenReadyCalls, 1);
+	});
+
+	test('does not move focus when neither the tab tree nor an active terminal can take it', () => {
+		const tabbedView = setupTabbedView(attachToDocument(document.createElement('div')), 'singleTerminal');
+		const view = tabbedViewInternals(tabbedView);
+		// Same order as the previous test, for the same reason.
+		const instance = showHiddenChatEntry();
+		strictEqual(view._splitView.length, 2);
+		tabbedView.layout(300, 500);
+		focusDeleteButton(view);
+
+		hideHiddenChatEntry(instance);
+
+		strictEqual(view._splitView.length, 1);
+		strictEqual(groupService.activeInstance, undefined);
+		strictEqual(document.activeElement, document.body);
+	});
+
+	test('leaves focus alone when the hidden chat entry hides without holding focus', () => {
+		const tabbedView = setupTabbedView(attachToDocument(document.createElement('div')));
+		const view = tabbedViewInternals(tabbedView);
+		const activeInstance = stubActiveInstance();
+		const input = attachToDocument(document.createElement('input'));
+		tabbedView.layout(300, 500);
+		const instance = showHiddenChatEntry();
+		input.focus();
+
+		hideHiddenChatEntry(instance);
+
+		strictEqual(document.activeElement, input);
+		strictEqual(activeInstance.focusWhenReadyCalls, 0);
+		ok(!view._tabList.getHTMLElement().contains(document.activeElement));
+	});
+
+	test('moves focus to the active terminal when disabling tabs detaches the focused hidden chat entry', () => {
+		const tabbedView = setupTabbedView(attachToDocument(document.createElement('div')));
+		const view = tabbedViewInternals(tabbedView);
+		const activeInstance = stubActiveInstance();
+		tabbedView.layout(300, 500);
+		showHiddenChatEntry();
+		view._chatEntry.element.focus();
+		strictEqual(document.activeElement, view._chatEntry.element);
+
+		disableTabs();
+
+		strictEqual(view._splitView.length, 1);
+		strictEqual(view._chatEntry.element.isConnected, false);
+		strictEqual(activeInstance.focusWhenReadyCalls, 1);
+	});
+
+	test('moves focus to the active terminal on mouseleave after the pointer kept the disabled tab tree', () => {
+		const tabbedView = setupTabbedView(attachToDocument(document.createElement('div')));
+		const view = tabbedViewInternals(tabbedView);
+		const activeInstance = stubActiveInstance();
+		tabbedView.layout(300, 500);
+		showHiddenChatEntry();
+		view._chatEntry.element.focus();
+		view._tabContainer.dispatchEvent(new MouseEvent('mouseenter'));
+
+		disableTabs();
+
+		strictEqual(view._splitView.length, 2);
+		strictEqual(document.activeElement, view._chatEntry.element);
+		strictEqual(activeInstance.focusWhenReadyCalls, 0);
+
+		view._tabContainer.dispatchEvent(new MouseEvent('mouseleave'));
+
+		strictEqual(view._splitView.length, 1);
+		strictEqual(activeInstance.focusWhenReadyCalls, 1);
 	});
 });
 

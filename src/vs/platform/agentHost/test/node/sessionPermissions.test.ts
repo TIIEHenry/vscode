@@ -554,6 +554,49 @@ suite('SessionPermissionManager', () => {
 		});
 	});
 
+	(isWindows ? test.skip : test)('checks a >& redirect against its file destination', async () => {
+		// POSIX-only: an absolute path is embedded in the bash command string.
+		assert.deepStrictEqual([
+			await permissions.getAutoApproval(shellEvent(`echo hi >& ${join(outsideDir, '.bashrc')}`, 'bash'), sessionUri),
+			await permissions.getAutoApproval(shellEvent('echo hi >& ../escape.txt', 'bash'), sessionUri),
+			await permissions.getAutoApproval(shellEvent('echo hi >& out.txt', 'bash'), sessionUri),
+		], [undefined, undefined, ToolCallConfirmationReason.NotNeeded]);
+	});
+
+	(isWindows ? test.skip : test)('requires confirmation for a relative redirect after the command changes directory', async () => {
+		// POSIX-only: absolute paths are embedded in the command strings.
+		const changed = [
+			await permissions.getAutoApproval(shellEvent(`cd ${outsideDir} && echo hi > .bashrc`, 'bash'), sessionUri),
+			await permissions.getAutoApproval(shellEvent('cd && echo hi > out.txt', 'bash'), sessionUri),
+			await permissions.getAutoApproval(powershellEvent(`Set-Location ${outsideDir}; Write-Host hi >out.txt`), sessionUri),
+			await permissions.getAutoApproval(powershellEvent('cd..; Write-Host hi >out.txt'), sessionUri),
+		];
+		const unchanged = [
+			await permissions.getAutoApproval(shellEvent(`cd ${workDir} && echo hi > out.txt`, 'bash'), sessionUri),
+			await permissions.getAutoApproval(shellEvent(`cd ${outsideDir} && echo hi > ${join(workDir, 'out.txt')}`, 'bash'), sessionUri),
+		];
+		const ruleResolvable = permissions.isAutoApproveRuleResolvable(shellEvent(`cd ${outsideDir} && my-custom-script > out.txt`, 'bash'), sessionUri);
+		// `pushd` is not in the default rules; without this the command needs
+		// confirmation whether or not the directory change is recognized.
+		configService.updateRootConfig({ [AgentHostTerminalAutoApproveRulesConfigKey]: { pushd: true, echo: true } });
+		const pushd = await permissions.getAutoApproval(shellEvent(`pushd ${outsideDir} && echo hi > out.txt`, 'bash'), sessionUri);
+		assert.deepStrictEqual({ changed, unchanged, ruleResolvable, pushd }, {
+			changed: [undefined, undefined, undefined, undefined],
+			unchanged: [ToolCallConfirmationReason.NotNeeded, ToolCallConfirmationReason.NotNeeded],
+			ruleResolvable: false,
+			pushd: undefined,
+		});
+	});
+
+	test('requires confirmation for a relative redirect when the producer reports another start directory', async () => {
+		const event = shellEvent('echo hi > out.txt', 'bash');
+		assert.deepStrictEqual([
+			await permissions.getAutoApproval({ ...event, shellStartsInPrimaryWorkingDirectory: false }, sessionUri),
+			await permissions.getAutoApproval({ ...event, shellStartsInPrimaryWorkingDirectory: true }, sessionUri),
+			await permissions.getAutoApproval(event, sessionUri),
+		], [undefined, ToolCallConfirmationReason.NotNeeded, ToolCallConfirmationReason.NotNeeded]);
+	});
+
 	test('does not affect session bypass permission mode when terminal auto-approve is disabled', async () => {
 		configService.updateRootConfig({
 			[AgentHostTerminalAutoApproveEnabledConfigKey]: false,

@@ -65,12 +65,12 @@ export class ConversationNotificationsContribution extends Disposable implements
 			id: `ua.client.notifications.engineActionFailed:${failure.sessionId}:${failure.action}`,
 			severity: Severity.Error,
 			message: localize(
-				'ua.client.notifications.engineActionFailed',
-				"The engine rejected \"{0}\" in session \"{1}\": {2}",
+				'ua.client.notifications.engineActionRejected',
+				"The engine rejected \"{0}\" in session \"{1}\".",
 				failure.action,
 				this.sessionTitle(failure.sessionId),
-				toErrorMessage(failure.error),
 			),
+			source: toErrorMessage(failure.error),
 		});
 	}
 
@@ -163,7 +163,11 @@ export class ConversationNotificationsContribution extends Disposable implements
 			lease = this.rosterService.acquireSessionView(sessionId);
 			return collectPendingAttentionRequestIds(lease.snapshot.pendingActions);
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notificationService.notify({
+				severity: Severity.Error,
+				message: localize('conversationNotifications.readPendingFailed', "Could not read pending confirmations for this session."),
+				source: getErrorMessage(error),
+			});
 			return [];
 		} finally {
 			lease?.dispose();

@@ -11,6 +11,7 @@ import { Event } from '../../../../base/common/event.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { observableValue } from '../../../../base/common/observable.js';
+import { isWindows } from '../../../../base/common/platform.js';
 import { hasKey } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
@@ -4548,6 +4549,53 @@ suite('AgentSideEffects', () => {
 					: undefined),
 				[[true, undefined], [undefined, true], [undefined, undefined]],
 				'powershell auto-approves; bash stays rule-resolvable; missing language is neither');
+		});
+
+		(isWindows ? test.skip : test)('tool_ready forwards the shell start-directory fact into shell approval', async () => {
+			// POSIX-only: the working directory is a POSIX path.
+			setupSession(URI.file('/workspace/project').toString());
+			startTurn('turn-1');
+			disposables.add(sideEffects.registerProgressListener(agent));
+			await sideEffects.initialize();
+
+			// A relative redirect auto-approves only while the producer does not
+			// report that the shell starts outside the primary working directory.
+			const cases = [
+				['tc-shell-cwd-1', undefined],
+				['tc-shell-cwd-2', true],
+				['tc-shell-cwd-3', false],
+			] as const;
+			for (const [toolCallId, shellStartsInPrimaryWorkingDirectory] of cases) {
+				agent.fireProgress({
+					kind: 'action', resource: URI.parse(defaultChatUri),
+					action: {
+						type: ActionType.ChatToolCallStart, turnId: 'turn-1',
+						toolCallId, toolName: 'shell', displayName: 'Shell', contributor: { kind: ToolCallContributorKind.Client, clientId: 'test-client' },
+						_meta: { toolKind: undefined, language: undefined },
+					},
+				});
+				agent.fireProgress({
+					kind: 'pending_confirmation', chat: URI.parse(defaultChatUri),
+					state: {
+						status: ToolCallStatus.PendingConfirmation,
+						toolCallId, toolName: '', displayName: '',
+						invocationMessage: 'Run command', toolInput: 'echo hi > out.txt',
+						confirmationTitle: 'Run in terminal?', edits: undefined,
+					},
+					permissionKind: 'shell', permissionPath: undefined,
+					shellLanguage: 'bash',
+					shellStartsInPrimaryWorkingDirectory,
+				});
+			}
+
+			const state = await waitForState(stateManager, () => {
+				const s = stateManager.getSessionState(sessionUri.toString());
+				const parts = s?.activeTurn?.responseParts;
+				return parts?.length === cases.length && parts.every(p => p.kind === ResponsePartKind.ToolCall && p.toolCall.status === ToolCallStatus.PendingConfirmation) ? s : undefined;
+			});
+			assert.deepStrictEqual(
+				state.activeTurn?.responseParts.map(p => p.kind === ResponsePartKind.ToolCall ? p.toolCall._meta?.['autoApproveBySetting'] : undefined),
+				[true, true, undefined]);
 		});
 
 		test('tool_ready is dropped when the tool completes while permission lookup is pending', async () => {

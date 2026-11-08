@@ -52,7 +52,17 @@
 	padding-right: 1px;
 	margin-left: 1px;
 	border-radius: var(--vscode-cornerRadius-small, 4px) 0 0 var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .part > .title > .title-actions .start-debug-action-item .codicon-debug-start {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part > .title > .title-actions .start-debug-action-item .codicon-debug-start {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part > .title > .title-actions .start-debug-action-item .codicon-debug-start:active {
@@ -84,7 +94,17 @@
 	border-radius: 0 var(--vscode-cornerRadius-small, 4px) var(--vscode-cornerRadius-small, 4px) 0;
 	color: var(--vscode-dropdown-foreground);
 	outline-offset: -1px;
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label {
+		transition: none;
+	}
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:active {
@@ -170,6 +190,20 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-call-stack .thread,
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-call-stack .session,
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-call-stack .stack-frame {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-call-stack .thread,
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-call-stack .session,
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-call-stack .stack-frame {
+		transition: none;
+	}
+}
+
 .debug-pane .debug-call-stack .monaco-list-row:active .thread,
 .debug-pane .debug-call-stack .monaco-list-row:active .session,
 .debug-pane .debug-call-stack .monaco-list-row:active .stack-frame {
@@ -219,7 +253,17 @@
 .debug-pane .monaco-list-row .monaco-action-bar .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .debug-pane .monaco-list-row .monaco-action-bar .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .monaco-list-row .monaco-action-bar .action-label {
+		transition: none;
+	}
 }
 
 .debug-pane .monaco-list-row .monaco-action-bar .action-label:active {
@@ -287,7 +331,19 @@
 	text-align: center;
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-call-stack .load-all,
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-call-stack .show-more {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-call-stack .load-all,
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-call-stack .show-more {
+		transition: none;
+	}
 }
 
 .debug-pane .debug-call-stack .show-more {
@@ -314,6 +370,16 @@
 
 .debug-pane .monaco-list-row .expression {
 	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .debug-pane .monaco-list-row .expression {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .monaco-list-row .expression {
+		transition: none;
+	}
 }
 
 .debug-pane .monaco-list-row:active .expression {
@@ -387,6 +453,16 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-breakpoints .breakpoint {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-breakpoints .breakpoint {
+		transition: none;
+	}
+}
+
 .debug-pane .debug-breakpoints .monaco-list-row:active .breakpoint {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
@@ -401,6 +477,16 @@
 	margin-left: 0;
 	margin-right: 4px;
 	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle {
+		transition: none;
+	}
 }
 
 .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle:active {

@@ -573,7 +573,7 @@ export async function applyEdit(
 	alternativeNotebookContent: IAlternativeNotebookContentService,
 	languageModel: LanguageModelChat | undefined,
 	opts?: { replaceAll?: boolean },
-): Promise<{ patch: Hunk[]; updatedFile: string; edits: TextEdit[] }> {
+): Promise<{ patch: Hunk[]; updatedFile: string; edits: TextEdit[]; originalFile: string }> {
 	let originalFile: string;
 	let updatedFile: string;
 	const edits: TextEdit[] = [];
@@ -683,7 +683,7 @@ export async function applyEdit(
 			newStr: updatedFile,
 		});
 
-		return { patch, updatedFile, edits };
+		return { patch, updatedFile, edits, originalFile };
 	} catch (error) {
 		// If the file doesn't exist and we're creating a new file with empty oldString
 		if (old_string === '' && error.code === 'ENOENT') {
@@ -697,7 +697,7 @@ export async function applyEdit(
 			});
 
 			edits.push(TextEdit.insert(new Position(0, 0), new_string));
-			return { patch, updatedFile, edits };
+			return { patch, updatedFile, edits, originalFile };
 		}
 
 		if (error instanceof EditError) {

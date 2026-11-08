@@ -167,6 +167,29 @@ suite('Sources - git hunk patch', () => {
 		assert.strictEqual(sourcesGitHunkPatchAtCursor(both, 40, 'new'), undefined);
 	});
 
+	test('file-line basis selects by the @@ range of the caret side', () => {
+		const fileHeader = ['diff --git a/src/a.ts b/src/a.ts', '--- a/src/a.ts', '+++ b/src/a.ts'].join('\n');
+		const first = ['@@ -3,7 +3,7 @@', ' a1', ' a2', ' a3', '-a4', '+A4', ' a5', ' a6', ' a7'].join('\n');
+		const second = ['@@ -12,8 +12,7 @@', ' b1', ' b2', ' b3', '-b4', '-b5', '+B4', ' b6', ' b7', ' b8'].join('\n');
+		const third = ['@@ -101,7 +100,7 @@', ' c1', ' c2', ' c3', '-c4', '+C4', ' c5', ' c6', ' c7'].join('\n');
+		const fullFile = `${fileHeader}\n${first}\n${second}\n${third}`;
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(fullFile, 15, 'new', 'fileLine'), `${fileHeader}\n${second}\n`);
+		assert.ok(sourcesGitHunkPatchAtCursor(fullFile, 100, 'new', 'fileLine')?.includes('@@ -101,7 +100,7 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(fullFile, 50, 'new', 'fileLine'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(fullFile, 10, 'new', 'fileLine'), undefined);
+		assert.ok(sourcesGitHunkPatchAtCursor(fullFile, 19, 'old', 'fileLine')?.includes('@@ -12,8 +12,7 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(fullFile, 19, 'new', 'fileLine'), undefined);
+		assert.ok(sourcesGitHunkPatchAtCursor(fullFile, 101, 'old', 'fileLine')?.includes('@@ -101,7 +100,7 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(fullFile, 100, 'old', 'fileLine'), undefined);
+		// The default basis lays hunk bodies end to end, so the same caret lands in the third hunk.
+		assert.ok(sourcesGitHunkPatchAtCursor(fullFile, 15, 'new')?.includes('@@ -101,7 +100,7 @@'));
+
+		const addedOnly = ['diff --git a/z b/z', '--- a/z', '+++ b/z', '@@ -30,0 +31,2 @@', '+one', '+two'].join('\n');
+		assert.ok(sourcesGitHunkPatchAtCursor(addedOnly, 32, 'new', 'fileLine')?.includes('@@ -30,0 +31,2 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(addedOnly, 33, 'new', 'fileLine'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(addedOnly, 30, 'old', 'fileLine'), undefined);
+	});
+
 	test('a synced caret on the unfocused side does not steal the hunk line', () => {
 		const onOriginal = { side: 'old' as const, line: 4 };
 		assert.deepStrictEqual(

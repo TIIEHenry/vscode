@@ -56,6 +56,21 @@ const MAX_BULK_STORAGE_ENTRIES = 1000;
 /** Single-key sequencer key used to serialize bulk-file flush against {@link refresh}. */
 const BULK_SEQUENCER_KEY = 'bulk';
 
+/**
+ * Outcome of one per-session metadata write. `notWritten` covers the paths that skip the
+ * write without an error; `corruptNotOverwritten` means the existing file was unreadable and
+ * nothing trustworthy was known to rebuild it, so its bytes were left alone.
+ */
+type MetadataWriteResult = 'written' | 'notWritten' | 'corruptNotOverwritten';
+
+/** The per-session metadata file is unreadable and was left unchanged instead of being overwritten. */
+export class CorruptSessionMetadataError extends Error {
+	constructor(sessionId: string) {
+		super(`Metadata for session ${sessionId} is unreadable and was left unchanged`);
+		this.name = 'CorruptSessionMetadataError';
+	}
+}
+
 export class ChatSessionMetadataStore extends Disposable implements IChatSessionMetadataStore {
 	declare _serviceBrand: undefined;
 
@@ -93,6 +108,14 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 
 	/** Serializes bulk-file flush against {@link reloadBulkFromDisk}. */
 	private readonly _bulkSequencer = new SequencerByKey<string>();
+
+	/**
+	 * Sessions whose {@link _cache} record came from the bulk file or from a per-session file this
+	 * process read or wrote. Only these records may rebuild an unreadable per-session file or be
+	 * flushed to the bulk file; fields that {@link updateMetadataFields} adds before its write
+	 * finishes do not qualify.
+	 */
+	private readonly _diskBackedSessions = new Set<string>();
 
 	constructor(
 		@IFileSystemService private readonly fileSystemService: IFileSystemService,
@@ -195,6 +218,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 
 		// Build folder index from the cleaned cache.
 		for (const [sessionId, metadata] of Object.entries(this._cache)) {
+			this._diskBackedSessions.add(sessionId);
 			this._updateFolderIndex(sessionId, metadata);
 		}
 
@@ -212,6 +236,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 
 	async deleteSessionMetadata(sessionId: string): Promise<void> {
 		await this._ready;
+		this._diskBackedSessions.delete(sessionId);
 		this._requestDetailsCache.delete(sessionId);
 		this._requestDetailsCacheTimers.deleteAndDispose(sessionId);
 		if (sessionId in this._cache) {
@@ -243,7 +268,15 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 		const existing = this._cache[sessionId] ?? {};
 		this._cache[sessionId] = { ...existing, ...fields };
 		this._updateFolderIndex(sessionId, this._cache[sessionId]);
-		await this.updateSessionMetadata(sessionId, fields);
+		const result = await this.updateSessionMetadata(sessionId, fields);
+		if (result === 'corruptNotOverwritten') {
+			if (!this._diskBackedSessions.has(sessionId)) {
+				// Only optimistic fields were cached; drop them so nothing presents them as the session's record.
+				delete this._cache[sessionId];
+				this._updateFolderIndex(sessionId, undefined);
+			}
+			throw new CorruptSessionMetadataError(sessionId);
+		}
 		this.updateGlobalStorage();
 	}
 
@@ -487,7 +520,12 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 		// File is absent. Cache the empty result so a missing file is not read again.
 		this._cache[sessionId] = {};
 		if (createMetadataFileIfNotFound) {
-			await this.updateSessionMetadata(sessionId, { origin: 'other' });
+			const result = await this.updateSessionMetadata(sessionId, { origin: 'other' });
+			if (result === 'corruptNotOverwritten') {
+				// An unreadable file appeared after the read above; read it again next time.
+				delete this._cache[sessionId];
+				return undefined;
+			}
 			this.updateGlobalStorage();
 		}
 		return undefined;
@@ -518,6 +556,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 					return null;
 				}
 				this._cache[sessionId] = metadata;
+				this._diskBackedSessions.add(sessionId);
 				this._updateFolderIndex(sessionId, metadata);
 				return metadata;
 			} catch (error) {
@@ -527,13 +566,13 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 		});
 	}
 
-	private async updateSessionMetadata(sessionId: string, updates: Partial<ChatSessionMetadataFile>, createDirectoryIfNotFound = true): Promise<void> {
+	private async updateSessionMetadata(sessionId: string, updates: Partial<ChatSessionMetadataFile>, createDirectoryIfNotFound = true): Promise<MetadataWriteResult> {
 		if (isUntitledSessionId(sessionId)) {
 			// Don't write metadata for untitled sessions, as they are temporary and can be created in large numbers.
-			return;
+			return 'notWritten';
 		}
 
-		await this._metadataWriteSequencer.queue(sessionId, async () => {
+		return this._metadataWriteSequencer.queue(sessionId, async (): Promise<MetadataWriteResult> => {
 			const fileUri = this.getMetadataFileUri(sessionId);
 			const dirUri = dirname(fileUri);
 
@@ -557,7 +596,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 			} catch (error) {
 				if (!isMetadataFileNotFound(error)) {
 					this.logService.error(`[ChatSessionMetadataStore] Failed to read metadata for ${sessionId} before update: `, error);
-					return;
+					return 'notWritten';
 				}
 				diskFileExisted = false;
 				// File doesn't exist yet — check if the directory exists.
@@ -569,19 +608,20 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 						this._cache[sessionId] = { ...updates, writtenToDisc: true };
 						this._updateFolderIndex(sessionId, this._cache[sessionId]);
 						this.updateGlobalStorage();
-						return;
+						return 'notWritten';
 					}
 					await this.fileSystemService.createDirectory(dirUri);
 				}
 			}
 
 			if (corrupt) {
-				// A session already in `_cache` (bulk file) can repair the per-session
-				// file. Otherwise leave the bytes alone so worktree checkpoints survive.
+				// Only a disk-backed record (bulk file, or a per-session file this process read or
+				// wrote) can repair the per-session file. Optimistic fields from `updateMetadataFields`
+				// cannot. Otherwise leave the bytes alone so worktree checkpoints survive.
 				const cached = this._cache[sessionId];
-				if (!cached || !Object.keys(cached).some(key => key !== 'writtenToDisc')) {
+				if (!cached || !this._diskBackedSessions.has(sessionId) || !Object.keys(cached).some(key => key !== 'writtenToDisc')) {
 					this.logService.error(`[ChatSessionMetadataStore] Not overwriting corrupt metadata for ${sessionId}`);
-					return;
+					return 'corruptNotOverwritten';
 				}
 				const rest: ChatSessionMetadataFile = { ...cached };
 				delete rest.writtenToDisc;
@@ -615,8 +655,10 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 			await this.replaceMetadataFile(fileUri, content);
 
 			this._cache[sessionId] = { ...merged, writtenToDisc: true };
+			this._diskBackedSessions.add(sessionId);
 			this._updateFolderIndex(sessionId, this._cache[sessionId]);
 			this.updateGlobalStorage();
+			return 'written';
 		});
 	}
 
@@ -648,14 +690,28 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 			// merge it with the in-memory cache using last-modified-wins semantics so
 			// concurrent writers in another process do not lose data.
 			await this._bulkSequencer.queue(BULK_SEQUENCER_KEY, async () => {
-				const data: Record<string, ChatSessionMetadataFile> = { ...this._cache };
+				// Only disk-backed records are flushed. A record that so far holds only optimistic
+				// fields must not reach the bulk file, where the next start would trust it.
+				const data: Record<string, ChatSessionMetadataFile> = {};
+				for (const [sessionId, metadata] of Object.entries(this._cache)) {
+					if (this._diskBackedSessions.has(sessionId)) {
+						data[sessionId] = metadata;
+					}
+				}
 				try {
 					const storageData = await this.getGlobalStorageData();
 					for (const [sessionId, diskEntry] of Object.entries(storageData)) {
+						if (sessionId in this._cache && !this._diskBackedSessions.has(sessionId)) {
+							// Write the disk entry back unchanged. `_cache` keeps the optimistic value
+							// until that session's own write finishes or is refused.
+							data[sessionId] = diskEntry;
+							continue;
+						}
 						const local = data[sessionId];
 						if (!local) {
 							data[sessionId] = diskEntry;
 							this._cache[sessionId] = diskEntry;
+							this._diskBackedSessions.add(sessionId);
 							this._updateFolderIndex(sessionId, diskEntry);
 							continue;
 						}
@@ -664,6 +720,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 						if (diskModified > localModified) {
 							data[sessionId] = diskEntry;
 							this._cache[sessionId] = diskEntry;
+							this._diskBackedSessions.add(sessionId);
 							this._updateFolderIndex(sessionId, diskEntry);
 						}
 					}
@@ -719,6 +776,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 				const local = this._cache[id];
 				if (!local) {
 					this._cache[id] = diskEntry;
+					this._diskBackedSessions.add(id);
 					this._updateFolderIndex(id, diskEntry);
 					continue;
 				}
@@ -726,6 +784,7 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 				const diskModified = diskEntry.modified ?? 0;
 				if (diskModified > localModified) {
 					this._cache[id] = diskEntry;
+					this._diskBackedSessions.add(id);
 					this._updateFolderIndex(id, diskEntry);
 				}
 			}

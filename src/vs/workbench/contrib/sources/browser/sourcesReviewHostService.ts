@@ -14,7 +14,10 @@ export class SourcesReviewHostService extends Disposable implements ISourcesRevi
 
 	private reviewListHost: ISourcesReviewListHost | undefined;
 
-	registerReviewListHost(host: ISourcesReviewListHost | undefined): void {
+	registerReviewListHost(host: ISourcesReviewListHost | undefined, currentHost?: ISourcesReviewListHost): void {
+		if (host === undefined && currentHost !== undefined && this.reviewListHost !== currentHost) {
+			return;
+		}
 		this.reviewListHost = host;
 	}
 

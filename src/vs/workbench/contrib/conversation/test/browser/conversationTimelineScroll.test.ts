@@ -366,3 +366,17 @@ suite('ConversationTimeline pending reveal', () => {
 		assert.strictEqual(host.scrollLock, true, 'a pending seat that is the tail root keeps follow');
 	});
 });
+
+suite('conversationTimelineScroll (browser colocated)', () => {
+
+	test('isScrolledToBottom uses 2px tolerance at the real max scrollTop', () => {
+		assert.strictEqual(isConversationTimelineScrolledToBottom(100, 200, 302), true);
+		assert.strictEqual(isConversationTimelineScrolledToBottom(100, 200, 303), false);
+	});
+
+	test('isScrolledToBottom rejects stale scrollTop after content shrinks below the viewport', () => {
+		// scrollHeight dropped while scrollTop stayed high; only the sum check would wrongly lock follow.
+		assert.strictEqual(isConversationTimelineScrolledToBottom(100, 400, 200), false);
+		assert.strictEqual(isConversationTimelineScrolledToBottom(0, 400, 200), true);
+	});
+});

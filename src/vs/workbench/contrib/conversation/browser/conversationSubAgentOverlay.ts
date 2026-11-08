@@ -172,6 +172,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		}));
 
 		this.breadcrumbHost = append(this.card, $('.conversation-subagent-overlay-breadcrumb'));
+		this.breadcrumbHost.hidden = true;
 		this.breadcrumb = this._register(new ConversationAgentBreadcrumbBox(this.breadcrumbHost));
 		this._register(this.breadcrumb.onDidSelect(chatId => this._onDidSelectBreadcrumb.fire(chatId)));
 
@@ -195,7 +196,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 				return;
 			}
 			handleConversationOverlayTab(this.element, event);
-		}));
+		}, true));
 	}
 
 	open(state: IConversationSubAgentOverlayState): void {
@@ -231,7 +232,10 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.element.setAttribute('aria-labelledby', titleElementId);
 		this.element.removeAttribute('aria-label');
 		this.nameElement.textContent = state.title;
+		this.nameElement.title = state.title;
 		this.descriptionElement.textContent = state.sessionTitle;
+		this.descriptionElement.title = state.sessionTitle;
+		this.breadcrumbHost.hidden = state.breadcrumb.length === 0;
 		this.breadcrumb.setItems([...state.breadcrumb]);
 		this.layoutBreadcrumb();
 		this.element.dataset.sessionKey = state.sessionKey;
@@ -316,6 +320,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.sessionBarHost.replaceChildren();
 		this.body.replaceChildren();
 		this.breadcrumb.setItems([]);
+		this.breadcrumbHost.hidden = true;
 		this._onDidClose.fire();
 	}
 
@@ -324,6 +329,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 			return;
 		}
 		this.state = { ...this.state, breadcrumb: items };
+		this.breadcrumbHost.hidden = items.length === 0;
 		this.breadcrumb.setItems([...items]);
 		this.layoutBreadcrumb();
 	}
@@ -335,6 +341,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		}
 		this.state = { ...this.state, title };
 		this.nameElement.textContent = title;
+		this.nameElement.title = title;
 	}
 
 	isOpen(): boolean {

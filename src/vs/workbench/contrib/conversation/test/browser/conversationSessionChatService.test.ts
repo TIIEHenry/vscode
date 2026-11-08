@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getErrorMessage } from '../../../../base/common/errors.js';
-import { Emitter } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ConversationSessionChatService } from './conversationSessionChatService.js';
-import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { INotification, INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { ConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const SESSION_KEY = 'ua-bind-fail';
 
@@ -92,12 +92,12 @@ suite('ConversationSessionChatService', () => {
 			}
 		}
 
-		const errors: string[] = [];
+		const errors: Array<{ message: unknown; source: unknown }> = [];
 		const roster = store.add(new ApplyFailOnceRoster());
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(INotificationService, {
-			error: (message: string | Error) => {
-				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			notify: (notification: INotification) => {
+				errors.push({ message: notification.message, source: notification.source });
 			},
 		} as INotificationService);
 		instantiationService.stub(IConversationRosterService, roster);
@@ -112,7 +112,7 @@ suite('ConversationSessionChatService', () => {
 		}));
 
 		const sessionChatService = store.add(instantiationService.createInstance(ConversationSessionChatService));
-		assert.ok(errors.some(message => message === getErrorMessage(applyError)));
+		assert.deepStrictEqual(errors, [{ message: 'Could not load the agent tree for this session.', source: getErrorMessage(applyError) }]);
 		assert.strictEqual(leaseDisposed, true, 'failed bind must dispose the acquired lease');
 		assert.deepStrictEqual(sessionChatService.getCatalog(SESSION_KEY), []);
 

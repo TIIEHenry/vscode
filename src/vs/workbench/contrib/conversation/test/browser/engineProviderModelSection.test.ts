@@ -30,6 +30,8 @@ import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy,
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineModelsSection, EngineProvidersSection } from '../../browser/engineProviderModelSection.js';
+import { engineWriteNotSentCopy } from '../../browser/engineWriteGate.js';
+import { createConversationConnectionTestStub, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
 const MODEL_FEATURE = 'model registry';
@@ -281,7 +283,7 @@ suite('Engine providers and models sections', () => {
 				await input.complete({ confirmed: true, values: catalog === 'provider' ? ['new', 'openai', '', 'fixture-secret'] : ['demo', 'new', 'general', '3'] });
 				await flushMicrotasks();
 				assert.strictEqual(writes, 0);
-				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent ?? '', '');
+				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent ?? '', invalidation === 'dispose' ? '' : engineWriteNotSentCopy());
 			});
 
 			test(`write ownership: ${catalog} rename stops before deleting after ${invalidation}`, async () => {
@@ -384,17 +386,75 @@ suite('Engine providers and models sections', () => {
 
 	test('write ownership: provider failures redact the submitted key', async () => {
 		const connection = createWritableConnection({ upsertProviderCredentials: async () => { throw new Error('Rejected fixture-secret twice fixture-secret'); } });
+		const seen: IInput[] = [];
 		const dialog = new class extends TestDialogService {
-			override async input(): Promise<IInputResult> { return { confirmed: true, values: ['demo', 'openai', '', 'fixture-secret'] }; }
+			override async input(input: IInput): Promise<IInputResult> {
+				seen.push(input);
+				return seen.length === 1 ? { confirmed: true, values: ['demo', 'openai', '', 'fixture-secret'] } : { confirmed: false };
+			}
 		}();
 		const section = mountProviders(connection, dialog);
 		await flushMicrotasks();
 		clickAction(section, 'Add provider');
 		await flushMicrotasks();
-		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, 'Unable to save provider: Rejected [redacted] twice [redacted]');
+		const failed = 'Unable to save provider: Rejected [redacted] twice [redacted]';
+		const reopened = seen[1];
+		assert.deepStrictEqual({
+			opens: seen.length,
+			type: reopened?.type,
+			detailLeadsWithFailure: typeof reopened?.detail === 'string' && reopened.detail.startsWith(failed),
+			values: reopened?.inputs.map(input => input.value),
+		}, {
+			opens: 2,
+			type: 'error',
+			detailLeadsWithFailure: true,
+			values: ['demo', 'openai', '', 'fixture-secret'],
+		});
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, failed);
 		connection.setPublishedLink('engine-other', 2);
 		await flushMicrotasks();
 		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+	});
+
+	test('model save failure reopens the dialog with the submitted values and the error', async () => {
+		const writes: string[] = [];
+		const connection = createWritableConnection({
+			upsertModel: async request => {
+				writes.push(request.id);
+				if (writes.length === 1) {
+					throw new Error('registry locked');
+				}
+				return {};
+			},
+		});
+		const submitted = ['demo', 'new', 'general', '3', 'fast one', '', ''];
+		const seen: IInput[] = [];
+		const dialog = new class extends TestDialogService {
+			override async input(input: IInput): Promise<IInputResult> {
+				seen.push(input);
+				return { confirmed: true, values: [...submitted] };
+			}
+		}();
+		const section = mountModels(connection, dialog);
+		await flushMicrotasks();
+		clickAction(section, 'Add model');
+		await flushMicrotasks();
+		const reopened = seen[1];
+		assert.deepStrictEqual({
+			opens: seen.length,
+			writes,
+			type: reopened?.type,
+			detailLeadsWithFailure: typeof reopened?.detail === 'string' && reopened.detail.startsWith('Unable to save model: registry locked'),
+			values: reopened?.inputs.map(input => input.value),
+			feedback: section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent,
+		}, {
+			opens: 2,
+			writes: ['demo:new', 'demo:new'],
+			type: 'error',
+			detailLeadsWithFailure: true,
+			values: submitted,
+			feedback: 'Model saved.',
+		});
 	});
 
 	test('write ownership: completed model feedback belongs to its published link', async () => {
@@ -2024,5 +2084,63 @@ suite('Engine providers and models sections', () => {
 		assert.strictEqual(section.getDomNode().parentElement, null);
 		assert.strictEqual(section.getDomNode().childNodes.length, 0);
 		parent.remove();
+	});
+});
+
+suite('EngineModelsSection (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('late listModels after dispose does not paint model rows', async () => {
+		let releaseList: ((value: UniverseAgentListModelsResult) => void) | undefined;
+		const capabilities = createTestCapabilitySnapshot({
+			models: { support: 'SUPPORTED' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listModels: () => new Promise(resolve => {
+				releaseList = resolve;
+			}),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = instantiationService.createInstance(EngineModelsSection, parent);
+		section.setSectionActive(true);
+		await timeout(0);
+
+		section.dispose();
+		releaseList?.({
+			models: [{
+				id: 'late',
+				type: 'chat',
+				enabled: true,
+				level: 1,
+				provider: 'demo',
+				modelId: 'after-dispose-model',
+			}],
+		});
+		await timeout(0);
+
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-models-row').length, 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('after-dispose-model'));
 	});
 });

@@ -2246,6 +2246,61 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(savedNames.every(name => name === 'skill-a'));
 	});
 
+	for (const action of ['Save', 'Discard'] as const) {
+		test(`Skills: blocked switch away from a dirty body offers Save / Discard in place (${action})`, async () => {
+			const savedNames: string[] = [];
+			const bodies = new Map([['skill-a', '# Body of A'], ['skill-b', '# Body of B']]);
+			const connection = createConnectionStub({
+				connected: true,
+				skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({
+					skills: [
+						{ name: 'skill-a', source: 'user', enabled: true },
+						{ name: 'skill-b', source: 'user', enabled: true },
+					],
+				}),
+				getSkillInfo: async request => ({
+					name: request.skillName,
+					content: bodies.get(request.skillName) ?? '',
+					source: 'user',
+					enabled: true,
+				}),
+				saveSkillContent: async request => {
+					savedNames.push(request.skillName);
+					bodies.set(request.skillName, request.content);
+					return { ok: true };
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.selectSkillForTest('skill-a');
+			await flushMicrotasks();
+			section.setSelectedSkillBody(`${section.getSelectedSkillBody()}\n# dirty A`);
+			section.selectSkillForTest('skill-b');
+			await flushMicrotasks();
+			const prompt = section.getDomNode().querySelector('.engine-skill-draft-prompt') as HTMLElement;
+			const blocked = { selected: section.getSelectedSkillName(), visible: prompt.style.display !== 'none', text: prompt.querySelector('.engine-skill-draft-prompt-text')?.textContent };
+			const button = [...prompt.querySelectorAll('.monaco-button')].find(candidate => candidate.textContent === action) as HTMLElement | undefined;
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+			await flushMicrotasks();
+			assert.deepStrictEqual({
+				blocked,
+				selected: section.getSelectedSkillName(),
+				body: section.getSelectedSkillBody(),
+				promptVisible: prompt.style.display !== 'none',
+				savedNames,
+			}, {
+				blocked: { selected: 'skill-a', visible: true, text: 'Unsaved changes. Save or discard them to open skill-b.' },
+				selected: 'skill-b',
+				body: '# Body of B',
+				promptVisible: false,
+				savedNames: action === 'Save' ? ['skill-a'] : [],
+			});
+		});
+	}
+
 	test('Skills: dirty body selection of a group header keeps the skill and the text', async () => {
 		let infoCalls = 0;
 		const connection = createConnectionStub({

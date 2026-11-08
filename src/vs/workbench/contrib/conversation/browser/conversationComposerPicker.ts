@@ -32,6 +32,7 @@ export interface IComposerPickerOptions {
 	/** When the window uses the native menu, leave the platform `<select>` popup alone. */
 	readonly useNativeSelect?: boolean;
 	readonly getItemDetail?: (index: number, label: string) => string | undefined;
+	readonly onWillOpen?: () => void;
 }
 
 class MenuDetailKeybinding extends ResolvedKeybinding {
@@ -104,8 +105,10 @@ export function attachComposerPicker(container: HTMLElement, contextViewService:
 				run: () => footer.run(),
 			}));
 		}
+		options.onWillOpen?.();
 		open = true;
 		select.setAttribute('aria-expanded', 'true');
+		select.focus();
 		contextMenuService.showContextMenu({
 			getAnchor: () => select,
 			getActions: () => actions,

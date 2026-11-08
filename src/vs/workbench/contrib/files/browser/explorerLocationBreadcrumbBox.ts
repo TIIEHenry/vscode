@@ -9,6 +9,7 @@ import { BreadcrumbsItem, BreadcrumbsWidget } from '../../../../base/browser/ui/
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
 import { defaultBreadcrumbsWidgetStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -75,6 +76,42 @@ export class ExplorerLocationBreadcrumbBox extends Disposable {
 			this._onDidSelect.fire(e.item.data.id);
 		}));
 
+		this._register(dom.addStandardDisposableListener(this.breadcrumbContainer, dom.EventType.KEY_DOWN, e => {
+			if (e.equals(KeyCode.LeftArrow) || e.equals(KeyCode.RightArrow)) {
+				if (!this.breadcrumbWidget.getFocused()) {
+					this.breadcrumbWidget.domFocus();
+				} else if (e.equals(KeyCode.LeftArrow)) {
+					this.breadcrumbWidget.focusPrev();
+				} else {
+					this.breadcrumbWidget.focusNext();
+				}
+				e.preventDefault();
+				e.stopPropagation();
+			} else if (e.equals(KeyCode.Home)) {
+				const items = this.breadcrumbWidget.getItems();
+				if (items.length > 0) {
+					this.breadcrumbWidget.setFocused(items[0]);
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			} else if (e.equals(KeyCode.End)) {
+				const items = this.breadcrumbWidget.getItems();
+				if (items.length > 0) {
+					this.breadcrumbWidget.setFocused(items[items.length - 1]);
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			} else if (e.equals(KeyCode.Enter) || e.equals(KeyCode.Space)) {
+				const items = this.breadcrumbWidget.getItems();
+				const focused = this.breadcrumbWidget.getFocused() ?? items[items.length - 1];
+				if (focused) {
+					this.breadcrumbWidget.setSelection(focused);
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			}
+		}));
+
 		this.setItems([]);
 	}
 
@@ -89,6 +126,10 @@ export class ExplorerLocationBreadcrumbBox extends Disposable {
 		const widgetItems = items.map(item => new ExplorerLocationBreadcrumbItem(item));
 		this.breadcrumbWidget.setItems(widgetItems);
 		this.breadcrumbWidget.setEnabled(items.length > 0);
+		const root = this.breadcrumbContainer.firstElementChild?.firstElementChild;
+		if (dom.isHTMLElement(root)) {
+			root.tabIndex = items.length > 0 ? 0 : -1;
+		}
 	}
 
 	layout(width: number): void {

@@ -3,7 +3,7 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-07
 summary: "视觉全面以 GPT 为主参照，交互参考 GPT 的上下文连续性、渐进披露和菜单组织；产品自有界面的颜色、圆角、图标、输入框、菜单和 item 高度按参考图复刻，VS Code 文件管理器与代码编辑器保留原版字号和行高；产品自有界面不画焦点框描边，键盘定位由背景、激活态和状态线索表达；平台 token、状态语义、权限门控和诚实降级保持不变"
 ---
 
@@ -200,7 +200,7 @@ ChatGPT 一列里，画布、字色、Composer 与侧栏尺寸是 2026-10-15 在
 | 目录类列表行 | 24px 单行 | 2026-10-11 用户选定。导航行仍是 22px。Agents/Skills/Tools/MCP 行收敛为 24px 单行，分组头加弱化计数，设备行随隔离样式收敛 |
 | Engine Providers 状态行窄宽例外 | 每条视觉轨 24px；宽时单轨，内容预算不足时容器自然增高，无固定高度上限 | 仅此类状态行保留完整配置、启用与来源；名称可省略并有完整 hover，动作保留现有 22px 命中区且始终预留空间；其他目录行不放宽。依据 PRD-028 验收 3，实施见 [局部方案](../../../dev/plans/provider-status-row-layout.md) |
 | 产品自有弹出层行 | 24px | 上游快速选择保持 22px，上游菜单行已是 24px，都不改 CSS |
-| 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | Conversation 标题条与 Hide Conversation 为 28px，命中区 24px，底边与 Preview 类别条对齐；Preview 类别钮 24px |
+| 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px（SessionBar 2026-11-02 收敛为 36px），同一行控件等高 | Conversation 标题条与 Hide Conversation 为 36px，命中区 28px（2026-11-02 收敛）；Sources tab 条与 Preview 类别条为 28px，Preview 类别钮 24px |
 | 上游 Part 标题、编辑器 tab、状态栏 | 沿用上游，不另加高 | 沿用 |
 | 图标按钮 | 图标 16px，命中区 22–24px 方形 | — |
 | Composer 底栏 | 控件 24px，底栏不高于 28px | 控件 24px、底栏 28px |
@@ -347,7 +347,7 @@ Cursor 取的是布局：用户回合像输入卡片、模型留在输入栏、�
 | 焦点 | 产品自有界面不再以 `focusBorder`、`outline`、内描边或外圈阴影表达键盘焦点；文件管理器和代码编辑器保留上游焦点表现。需逐处确认产品自有控件仍能通过背景、文字、图标或激活态辨认当前项 |
 | 全大写 | 对话阅读面不再显示 YOU / AGENT。轨迹角色列、Inspector 区段标题与状态徽标不再 `text-transform: uppercase`。轨迹表头、类型列与 Overview 标题已是正常大小写。图示选项徽标仍全大写；Engine 技能与目录分组标签已在 S9 去除全大写并收敛为正常字重与弱化计数 |
 | 空态 | Preview 类别空态无边框，标题与说明用字号 token，按钮可换行并有键盘焦点。其他表面的大图标居中卡片仍在 |
-| 阴影与毛玻璃 | Agents 窗口跟在聊天背景上的追问卡已是不透明 `--session-view-background`，不再 `backdrop-filter`，也不再投影。产品自有输入框、菜单和浮层按 GPT 参考图使用白色表面、圆角、低对比边界和轻阴影；产品自有键盘焦点不另加焦点框。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色仍在，对话框与引导卡的浮层投影保留（[modal-mask-no-glass](../../../dev/plans/modal-mask-no-glass.md)，方案已 `implemented`）。图示浮层与子代理浮层不再 `backdrop-filter`，半透明底色仍在；图示推荐项不再投影。用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 `input.background`，前景色 8% 细边，不投影；置顶提示用独立类，底色是画布 token。阅读列身份条的引擎芯片去描边，在线是静态绿点，离线 / 失败保留状态色。Conversation Composer 卡片按 GPT 输入框复刻：24px 圆角、白色表面、低对比边界、柔和投影、左上占位文字和底部工具栏；聚焦不增加焦点框描边。发送 / Stop 是右侧圆形主操作，生成中使用蓝色 Stop 控件；底栏其余控件按真实能力保留，Permission 使用橙色语义图标与文字，Model 使用中性胶囊，推理强度提示使用黑色高对比 tooltip。输入框光标跟 `input.foreground`。轨迹搜索与文件管理器、代码编辑器保留各自原生焦点和字号。其余验收未齐 |
+| 阴影与毛玻璃 | Agents 窗口跟在聊天背景上的追问卡已是不透明 `--session-view-background`，不再 `backdrop-filter`，也不再投影。产品自有输入框、菜单和浮层按 GPT 参考图使用白色表面、圆角、低对比边界和轻阴影；产品自有键盘焦点不另加焦点框。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色仍在，对话框与引导卡的浮层投影保留（[modal-mask-no-glass](../../../dev/plans/modal-mask-no-glass.md)，方案已 `implemented`）。图示浮层与子代理浮层不再 `backdrop-filter`，半透明底色仍在；图示推荐项不再投影。用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 `input.background`，前景色 8% 细边，不投影；置顶提示用独立类，底色是画布 token。阅读列身份条的引擎芯片去描边，在线是静态绿点，离线 / 失败保留状态色。Conversation Composer 卡片按 GPT 输入框复刻：24px 圆角、白色表面、低对比边界、柔和投影、左上占位文字和底部工具栏；聚焦不增加焦点框描边。发送是右侧圆形主操作，生成中的 Stop 留在 Inbox 右簇（2026-11-06 用户确认，§5.2）；底栏其余控件按真实能力保留，Permission 使用橙色语义图标与文字，Model 使用中性胶囊，推理强度提示使用黑色高对比 tooltip。输入框光标跟 `input.foreground`。轨迹搜索与文件管理器、代码编辑器保留各自原生焦点和字号。其余验收未齐 |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |
 | 轨迹 Overview | 高 12px 分段条；形状加颜色，文字在 tooltip 与 aria。时间刻度瀑布条仍未做 |
 | 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |

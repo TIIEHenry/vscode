@@ -384,7 +384,7 @@ export const COLOR_THEME_LIGHT_INITIAL_COLORS = {
 	'button.hoverBackground': '#2E2E2E',
 	'button.secondaryBackground': '#00000000',
 	'button.secondaryForeground': '#202020',
-	'button.secondaryHoverBackground': '#F2F3F4',
+	'button.secondaryHoverBackground': '#00000014',
 	'commandCenter.background': '#F6F6F6',
 	'commandCenter.border': '#00000000',
 	'conversation.background': '#FFFFFF',

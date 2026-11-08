@@ -9,7 +9,7 @@ import { getZoomFactor } from '../../../../base/browser/browser.js';
 import * as dom from '../../../../base/browser/dom.js';
 import { $, addDisposableListener, append, EventType, getWindow, getWindowId, hide, show } from '../../../../base/browser/dom.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-browser/environmentService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
@@ -132,25 +132,6 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 		super.onMenubarVisibilityChanged(visible);
 	}
 
-	protected override onConfigurationChanged(event: IConfigurationChangeEvent): void {
-		super.onConfigurationChanged(event);
-
-		if (event.affectsConfiguration('window.doubleClickIconToClose')) {
-			if (this.appIcon) {
-				this.onUpdateAppIconDragBehavior();
-			}
-		}
-	}
-
-	private onUpdateAppIconDragBehavior(): void {
-		const setting = this.configurationService.getValue('window.doubleClickIconToClose');
-		if (setting && this.appIcon) {
-			(this.appIcon.style as CSSStyleDeclaration & { '-webkit-app-region': string })['-webkit-app-region'] = 'no-drag';
-		} else if (this.appIcon) {
-			(this.appIcon.style as CSSStyleDeclaration & { '-webkit-app-region': string })['-webkit-app-region'] = 'drag';
-		}
-	}
-
 	protected override installMenubar(): void {
 		super.installMenubar();
 
@@ -181,15 +162,6 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 		// Native menu controller
 		if (isMacintosh || hasNativeMenu(this.configurationService)) {
 			this._register(this.instantiationService.createInstance(NativeMenubarControl));
-		}
-
-		// App Icon (Native Windows/Linux)
-		if (this.appIcon) {
-			this.onUpdateAppIconDragBehavior();
-
-			this._register(addDisposableListener(this.appIcon, EventType.DBLCLICK, (() => {
-				this.nativeHostService.closeWindow({ targetWindowId });
-			})));
 		}
 
 		// Custom Window Controls (Native Windows/Linux)

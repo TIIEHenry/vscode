@@ -8,7 +8,7 @@ import { Action } from '../../../../base/common/actions.js';
 import { IEditorIdentifier, IEditorCommandsContext, CloseDirection, SaveReason, EditorsOrder, EditorInputCapabilities, GroupIdentifier, EditorResourceAccessor } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SideBySideEditorInput } from '../../../common/editor/sideBySideEditorInput.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { IWorkbenchLayoutService, LayoutSettings, Parts } from '../../../services/layout/browser/layoutService.js';
 import { GoFilter, IHistoryService } from '../../../services/history/common/history.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -33,7 +33,7 @@ import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { IKeybindingRule, KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
-import { ActiveEditorAvailableEditorIdsContext, ActiveEditorCannotCloseContext, ActiveEditorContext, ActiveEditorGroupEmptyContext, AuxiliaryBarVisibleContext, EditorPartMaximizedEditorGroupContext, EditorPartMultipleEditorGroupsContext, InAutomationContext, IsAuxiliaryWindowFocusedContext, MultipleEditorGroupsContext, SideBarVisibleContext } from '../../../common/contextkeys.js';
+import { ActiveEditorAvailableEditorIdsContext, ActiveEditorCannotCloseContext, ActiveEditorContext, ActiveEditorGroupEmptyContext, AuxiliaryBarVisibleContext, EditorPartMaximizedEditorGroupContext, EditorPartMultipleEditorGroupsContext, InAutomationContext, IsAuxiliaryWindowFocusedContext, IsCompactTitleBarContext, MultipleEditorGroupsContext, SideBarVisibleContext } from '../../../common/contextkeys.js';
 import { getActiveDocument } from '../../../../base/browser/dom.js';
 import { ICommandActionTitle } from '../../../../platform/action/common/action.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
@@ -1492,7 +1492,7 @@ export class NavigateForwardAction extends Action2 {
 			},
 			menu: [
 				{ id: MenuId.MenubarGoMenu, group: '1_history_nav', order: 2 },
-				{ id: MenuId.CommandCenter, order: 2, when: ContextKeyExpr.has('config.workbench.navigationControl.enabled') }
+				{ id: MenuId.TitleBarNavigation, order: 2, when: ContextKeyExpr.and(ContextKeyExpr.has('config.workbench.navigationControl.enabled'), ContextKeyExpr.has(`config.${LayoutSettings.COMMAND_CENTER}`), IsCompactTitleBarContext.toNegated()) }
 			]
 		});
 	}
@@ -1527,7 +1527,7 @@ export class NavigateBackwardsAction extends Action2 {
 			},
 			menu: [
 				{ id: MenuId.MenubarGoMenu, group: '1_history_nav', order: 1 },
-				{ id: MenuId.CommandCenter, order: 1, when: ContextKeyExpr.has('config.workbench.navigationControl.enabled') }
+				{ id: MenuId.TitleBarNavigation, order: 1, when: ContextKeyExpr.and(ContextKeyExpr.has('config.workbench.navigationControl.enabled'), ContextKeyExpr.has(`config.${LayoutSettings.COMMAND_CENTER}`), IsCompactTitleBarContext.toNegated()) }
 			]
 		});
 	}

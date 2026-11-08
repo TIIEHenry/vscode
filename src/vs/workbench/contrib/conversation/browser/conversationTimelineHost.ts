@@ -48,6 +48,13 @@ import { isConversationRowActive } from './conversationLivePhase.js';
 export const conversationTimelineEmptyTitle = localize('conversationLens.timelineEmptyTitle', "No messages yet");
 export const conversationTimelineMessagesNotLoaded = localize('conversationLens.timelineMessagesNotLoaded', "Messages not loaded");
 
+export interface IConversationLensTimelineHostOptions extends IConversationTimelineHostOptions {
+	/** Why Regenerate, Delete, error Retry and user-card edit are held. Same check and sentence as Send. */
+	readonly turnWriteHoldReason?: () => string | undefined;
+	/** Scroll to Bottom hides itself once used, so the caller gives focus a place to land. */
+	readonly onScrolledToEndByUser?: () => void;
+}
+
 const CONVERSATION_TIMELINE_INITIAL_WINDOW = 60;
 const CONVERSATION_TIMELINE_WINDOW_BATCH = 40;
 const CONVERSATION_TIMELINE_CV_TAIL = 3;
@@ -69,6 +76,7 @@ export class ConversationTimelineHost extends Disposable {
 	private readonly pinnedUserBubble: HTMLButtonElement;
 	private readonly pinnedUserText: HTMLElement;
 	private readonly pinnedUserCopyButton: Button;
+	private readonly pinnedUserFailure: HTMLElement;
 	private readonly scrollDownButton: Button;
 	private readonly renderer: ConversationTimelineRenderer;
 	private readonly turnContentAdapter: IConversationTurnContentAdapter;
@@ -108,13 +116,15 @@ export class ConversationTimelineHost extends Disposable {
 	private revealMissNotifiedFor: string | undefined;
 	/** Set by {@link revealPendingTurn}. Cleared once that turn is scrolled. */
 	private releaseFollowTurnId: string | undefined;
+	/** Inbox chip reveal: once scrolled, focus moves to the seat's primary control. */
+	private focusSeatTurnId: string | undefined;
 
 	private _testSetChildrenCount = 0;
 	private _testRerenderCount = 0;
 
 	constructor(
 		parent: HTMLElement,
-		private readonly options: IConversationTimelineHostOptions,
+		private readonly options: IConversationLensTimelineHostOptions,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IWebviewService private readonly webviewService: IWebviewService,
 	) {
@@ -129,6 +139,47 @@ export class ConversationTimelineHost extends Disposable {
 		// Display stays in CSS. An inline display:flex beats PreFirst `display: none`
 		// and pins the empty-session composer to the top of the column.
 		this._domNode = timeline;
+
+		this.pinnedHost = append(timeline, $('.conversation-timeline-pinned.conversation-timeline-pinned-user'));
+		this.pinnedHost.hidden = true;
+		this.pinnedHost.style.position = 'absolute';
+		this.pinnedHost.style.top = '0';
+		this.pinnedHost.style.left = '0';
+		this.pinnedHost.style.right = '0';
+		const pinnedUserInner = append(this.pinnedHost, $('.conversation-timeline-pinned-user-inner.conversation-timeline-pinned-card'));
+		this.pinnedUserBubble = append(pinnedUserInner, $('button.conversation-timeline-pinned-user-bubble')) as HTMLButtonElement;
+		this.pinnedUserBubble.type = 'button';
+		this.pinnedUserBubble.setAttribute('aria-label', conversationLensPinnedUserPromptAria);
+		this.pinnedUserText = append(this.pinnedUserBubble, $('span.conversation-timeline-pinned-user-text'));
+		const pinnedUserCopyContainer = append(pinnedUserInner, $('span.conversation-timeline-pinned-user-copy'));
+		this.pinnedUserCopyButton = this._register(new Button(pinnedUserCopyContainer, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensPinnedUserPromptCopyAria,
+			ariaLabel: conversationLensPinnedUserPromptCopyAria,
+		}));
+		this.pinnedUserCopyButton.icon = Codicon.copy;
+		this.pinnedUserFailure = append(pinnedUserInner, $('span.conversation-timeline-pinned-user-failure'));
+		this.pinnedUserFailure.setAttribute('role', 'alert');
+		this.pinnedUserFailure.hidden = true;
+		this._register(this.pinnedUserCopyButton.onDidClick(e => {
+			e?.stopPropagation();
+			if (this.pinnedUserState && options.onCopyTurn) {
+				options.onCopyTurn(this.pinnedUserState.turnId, this.pinnedUserState.fullText);
+			}
+		}));
+		this._register(addDisposableListener(this.pinnedUserBubble, 'click', () => {
+			if (this.pinnedUserState) {
+				const turnId = this.pinnedUserState.turnId;
+				const hadFocus = this.pinnedHost.contains(this.pinnedHost.ownerDocument.activeElement);
+				this.revealTurn(turnId);
+				if (hadFocus) {
+					this.focusRecord(turnId);
+				}
+			}
+		}));
 
 		// Chrome column only. Inline diagram wheels must not write this node's scrollTop.
 		const scrollChrome = append(timeline, $('.conversation-lens-timeline-scroll'));
@@ -157,39 +208,6 @@ export class ConversationTimelineHost extends Disposable {
 		this.stream.style.paddingBottom = `${options.paddingBottom ?? 36}px`;
 		this.sentinel = append(this.stream, $('div.conversation-timeline-sentinel'));
 		this.sentinel.setAttribute('aria-hidden', 'true');
-
-		this.pinnedHost = append(timeline, $('.conversation-timeline-pinned.conversation-timeline-pinned-user'));
-		this.pinnedHost.hidden = true;
-		this.pinnedHost.style.position = 'absolute';
-		this.pinnedHost.style.top = '0';
-		this.pinnedHost.style.left = '0';
-		this.pinnedHost.style.right = '0';
-		const pinnedUserInner = append(this.pinnedHost, $('.conversation-timeline-pinned-user-inner.conversation-timeline-pinned-card'));
-		this.pinnedUserBubble = append(pinnedUserInner, $('button.conversation-timeline-pinned-user-bubble')) as HTMLButtonElement;
-		this.pinnedUserBubble.type = 'button';
-		this.pinnedUserBubble.setAttribute('aria-label', conversationLensPinnedUserPromptAria);
-		this.pinnedUserText = append(this.pinnedUserBubble, $('span.conversation-timeline-pinned-user-text'));
-		const pinnedUserCopyContainer = append(pinnedUserInner, $('span.conversation-timeline-pinned-user-copy'));
-		this.pinnedUserCopyButton = this._register(new Button(pinnedUserCopyContainer, {
-			...defaultButtonStyles,
-			supportIcons: true,
-			small: true,
-			secondary: true,
-			title: conversationLensPinnedUserPromptCopyAria,
-			ariaLabel: conversationLensPinnedUserPromptCopyAria,
-		}));
-		this.pinnedUserCopyButton.icon = Codicon.copy;
-		this._register(this.pinnedUserCopyButton.onDidClick(e => {
-			e?.stopPropagation();
-			if (this.pinnedUserState && options.onCopyTurn) {
-				options.onCopyTurn(this.pinnedUserState.turnId, this.pinnedUserState.fullText);
-			}
-		}));
-		this._register(addDisposableListener(this.pinnedUserBubble, 'click', () => {
-			if (this.pinnedUserState) {
-				this.revealTurn(this.pinnedUserState.turnId);
-			}
-		}));
 
 		const contentAdapter = options.contentAdapter
 			?? this.instantiationService.createInstance(ConversationTurnContentAdapter);
@@ -221,6 +239,10 @@ export class ConversationTimelineHost extends Disposable {
 			options.onRespondClientTool,
 			() => this.refreshScrollChrome(),
 			() => options.displayMode?.() ?? (options.showLiveChrome?.() ? 'live' : 'stub'),
+			() => options.turnWriteHoldReason?.(),
+			rootId => this.onProcessFoldLayout(rootId),
+			this.thinkingExpanded,
+			this.toolExpanded,
 		);
 
 		const expanded = () => this.renderer.getTestExpandedState();
@@ -283,8 +305,12 @@ export class ConversationTimelineHost extends Disposable {
 		this.scrollDownButton.label = `$(${Codicon.chevronDown.id})`;
 		this.scrollDownButton.element.hidden = true;
 		this._register(this.scrollDownButton.onDidClick(() => {
+			const hadFocus = !this.scrollDownButton.element.hidden && this.scrollDownButton.element.contains(getActiveElement());
 			this.follow.setScrollLock(true);
 			this.scrollToEnd();
+			if (!hadFocus) {
+				options.onScrolledToEndByUser?.();
+			}
 		}));
 
 		this._register(addDisposableListener(this.viewport, 'scroll', () => {
@@ -292,7 +318,7 @@ export class ConversationTimelineHost extends Disposable {
 			this.updateScrollDownButton();
 			this.schedulePinnedRefresh();
 		}));
-		this._register(addDisposableListener(this.stream, 'keydown', e => this.onStreamKeyDown(e)));
+		this._register(addDisposableListener(this.stream, 'keydown', e => this.onStreamKeyDown(e), true));
 		this._register(addDisposableListener(this.stream, 'focusin', () => this.onStreamFocusIn()));
 
 		try {
@@ -479,9 +505,81 @@ export class ConversationTimelineHost extends Disposable {
 	 * tail root, drop stick-to-bottom so the next frame or resize does not
 	 * yank the viewport back to the end.
 	 */
-	revealPendingTurn(turnId: string): void {
+	revealPendingTurn(turnId: string, options?: { readonly focusSeat?: boolean }): void {
 		this.releaseFollowTurnId = turnId;
+		this.focusSeatTurnId = options?.focusSeat ? turnId : undefined;
 		this.revealTurn(turnId, 0.5);
+	}
+
+	/** Copy / Delete failed on this row; an empty message clears it. */
+	noteTurnActionFailure(rowId: string, message: string): void {
+		if ((this.renderer.getTurnActionFailure(rowId) ?? '') === message) {
+			return;
+		}
+		this.renderer.setTurnActionFailure(rowId, message);
+		this.rerenderTurnRoot(rowId);
+		this.updatePinnedUserFailure();
+	}
+
+	/** A permission or question answer that never left this window. */
+	noteResponseFailure(turnId: string, error: string): void {
+		this.renderer.setLocalRespondFailure(turnId, error);
+		this.rerenderTurnRoot(turnId);
+	}
+
+	settleTurnWrite(rowId: string): void {
+		if (this.renderer.settleTurnWrite(rowId)) {
+			this.rerenderTurnRoot(rowId);
+		}
+	}
+
+	clearTurnActionState(): void {
+		this.renderer.clearTurnActionState();
+		this.updatePinnedUserFailure();
+	}
+
+	/** The streaming hold flipped: repaint the rows whose write buttons read it. */
+	refreshTurnWriteHolds(): void {
+		let count = 0;
+		for (const host of this.orderedHosts()) {
+			const turn = host.root.kind === 'process-fold' ? undefined : host.root.turns[0]?.turn;
+			if (!turn || turn.streaming === true || turn.id === this.editingTurnId) {
+				continue;
+			}
+			if (turn.kind !== 'user' && turn.kind !== 'assistant' && turn.kind !== 'error') {
+				continue;
+			}
+			host.render('full');
+			count++;
+		}
+		this._testRerenderCount += count;
+	}
+
+	private rerenderTurnRoot(turnId: string): void {
+		const host = this.itemHostForTurn(turnId);
+		if (!host || host.root.kind === 'process-fold') {
+			return;
+		}
+		host.render('full');
+		this._testRerenderCount++;
+	}
+
+	private updatePinnedUserFailure(): void {
+		const message = this.pinnedUserState ? this.renderer.getTurnActionFailure(this.pinnedUserState.turnId) : undefined;
+		this.pinnedUserFailure.textContent = message ?? '';
+		this.pinnedUserFailure.hidden = !message;
+	}
+
+	private focusPendingSeat(turnId: string, article: HTMLElement): void {
+		const seat = this.getConfirmationElement(turnId) ?? article;
+		const primary = findDescendant(seat, el =>
+			(el.classList.contains('monaco-button') && el.getAttribute('aria-disabled') !== 'true' && !!el.closest('.conversation-lens-confirmation-actions'))
+			|| (el.tagName === 'BUTTON' && !(el as HTMLButtonElement).disabled && el.classList.contains('conversation-process-fold-tool-respond')));
+		const target = primary ?? seat;
+		if (target.tabIndex < 0) {
+			target.tabIndex = 0;
+		}
+		target.focus({ preventScroll: true });
 	}
 
 	focusRecord(turnId: string): void {
@@ -717,10 +815,11 @@ export class ConversationTimelineHost extends Disposable {
 		if (roots.length === 0) {
 			return 0;
 		}
+		const maxWindowStart = Math.max(0, roots.length - CONVERSATION_TIMELINE_INITIAL_WINDOW);
 		const pending = earliestPendingRootIndex(roots);
 		let start: number;
 		if (!this.windowInitialized) {
-			start = Math.max(0, roots.length - CONVERSATION_TIMELINE_INITIAL_WINDOW);
+			start = maxWindowStart;
 			this.windowInitialized = true;
 		} else {
 			start = this.windowAnchorId ? roots.findIndex(root => root.id === this.windowAnchorId) : -1;
@@ -728,12 +827,13 @@ export class ConversationTimelineHost extends Disposable {
 				start = roots.findIndex(root => this.itemHosts.has(root.id));
 			}
 			if (start < 0) {
-				start = Math.max(0, roots.length - CONVERSATION_TIMELINE_INITIAL_WINDOW);
+				start = maxWindowStart;
 			}
 			const earliestRendered = roots.findIndex(root => this.itemHosts.has(root.id));
 			if (earliestRendered >= 0) {
 				start = Math.min(start, earliestRendered);
 			}
+			start = Math.min(start, maxWindowStart);
 		}
 		if (pending >= 0) {
 			start = Math.min(start, pending);
@@ -789,12 +889,19 @@ export class ConversationTimelineHost extends Disposable {
 			if (this.releaseFollowTurnId === turnId) {
 				this.releaseFollowTurnId = undefined;
 			}
+			if (this.focusSeatTurnId === turnId) {
+				this.focusSeatTurnId = undefined;
+			}
 			this.notifyRevealMiss(turnId);
 			return;
 		}
 		this.revealMissNotifiedFor = undefined;
 		this.pendingRevealId = undefined;
 		this.scrollArticleIntoView(article);
+		if (this.focusSeatTurnId === turnId) {
+			this.focusSeatTurnId = undefined;
+			this.focusPendingSeat(turnId, article);
+		}
 	}
 
 	private prepareTurn(turnId: string): HTMLElement | undefined {
@@ -940,11 +1047,12 @@ export class ConversationTimelineHost extends Disposable {
 			const streaming = root.turns.some(entry => isConversationRowActive(entry.turn, displayMode));
 			const editing = this.editingTurnId !== undefined && root.turns.some(entry => entry.id === this.editingTurnId);
 			const pending = rootHasPendingSeat(root);
+			const isError = root.turns.some(entry => entry.turn.kind === 'error');
 			host.setChrome({
 				posinset: index + 1,
 				setsize: total,
 				label: rootAriaLabel(root, showLive, displayMode),
-				cvVisible: streaming || editing || pending || index >= tailFrom,
+				cvVisible: streaming || editing || pending || isError || index >= tailFrom,
 				busy: streaming,
 				latestAssistant: root.id === latestAssistantId,
 			});
@@ -1055,7 +1163,11 @@ export class ConversationTimelineHost extends Disposable {
 			this.viewport.scrollHeight,
 		);
 		const { showButton } = computeConversationScrollDownState(atBottom, this.follow.scrollLock);
+		const handOffFocus = !showButton && !this.scrollDownButton.element.hidden && this.scrollDownButton.element.contains(getActiveElement());
 		this.scrollDownButton.element.hidden = !showButton;
+		if (handOffFocus) {
+			this.options.onScrolledToEndByUser?.();
+		}
 		this.viewport.classList.toggle('conversation-timeline-scroll-down-visible', showButton);
 		this.viewport.classList.toggle('conversation-timeline-at-bottom', atBottom);
 	}
@@ -1087,12 +1199,16 @@ export class ConversationTimelineHost extends Disposable {
 			this.pinnedHost.hidden = true;
 			this.pinnedHost.classList.remove('conversation-timeline-pinned-user--visible');
 			this.pinnedUserText.textContent = '';
+			this.pinnedUserText.title = '';
+			this.updatePinnedUserFailure();
 			this.syncPinnedChrome();
 			return;
 		}
 		this.pinnedHost.hidden = false;
 		this.pinnedHost.classList.add('conversation-timeline-pinned-user--visible');
 		this.pinnedUserText.textContent = state.previewText;
+		this.pinnedUserText.title = state.previewText;
+		this.updatePinnedUserFailure();
 		this.syncPinnedChrome();
 	}
 
@@ -1144,10 +1260,10 @@ export class ConversationTimelineHost extends Disposable {
 		const firstRoot = this.latestRoots[firstVisibleRootIdx];
 		const lastRoot = this.latestRoots[lastVisibleRootIdx];
 		const firstTurnId = firstRoot?.turns[0]?.id;
-		const lastTurnId = lastRoot?.turns[lastRoot.turns.length - 1]?.id;
+		const lastTurnId = lastRoot?.turns[0]?.id;
 
-		const firstIndex = firstTurnId ? this.flatItems.findIndex(item => item.turn.id === firstTurnId) : 0;
-		const lastIndex = lastTurnId ? this.flatItems.findIndex(item => item.turn.id === lastTurnId) : this.flatItems.length - 1;
+		const firstIndex = firstTurnId ? this.flatItems.findIndex(item => item.turn.id === firstTurnId) : firstVisibleRootIdx;
+		const lastIndex = lastTurnId ? this.flatItems.findIndex(item => item.turn.id === lastTurnId) : lastVisibleRootIdx;
 
 		return rangeVisibleTimelineIndices(
 			firstIndex >= 0 ? firstIndex : 0,
@@ -1160,6 +1276,9 @@ export class ConversationTimelineHost extends Disposable {
 		if (!target) {
 			return;
 		}
+		if (target.closest('.conversation-lens-turn-edit-host')) {
+			return;
+		}
 		const article = target.closest('article.conversation-timeline-item');
 		if (!(article instanceof HTMLElement) || !this.stream.contains(article)) {
 			return;
@@ -1168,6 +1287,7 @@ export class ConversationTimelineHost extends Disposable {
 		if (e.key === 'Escape') {
 			if (!onArticle) {
 				e.preventDefault();
+				e.stopPropagation();
 				if (article.tabIndex < 0) {
 					article.tabIndex = 0;
 				}
@@ -1373,7 +1493,7 @@ function rootReadsPresentation(root: ConversationTimelineHostRoot): boolean {
 		return true;
 	}
 	const kind = root.turns[0]?.turn.kind;
-	return kind === 'confirmation' || kind === 'question' || kind === 'assistant' || kind === 'tool';
+	return kind === 'user' || kind === 'error' || kind === 'confirmation' || kind === 'question' || kind === 'assistant' || kind === 'tool';
 }
 
 function rootAriaLabel(root: ConversationTimelineHostRoot, showLiveChrome: boolean, displayMode: import('./conversationLivePhase.js').ConversationDisplayMode): string {
@@ -1390,7 +1510,7 @@ function rootAriaLabel(root: ConversationTimelineHostRoot, showLiveChrome: boole
 
 function findDescendant(root: HTMLElement, predicate: (el: HTMLElement) => boolean): HTMLElement | undefined {
 	for (const child of root.children) {
-		if (!(child instanceof HTMLElement)) {
+		if (!(child instanceof HTMLElement) || child.hidden || child.inert) {
 			continue;
 		}
 		if (predicate(child)) {
@@ -1411,11 +1531,11 @@ function firstFocusable(root: HTMLElement): HTMLElement | undefined {
 		}
 		const tag = el.tagName;
 		if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
-			return !(el as HTMLButtonElement).disabled;
+			return !(el as HTMLButtonElement).disabled && el.getAttribute('aria-disabled') !== 'true';
 		}
 		if (tag === 'A') {
-			return el.hasAttribute('href');
+			return el.hasAttribute('href') || (el.getAttribute('role') === 'button' && el.tabIndex >= 0 && el.getAttribute('aria-disabled') !== 'true' && !el.classList.contains('disabled'));
 		}
-		return el.tabIndex >= 0;
+		return el.tabIndex >= 0 && el.getAttribute('aria-disabled') !== 'true';
 	});
 }

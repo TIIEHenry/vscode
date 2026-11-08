@@ -41,7 +41,7 @@ export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight: boolean;
-	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
+	lastAttachedEntries?: readonly { readonly id?: string; readonly kind?: string; readonly text?: string; readonly turnId?: string; readonly agentId?: string; readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
 	displayMode?: () => import('./conversationLivePhase.js').ConversationDisplayMode;
 	modelSelectedIndex: number;
@@ -488,7 +488,12 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const editingTurnId = host.editingTurnId;
-		const turn = host.stubService.getTurns(sessionId).find(t => t.id === editingTurnId && t.kind === 'user');
+		const attached = host.lastAttachedEntries?.find(
+			entry => entry.id === editingTurnId && entry.kind === 'user' && typeof entry.text === 'string'
+		);
+		const turn = attached && typeof attached.id === 'string' && typeof attached.text === 'string'
+			? { id: attached.id, text: attached.text, turnId: attached.turnId, agentId: attached.agentId }
+			: host.stubService.getTurns(sessionId).find(t => t.id === editingTurnId && t.kind === 'user');
 		const loaded = turn ? turnEditLoadedPayload(turn.text) : undefined;
 		// Same payload the card loaded is not an edit. EditMessage would rerun the turn.
 		if (loaded !== undefined && text === loaded) {
@@ -550,14 +555,23 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 			}
 		};
 		host.queueEditSettlementItemId = itemId;
+		// A composer that already left this edit dropped its draft; the settlement
+		// must not exit or annotate whatever edit came after it.
+		const stillEditingThisItem = (): boolean => host.composerPolicy === 'queueEdit'
+			&& host.editingQueueItemId === itemId
+			&& host.getBoundSessionId() === sessionId;
 		const finalize = (): void => {
 			clearChain();
-			host.exitComposerEdit(true, false);
+			if (stillEditingThisItem()) {
+				host.exitComposerEdit(true, false);
+			}
 			host.renderInboxStatus();
 		};
 		const failChain = (reason?: ConversationComposerPostFailureReason): void => {
 			clearChain();
-			showQueueEditFailure(host, reason);
+			if (stillEditingThisItem()) {
+				showQueueEditFailure(host, reason);
+			}
 		};
 		const releaseAfterAcceptedEdit = (): void => {
 			if (!samePublishedEngineLink(host, publishedLink)) {

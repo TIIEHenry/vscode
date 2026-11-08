@@ -4,20 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter } from '../../../../base/common/event.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
-import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-import { IOpenerService } from '../../../../platform/opener/common/opener.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
-import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from '../test/browser/conversationTimelineLinkTestStubs.js';
-import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
-import { ConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
-import { conversationSessionPillClass } from './conversationSessionPill.js';
-import { IConversationRosterService } from './conversationStubService.js';
-import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
+import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
+import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
+import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
+import { ConversationTurnContentAdapter } from '../../browser/conversationTurnContentAdapter.js';
+import { conversationSessionPillClass } from '../../browser/conversationSessionPill.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 
 suite('ConversationTurnContentAdapter (browser)', () => {
 

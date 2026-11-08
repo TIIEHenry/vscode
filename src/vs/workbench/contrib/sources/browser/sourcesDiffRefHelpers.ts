@@ -50,6 +50,7 @@ export function resolveSourcesChangeRefFromEditor(
 				original,
 				groupId: remembered.groupId,
 				scmResource: match?.resource ?? remembered.scmResource,
+				...sourcesChangeIdentity(remembered),
 			};
 		}
 		const match = findFirstScmResourceForUri(scmService, modified);

@@ -142,6 +142,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		const phase = this.uaConnection.getConnectionPhase();
 		const text = getConnectionPhaseStatusBarText(phase, snapshot.pairingPending);
 		const commandId = getEngineStatusCommandId(phase, snapshot.pairingPending);
+		const tone = getConversationEngineChipTone(phase, snapshot.pairingPending);
 		return {
 			name: localize('conversationStatus.engineName', "Engine connection"),
 			text,
@@ -153,7 +154,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 				arguments: getEngineStatusCommandArguments(phase, snapshot.pairingPending),
 			},
 			role: 'status',
-			kind: getConversationEngineChipTone(phase, snapshot.pairingPending),
+			kind: tone === 'error' ? 'error' : 'standard',
 		};
 	}
 

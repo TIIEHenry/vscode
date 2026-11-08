@@ -13,7 +13,13 @@ import { isIMenuItem, MenuId, MenuRegistry } from '../../../platform/actions/com
 import { ThemeIcon } from '../../../base/common/themables.js';
 import { ILocalizedString } from '../../../nls.js';
 import { KeybindingsRegistry } from '../../../platform/keybinding/common/keybindingsRegistry.js';
+import { CommandsRegistry } from '../../../platform/commands/common/commands.js';
+import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
 import {
+	FocusConversationActionId,
+	FocusPreviewActionId,
+	FocusSourcesActionId,
+	ProductLayoutFocusKeybindingPrimary,
 	ProductLayoutToggleKeybindingPrimary,
 	ToggleConversationVisibilityActionId,
 	ToggleEditorVisibilityActionId,
@@ -22,6 +28,8 @@ import {
 } from '../../browser/actions/layoutActions.js';
 import { ToggleAuxiliaryBarAction } from '../../browser/parts/auxiliarybar/auxiliaryBarActions.js';
 import { TogglePanelAction } from '../../browser/parts/panel/panelActions.js';
+import { IWorkbenchLayoutService, Parts } from '../../services/layout/browser/layoutService.js';
+import '../../contrib/files/browser/fileCommands.js';
 
 const PRODUCT_LAYOUT_TOGGLE_IDS = [
 	ToggleSidebarVisibilityAction.ID,
@@ -147,5 +155,60 @@ suite('LayoutControlMenu - product four-button cluster', () => {
 
 		const navigatorRule = getDefaultKeybindingRule(OS, ToggleSidebarVisibilityAction.ID, ProductLayoutToggleKeybindingPrimary.navigator);
 		assert.ok(navigatorRule, 'Navigator toggle should keep Ctrl/Cmd+B');
+	});
+
+	test('product region toggles and focus commands share no default key with upstream commands such as Copy Relative Path', () => {
+		const productKeybindings = [
+			...PRODUCT_LAYOUT_TOGGLE_KEYBINDINGS.filter(({ id }) => id !== ToggleSidebarVisibilityAction.ID),
+			{ id: FocusConversationActionId, primary: ProductLayoutFocusKeybindingPrimary.conversation },
+			{ id: FocusPreviewActionId, primary: ProductLayoutFocusKeybindingPrimary.preview },
+			{ id: FocusSourcesActionId, primary: ProductLayoutFocusKeybindingPrimary.sources },
+		];
+		const collisions: string[] = [];
+		for (const os of [OperatingSystem.Windows, OperatingSystem.Linux, OperatingSystem.Macintosh]) {
+			const defaults = KeybindingsRegistry.getDefaultKeybindingsForOS(os);
+			for (const { id, primary } of productKeybindings) {
+				assert.ok(getDefaultKeybindingRule(os, id, primary), `${id} should register default keybinding on OS ${os}`);
+				const hash = decodeKeybinding(primary, os)!.getHashCode();
+				for (const item of defaults) {
+					if (item.command && item.command !== id && !item.command.startsWith('-') && item.keybinding?.getHashCode() === hash) {
+						collisions.push(`${os}: ${id} vs ${item.command}`);
+					}
+				}
+			}
+		}
+		assert.deepStrictEqual(collisions, []);
+	});
+
+	test('keyboard toggle args focus the region it shows; toolbar clicks do not', () => {
+		const rule = KeybindingsRegistry.getDefaultKeybindingsForOS(OS).find(item => item.command === ToggleConversationVisibilityActionId);
+		assert.deepStrictEqual(rule?.commandArgs, { focus: true });
+
+		const calls: string[] = [];
+		let conversationVisible = false;
+		const layoutService = {
+			isVisible: (part: Parts) => part === Parts.CONVERSATION_PART ? conversationVisible : true,
+			setPartHidden: (hidden: boolean, part: Parts) => {
+				calls.push(`hidden:${hidden}:${part}`);
+				conversationVisible = !hidden;
+			},
+			focusPart: (part: Parts) => calls.push(`focus:${part}`),
+		} as unknown as IWorkbenchLayoutService;
+		const accessor = { get: () => layoutService } as unknown as ServicesAccessor;
+		const handler = CommandsRegistry.getCommand(ToggleConversationVisibilityActionId)!.handler;
+
+		handler(accessor);
+		handler(accessor);
+		handler(accessor, rule?.commandArgs);
+		const focusHandler = CommandsRegistry.getCommand(FocusSourcesActionId)!.handler;
+		focusHandler(accessor);
+
+		assert.deepStrictEqual(calls, [
+			`hidden:false:${Parts.CONVERSATION_PART}`,
+			`hidden:true:${Parts.CONVERSATION_PART}`,
+			`hidden:false:${Parts.CONVERSATION_PART}`,
+			`focus:${Parts.CONVERSATION_PART}`,
+			`focus:${Parts.SOURCES_PART}`,
+		]);
 	});
 });

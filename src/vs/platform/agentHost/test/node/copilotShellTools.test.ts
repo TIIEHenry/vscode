@@ -41,6 +41,8 @@ class TestAgentHostTerminalManager implements IAgentHostTerminalManager {
 	readonly writes: { uri: string; data: string }[] = [];
 	readonly sentTexts: { uri: string; data: string; options: ISendTextOptions }[] = [];
 	readonly existingTerminalUris = new Set<string>();
+	/** Terminal URI to the cwd reported while it sits at a clean prompt. */
+	readonly promptConfirmedCwds = new Map<string, string>();
 	commandDetectionSupported = false;
 	readonly commandFinishedListenerRegistered = new DeferredPromise<void>();
 	private readonly _onCommandFinished = new Emitter<ICommandFinishedEvent>();
@@ -87,6 +89,7 @@ class TestAgentHostTerminalManager implements IAgentHostTerminalManager {
 	getClaim(): TerminalClaim | undefined { return undefined; }
 	hasTerminal(uri: string): boolean { return this.existingTerminalUris.has(uri); }
 	supportsCommandDetection(): boolean { return this.commandDetectionSupported; }
+	getPromptConfirmedCwd(uri: string): string | undefined { return this.promptConfirmedCwds.get(uri); }
 	disposeTerminal(): void { }
 	getTerminalInfos(): TerminalInfo[] { return []; }
 	getTerminalState(): undefined { return undefined; }
@@ -353,6 +356,132 @@ suite('CopilotShellTools', () => {
 		assert.strictEqual(terminalManager.created.length, 2);
 		first.dispose();
 		second.dispose();
+	});
+
+	test('checkStartsInWorkingDirectory only accepts an idle shell at a confirmed working-directory prompt', async () => {
+		const { instantiationService, terminalManager } = createServices();
+		const workingDirectory = URI.file('/workspace/project');
+		const shellManager = disposables.add(instantiationService.createInstance(ShellManager, URI.parse('copilot:/session-1'), workingDirectory));
+		const tools = await createShellTools(shellManager, TEST_CHAT_URI, terminalManager, new NullLogService());
+		const bashTool = tools.find(tool => tool.name === 'bash');
+		assert.ok(bashTool);
+		const results: boolean[] = [];
+
+		// No shell yet: a new shell's cwd is not confirmed before its first prompt.
+		results.push(shellManager.checkStartsInWorkingDirectory('bash', 'check-1'));
+
+		// An idle shell with no prompt-confirmed cwd reported for it.
+		const command = 'cd /home/user && sleep 5';
+		const invocation: ToolInvocation = {
+			sessionId: 'session-1',
+			toolCallId: 'tool-1',
+			toolName: 'bash',
+			arguments: { command, timeout: 1 },
+		};
+		await bashTool.handler!({ command, timeout: 1 }, invocation);
+		markCreatedTerminalsExist(terminalManager);
+		const terminalUri = terminalManager.created[0].params.channel;
+		results.push(shellManager.checkStartsInWorkingDirectory('bash', 'check-2'));
+
+		// Back at a prompt, but in another directory.
+		terminalManager.promptConfirmedCwds.set(terminalUri, URI.file('/home/user').fsPath);
+		results.push(shellManager.checkStartsInWorkingDirectory('bash', 'check-3'));
+
+		// At a prompt in the working directory.
+		terminalManager.promptConfirmedCwds.set(terminalUri, workingDirectory.fsPath);
+		results.push(shellManager.checkStartsInWorkingDirectory('bash', 'check-4'));
+
+		// Busy with another command.
+		const busy = await shellManager.getOrCreateShell('bash', TEST_CHAT_URI, 'turn-2', 'tool-2');
+		results.push(shellManager.checkStartsInWorkingDirectory('bash', 'check-5'));
+		busy.dispose();
+
+		assert.deepStrictEqual(results, [false, false, false, true, false]);
+	});
+
+	test('primary shell tool runs an approved command only in a shell still at the working-directory prompt', async () => {
+		const { instantiationService, terminalManager } = createServices();
+		const workingDirectory = URI.file('/workspace/project');
+		const shellManager = disposables.add(instantiationService.createInstance(ShellManager, URI.parse('copilot:/session-1'), workingDirectory));
+		const tools = await createShellTools(shellManager, TEST_CHAT_URI, terminalManager, new NullLogService());
+		const bashTool = tools.find(tool => tool.name === 'bash');
+		assert.ok(bashTool);
+		const idle = await shellManager.getOrCreateShell('bash', TEST_CHAT_URI, 'turn-1', 'tool-1');
+		idle.dispose();
+		markCreatedTerminalsExist(terminalManager);
+		const command = 'echo hi > out.txt';
+
+		// Approved while the shell sat at the prompt, but it left the prompt
+		// before the command ran (for example a parallel command changed directory).
+		terminalManager.promptConfirmedCwds.set(idle.object.terminalUri, workingDirectory.fsPath);
+		const approvedAtPrompt = shellManager.checkStartsInWorkingDirectory('bash', 'tool-2');
+		terminalManager.promptConfirmedCwds.delete(idle.object.terminalUri);
+		const refusedInvocation: ToolInvocation = {
+			sessionId: 'session-1',
+			toolCallId: 'tool-2',
+			toolName: 'bash',
+			arguments: { command, timeout: 1 },
+		};
+		const refused = await bashTool.handler!({ command, timeout: 1 }, refusedInvocation) as ToolResultObject;
+		const sentAfterRefusal = terminalManager.sentTexts.length;
+
+		// Still at the prompt when the command runs: that shell is reused.
+		terminalManager.promptConfirmedCwds.set(idle.object.terminalUri, workingDirectory.fsPath);
+		shellManager.checkStartsInWorkingDirectory('bash', 'tool-3');
+		const reusedInvocation: ToolInvocation = {
+			sessionId: 'session-1',
+			toolCallId: 'tool-3',
+			toolName: 'bash',
+			arguments: { command, timeout: 1 },
+		};
+		await bashTool.handler!({ command, timeout: 1 }, reusedInvocation);
+
+		assert.deepStrictEqual({
+			approvedAtPrompt,
+			refused: { resultType: refused.resultType, error: refused.error },
+			sentAfterRefusal,
+			createdTerminals: terminalManager.created.length,
+			sentToTerminals: [...new Set(terminalManager.sentTexts.map(sent => sent.uri))],
+		}, {
+			approvedAtPrompt: true,
+			refused: { resultType: 'failure', error: 'shell_unavailable' },
+			sentAfterRefusal: 0,
+			createdTerminals: 1,
+			sentToTerminals: [idle.object.terminalUri],
+		});
+	});
+
+	test('primary shell tool runs parallel commands without a start requirement in separate shells', async () => {
+		const { instantiationService, terminalManager } = createServices();
+		const workingDirectory = URI.file('/workspace/project');
+		const shellManager = disposables.add(instantiationService.createInstance(ShellManager, URI.parse('copilot:/session-1'), workingDirectory));
+		const tools = await createShellTools(shellManager, TEST_CHAT_URI, terminalManager, new NullLogService());
+		const bashTool = tools.find(tool => tool.name === 'bash');
+		assert.ok(bashTool);
+		const idle = await shellManager.getOrCreateShell('bash', TEST_CHAT_URI, 'turn-1', 'tool-1');
+		idle.dispose();
+		markCreatedTerminalsExist(terminalManager);
+		terminalManager.promptConfirmedCwds.set(idle.object.terminalUri, workingDirectory.fsPath);
+
+		// Neither call checked the start directory, so the one that finds the
+		// idle shell taken gets a new shell instead of failing.
+		const run = async (toolCallId: string, command: string): Promise<ToolResultObject> => await bashTool.handler!({ command, timeout: 1 }, {
+			sessionId: 'session-1',
+			toolCallId,
+			toolName: 'bash',
+			arguments: { command, timeout: 1 },
+		}) as ToolResultObject;
+		const results = await Promise.all([run('tool-2', 'git status'), run('tool-3', 'ls')]);
+
+		assert.deepStrictEqual({
+			errors: results.map(result => result.error),
+			createdTerminals: terminalManager.created.length,
+			sentToTerminals: new Set(terminalManager.sentTexts.map(sent => sent.uri)).size,
+		}, {
+			errors: ['timeout', 'timeout'],
+			createdTerminals: 2,
+			sentToTerminals: 2,
+		});
 	});
 
 	test('shell helper tools (read/write/shutdown/list/redirect) are registered with skipPermission: true', async () => {

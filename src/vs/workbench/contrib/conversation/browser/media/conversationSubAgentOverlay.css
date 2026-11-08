@@ -31,6 +31,17 @@
 	outline-offset: -1px;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-subagent-overlay:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-subagent-overlay:focus-visible {
+	outline: none !important;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-subagent-overlay:focus-visible .conversation-subagent-overlay-card,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-subagent-overlay:focus-visible .conversation-subagent-overlay-card {
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow), inset 0 0 0 1px var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench.hc-black .part.conversation .conversation-subagent-overlay:focus-visible,
 .monaco-workbench.hc-light .part.conversation .conversation-subagent-overlay:focus-visible,
 .monaco-workbench.hc-black .conversation-subagent-overlay:focus-visible,
@@ -110,7 +121,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-name {
-	flex: 1 1 auto;
+	flex: 0 1 auto;
 	min-width: 0;
 	font-size: 12px;
 	font-weight: var(--vscode-fontWeight-semiBold);
@@ -137,12 +148,75 @@
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: 4px;
+	background-color: transparent !important;
+	filter: none !important;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:focus {
+	outline: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:hover:not(.disabled),
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-subagent-overlay-actions .monaco-button:focus-visible {
+	background-color: transparent !important;
+	outline: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:hover:not(.disabled)::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-subagent-overlay-actions .monaco-button:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-subagent-overlay-actions .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.conversation .conversation-subagent-overlay-actions .monaco-button {
+	transition: none;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.conversation .conversation-subagent-overlay-actions .monaco-button::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation .conversation-subagent-overlay-actions .monaco-button {
+		transition: none;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation .conversation-subagent-overlay-actions .monaco-button::after {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:active:not(.disabled) {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent !important;
+	filter: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:active:not(.disabled)::after {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-breadcrumb[hidden] {
+	display: none;
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-breadcrumb {

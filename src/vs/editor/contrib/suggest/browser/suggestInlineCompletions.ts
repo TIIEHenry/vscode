@@ -189,6 +189,7 @@ export class SuggestInlineCompletions extends Disposable implements InlineComple
 
 		} else {
 			// refesh model is required
+			const versionId = model.getVersionId();
 			const completions = await provideSuggestionItems(
 				this._languageFeatureService.completionProvider,
 				model, position,
@@ -197,11 +198,12 @@ export class SuggestInlineCompletions extends Disposable implements InlineComple
 				token
 			);
 
+			// `editor` is only the first editor showing this model, not necessarily the one that requested
+			// the completions, so staleness must not depend on its cursor.
 			const isStale = () =>
 				token.isCancellationRequested
-				|| editor.getModel() !== model
 				|| model.isDisposed()
-				|| !editor.getPosition()?.equals(position);
+				|| model.getVersionId() !== versionId;
 
 			if (isStale()) {
 				completions.disposable.dispose();

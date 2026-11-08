@@ -5,17 +5,17 @@
 
 import './media/previewCategoryBar.css';
 import '../../media/uaRoundedIcons.css';
-import { $, append, addDisposableListener, EventHelper, EventType, DisposableResizeObserver, getWindow, scheduleAtNextAnimationFrame } from "../../../../base/browser/dom.js";
-import { Disposable } from "../../../../base/common/lifecycle.js";
-import { KeyCode, KeyCodeUtils } from "../../../../base/common/keyCodes.js";
-import { Codicon } from "../../../../base/common/codicons.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import { localize } from "../../../../nls.js";
-import { GroupIdentifier } from "../../../common/editor.js";
-import { EditorInput } from "../../../common/editor/editorInput.js";
-import { IPreviewCategoryService, PreviewCategory, IPreviewCategoryCounts, PREVIEW_CATEGORIES } from "../../../services/editor/common/previewCategoryService.js";
-import { DraggedEditorIdentifier } from "../../dnd.js";
-import { LocalSelectionTransfer } from "../../../../platform/dnd/browser/dnd.js";
+import { $, append, addDisposableListener, EventHelper, EventType, DisposableResizeObserver, getWindow, scheduleAtNextAnimationFrame } from '../../../../base/browser/dom.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
+import { KeyCode, KeyCodeUtils } from '../../../../base/common/keyCodes.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { localize } from '../../../../nls.js';
+import { GroupIdentifier } from '../../../common/editor.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import { IPreviewCategoryService, PreviewCategory, IPreviewCategoryCounts, PREVIEW_CATEGORIES } from '../../../services/editor/common/previewCategoryService.js';
+import { DraggedEditorIdentifier } from '../../dnd.js';
+import { LocalSelectionTransfer } from '../../../../platform/dnd/browser/dnd.js';
 
 export interface IPreviewCategoryBarHost {
 	moveEditorToCategory(editor: EditorInput, category: PreviewCategory, source?: GroupIdentifier): void;
@@ -48,20 +48,20 @@ export class PreviewCategorySwitcher extends Disposable {
 	) {
 		super();
 
-		this.element = $(".preview-category-switcher", {
-			role: "tablist",
-			"aria-orientation": "horizontal",
-			"aria-label": localize("previewCategories", "Preview Categories")
+		this.element = $('.preview-category-switcher', {
+			role: 'tablist',
+			'aria-orientation': 'horizontal',
+			'aria-label': localize('previewCategories', "Preview Categories")
 		});
 
 		const labels: Record<PreviewCategory, string> = {
-			[PreviewCategory.Overview]: localize("categoryOverview", "Overview"),
-			[PreviewCategory.Terminal]: localize("categoryTerminal", "Terminal"),
-			[PreviewCategory.Code]: localize("categoryCode", "Code"),
-			[PreviewCategory.Web]: localize("categoryWeb", "Web"),
-			[PreviewCategory.Planning]: localize("categoryPlanning", "Planning"),
-			[PreviewCategory.History]: localize("categoryHistory", "History"),
-			[PreviewCategory.Artifacts]: localize("categoryArtifacts", "Artifacts")
+			[PreviewCategory.Overview]: localize('categoryOverview', "Overview"),
+			[PreviewCategory.Terminal]: localize('categoryTerminal', "Terminal"),
+			[PreviewCategory.Code]: localize('categoryCode', "Code"),
+			[PreviewCategory.Web]: localize('categoryWeb', "Web"),
+			[PreviewCategory.Planning]: localize('categoryPlanning', "Planning"),
+			[PreviewCategory.History]: localize('categoryHistory', "History"),
+			[PreviewCategory.Artifacts]: localize('categoryArtifacts', "Artifacts")
 		};
 
 		for (const category of PREVIEW_CATEGORIES) {
@@ -70,8 +70,15 @@ export class PreviewCategorySwitcher extends Disposable {
 
 		parent.appendChild(this.element);
 
-		const resize = this._register(new DisposableResizeObserver('previewCategoryBar', () => this.scheduleFitCounts(), getWindow(parent)));
-		this._register(resize.observe(parent));
+		this._register(addDisposableListener(this.element, EventType.FOCUS_OUT, (e: FocusEvent) => {
+			if (!this.element.contains(e.relatedTarget as Node | null)) {
+				this.focusedCategory = this.previewCategoryService.activeCategory;
+				this.updateTabStops();
+			}
+		}));
+
+		const resize = this._register(new DisposableResizeObserver('previewCategoryBar', () => this.scheduleFitCounts(), getWindow(this.element)));
+		this._register(resize.observe(this.element));
 
 		this._register(this.previewCategoryService.onDidChangeCategory(() => this.updateActiveTab()));
 		this._register(this.previewCategoryService.onDidChangeCategoryCounts(counts => this.updateCounts(counts)));
@@ -87,22 +94,22 @@ export class PreviewCategorySwitcher extends Disposable {
 	}
 
 	private createCategoryTab(category: PreviewCategory, labelText: string): void {
-		const tab = append(this.element, $(".preview-category-tab", {
-			role: "tab",
+		const tab = append(this.element, $('.preview-category-tab', {
+			role: 'tab',
 			tabIndex: -1,
-			"data-category": category,
-			"aria-label": labelText,
+			'data-category': category,
+			'aria-label': labelText,
 			title: labelText
 		}));
 
-		const icon = append(tab, $("span.category-icon"));
-		icon.classList.add(...ThemeIcon.asClassName(CATEGORY_ICONS[category]).split(" "));
+		const icon = append(tab, $('span.category-icon'));
+		icon.classList.add(...ThemeIcon.asClassName(CATEGORY_ICONS[category]).split(' '));
 
-		append(tab, $("span.category-label", { style: "display: none;" }, labelText));
-		const badge = append(tab, $("span.category-count"));
-		badge.style.display = "none";
-		const hint = append(tab, $("span.category-hint"));
-		hint.style.display = "none";
+		append(tab, $('span.category-label', { style: 'display: none;' }, labelText));
+		const badge = append(tab, $('span.category-count'));
+		badge.style.display = 'none';
+		const hint = append(tab, $('span.category-hint'));
+		hint.style.display = 'none';
 
 		this.tabs.set(category, tab);
 		this.badges.set(category, badge);
@@ -118,13 +125,13 @@ export class PreviewCategorySwitcher extends Disposable {
 		}));
 
 		this._register(addDisposableListener(tab, EventType.KEY_DOWN, (e: KeyboardEvent) => {
-			if (e.key === "Enter" || e.key === " ") {
+			if (e.key === 'Enter' || e.key === ' ') {
 				EventHelper.stop(e, true);
 				this.previewCategoryService.setActiveCategory(category);
-			} else if (e.key === "ArrowRight") {
+			} else if (e.key === 'ArrowRight') {
 				this.focusAdjacentCategory(category, 1);
 				EventHelper.stop(e, true);
-			} else if (e.key === "ArrowLeft") {
+			} else if (e.key === 'ArrowLeft') {
 				this.focusAdjacentCategory(category, -1);
 				EventHelper.stop(e, true);
 			} else if (e.key === KeyCodeUtils.toString(KeyCode.Home)) {
@@ -141,18 +148,18 @@ export class PreviewCategorySwitcher extends Disposable {
 			if (editorTransfer.hasData(DraggedEditorIdentifier.prototype)) {
 				e.preventDefault();
 				if (e.dataTransfer) {
-					e.dataTransfer.dropEffect = "move";
+					e.dataTransfer.dropEffect = 'move';
 				}
-				tab.classList.add("drag-over");
+				tab.classList.add('drag-over');
 			}
 		}));
 
 		this._register(addDisposableListener(tab, EventType.DRAG_LEAVE, () => {
-			tab.classList.remove("drag-over");
+			tab.classList.remove('drag-over');
 		}));
 
 		this._register(addDisposableListener(tab, EventType.DROP, (e: DragEvent) => {
-			tab.classList.remove("drag-over");
+			tab.classList.remove('drag-over');
 			if (!editorTransfer.hasData(DraggedEditorIdentifier.prototype)) {
 				return;
 			}
@@ -192,6 +199,7 @@ export class PreviewCategorySwitcher extends Disposable {
 		// does not dispatch a focus event synchronously.
 		this.focusedCategory = category;
 		this.updateTabStops();
+		tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 		tab.focus();
 	}
 
@@ -199,13 +207,14 @@ export class PreviewCategorySwitcher extends Disposable {
 		const active = this.previewCategoryService.activeCategory;
 		for (const [category, tab] of this.tabs) {
 			const isSelected = category === active;
-			tab.classList.toggle("selected", isSelected);
-			tab.setAttribute("aria-selected", isSelected ? "true" : "false");
+			tab.classList.toggle('selected', isSelected);
+			tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
 		}
 		if (!this.element.contains(this.element.ownerDocument.activeElement)) {
 			this.focusedCategory = active;
 		}
 		this.updateTabStops();
+		this.updateHints();
 	}
 
 	private updateTabStops(): void {
@@ -219,23 +228,21 @@ export class PreviewCategorySwitcher extends Disposable {
 		for (const [category, badge] of this.badges) {
 			const count = counts[category] ?? 0;
 			const tab = this.tabs.get(category);
-			const label = this.labels.get(category) ?? '';
 			if (count > 0 && tab) {
 				badge.textContent = `${count}`;
-				badge.style.display = "";
+				badge.style.display = '';
 				tab.classList.add('has-count');
-				tab.setAttribute('aria-label', localize('categoryWithCount', "{0}, {1}", label, count));
 			} else if (tab) {
 				badge.textContent = '';
-				badge.style.display = "none";
+				badge.style.display = 'none';
 				tab.classList.remove('has-count');
-				tab.setAttribute('aria-label', label);
 			}
+			this.updateTabAccessibility(category);
 		}
 		this.scheduleFitCounts();
 	}
 
-	/** Drop the count text when the icon row no longer fits in the category bar. */
+	/** Drop count text when the tabs no longer fit in their internal scroll viewport. */
 	private scheduleFitCounts(): void {
 		if (this.fitScheduled) {
 			return;
@@ -248,13 +255,12 @@ export class PreviewCategorySwitcher extends Disposable {
 	}
 
 	private fitCounts(): void {
-		const bar = this.element.parentElement;
-		if (!bar || bar.clientWidth <= 0) {
+		if (this.element.clientWidth <= 0) {
 			this.element.classList.remove('hide-counts');
 			return;
 		}
 		this.element.classList.remove('hide-counts');
-		if (this.element.scrollWidth > bar.clientWidth) {
+		if (this.element.scrollWidth > this.element.clientWidth) {
 			this.element.classList.add('hide-counts');
 		}
 	}
@@ -262,7 +268,23 @@ export class PreviewCategorySwitcher extends Disposable {
 	private updateHints(): void {
 		for (const [category, hint] of this.hints) {
 			const show = this.previewCategoryService.hasCategoryHint(category) && category !== this.previewCategoryService.activeCategory;
-			hint.style.display = show ? "" : "none";
+			hint.style.display = show ? '' : 'none';
+			this.updateTabAccessibility(category);
 		}
+	}
+
+	private updateTabAccessibility(category: PreviewCategory): void {
+		const tab = this.tabs.get(category);
+		if (!tab) {
+			return;
+		}
+		const label = this.labels.get(category) ?? '';
+		const countText = this.badges.get(category)?.textContent ?? '';
+		const count = countText ? Number(countText) : 0;
+		const showHint = this.previewCategoryService.hasCategoryHint(category) && category !== this.previewCategoryService.activeCategory;
+		const baseText = count > 0 ? localize('categoryWithCount', "{0}, {1}", label, count) : label;
+		const fullText = showHint ? localize('categoryWithHint', "{0}, unread updates", baseText) : baseText;
+		tab.setAttribute('aria-label', fullText);
+		tab.title = fullText;
 	}
 }

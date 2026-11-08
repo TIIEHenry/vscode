@@ -2052,6 +2052,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
+		const handOffFocus = hidden && this.hasFocus(Parts.EDITOR_PART);
 
 		this.stateModel.setRuntimeValue(LayoutStateKeys.EDITOR_HIDDEN, hidden);
 
@@ -2069,6 +2070,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		if (hidden && beforeHide) {
 			this.enforceAgentShellVisible(Parts.EDITOR_PART, this.getAgentShellVisibilityAfterHide(Parts.EDITOR_PART, beforeHide));
 		}
+
+		if (handOffFocus) {
+			this.focus();
+		}
 	}
 
 	private setConversationHidden(hidden: boolean): void {
@@ -2077,6 +2082,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 
 		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
+		const handOffFocus = hidden && this.hasFocus(Parts.CONVERSATION_PART);
 
 		this.stateModel.setRuntimeValue(LayoutStateKeys.CONVERSATION_HIDDEN, hidden);
 
@@ -2092,6 +2098,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		if (hidden && beforeHide) {
 			this.enforceAgentShellVisible(Parts.CONVERSATION_PART, this.getAgentShellVisibilityAfterHide(Parts.CONVERSATION_PART, beforeHide));
 		}
+
+		if (handOffFocus) {
+			this.focus();
+		}
 	}
 
 	private setSourcesHidden(hidden: boolean): void {
@@ -2099,7 +2109,12 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return;
 		}
 
+		if (!hidden && this.setAuxiliaryBarMaximized(false) && this.isVisible(Parts.SOURCES_PART)) {
+			return; // return: leaving maximised auxiliary bar made this part visible
+		}
+
 		const beforeHide = hidden ? this.getAgentShellVisibility() : undefined;
+		const handOffFocus = hidden && this.hasFocus(Parts.SOURCES_PART);
 
 		this.stateModel.setRuntimeValue(LayoutStateKeys.SOURCES_HIDDEN, hidden);
 
@@ -2114,6 +2129,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		// INV-052-NO-DUAL-HIDE: Conversation ∨ (Editor ∨ Sources) ≥ 1
 		if (hidden && beforeHide) {
 			this.enforceAgentShellVisible(Parts.SOURCES_PART, this.getAgentShellVisibilityAfterHide(Parts.SOURCES_PART, beforeHide));
+		}
+
+		if (handOffFocus) {
+			this.focus();
 		}
 	}
 

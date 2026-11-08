@@ -69,6 +69,16 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-review-path-filter-clear:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-review-path-filter-clear:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
 .monaco-workbench .part.sources .sources-review-header-hint {
 	flex-shrink: 0;
 	padding: 2px 8px 0;
@@ -107,6 +117,21 @@
 	padding: 2px 8px;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-review-progress-header .monaco-button:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-review-progress-header .monaco-button:focus-visible {
+	outline: none !important;
+	background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-toolbar-hoverBackground)) !important;
+}
+
+.monaco-workbench .part.sources .sources-review-progress-header .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent)) !important;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-review-progress-header .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
+}
+
 .monaco-workbench .part.sources .sources-review-progress-count {
 	min-width: 0;
 	overflow: hidden;
@@ -115,6 +140,9 @@
 }
 
 .monaco-workbench .part.sources .sources-review-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -123,7 +151,42 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench .part.sources .sources-review-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-row,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-row::before,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-unreviewed-toggle,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-path-filter-clear,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-attribution-chip,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-review-state {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-row,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-unreviewed-toggle,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-path-filter-clear,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-attribution-chip,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-review-state {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.sources .sources-review-list .monaco-list-row:active .sources-review-row {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.sources .sources-review-list .monaco-list-row:active .sources-review-row::before {
 	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
@@ -190,11 +253,11 @@
 }
 
 .monaco-workbench .part.sources .sources-review-attribution-chip {
-	background: var(--vscode-badge-background);
-	color: var(--vscode-badge-foreground);
+	background: color-mix(in srgb, var(--vscode-descriptionForeground) 12%, transparent);
+	color: var(--vscode-descriptionForeground);
 	border: none;
-	border-radius: 999px;
-	font-size: 10px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	font-size: var(--vscode-fontSize-label2, 11px);
 	line-height: 16px;
 	padding: 0 6px;
 	cursor: pointer;
@@ -205,12 +268,27 @@
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
+.monaco-workbench .part.sources .sources-review-attribution-chip:hover:not(.overflow) {
+	background-color: var(--vscode-toolbar-hoverBackground);
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .part.sources .sources-review-attribution-chip:active:not(.overflow) {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-review-attribution-chip.overflow {
 	cursor: default;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-review-attribution-chip:not(.overflow):focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-review-attribution-chip:not(.overflow):focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources .sources-review-state {
@@ -232,15 +310,24 @@
 	transition: color 0.1s ease, background-color 0.1s ease;
 }
 
+.monaco-workbench .part.sources .sources-review-state:hover:not(:disabled) {
+	background-color: var(--vscode-toolbar-hoverBackground);
+	color: var(--vscode-foreground);
+}
+
 .monaco-workbench .part.sources .sources-review-state:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
-.monaco-workbench .part.sources .sources-review-state:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-review-state:focus-visible {
+	outline: none !important;
 	background-color: var(--vscode-toolbar-hoverBackground);
-	border-radius: 4px;
+}
+
+.monaco-workbench.hc-black .part.sources .sources-review-state:focus-visible,
+.monaco-workbench.hc-light .part.sources .sources-review-state:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources .sources-review-state.unreviewed {
@@ -283,7 +370,15 @@
 }
 
 .monaco-workbench .part.sources .sources-review-status.is-error {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.sources .sources-review-status.is-error::before {
+	font-family: codicon;
+	content: "\ea87";
 	color: var(--vscode-errorForeground);
+	opacity: 0.9;
+	margin-right: 4px;
 }
 
 .monaco-workbench .part.sources .sources-review-empty {
@@ -298,15 +393,13 @@
 }
 
 .monaco-workbench .part.sources .sources-review-empty.is-error {
-	color: var(--vscode-errorForeground);
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .part.sources .sources-review-empty.is-error::before {
+	font-family: codicon;
 	content: "\ea87";
 	color: var(--vscode-errorForeground);
 	opacity: 0.9;
-}
-
-.monaco-workbench .part.sources .sources-review-empty.is-error {
-	color: var(--vscode-errorForeground);
+	margin-right: 4px;
 }

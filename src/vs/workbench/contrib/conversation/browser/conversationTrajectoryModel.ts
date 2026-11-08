@@ -6,6 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { isLocalToolAttribution, overlayAttributionKey, type ItemAttribution, type ItemCompactedAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { OverlayBlockView, SessionViewSnapshot, TextChunkView, TimelineCanvasRef, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { parseVisualizeArgs } from '../common/conversationVisualize.js';
 import { projectTrajectoryProcessFoldSpans, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 
@@ -24,7 +25,7 @@ interface TrajectoryItemAttribution extends ItemAttribution {
  * Q3: row identity is L2 attribution only (`branchReason === 'compact'` and/or `compacted{…}`).
  * P2b already normalizes wire tokens; UI does not re-parse envelopes or notices.
  */
-export function isCompactedItemAttribution(attr: ItemAttribution | undefined): attr is ItemAttribution {
+export function isCompactedItemAttribution(attr: ItemAttribution | undefined): boolean {
 	return attr?.branchReason === 'compact' || attr?.compacted !== undefined;
 }
 
@@ -185,7 +186,7 @@ export function projectTurnsToTrajectory(turns: readonly ConversationStubTurn[])
 export function projectSnapshotToTrajectory(
 	snapshot: SessionViewSnapshot,
 	attribution: ReadonlyMap<string, ItemAttribution>,
-	_details: ReadonlyMap<string, string>,
+	details: ReadonlyMap<string, string>,
 	options?: TrajectoryProjectionOptions,
 ): ConversationTrajectoryRecord[] {
 	const records: ConversationTrajectoryRecord[] = [];
@@ -198,8 +199,16 @@ export function projectSnapshotToTrajectory(
 		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
 			continue;
 		}
-		if (isCompactedItemAttribution(attr)) {
+		if (attr && isCompactedItemAttribution(attr)) {
 			records.push(projectCompactedRecord(item, attr));
+			continue;
+		}
+		if (
+			item.summary.kind === 'tool'
+			&& item.summary.toolName === 'visualize'
+			&& item.detail !== undefined
+			&& parseVisualizeArgs(details.get(String(item.detail))) !== undefined
+		) {
 			continue;
 		}
 		for (const record of timelineItemToTrajectoryRecords(item, attr, seenThinking)) {
@@ -889,6 +898,9 @@ export function findTurnIdForTrajectoryRecord(
 	record: ConversationTrajectoryRecord,
 	turnIds: ReadonlySet<string>,
 ): string | undefined {
+	if (record.kind === 'compacted') {
+		return undefined;
+	}
 	if (turnIds.has(record.id)) {
 		return record.id;
 	}

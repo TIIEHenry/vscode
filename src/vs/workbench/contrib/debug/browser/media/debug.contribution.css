@@ -5,7 +5,17 @@
 
 .codicon-debug-hint {
 	cursor: pointer;
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .codicon-debug-hint {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .codicon-debug-hint {
+		transition: none;
+	}
 }
 
 .codicon-debug-hint:active {
@@ -81,6 +91,16 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-editor .inline-breakpoint-widget {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .inline-breakpoint-widget {
+		transition: none;
+	}
+}
+
 .monaco-editor .inline-breakpoint-widget:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
@@ -137,6 +157,16 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.08s ease;
 	display: inline-block;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-list-row .expression .value a.link.pointer {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-list-row .expression .value a.link.pointer {
+		transition: none;
+	}
 }
 
 .monaco-workbench .monaco-list-row .expression .value a.link.pointer:active {

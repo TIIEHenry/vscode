@@ -10,6 +10,7 @@ import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { defaultBreadcrumbsWidgetStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
 
@@ -44,7 +45,8 @@ class ConversationAgentBreadcrumbItem extends BreadcrumbsItem {
 		} else {
 			container.removeAttribute('aria-current');
 		}
-		dom.append(container, $('span.conversation-agent-breadcrumb-item-label', undefined, this.data.title));
+		const label = dom.append(container, $('span.conversation-agent-breadcrumb-item-label', undefined, this.data.title));
+		label.title = this.data.title;
 	}
 }
 
@@ -53,6 +55,7 @@ export class ConversationAgentBreadcrumbBox extends Disposable {
 	static readonly HEIGHT = 22;
 
 	readonly element: HTMLElement;
+	private readonly scrollHost: HTMLElement;
 	private readonly breadcrumbWidget: BreadcrumbsWidget;
 	private items: IConversationAgentBreadcrumbItem[] = [];
 
@@ -67,6 +70,7 @@ export class ConversationAgentBreadcrumbBox extends Disposable {
 		this.element.setAttribute('aria-label', 'Agent hierarchy');
 
 		const scrollHost = dom.append(this.element, $('.conversation-agent-breadcrumb-scroll'));
+		this.scrollHost = scrollHost;
 		this.breadcrumbWidget = this._register(new BreadcrumbsWidget(
 			scrollHost,
 			3,
@@ -88,6 +92,34 @@ export class ConversationAgentBreadcrumbBox extends Disposable {
 			this._onDidSelect.fire(e.item.data.chatId);
 		}));
 
+		this._register(dom.addStandardDisposableListener(this.element, dom.EventType.KEY_DOWN, e => {
+			if (e.equals(KeyCode.LeftArrow) || e.equals(KeyCode.RightArrow)) {
+				if (!this.breadcrumbWidget.getFocused()) {
+					this.breadcrumbWidget.domFocus();
+				} else if (e.equals(KeyCode.LeftArrow)) {
+					this.breadcrumbWidget.focusPrev();
+				} else {
+					this.breadcrumbWidget.focusNext();
+				}
+				e.preventDefault();
+				e.stopPropagation();
+			} else if (e.equals(KeyCode.Enter) || e.equals(KeyCode.Space)) {
+				let focused = this.breadcrumbWidget.getFocused();
+				if (!focused) {
+					const firstInteractive = this.breadcrumbWidget.getItems().find(item => item instanceof ConversationAgentBreadcrumbItem && !item.data.isCurrent);
+					if (firstInteractive) {
+						this.breadcrumbWidget.setFocused(firstInteractive);
+						focused = firstInteractive;
+					}
+				}
+				if (focused) {
+					this.breadcrumbWidget.setSelection(focused);
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			}
+		}));
+
 		this.setItems([]);
 	}
 
@@ -100,8 +132,13 @@ export class ConversationAgentBreadcrumbBox extends Disposable {
 		this.element.classList.toggle('hidden', items.length === 0);
 
 		const widgetItems = items.map(item => new ConversationAgentBreadcrumbItem(item));
+		const hasInteractive = items.some(item => !item.isCurrent);
 		this.breadcrumbWidget.setItems(widgetItems);
-		this.breadcrumbWidget.setEnabled(items.some(item => !item.isCurrent));
+		this.breadcrumbWidget.setEnabled(hasInteractive);
+		const breadcrumbsRoot = findBreadcrumbsRoot(this.scrollHost);
+		if (breadcrumbsRoot) {
+			breadcrumbsRoot.tabIndex = hasInteractive ? 0 : -1;
+		}
 	}
 
 	layout(width: number): void {
@@ -109,8 +146,23 @@ export class ConversationAgentBreadcrumbBox extends Disposable {
 			return;
 		}
 
-		const scrollHost = this.element.querySelector('.conversation-agent-breadcrumb-scroll') as HTMLElement | null;
-		const inner = scrollHost && scrollHost.clientWidth > 0 ? scrollHost.clientWidth : Math.max(0, width - 16);
+		const inner = this.scrollHost.clientWidth > 0 ? this.scrollHost.clientWidth : Math.max(0, width - 16);
 		this.breadcrumbWidget.layout(new dom.Dimension(inner, ConversationAgentBreadcrumbBox.HEIGHT));
 	}
+}
+
+function findBreadcrumbsRoot(root: HTMLElement): HTMLElement | undefined {
+	for (const child of root.children) {
+		if (!dom.isHTMLElement(child)) {
+			continue;
+		}
+		if (child.classList.contains('monaco-breadcrumbs')) {
+			return child;
+		}
+		const nested = findBreadcrumbsRoot(child);
+		if (nested) {
+			return nested;
+		}
+	}
+	return undefined;
 }

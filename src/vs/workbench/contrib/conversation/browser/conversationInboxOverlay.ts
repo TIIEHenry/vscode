@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, getActiveElement, isHTMLElement, reset } from '../../../../base/browser/dom.js';
 import { Button, ButtonWithIcon } from '../../../../base/browser/ui/button/button.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -19,6 +19,7 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
+	conversationLensDockGoalFailed,
 	conversationLensDockGoalPlaceholder,
 	conversationLensDockGoalPrompt,
 	conversationLensDockGoalUnavailable,
@@ -27,8 +28,10 @@ import {
 	conversationLensDockInboxQueueLabel,
 	conversationLensDockNoGoal,
 	conversationLensDockStop,
+	conversationLensDockStopFailed,
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
+	conversationLensDockStopping,
 	conversationLensInboxQueueClear,
 	conversationLensInboxQueueQueuedTag,
 	conversationLensInboxQueueEditingCount,
@@ -63,6 +66,7 @@ import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.j
 import { capturePublishedEngineLink, conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady, samePublishedEngineLink } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { conversationUserBodyText } from './conversationComposerRefs.js';
+import { collectConversationOverlayFocusable, handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { shouldActivateConversationInboxQueueItem } from './conversationInboxKeyboard.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
@@ -91,12 +95,19 @@ function inboxContextRingLabel(usage: ConversationInboxContextUsage): string {
 
 type InboxListPanel = 'queue';
 
+/** Stop and Goal explain their own refusal next to the control instead of borrowing the composer's send failure. */
+function showInboxActionFailure(label: HTMLElement, message: string | undefined): void {
+	label.hidden = message === undefined;
+	label.textContent = message ?? '';
+}
+
 export interface IConversationInboxOverlayDelegate {
 	onQueueItemHold(itemId: string): void;
 	onScrollToPendingConfirmation(): void;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	/** Visible timeline projection, not `getTurns()` (legacy turns drop streaming rows). */
 	hasStreamingEntry(): boolean;
+	onWillOpenListPanel?(): void;
 }
 
 /**
@@ -112,6 +123,13 @@ export class ConversationInboxOverlay extends Disposable {
 	private readonly queueChip!: HTMLButtonElement;
 	private readonly goalButton!: ButtonWithIcon;
 	private readonly stopButton!: Button;
+	private readonly stopFailureLabel: HTMLElement;
+	private readonly goalFailureLabel: HTMLElement;
+	/** Session whose Stop was accepted and is still streaming. Stop stays disabled as Stopping… until the stream ends. */
+	private stopInFlightSessionId: string | undefined;
+	/** Stop the engine refused, and whether that session was generating when it did. */
+	private refusedStop: { readonly sessionId: string; readonly generating: boolean } | undefined;
+	private goalFailureSessionId: string | undefined;
 	private readonly pendingButton!: HTMLButtonElement;
 	private readonly syncStatus!: HTMLElement;
 	private contextRing: HTMLElement | undefined;
@@ -123,6 +141,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private listContextView: IOpenContextView | undefined;
 	private listPanelHost: HTMLElement | undefined;
 	private queueHoldInFlight = false;
+	private onWillOpenListPanelHandler: (() => void) | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -169,6 +188,9 @@ export class ConversationInboxOverlay extends Disposable {
 		this.goalButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-goal-button');
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
 		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked().catch(onUnexpectedError)));
+		this.goalFailureLabel = append(goalContainer, $('span.conversation-lens-inbox-action-failure'));
+		this.goalFailureLabel.setAttribute('role', 'alert');
+		this.goalFailureLabel.hidden = true;
 
 		this.pendingButton = append(this.leftCluster, $('button.conversation-lens-inbox-pending')) as HTMLButtonElement;
 		this.pendingButton.type = 'button';
@@ -184,6 +206,9 @@ export class ConversationInboxOverlay extends Disposable {
 		this.syncStatus.hidden = true;
 		this.syncStatus.setAttribute('aria-live', 'polite');
 
+		this.stopFailureLabel = append(this.rightCluster, $('span.conversation-lens-inbox-action-failure'));
+		this.stopFailureLabel.setAttribute('role', 'alert');
+		this.stopFailureLabel.hidden = true;
 		const stopContainer = append(this.rightCluster, $('.conversation-lens-inbox-stop'));
 		this.stopButton = this._register(new Button(stopContainer, {
 			...defaultButtonStyles,
@@ -208,6 +233,22 @@ export class ConversationInboxOverlay extends Disposable {
 			this.render();
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.render()));
+		if (this.stubService.onDidFailEngineAction) {
+			this._register(this.stubService.onDidFailEngineAction(failure => {
+				const sessionId = this.resolveSessionId();
+				if (failure.sessionId !== sessionId) {
+					return;
+				}
+				if (failure.action === 'cancelGeneration') {
+					this.stopInFlightSessionId = undefined;
+					this.refusedStop = { sessionId, generating: this.isGenerating(sessionId) };
+					this.renderStop(sessionId);
+				} else if (failure.action === 'setSessionGoal' || failure.action === 'cancelSessionGoal') {
+					this.goalFailureSessionId = sessionId;
+					this.renderGoal(sessionId);
+				}
+			}));
+		}
 		this._register(toDisposable(() => this.closeListPanel()));
 
 		this.render();
@@ -215,6 +256,13 @@ export class ConversationInboxOverlay extends Disposable {
 
 	closeListPanel(): void {
 		this.listContextView?.close();
+	}
+
+	setOnWillOpenListPanel(handler: () => void): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.onWillOpenListPanelHandler = handler;
 	}
 
 	override dispose(): void {
@@ -347,19 +395,17 @@ export class ConversationInboxOverlay extends Disposable {
 			this.goalButton.setTitle(conversationLensDockGoalUnavailable);
 			this.goalButton.setAriaLabel(`${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
 		}
+		showInboxActionFailure(this.goalFailureLabel, this.goalFailureSessionId === sessionId ? conversationLensDockGoalFailed : undefined);
 	}
 
 	private async onGoalClicked(): Promise<void> {
 		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite() || !this.isSessionGoalAvailable()) {
 			return;
 		}
+		const sessionId = this.resolveSessionId();
 		if (!this.stubService.isEngineConnected()) {
-			if (this.stubService.hasEngineConnectionHistory()) {
-				this.delegate.showPostFailure('engine_disconnected');
-			}
 			return;
 		}
-		const sessionId = this.resolveSessionId();
 		const current = this.stubService.getSessionGoal(sessionId);
 		const next = await this.quickInputService.input({
 			title: conversationLensDockGoal,
@@ -387,14 +433,7 @@ export class ConversationInboxOverlay extends Disposable {
 		} else if (current) {
 			applied = this.stubService.cancelSessionGoal(sessionId);
 		}
-		if (!applied) {
-			this.delegate.showPostFailure(
-				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
-			);
-			return;
-		}
+		this.goalFailureSessionId = applied ? undefined : sessionId;
 		this.render();
 	}
 
@@ -402,14 +441,30 @@ export class ConversationInboxOverlay extends Disposable {
 		const generating = this.isGenerating(sessionId)
 			&& !isConversationPairingHold(this.uaConnection)
 			&& !this.isKeepLeftoverListFailWrite();
-		this.stopButton.enabled = generating;
-		if (generating) {
+		if (!generating || this.stopInFlightSessionId !== sessionId) {
+			this.stopInFlightSessionId = undefined;
+		}
+		// A refused Stop stays explained until the stream it was aimed at changes state.
+		if (this.refusedStop && (this.refusedStop.sessionId !== sessionId || this.refusedStop.generating !== generating)) {
+			this.refusedStop = undefined;
+		}
+		const stopping = this.stopInFlightSessionId !== undefined;
+		this.stopButton.enabled = generating && !stopping;
+		this.stopButton.label = stopping ? conversationLensDockStopping : conversationLensDockStop;
+		if (stopping) {
+			this.stopButton.setTitle(conversationLensDockStopping);
+			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopping}`);
+			this.stopButton.element.setAttribute('aria-busy', 'true');
+		} else if (generating) {
 			this.stopButton.setTitle(conversationLensDockStop);
 			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopGenerating}`);
+			this.stopButton.element.removeAttribute('aria-busy');
 		} else {
 			this.stopButton.setTitle(conversationLensDockStopNotGenerating);
 			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
+			this.stopButton.element.removeAttribute('aria-busy');
 		}
+		showInboxActionFailure(this.stopFailureLabel, this.refusedStop ? conversationLensDockStopFailed : undefined);
 	}
 
 	/**
@@ -454,17 +509,16 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		const sessionId = this.resolveSessionId();
+		if (this.stopInFlightSessionId === sessionId) {
+			return;
+		}
 		if (!this.isGenerating(sessionId) && !this.stopButton.enabled) {
 			return;
 		}
 		const cancelled = this.stubService.cancelGeneration(sessionId);
-		if (!cancelled) {
-			this.delegate.showPostFailure(
-				!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
-			);
-		}
+		this.stopInFlightSessionId = cancelled ? sessionId : undefined;
+		this.refusedStop = cancelled ? undefined : { sessionId, generating: this.isGenerating(sessionId) };
+		this.renderStop(sessionId);
 	}
 
 	private renderPending(pending: number): void {
@@ -499,6 +553,8 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		this.listContextView?.close();
+		this.delegate.onWillOpenListPanel?.();
+		this.onWillOpenListPanelHandler?.();
 		// close()/onHide clears openPanel; assign the next panel after that wipe.
 		this.openPanel = panel;
 		const anchor = this.element;
@@ -508,13 +564,27 @@ export class ConversationInboxOverlay extends Disposable {
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
 				const listRoot = append(container, $('.conversation-lens-inbox-list-panel'));
+				listRoot.tabIndex = -1;
 				const columnWidth = Math.round(this.element.getBoundingClientRect().width);
 				if (columnWidth > 0) {
-					listRoot.style.width = `${columnWidth}px`;
+					listRoot.style.width = `${Math.min(360, Math.max(200, columnWidth))}px`;
 				}
 				this.listPanelHost = listRoot;
+				this.listPanelDisposables.add(addDisposableListener(listRoot, 'keydown', (e: KeyboardEvent) => {
+					handleConversationOverlayTab(listRoot, e);
+				}));
+				this.listPanelDisposables.add(addDisposableListener(container.ownerDocument, 'keydown', (e: KeyboardEvent) => {
+					if (e.key === 'Escape' || e.keyCode === 27) {
+						e.preventDefault();
+						e.stopPropagation();
+						this.listContextView?.close();
+						this.queueChip.focus();
+					}
+				}));
 				this.renderQueueList(listRoot);
 				this.render();
+				const firstFocusable = collectConversationOverlayFocusable(listRoot)[0];
+				(firstFocusable ?? listRoot).focus();
 				return toDisposable(() => {
 					this.listPanelDisposables.clear();
 					this.listPanelHost = undefined;
@@ -527,12 +597,12 @@ export class ConversationInboxOverlay extends Disposable {
 				if (isContextViewClick(e)) {
 					const raw = (e as Event & { readonly browserEvent?: Event }).browserEvent ?? e;
 					const path = typeof raw.composedPath === 'function' ? raw.composedPath() : [];
-					const isInside = path.some((node: EventTarget) => node instanceof HTMLElement && (this.element.contains(node) || Boolean(node.closest?.('.context-view'))));
+					const isInside = path.some((node: EventTarget) => isHTMLElement(node) && (this.queueChip.contains(node) || Boolean(node.closest?.('.context-view'))));
 					if (isInside) {
 						return;
 					}
 					const target = getContextViewEventTarget(e);
-					if (target && !this.element.contains(target) && !target.closest('.context-view')) {
+					if (target && !this.queueChip.contains(target) && !target.closest('.context-view')) {
 						this.listContextView?.close();
 					}
 				}
@@ -552,8 +622,26 @@ export class ConversationInboxOverlay extends Disposable {
 		if (!panel || !host) {
 			return;
 		}
+		const activeEl = getActiveElement() as HTMLElement | null;
+		const hadFocus = !!activeEl && (host === activeEl || host.contains(activeEl));
+		const focusedItemId = hadFocus && activeEl
+			? activeEl.closest('.queue-item')?.getAttribute('data-item-id')
+			: undefined;
 		reset(host);
 		this.renderQueueList(host);
+		if (focusedItemId) {
+			// eslint-disable-next-line no-restricted-syntax -- scoped to the inbox list panel host
+			const restored = host.querySelector<HTMLElement>(`.queue-item[data-item-id="${focusedItemId}"]`);
+			restored?.focus();
+		}
+		if (hadFocus && !host.contains(getActiveElement())) {
+			const firstFocusable = collectConversationOverlayFocusable(host)[0];
+			if (firstFocusable) {
+				firstFocusable.focus();
+			} else {
+				this.queueChip.focus();
+			}
+		}
 	}
 
 	private renderQueueList(host: HTMLElement): void {

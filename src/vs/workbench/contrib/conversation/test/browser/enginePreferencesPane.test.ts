@@ -17,6 +17,7 @@ import {
 	getEngineTestStatusText,
 } from '../../browser/enginePreferencesPane.js';
 import { getUnsupportedEnvironmentCopy } from '../../browser/engineSectionChrome.js';
+import { ENGINE_PREFERENCES_NAV_ENTRIES, getEnginePreferencesSectionLabel } from '../../browser/enginePreferencesTypes.js';
 import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/browser/webUnsupported.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
@@ -35,6 +36,7 @@ import type {
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
 import { asCssVariableName, getSizeRegistry, isSizeDefaults, sizeValueToCss } from '../../../../../platform/theme/common/sizeRegistry.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const ENGINE_DISCONNECTED_COPY = getConnectionPhaseStatusBarText({ kind: 'disconnected' });
 const FAKE_ENGINE_LABELS = ['Local Engine', '127.0.0.1:8080'];
@@ -266,6 +268,23 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('disconnected detail body hugs its empty state and restores the viewport when connected', async () => {
+		const connection = createMutableConnection({ connected: false });
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		const detailBody = container.querySelector('.engine-preferences-detail-body') as HTMLElement;
+
+		assert.ok(detailBody.classList.contains('is-disconnected'));
+		connection.setConnected(true);
+		await timeout(0);
+		assert.ok(!detailBody.classList.contains('is-disconnected'));
+		connection.setConnected(false);
+		await timeout(0);
+		assert.ok(detailBody.classList.contains('is-disconnected'));
+
+		container.remove();
+	});
+
 	test('layout under 600px applies is-narrow and Back returns to nav', () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
@@ -405,7 +424,7 @@ suite('EnginePreferencesPane', () => {
 		assert.notStrictEqual(badge.style.display, 'none');
 		const listRow = agentsRow.closest('.monaco-list-row') as HTMLElement | null;
 		assert.ok(listRow);
-		assert.strictEqual(listRow!.style.height, '32px');
+		assert.strictEqual(listRow!.style.height, '22px');
 
 		container.remove();
 	});
@@ -1263,5 +1282,219 @@ suite('EnginePreferencesPane', () => {
 		// Guarded operations should not throw when disposed
 		pane.layout(new Dimension(800, 600));
 		pane.selectSection('overview');
+	});
+});
+
+suite('EnginePreferencesPane (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('late probeEngine after dispose does not paint test status', async () => {
+		let resolveProbe!: (value: { ok: true; engineIdentityId: string }) => void;
+		const probe = new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+			resolveProbe = resolve;
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			probeEngine: () => probe,
+		});
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
+		container.appendChild(pane.getDomNode());
+
+		const testButton = pane.getDomNode().querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = pane.getDomNode().querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testButton);
+		assert.ok(testStatus);
+
+		const paintBoom = new Error('paint after dispose');
+		Object.defineProperty(testStatus, 'textContent', {
+			configurable: true,
+			get: () => '',
+			set: (value: string) => {
+				if (value.startsWith('Reachable')) {
+					throw paintBoom;
+				}
+			},
+		});
+
+		testButton.click();
+		await timeout(0);
+		pane.dispose();
+
+		resolveProbe({ ok: true, engineIdentityId: 'late-engine' });
+		await timeout(0);
+
+		assert.strictEqual(testStatus.textContent, '');
+	});
+
+	test('late probeEngine after the link changes clears Testing instead of dangling', async () => {
+		let resolveProbe!: (value: { ok: true; engineIdentityId: string }) => void;
+		const probe = new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+			resolveProbe = resolve;
+		});
+		const ids = { linkId: 1 };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				engineIdentityId: 'eng-1',
+				linkId: ids.linkId,
+			}),
+			probeEngine: () => probe,
+		});
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
+		container.appendChild(pane.getDomNode());
+
+		const testButton = pane.getDomNode().querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = pane.getDomNode().querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testButton);
+		assert.ok(testStatus);
+
+		testButton.click();
+		await timeout(0);
+		assert.strictEqual(testStatus.textContent, 'Testing…');
+
+		// The probe tested a link that is no longer published: drop it and clear the busy state.
+		ids.linkId = 2;
+		resolveProbe({ ok: true, engineIdentityId: 'eng-1' });
+		await timeout(0);
+
+		assert.strictEqual(testStatus.textContent, '');
+	});
+
+	test('narrow navigation returns focus to Back when opening a detail section', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(480, 600));
+
+		const backButton = pane.getDomNode().querySelector('.engine-preferences-back') as HTMLButtonElement;
+		backButton.click();
+		const navHost = pane.getDomNode().querySelector('.engine-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		// The Back button is the first reachable control after the nav is hidden.
+		pane.selectSection('providers');
+		await timeout(0);
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
+		assert.strictEqual(pane.getDomNode().classList.contains('is-showing-detail'), true);
+	});
+
+	function mountConnectedPane(): EnginePreferencesPane {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		}) as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
+		document.body.appendChild(pane.getDomNode());
+		store.add({ dispose: () => pane.getDomNode().remove() });
+		return pane;
+	}
+
+	test('narrow navigation: arrows only move focus, Enter opens the focused section', async () => {
+		const pane = mountConnectedPane();
+		pane.layout(new Dimension(480, 600));
+		const container = pane.getDomNode();
+		(container.querySelector('.engine-preferences-back') as HTMLButtonElement).click();
+		const list = container.querySelector('.engine-preferences-nav .monaco-list') as HTMLElement;
+		const title = container.querySelector('.engine-preferences-detail-title') as HTMLElement;
+		const press = (key: string, keyCode: number) => list.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+		const snapshot = () => ({ showingDetail: container.classList.contains('is-showing-detail'), title: title.textContent });
+		press('ArrowDown', 40);
+		await timeout(0);
+		const afterArrow = snapshot();
+		press('Enter', 13);
+		await timeout(0);
+		assert.deepStrictEqual({ afterArrow, afterEnter: snapshot() }, {
+			afterArrow: { showingDetail: false, title: getEnginePreferencesSectionLabel(ENGINE_PREFERENCES_NAV_ENTRIES[0].id) },
+			afterEnter: { showingDetail: true, title: getEnginePreferencesSectionLabel(ENGINE_PREFERENCES_NAV_ENTRIES[1].id) },
+		});
+	});
+
+	test('one nav activation through focus, selection, and open activates the section once', () => {
+		const pane = mountConnectedPane();
+		pane.layout(new Dimension(900, 700));
+		const internals = pane as unknown as {
+			readonly sections: Map<string, { setSectionActive(active: boolean): void }>;
+			readonly navList: { setFocus(indexes: number[]): void; setSelection(indexes: number[]): void };
+		};
+		const triggers = internals.sections.get('triggers');
+		assert.ok(triggers);
+		let activations = 0;
+		const setSectionActive = triggers.setSectionActive.bind(triggers);
+		triggers.setSectionActive = active => {
+			if (active) {
+				activations++;
+			}
+			setSectionActive(active);
+		};
+		const index = ENGINE_PREFERENCES_NAV_ENTRIES.findIndex(entry => entry.id === 'triggers');
+		internals.navList.setFocus([index]);
+		internals.navList.setSelection([index]);
+		pane.selectSection('triggers');
+		assert.strictEqual(activations, 1);
+	});
+
+	test('resizing from wide navigation returns focus to Back', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(800, 600));
+
+		const navHost = pane.getDomNode().querySelector('.engine-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		pane.layout(new Dimension(480, 600));
+		await timeout(0);
+
+		const backButton = pane.getDomNode().querySelector('.engine-preferences-back') as HTMLButtonElement;
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
 	});
 });

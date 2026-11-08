@@ -8,7 +8,9 @@ import * as dom from '../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 
 const $ = dom.$;
 
@@ -18,12 +20,12 @@ export class ExplorerInlineFilterBox extends Disposable {
 
 	readonly element: HTMLElement;
 	private readonly input: HTMLInputElement;
-	private readonly clearButton: HTMLElement;
+	private readonly clearButton: HTMLButtonElement;
 
 	private readonly _onDidChange = this._register(new Emitter<string>());
 	readonly onDidChange = this._onDidChange.event;
 
-	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string) {
+	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string, private readonly focusList?: (first: boolean) => boolean) {
 		super();
 
 		this.element = dom.append(parent, $('.explorer-inline-filter'));
@@ -35,13 +37,33 @@ export class ExplorerInlineFilterBox extends Disposable {
 		this.input.placeholder = placeholder;
 		this.input.setAttribute('aria-label', ariaLabel);
 
-		this.clearButton = dom.append(this.element, $('button.explorer-inline-filter-clear'));
-		this.clearButton.setAttribute('aria-label', ariaLabel);
+		const clearLabel = localize('explorerInlineFilter.clearFilter', "Clear filter");
+		this.clearButton = dom.append(this.element, $('button.explorer-inline-filter-clear')) as HTMLButtonElement;
+		this.clearButton.type = 'button';
+		this.clearButton.title = clearLabel;
+		this.clearButton.setAttribute('aria-label', clearLabel);
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {
 			this.updateClearVisibility();
 			this._onDidChange.fire(this.input.value);
+		}));
+
+		this._register(dom.addStandardDisposableListener(this.input, 'keydown', e => {
+			if (e.keyCode === KeyCode.Escape) {
+				if (this.input.value) {
+					e.preventDefault();
+					this.input.value = '';
+					this.updateClearVisibility();
+					this._onDidChange.fire('');
+				} else if (this.focusList?.(false)) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			} else if (e.keyCode === KeyCode.DownArrow && this.focusList?.(true)) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 		}));
 
 		this._register(dom.addStandardDisposableListener(this.clearButton, 'click', (e) => {

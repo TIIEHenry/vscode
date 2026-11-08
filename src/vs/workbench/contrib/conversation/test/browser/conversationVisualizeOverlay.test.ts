@@ -149,7 +149,9 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.ok(overlay.isOpen());
 
 		const dialog = container.querySelector('.conversation-visualize-overlay') as HTMLElement;
-		dialog.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.Escape, bubbles: true }));
+		dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', keyCode: 9, bubbles: true }));
+		assert.strictEqual(overlay.isOpen(), true);
+		dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: KeyCode.Escape, bubbles: true }));
 		assert.strictEqual(overlay.isOpen(), false);
 		assert.strictEqual(container.querySelector('[role="dialog"]'), null);
 	});
@@ -288,5 +290,50 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.ok(!source.includes(`void mountResult.webview!.postMessage({ type: 'resetPanZoom' });`));
 		assert.strictEqual((source.match(/void mountResult\.webview!\.postMessage\(\{ type: 'resetPanZoom' \}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 0);
 		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+	});
+});
+
+suite('ConversationVisualizeOverlay (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('open after dispose does not mount overlay chrome', () => {
+		const container = append(document.body, $('.conversation-visualize-overlay-test-root'));
+		store.add({ dispose: () => container.remove() });
+
+		const layoutService = {
+			_serviceBrand: undefined,
+			getContainer: () => container,
+		} as unknown as ILayoutService;
+
+		const webviewService: IWebviewService = {
+			_serviceBrand: undefined,
+			activeWebview: undefined,
+			webviews: [],
+			onDidChangeActiveWebview: Event.None,
+			createWebviewOverlay: () => { throw new Error('not used'); },
+			createWebviewElement: () => { throw new Error('not used'); },
+		};
+
+		const openOptions = {
+			source: 'flowchart TD\n  A-->B',
+			title: 'Disposed guard',
+			extensionInfo: {
+				extensionLocation: URI.file('/tmp/mermaid'),
+				extensionId: new ExtensionIdentifier('vscode.mermaid-markdown-features'),
+			},
+			targetWindow: mainWindow,
+			webviewService,
+			host: container,
+		};
+
+		const overlay = new ConversationVisualizeOverlay(layoutService);
+		overlay.open(openOptions);
+		assert.ok(overlay.isOpen());
+		overlay.dispose();
+
+		overlay.open(openOptions);
+		assert.strictEqual(overlay.isOpen(), false);
+		assert.strictEqual(container.querySelector('.conversation-visualize-overlay[role="dialog"]'), null);
 	});
 });

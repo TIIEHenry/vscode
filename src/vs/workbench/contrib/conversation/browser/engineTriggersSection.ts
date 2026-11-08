@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { captureEnginePublishedLinkOwner, isSameEnginePublishedLinkOwner, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, isSameEnginePublishedLinkOwner, engineWriteNotSentCopy, engineWriteSelectionNotSentCopy, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
 import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
@@ -16,6 +16,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -50,6 +51,7 @@ import { writeStatus } from './connectionPreferencesPane.js';
 import type { ConnectionStatusTone } from './connectionPreferencesPaneLabels.js';
 
 import { appendCatalogSettingFields } from './engineCatalogSettingRow.js';
+import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 
 const $ = DOM.$;
 const dom = DOM;
@@ -136,8 +138,9 @@ function createTriggerIconButton(parent: HTMLElement, label: string, icon: Theme
  * failed and closes Fire/Enable/Delete/Upsert (D437); write gate is not only
  * connected+pairingHold (`leftoverListFailed` / mode failed).
  * SetEnabled, Fire, Delete, and Upsert settle on the published engine
- * identity and link from the click. An Upsert dialog that sees either
- * change does not call upsertTrigger or paint that attempt. A write that
+ * identity and link from the click. Delete asks on an anchored confirm first.
+ * An Upsert dialog or Delete confirm that sees either change, a refresh, or a
+ * selection change does not send and writes the not-sent copy. A write that
  * returns against a different identity or link does not paint success or
  * failure, write selectedTrigger, or refresh for that result. Disconnect,
  * missing hook, and pairing-hold still refuse as before.
@@ -178,6 +181,7 @@ export class EngineTriggersSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
 
@@ -229,16 +233,24 @@ export class EngineTriggersSection extends Disposable {
 			if (this._store.isDisposed) {
 				return;
 			}
-			void this.handleDelete().catch(onUnexpectedError);
+			void this.confirmAndDelete().catch(onUnexpectedError);
 		}));
 
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
+		this.fireStatus.setAttribute('role', 'status');
+		this.fireStatus.setAttribute('aria-live', 'polite');
 		this.fireStatus.style.display = 'none';
 		this.enabledStatus = DOM.append(this.container, $('.engine-triggers-enabled-status'));
+		this.enabledStatus.setAttribute('role', 'status');
+		this.enabledStatus.setAttribute('aria-live', 'polite');
 		this.enabledStatus.style.display = 'none';
 		this.deleteStatus = DOM.append(this.container, $('.engine-triggers-delete-status'));
+		this.deleteStatus.setAttribute('role', 'status');
+		this.deleteStatus.setAttribute('aria-live', 'polite');
 		this.deleteStatus.style.display = 'none';
 		this.upsertStatus = DOM.append(this.container, $('.engine-triggers-upsert-status'));
+		this.upsertStatus.setAttribute('role', 'status');
+		this.upsertStatus.setAttribute('aria-live', 'polite');
 		this.upsertStatus.style.display = 'none';
 		this.updateFireAction();
 		this.updateSetEnabledAction();
@@ -734,6 +746,53 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
+	/** Copy for a write the dialog or confirm held while a refresh, link change, or selection change retired it. */
+	private triggerWriteNotSentReason(origin: UniverseAgentPublishedLinkOwner, generation: number, target?: { readonly id: string | undefined }): string | undefined {
+		if (!this.triggerWriteLinkStill(origin) || generation !== this.renderGeneration || this.isTriggerWriteListFailed() || this.isTriggerWritePairingHold() || !this.connection.isEngineConnected()) {
+			return engineWriteNotSentCopy();
+		}
+		if (target && this.selectedTrigger?.triggerId !== target.id) {
+			return engineWriteSelectionNotSentCopy();
+		}
+		return undefined;
+	}
+
+	private showTriggerWriteNotSent(status: HTMLElement, reason: string): void {
+		status.style.display = '';
+		writeStatus(status, reason, 'error');
+	}
+
+	private async confirmAndDelete(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), this.triggerSupported('deleteTrigger', this.connection.deleteTrigger), this.isTriggerWritePairingHold())) {
+			return;
+		}
+		const target = this.selectedTrigger;
+		const generation = this.renderGeneration;
+		const origin = this.triggerWriteOrigin();
+		if (!origin) { return; }
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor: this.deleteButton.element,
+			message: target
+				? localize('ua.engineTriggerDeleteConfirm', "Delete trigger \"{0}\"?", target.name || target.triggerId)
+				: localize('ua.engineTriggerDeleteConfirmUnselected', "Delete trigger?"),
+			detail: localize('ua.engineTriggerDeleteDetail', "This removes the trigger from the engine."),
+			confirmLabel: ENGINE_TRIGGER_DELETE_LABEL,
+		});
+		if (this._store.isDisposed || !confirmed) {
+			return;
+		}
+		const notSent = this.triggerWriteNotSentReason(origin, generation, { id: target?.triggerId });
+		if (notSent) {
+			this.showTriggerWriteNotSent(this.deleteStatus, notSent);
+			return;
+		}
+		await this.handleDelete();
+	}
+
 	private async handleDelete(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
@@ -774,7 +833,7 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
-	private async promptTrigger(mode: 'add' | 'edit', origin: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentTrigger | undefined> {
+	private async promptTrigger(mode: 'add' | 'edit', origin: UniverseAgentPublishedLinkOwner, generation: number): Promise<UniverseAgentTrigger | undefined> {
 		if (this._store.isDisposed) {
 			return undefined;
 		}
@@ -801,7 +860,9 @@ export class EngineTriggersSection extends Disposable {
 		if (this._store.isDisposed || !result.confirmed) {
 			return undefined;
 		}
-		if (!this.triggerWriteLinkStill(origin) || (mode === 'edit' && this.selectedTrigger?.triggerId !== selected?.triggerId)) {
+		const notSent = this.triggerWriteNotSentReason(origin, generation, mode === 'edit' ? { id: selected?.triggerId } : undefined);
+		if (notSent) {
+			this.showTriggerWriteNotSent(this.upsertStatus, notSent);
 			return undefined;
 		}
 		const values = result.values ?? [];
@@ -828,12 +889,13 @@ export class EngineTriggersSection extends Disposable {
 		const upsertGeneration = ++this._upsertGeneration;
 		const origin = this.triggerWriteOrigin();
 		if (!origin) { return; }
-		const drafted = await this.promptTrigger(mode, origin);
+		const drafted = await this.promptTrigger(mode, origin, generation);
 		if (this._store.isDisposed || !drafted) {
 			return;
 		}
 		const liveHook = this.connection.upsertTrigger;
 		if (!sameTarget() || generation !== this.renderGeneration || this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', liveHook), this.isTriggerWritePairingHold()) || !liveHook || !this.triggerWriteLinkStill(origin)) {
+			this.showTriggerWriteNotSent(this.upsertStatus, this.triggerWriteNotSentReason(origin, generation, mode === 'edit' ? { id: selectedId } : undefined) ?? engineWriteNotSentCopy());
 			return;
 		}
 		const request = engineTriggerUpsertRequest(drafted);

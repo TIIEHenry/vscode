@@ -3,7 +3,7 @@ title: "Titlebar / Statusbar：窗口 chrome 与条目 API"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-05
+updated: 2026-11-07
 summary: "默认窗口 TITLEBAR_PART / STATUSBAR_PART 的宿主内容与 IStatusbarService 条目面；与 Desktop AppTabBar / StatusBar 只做松映射，chrome 内部不是 ADR-052 合同"
 ---
 
@@ -30,8 +30,9 @@ S1 手术对象是默认窗口。Agents Window 是样例宿主，**禁止**把�
 
 左（`titlebar-left`）：
 
-- **App icon**（Windows / Linux 且非 native titlebar）
 - **自定义菜单栏** `CustomMenubarControl`：非 auxiliary、非 native menu、非 compact 时 `installMenubar()`。macOS native 通常走系统菜单。显隐跟 `window.menuBarVisibility`。
+
+标题条不画应用图标。原来双击图标关窗的 `window.doubleClickIconToClose` 已标弃用，不再起作用；设置编辑器只在用户配置过它时于分类里显示，并附弃用说明。
 
 中（`titlebar-center`）：
 

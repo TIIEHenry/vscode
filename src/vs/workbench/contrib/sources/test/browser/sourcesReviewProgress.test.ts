@@ -398,6 +398,65 @@ suite('Sources - review progress service', () => {
 		assert.strictEqual((await service.resolveKey(targetB)).contentHash, '2\0tc-2');
 		assert.strictEqual((await service.resolveKey(targetC)).contentHash, '3\0tc-3');
 	});
+
+	function evictionFixture() {
+		const service = createService({ workDir: '/engine' });
+		service.setMutationCapacityForTest(2);
+		const mutation = (path: string, id: string): IFileMutationRecord => ({
+			sessionId: 'sess',
+			path,
+			turnId: id,
+			toolCallId: `tc-${id}`,
+			agentId: 'agent',
+			operation: 'edit',
+		});
+		const target = { resource: sourcesGitUnrootedChangeResource('src/a.ts'), origin: 'engine' as const, sessionId: 'sess', gitPath: 'src/a.ts' };
+		return { service, mutation, target };
+	}
+
+	test('an evicted engine mutation record keeps the reviewed mark, adds no second mark, and one unmark clears it', async function () {
+		const { service, mutation, target } = evictionFixture();
+		service.mutationEmitter.fire(mutation('/engine/src/a.ts', '1'));
+		const marked = await service.resolveKey(target);
+		assert.strictEqual(marked.contentHash, '1\0tc-1');
+		service.markReviewed(marked);
+
+		service.mutationEmitter.fire(mutation('/engine/src/b.ts', '2'));
+		service.mutationEmitter.fire(mutation('/engine/src/c.ts', '3'));
+		const evicted = await service.resolveKey(target);
+		assert.strictEqual(evicted.contentHash, '');
+
+		let changes = 0;
+		store.add(service.onDidChange(() => changes++));
+		service.noteRefreshedKey(evicted);
+		assert.deepStrictEqual({ entry: service.isEntryReviewed(target), marked: service.isReviewed(marked), changes }, { entry: true, marked: true, changes: 0 });
+
+		service.markReviewed(evicted);
+		service.markAllReviewed([evicted]);
+		assert.deepStrictEqual(
+			{ evicted: service.isReviewed(evicted), marked: service.isReviewed(marked), changes },
+			{ evicted: false, marked: true, changes: 0 },
+			're-opening the row or Mark all must not add a second mark for the same identity',
+		);
+
+		const stored = service.getReviewedKey(target);
+		assert.ok(stored);
+		service.markUnreviewed(stored);
+		assert.strictEqual(service.isEntryReviewed(target), false);
+	});
+
+	test('a new engine mutation after an evicted record still clears the reviewed mark', async function () {
+		const { service, mutation, target } = evictionFixture();
+		service.mutationEmitter.fire(mutation('/engine/src/a.ts', '1'));
+		service.markReviewed(await service.resolveKey(target));
+		service.mutationEmitter.fire(mutation('/engine/src/b.ts', '2'));
+		service.mutationEmitter.fire(mutation('/engine/src/c.ts', '3'));
+		service.noteRefreshedKey(await service.resolveKey(target));
+		assert.strictEqual(service.isEntryReviewed(target), true);
+
+		service.mutationEmitter.fire(mutation('/engine/src/a.ts', '4'));
+		assert.strictEqual(service.isEntryReviewed(target), false);
+	});
 });
 
 suite('Sources - review progress key', () => {

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { upcast } from '../../../../../base/common/types.js';
@@ -35,8 +36,10 @@ import {
 	McpConnectionState,
 	McpServerDefinition,
 	McpServerLaunch,
+	McpToolVisibility,
 	UserInteractionRequiredError,
 } from '../../common/mcpTypes.js';
+import { MCP } from '../../common/modelContextProtocol.js';
 import { TestEnablementModel } from './testMcpService.js';
 import { TestMcpMessageTransport, TestMcpRegistry } from './mcpRegistryTypes.js';
 
@@ -64,6 +67,37 @@ class ErrorThenRunningDelegate extends Disposable implements IMcpHostDelegate {
 		} else {
 			transport.setConnectionState({ state: McpConnectionState.Kind.Running });
 		}
+		return transport;
+	}
+}
+
+class RunningToolsDelegate extends Disposable implements IMcpHostDelegate {
+	priority = 0;
+
+	constructor(private readonly _tools: readonly MCP.Tool[]) {
+		super();
+	}
+
+	substituteVariables(_serverDefinition: McpServerDefinition, launch: McpServerLaunch): Promise<McpServerLaunch> {
+		return Promise.resolve(launch);
+	}
+
+	canStart(): boolean {
+		return true;
+	}
+
+	waitForInitialProviderPromises(): Promise<void> {
+		return Promise.resolve();
+	}
+
+	start(): IMcpMessageTransport {
+		const transport = new TestMcpMessageTransport();
+		transport.setResponder('tools/list', message => ({
+			jsonrpc: MCP.JSONRPC_VERSION,
+			id: (message as MCP.JSONRPCRequest).id,
+			result: { tools: [...this._tools] } satisfies MCP.ListToolsResult,
+		}));
+		transport.setConnectionState({ state: McpConnectionState.Kind.Running });
 		return transport;
 	}
 }
@@ -128,7 +162,7 @@ suite('Workbench - MCP - McpServer', () => {
 		)));
 	});
 
-	function createServer(): McpServer {
+	function createServer(cache?: McpServerMetadataCache): McpServer {
 		const collection = registry.collections.get()[0];
 		const definition = collection.serverDefinitions.get()[0];
 
@@ -138,10 +172,41 @@ suite('Workbench - MCP - McpServer', () => {
 			definition,
 			undefined,
 			false,
-			store.add(instantiationService.createInstance(McpServerMetadataCache, StorageScope.APPLICATION)),
+			cache ?? store.add(instantiationService.createInstance(McpServerMetadataCache, StorageScope.APPLICATION)),
 			new McpPrefixGenerator(),
 			new TestEnablementModel(),
 		));
+	}
+
+	const liveTool: MCP.Tool = { name: 'live_tool', description: 'Live tool', inputSchema: { type: 'object', properties: {} } };
+
+	function setupPendingToolValidation() {
+		registry.delegates.set([store.add(new RunningToolsDelegate([liveTool]))], undefined);
+		const validateCalled = new DeferredPromise<void>();
+		const validateResult = new DeferredPromise<undefined>();
+		instantiationService.stub(ICommandService, {
+			executeCommand: <R>(id: string): Promise<R | undefined> => {
+				if (id !== 'json.validate') {
+					return Promise.resolve(undefined);
+				}
+				validateCalled.complete();
+				return validateResult.p;
+			},
+		});
+		const cache = store.add(instantiationService.createInstance(McpServerMetadataCache, StorageScope.APPLICATION));
+		const definition = registry.collections.get()[0].serverDefinitions.get()[0];
+		cache.store(definition.id, {
+			tools: [{
+				name: 'cached_tool',
+				description: 'Cached tool',
+				inputSchema: { type: 'object', properties: {} },
+				serverToolName: 'cached_tool',
+				_icons: [],
+				visibility: McpToolVisibility.Model | McpToolVisibility.App,
+			}],
+			nonce: definition.cacheNonce,
+		});
+		return { validateCalled, validateResult, cache, definition, server: createServer(cache) };
 	}
 
 	test('non-quiet error start settles and the next queued start runs', async () => {
@@ -168,5 +233,34 @@ suite('Workbench - MCP - McpServer', () => {
 				return true;
 			},
 		);
+	});
+
+	test('late tool validation after dispose keeps the cached tools', async () => {
+		const { validateCalled, validateResult, cache, definition, server } = setupPendingToolValidation();
+		const cachedTools = cache.get(definition.id)?.tools;
+		assert.strictEqual(cachedTools?.length, 1);
+
+		const state = await server.start();
+		assert.strictEqual(state.state, McpConnectionState.Kind.Running);
+		await validateCalled.p;
+		server.dispose();
+		await validateResult.complete(undefined);
+		await timeout(0);
+
+		assert.strictEqual(cache.get(definition.id)?.tools, cachedTools, 'a server disposed during validation must not overwrite the cached tools');
+		assert.deepStrictEqual(cache.get(definition.id)?.tools.map(tool => tool.serverToolName), ['cached_tool']);
+	});
+
+	test('tool validation on a live server stores the validated tools', async () => {
+		const { validateCalled, validateResult, cache, definition, server } = setupPendingToolValidation();
+
+		const state = await server.start();
+		assert.strictEqual(state.state, McpConnectionState.Kind.Running);
+		await validateCalled.p;
+		await validateResult.complete(undefined);
+		await timeout(0);
+
+		assert.deepStrictEqual(cache.get(definition.id)?.tools.map(tool => tool.serverToolName), [liveTool.name]);
+		assert.strictEqual(cache.get(definition.id)?.nonce, definition.cacheNonce);
 	});
 });

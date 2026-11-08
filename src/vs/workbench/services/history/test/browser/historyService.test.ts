@@ -29,6 +29,9 @@ import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../../platform/storage/common/storage.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 
 suite('HistoryService', function () {
 
@@ -911,6 +914,218 @@ suite('HistoryService', function () {
 		assert.strictEqual(part.activeGroup.activeEditor, input4);
 		await historyService.goForward();
 		assert.strictEqual(part.activeGroup.activeEditor, input5);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	// Like `FileEditorInput`, the untyped form carries the editor id as override
+	class TestFileEditorInputWithOverride extends TestFileEditorInput {
+		override toUntyped(): IUntypedEditorInput {
+			return { resource: this.resource, options: { override: this.editorId } };
+		}
+	}
+
+	async function createServicesBeforeEditorGroupsReady(storedEntries: IResourceEditorInput[]) {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+
+		const storageService = instantiationService.get(IStorageService) as TestStorageService;
+		storageService.store('history.entries', JSON.stringify(storedEntries.map(editor => ({ editor: { ...editor, resource: editor.resource.toString() } }))), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+
+		const part = await createEditorPart(instantiationService, disposables);
+
+		// Opened before the history service exists, which then adds it while the editor groups are not ready
+		const activeEditor = disposables.add(new TestFileEditorInputWithOverride(URI.file('/history-active.txt'), TEST_EDITOR_INPUT_ID));
+		await part.activeGroup.openEditor(activeEditor, { pinned: true });
+
+		let isReady = false;
+		const whenReady = new DeferredPromise<void>();
+		const editorGroupService = new Proxy(part, {
+			get(target, property) {
+				if (property === 'isReady') {
+					return isReady;
+				}
+				if (property === 'whenReady') {
+					return whenReady.p;
+				}
+				return Reflect.get(target, property, target);
+			}
+		});
+		instantiationService.stub(IEditorGroupsService, editorGroupService);
+
+		const editorService = disposables.add(instantiationService.createInstance(EditorService, undefined));
+		instantiationService.stub(IEditorService, editorService);
+
+		const historyService = disposables.add(instantiationService.createInstance(HistoryService));
+		instantiationService.stub(IHistoryService, historyService);
+
+		const accessor = instantiationService.createInstance(TestServiceAccessor);
+
+		const readyEditorGroups = async () => {
+			isReady = true;
+			await whenReady.complete();
+			await timeout(0);
+		};
+
+		return { historyService, editorService, storageService, accessor, instantiationService, activeEditor, readyEditorGroups };
+	}
+
+	function historyResources(historyService: HistoryService): Array<string | undefined> {
+		return historyService.getHistory().map(entry => entry.resource?.toString());
+	}
+
+	function storedHistoryResources(storageService: TestStorageService): string[] {
+		const raw = storageService.get('history.entries', StorageScope.WORKSPACE);
+		return raw ? (JSON.parse(raw) as Array<{ editor: { resource: string } }>).map(entry => entry.editor.resource) : [];
+	}
+
+	test('history loaded once the editor groups are ready keeps stored entries after entries added before', async () => {
+		const storedA = URI.file('/history-stored-a.txt');
+		const storedB = URI.file('/history-stored-b.txt');
+		const { historyService, storageService, instantiationService, activeEditor, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: storedA }, { resource: storedB }]);
+
+		await readyEditorGroups();
+		assert.deepStrictEqual(historyResources(historyService), [activeEditor.resource.toString(), storedA.toString(), storedB.toString()]);
+
+		storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		assert.deepStrictEqual(storedHistoryResources(storageService), [activeEditor.resource.toString(), storedA.toString(), storedB.toString()]);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('history removed before the editor groups are ready does not come back from storage', async () => {
+		const storedA = URI.file('/history-stored-a.txt');
+		const storedB = URI.file('/history-stored-b.txt');
+		const { historyService, instantiationService, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: storedA }, { resource: storedB }]);
+
+		historyService.removeFromHistory({ resource: storedA });
+		await readyEditorGroups();
+
+		const resources = historyResources(historyService);
+		assert.ok(!resources.includes(storedA.toString()));
+		assert.ok(resources.includes(storedB.toString()));
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('history cleared before the editor groups are ready stays cleared', async () => {
+		const storedA = URI.file('/history-stored-a.txt');
+		const storedB = URI.file('/history-stored-b.txt');
+		const { historyService, instantiationService, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: storedA }, { resource: storedB }]);
+
+		historyService.clearRecentlyOpened();
+		await readyEditorGroups();
+
+		assert.deepStrictEqual(historyResources(historyService), []);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('saving before the editor groups are ready keeps the stored history', async () => {
+		const storedA = URI.file('/history-stored-a.txt');
+		const storedB = URI.file('/history-stored-b.txt');
+		const { storageService, instantiationService, activeEditor, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: storedA }, { resource: storedB }]);
+
+		storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		assert.deepStrictEqual(storedHistoryResources(storageService), [storedA.toString(), storedB.toString()]);
+
+		await readyEditorGroups();
+		storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		assert.deepStrictEqual(storedHistoryResources(storageService), [activeEditor.resource.toString(), storedA.toString(), storedB.toString()]);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('a file moved before the editor groups are ready keeps its stored entry under the new path', async () => {
+		const storedA = URI.file('/history-stored-a.txt');
+		const movedA = URI.file('/history-moved-a.txt');
+		const storedB = URI.file('/history-stored-b.txt');
+		const { historyService, accessor, instantiationService, activeEditor, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: storedA }, { resource: storedB }]);
+
+		const stat = {
+			ctime: 0,
+			etag: '',
+			mtime: 0,
+			isDirectory: false,
+			isFile: true,
+			isSymbolicLink: false,
+			name: 'history-moved-a.txt',
+			readonly: false,
+			locked: false,
+			executable: false,
+			size: 0,
+			resource: movedA,
+			children: undefined
+		};
+		accessor.fileService.fireAfterOperation(new FileOperationEvent(storedA, FileOperation.MOVE, stat));
+		await readyEditorGroups();
+
+		assert.deepStrictEqual(historyResources(historyService), [activeEditor.resource.toString(), movedA.toString(), storedB.toString()]);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('a stored entry for an editor added before the editor groups are ready is not added twice', async () => {
+		const activeResource = URI.file('/history-active.txt');
+		const storedA = URI.file('/history-stored-a.txt');
+		const { historyService, instantiationService, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: activeResource, options: { override: TEST_EDITOR_INPUT_ID } }, { resource: storedA }]);
+
+		await readyEditorGroups();
+
+		assert.deepStrictEqual(historyResources(historyService), [activeResource.toString(), storedA.toString()]);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('an entry added before the editor groups are ready without a removal record still keeps a stored duplicate out', async () => {
+		const movedActive = URI.file('/history-active-moved.txt');
+		const storedA = URI.file('/history-stored-a.txt');
+		const { historyService, instantiationService, activeEditor, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: movedActive }, { resource: storedA }]);
+
+		// Called directly so that the editor service does not also move the opened editor;
+		// the moved target enters the history without a removal record of its own
+		const stat = {
+			ctime: 0,
+			etag: '',
+			mtime: 0,
+			isDirectory: false,
+			isFile: true,
+			isSymbolicLink: false,
+			name: 'history-active-moved.txt',
+			readonly: false,
+			locked: false,
+			executable: false,
+			size: 0,
+			resource: movedActive,
+			children: undefined
+		};
+		(historyService as unknown as { moveInHistory(event: FileOperationEvent): void }).moveInHistory(new FileOperationEvent(activeEditor.resource, FileOperation.MOVE, stat));
+		await readyEditorGroups();
+
+		assert.deepStrictEqual(historyResources(historyService), [movedActive.toString(), storedA.toString()]);
+
+		return workbenchTeardown(instantiationService);
+	});
+
+	test('a deferred history load that throws still lets the history be saved', async () => {
+		const storedA = URI.file('/history-stored-a.txt');
+		const { editorService, storageService, instantiationService, activeEditor, readyEditorGroups } = await createServicesBeforeEditorGroupsReady([{ resource: storedA }]);
+
+		const errors: unknown[] = [];
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		const getEditors = editorService.getEditors;
+		setUnexpectedErrorHandler(error => errors.push(error));
+		editorService.getEditors = () => { throw new Error('getEditors failed'); };
+		try {
+			await readyEditorGroups();
+		} finally {
+			editorService.getEditors = getEditors;
+			setUnexpectedErrorHandler(originalErrorHandler);
+		}
+
+		assert.strictEqual(errors.length, 1);
+
+		storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		assert.deepStrictEqual(storedHistoryResources(storageService), [activeEditor.resource.toString()]);
 
 		return workbenchTeardown(instantiationService);
 	});

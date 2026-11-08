@@ -3,7 +3,7 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-30
+updated: 2026-11-06
 summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（工作目录顶层分组，不画 Engine 根；文件夹图标与路径，名字优先；当前引擎 workDir 行悬停或键盘焦点出 New session；会话图标与消息数，悬停 Open/Delete；当前窗口文件夹标 current workspace）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
@@ -101,7 +101,22 @@ Singularity 意图（只取问题，不取 Compose 树合同）：「有哪些�
 
 Select 行可切 Conversation 读视图（共享 session 导航态）；**不得**改引擎执行 owner。
 
-**inspect（选定，N2 @ HEAD）：** Panel 容器 **`workbench.panel.agentInspect`** + 单叶 **`workbench.panel.agentInspect.view`** + `AgentInspectView`。`IAgentInspectService` 选中总线（agent / member / task / activity 四模板）；行 action「Inspect」与行单击写入 target 再 `openView`。字段用人话名（Agent ID / Status…）两列排；Status 色调与 Hierarchy `agentStatusTone` 同一套。成员、任务和工具活动的检查目标带上画出该行时的会话；对应列表发布了另一个会话时，即使 id 仍在新列表里也显示 “No longer in the current tree”。叶隐藏只清 live id、不发布新会话，不因此标过期。过期注从列表高度扣除。欢迎文案仍是 “Select an item in Agents or Team”。**v1 单叶**：Agents/Team 共用；**第二叶不需要**（page-access §5.4 留白已关）。**不是** Preview tab / editor-in-panel。容器 `hideIfEmpty: true`。
+**行操作（四个列表一致，2026-11-06）：** 单击只 `setTarget`（Inspect 已打开时随之更新），焦点留在列表，不打开 Panel、子代理对话框或 Conversation。显式动作由 Enter、双击和行内按钮承担：
+
+| 列表 | 单击 | Enter / 双击 | 行内按钮 |
+|------|------|--------------|----------|
+| Agents Hierarchy | `setTarget` | `setTarget` 后 Reveal in Conversation（子代理打开对话框，根 `'default'` 回主对话） | Inspect（`setTarget` 并打开、聚焦 Inspect）· Reveal in Conversation |
+| Agents Activity | `setTarget` | `setTarget`，显示 Inspect 但不移走焦点；非 overlay 项再 `conversation.revealItem` | 无 |
+| Team Members | `setTarget` | `setTarget` 后 Reveal in Conversation | 无 |
+| Team Tasks | `setTarget` | `setTarget`，显示 Inspect 但不移走焦点 | 无 |
+
+标题栏 **Inspect** 对焦点行执行 `setTarget` 并打开、聚焦 Inspect。lease 不 live 时单击、Enter 与行内按钮都不生效。
+
+Activity、Team 成员与任务行的状态是行尾固定一列（与 Hierarchy 同一套状态图标，加引擎原文），不参与名字的省略；名字列先截断。读屏名与悬停提示仍包含状态，文本筛选也匹配状态。
+
+Agents / Team / Projects 内联 filter 键盘：Esc 先清空；框已空再按 Esc，焦点回到当前列表的焦点行（没有则首项）；↓ 进入列表首项。列表为空或隐藏时这两个键不处理。Projects 的筛选框已支持，视图侧尚未接入（`navigatorProjectsList.ts` 未传入列表聚焦回调）。
+
+**inspect（选定，N2 @ HEAD）：** Panel 容器 **`workbench.panel.agentInspect`** + 单叶 **`workbench.panel.agentInspect.view`** + `AgentInspectView`。`IAgentInspectService` 选中总线（agent / member / task / activity 四模板）；行 action「Inspect」写入 target 再 `openView`；行单击只写入 target（见上方行操作表）。字段用人话名（Agent ID / Status…）两列排；Status 色调与 Hierarchy `agentStatusTone` 同一套。成员、任务和工具活动的检查目标带上画出该行时的会话；对应列表发布了另一个会话时，即使 id 仍在新列表里也显示 “No longer in the current tree”。叶隐藏只清 live id、不发布新会话，不因此标过期。过期注从列表高度扣除。欢迎文案仍是 “Select an item in Agents or Team”。**v1 单叶**：Agents/Team 共用；**第二叶不需要**（page-access §5.4 留白已关）。**不是** Preview tab / editor-in-panel。容器 `hideIfEmpty: true`。
 
 Sessions / Agents / Team / Projects 内联 filter 对齐：32px、输入框描边、底部分隔、焦点环。Agents / Team 空态仍显示 filter（测锁）。Projects、Team、Agents 的筛选清除按钮显式为普通按钮（`type=button`）。Projects 过期快照 recents 条用描述色，最近文件夹加载失败才用错误色。Hierarchy 状态图标按 tone 使用不同 Codicon（pulse、error、check、debugPause、circleOutline、question），并保留原有颜色、tooltip 与读屏名。类型图标仍用 Codicon，不用首字母或无色圆点。
 
@@ -113,6 +128,10 @@ Sessions / Agents / Team / Projects 内联 filter 对齐：32px、输入框描�
 | 无引擎 | `NavigatorTeamView`：Members / Tasks 子视图 + 内联 filter；诚实空态；标题 **Inspect**（与 Agents 共用 Panel 单叶） |
 | 有引擎 | Team 叶独立 lease 读 `liveAgentTree` 发现 manager（`AGENT_TYPE_MEMBER` 子节点）→ `team.memberStatus` / `taskList`；`liveTeamId` 有值才 `teamInfo`；`onDidChangeTeamRuntime` + 250 ms 合并刷新。方案 [§2.4](../../../dev/plans/navigator-engine-segments.md) |
 | **禁止** | GitHub Accounts 菜单、Extensions 市场、把 Team 注册成 Preview Surface、伪造 `team.*` RPC |
+
+Team 的 Tasks 文本筛选与状态筛选取交集，各自清除时保留另一项。状态条允许在窄栏换行，列表高度扣除它的实际高度；任务清空、恢复和切换子页时重新计算。筛选导致零命中仍保留状态按钮，便于恢复。
+
+运行时更新将任务列表变空并隐藏时，仅在列表原先拥有焦点的情况下，把焦点交给当前状态按钮；全部任务消失、状态条也隐藏时回到筛选输入框。其他区域的焦点不被抢走。首次读取失败在空态显示一次错误；保留历史列表的失败则在列表旁显示失败说明，不把旧数据当成实时数据。
 
 ### 3.6 Engines — 不进 Activity
 

@@ -3554,6 +3554,17 @@ export class CopilotAgentSession extends Disposable {
 			// parent session, which has no matching ChatToolCallStart.
 			const trackedToolCall = this._activeToolCalls.get(toolCallId);
 			const parentToolCallId = trackedToolCall?.parentToolCallId;
+			// Only the host's own shells report a prompt-confirmed cwd. The SDK's
+			// built-in shell is not observable, so its requests leave this unset.
+			// The host reads it only to auto-approve relative write redirects, and
+			// a `true` answer pins the command to a shell at the working directory,
+			// so other requests leave it unset and run in any shell. Without a
+			// ShellManager the start directory cannot be confirmed, and leaving it
+			// unset would let the host assume the working directory.
+			const shellStartsInPrimaryWorkingDirectory = customShellToolName !== undefined && shellLanguage !== undefined
+				&& !managedApprovalRequired && !requestSandboxBypass && toolInput?.includes('>')
+				? this._shellManager?.checkStartsInWorkingDirectory(shellLanguage, toolCallId) ?? false
+				: undefined;
 			this._onDidSessionProgress.fire({
 				kind: 'pending_confirmation',
 				chat: this._chatChannelUri,
@@ -3582,11 +3593,15 @@ export class CopilotAgentSession extends Disposable {
 				managedApprovalRequired,
 				requestSandboxBypass,
 				shellLanguage,
+				shellStartsInPrimaryWorkingDirectory,
 				parentToolCallId,
 			});
 
 			const result = await pendingPermission;
 			this._logService.info(`[Copilot:${this.sessionId}] Permission response: toolCallId=${toolCallId}, result=${result.kind}`);
+			if (shellStartsInPrimaryWorkingDirectory && result.kind !== 'approve-once') {
+				this._shellManager?.forgetWorkingDirectoryStart(toolCallId);
+			}
 			if (!managedApprovalRequired && result.kind === 'approve-once' && (request.kind === 'write' || request.kind === 'read')) {
 				this._approvedDuplicablePermissionSignatures.set(toolCallId, safeStringify(request));
 			}

@@ -11,6 +11,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { ACTIVE_GROUP, IEditorService, PreferredGroup } from '../common/editorService.js';
 import { IEditorGroup, IEditorGroupsService } from '../common/editorGroupsService.js';
 import { EditorOpenSlot, planEditorOpen } from '../common/editorOpenSlot.js';
+import { isPreviewCategoryRoutingPart } from '../common/previewCategoryRouting.js';
 
 export interface IEditorOpenSlotOptions {
 	readonly preserveFocus?: boolean;
@@ -44,14 +45,28 @@ function alreadyOpenInGroup(group: IEditorGroup, editor: EditorInput | IUntypedE
 	});
 }
 
-function resolveGroup(editorGroupsService: IEditorGroupsService, preferredGroup: PreferredGroup): IEditorGroup | undefined {
+function resolveGroup(
+	editorGroupsService: IEditorGroupsService,
+	preferredGroup: PreferredGroup,
+	editor: EditorInput | IUntypedEditorInput,
+): IEditorGroup | undefined {
 	if (typeof preferredGroup === 'object') {
 		return preferredGroup;
 	}
 	if (typeof preferredGroup === 'number' && preferredGroup !== ACTIVE_GROUP) {
 		return editorGroupsService.getGroup(preferredGroup) ?? editorGroupsService.activeGroup;
 	}
-	return editorGroupsService.activeGroup;
+	const activeGroup = editorGroupsService.activeGroup;
+	const mainPart = editorGroupsService.mainPart;
+	if (
+		activeGroup
+		&& isPreviewCategoryRoutingPart(mainPart)
+		&& typeof mainPart.getTargetGroupForInput === 'function'
+		&& editorGroupsService.getPart?.(activeGroup) === mainPart
+	) {
+		return mainPart.getTargetGroupForInput(editor);
+	}
+	return activeGroup;
 }
 
 export async function openEditorInSlot(
@@ -62,7 +77,7 @@ export async function openEditorInSlot(
 	options: IEditorOpenSlotOptions = {},
 	preferredGroup: PreferredGroup = ACTIVE_GROUP,
 ): Promise<IEditorPane | undefined> {
-	const group = resolveGroup(editorGroupsService, preferredGroup);
+	const group = resolveGroup(editorGroupsService, preferredGroup, editor);
 	const openOptions: IEditorOptions = {
 		preserveFocus: options.preserveFocus,
 		pinned: true,

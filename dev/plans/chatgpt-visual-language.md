@@ -3,7 +3,7 @@ title: "视觉语言以 ChatGPT 为主参照"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-11-04
+updated: 2026-11-08
 summary: "Conversation视觉逐轮落地；2026-11-04用户修订为产品自有界面全面复刻GPT视觉与输入框，文件管理器和代码编辑器保留原版字号/行高，产品自有焦点不画焦点框描边；本计划保留历史切片与实施证据，真实窗口待验。"
 ---
 
@@ -226,6 +226,8 @@ V3样本验证了状态呈现的职责分离与混合阅读的可用基线；C1/
 续轮目标是把§12建议变成可评审对照，本轮不进入生产实现。[A/B证据](../progress/ui-visual-review-2026-10-26-evidence/20261027-reading-checkpoint.md#c1c2-单候选ab原型2026-10-27续轮) / [26项矩阵与检查](../progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab.json) 记录A、单一C1-B、单一C2-B、来源及限制。重新核对当前WIP，两CSS仍与out和前轮摘要相同；没有把前轮事实直接当今天运行结果。
 
 ### 13.1 推荐C1-B的视觉目标，保留实施前身份门槛
+
+状态：已作废（2026-11-05）。D18 的 V3=B 将相邻回合外间距统一收回规范 §4 的 16px；本节保留历史原型、身份门槛和几何证据，12px 同轮候选不再进入产品实施。
 
 问题是同一轮过程、结论、权限之间的停顿接近跨轮停顿。候选B只将**明确同轮的过程根与回答根**的article margin-bottom从当前32px换为现有 `spacing.size120`（12px），即过程→回答、回答→权限两处；用户卡后24px和其他跨轮32px外间距不变。正文13px/1.5、标题token、权限卡样式、动作行及命中区不动，不新增框、分区或状态源。
 
@@ -554,3 +556,1915 @@ Terra首次完成后对比审查（gpt-6.1-terra，只读）：Critical0/Importa
 §28只读审查C0/I0/M3已采纳：行/label长原因同时解锁高度与white-space；图标位限定直接动作列表不影响子菜单；Composer Add的搜索/分组/hidden原结构保持。
 
 §28本地完成：238组件过5pending、compile-client与lint无错误；CSS41过2个D17旧Engine断言。浅深/窄窗/forced菜单实拍与Escape焦点完成，最终壳186×40/行30，去除内层重复border。Terra C0/I0/M0，真实Projects多项/子菜单与长不可用说明仅代码/组件合同覆盖，未真窗实拍。未提交，证据见verification.md §28。
+
+### §20 D2 窄实施检查点（2026-11-05）
+
+规则16 独立审查为 Critical 0；审查指出 selected 行的 400 规则与 active 标记存在 specificity 竞争，实施改用同一 `.monaco-list-row.conversation-sessions-item-active` 组合选择器，并只把当前会话标题设为 `var(--vscode-fontWeight-semiBold, 600)`。未改行高、圆角、背景/前景、Projects/Team、ARIA、键盘、More、HC 或 reduced-motion；因此只完成 D2 的标题字重子切片，§20 其它视觉范围仍按既有边界保留。
+
+验证：`conversationSessionsView.test.ts` 的 Chromium suite 6 passing（Light+、产品浅色、产品深色、HC 黑、HC 浅及 active filter）；Electron hidden-window runner 2 passing / 5 个既有 focus 主题 pending；Node v24.18 下 `npm run compile-client` exit 0。组件证据不替代默认编辑器窗口宽/窄、浅/深和 HC 的人工观察，也不覆盖真实引擎或 SGLang。
+
+### §22 Activity Bar fallback 窄实施检查点（2026-11-05）
+
+规则16 独立复核为 C0/I0：`activitybarPart.ts` 的标准尺寸已经是 44px 行高 / 20px 图标，compact 仍由 inline 变量覆盖为 28px / 16px；`activityaction.css` 的默认 fallback 原先仍是旧的 48px / 24px。实施只把三处标准 fallback 对齐到 44px / 20px，保留 Activity Bar 宽度 48px、compact/Modern UI inline 覆盖、高对比、badge `top:24px`、拖放指示器和动作语义。
+
+验证：新增 `activitybarCssScan.test.ts` 3 passing（含错误捕获）；`activitybarPart.test.ts` Chromium 26 passing。该窄切片仍需 `compile-client` 与默认编辑器窗口浅/深、宽/窄、键盘焦点人工观察，不能把 CSS fallback 合同当成完整窗口验收。
+
+### §29 Sessions 键盘焦点合同窄实施检查点（2026-11-05）
+
+规则16 的 Sol 独立复核为 Critical 0、Important 1：Sessions 列表的普通主题同时存在通用和非高对比的重复 `focusBorder` 行框，More 也画同样的焦点描边；未选中行若直接改成选中底会在浅色主题形成不足 3:1 的对比，因此保留列表既有 selected / active 状态，不新增低对比背景。
+
+实施只在 `conversationSessions.css` 的 Sessions 列表收敛焦点合同：普通主题移除 row 的 `focusBorder` outline，More 的 `:focus-visible` 使用已有 `toolbar.hoverBackground`；高对比主题保留 `contrastActiveBorder` / `contrastBorder` 行框和 More 行框。More 的出现、菜单锚点、键盘导航和 ARIA 结构未改。
+
+验证：`conversationLensCssScan.test.ts` 44 passing；`conversationSessionsView.test.ts` Chromium 主题 suite 6 passing；`npm run compile-client` 在 Node v24.18 下 exit 0；`git diff --check` 通过。组件与源码合同仍不替代默认编辑器窗口浅/深、窄栏和高对比的人工焦点观察。
+
+### §30 SessionBar lens tabs 焦点合同窄实施检查点（2026-11-06）
+
+Sol 按规则16复核 C0/I1：SessionBar 的 lens tabs 原来在普通主题和 selected tab 的 `:focus-visible` 上重复画 `focusBorder`，但 tab 已有 `toolbar-hoverBackground` 选中/悬停状态。实施将普通主题键盘焦点落到该中性背景，selected tab 继续复用同一背景；高对比主题保留 2px `contrastActiveBorder` / `contrastBorder` 焦点线。tablist、roving tabindex、Arrow/Home/End 和 `aria-selected` 合同未改。
+
+验证：`conversationLensCssScan.test.ts` 45 passing；Chromium `conversationLens.test.ts` 的 tablist-only、SessionBar 切换和 ARIA 用例 3 passing；Node v24.18 `npm run compile-client` exit 0。默认编辑器窗口多主题人工焦点观察仍需独立留证。
+
+### §31 Activity Bar 动效合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现标准 Activity Bar 图标与选中指示器仍使用 150ms 过渡，超过 UI 规范的 100ms 上限，并缺少该局部组件的 reduced-motion 关闭规则。实施仅将两处过渡收敛为 100ms，并在 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重显式 `.monaco-enable-motion`）下设为 `none`；尺寸、选中状态、badge、拖放和动作语义未改。
+
+验证：`activitybarCssScan.test.ts` 3 passing（含错误捕获），源码断言覆盖 100ms 上限与两种 reduced-motion 入口。尚未替代默认编辑器窗口浅/深、HC、键盘焦点和 reduced-motion 的人工观察，也未宣称完整窗口验收。
+
+### §32 Navigator Projects 行动效合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Projects 列表行已有 100ms 背景过渡，但缺少显式 reduced-motion 覆盖。实施仅在 `navigatorProjectsList.css` 为项目行增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；不改行高、颜色、圆角、ARIA、键盘或菜单动作。
+
+验证：`navigatorProjectsListCss.test.ts` focused suite 4 passing（含错误捕获），独占 `npm run compile-client` exit 0、compile-src 0 errors；源码断言覆盖 100ms、旧时长排除和两种 reduced-motion 入口。默认编辑器浅/深、HC、键盘焦点和 reduced-motion 人工观察仍待补。
+
+### §33 Navigator Projects inline filter 动效合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Projects 内置过滤框的边框和清除按钮仍使用 120ms 过渡，且没有局部 reduced-motion 覆盖；Sessions 过滤框已有 100ms 合同可作同类对照。实施仅将 Projects inline filter 的两处过渡改为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；Agents/Team 过滤器、过滤逻辑、DOM/ARIA、焦点和 HC 未改。
+
+验证：`npm run transpile-client` exit 0；`navigatorProjectsListCss.test.ts` focused suite 5 passing（含错误捕获），源码断言覆盖 100ms、旧时长排除和两种 reduced-motion 入口。该窄切片未重新跑完整 `compile-client`，默认编辑器浅/深、HC、键盘焦点和 reduced-motion 人工观察仍待补。
+
+### §34 Session window 隐藏叶按钮动效合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Session window 的隐藏叶按钮已有 100ms 颜色过渡，但缺少 reduced-motion 覆盖。实施仅在 `conversationSessionWindow.css` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；隐藏叶生命周期、focus/HC、ARIA、命中区和按钮语义未改。
+
+验证：`npm run transpile-client` exit 0；新增 hide-control 源码合同通过，`conversationRegionChromeCss.test.ts` 当前 2 passing / 1 existing failure，失败来自并行 WIP `conversationPart.css` 的 region chrome 28px→36px 几何断言，不属于本切片。默认编辑器浅/深、HC、键盘焦点和 reduced-motion 人工观察仍待补。
+
+### §35 Navigator Agents inline filter 动效合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Agents inline filter 的输入框边框和清除按钮仍使用 120ms 过渡，且没有局部 reduced-motion 覆盖；Projects filter 已有同类 100ms 合同。实施仅将 Agents filter 两处过渡改为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；过滤逻辑、DOM/ARIA、焦点、HC、Projects/Team 未改。
+
+验证：`npm run transpile-client` exit 0；独立 `navigatorAgentsInlineFilterCss.test.ts` 2 passing（含错误捕获），覆盖 100ms、旧时长排除和两种 reduced-motion 入口。未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §36 Navigator Agents 行与行内动作动效合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：Agents hierarchy/activity 列表行和行内 action 仍使用 120ms 过渡，且没有局部 reduced-motion 覆盖。实施仅将三类背景过渡收敛为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；未改行高、颜色、圆角、焦点、HC、ARIA、动作语义或其它 Navigator WIP。
+
+验证：Sol 的源码合同 5 assertions、ESLint、Stylelint 与 `git diff --check` 通过；`npm run transpile-client` exit 0，编译后 `navigatorStubCss.test.ts` 2 passing（含错误捕获）。Stylelint 仅保留该文件既有 2 条字体 design-token 建议；未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §37 Agent Inspect 行动效合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：Agent Inspect 列表行仍使用 120ms 过渡，且没有局部 reduced-motion 覆盖。实施仅将该列表行过渡收敛为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；未改 TS、几何、颜色、焦点、HC、ARIA 或其它 Navigator WIP。
+
+验证：Sol 的源码合同 4 assertions、ESLint、Stylelint 与 `git diff --check` 通过；刷新产物后 `npm run transpile-client` exit 0，`agentInspectCss.test.ts` 2 passing（含错误捕获）。Stylelint 仅保留该文件既有 2 条字体 design-token 建议；未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §38 Conversation Agent breadcrumb 动效合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：Agent hierarchy 面包屑已有 100ms 背景过渡，但缺少局部 reduced-motion 覆盖。实施仅补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；保留 BreadcrumbsWidget 的焦点、键盘、ARIA、导航逻辑及 28px 视觉几何。
+
+验证：Sol 的源码合同 4 assertions、ESLint 与 `git diff --check` 通过；Stylelint 通过但报告该文件既有 `--ua-ease` unknown-variable 提示及 3 条 design-token 建议；刷新产物后 `npm run transpile-client` exit 0，`conversationAgentBreadcrumbCss.test.ts` 2 passing（含错误捕获）。未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §39 Conversation sub-agent overlay 动效合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：sub-agent overlay 的 action button 已有 100ms 背景过渡，但缺少局部 reduced-motion 覆盖。实施仅补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）的 `transition: none`；不改 overlay 几何、焦点、ARIA、生命周期或动作语义。
+
+验证：Sol 的源码合同 4 assertions、ESLint 与 `git diff --check` 通过；Stylelint 通过但报告该文件既有 `--ua-ease` unknown-variable 及 3 条 design-token 建议；刷新产物后 `npm run transpile-client` exit 0，`conversationSubAgentOverlayCss.test.ts` 2 passing（含错误捕获）。未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §40 Connection Preferences reduced-motion opt-in 合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：Connection Preferences 的 `prefers-reduced-motion` 媒体规则没有尊重显式 `.monaco-enable-motion`，会错误覆盖用户的动效启用选择。实施仅为五个媒体 selector 加 `.monaco-workbench:not(.monaco-enable-motion)`，保留 class 规则及布局、颜色、焦点、ARIA、TS。
+
+验证：Sol 的源码合同 4 assertions、ESLint 与 `git diff --check` 通过；Stylelint 通过但报告该大文件既有 `--ua-*` unknown-variable 及 21 条 design-token 建议；刷新产物后 `npm run transpile-client` exit 0，`connectionPreferencesPaneCss.test.ts` 2 passing（含错误捕获）。未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §41 ua-common motion opt-in 合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：全局 `.ua-motion` 的 `prefers-reduced-motion` 规则没有尊重显式 `.monaco-enable-motion`，与 `productAccessibility.css` 的 motion opt-in 语义冲突。实施仅将媒体 selector 改为 `.monaco-workbench:not(.monaco-enable-motion) .ua-motion`；保留 class reduced-motion、所有创建点及布局、焦点、ARIA。
+
+验证：Sol 的源码合同 5 assertions、ESLint 与 `git diff --check` 通过；Stylelint 通过但报告该文件既有 5 个 `--ua-status-*` unknown-variable 及 1 条 stroke token 建议；刷新产物后 `npm run transpile-client` exit 0，`uaCommonMotionContract.test.ts` 3 passing（含错误捕获）。未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §42 Sessions inline filter reduced-motion opt-in 合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核为 Critical 0：Sessions inline filter 清除按钮已有 100ms 过渡和 class reduced-motion 规则，但缺少 `prefers-reduced-motion` 媒体覆盖。实施仅补 `.monaco-workbench:not(.monaco-enable-motion)` 的媒体 selector；不改输入框、焦点、ARIA、列表行为或 100ms 合同。
+
+验证：Sol 的源码合同 3 assertions、ESLint 与 `git diff --check` 通过；Stylelint 通过但报告该文件既有 `--ua-ease` unknown-variable 及 5 条 design-token 建议；刷新产物后 `npm run transpile-client` exit 0，`conversationSessionsInlineFilterCss.test.ts` 2 passing（含错误捕获）。未重新跑完整 `compile-client` 或默认编辑器人工观察。
+
+### §43 Conversation Visualize Card disclosure ARIA 合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核发现折叠 header button 只有 `aria-expanded`，body 没有可引用的 `id`，屏幕阅读器无法建立 disclosure 控制目标关系。实施为每个 body 生成 `conversation-visualize-body-${turnId}`，并将 header 的 `aria-controls` 指向该 id；折叠逻辑、布局、CSS、焦点和其它 ARIA 状态保持。
+
+验证：Chromium focused browser test 2 passing，覆盖展开状态、点击折叠/展开及 `aria-controls`/body id 匹配；`npm run transpile-client` exit 0，ESLint（2 files）与 `git diff --check` 通过。首次默认 Firefox runner 因缺失 Playwright Firefox 可执行文件且未刷新产物而失败，随后 Chromium 复跑通过；未宣称完整多浏览器或默认编辑器人工验收。
+
+### §44 Conversation Engine History disclosure ARIA 合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核发现 History 触发按钮已有 `aria-expanded`/`aria-haspopup=dialog`，但没有 `aria-controls`，dialog overlay 也没有可引用的稳定 id。实施为每个实例生成 `conversation-lens-history-overlay-N`，并让 button 与 overlay 通过该 id 关联；open/close、focus trap、布局和其它 ARIA 状态保持。
+
+验证：focused Electron 测试 2 passing（含 `assertCleanState`），Chromium DOM 合同 1 passing；刷新产物后 `npm run transpile-client` exit 0，新增测试 ESLint 与 `git diff --check` 通过。生产 TS 全文件 lint 仍报告未触碰的既有 line 381 `querySelectorAll` warning，不能归因于本切片；默认编辑器人工验收仍待补。
+
+### §45 Conversation Engine Snapshots disclosure ARIA 合同窄实施检查点（2026-11-06）
+
+Sol 规则16只读复核发现 Snapshots 触发按钮已有 `aria-expanded`/`aria-haspopup=dialog`，但没有 `aria-controls`，dialog overlay 也没有可引用的稳定 id。实施为每个实例生成 `conversation-lens-snapshots-overlay-N`，并让 button 与 overlay 通过该 id 关联；open/close、focus、布局和其它 ARIA 状态保持。
+
+验证：focused Electron 测试 2 passing（含 `assertCleanState`），Chromium DOM 合同 1 passing；刷新产物后 `npm run transpile-client` exit 0，新增测试 ESLint 与 `git diff --check` 通过。生产 TS 全文件 lint 仍报告未触碰的既有 line 379/703 `querySelectorAll` warnings，不能归因于本切片；默认编辑器人工验收仍待补。
+
+### §46 Conversation Engine MCP tabpanel ARIA 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核确认 Engine MCP 的 Definitions/Runtime 切换原有选中与显隐逻辑，但 tab 与 panel 缺少稳定的 `aria-controls` / `aria-labelledby` 关系。实施为每个实例生成唯一 tab/panel id，补齐 `role=tabpanel`、`aria-controls`、`aria-labelledby`，不改 tab 切换、运行时内容、布局或动作语义。
+
+验证：focused Electron 测试 2 passing（含 `assertCleanState`）；Chromium DOM 合同 1 passing，覆盖 tablist、双 tab/panel 关系、初始选中/显隐与 Runtime 点击切换；刷新产物后 `npm run transpile-client` exit 0，新测试 ESLint 与 `git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §47 ConversationLens 多实例 ARIA ID 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 ConversationLens 的 tab/panel 使用静态 DOM id；多个编辑器或 leaf lens 共存时，`aria-controls` / `aria-labelledby` 可能指向重复节点。实施为每个 ConversationLens 实例生成唯一 `conversation-lens-N-*` 前缀，并让 SessionBar tabs、timeline panel、trajectory panel 与 projection helper 共享该前缀；不改 lens 切换、roving tabindex、内容投影、布局或动作语义。
+
+验证：`npm run compile-client` exit 0（src tsconfig 0 errors）；Chromium `conversationLensSessionBar.test.ts` 14 passing，`conversationLens.test.ts` focused 1 passing；Electron focused 1 passing；新旧目标 ESLint 仅保留 ConversationLeafSessionBar 未触碰的 3 条 `querySelector` warnings，`git diff --check` 通过。默认编辑器多实例、多主题人工验收仍待补。
+
+### §48 ConversationTrajectory overview disclosure ARIA 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Trajectory overview toggle 只有 `aria-expanded`，overview track 没有可引用的目标 id。实施为每个 overview track 生成唯一 `conversation-lens-trajectory-overview-N` id，并让 toggle 设置匹配的 `aria-controls`；保留折叠状态、隐藏行为、布局、键盘和 segment 动作。
+
+验证：Chromium `conversationTrajectoryUi.test.ts` 全套 13 passing（含新增 overview 断言），Electron focused 1 passing；刷新产物后 `npm run transpile-client` exit 0，目标 ESLint 0 errors（生产文件仅保留未触碰的既有 `querySelector` warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §49 Conversation process-fold disclosure ARIA 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 process-fold 外层 header 只有展开状态，children 容器没有稳定目标 id；Trajectory 自有 renderer 也需要同一关系。实施在通用 process-fold 与 TrajectoryFoldRenderer 中分别为每个 children 容器生成唯一 id，并让 header 补 `aria-controls`；保留折叠、布局、工具行、键盘和内容渲染逻辑。
+
+验证：Chromium `conversationProcessFold.test.ts` 全套 49 passing、`conversationTrajectoryUi.test.ts` 全套 13 passing，`conversationTimelineRenderer.test.ts` 全套 31 passing，Electron focused process-fold 1 passing；刷新产物后 `npm run transpile-client` exit 0，目标 ESLint 0 errors（仅保留 Trajectory 生产文件未触碰的 2 条 `querySelector` warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §50 Sources tabs 多实例 ARIA ID 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 SourcesTabsHost 的 tab/panel 使用静态 id，多个 Sources 宿主共存时可能发生 `aria-controls` / `aria-labelledby` 交叉引用。实施为每个宿主生成唯一 `sources-N-*` 前缀，并让三类 Sources tabs、tabpanel 与 focus helper 共享该前缀；不改选中 tab、存储恢复、键盘、内容面板或动作语义。
+
+验证：`npm run compile-client` exit 0（compile-src 0 errors）；Chromium `sourcesPartFocus.test.ts` 9 passing，Electron Sources focus suite 10 passing（含 `assertCleanState`）；目标 ESLint 0 errors，`git diff --check` 通过。默认编辑器多宿主、多主题人工验收仍待补。
+
+### §51 Navigator Team 子视图 aria-hidden 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Navigator Team 的 Members/Tasks 子视图切换只更新 active class，未同步非活动内容的 `aria-hidden`。实施在 `updateSubviewVisibility` 中让活动 body 设置 `aria-hidden=false`、非活动 body 设置 `aria-hidden=true`；保留切换命令、空状态、列表内容、布局和其它 Navigator WIP。
+
+验证：Chromium `navigatorTeamSubviews.test.ts` 全套 58 passing，Electron focused defaults+switch 2 passing；刷新产物后 `npm run transpile-client` exit 0，目标 ESLint 0 errors，`git diff --check` 通过。生产文件中的其它既有 WIP 未扩大范围；默认编辑器多主题人工验收仍待补。
+
+### §52 Navigator Agents 子视图 aria-hidden 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Navigator Agents 的 Hierarchy/Activity 切换只更新 active class，未同步非活动内容的 `aria-hidden`。实施仅在 `updateSubviewVisibility` 为活动 body 设置 false、非活动 body 设置 true；保留切换命令、列表内容、布局和其它 Navigator WIP。
+
+验证：定向 Chromium defaults+switch 2 passing，Electron 同范围 2 passing；刷新产物后 `npm run transpile-client` exit 0，目标 ESLint 0 errors，`git diff --check` 通过。完整 Chromium 46 中 6 个既有 error-path 用例仍因 `ReferenceError: process is not defined` 失败，未触碰本切片；默认编辑器多主题人工验收仍待补。
+
+### §53 Sources Review 路径过滤计数 live-region 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Review 路径过滤计数 span 会随过滤结果变化，但没有 live-region 语义。实施为该计数补 `aria-live=polite` 与 `aria-atomic=true`，保留过滤计算、文案、布局和键盘行为。
+
+验证：Chromium targeted path-filter 2 passing，Electron 同范围 2 passing；刷新产物后 `npm run transpile-client` exit 0，目标 ESLint 0 errors（仅保留测试文件未触碰的既有 `in` operator warning），`git diff --check` 通过。完整 sources suite 68 passing / 7 个既有 `ReferenceError: process is not defined` error-path 失败；默认编辑器多主题人工验收仍待补。
+
+### §54 Activity Bar compact menubar reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Activity Bar compact menubar 的 More toggle 有 80ms 背景过渡，但没有局部 reduced-motion 覆盖。实施仅为该 toggle 补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改命中区、菜单动作、颜色或已有 100ms Activity Bar 合同。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；`activitybarCssScan.test.ts` 4 passing，目标 ESLint 0 errors，`git diff --check` 通过。直接 Stylelint 因仓库未为该文件提供配置而返回 ConfigurationError，未计为有效门禁；默认编辑器浅/深、高对比、键盘焦点和 reduced-motion 人工验收仍待补。
+
+### §55 Sources 文件行 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources 文件行有 80ms 背景过渡，但没有局部 reduced-motion 覆盖。实施保留默认反馈，并在 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下关闭该过渡；不改文件行布局、选中状态、键盘或打开动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；Chromium SourcesFilesList 全套 39 passing（新增 5-theme 断言均通过），node `sourcesWiringScan.test.ts` 33 passing；目标 ESLint 0 errors，`git diff --check` 通过。完整 browser suite 的 2 个、node suite 的 3 个旧 `ReferenceError: process is not defined`/source-contract failures 未触碰本切片；默认编辑器多主题人工验收仍待补。
+
+### §56 Sources Review 行 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Review 行有 80ms 背景过渡，但没有局部 reduced-motion 覆盖。实施保留默认反馈，并在 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下关闭该过渡；不改行高、选中、过滤、键盘或动作语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 新合同通过（整套 35 passing / 3 个既有断言失败），Chromium path-filter 2 passing、Electron 同范围 2 passing；目标 ESLint 0 errors，`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §57 Sources Changes 行 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Changes 的 folder/file 行有 80ms 背景过渡，但没有局部 reduced-motion 覆盖。实施保留默认反馈，并在 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下关闭两类行的过渡；不改 diff 预览、选中、键盘或文件动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 新合同通过（整套 36 passing / 3 个既有 git-write/open-diff double-catch 合同失败），目标 ESLint 0 errors（仅保留既有 externalized-string warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §58 Navigator Team inline filter reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Navigator Team inline filter 的输入框和清除按钮仍使用过渡，但没有局部 reduced-motion 覆盖。实施将两处过渡统一为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改过滤逻辑、焦点、清除动作或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；`navigatorProjectsListCss.test.ts` 6 passing，目标 ESLint 0 errors，`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §59 Sources list filter reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources list filter 的 clear 过渡仍为 120ms，input/clear 也没有局部 reduced-motion 覆盖。实施将 clear 收敛为 100ms，并为 input/clear 补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改过滤逻辑、焦点、清除动作或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 37 passing / 3 个既有 git-write/open-diff 合同失败（新合同通过），目标 ESLint 0 errors（仅保留既有 externalized-string warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §60 Sources Changes toolbar reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Changes toolbar `.monaco-button` 的过渡仍为 120ms，且没有局部 reduced-motion 覆盖。实施将过渡收敛为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改按钮命令、命中区、焦点或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 38 passing / 3 个既有 git-write/open-diff double-catch 合同失败（新合同通过），目标 ESLint 0 errors（仅保留既有 externalized-string warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §61 Sources Diff panel actions reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Diff panel actions 的按钮过渡仍为 120ms，且没有局部 reduced-motion 覆盖。实施将过渡收敛为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改 diff 命令、按钮命中区、焦点或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 39 passing / 3 个既有 git-write/open-diff double-catch 合同失败（新合同通过），目标 ESLint 0 errors（仅保留既有 externalized-string warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §62 Navigator Team 列表行动效 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Navigator Team Members/Tasks 列表行背景过渡仍为 120ms，且没有局部 reduced-motion 覆盖。实施将两类行过渡收敛为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改行高、颜色、圆角、选中、键盘或动作语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `navigatorProjectsListCss.test.ts` 7 passing（含新 Team rows 合同与错误捕获），目标 ESLint 0 errors，`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §63 Sources conversation diff review toolbar reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 conversation diff review toolbar 按钮过渡仍为 120ms，且没有局部 reduced-motion 覆盖。实施将过渡收敛为 100ms，并补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`；不改 review 命令、按钮命中区、焦点或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 40 passing / 3 个既有 Changes stage/unstage、Review pane fire-and-forget、Review open-diff double-catch 接线断言失败（新增合同通过），目标 ESLint 0 errors（仅保留既有 externalized-string warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §64 Sources Changes inline actions reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Changes inline/group actions 与 commit button 虽已有 100ms 过渡，但没有局部 reduced-motion 覆盖。实施仅补 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下的 `transition: none`，保留原过渡、按钮命令、命中区、焦点、行布局和 commit 行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；node `sourcesWiringScan.test.ts` 41 passing / 3 个既有 Changes buttons、Review pane void、Review list open-diff double-catch 接线失败（新增合同通过），目标 ESLint 0 errors（仅保留既有 externalized-string warnings），`git diff --check` 通过。默认编辑器多主题人工验收仍待补。
+
+### §65 Activity Bar 拖拽插入指示器 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Activity Bar composite action 的拖拽插入指示器伪元素仍带有 100ms transition-delay，class 与系统 reduced-motion 规则没有覆盖该反馈。实施仅在 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion`）下为 `.composite-bar` action item 的 `::before/::after` 关闭过渡，保留拖拽插入位置、颜色、命中区、键盘和动作语义。
+
+验证：`activitybarCssScan.test.ts` 4 passing（含新增 `::before/::after` selector 合同与 unexpected-errors guard），目标 ESLint 0 errors，`git diff --check` 通过；本窄切片未重跑 `npm run transpile-client`、Chromium/Electron 或默认编辑器多主题人工验收。
+
+### §74 Notifications 正文链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器通知正文链接仍通过全局 `a:focus` 使用 `focusBorder` 外圈。实施仅让普通主题链接在 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并清除外圈；HC black/light 保留 `1px solid contrastActiveBorder`，不改链接、点击反馈、通知操作或按钮布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `notificationsListCss.test.ts` 2 passing（合同与 unexpected-errors guard），目标 ESLint 0 errors，Stylelint exit 0（既有 5 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §66 Visualize 折叠标题键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现可折叠 Visualize header 在普通主题仍以 `focusBorder` 画 1px 外圈，与产品自有 GPT 焦点语言不一致。实施仅让普通主题 `:focus-visible` 使用既有 `toolbar-hoverBackground` 的轻量可见反馈并移除 focusBorder 外圈；高对比主题继续保留 `contrastActiveBorder`/`focusBorder` ring，不改折叠/ARIA、几何、键盘动作或内容渲染。
+
+验证：`npm run compile-client` exit 0（compile-src 0 errors）；刷新产物后 focused Node `conversationLensCssScan.test.ts` 45 passing / 1 个既有 `ua-common.css` brace/selector 失败（新增合同通过），目标 ESLint 0 errors（1 个既有 externalized-string warning），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §67 Sources 空工作区 Open Folder 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources 无工作区空态的 `Open Folder...` 文本按钮在普通主题仍画 `focusBorder` 外圈，与当前 GPT 产品焦点语言不一致。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；高对比继续保留 `contrastActiveBorder` ring，不改命令、可见性、布局、键盘动作或空态语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；`sourcesWiringScan.test.ts` 41 passing / 3 个既有 Changes stage/unstage、Review pane void、Review open-diff double-catch 基线失败（新增合同通过），目标 ESLint 0 errors（18 个既有 externalized-string warnings），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §68 Sources Review 状态焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Review state 普通主题仍以 `focusBorder` 画 1px 外圈，与当前 GPT 产品焦点语言不一致。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 review state 命令、ARIA、布局或键盘动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；`sourcesWiringScan.test.ts` 42 passing / 3 个既有 Changes stage/unstage、Review pane void、Review open-diff double-catch 失败（新增合同通过），目标 ESLint 0 errors（18 个既有 externalized-string warnings），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §69 Conversation identity strip 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Conversation identity strip 的 engine/folder identity chips 与 Add Folder 按钮在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改命令、只读 pointer、布局或键盘动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused Node `conversationLensCssScan.test.ts` 46 passing / 1 个既有 `ua-common.css` brace/selector 基线失败（新增合同通过），目标 ESLint 0 errors（1 个既有 externalized-string warning），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §70 Conversation sub-agent overlay 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Conversation sub-agent overlay 容器在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；HC 继续保留 `contrastActiveBorder` ring，不改 overlay/card/backdrop 或键盘语义。
+
+验证：刷新产物后 focused Node 3 passing，`npm run transpile-client` exit 0，目标 ESLint 0 errors，针对生产 CSS 的 Stylelint exit 0（仅既有 `--ua-ease` unknown variable 与 3 条 design-token suggestions），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §71 Sources Files 模式切换键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Sources Files 的 mode toggle 普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 list/tree 模式命令、`aria-pressed`、布局或键盘动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused Sources wiring 43 passing / 3 个既有 Changes stage/unstage、Review pane void、Review open-diff double-catch 基线失败（新增合同通过），目标 ESLint 0 errors（18 个既有 warnings），Stylelint exit 0（仅既有 1 个 unknown variable 与 9 条 design-token suggestions），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §72 Conversation lens session title 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Conversation lens session title button 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；HC black/light 显式保留 `contrastActiveBorder` ring，不改标题编辑、命令、布局或键盘动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused Node `conversationLensCssScan.test.ts` 47 passing / 1 个既有 `ua-common.css` brace/selector 基线失败（新增合同通过），目标 ESLint 0 errors（1 个既有 externalized-string warning），Stylelint exit 0（仅既有 23 个 unknown vars 与 104 条 design-token suggestions），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §73 Conversation lens session switcher 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Conversation lens session switcher 的 SelectBox 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并移除外圈；HC black/light 显式保留 `contrastActiveBorder` ring，不改 SelectBox 命令、chevron 几何、键盘或菜单行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused Node `conversationLensCssScan.test.ts` 48 passing / 1 个既有 `ua-common.css` brace/selector 基线失败（新增合同通过），目标 ESLint 0 errors（2 个既有 warnings），Stylelint exit 0（既有 23 个 unknown-variable warnings 与 104 条 design-token suggestions），`git diff --check` 通过；未跑 Chromium/Electron 或默认窗口人工验收。
+
+### §75 Image Carousel 导航箭头键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Image Carousel 导航箭头在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用既有 `toolbar-activeBackground` 的轻量可见反馈并保持 `opacity: 1`；HC black/light 继续保留 `contrastActiveBorder` ring，不改导航命令、命中区、图片切换或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `imageCarouselCssScan.test.ts` 3 passing（含普通/HC 合同与 unexpected-errors guard），目标 ESLint 0 errors，Stylelint exit 0（既有 5 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §76 Navigator Team status filter 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Navigator Team status filter 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 的轻量可见反馈并保持前景色；HC black/light 继续保留 `contrastActiveBorder` ring，不改过滤、ARIA、按钮行为或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10152 files）；focused `navigatorTeamStatusFilterCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 2 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §77 Open Editors 未保存计数 badge 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Open Editors 未保存计数 badge 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring 与 offset，不改 role/button、Enter/Space、点击或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10153 files）；focused `openEditorsCss.test.ts` 在 `VSCODE_SKIP_PRELAUNCH=1` 下 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 3 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。首次未设 skip-prelaunch 的 focused 运行因 Electron 动态 import 基线失败，已与通过结果分开记录。
+
+### §78 Preview category tab 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 preview category tab 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 tab、drag、selected 语义或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10154 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `previewCategoryBarCss.test.ts` 3 passing，目标 ESLint 0 errors，Stylelint exit 0，`git diff --check` 通过；首次测试与 transpile 并行导致动态 import 基线失败，刷新产物后已重跑通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §79 Breadcrumbs editor-type picker 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Breadcrumbs editor-type picker 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与 breadcrumb focusForeground 的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring 与 `-1px` offset，不改 picker 点击、键盘或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10155 files）；顺序运行 `VSCODE_SKIP_PRELAUNCH=1` focused `breadcrumbsControlCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 4 条 design-token suggestions），`git diff --check` 通过；并行运行 test/transpile 曾触发动态 import 基线竞态，顺序重跑已通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §80 Editor add-tab action 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Editor add-tab action 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与图标前景色的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring 与 `-1px` offset，不改 add-tab command、hover/active 状态、命中区或键盘行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10156 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `multiEditorTabsControlCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 6 条 spacing suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §81 Settings editor tab 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Settings editor tab 在普通主题仍以 `focusBorder` 的 color-mix box-shadow 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈并移除 color-mix 外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 checked、hover 或键盘切换语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10157 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `settingsEditor2Css.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 47 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §82 Comments panel 正文链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Comments panel 正文链接在普通主题仍以 `focusBorder` 画外圈。实施仅移除普通主题直接 `:focus` 的外圈，让 `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder` ring，不改链接目标、点击、ARIA 或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10158 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `commentsPanelCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 11 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §83 Comments review widget 正文链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Comments review widget 的 comment-body 链接在普通主题仍以 `focusBorder` 画外圈。实施仅移除普通主题直接 `:focus` 的外圈，让 `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder` ring，不改链接点击、ARIA 或评论动作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10159 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `commentsReviewCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 30 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §84 Getting Started step icon 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Getting Started step icon 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 step codicon `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改展开、步骤、键盘或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10160 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `gettingStartedCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 38 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §85 Getting Started category card 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Getting Started category card 在普通主题仍以 `focusBorder` 画外圈。实施在同一 CSS 中新增独立 category card `:focus-visible` 合同，使用 welcomePage tile hover 背景并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改类别点击、展开、键盘或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10161 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `gettingStartedCategoryCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 38 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §86 Getting Started step button 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Getting Started `.step-list-container button` 在普通主题仍以 `focusBorder` inset box-shadow 画外圈。实施仅让普通主题 `:focus-visible` 使用 tile-hover 背景并移除 inset 外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 `aria-expanded`/`aria-checked`、步骤选择或键盘行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10162 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `gettingStartedStepCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 38 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §87 Getting Started Start links 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Getting Started `.start-container .button-link` 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改起始入口命令、链接、键盘或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10163 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `gettingStartedStartCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 38 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §88 Getting Started done/next actions 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Getting Started `.done-next-container .button-link` 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 Mark Done/Next Section 命令、键盘或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10164 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `gettingStartedDoneNextCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 38 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §89 Getting Started 其余正文链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Getting Started 其余正文链接在普通主题仍通过直接 `:focus` 画 `focusBorder` 外圈。实施仅将非关闭锚点直接 `:focus` 清为无外圈，让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder` ring，不改链接目标、关闭按钮、键盘或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10165 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `gettingStartedLinksCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 38 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §90 Preferences Back to Client Settings 导航焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Preferences `.back-to-client-settings` 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 清除 focusBorder ring；HC black/light 继续显式保留 `contrastActiveBorder` ring，不改导航命令、链接文本、tab strip 布局或键盘行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10166 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `preferencesEditorCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 9 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §91 Keybindings editor 搜索动作键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Keybindings editor header action-label 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈并清除外圈；HC black/light 继续显式保留 `contrastActiveBorder` ring，不改搜索过滤、录制/切换按钮、键盘或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10167 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `keybindingsEditorCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 6 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §92 Terminal hidden chat entry 删除控件键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Terminal hidden chat entry delete control 在普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground`、保持 `opacity: 1` 并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 `role=button`、Enter/Space 删除行为、显示条件或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10168 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `terminalTabsChatEntryCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 18 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §93 Terminal hidden chat entry 主入口键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 `.terminal-tabs-chat-entry` 普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 `role=button`、Enter/Space 打开隐藏 chat terminal、删除控件或 tab 布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10169 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `terminalTabsChatEntryFocusCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 18 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §94 Walkthrough 正文链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Walkthrough 正文 anchor 在普通主题仍以 `focusBorder` 画外圈。实施仅清除普通主题直接 `:focus` 外圈，让 `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder` ring，不改链接导航、Markdown/输入控件或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10170 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `walkThroughCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 12 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §95 Walkthrough select 控件键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Walkthrough select 控件在普通主题仍保留原生 `:focus` 环。实施仅清除普通主题原生环，让 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder` ring，不改 select 内容、键盘或表单语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10171 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `walkThroughSelectCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 12 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §96 Walkthrough input 控件键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Walkthrough input 控件在普通主题仍保留原生 `:focus` 环。实施仅清除普通主题原生环，让 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder` ring，不改输入内容、键盘或表单语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10172 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `walkThroughInputCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 12 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §97 SCM 提交动作键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 SCM 输入区 `.button-container > .monaco-button-dropdown > .monaco-button` 普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈并清除外圈；HC black/light 继续保留 `contrastActiveBorder` ring，不改提交/同步命令、disabled 状态、按钮布局或键盘行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10173 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `scmButtonCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 28 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §98 Editor watermark preview-category empty action 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Editor watermark preview-category empty action 普通主题仍以 `focusBorder` 画外圈。实施仅让普通主题 `:focus-visible` 清除 focusBorder，复用既有 quiet hover fill；HC black/light 继续保留 `contrastActiveBorder` ring 与 offset，不改 Open Folder/类别空态按钮命令、键盘或布局。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10174 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `editorGroupViewCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（无新增提示），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §99 Pane composite HC 上下焦点指示器合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Pane composite action 的 HC black/light 焦点指示器未统一使用对比度边界。实施仅让 header top 与 footer bottom 的 HC 指示器使用 `contrastActiveBorder`（保留 `focusBorder` fallback），普通主题透明/轻量行为保持，不改导航、checked 或快捷键语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10175 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `paneCompositePartCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 13 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §100 Workbench 空列表 HC 焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Workbench 空列表在 HC black/light 下的 focus overlay 未统一使用对比度边界。实施仅让空列表 HC focus overlay 使用 `contrastActiveBorder`（保留 `focusBorder` fallback），普通主题及列表结构保持，不改列表键盘导航、选中或空态语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10176 files）；`VSCODE_SKIP_PRELAUNCH=1` focused `workbenchStyleCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（该文件既有 10 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §101 Explorer inline rename input 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Explorer inline rename input 在普通主题仍以直接 `focusBorder` 画外圈。实施仅移除普通主题直接轮廓，让 `:focus-visible` 使用 `toolbar-hoverBackground` 与前景色的轻量可见反馈；HC black/light 继续保留 `contrastActiveBorder`（fallback `focusBorder`）1px ring，不改 rename、ARIA 或键盘语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10177 files）；focused `explorerViewletCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（现有 2 条 design-token suggestions、5px spacing 与 3px radius suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §102 Search view 消息正文链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Search view 消息正文链接在普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅新增普通主题 `:focus-visible` 的 `toolbar-hoverBackground` 与 `textLink-activeForeground` 反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px ring，保留链接语义与既有 hover/active 行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10178 files）；focused `searchViewCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 11 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §103 Search view replace toggle 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Search view replace 展开/收起控件普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅新增普通主题 `:focus-visible` 的 `toolbar-hoverBackground` 反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px ring，不改变按钮/图标语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10179 files）；focused `searchViewToggleCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 11 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §104 Search view query-details toggle 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Search view `.query-details .more[role=button]` 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅新增普通主题 `:focus-visible` 的 `toolbar-hoverBackground` 反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px ring，保留既有 tabindex、role 与 ARIA 行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10180 files）；focused `searchViewQueryDetailsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 11 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §105 Search view replace actions 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Search view replace-container ActionBar action labels 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅新增普通主题 `:focus-visible` 的 `toolbar-hoverBackground` 反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px ring，保留 ActionBar 既有语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10181 files）；focused `searchViewReplaceActionsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 11 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §106 Search provider message links 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 `.text-search-provider-messages .providerMessage a` 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅新增普通主题 `:focus-visible` 的 `toolbar-hoverBackground` 与 `textLink-activeForeground` 反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px ring，保留链接键盘/点击语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10182 files）；focused `searchViewProviderMessageCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 11 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §107 编辑器占位页操作按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 editor placeholder 操作按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅新增普通主题 `:focus-visible` 的 `toolbar-hoverBackground` 反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）对比环，保留原按钮语义与 `outline-offset: 2px`。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10183 files）；focused `editorPlaceholderCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 2 条 spacing/codicon suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §108 编辑器快速访问 dirty-editor 操作按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器快速访问 dirty-editor 操作按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.dirty-editor:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并移除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留操作按钮语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10184 files）；focused `editorQuickAccessCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（无 suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §109 屏幕阅读器说明浮层关闭按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器屏幕阅读器说明浮层关闭按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.screen-reader-detected-explanation .cancel:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并移除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留关闭按钮语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10185 files）；focused `editorStatusCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 3 条 font/spacing suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §110 单编辑器标题栏 title-actions 操作按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器单编辑器标题栏 title-actions 操作按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.title-actions .action-label:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留操作按钮语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10186 files）；focused `singleEditorTabsControlCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 1 条 spacing suggestion），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §111 模态编辑器标题导航按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器模态标题导航按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题导航按钮 `:focus-visible:not(.disabled)` 使用 `commandCenter-activeBackground`、保持 `opacity: 1` 并移除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 disabled 排除与导航语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10187 files）；focused `modalEditorPartCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 5 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §112 模态编辑器标题 action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器模态标题 action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 action-label `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 ActionBar 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10188 files）；focused `modalEditorActionsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 5 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §113 编辑器组工具栏 action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器组工具栏 action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.editor-group-container-toolbar .action-label:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并移除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留工具栏语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10189 files）；focused `editorGroupToolbarCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（无 suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §114 编辑器标签页 tab-actions 操作按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标签页 tab-actions 操作按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 tab action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 tab close/pinned/dirty 行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10190 files）；focused `multiEditorTabsControlTabActionsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 6 条 spacing suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §115 编辑器标签栏 editor-actions 顶层操作按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标签栏 editor-actions 顶层操作按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 editor-actions `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留标签栏语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10191 files）；focused `multiEditorTabsControlEditorActionsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 6 条 spacing suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §116 编辑器标签下方 breadcrumbs item 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标签下方 breadcrumbs item 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.breadcrumbs-below-tabs .monaco-breadcrumb-item:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 breadcrumbs 导航语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10192 files）；focused `editorTitleBreadcrumbsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 1 条 spacing suggestion），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §117 编辑器 watermark 顶部工具栏 action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 watermark 顶部工具栏 action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 watermark toolbar `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留工具栏语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10193 files）；focused `editorGroupWatermarkToolbarCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（无 suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §118 Terminal tabs-list 行内 action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Terminal tabs-list 行内 action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 tabs-list action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 tabs-list 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10194 files）；focused `terminalTabsActionsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 18 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §119 Terminal single-terminal-tab 入口键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Terminal single-terminal-tab 入口普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.single-terminal-tab:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留入口语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10195 files）；focused `terminalSingleTabCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 18 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §120 Terminal tabs-container 顶部 toolbar action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Terminal tabs-container 顶部 toolbar action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 toolbar action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 toolbar 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10196 files）；focused `terminalTabsToolbarCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 18 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §121 Debug toolbar action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug toolbar action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 debug toolbar action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 toolbar 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10197 files）；focused `debugToolBarCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（无 suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §122 Debug start configuration dropdown-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug start configuration dropdown-label 普通主题仍有直接 `focusBorder` 装饰。实施仅移除直接 focusBorder，让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 dropdown 选择语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10198 files）；focused `debugViewletCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 12 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §123 Debug 调试树行内 action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug 调试树行内 action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 debug tree action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留调试树语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10199 files）；focused `debugViewletActionsCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 12 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §124 编辑器内联异常提示 action-label 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器内联异常提示 action-label 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 exception widget action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留异常提示操作语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10200 files）；focused `exceptionWidgetCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 3 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §125 编辑器内联异常提示 stack-trace 链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器内联异常提示 stack-trace 链接普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 stack-trace link `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 轻量反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留链接导航语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10201 files）；focused `exceptionWidgetStackTraceCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 3 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §126 编辑器内联断点提示 mode 按钮键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器内联断点提示 mode 按钮普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 breakpoint action `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留断点提示操作语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10202 files）；focused `breakpointWidgetCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（无 suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §127 Debug REPL expression lazy-button 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug REPL expression lazy-button 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 lazy-button `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 REPL 操作语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10203 files）；focused `replCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 2 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §128 Debug REPL 输出 source/group 链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug REPL 输出 source/group 链接普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 source links `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 轻量反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 source 导航语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10204 files）；focused `replSourceLinksCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 2 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §129 Debug multi-call-stack title link 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug multi-call-stack title link 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 call-stack title link `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 title link 语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10205 files）；focused `callStackWidgetCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 1 条 spacing suggestion），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §130 Debug multi-call-stack collapse-button link 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug multi-call-stack collapse-button link 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 collapse link `:focus-visible` 使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留折叠链接语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10206 files）；focused `callStackWidgetCollapseCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 1 条 spacing suggestion），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §131 Debug multi-call-stack go-to-file 链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug multi-call-stack go-to-file 链接普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 file link `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 轻量反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留文件导航语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10207 files）；focused `callStackWidgetFileLinkCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 1 条 spacing suggestion），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §132 Debug 变量表达式 value link 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Debug 变量表达式 value link 普通主题缺少与 GPT 视觉一致的焦点反馈。实施仅让普通主题 expression value link `:focus-visible` 使用 `toolbar-hoverBackground` 与 `textLink-activeForeground` 轻量反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留变量链接语义。
+
+验证：刷新产物后 `npm run transpile-client` exit 0（10208 files）；focused `debugContributionCss.test.ts` 2 passing，目标 ESLint 0 errors，Stylelint exit 0（既有 4 条 design-token suggestions），`git diff --check` 通过；未启动默认编辑器/Chromium/Electron 窗口，真实 HC 仍未覆盖。
+
+### §133 标题栏 Command Center Quick Pick 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标题栏 Command Center Quick Pick 的 `CommandCenterQuickPickItem` 需明确普通主题与 HC 的焦点分支。实施仅让普通主题 `:focus-visible` 使用 `commandCenter-activeBackground` / `toolbar-hoverBackground` 背景反馈并去除产品自有 focus ring；HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环与 `-1px` offset，不改 `role=button`、动态 tabindex 或动作焦点管理器语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/titlebarPartCss.test.ts` 2 passing；目标 ESLint 通过，Stylelint 通过（既有 6 条 design-token suggestions），两路径 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实键盘聚焦与 HC 对比环仍未覆盖。
+
+### §134 标题栏 center-adjacent/update toolbar action buttons 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标题栏 `center-adjacent-toolbar-container` 与 `update-toolbar-container` 的 action-label 普通主题需要与 Command Center 一致的焦点处理。实施仅让普通主题 `:focus-visible` 去除产品自有 focus ring 并使用 `toolbar-hoverBackground` 背景反馈；HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，不改 `MenuWorkbenchToolBar`、动作焦点管理器动态可聚焦行为或布局。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/titlebarToolbarCss.test.ts` 2 passing；目标 ESLint 通过，Stylelint 通过（既有 6 条 design-token suggestions），CSS 与合同测试 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实键盘聚焦与 HC 对比环仍未覆盖。
+
+### §135 标题栏 Menubar 菜单项键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标题栏 Menubar 菜单项为 `role=menuitem`、动态 tabindex，但普通主题仍需与 GPT 视觉一致的焦点反馈。实施仅让普通主题 `.menubar-menu-button:focus-visible .menubar-menu-title` 去除产品自有 focus ring 并使用 `toolbar-hoverBackground`；HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）对比环，不改菜单语义或动态 tabindex。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/menubarControlCss.test.ts` 2 passing（合同匹配收紧后复跑）；目标 ESLint、Stylelint 通过，CSS 与合同测试 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实菜单键盘聚焦与 HC 对比环仍未覆盖。
+
+### §136 标题栏右侧主 action-toolbar 动作键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标题栏右侧主 `action-toolbar-container` 由 `TitlebarPart.createActionToolBar()` 的 `WorkbenchToolBar` 渲染，action view item 管理动态焦点；普通主题仍需与 GPT 视觉一致的轻量反馈。实施仅让普通主题 action-item/label `:focus-visible` 去除产品自有 focus ring 并使用 `toolbar-hoverBackground`，HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）对比环，不改动作焦点管理或布局。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/titlebarActionsCss.test.ts` 2 passing；目标 ESLint、Stylelint 通过（既有 6 条 design-token suggestions），CSS 与合同测试 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实标题栏键盘聚焦与 HC 对比环仍未覆盖。
+
+### §137 Statusbar entry 键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Statusbar entry 的 `.statusbar-item-label` 由 `StatusbarItem` 声明为 `role=button`、`tabIndex=-1`，并由 StatusbarPart 的 entry focus API 程序化聚焦；普通主题仍需与 GPT 视觉一致的轻量反馈。实施仅让普通主题 `:focus-visible` 去除产品自有 focus ring，使用 `statusBarItem-hoverBackground`（fallback `toolbar-hoverBackground`）背景反馈；HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，不改 statusbar entry 的 ARIA、键盘导航或 focus API。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/statusbarPartCss.test.ts` 2 passing；目标 ESLint、Stylelint 通过（既有 10 条 design-token suggestions），CSS 与合同测试 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实状态栏键盘聚焦与 HC 对比环仍未覆盖。
+
+### §138 Statusbar 根容器键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Statusbar 根容器由 `StatusbarPart` 创建为 `role=status`、`aria-live=off`、`tabIndex=0`，普通主题仍会落入产品自有 focus ring。实施仅让普通主题根容器 `:focus-visible` 去除装饰性 outline；HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，不改 Statusbar entry focus API、ARIA 或键盘导航。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/statusbarRootCss.test.ts` 2 passing；目标 ESLint、Stylelint 通过（既有 10 条 design-token suggestions），CSS 与合同测试 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实状态栏根焦点与 HC 对比环仍未覆盖。
+
+### §139 工作台横向 ActionBar 高对比焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器通用横向 `monaco-action-bar` 普通主题已复用 `toolbar-hoverBackground` 并清除 outline，但该规则同样覆盖 HC；实施仅在 HC black/light 为 action-label 与 dropdown-with-primary 的 `:focus`/`:focus-visible` 恢复 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留 disabled 排除、动作焦点管理与原有普通主题 hover 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run src/vs/workbench/test/node/workbenchActionBarFocusCss.test.ts` 2 passing；目标 ESLint、Stylelint 通过（既有 10 条 design-token suggestions），CSS 与合同测试 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实横向 ActionBar 键盘聚焦与 HC 对比环仍未覆盖。
+
+### §140 屏幕阅读器说明浮层操作链接键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器屏幕阅读器说明浮层 `.buttons a` 操作链接已有按压反馈，但普通主题缺少与 GPT 视觉一致的键盘焦点反馈；实施仅让普通主题使用 `toolbar-hoverBackground` 轻量反馈并清除装饰性 outline，HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，保留链接语义与 §109 已覆盖的取消按钮行为。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorStatusLinksCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实屏幕阅读器浮层键盘聚焦与 HC 对比环仍未覆盖。
+
+### §141 空编辑器组容器键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器空组容器由 `EditorGroupView.focus()` 程序化聚焦，旧规则直接依赖 `editorGroup-focusedEmptyBorder`，普通主题 token 为空时语义不够明确，而 HC 仅回退到 `focusBorder`。实施仅显式收敛普通主题空组焦点为无装饰性 outline，并在 HC black/light 使用 `editorGroup-focusedEmptyBorder`，缺失时回退 `contrastActiveBorder`（再回退 `focusBorder`）；保留最后一个空组不画 outline、拖放状态与焦点恢复语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorGroupEmptyFocusCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实空编辑器组键盘聚焦与 HC 对比环仍未覆盖。
+
+### §142 编辑器标签本体键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器标签本体由 `MultiEditorTabsControl` 以 `role=tab`、roving `tabIndex` 管理，普通主题仍会命中工作台通用 focus ring；实施仅让标签本体 `:focus-visible` 在普通主题移除装饰性 outline，HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环并保留原有 `-2px` inset offset，不改 `aria-selected`、Tab/Arrow 导航、拖放或标签动作语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `multiEditorTabsControlTabFocusCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实标签键盘聚焦与 HC 对比环仍未覆盖。
+
+### §143 面包屑选择器行键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 breadcrumbs picker 的文件/符号行由 `WorkbenchDataTree` 管理 `.monaco-list-row.focused`，普通主题仍会显示工作台通用 focus ring；实施仅让普通主题聚焦行移除装饰性 outline，保留列表自身的 focus background，HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，不改 breadcrumbs picker 的树键盘导航、选择语义、ARIA 或已有按压背景。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `breadcrumbsPickerFocusCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 breadcrumbs picker 键盘聚焦与 HC 对比环仍未覆盖。
+
+### §144 单编辑器内联面包屑项键盘焦点合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器单标签内联 breadcrumbs 的 `.monaco-breadcrumb-item` 由 `BreadcrumbsWidget` 以 `role=listitem` 与 roving `tabIndex=-1` 管理，普通主题此前只有按压反馈；实施仅为 `.title.breadcrumbs` 内联项补上普通主题 `toolbar-hoverBackground` 轻量焦点反馈并移除装饰性 outline，HC black/light 使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环，不改面包屑的焦点/选择事件、ARIA 或路径分隔符。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `singleEditorTabsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实单编辑器内联面包屑键盘聚焦与 HC 对比环仍未覆盖。
+
+### §145 单编辑器标题动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现单编辑器标题动作按钮的普通主题 hover/focus 反馈使用 `background-color` 过渡，而全局 reduced-motion 规则未覆盖 editor part。实施仅为标题动作 `action-label` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、动作焦点管理或 ARIA。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `singleEditorTabsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 标题动作与 HC 键盘聚焦仍未覆盖。
+
+### §146 多编辑器标签状态过渡 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现多编辑器标签本体使用 `background-color` 过渡来切换 active/selected 状态，而 editor part 未被全局 reduced-motion 选择器覆盖。实施仅为 `.tabs-container > .tab` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变标签的 roving `tabIndex`、`aria-selected`、普通主题焦点反馈或 HC 对比环。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `multiEditorTabsControlTabFocusCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 标签切换与 HC 键盘聚焦仍未覆盖。
+
+### §147 多编辑器 Add Tab 动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现多编辑器 Add Tab action-label 使用 `background-color` 过渡，editor part 未被全局 reduced-motion 选择器覆盖。实施仅为 `.tabs-bar-add-tab .action-label` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变 Add Tab 的禁用态、普通主题焦点反馈或 HC 对比环。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `multiEditorTabsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion Add Tab 与 HC 键盘聚焦仍未覆盖。
+
+### §148 多编辑器标签动作按钮 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现多编辑器已有标签内 `.tab-actions .action-label.codicon` 使用 `background-color` 过渡，而 editor part 未被全局 reduced-motion 选择器覆盖。实施仅为标签动作按钮增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变动作显示/隐藏、普通主题焦点反馈或 HC 对比环。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `multiEditorTabsControlTabActionsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 标签动作与 HC 键盘聚焦仍未覆盖。
+
+### §149 面包屑编辑器类型动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 breadcrumbs 的 `.breadcrumbs-editor-type` 使用 `background-color`/`color` 过渡，而 editor part 未被局部 reduced-motion 选择器覆盖。实施仅为该编辑器类型动作增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、编辑器类型菜单或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `breadcrumbsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 面包屑编辑器类型动作与 HC 键盘聚焦仍未覆盖。
+
+### §150 面包屑 picker 行 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 breadcrumbs picker 的 `.picker-item` 使用 `background-color` 过渡，而 picker 局部未被 reduced-motion 选择器覆盖。实施仅为 picker 行项增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变 picker 的普通主题焦点反馈、HC 对比环、列表导航或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `breadcrumbsPickerFocusCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion picker 行与 HC 键盘聚焦仍未覆盖。
+
+### §151 单编辑器标题标签 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器单标签标题 `.title-label` 使用 `background-color` 过渡来呈现 active 反馈，而 editor part 未被局部 reduced-motion 选择器覆盖。实施仅为单标签标题增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变 active 背景、普通主题焦点反馈、HC 语义或标题点击行为。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `singleEditorTabsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 单标签标题与 HC 键盘聚焦仍未覆盖。
+
+### §152 单编辑器内联面包屑项 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现单编辑器标题内联 breadcrumbs 的 `.monaco-breadcrumb-item` 使用 `color` 过渡，而 editor part 未被局部 reduced-motion 选择器覆盖。实施仅为内联面包屑项增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、路径导航或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `singleEditorTabsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 内联面包屑与 HC 键盘聚焦仍未覆盖。
+
+### §153 编辑器标签标题链接 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现编辑器标签标题链接（单编辑器 title label 与多编辑器 tab label）使用 `opacity` 过渡来呈现按压反馈，而 editor part 未被局部 reduced-motion 选择器覆盖。实施仅为两类标题链接增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变链接指针、按压透明度、普通主题焦点、HC 语义或打开动作。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorTabsControlCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 标签标题链接与 HC 键盘聚焦仍未覆盖。
+
+### §154 标签下方面包屑项 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现多编辑器标签下方 breadcrumbs 的 `.monaco-breadcrumb-item` 使用 `background-color` 过渡，而 editor title control 未被局部 reduced-motion 选择器覆盖。实施仅为 `.breadcrumbs-below-tabs` 面包屑项增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、路径导航或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorTitleBreadcrumbsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 标签下方面包屑与 HC 键盘聚焦仍未覆盖。
+
+### §155 编辑器快速访问 dirty-editor 动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器快速访问 dirty-editor 动作按钮使用 `background-color` 过渡，而 editor quick access 局部未被 reduced-motion 选择器覆盖。实施仅为 dirty-editor 动作增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、dirty 状态或打开/关闭动作。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorQuickAccessCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion dirty-editor 动作与 HC 键盘聚焦仍未覆盖。
+
+### §156 编辑器占位页操作按钮 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器占位页操作按钮使用 `background-color` 过渡，而 editor placeholder 局部未被 reduced-motion 选择器覆盖。实施仅为占位页操作按钮增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、按钮语义或点击动作。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorPlaceholderCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 占位页动作与 HC 键盘聚焦仍未覆盖。
+
+### §157 编辑器状态说明关闭动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器屏幕阅读器说明浮层关闭按钮使用 `background-color` 过渡，而 editor status 局部未被 reduced-motion 选择器覆盖。实施仅为 `.screen-reader-detected-explanation .cancel` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、关闭语义或可见状态。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorStatusCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 状态说明关闭动作与 HC 键盘聚焦仍未覆盖。
+
+### §158 编辑器状态说明动作链接 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器屏幕阅读器说明浮层动作链接使用 `background-color` 过渡，而 editor status 局部未被 reduced-motion 选择器覆盖。实施仅为 `.screen-reader-detected-explanation .buttons a` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、链接语义或动作导航。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorStatusLinksCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 状态说明链接与 HC 键盘聚焦仍未覆盖。
+
+### §159 编辑器 watermark 动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器空组 watermark 工具栏 `.action-label` 使用 `background-color` 过渡，而 editor group view 局部未被 reduced-motion 选择器覆盖。实施仅为 watermark 工具栏动作增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、空组动作或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorGroupWatermarkToolbarCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion watermark 动作与 HC 键盘聚焦仍未覆盖。
+
+### §160 编辑器组容器工具栏动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器空组容器 toolbar `.action-label` 使用 `background-color` 过渡，而 editor group view 局部未被 reduced-motion 选择器覆盖。实施仅为 `.editor-group-container-toolbar .action-label` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、空组工具栏动作或 ARIA 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorGroupToolbarCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 组容器 toolbar 与 HC 键盘聚焦仍未覆盖。
+
+### §161 模态编辑器导航按钮 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器模态编辑器导航按钮使用 `background-color` 过渡，而 modal editor 局部未被 reduced-motion 选择器覆盖。实施仅为 `.modal-editor-nav-button` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、禁用态或导航动作。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `modalEditorPartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 模态编辑器导航与 HC 键盘聚焦仍未覆盖。
+
+### §162 模态编辑器标题栏动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器模态编辑器标题栏动作 `.action-label` 使用 `background-color` 过渡，而 modal editor action 局部未被 reduced-motion 选择器覆盖。实施仅为标题栏动作增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、动作语义或导航能力。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `modalEditorActionsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 模态标题栏动作与 HC 键盘聚焦仍未覆盖。
+
+### §163 模态编辑器侧栏切换动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器模态编辑器侧栏切换动作继承 action bar 的 `background-color`/`color` 过渡，而 modal editor 侧栏切换局部未被 reduced-motion 选择器覆盖。实施仅增加 `.modal-editor-sidebar-toggle .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，继续复用工作台普通主题与 HC action bar 焦点语义，不改变侧栏切换动作或 ARIA 行为。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `modalEditorSidebarToggleCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 模态侧栏切换与 HC 键盘聚焦仍未覆盖。
+
+### §164 编辑器组预览空态动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 editor group 预览分类空态动作按钮在 hover/focus 背景变化时没有局部过渡契约。实施仅为 `.preview-category-empty-action-button` 增加轻量 `background-color` 过渡，并提供 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支；保持普通主题静默焦点、HC 对比环、按钮语义和点击能力不变。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorGroupViewCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 预览空态动作与 HC 键盘聚焦仍未覆盖。
+
+### §165 多编辑器标签栏 editor actions reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器多编辑器标签栏的 editor actions 动作标签继承 action bar 过渡，而 `.editor-actions` 局部未被 reduced-motion 选择器覆盖。实施仅增加 `.editor-actions .action-item .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变普通主题焦点反馈、HC 对比环、动作命令或标签布局。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `multiEditorTabsControlEditorActionsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion editor actions 与 HC 键盘聚焦仍未覆盖。
+
+### §166 编辑器拖放目标移动过渡 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器拖放目标 overlay 的移动指示器在启用 motion 时使用位置与透明度过渡，而 reduced-motion 分支没有显式覆盖。实施仅为 `.editor-group-overlay-indicator.overlay-move-transition` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变拖放命中、普通主题布局或 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorDropTargetCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 拖放指示器与 HC 键盘聚焦仍未覆盖。
+
+### §167 编辑器拖放目标提示 opacity reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器拖放目标的 drop-into prompt 在启用 motion 时使用 opacity 过渡，而提示本身没有 reduced-motion 覆盖。实施仅为 `.editor-group-overlay-drop-into-prompt` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变拖放提示文本、命中区域、普通主题布局或 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorDropTargetCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 拖放提示与 HC 键盘聚焦仍未覆盖。
+
+### §168 编辑器拖放目标 overlay opacity reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器拖放目标 overlay 指示器在启用 motion 时使用 opacity 过渡，而指示器本体没有 reduced-motion 覆盖。实施仅为 `.editor-group-overlay-indicator` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变拖放目标布局、提示内容或 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `editorDropTargetCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion 拖放 overlay 与 HC 键盘聚焦仍未覆盖。
+
+### §169 Quick Input 最近工作区动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Quick Input 最近工作区动作 `dirty-workspace`/`opened-workspace` 使用 `background-color` 过渡，而 workbench actions 局部未被 reduced-motion 选择器覆盖。实施仅增加两类动作的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，继续复用共享 action bar 的普通主题与 HC 焦点语义，不改变最近工作区动作或图标。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `quickInputWorkspaceActionsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion Quick Input 工作区动作与 HC 键盘聚焦仍未覆盖。
+
+### §170 Screencast keyboard overlay reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Screencast keyboard overlay 在启用 motion 时使用 opacity 过渡，而 overlay 本身没有 reduced-motion 覆盖。实施仅增加 `.screencast-keyboard` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变键盘提示内容、pointer-events、普通主题布局或 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `screencastKeyboardCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion Screencast overlay 与 HC 键盘聚焦仍未覆盖。
+
+### §171 Notifications center/list 动作 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器工作台 notifications center/list 工具栏动作标签使用 `background-color` 过渡，而 notifications actions 局部未被 reduced-motion 选择器覆盖。实施仅为通知列表与通知中心两类 `.action-label` 增加 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，继续复用共享 action bar 的普通主题与 HC 焦点语义，不改变通知动作或 ARIA 行为。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `notificationsActionsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion notifications 动作与 HC 键盘聚焦仍未覆盖。
+
+### §172 Notifications toast 入场过渡 reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器工作台 notification toast 入场使用 transform/opacity 过渡，已有 `.monaco-reduce-motion` 分支但缺少系统 `prefers-reduced-motion` 兜底。实施仅增加 `@media (prefers-reduced-motion: reduce)` 且尊重 `.monaco-enable-motion` 的 `transition: none` 分支，不改变 toast 动画状态、布局、普通主题样式或 HC 对比语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `notificationsToastsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion toast 入场与 HC 键盘聚焦仍未覆盖。
+
+### §173 Views pane header reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views pane header 在按压反馈时使用 `background-color` 过渡，而 pane viewlet 局部未被 reduced-motion 选择器覆盖。实施仅增加 `.monaco-pane-view .pane > .pane-header` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，不改变 pane 展开动作、视图布局或 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `paneViewletCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion pane header 与 HC 键盘聚焦仍未覆盖。
+
+### §174 Notifications list row reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 notifications list row 在按压反馈时使用 `background-color` 过渡，而列表行局部未被 reduced-motion 选择器覆盖。实施仅增加 `.notifications-list-container .monaco-list-row` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active selection 背景、列表布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `notificationsListCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion notifications list row 与 HC 键盘聚焦仍未覆盖。
+
+### §175 Notifications list action buttons reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 notifications list action buttons 与下拉按钮在按压反馈时使用 `background-color`/`filter` 过渡，而按钮局部未被 reduced-motion 选择器覆盖。实施仅增加按钮与下拉按钮的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 pressed filter、按钮焦点间距、列表布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `notificationsListCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion notifications list action buttons 与 HC 键盘聚焦仍未覆盖。
+
+### §176 Notifications message link reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 notifications message link 的按压反馈使用 `opacity` 过渡，而消息链接局部未被 reduced-motion 选择器覆盖。实施仅增加消息链接的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有通知链接焦点反馈、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `notificationsListCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion notifications message link 与 HC 键盘聚焦仍未覆盖。
+
+### §177 Global composite bar account avatar reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器工作台 global composite bar 账户头像按压反馈使用 `opacity` 过渡，而头像动作局部未被 reduced-motion 选择器覆盖。实施仅增加 `.monaco-action-bar .action-label .accounts-avatar` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active opacity、账户动作语义、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `globalCompositeBarCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion account avatar 与 HC 键盘聚焦仍未覆盖。
+
+### §178 Pane composite title actions reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 pane composite title actions 的按压反馈使用 `background-color` 过渡，而标题动作局部未被 reduced-motion 选择器覆盖。实施仅增加 title actions、global actions 与 global actions-left 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active 背景、HC 焦点指示器、动作布局与普通主题语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `paneCompositePartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion pane composite title actions 与 HC 键盘聚焦仍未覆盖。
+
+### §179 Pane composite bar action-item reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 pane composite title/header composite bar action-item 的按压反馈使用 `background-color` 过渡，而 composite bar item 局部未被 reduced-motion 选择器覆盖。实施仅增加 title 与 header/footer composite bar action-item 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active 背景、拖拽指示器、HC 焦点指示器与布局语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `paneCompositePartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion pane composite bar action-item 与 HC 键盘聚焦仍未覆盖。
+
+### §180 Pane composite drag indicator reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 pane composite 拖拽边界伪元素使用 100ms 延迟来显示边界指示，而该延迟局部未被 reduced-motion 选择器覆盖。实施仅为 title 与 header/footer composite bar action-item 的 `::before`/`::after` 在 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）下设 `transition: none`，保留 dragged-over 显隐、拖拽位置语义、HC 焦点指示器与布局行为。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `paneCompositePartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion pane composite 拖拽指示与 HC 键盘聚焦仍未覆盖。
+
+### §181 Pane composite empty action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 pane composite 空态消息链接与按钮的按压反馈使用 `background-color`/`filter` 过渡，而空态动作局部未被 reduced-motion 选择器覆盖。实施仅增加空态消息链接与按钮的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 pressed filter/opacity、空态布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `paneCompositePartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion pane composite 空态动作与 HC 键盘聚焦仍未覆盖。
+
+### §182 Sidebar title action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 sidebar title action 的按压反馈使用 `background-color` 过渡，而 sidebar 标题动作局部未被 reduced-motion 选择器覆盖。实施仅增加 `.part.sidebar .title-actions .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active 背景、sidebar 布局、普通主题与 HC 焦点语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `sidebarPartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion sidebar title action 与 HC 键盘聚焦仍未覆盖。
+
+### §183 Sidebar collapsible header action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 sidebar 可折叠视图 header action 的按压反馈使用 `background-color` 过渡，而 header action 局部未被 reduced-motion 选择器覆盖。实施仅增加 `.viewlet .collapsible.header .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留折叠视图布局、active 背景、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `sidebarPartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion sidebar collapsible header action 与 HC 键盘聚焦仍未覆盖。
+
+### §184 Views empty message link reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views 空态消息链接的按压反馈使用 `opacity` 过渡，而 views message link 局部未被 reduced-motion 选择器覆盖。实施仅增加 `.tree-explorer-viewlet-tree-view .message p > a` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active opacity、链接焦点、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion views 空态消息链接与 HC 键盘聚焦仍未覆盖。
+
+### §185 Views welcome link reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views welcome-view 空态正文链接的按压反馈使用 `opacity` 过渡，而 welcome link 局部未被 reduced-motion 选择器覆盖。实施仅增加 `.pane > .pane-body .welcome-view-content a` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留现有 active opacity、welcome 布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion views welcome link 与 HC 键盘聚焦仍未覆盖。
+
+### §186 Views welcome button layout reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views welcome 空态按钮容器在宽度展开时使用 `max-width` 过渡，而布局动画局部未被 reduced-motion 选择器覆盖。实施仅增加 welcome button container 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留 wide 状态、空态布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion views welcome button layout 与 HC 键盘聚焦仍未覆盖。
+
+### §187 Views welcome button reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views welcome 空态按钮按压反馈使用 `background-color`/`filter` 过渡，而 welcome button 局部未被 reduced-motion 选择器覆盖。实施仅增加 welcome button 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留 pressed filter、wide 布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion views welcome button 与 HC 键盘聚焦仍未覆盖。
+
+### §188 Custom view node action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 custom view tree 节点 action-label 的按压反馈使用 `background-color` 过渡，而节点动作局部未被 reduced-motion 选择器覆盖。实施仅增加 custom view node action-label 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留节点动作显隐、active 背景、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion custom view node action 与 HC 键盘聚焦仍未覆盖。
+
+### §189 Custom view node checkbox reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 custom view tree 节点 checkbox 的按压反馈使用 `background-color` 过渡，而 checkbox 局部未被 reduced-motion 选择器覆盖。实施仅增加 custom view node checkbox 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留选中态边框、pressed 背景、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion custom view node checkbox 与 HC 键盘聚焦仍未覆盖。
+
+### §190 Custom view node row reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 custom view tree 节点主体行的 active selection 使用 `background-color` 过渡，而节点行局部未被 reduced-motion 选择器覆盖。实施仅增加 custom view node row 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留 active selection、树布局、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion custom view node row 与 HC 键盘聚焦仍未覆盖。
+
+### §191 Views pane filter action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views pane filter toolbar action-label 的按压反馈使用 `background-color` 过渡，而 filter action 局部未被 reduced-motion 选择器覆盖。实施仅增加 `.viewpane-filter > .viewpane-filter-controls .monaco-action-bar .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留过滤动作、active 背景、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion views pane filter action 与 HC 键盘聚焦仍未覆盖。
+
+### §192 Views empty message button reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 views 空态消息按钮与 welcome 按钮共用 `background-color`/`filter` 过渡，但此前 reduced-motion 覆盖仅落在 welcome 按钮，消息按钮仍会保留按压动效。实施仅为 `.tree-explorer-viewlet-tree-view .message .button-container > .monaco-button` 补齐 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留消息按钮的 active filter、命中区、动作语义、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `viewsCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion views 空态消息按钮与 HC 键盘聚焦仍未覆盖。
+
+### §193 Panel composite title action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 panel composite title action-label 使用 `color` 过渡来呈现 hover/focus 状态，而 panel 局部此前没有 reduced-motion 覆盖。实施仅增加 `.part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留 active 背景、panel title active 前景、动作命中区、普通主题与 HC 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `panelPartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion panel composite action 与 HC 键盘聚焦仍未覆盖。
+
+### §194 Auxiliary bar title action reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 auxiliary bar 标题操作 action-label 使用 `background-color` 过渡，而 auxiliary bar 局部此前没有 reduced-motion 覆盖。实施仅增加 `.part.auxiliarybar .title-actions .action-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留 active 背景、标题前景、HC 对比轮廓、动作命中区与现有 auxiliary bar 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `auxiliaryBarPartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion auxiliary bar title action 与 HC 键盘聚焦仍未覆盖。
+
+### §195 Statusbar entry reduced-motion 合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器状态栏条目标签使用 `background-color` 过渡来呈现按压/焦点反馈，而 statusbar 局部此前没有 reduced-motion 覆盖。实施仅增加 `.part.statusbar > .items-container > .statusbar-item > .statusbar-item-label` 的 `.monaco-reduce-motion` 与 `prefers-reduced-motion`（尊重 `.monaco-enable-motion` 显式启用）两条 `transition: none` 分支，保留 active 背景、普通主题焦点反馈、HC 对比环与状态栏 entry 语义。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `statusbarPartCss.test.ts` 合同测试通过，目标 ESLint、Stylelint 与 `git diff --check` 通过；未启动默认编辑器/HC 窗口，真实 reduced-motion statusbar entry 与 HC 键盘聚焦仍未覆盖。
+
+### §196 标题栏左侧导航与 Logo 清理合同窄实施检查点（2026-11-06）
+
+用户收窄范围后，Sol 只读复核确认默认编辑器标题栏的 Go Back / Go Forward 原先仅挂在 `MenuId.CommandCenter`，且 Windows/Linux 自定义标题栏仍创建 `window-appicon`。实施新增专用 `MenuId.TitleBarNavigation`，将两个历史导航动作移出 Command Center，交给标题栏左侧 `MenuWorkbenchToolBar`；保留动作原有 `canNavigateBack` / `canNavigateForward` precondition、平台快捷键与 disabled 状态。同步移除 `window-appicon` 创建、对应 CSS 以及 Electron 原生标题栏子类对旧 `appIcon` 的拖拽/双击接线，保留 `titlebar-drag-region`、窗口控制容器顺序和辅助窗口标题栏路径；Projects/Navigator 未改。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `titlebarNavigationContract.test.ts` 合同测试通过，Stylelint 与 `git diff --check` 通过；目标 ESLint 仅保留既有 `titlebarPart.ts` `querySelector` warning；未启动默认编辑器/HC 窗口，真实标题栏左侧导航键盘路径、禁用态、拖拽区以及 Windows/Linux/macOS/辅助窗口对照仍未覆盖。
+
+### §197 Conversation/Trajectory lens tab 视觉 surface 收敛合同窄实施检查点（2026-11-06）
+
+截图反馈确认默认编辑器 Conversation/Trajectory 标签的选中与按压灰色背景几乎铺满 32px 标签，圆角呈大胶囊。实施保留 tab button 的 32px 命中区、`role="tab"`、`aria-selected`、tabIndex 与既有键盘切换；将 hover、active、selected 与普通主题 focus-visible 背景移到内缩的 `::before` surface（`inset: 3px 2px`、`cornerRadius.small`），保留 HC focus-visible 对比环，并同步清零 reduced-motion 下 pseudo surface 的过渡。未改变 Conversation/Trajectory 切换语义，也未修改 Projects/Navigator。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `conversationLensCssScan.test.ts` 的 tab 合同断言通过（49 passing）；目标 Stylelint 与 `git diff --check` 通过，ESLint 仍命中既有 `contribution.includes("querySelector('.conversation-timeline')")` 的 unexternalized-string warning。未启动默认编辑器/HC 窗口，真实 32px 命中区、普通主题选中/按压范围与 HC 键盘焦点仍未覆盖。
+
+### §198 Composer ghost/send action 普通主题焦点反馈合同窄实施检查点（2026-11-06）
+
+Sol 只读复核当前 dirty diff 后发现默认编辑器 Conversation Composer 的 add/tune/more/exit ghost action 与 send action 仍以产品自有 `focusBorder` 外圈作为普通主题键盘反馈，和 GPT 风格的轻量表面反馈不一致。实施仅将普通主题 ghost action 的 `:focus-visible` 改为 `toolbar-hoverBackground` 背景、send action 保留实心圆并使用同一深浅层级的背景变化；HC black/light 继续保留 `contrastActiveBorder`（fallback `focusBorder`）对比环，按钮命中区、disabled 状态、ARIA/键盘动作与 reduced-motion 选择器不变。
+
+验证：刷新产物后 `npm run transpile-client` 通过；focused `conversationLensCssScan.test.ts` 的 Composer 焦点合同断言通过（49 passing）；Stylelint 退出 0（既有未知变量与 104 条 design-token suggestions），`git diff --check` 与 docs-health（0 errors/37 baseline warnings）通过；ESLint 仍仅命中既有 `contribution.includes("querySelector('.conversation-timeline')")` 的 unexternalized-string warning。未启动默认编辑器/HC 窗口，真实 Composer 普通主题键盘焦点、HC 对比环与窄叶命中仍未覆盖。
+
+### §199 Composer 按压态层级合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 的 ghost/filled/send 控件在普通主题按下时同时满足 `:active` 与 `:hover`，后声明的 hover 规则会覆盖同等 specificity 的按压反馈；因此鼠标按住时仍停留在 hover 色，按压层级不明显。实施仅在各 variant 的 hover 规则之后补回 ghost/filled 的 `toolbar-activeBackground` 与 send 圆按钮的 75% foreground mix 按压色；不改 28px 按钮几何、外扩命中区、disabled、ARIA、键盘动作或 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 Composer 按压合同通过（49 passing）；Stylelint exit 0（既有 unknown-variable/design-token suggestions），目标 ESLint 仅保留既有 unexternalized-string warning，`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实按压色与高对比人工观察仍待补。
+
+### §200 Composer maximize action 按压反馈合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 输入框右上角的 maximize action 只有 hover/focus surface，没有独立的 `:active` 表面；鼠标按住时不会像其它输入栏动作一样给出明确的 pressed 反馈。实施仅为 `.conversation-lens-dock-maximize-input-button` 增加 `:active:not(.disabled)` 的 `toolbar-activeBackground`，保留 22px 几何、显示/隐藏门控、焦点、ARIA、键盘动作与 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 maximize 按压合同通过（49 passing）；Stylelint exit 0（既有 unknown-variable/design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 maximize 按压和高对比观察仍待补。
+
+### §201 Composer @ mention option hover/按压反馈合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 的 `@` mention listbox 选项只有键盘 `is-active` 选中背景，没有普通主题的 pointer hover 或按住反馈；鼠标浏览候选项时列表表面不随指针变化，点击也缺少即时 pressed 层级。实施仅为非活动选项增加 `list-hoverBackground` hover/focus surface，为选项增加 `toolbar-activeBackground` 按压 surface；保留 `aria-activedescendant`、listbox/option 角色、键盘上下切换、候选选择和活动项背景，不改变 ARIA 或数据行为。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 @ mention hover/按压合同通过（49 passing）；Stylelint exit 0（既有 unknown-variable/design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 @ mention 候选 hover、按压与高对比观察仍待补。
+
+### §202 Composer reference chip remove focus feedback合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 引用 chip 的 Remove button 普通主题仍使用产品自有 `focusBorder` 外圈，和已收敛的 Composer 轻量表面反馈不一致；hover/active 表面已经存在。实施仅让普通主题 `:focus-visible` 使用 `toolbar-hoverBackground` 并清除外圈，高对比主题继续保留 `contrastActiveBorder` 对比环；不改 22px 命中区、引用删除、`aria-label`、键盘激活或 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 reference remove 焦点合同通过（49 passing）；Stylelint exit 0（既有 unknown-variable/design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实引用 chip 键盘焦点与高对比观察仍待补。
+
+### §203 Composer permission/Agent/Model selector focus feedback合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 底栏的 Permission、Agent、Model 原生 SelectBox 普通主题 `:focus-visible` 仍画 `focusBorder` 外圈，和同一输入栏已收敛的轻量表面焦点反馈不一致；hover/active 表面已存在。实施仅让普通主题选择器使用 `toolbar-hoverBackground` 并清除外圈，高对比主题保留 `contrastActiveBorder` / `focusBorder` fallback 对比环；不改选择值、下拉行为、28px 行高、禁用态、ARIA 或键盘操作。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 selector 焦点合同 49 passing；Stylelint exit 0（既有 unknown-variable/design-token suggestions），`git diff --check` 通过。目标 ESLint 仅保留既有 unexternalized-string warning；未启动默认编辑器/HC 窗口，真实选择器键盘焦点与高对比观察仍待补。
+
+### §204 Composer More/Add popup focus feedback合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 的 More/Add 弹出菜单选项普通主题 `:focus-visible` 仍使用产品自有 `focusBorder` 外圈，尽管同一规则已经提供菜单选中背景；这会让键盘移动时出现额外矩形环。实施仅让普通主题 popup option 焦点沿用菜单选择表面并清除外圈，高对比主题继续保留 2px `contrastActiveBorder` ring；不改菜单项命令、角色、Escape 关闭、选择状态或 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 popup 焦点合同 49 passing；Stylelint exit 0（既有 unknown-variable/design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 More/Add 菜单键盘焦点与高对比观察仍待补。
+
+### §205 Composer Tune popup Open action 反馈合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer Tune popup 的 “Open Engine Preferences” button 只有 hover surface，没有独立的普通主题 `focus-visible` 或 pressed surface；键盘进入或按住时反馈不完整。实施仅补 `toolbar-hoverBackground` focus-visible（去除装饰性 outline）与 `toolbar-activeBackground` pressed surface，高对比保留 2px `contrastActiveBorder` ring；不改按钮命令、角色、Escape 关闭、24px 几何或 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 Tune popup Open 合同 49 passing；Stylelint exit 0（既有 unknown-variable/design-token suggestions），`git diff --check` 通过。目标 ESLint 仅保留既有 unexternalized-string warning；未启动默认编辑器/HC 窗口，真实 Tune popup 键盘焦点、按压与高对比观察仍待补。
+
+### §206 Composer reference session-pill 焦点反馈合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Composer 引用 chip 内的 session-pill 链接仍沿用全局 `focusBorder` 外圈；§202 已收敛旁边的 Remove button，但链接本身在键盘进入时仍出现额外矩形环。实施仅为 Composer chip 内链接补普通主题的轻量 foreground 表面并清除装饰性 outline，高对比保留 `contrastActiveBorder` 对比环；不改链接激活、资源解析、Remove button、22px 几何或 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` exit 0；focused `conversationLensCssScan.test.ts` 的 Composer reference session-pill 焦点合同 49 passing；Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 5 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实引用链接键盘焦点、按压与高对比观察仍待补。
+
+### §207 Conversation/Trajectory tab 按压层级合同窄实施检查点（2026-11-06）
+
+用户反馈标签按压范围违和。复核发现 tab 的 `:active::before` 声明在 `:hover::before` 之前，指针按住时 hover 会覆盖按压表面；实施将按压表面声明移到 hover 之后，保留 32px 可访问命中区与 `inset: 3px 2px` 的内缩视觉面，让按住反馈与选中/hover 面保持同一标签边界，不改 tab 切换、ARIA、键盘、HC 或 reduced-motion。
+
+验证：focused `conversationLensCssScan.test.ts` 增加声明顺序合同并通过；将继续运行 `npm run transpile-client`、Stylelint 与 `git diff --check`。未启动默认编辑器/HC 窗口，真实按压范围与高对比观察仍待补。
+
+### §208 SessionBar controls 键盘焦点表面合同窄实施检查点（2026-11-06）
+
+Sol 复核发现 Conversation SessionBar 的 New/Delete/More、History/Snapshots 与 leaf window-nav 等 `.monaco-button` 普通主题 `:focus-visible` 仍绘制 `focusBorder` 外圈，与同一栏已收敛的轻量 GPT 表面不一致。实施让普通主题焦点沿用 `toolbar-hoverBackground` 并移除装饰性 outline；HC black/light 保留 `contrastActiveBorder` / `contrastBorder` 对比环，不改按钮命中区、命令、键盘、ARIA、disabled 或 reduced-motion。
+
+验证：`npm run transpile-client` 成功（10233 files）；focused `conversationLensCssScan.test.ts` 50 passing；`npm run stylelint -- src/vs/workbench/contrib/conversation/browser/media/conversationLens.css` exit 0（仅既有 unknown-variable 与 104 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 SessionBar 控件焦点与高对比观察仍待补。
+
+### §209 Engine Preferences 通用按钮焦点表面合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Engine Preferences 的 Test Engine、Open Connection 及各 section action buttons 仍依赖通用 `focusBorder` 外圈，和 GPT 风格轻量表面反馈不一致。实施让普通主题 `.engine-preferences-pane .monaco-button:focus-visible` 使用 `toolbar-hoverBackground` 并清除装饰性 outline；HC black/light 保留 `contrastActiveBorder` / `focusBorder` fallback 对比环。不改按钮命令、命中区、disabled、ARIA、键盘动作或 reduced-motion；更具体的 icon-action focus 规则继续优先。
+
+验证：`npm run transpile-client` 成功（10234 files）；focused `enginePreferencesPaneCss.test.ts` 2 passing；`npm run stylelint -- src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css` exit 0（既有 unknown-variable 与 34 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Engine Preferences 按钮焦点与高对比观察仍待补。
+
+### §210 Engine Preferences Back 行级焦点表面合同窄实施检查点（2026-11-06）
+
+Sol 只读复核发现 Engine Preferences 的自定义 Back 行级控件有更具体的 `focusBorder` 焦点规则，会压过 pane 通用按钮的 GPT 风格 quiet surface；Test Engine、Open Connection 与 section action buttons 的 §209 规则不变。实施仅将普通主题 `.engine-preferences-back:focus-visible` 改为 `toolbar-hoverBackground` 并清除装饰性 outline，HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）对比环；不改返回动作、命中区、disabled、ARIA、键盘行为或 reduced-motion。
+
+验证：`enginePreferencesPaneCss.test.ts` focused 1 passing；`npm run transpile-client`、目标 Stylelint 与 `git diff --check` 通过。默认编辑器/HC 窗口未启动，真实 Back 行级焦点与高对比观察仍待补。
+
+### §211 Conversation/Trajectory tab 视觉按压面收窄合同（2026-11-06）
+
+用户反馈标签按压范围仍显得违和。当前 tab 保留 32px 的按钮命中区与 `line-height`，但选中、hover、按压和普通主题键盘焦点统一绘制到 `::before` 内缩视觉面；本轮将视觉面从 `inset: 3px 2px` 收窄为 `inset: 4px 3px`，让高缩放窗口下的背景不再读成整行填充。未改 tab 切换、ARIA、键盘方向键、HC 对比环或 reduced-motion。
+
+验证：刷新产物后 `npm run transpile-client` 通过（10235 files / 2047 resources）；focused `conversationLensCssScan.test.ts` 51 passing；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实视觉仍需人工窗口复核。
+
+### §212 Engine Preferences Test Engine 焦点表面合同（2026-11-06）
+
+复核发现 Engine Preferences 底部 Test Engine 行的更具体按钮焦点规则仍在普通主题绘制 `focusBorder` 外圈，覆盖了面板已收敛的 GPT 轻量焦点表面。实施仅让普通主题使用 `toolbar-hoverBackground` 并清除装饰性 outline；HC black/light 保留 `contrastActiveBorder`（fallback `focusBorder`）对比环与原有偏移。不改 24px 命中区、Test Engine 命令、ARIA、键盘动作、disabled 或 reduced-motion。
+
+验证：刷新产物后 focused `enginePreferencesPaneCss.test.ts` 2 passing；目标 Stylelint 与 `git diff --check` 通过。默认编辑器/HC 窗口未启动，真实 Test Engine 键盘焦点、按压和高对比观察仍待补。
+
+### §213 Trajectory 搜索框普通主题焦点表面合同（2026-11-06）
+
+Sol 只读复核发现默认编辑器 Conversation 的 Trajectory 搜索框仍在普通主题 `:focus-visible` 绘制 `focusBorder` 外圈；输入框自身已有轻量边框与阴影反馈，额外外圈与 GPT 风格不一致。实施仅移除普通主题搜索框焦点外圈，保留输入框现有 `:focus` 边框/阴影、高对比 `contrastActiveBorder` 对比环、24px 高度、文本输入和键盘行为；不改 Trajectory 筛选逻辑、ARIA 或布局。
+
+验证：刷新产物后 focused `conversationLensCssScan.test.ts` 的 Trajectory 搜索焦点合同通过；目标 Stylelint、ESLint 与 `git diff --check` 通过。未启动默认编辑器/HC 窗口，真实搜索框键盘焦点、窄列和高对比观察仍待补。
+
+### §214 Activity Bar 普通主题键盘焦点表面合同（2026-11-06）
+
+Sol 复核发现 Activity Bar 的普通主题 `.action-item:focus` 会沿用选中项的 `activityBar-activeBackground`，导致键盘移动到未选中的图标时出现过重的选中块；鼠标点击后的 `.clicked:focus` 也会保留这层背景。实施仅将未选中且非鼠标点击的普通主题焦点改为 `toolbar-hoverBackground`，选中项继续保留 active background，高对比边框、44px 命中区、命令和拖拽语义不变。
+
+验证：Node 24 focused `activitybarCssScan.test.ts` 5 passing；目标 Stylelint exit 0（既有 10 条 design-token suggestions）；`transpile-client` 10235 files / 2047 resources；docs-health 0 errors；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Activity Bar 键盘焦点与高对比观察仍待补。
+
+### §215 Navigator 项目/会话列表普通主题键盘焦点表面合同（2026-11-06）
+
+复核发现截图对应的 Navigator 项目与会话列表仍在普通主题 `:focus-visible` 绘制 `focusBorder` 外圈，键盘移动到未选中行时视觉重量高于 GPT 列表行。实施让普通主题 focused 未选中行使用 `toolbar-hoverBackground` 并清除外圈；选中行保留选中背景，HC black/light 保留 `contrastActiveBorder` 对比环、列表键盘导航、行操作与 24px 行布局不变。
+
+验证：Node 24 focused `navigatorProjectsListCss.test.ts` 10 passing（含后续 Team 行焦点与 pressed-focus 合同）；目标 Stylelint exit 0（既有 `--ua-navigation-font-size` unknown-variable 与 1 条 design-token suggestion）；未启动默认编辑器/HC 窗口，真实 Navigator 行焦点与高对比观察仍待补。
+
+### §216 Navigator Team 状态筛选 pressed-focus 层级合同（2026-11-06）
+
+复核发现 Team 状态筛选按钮的普通主题通用 `:focus-visible` 规则会覆盖 `aria-pressed="true"` 的 active surface，键盘聚焦已选筛选项时会误读成普通 hover。实施新增更具体的 pressed-focus 覆盖，让已按下筛选项继续使用 `toolbar-activeBackground`；未改筛选命令、ARIA、命中区或 HC 对比环。
+
+验证：Node 24 focused `navigatorProjectsListCss.test.ts` 10 passing；目标 Stylelint exit 0（既有 2 条 design-token suggestions）；`transpile-client` 10235 files / 2047 resources；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Team 状态筛选键盘焦点仍待补。
+
+### §217 Navigator Agents 层级/活动列表普通主题键盘焦点表面合同（2026-11-06）
+
+复核发现 Navigator Agents 层级树与活动列表的普通主题 `:focus-visible` 仍绘制 `focusBorder` 外圈，未选中行的焦点重量高于 GPT 列表行。实施让普通主题 focused 未选中行使用 `toolbar-hoverBackground` 并清除外圈；HC black/light 保留 `contrastActiveBorder` 对比环，选中背景、状态 glyph、行操作和列表键盘导航不变。
+
+验证：Node 24 focused `navigatorStubCss.test.ts` 3 passing；目标 Stylelint exit 0（既有 2 条 design-token suggestions）；`transpile-client` 10235 files / 2047 resources；docs-health 0 errors；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Agents 列表焦点与高对比观察仍待补。
+
+### §218 Auxiliary Bar 普通主题复合动作焦点/悬停表面合同（2026-11-06）
+
+复核发现 Auxiliary Bar 的复合动作普通主题 hover 与 checked 状态仍绘制 `contrastActiveBorder` 实线/虚线轮廓，视觉重量高于 GPT 工具栏。实施将普通主题未选中 hover/focus-visible 改为 `toolbar-hoverBackground` 并清除轮廓；HC black/light 保留 `contrastActiveBorder` 对比环；不改选中语义、命令或命中区。
+
+验证：Node 24 focused `auxiliaryBarPartCss.test.ts` 3 passing；目标 Stylelint exit 0；`transpile-client` 10235 files / 2047 resources；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Auxiliary Bar 焦点与高对比观察仍待补。
+
+### §219 Conversation turn action bar 紧凑 token 合同（2026-11-06）
+
+Sol 复核 Conversation timeline 的现有动作栏，确认只保留复制、重新生成、删除和在轨迹中查看四个已有动作：最新助手回合动作行常显，更早回合不占行高，悬停或键盘焦点时出现。22px 紧凑命中区保持 O2 约定；间距、图标字号与按钮圆角分别收归 `spacing.size20`、`codiconFontSize` 和 `cornerRadius.small` token。保留 `focus-within` 键盘显现、HC 对比焦点环和 `.monaco-reduce-motion` / `prefers-reduced-motion` 无过渡规则，不新增 ChatGPT 专属动作或改变动作路由。
+
+验证：`conversationLensCssScan.test.ts` 52 passing；`conversationTimelineRenderer.test.ts` 32 passing；`npm run compile-client` exit 0（compile-src 0 errors）；目标 Stylelint exit 0（仅既有 design-token suggestions），docs-health 0 errors，`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实悬停、键盘焦点、窄列和高对比观察仍待补。
+
+### §220 Panel composite title action GPT surface 合同窄实施检查点（2026-11-07）
+
+Sol 复核发现默认编辑器 Panel 顶部 Problems/Output/Debug Console/Terminal 等 composite title actions 仅改变前景色并清除通用 outline，普通主题悬停与键盘焦点没有 GPT 风格的轻量表面，键盘进入时也缺少明确层级。实施让非高对比主题的未禁用 action 在 hover 与 `:focus-visible` 使用 `toolbar-hoverBackground`、保留 panel active foreground；HC black/light 继续使用 `contrastActiveBorder`（fallback `focusBorder`）1px 对比环。同步把现有颜色过渡纳入背景色并沿用既有 reduced-motion 分支；不改面板 tab 选中指示、命令、ARIA、方向布局或命中区。
+
+验证：Node 24.18 focused `panelPartCss.test.ts` 4 passing（含 pressed surface 声明顺序合同）；`npm run transpile-client` exit 0（10222 files / 2047 resources）；目标 Stylelint exit 0（4 条既有 stroke design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Panel 悬停、键盘焦点与高对比观察仍待补。
+
+### §221 Statusbar entry 按压覆盖 hover 的层级合同窄实施检查点（2026-11-08）
+
+Sol 复核发现默认编辑器状态栏条目的普通主题 `:active` 背景声明先于通用 `:hover`，指针按住时后声明的 hover surface 会覆盖 active surface。实施仅在状态栏通用 hover 规则之后补充 `a:active:hover:not(.disabled)` 的 `statusBarItem-activeBackground` 覆盖，保留 statusbar entry 的 22px 几何、ARIA/键盘导航、HC 对比环与 reduced-motion 过渡合同，不改入口命令或排序。
+
+验证：Node 24.18.0 focused `statusbarPartCss.test.ts` 4 passing（含 pressed-over-hover 声明顺序合同）；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（10 条既有 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实状态栏按压层级与高对比观察仍待补。
+
+### §222 Conversation/Trajectory tab 按压视觉面进一步收窄合同（2026-11-08）
+
+用户反馈标签按压范围仍显得违和。保留 32px 的按钮命中区、`role="tab"`、键盘切换和 HC 对比焦点环，仅把选中、hover、按压与普通主题键盘焦点共用的 `::before` 视觉面从 `inset: 4px 3px` 收窄为 `inset: 6px 4px`，让背景更贴近文字标签，避免在高缩放窗口中读成整行填充。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts` 52 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；未启动默认编辑器/HC 窗口，真实按压范围与高对比观察仍待补。
+
+### §223 Conversation 回合动作键盘焦点轻量表面合同（2026-11-08）
+
+只读复核发现助手回合的复制、重新生成、删除和轨迹动作按钮，普通主题仍在 22px 命中区外画 `focusBorder` 外圈；动作行已有 `focus-within` 显现和 `toolbar-hoverBackground` 表面，额外外圈增加视觉重量且与已收敛的 Composer、SessionBar、Engine Preferences 焦点策略不一致。实施仅在普通主题为 `.conversation-lens-turn-actions .monaco-button:focus-visible` 清除外圈并保留 `toolbar-hoverBackground`，高对比 black/light 继续使用 `contrastActiveBorder` 对比环；不改动作命令、ARIA、键盘顺序、命中区或 reduced-motion 合同。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts` 通过（新增 ordinary quiet-surface 与 HC 保留断言）；`npm run transpile-client` 与 `git diff --check` 通过。未启动默认编辑器窗口，真实普通主题、窄列和高对比键盘焦点仍待补。
+
+### §224 Conversation Agent breadcrumb 按压覆盖 hover 的层级合同（2026-11-08）
+
+只读复核发现 Conversation Agent hierarchy 面包屑项的 `:active` 背景声明先于非当前项的 `:hover`/键盘 focused 表面，指针按住路径项时后声明的 hover 背景会覆盖 `toolbar-activeBackground`，按压层级不清晰。实施仅将既有 `:active` 规则移到 hover/focused 规则之后，保留 22px 面包屑行、Arrow/Enter 导航、`aria-current`、不可点击当前项和 reduced-motion 合同，不改路径选择或 DOM 语义。
+
+验证：Node 24 focused `conversationAgentBreadcrumbCss.test.ts` 2 passing（含 reduced-motion 与 pressed-over-hover 声明顺序合同）；`npm run transpile-client` 通过（10223 files / 2047 resources），目标 Stylelint exit 0（仅既有 `--ua-ease` unknown-variable 与 3 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实面包屑按压范围与高对比观察仍待补。
+### §225 Conversation chrome 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现 Conversation 顶部 title actions 与 SessionBar/window-nav 的 `:active` 背景声明先于 hover/focus 表面；鼠标按住时后声明的 hover 或普通主题焦点背景会覆盖 `toolbar-activeBackground`，按压层级不清晰。实施仅将两组既有 active 规则移到 hover/focus/HC 规则之后，保留 28px 动作命中区、SessionBar/window-nav 命令、键盘/ARIA、HC 对比环和 reduced-motion 合同，不改布局或路由。
+
+验证：Node 24 focused `conversationRegionChromeCss.test.ts` 4 passing（含 title action 与 SessionBar pressed-over-hover 顺序合同）；`npm run transpile-client` 通过（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有 3 个 `--vscode-conversation-background` unknown-variable 与 1 条 design-token suggestion），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Conversation chrome 按压范围与高对比观察仍待补。
+
+### §226 Visualize expand 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现可视化卡片的 Expand diagram 24px 图标按钮 `:active` 声明先于 `:hover`，指针按住时 hover 表面会覆盖 `toolbar-activeBackground`，按压层级不清晰。实施仅将既有 `:active` 规则移到 hover 之后，保留按钮命中区、普通主题 quiet focus、HC `contrastActiveBorder` 对比环与 reduced-motion 合同，不改展开动作、ARIA 或布局。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'visualize expand keeps pressed surface above hover'` 1 passing；全文件 53 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有 `--ua-ease` unknown-variable 与 19 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实可视化按钮按压范围、普通主题焦点与高对比观察仍待补。
+
+### §227 Connection Preferences 导航行按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现 Connection Preferences 左侧导航行的 `:active` 背景声明先于未选中行 `:hover`，指针按住导航项时 hover 表面会覆盖 `toolbar-activeBackground`。共享工作区已将既有 active 规则移到 hover 之后；保留现有导航行几何、列表键盘/ARIA、普通主题焦点表面、HC `contrastActiveBorder` 对比环与 reduced-motion 合同，不改选中语义或导航动作。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'connection preferences nav keeps pressed surface above hover'` 1 passing；全文件 54 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有变量提示与 22 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Connection Preferences 导航行按压范围、键盘焦点与高对比观察仍待补。
+
+### §228 Conversation identity chip 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现 Conversation identity chip 的通用 `:active` 背景声明先于普通 hover 与 engine-offline 状态 hover，指针按住 chip 时 hover 表面会覆盖 `toolbar-activeBackground`。实施仅将既有 active 规则移到两个 hover 表面之后，保留 engine/offline 状态色、只读 chip 的不可交互语义、键盘焦点、HC 对比环与 reduced-motion 合同，不改身份动作或布局。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'identity chips keep pressed surface above hover'` 1 passing；全文件 55 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有变量提示与 9 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 identity chip 按压范围、键盘焦点与高对比观察仍待补。
+
+### §229 Conversation lens session title 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现 Conversation lens session title 按钮的 `:active` 背景声明先于同一按钮的 `:hover`，指针按住标题时 hover 表面会覆盖 `toolbar-activeBackground`。实施仅将既有 active 规则移到 hover 之后，保留 20px 命中区、标题编辑与键盘动作、普通主题 quiet focus、HC 对比环和 reduced-motion 合同，不改会话切换或标题保存语义。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'session title keeps pressed surface above hover'` 1 passing；全文件 56 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有变量提示与 98 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 session title 按压范围、键盘焦点与高对比观察仍待补。
+
+### §230 Conversation 回合轨迹动作按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 user turn 右上角 `.conversation-lens-turn-header-trajectory .monaco-button` 的 `:active` 背景声明先于同一按钮的 hover/focus 表面；鼠标按住轨迹入口时，后声明的 hover/focus 会覆盖 `toolbar-activeBackground`，按压反馈不稳定。实施仅将既有 active 规则移到 hover/focus 之后，并加入声明顺序合同；保留 22px 命中区、轨迹导航命令、ARIA、普通主题 quiet focus、HC 对比环与 reduced-motion 合同，不改回合布局或导航语义。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts` 58 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有 unknown-variable 与 98 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 user turn 轨迹按钮按压范围、键盘焦点与高对比观察仍待补。
+
+### §231 Engine Preferences MCP tab 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 只读复核发现 Engine Preferences 的 MCP tab `:active` 背景声明先于 `:hover`，指针按住 tab 时 hover 表面会覆盖 `toolbar-activeBackground`，按压层级不清晰。实施仅将既有 active 规则移到 hover 之后，并补声明顺序合同；保留 24px tab 命中区、活动 tab 选择语义、键盘/ARIA、普通主题与 HC 状态和 reduced-motion 合同，不改 MCP 切换逻辑或布局。
+
+验证：Node 24.18.0 focused `enginePreferencesPaneCss.test.ts` 5 passing（含 MCP tab pressed-over-hover 合同）；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（保留既有 `--ua-*` unknown-variable 与 34 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 MCP tab 按压范围、键盘焦点与高对比观察仍待补。
+
+### §232 Session leaf hide 按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+只读复核发现 Conversation session leaf 的 Hide 控件 `:active` 背景声明先于普通主题 `:focus-visible` 与 HC 焦点表面；指针按住一个已获键盘焦点的 Hide 控件时，后声明的焦点表面会覆盖 `toolbar-activeBackground`，按压反馈不稳定。实施仅将既有 active 规则移到 hover 与 focus-visible 规则之后，并补 Node 合同锁住声明顺序；保留 28px 命中区、隐藏会话动作、键盘/ARIA、HC 对比环和 reduced-motion 合同，不改关闭语义或布局。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts` 58 passing（含 session leaf hide pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有 `--ua-ease` unknown-variable 提示），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Hide 控件按压范围、键盘焦点与高对比观察仍待补。
+### §233 Conversation session title 按压覆盖键盘焦点表面合同（2026-11-08）
+
+Sol 复核发现 Conversation Session title 的 `:active` 背景虽已在 hover 之后，但仍先于普通主题 `:focus-visible`；鼠标按住已聚焦的会话标题时，键盘焦点表面会覆盖 `toolbar-activeBackground`。实施仅将既有 active 规则移到 hover 与普通/高对比 focus 规则之后，保留会话标题编辑/选择行为、20px 几何、HC 对比环和 reduced-motion 合同，不改会话路由或键盘语义。
+
+验证：Node 24 focused `conversationLensCssScan.test.ts` 58 passing（新增 session-title pressed-over-focus 顺序合同）；`npm run transpile-client` 通过（10223 files / 2047 resources）；目标 Stylelint exit 0（仅既有 unknown-variable 与 98 条 design-token suggestions），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实会话标题按压范围与高对比观察仍待补。
+
+### §234 Conversation review 导航按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 只读复核发现 Conversation review 导航按钮的 `:active` 背景声明先于 hover 与普通/高对比 focus 表面；鼠标按住已获键盘焦点的 Review 入口时，后声明的 hover/focus 会覆盖 `toolbar-activeBackground`，按压反馈不稳定。实施仅将既有 active 规则移到 hover 与 focus 规则之后，并补声明顺序合同；保留 review 导航命令、键盘焦点、HC `contrastActiveBorder` 对比环、文字下划线与 reduced-motion 合同，不改布局或导航语义。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'review navigation keeps pressed surface above hover and focus'` 1 passing；全文件 59 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（98 条既有 design-token suggestions 与既有 unknown-variable 提示），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 review 导航按压范围、键盘焦点与高对比观察仍待补。
+
+### §235 Trajectory inspector Close 按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 只读复核发现 Trajectory inspector 的 Close 22px 图标按钮 `:active` 背景声明先于普通主题与高对比 `:focus-visible` 表面；鼠标按住已获键盘焦点的 Close 控件时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`，按压反馈不稳定。实施仅将既有 active 规则移到 hover 与 focus 规则之后，并补声明顺序合同；保留 Close 动作、22px 命中区、普通主题静默焦点、高对比 `contrastActiveBorder` 对比环与 reduced-motion 合同，不改 inspector 布局或返回语义。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'trajectory inspector close keeps pressed surface above hover and focus'` 1 passing；全文件 60 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（98 条既有 design-token suggestions 与既有 unknown-variable 提示），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Trajectory inspector Close 按压范围、键盘焦点与高对比观察仍待补。
+
+### §236 Trajectory record row 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现 Trajectory table 未选中记录行的 `:active` 背景声明先于 `:hover`，指针按住行时 hover surface 会覆盖 `list-activeSelectionBackground`，按压反馈不稳定。实施仅将记录行 active 规则移到未选中 hover 之后，同时保持 selected 行规则继续覆盖 active；保留 22px 行高、列表选择/聚焦语义、轨迹导航与 reduced-motion 合同，不改行点击或键盘行为。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 61 passing（含新增按压层级合同）；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（98 条既有 design-token suggestions 与既有 unknown-variable 提示），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Trajectory row 按压范围、选择态与高对比观察仍待补。
+
+### §237 Inbox message queue 行按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Inbox message queue 的 `.queue-item:active` 背景声明先于普通主题 `:focus-visible`；指针按住已获键盘焦点的队列行时，后声明的 quiet focus surface 会覆盖 `toolbar-activeBackground`，按压反馈不稳定。实施仅将既有 active 规则移到 hover 与普通/高对比 focus 规则之后，并补声明顺序合同；保留队列行现有内容布局、点击/键盘语义、失败与 hold-editing 状态和 reduced-motion 合同，不改队列动作或状态投影。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'message queue items keep pressed surface above hover and focus'` 1 passing；全文件 62 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions），目标 ESLint 0 errors（1 条既有 externalized-string warning），`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Inbox queue 行按压范围、键盘焦点与高对比观察仍待补。
+
+### §238 Inbox message queue 顶部操作按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Inbox message queue 顶部 `Clear/Retry` 操作按钮的 `:active` 背景声明先于普通主题与高对比 `:focus-visible` 表面；按住已获键盘焦点的操作按钮时，后声明的 hover/focus 会覆盖按压反馈。实施仅将既有 `.queue-bar-action:not(:disabled):active` 规则移到 hover、普通焦点与 HC 焦点之后，并补 `conversationLensCssScan.test.ts` 声明顺序合同；保留 22px 命中区、Clear 错误色 hover、队列清理/重试动作、键盘/ARIA、disabled 与 reduced-motion 合同，不改队列状态或布局。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts` 63 passing（含 queue bar action pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning、无 error；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实队列顶部操作按压范围、键盘焦点与高对比观察仍待补。
+
+### §239 Agent 下拉菜单项按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Conversation SessionBar 的 direct-child agent 下拉菜单项只有菜单 hover/focus surface，没有独立的 pointer-down pressed surface；按住菜单项时反馈与悬停/键盘状态无法区分。实施仅为 `.conversation-agent-down-item:active` 增加 `toolbar-activeBackground` pressed surface，并置于 hover/focus 规则之后；保留约 28px 可用命中区（`padding: 4px 12px` + `line-height: 20px`）、menu/menuitem 角色、上下方向键、Escape、打开子会话动作与既有菜单选中前景色，不改弹层定位或导航语义。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts --grep 'agent picker menu items keep a usable target and pressed surface above hover and focus'` 1 passing；全文件 64 passing；`npm run transpile-client` exit 0（10223 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；`git diff --check` 通过。默认编辑器、HC 主题与真实 agent 下拉菜单的按压/焦点观察仍待补。
+
+### §240 Sessions 列表 More 按钮按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Sessions 列表行尾 More 按钮已有 hover 与普通/高对比 focus surface，却没有独立的 pointer-down pressed surface；按住已获焦点的 More 时，反馈与悬停/键盘状态无法区分。实施仅为 `.conversation-sessions-item-more:active` 增加 `toolbar-activeBackground` pressed surface，并置于 focus/hover 规则之后；保留 28px 命中区、More 菜单展开与会话行键盘语义、HC `contrastActiveBorder` 对比环和 reduced-motion 合同，不改会话选择或菜单动作。
+
+验证：Node 24.18.0 focused `conversationSessionsCss.test.ts` 2 passing；相关 `conversationLensCssScan.test.ts` 全文件 64 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 `--ua-navigation-font-size` unknown-variable 与 2 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Sessions More 按压范围、键盘焦点与高对比观察仍待补。
+
+### §241 Trajectory overview 折叠按钮按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 只读复核发现 Trajectory overview 的折叠/展开按钮 `:active` 背景声明先于普通主题与高对比 `:focus-visible` 表面；按住已获键盘焦点的 toggle 时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`，按压反馈不稳定。实施仅将既有 `.conversation-lens-trajectory-overview-toggle:active` 规则移到 hover 与普通/高对比 focus 规则之后，并补源码声明顺序合同；保留 22px 命中区、`aria-expanded`/`aria-controls`、折叠 transform、键盘动作、HC `contrastActiveBorder` 对比环与 reduced-motion 合同，不改 overview track 或 segment 行为。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 65 passing（含新增 overview toggle pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；`npm run stylelint -- src/vs/workbench/contrib/conversation/browser/media/conversationLens.css` exit 0（既有 23 条 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 0 errors、1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 overview toggle 按压范围、键盘焦点与高对比观察仍待补。
+
+### §242 Conversation/Trajectory tab 视觉按压面再次收窄合同（2026-11-08）
+
+用户反馈标签按压范围仍显得违和。保留 32px 的按钮命中区、`role="tab"`、键盘切换和 HC 对比焦点环，仅把选中、hover、按压与普通主题键盘焦点共用的 `::before` 视觉面从 `inset: 6px 4px` 收窄为 `inset: 7px 6px`，让背景贴近文字行并降低整行填充感；不改 tab 切换语义、ARIA 或 reduced-motion。
+
+验证：Node 24.18.0 focused `conversationLensCssScan.test.ts` ConversationLens 套件 39 passing（含 lens tab 32px target / inset 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint 与 `git diff --check` 待父窗口收口复核。未启动默认编辑器/HC 窗口，真实 tab 按压范围与高对比观察仍待补。
+
+### §243 Trajectory overview segment 交互面覆盖 per-kind 底色合同（2026-11-08）
+
+Sol 复核发现 Trajectory overview segment 的 hover、选中与按压规则位于各 `data-segment-kind` 底色之前；相同特异性下，user/assistant/tool 等类型底色会覆盖交互反馈，导致按压时看不到 `toolbar-activeBackground`，悬停与选中也无法稳定覆盖类型底色。已将交互 surface 规则移到所有 per-kind 底色之后，保留 12px segment 几何、类型 glyph、键盘导航、focus-visible ring 与各类型颜色语义，不改轨迹定位或 ARIA 行为；新增源码顺序合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 66 passing（含 segment interaction-over-kind 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 无 error、保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 overview segment 按压、悬停与高对比观察仍待补。
+
+### §244 Process fold 轨迹跳转按压覆盖 reveal/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 process fold 的轨迹跳转按钮 `.conversation-process-fold-trajectory-jump:active` 位于行 hover、focus-within 和按钮 focus-visible 表面之前；按住已显示或已获焦点的跳转按钮时，后声明的 hover/focus surface 会覆盖 `toolbar-activeBackground`。已将 active surface 移到 reveal、普通主题 focus 与 HC focus 规则之后，并补 `conversationLensCssScan.test.ts` 顺序合同；保留 22px 命中区、行 hover/focus-within 显示门控、`pointer-events`、轨迹定位命令、ARIA/键盘行为、HC 对比环与 reduced-motion，不改 process fold 内容或布局。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 67 passing（含 process fold trajectory jump pressed-over-reveal/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 process fold 跳转按钮按压、键盘焦点与高对比观察仍待补。
+
+### §245 Composer reference remove 按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Composer 引用 chip 的 remove 按钮 `.conversation-composer-ref-remove:active` 位于普通主题与高对比 `:focus-visible` 表面之前；按住已获键盘焦点的移除按钮时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`。已将 active surface 移到 hover、普通主题 focus 与 HC focus 规则之后，并补 `conversationLensCssScan.test.ts` 顺序合同；保留 22px 命中区、引用移除动作、键盘/ARIA、HC 对比环与 reduced-motion，不改引用数据或 Composer 布局。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 68 passing（含 reference remove pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实引用移除按钮按压、键盘焦点与高对比观察仍待补。
+
+### §246 Composer selector 按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Composer 底栏 permission、agent、model 三个 SelectBox 的 `:active` 背景位于 hover 与普通/高对比 focus surface 之前，且基础 `background: transparent !important` 会使普通 active 声明失效；按住选择器时看不到稳定的 `toolbar-activeBackground`。已将三组 SelectBox 的 active surface 移到 hover/focus 之后并设为 `!important`，保留 28px 高度、原生 SelectBox 键盘/可访问性、模型/agent/permission 语义、HC 对比环与 disabled 状态；新增源码顺序与重要性合同，不改选择菜单或布局。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 69 passing（含 composer selector pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 permission/agent/model selector 按压、键盘焦点与高对比观察仍待补。
+
+### §247 Composer popup 项按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Composer More/Add popup 项的 `:active` 背景位于 hover、普通主题 focus 与高对比 focus surface 之前；按住已获焦点的 popup 项时，后声明的菜单选择表面会覆盖 `toolbar-activeBackground`。已将 `.conversation-lens-dock-more-item` 与 `.conversation-lens-dock-add-option` 的 active surface 后置到 hover/focus 规则之后，保留 popup 项的可达命中区、菜单选择前景色、键盘/ARIA、HC 对比环与 disabled 状态，不改弹层定位或选项动作；新增源码声明顺序合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 70 passing（含 popup item pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 `git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 popup 项按压、键盘焦点与高对比观察仍待补。
+
+### §248 Conversation 回合操作按钮按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Conversation 回合操作栏 `.conversation-lens-turn-actions .monaco-button:active` 位于普通主题与高对比 `:focus-visible` 表面之前；按住已获键盘焦点的复制、重试、删除等回合操作时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`。已将 active surface 移到 hover、普通主题 focus 与 HC focus 规则之后，并补 `conversationLensCssScan.test.ts` 顺序合同；保留 22px 命中区、动作命令、键盘/ARIA、HC 对比环与 disabled 语义，不改操作栏布局或 reveal 门控。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 71 passing（含 turn action pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实回合操作按钮按压、键盘焦点与高对比观察仍待补。
+
+### §249 Confirmation action 按压覆盖 focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Confirmation seat 的 Allow/Skip 等 `.conversation-lens-confirmation-actions .monaco-button:active` 位于普通与高对比 `:focus-visible` 表面之前；按住已获键盘焦点的确认操作时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`。已将 active surface 后置到普通/高对比 focus 规则之后，并补 `conversationLensCssScan.test.ts` 顺序合同；保留按钮尺寸、确认动作、键盘/ARIA、HC 对比环、disabled 与 reduced-motion，不改确认状态或布局。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 72 passing（含 confirmation action pressed-over-focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实确认按钮按压、键盘焦点与高对比观察仍待补。
+
+### §250 Markdown code block copy 按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Markdown code block 的 Copy 按钮 `.conversation-code-block-copy:active` 位于普通与高对比 `:focus-visible` 表面之前；按住已获键盘焦点的复制按钮时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`。已将 active surface 后置到 hover、普通主题 focus 与 HC focus 规则之后，并补 `conversationLensCssScan.test.ts` 顺序合同；保留 22px 命中区、复制动作、键盘/ARIA、HC 焦点环、颜色语义与 reduced-motion，不改 Markdown 渲染或代码块布局。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 73 passing（含 code block copy pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实代码块复制按钮按压、键盘焦点与高对比观察仍待补。
+
+### §251 Composer soft control 按压覆盖 hover 的层级合同（2026-11-08）
+
+Sol 复核发现 Composer 底栏 soft 圆形控制的 `:active` 只由通用 control 规则提供，位于 soft control 的 hover 表面之前；按住 soft 控制时 hover 的 `toolbar-activeBackground` 会覆盖按压状态。已在 soft hover 规则之后补充 soft control active surface，保留 28px 命中区、soft 控制语义、键盘/ARIA、HC 与 disabled 行为，并补 `conversationLensCssScan.test.ts` 顺序合同，不改 Composer 布局或命令。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 74 passing（含 soft composer control pressed-over-hover 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 soft 控制按压、键盘焦点与高对比观察仍待补。
+
+### §252 Inbox chip 按压覆盖 hover/focus 的层级合同（2026-11-08）
+
+Sol 复核发现 Inbox chip 的 `:active` 与 `aria-pressed` 共用规则，位于普通主题与高对比 `:focus-visible` 表面之前；按住已获键盘焦点的 chip 时，后声明的 focus surface 会覆盖 `toolbar-activeBackground`。已保留 `aria-pressed` 的持久选中面，并将 pointer-down active surface 后置到 hover、普通主题 focus 与 HC focus 之后；保留 22px 命中区、Inbox 操作、键盘/ARIA、HC 对比环与 reduced-motion，不改队列状态或布局。新增 `conversationLensCssScan.test.ts` 顺序合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 inbox chip pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Inbox chip 按压、键盘焦点与高对比观察仍待补。
+
+### §253 Composer send 按压层级覆盖 hover/focus 的合同（2026-11-08）
+
+Sol 复核发现 Composer send button 的早期 `:active` 声明位于普通主题 `:focus-visible` 与 hover 表面之前，后续重复声明虽维持颜色，却让按压层级合同不清晰；已删除早期重复 active 规则，只保留位于 hover、普通主题 focus 之后的 send 专用按压面，实际使用 75% 前景色与编辑器背景的 `color-mix` 覆盖通用 filled control 颜色，保留 28px 实心发送按钮、发送动作、键盘/ARIA、HC、disabled 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 send pressed-over-hover/focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留 1 条既有 line 903 externalized-string warning；`git diff --check` 通过。send 专用按压面实际使用 75% 前景色与编辑器背景的 `color-mix`，覆盖通用 filled control 的颜色；未启动默认编辑器/HC 窗口，真实发送按钮按压、键盘焦点与高对比观察仍待补。
+
+### §254 Review navigation 按压面收窄合同（2026-11-08）
+
+用户反馈“按压范围太违和”。Sol 复核发现 review navigation 是整行 block 命中目标，active/hover/focus 背景直接覆盖整个行宽；已保留整行按钮命中区、review 路由、键盘/ARIA、HC 焦点环与 reduced-motion，将可见 hover、普通主题 focus 和 active 面移到 `::before` 的 `inset: 2px 4px` 小表面，降低整行填充感。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 review navigation inset pressed-face 与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留既有 line 903 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 review navigation 按压、键盘焦点与高对比观察仍待补。
+
+### §255 User bubble 按压面收窄合同（2026-11-08）
+
+用户反馈“按压范围太违和”。Sol 复核发现可编辑用户消息气泡 `.conversation-lens-turn-body--clickable:active` 直接将整块阅读气泡染成 active 背景；已保留 role=button 的完整气泡命中区、编辑动作、ARIA/键盘、HC 焦点与 reduced-motion，将 hover 与 active 可见面移到气泡内缩 1px 的 `::before` 面，降低整块阅读卡的按压填充感。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 user bubble inset pressed-face 与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 98 条 design-token suggestions）；目标 ESLint 保留既有 line 911 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实用户气泡按压、键盘焦点与高对比观察仍待补。
+
+### §256 Trajectory record row 按压面收窄合同（2026-11-08）
+
+用户反馈“按压范围太违和”。Sol 复核发现 Trajectory record row 的未选中 `:active` 直接使用整行 `list-activeSelectionBackground`；已保留 22px list row 命中区、键盘/列表语义、选中行的完整持久选中面、HC/reduced-motion，将未选中 hover/active 面移到内缩 1px 4px 的 `::before` 视觉面，避免按压时整行填充。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 unselected trajectory row inset pressed-face 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 99 条 design-token suggestions）；目标 ESLint 保留既有 line 911 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 trajectory row 按压、选中态、键盘焦点与高对比观察仍待补。
+
+### §257 Trajectory process-fold header 按压面收窄合同（2026-11-08）
+
+用户反馈“按压范围太违和”。Sol 复核发现 Trajectory 中 `.conversation-process-fold-header` 被布局规则扩展为整行宽度，通用 hover/focus/active 背景因此覆盖整行；已保留 22px 折叠 header 命中区、折叠命令、ARIA/键盘、HC 焦点与 reduced-motion，将 trajectory header 的可见 hover/focus/active 面移到内缩 `1px 4px` 的 `::before`，避免整行填充。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 trajectory process-fold header inset pressed-face 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 100 条 design-token suggestions）；目标 ESLint 保留既有 line 918 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 process-fold header 按压、键盘焦点与高对比观察仍待补。
+
+### §258 Message queue item 按压面收窄合同（2026-11-08）
+
+用户反馈“按压范围太违和”。Sol 复核发现 queue item 的 hover/active 直接填充整块消息卡；已保留 queue item 的完整命中区、hold-editing、queue-failed/upload-failed 状态、键盘/ARIA、HC/reduced-motion，将普通 queue item 的 hover/active 面移到内缩 `1px 4px` 的 `::before`，特殊 hold/failed 状态继续保留整行状态面。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 queue item inset pressed-face、hold-editing 状态与 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 100 条 design-token suggestions）；目标 ESLint 保留既有 line 924 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 queue item 按压、hold/failed 状态、键盘焦点与高对比观察仍待补。
+
+### §260 Visualize header 与 queue focus 按压面收窄合同（2026-11-08）
+
+用户反馈“按压范围太违和”。Sol 审计发现 Visualize disclosure header 的 active/focus 面覆盖卡片头部整行，queue item 的普通主题 `:focus-visible` 仍直接铺满消息卡；已保留完整命中区、展开/队列状态、ARIA/键盘、HC 焦点与 reduced-motion，将 Visualize header 的 active/focus 面和 queue item 的 normal focus 面移到内缩视觉面。队列 hold/failed 状态继续保留整行状态语义。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 75 passing（含 Visualize header inset face、queue focus face 与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 100 条 design-token suggestions）；目标 ESLint 保留既有 line 924 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Visualize header、queue focus、hold/failed 状态与高对比观察仍待补。
+
+### §261 Visualize header hover 与 Engine utility row 按压面收窄合同（2026-11-08）
+
+Sol 复核发现 Visualize header row hover 仍直接铺满卡片头部，Engine triggers/clipboard/context rows 的未选中 hover/active 也直接覆盖整行；已将 Visualize header row hover、Engine utility row hover/active 移到内缩 `::before` 视觉面，保留完整命中区、selected 状态、ARIA/键盘、HC/reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 76 passing（含 Visualize header hover、Engine utility row inset face 与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 153 条 design-token suggestions）；目标 ESLint 保留既有 line 924 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Visualize/Engine 行按压、selected/键盘焦点与高对比观察仍待补。
+
+### §262 Engine navigation 与 utility focus 面收窄合同（2026-11-08）
+
+Sol 复核发现 Engine navigation row 的未选中 hover/active，以及 Engine utility row 的普通主题 `:focus-visible` 仍直接铺整行；已将这些普通交互面移到内缩 `::before`，保留 22/24px 命中区、selected 状态、列表/ARIA/键盘、HC ring 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 76 passing（含 Engine nav/utility inset hover-active-focus、S9 host-transparent/pseudo-hover 合同与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 34 条 engine design-token suggestions）；目标 ESLint 保留既有 line 926 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Engine row selected/按压、键盘焦点与高对比观察仍待补。
+
+### §263 Process-fold tool header 按压面收窄合同（2026-11-08）
+
+Sol 复核发现 process-fold tool header 的 hover/focus/active 仍直接铺在按钮命中区；已保留 button 的原生命中区、ARIA/键盘与 HC contrast ring，将普通主题交互面迁移到内缩 `::before`，并为 pseudo 面补齐 workbench 与 prefers reduced-motion 过渡关闭合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 77 passing（新增 process-fold tool header 命中区/内缩 pressed face 顺序与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 101 条 design-token suggestions）；目标 ESLint 保留既有 line 926 externalized-string warning；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 process-fold tool header 按压、键盘焦点与高对比观察仍待补。
+
+### §264 Sessions list row 按压面收窄合同（2026-11-08）
+
+Sol 复核发现 Sessions list 普通未选中 row 的 hover/focus/active 仍直接铺满列表行；已保留 group row、selected 状态、列表命中区、ARIA/键盘与 HC focus ring，将普通 row 的交互面迁移到内缩 `::before`，并为 pseudo 面补齐 workbench 与 prefers reduced-motion 过渡关闭合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 78 passing，`conversationSessionsCss.test.ts` 2 passing（新增 Sessions row 命中区/内缩 pressed face 与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Sessions CSS 既有 2 条 unknown-variable 提示与 2 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Sessions row selected/按压、键盘焦点与高对比观察仍待补。
+
+### §265 Connection preferences nav row 按压面收窄合同（2026-11-08）
+
+Sol 复核发现 Connection preferences nav 普通未选中 row 的 hover/focus/active 仍直接铺满 32px 导航行；已保留 selected 状态、HC selected marker/focus ring、列表命中区与 ARIA/键盘语义，将普通 row 的交互面迁移到内缩 `::before`，并为 pseudo 面补齐 workbench 与 prefers reduced-motion 过渡关闭合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 79 passing（新增 Connection preferences row 命中区/内缩 pressed face 与 selected/两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Connection preferences CSS 既有 18 条 unknown-variable 提示与 22 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Connection nav row selected/按压、键盘焦点与高对比观察仍待补。
+
+### §266 SubAgent overlay focus 面收窄合同（2026-11-08）
+
+Sol 复核发现 SubAgent overlay 根节点的普通主题 `:focus-visible` 直接给全区铺 `toolbar-hoverBackground`；已保留 overlay 根节点的可聚焦命中区、ARIA/键盘与 HC contrast ring，将普通主题视觉反馈收至 overlay card 的 inset 1px box-shadow，action button 与 reduced-motion 语义保持不变，并补 CSS scan 合同。
+
+验证：Node 24.18.0 `conversationSubAgentOverlayCss.test.ts` 3 passing（含 setup）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 1 条 unknown-variable 提示与 3 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 SubAgent overlay 键盘焦点与高对比观察仍待补。
+
+### §267 Timeline item focus 面收窄合同（2026-11-08）
+
+Sol 复核发现 timeline roving tabindex article 的普通主题 `:focus-visible` 仍绘制产品自有 `focusBorder` outline；已改为 3% foreground compact background，保留 article 命中区、ARIA/键盘 roving 语义，并为 HC 明确保留 `contrastActiveBorder/contrastBorder` ring。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 79 passing（timeline focus 合同改为 normal compact surface + HC ring）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Timeline CSS 既有 5 条 unknown-variable 提示与 1 条 design-token suggestion）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 timeline keyboard focus 与高对比观察仍待补。
+
+### §268 Timeline focus 面迁移至 inset pseudo 合同（2026-11-08）
+
+Sol 复核确认 §267 的普通主题 compact background 仍落在整篇 timeline article；已保留 article 命中区与 roving tabindex 语义，将 3% focus 面迁移至 `::before` inset 1px 4px，HC ring 与 reduced-motion 边界保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 79 passing（新增 timeline article anchored face/pseudo focus 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Timeline CSS 既有 5 条 unknown-variable 提示与 1 条 design-token suggestion）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 timeline keyboard focus 与高对比观察仍待补。
+
+### §269 Conversation/Lens/Engine 相邻交互只读审计（2026-11-08）
+
+Sol 复核当前 HEAD：top lens tabs、Sessions、Trajectory、queue、Connection nav、process-fold、timeline article 与 SubAgent overlay 的普通主题整行面均已有 inset/compact 合同；剩余 Engine catalog list hover 与 agent breadcrumb 面缺少完整 selected/focus/active 语义合同，继续迁移会扩大状态风险。本轮无安全代码改动，保留现状并待真实窗口复核。
+
+验证：复用 Node 24.18.0 `conversationLensCssScan.test.ts` 79 passing、既有 Stylelint/docs-health/git diff check 结果；未启动默认编辑器/HC 窗口，Engine catalog/breadcrumb 的真实状态覆盖仍待补。
+
+### §270 Agent breadcrumb 非 current 按压面收窄合同（2026-11-08）
+
+Sol 根据 breadcrumb 的 `aria-current="location"`、focused class 与 root keyboard arrows/Enter/Space 接线复核，确认可安全迁移非 current item 的 hover/focused/active 面；已保留 current 行 `pointer-events:none`、完整命中区、键盘语义与 reduced-motion，普通面迁移到 `::before` inset 1px 4px。
+
+验证：Node 24.18.0 `conversationAgentBreadcrumbCss.test.ts` 3 passing（含 setup）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 2 条 unknown-variable 提示与 3 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 breadcrumb current/键盘/高对比观察仍待补。
+
+### §271 Engine catalog/skills/agents list hover 面收窄合同（2026-11-08）
+
+Sol 建立 Engine catalog/skills/agents list 状态映射：这些 list row 由 `monaco-list` 管理 focused/selected 命中区，技能/工具/agent 选择另有 toggle 或 detail selection；本轮仅迁移普通未选中 hover 到 `::before`，selected hover 继续保留原 host 面，未改变 toggle/selection 语义。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 80 passing（新增三类 list row anchored face、selected hover 保留与两套 reduced-motion 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Engine CSS 既有 unknown-variable 提示与 34 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Engine catalog/skills/agents focused/selected/toggle 与高对比观察仍待补。
+
+### §272 Engine MCP tab 按压面收窄合同（2026-11-08）
+
+Sol 复核确认 MCP tabs 是明确 `role=tab`/`aria-selected` 控件，hover/active 可安全迁移；已将普通 hover/active 面迁移到 `::before` inset 1px 2px，active tab 的 `aria-selected` host 面、键盘命中区与 reduced-motion 保持。
+
+验证：Node 24.18.0 `enginePreferencesPaneCss.test.ts` 7 passing（含 setup），`conversationLensCssScan.test.ts` 80 passing；随后修正真实共享接线：`engineMcpSection.ts` 与 `engineAgentsSection.ts` 都创建 `.engine-mcp-tab-bar .monaco-button` 并设置 `role=tab`/`aria-selected`，CSS/合同现以该共享选择器与 `aria-selected="true"` 为准，不再依赖不存在的 `.engine-mcp-tab` class；再以 pane-specific cascade override 保证 selected host 与 active host 透明规则胜过全局/后导入 button skin，按下背景只落在 inset pseudo。`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Engine CSS 既有 unknown-variable 提示与 34 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 shared Engine MCP/Agents tab selected/按压、键盘焦点与高对比观察仍待补。
+
+### §273 Engine provider status row hover 面收窄合同（2026-11-08）
+
+Sol 复核确认 provider status row 是 `role=listitem` 状态展示行，没有 selected/focus/active 控件语义；仅将普通 hover 面迁移到 `::before` inset 1px 4px，保留 status/error 内容、row actions、ARIA/键盘与 reduced-motion。
+
+验证：Node 24.18.0 `enginePreferencesPaneCss.test.ts` 6 passing（含 setup）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Engine CSS 既有 unknown-variable 提示与 34 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 provider status/error/action 与高对比观察仍待补。
+
+### §274 Engine provider preset row hover 面收窄合同（2026-11-08）
+
+Sol 复核确认 provider preset row 是 `role=listitem` 展示项，附带独立 add action，无 selected/focus/active row 语义；仅将普通 hover 面迁移到 `::before` inset 1px 4px，保留 add action、status/confirm 边界与 reduced-motion。
+
+验证：Node 24.18.0 `enginePreferencesPaneCss.test.ts` 7 passing（含 setup）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Engine CSS 既有 unknown-variable 提示与 34 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 provider preset/add action 与高对比观察仍待补。
+
+### §276 Sources tabs 普通交互面收窄合同（2026-11-08）
+
+Sol 复核确认 Sources tabs 是真实 `.sources-tab` tab button，selected class 与 HC `::after` marker 语义明确；已保留 selected host 面与 HC marker，将普通未选中 hover/focus/active 面迁移到 `::before` inset 1px 2px，保留命中区、键盘/ARIA 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 全文件 80 passing（新增 Sources tab inset hover/focus/active 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Sources CSS 既有 9 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Sources selected/键盘焦点与高对比观察仍待补。
+
+### §277 Navigator Projects row 面收窄合同（2026-11-08）
+
+Sol 复核真实 Projects list row 状态：monaco-list 负责 selected/focused，active session 有独立 label，notes/static row 与 row actions 明确排除；已将普通未选中、非 active-session、非 note 的 hover/focus/active 面迁移到 `::before` inset 1px 4px，保留 selected/active-session host 面、notes、actions、HC ring 与 reduced-motion。
+
+验证：Node 24.18.0 `navigatorProjectsListCss.test.ts` 10 passing（含 setup）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（Navigator CSS 既有 1 条 unknown-variable 提示与 1 条 design-token suggestion）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Projects selected/active-session/actions 与高对比观察仍待补。
+
+### §275 Conversation/Trajectory tab 按压面收窄合同（2026-11-08）
+
+针对截图中 Conversation tab 视觉面覆盖整颗 32px 控件的问题，保留 `button.conversation-lens-lens-tab` 的 32px 键盘/鼠标命中区，将 hover、selected、focus-visible 与 active 的颜色只绘制在 `::before` 的 inset 4px 8px 面，并明确宿主背景透明，避免通用 button skin 再次铺满；Engine MCP/Agents tab 同步补齐普通主题 focus-visible 的宿主透明与 inset hover 面，HC 对比环保持不变。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 80 passing、`enginePreferencesPaneCss.test.ts` 7 passing（均含 setup）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint 与 `git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Conversation/Trajectory tab 的鼠标按压、键盘焦点及 HC 观察仍待补。
+### §278 Engine catalog selected hover 面收窄合同（2026-11-08）
+
+Sol 复核确认 Engine catalog/skills/agents list row 已有 `::before` 内缩面，但 selected row 的 hover 规则仍直接给整行铺 `toolbar-hoverBackground`；保留 monaco-list 的 selected/focused 命中区、选择语义、toggle/detail 行为与 reduced-motion，将 selected hover 面也迁移到 `::before` inset 1px 4px。该切片不改变 selected 基础面或键盘焦点边界。
+
+验证：Node 24.18.0 `./scripts/test.sh --run src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts` 80 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 34 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Engine catalog/skills/agents selected hover、键盘焦点与高对比观察仍待补。
+
+### §279 Sources Review row 按压面收窄合同（2026-11-08）
+
+Sol 复核确认 Sources Review 的真实 list row 仍把 pointer-down 的 `list-activeSelectionBackground` 直接铺到整行内容容器；已保留 list row 命中区、review state / attribution chip 的独立按钮语义与打开动作，将 row 按压面迁移到 `::before` inset 1px 4px，并补 workbench 与 prefers reduced-motion 的 pseudo transition 合同。
+
+验证：Node 24.18.0 `sourcesWiringScan.test.ts` 47 passing（含新增 row hit-target/inset-face 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 12 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Sources Review row 按压、键盘焦点与高对比观察仍待补。
+
+### §280 Sources Changes folder row 面收窄合同（2026-11-08）
+
+Sol 复核确认 Changes 虚拟列表中的 folder row hover、collapsed selected/focused 状态仍直接覆盖 22px 行；已保留 folder toggle、checkbox、列表命中区与 ARIA/键盘动作，将普通状态面迁移到 `::before` inset 1px 4px，并补 pointer-down active 面及 workbench / prefers reduced-motion 合同。
+
+验证：Node 24.18.0 `sourcesWiringScan.test.ts` 48 passing（含 folder row hit-target/inset-face 合同）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 3 条 unknown-variable 提示与 21 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Sources Changes folder row 折叠/选中/按压与高对比观察仍待补。
+
+### §281 Conversation/Trajectory tab 垂直按压面回调合同（2026-11-08）
+
+Sol 几何复核确认 32px 命中区内的 `inset: 8px 8px` 会把视觉面压成 16px 高，12px 标签上下几乎没有呼吸；保留水平 8px 内缩，将 Conversation/Trajectory tab 的 selected、hover、focus-visible 与 active 视觉面调整为 `::before` `inset: 4px 8px`，得到 24px 高的紧凑面。命中区、tab/ARIA/键盘语义、HC 对比环、reduced-motion 与 Navigator 均不变。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 80 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 提示与 101 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Conversation/Trajectory tab 按压、键盘焦点与高对比观察仍待补。
+
+### §282 Conversation QuestionSeat 选项交互面收窄合同（2026-11-08）
+
+Sol 复核真实 `ConversationQuestionSeat` 的 `role="radio"` / `role="checkbox"` 选项由 `wireConversationSeatOptionKeys` 保持 roving tabindex、方向键与 Enter/Space 语义；未选中选项的 hover、focus、active 原先直接填充整行，已保留完整命中区、ARIA、已选和禁用状态，将可见交互面迁到 `::before` `inset: 1px 4px`。选中态仍使用原有状态面，HC 焦点环与 reduced-motion 合同保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 81 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 102 条 design-token suggestions）；`git diff --check`、docs-health、wiki check 均通过。未启动默认编辑器/HC 窗口，真实 QuestionSeat 选项 hover、按压、键盘焦点与高对比观察仍待补。
+
+### §283 Conversation file-edit path 交互面收窄合同（2026-11-08）
+
+Sol 复核真实 `conversationProcessFold.ts`：可打开 diff 的路径节点是原生 `button.conversation-file-edit-path`，静态路径是 `div.is-static`，按钮保留 `aria-controls` 指向 diff 区与原生键盘语义。已将可点击路径的 hover、focus、active 视觉面从整条 24px 行迁到 `::before` `inset: 1px 4px`，静态路径、完整命中区、HC 焦点轮廓与 reduced-motion 保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 82 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 102 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 file-edit path 按压、键盘焦点与高对比观察仍待补。
+
+### §284 Conversation Inbox pending button 交互面收窄合同（2026-11-08）
+
+Sol 复核真实 `ConversationInboxOverlay` 的待确认入口是原生 `button.conversation-lens-inbox-pending`，保留点击回到待确认回合、Tab/Enter/Space、禁用与 HC 语义；已将整颗 22px 按钮的 hover、focus、active 视觉面迁到 `::before` `inset: 1px 4px`，并补 workbench / prefers-reduced-motion transition 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 83 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 102 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Inbox pending 按压、键盘焦点与高对比观察仍待补。
+
+### §285 Conversation Inbox queue chip 交互面收窄合同（2026-11-08）
+
+Sol 复核真实 `ConversationInboxOverlay` 的队列入口是 `button.conversation-lens-inbox-chip.conversation-lens-inbox-queue`；`aria-pressed` 表示队列浮层是否打开，`aria-disabled` 表示不可打开。保留 pressed/disabled 状态面，仅将未按下普通 hover、focus、active 视觉面迁到 `::before` `inset: 1px 4px`，并补 workbench / prefers-reduced-motion transition 合同。
+
+验证：Node 24.18.0 在包含 §285、§286 的完整 `conversationLensCssScan.test.ts` 复跑为 85 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 102 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 queue chip 按压、键盘焦点与高对比观察仍待补。
+
+### §286 Conversation Inbox Goal/Stop button 交互面收窄合同（2026-11-08）
+
+Sol 复核 Goal 与 Stop 是 Inbox 内真实 Button 控件，保留命令、禁用与键盘语义；将可用态 hover、focus、active 的整颗 22px 面迁到 `::before` `inset: 1px 4px`，保留 HC 对比轮廓与 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 102 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Goal/Stop 按压、键盘焦点与高对比观察仍待补。
+
+### §287 Conversation/Trajectory tab visual face refinement（2026-11-08）
+
+用户反馈当前 `::before` `inset: 4px 8px` 仍显得过大；真实节点仍是 32px `button`、`role="tab"`、`aria-selected`，保留键盘切换与 HC 对比轮廓，仅将 hover、selected、focus、active 可见面收至 `::before` `inset: 7px 6px`。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 102 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 tab 按压、键盘焦点与高对比观察仍待补。
+
+### §288 Trajectory overview segment focus 面收窄合同（2026-11-08）
+
+Sol 复核真实 12px overview segment 为可键盘聚焦控件，保留 `::before inset: -6px 0` 命中区、kind colors、ARIA/键盘与 HC 对比轮廓；普通主题 `:focus-visible` 去掉 `focusBorder`，改由 `::after inset: 1px 0` 的 compact foreground surface 表达，并补 workbench / prefers-reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 overview segment 键盘焦点与高对比观察仍待补。
+
+### §289 Conversation user bubble keyboard focus 面收窄合同（2026-11-08）
+
+Sol 复核真实用户气泡节点为 `role="button"`、`tabIndex=0`；时间线 article 继续负责 roving focus，普通主题气泡自身 `:focus-visible` 从 `focusBorder` 改为既有 `::before` compact foreground surface，HC 对比环与 article focus 抑制规则保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实用户气泡键盘焦点与高对比观察仍待补。
+
+### §290 Conversation error details toggle focus 面收窄合同（2026-11-08）
+
+Sol 复核真实错误详情入口是 `button.conversation-lens-turn-error-details-toggle`；保留命中区与键盘展开动作，普通主题 `focus-visible` 从整段文本宿主背景迁到 `::before inset: 0 2px`，HC 对比环与 reduced-motion 保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实错误详情焦点与高对比观察仍待补。
+
+### §291 Conversation message queue bar action faces 收窄合同（2026-11-08）
+
+Sol 复核真实队列头部 Clear/Retry 为 `.queue-bar-action` 原生按钮，保留错误色、禁用、键盘和 HC 语义；普通主题 focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实队列头部动作焦点、按压与高对比观察仍待补。
+
+### §292 Conversation Composer reference remove face 收窄合同（2026-11-08）
+
+Sol 复核真实 22px `button.conversation-composer-ref-remove`，保留删除动作、键盘/ARIA 与 HC 环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实引用移除按压、焦点与高对比观察仍待补。
+
+### §293 Conversation Composer maximize input button face 收窄合同（2026-11-08）
+
+Sol 复核真实 22px `.conversation-lens-dock-maximize-input-button.monaco-button`，保留命中区、放大命令、键盘和 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实放大输入按钮焦点、按压与高对比观察仍待补。
+
+### §294 Conversation user turn fold button face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-turn-fold-button`，保留折叠动作、命中区、键盘和 HC 焦点环；普通主题 focus/active 面迁到 `::before inset: 0 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 87 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实折叠按钮焦点、按压与高对比观察仍待补。
+
+### §295 Conversation Trajectory inspector Back face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-trajectory-inspector-back`，保留回退动作、ARIA/键盘和 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 88 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Inspector Back 焦点、按压与高对比观察仍待补。
+
+### §296 Conversation turn action button faces 收窄合同（2026-11-08）
+
+Sol 复核真实 `.conversation-lens-turn-actions .monaco-button`（Copy/Retry/Delete 等），保留命令、22px 命中区、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 88 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实回合 action 焦点、按压与高对比观察仍待补。
+
+### §297 Conversation Trajectory inspector Retry face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-trajectory-inspector-retry`，保留重试动作、命中区、键盘和 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Retry 焦点、按压与高对比观察仍待补。
+
+### §298 Conversation Trajectory overview toggle face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-trajectory-overview-toggle`，保留展开状态、命中区、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 overview toggle 焦点、按压与高对比观察仍待补。
+
+### §299 Conversation Session title face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-session-title`，保留改名入口、命中区、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Session title 焦点、按压与高对比观察仍待补。
+
+### §300 Conversation timeline scroll-down face 收窄合同（2026-11-08）
+
+Sol 复核真实滚动回到底部入口 `.conversation-timeline-scroll-down`，保留 28px 圆形命中区、滚动动作、键盘与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 22 条 unknown-variable 提示与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 scroll-down 焦点、按压与高对比观察仍待补。
+
+### §301 Conversation Trajectory inspector close face 收窄合同（2026-11-08）
+
+Sol 复核真实 22px `button.conversation-lens-trajectory-inspector-close`，保留关闭动作、ARIA/键盘与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 90 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Inspector Close 焦点、按压与高对比观察仍待补。
+
+### §302 Conversation SessionBar control faces 收窄合同（2026-11-08）
+
+Sol 复核真实 `.conversation-lens-session-controls .monaco-button`（New/Delete/More/Snapshots/History 等），保留命令、28px 命中区、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 90 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 SessionBar 控件焦点、按压与高对比观察仍待补。
+
+### §303 Codicon pseudo-layer reliability fix（2026-11-08）
+
+复核发现 SessionBar controls、turn-actions、Composer maximize Button 由 `Button.icon` 添加 codicon 类，图标占用宿主 `::before`；已将这三组交互面迁到 `::after`，避免覆盖图标，保留命中区、ARIA/键盘、HC 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 90 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实图标与按压观察仍待补。
+
+### §304 Conversation error retry button face 收窄合同（2026-11-08）
+
+Sol 复核真实 `.conversation-lens-turn-error-retry .monaco-button`，用 `::after` 避开潜在 codicon `::before`，普通主题 hover/focus/active 面迁到 `inset: 1px 2px`；保留命中区、重试动作、HC 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 91 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Retry 焦点、按压与高对比观察仍待补。
+
+### §305 Conversation History close face 收窄合同（2026-11-08）
+
+Sol 复核 History 浮层关闭控件为 codicon Button，普通主题 hover/focus/active 面迁到 `::after inset: 1px 2px`，避免覆盖 `::before` 图标层；保留 24px 命中区、关闭动作、键盘/ARIA、HC 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 92 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 History close 焦点、按压与高对比观察仍待补。
+
+### §306 Conversation SessionBar delete error face 收窄合同（2026-11-08）
+
+Sol 复核 Delete 控件保留错误色语义，将 hover/active 宿主背景迁到既有 `::after` inset 面（16%/28% errorForeground），保留 codicon `::before`、命中区、键盘/ARIA、HC 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 93 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Delete 焦点、按压与高对比观察仍待补。
+
+### §307 Conversation Snapshots close face 收窄合同（2026-11-08）
+
+Sol 复核 Snapshots 浮层关闭控件为 codicon Button，普通主题 hover/focus/active 面迁到 `::after inset: 1px 2px`，保留 24px 命中区、关闭动作、键盘/ARIA、HC 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 94 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Snapshots close 焦点、按压与高对比观察仍待补。
+
+### §308 Conversation turn trajectory action face 收窄合同（2026-11-08）
+
+Sol 复核真实 `.conversation-lens-turn-header-trajectory .monaco-button` codicon Button，普通主题 hover/focus/active 面迁到 `::after inset: 1px 2px`，避免覆盖 `::before` 图标层；保留 22px 命中区、跳转动作、键盘/ARIA、HC 与 reduced-motion。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 94 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实轨迹跳转焦点、按压与高对比观察仍待补。
+
+### §309 Conversation pinned user copy face 收窄合同（2026-11-08）
+
+Sol 复核真实 `conversationTimelineHost.ts` 的 `Button.icon` 复制控件（Codicon.copy、ariaLabel），保留 20px 命中区、复制动作、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 95 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实复制图标、按压与高对比观察仍待补。
+
+### §310 Conversation process-fold tool cancel face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-process-fold-tool-cancel`（执行中工具取消入口，Codicon.debugStop、`aria-label`/`aria-disabled`），保留 22px 命中区与取消动作；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，HC 对比环与 reduced-motion 合同保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 96 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实取消图标、按压与高对比观察仍待补。
+
+### §311 Conversation process-fold tool respond face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-process-fold-tool-respond`（执行中工具响应入口，Codicon.reply、`aria-label`/`aria-disabled`/`aria-busy`），保留 22px 命中区与响应动作；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，HC 对比环与 reduced-motion 合同保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 97 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实响应图标、按压与高对比观察仍待补。
+
+### §312 Conversation process-fold trajectory jump face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-process-fold-trajectory-jump`（Codicon.listTree、`aria-label`），保留 22px 命中区、跳转动作与悬停显现逻辑；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，HC 对比环与 reduced-motion 合同保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 98 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实跳转图标、按压与高对比观察仍待补。
+
+### §313 Conversation thinking process-fold header face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-process-fold-thinking-header`（`aria-controls` 展开入口），保留展开动作、22px+ 命中区与 HC 焦点环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，不改变过程折叠显现与 reduced-motion 语义。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 99 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实思考折叠焦点、按压与高对比观察仍待补。
+
+### §314 Conversation diff toggle 只读审计（2026-11-08）
+
+Sol 复核 `.conversation-lens-turn-diff-toggle` 后确认当前仓库只有 `conversationLens.css` 中的遗留样式与 reduced-motion 列表命中，`src/` 没有对应 DOM、TS、button 或 ARIA 构造；无法证明真实命中区与行为语义，因此本轮不做 CSS 改动，死样式清理另待独立范围。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 99 passing；`git diff --check` 通过。
+
+### §315 Conversation process-fold header face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-process-fold-header`（`role="button"`、`aria-controls`、Chevron 与展开动作），保留命中区与展开行为；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，轨迹模式专用面、HC 对比环与 reduced-motion 合同保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 100 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实折叠焦点、按压与高对比观察仍待补。
+
+### §316 Conversation inbox queue chip 只读审计（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-inbox-chip.conversation-lens-inbox-queue` 已有 queue 专用 `::before inset: 1px 4px`，并按 `aria-pressed`、`aria-disabled`、Goal/Stop 子控件区分选中与禁用状态；本轮不改 CSS，避免破坏状态语义。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 100 passing；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 queue chip 按压、焦点与高对比观察仍待补。
+
+### §317 Conversation review navigation 只读审计（2026-11-08）
+
+Sol 复核真实 `button.conversation-review-nav` 保留原生 type、`data-turn-id/kind`、`aria-label` 与 disabled fallback；现有 `::before inset: 2px 4px` 已承载普通 hover/focus/active，HC ring 与 reduced-motion 合同齐全，本轮不改 CSS。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 100 passing；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 review navigation 按压、焦点与高对比观察仍待补。
+
+### §318 Conversation composer @ option face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-composer-at-option`，保留 `role="option"`、`aria-selected`、`tabIndex=-1` 与 textarea `aria-activedescendant` 键盘语义；普通未选中 hover/focus/active 面迁到 `::before inset: 1px 4px`，`.is-active` 选中面保留，并补 reduced-motion 合同。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 101 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实组合框焦点、按压与高对比观察仍待补。
+
+### §319 Conversation Tune popup open face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-dock-tune-open`，保留原生 type、打开 Engine 工具命令与 24px 命中区；普通主题 hover/focus/active 面迁到 `::before inset: 1px 4px`，HC 焦点环与 reduced-motion 保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 102 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Tune 按压与高对比观察仍待补。
+
+### §320 Conversation More menu action face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-dock-more-item[role="menuitem"]`，保留 `aria-label`、命令与 disabled 语义；排除 `menuitemradio` session 行后，普通 hover/focus/active 面迁到 `::before inset: 1px 4px`，HC 与 reduced-motion 保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 103 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 More 按压与高对比观察仍待补。
+
+### §321 Conversation Add menu action face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-lens-dock-add-option[role="menuitem"]`，保留 `addComposerContextRef` 命令、menuitem 语义与命中区；普通 hover/focus/active 面迁到 `::before inset: 1px 4px`，HC 与 reduced-motion 保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 104 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 Add 按压与高对比观察仍待补。
+
+### §322 Conversation code block copy face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-code-block-copy`，保留 22px 命中区、Codicon.copy/check 切换、`aria-label`/title 与复制命令；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，HC 焦点环与 reduced-motion 保持。
+
+验证：Node 24.18.0 `conversationLensCssScan.test.ts` 105 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 103 条 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实复制图标、按压与高对比观察仍待补。
+
+### §323 Conversation remaining dock/identity faces 只读审计（2026-11-08）
+
+Sol 复核剩余直接 host 面后确认 Composer dock soft/filled 控件是有意的圆形/实心语义，ghost 控件与既有命中区 pseudo 共享，identity chip 还承载 offline/failed/readonly 状态；继续迁移会改变产品造型或状态层，本轮不做安全 CSS 改动。
+
+### §324 Conversation confirmation/send state 只读审计（2026-11-08）
+
+Sol 复核确认 CTA（`conversationConfirmationSeat.ts:250+`）使用 Button primary/secondary 实心语义，Composer send（`conversationLensDock.ts:413`）是 28px 圆形实心按钮并带 disabled 状态；普通 host hover/active 面不适合直接收窄，否则会削弱主次与可用性语义，本轮不做安全 CSS 改动。
+
+验证：沿用当前 Node 24 `conversationLensCssScan.test.ts` 105 passing、既有 transpile-client、目标 Stylelint 与 `git diff --check` 结果；未启动默认编辑器/HC 窗口，真实 CTA/send 按压与高对比观察仍待补。
+
+### §325 Sub-agent overlay action faces 收窄合同（2026-11-08）
+
+Sol 复核子 Agent 浮层的 Open as tab、Maximize、Close 真实 `Button` 图标按钮，保留命中区、命令、ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，host 保持透明并补 reduced-motion。
+
+验证：`conversationSubAgentOverlayCss.test.ts` CSS 合同测试通过；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；未启动默认编辑器/HC 窗口，真实浮层按钮图标、按压与高对比观察仍待补。
+
+验证：沿用当前 `conversationLensCssScan.test.ts` 105 passing 与既有 Stylelint/diff-check 结果；未修改 Navigator、未 stage/commit/push。默认窗口和高对比人工观察仍待补。
+
+### §326 Conversation session pill interaction face 收窄合同（2026-11-08）
+
+Sol 复核时间线与 Composer 引用创建的真实 `a.conversation-session-pill`，保留链接、点击/Enter/Space 处理、`aria-label` 与文本胶囊；普通主题 hover/focus/active 将更强的交互色迁到 `::before inset: 1px 2px`，外层保留基础胶囊面，HC 焦点环与 reduced-motion 保持。
+
+验证：Node 24 `conversationLensCssScan.test.ts` 105 passing；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实链接按压与高对比观察仍待补。
+
+### §327 Session leaf hide action face 收窄合同（2026-11-08）
+
+Sol 复核会话叶真实 `button.conversation-session-leaf-hide`，保留 28px 命中区、`type="button"`、`aria-label` 与 Codicon.remove；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，host 保持透明，HC 焦点环与 reduced-motion 保持。
+
+验证：Node 24 `conversationLensCssScan.test.ts` 105 passing、`conversationRegionChromeCss.test.ts` 4 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实隐藏按钮按压与高对比观察仍待补。
+
+### §328 Visualize expand action face 收窄合同（2026-11-08）
+
+Sol 复核真实 `button.conversation-visualize-expand`，保留 24px 命中区、`type="button"`、`aria-label` 与展开命令；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，HC 焦点环与 reduced-motion 保持。
+
+验证：Node 24 `conversationLensCssScan.test.ts` 105 passing；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实展开按钮按压与高对比观察仍待补。
+
+### §329 Visualize overlay header action faces 收窄合同（2026-11-08）
+
+Sol 复核 Visualize overlay 的 Reset/Close 真实 `Button` 图标控件，保留小型 secondary 语义、命中区、命令与焦点环；普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，host 保持透明并补 reduced-motion。
+
+验证：Node 24 `conversationLensCssScan.test.ts` 106 passing；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未启动默认编辑器/HC 窗口，真实 overlay action 按压与高对比观察仍待补。
+
+### §330 Engine catalog/trigger action faces 收窄合同（2026-11-08）
+
+Sol 复核 Engine triggers 与 catalog icon actions 的真实 `Button` ghost 控件，确认它们只提供小型操作入口，不承载 selected、error 或实心按钮状态；保留 22px 命中区、Codicon/ARIA/键盘与 HC 边框，将普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，host 保持透明并补 workbench 与 prefers reduced-motion。
+
+验证：`enginePreferencesPaneCss.test.ts` 8 passing、`conversationLensCssScan.test.ts` 106 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、未 stage/commit/push，真实默认编辑器/HC 窗口与图标按压观察仍待补。
+
+### §331 Engine narrow-detail Back action face 收窄合同（2026-11-08）
+
+Sol 复核窄面板详情页的真实原生 `button.engine-preferences-back`：它只承担返回导航，没有 selected/error 状态；保留 `type=button`、aria-label、点击回导航、24px 命中区与 HC 对比环，将次按钮的 resting/hover/active/普通主题 focus 面迁到 `::before inset: 1px 2px`，宿主保持透明，HC 保留 contrast border，并为 workbench 与 prefers reduced-motion 清除 pseudo transition。
+
+验证：`enginePreferencesPaneCss.test.ts` 9 passing；`npm run transpile-client` exit 0（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 34 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push；真实窄面板与高对比观察仍待补。
+
+### §332 Conversation/Trajectory tab face micro-shrink（2026-11-08）
+
+用户继续反馈 tab 视觉面偏大。Sol 复核确认 `button.conversation-lens-lens-tab` 仍保持 32px 命中区、`role=tab`、`aria-selected`、键盘切换与 HC focus ring，且没有后续覆盖；将共用的 selected/hover/focus/active `::before` 面从 `inset: 7px 6px` 收窄为 `inset: 8px 7px`，只减少视觉面，不改命中区或语义。
+
+验证：`conversationLensCssScan.test.ts` 106 passing；目标 Stylelint exit 0（既有 103 条 design-token suggestions）；`git diff --check` 通过。真实 tab 按压、键盘与高对比观察仍待补。
+
+### §333 Conversation SessionBar ordinary action active face（2026-11-08）
+
+SessionBar 的 New/More/History/Snapshots 是真实普通 `Button` 图标操作，不承载 selected、error 或实心状态；保留 28px 命中区、Codicon、ARIA/键盘与 HC/reduced-motion，将旧的整颗 host active 背景收窄为透明 host，并把 `toolbar-activeBackground` 只绘制到既有 `::after` inset 面；Delete 错误色控件继续保留独立 error 语义。
+
+验证：`conversationLensCssScan.test.ts` 107 passing；目标 Stylelint exit 0（既有 103 条 design-token suggestions）；`npm run transpile-client` exit 0（10224 files / 2047 resources）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push；真实默认窗口与高对比观察仍待补。
+
+### §334 Engine confirmation cancel action face（2026-11-08）
+
+Engine 确认弹窗的 Cancel 是普通次级原生 button，确认按钮继续保留实心主操作语义。保留 Cancel 的 24px 命中区、type 与点击关闭行为，将普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，宿主保持透明，HC 焦点环与 reduced-motion 保持。
+
+验证：`enginePreferencesPaneCss.test.ts` 10 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 34 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push；真实默认窗口与高对比观察仍待补。
+### §335 Engine provider write-toolbar hover face（2026-11-08）
+
+Provider 模型区的真实 write-toolbar buttons 同时带有 `engine-catalog-icon-actions` 的内缩伪元素，但更具体的 provider hover 规则仍给宿主铺满 24px 背景。将该 provider hover host 改为透明，让既有 `::after inset: 1px 2px` 承载可见面，保留按钮命令、命中区、Codicon、ARIA、键盘与 HC/reduced-motion。
+
+验证：`enginePreferencesPaneCss.test.ts` 11 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 34 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push；真实默认窗口与高对比观察仍待补。
+
+### §336 Conversation/Engine remaining ordinary faces read-only audit（2026-11-08）
+
+审查确认 agent-down popup item 是标准 menu selection，整行 selection background 属于菜单语义；session-select 是原生 SelectBox，保留宿主 hover 以维持下拉与键盘反馈；turn-diff-toggle 只有 CSS、没有 TS/DOM/ARIA 引用；Composer dock soft/filled、selected tabs 与实心主操作继续保留其状态面。本轮无安全代码改动，未修改 Navigator、Connection，未 stage/commit/push。
+
+### §337 Conversation/Engine remaining ordinary faces second read-only audit（2026-11-08）
+
+复查剩余直接 host hover/active/focus 面后，agent-down popup 仍是标准菜单整行 selection，session-select 仍是原生 SelectBox，Composer dock soft/filled、selected tabs 与实心主操作继续承载状态语义；`conversation-lens-turn-diff-toggle` 仍只有 dead CSS，没有 TS/DOM/ARIA 引用。本轮无安全代码改动，未修改 Navigator、Connection，未 stage、commit、push。
+
+### §338 Conversation/Engine remaining ordinary faces third read-only audit（2026-11-08）
+
+基于当前 HEAD 复查 Engine generic Button active/focus 规则与 Conversation 直接宿主面，具体 icon actions、MCP tabs、Test Engine、确认弹窗、原生 SelectBox、标准菜单 selection、Composer 状态控件和实心主操作均已有更具体规则或明确状态语义。未发现可安全迁移的普通 ghost action。本轮无代码改动，未修改 Navigator、Connection，`git diff --check` 通过。
+
+### §339 Conversation/Engine ordinary face audit fourth pass（2026-11-08）
+
+再次扫描当前 HEAD 的普通 hover/active/focus 面，确认剩余直接宿主面仍属于标准菜单 selection、原生 SelectBox、Composer 状态控件或实心操作语义；具体 icon actions、MCP tabs、Test Engine 与确认弹窗已有独立规则。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+
+### §340 Conversation/Engine ordinary face audit fifth pass（2026-11-08）
+
+复查当前 HEAD 的 Conversation、Engine、Settings 普通 hover/active/focus 面。剩余直接宿主面仍属于标准菜单 selection、原生 SelectBox、Composer 状态控件、Save 等次级实心操作或已由更具体 icon-action 规则覆盖。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+
+### §341 Sources changes inline action face（2026-11-08）
+
+Sources Changes 的真实 `Button` inline/group actions 保留 22px 命中区、图标、ARIA/键盘与 HC 焦点环。普通主题 hover/focus/active 宿主背景迁到不遮挡 Button icon 的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：`sourcesWiringScan.test.ts` 48 passing；目标 Stylelint exit 0（既有 unknown-variable 与 21 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实 Sources Changes 窗口与高对比观察仍待补。
+
+### §342 Titlebar navigation action face（2026-11-08）
+
+标题栏左侧的 Back/Forward 是真实导航 action，保留 28px 命中区、命令、键盘/ARIA 与 HC 焦点环。普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion 合同，不添加 Logo。
+
+验证：`titlebarNavigationContract.test.ts` 3 passing；目标 Stylelint exit 0（既有 6 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。
+
+### §343 Sources title action face（2026-11-08）
+
+Sources 标题栏的真实 icon action 保留 22px 命中区、图标、键盘/ARIA 与 HC 焦点环。普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：`sourcesWiringScan.test.ts` 49 passing；目标 Stylelint exit 0（既有 2 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实 Sources 标题栏与高对比观察仍待补。
+
+### §344 Titlebar right toolbar action face（2026-11-08）
+
+标题栏右侧 center-adjacent/update toolbar 的真实 action labels 保留原有命中区、命令、键盘/ARIA 与 HC 焦点环。普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：`titlebarNavigationContract.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 6 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。
+
+### §345 Pane composite title action faces（2026-11-08）
+
+Pane composite 的 title-actions、global-actions 与 global-actions-left 是普通工具栏操作，保留原生命中区、命令、ARIA/键盘与 HC 反馈。普通主题 hover/focus/active 面从完整 action-label 宿主迁到不遮挡图标的 `::after inset: 1px 2px`，复合 tab 与 checked 状态保持原有语义，并补 reduced-motion 合同。
+
+验证：`paneCompositePartCss.test.ts` 6 passing；目标 Stylelint exit 0（既有 13 条 design-token suggestions）；`npm run transpile-client` 通过（10224 files / 2047 resources）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。
+
+### §346 Editor watermark toolbar action face（2026-11-08）
+
+Editor 空态 watermark 的普通 icon action 保留原生命中区、命令、ARIA/键盘与 HC 焦点。普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：`editorGroupWatermarkToolbarCss.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。
+
+### §347 Workbench remaining ordinary face read-only audit（2026-11-08）
+
+复查 Panel composite、AuxiliaryBar、ActivityBar、Editor placeholder/status 与其他工作台普通 hover/active/focus 面。Panel/AuxiliaryBar composite 项含 checked/selected 语义，ActivityBar 含 selected/status pseudo layers，Editor placeholder/status 与 modal action 是次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+
+### §348 AuxiliaryBar title action face（2026-11-08）
+
+AuxiliaryBar 标题栏的普通 `title-actions` 是未承载 checked/selected 语义的工具栏操作。保留命中区、命令、ARIA/键盘和 HC 焦点，将普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：`auxiliaryBarPartCss.test.ts` 4 passing；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。

@@ -11,7 +11,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { getConversationPermissionRespondBlockedLabel, getConversationPermissionSeatAriaLabel } from './conversationAccessibility.js';
-import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
+import { conversationLensDockResponseInFlight } from './conversationLensDockStrings.js';
 import { ConfirmationStatus } from './conversationStubModel.js';
 
 export interface IConversationConfirmationSeatOptions {
@@ -177,12 +177,17 @@ export function restoreConversationOverlayFocus(container: HTMLElement, trigger:
 	if (!trigger?.isConnected || trigger.hidden || !!trigger.closest('[hidden]')) {
 		return;
 	}
-	const style = getWindow(trigger).getComputedStyle(trigger);
-	if (style.display === 'none' || style.visibility === 'hidden') {
-		return;
-	}
 	const active = getActiveElement();
 	if (active !== container && !container.contains(active)) {
+		return;
+	}
+	const style = getWindow(trigger).getComputedStyle(trigger);
+	if (style.display === 'none' || style.visibility === 'hidden' || trigger.getClientRects().length === 0) {
+		// eslint-disable-next-line no-restricted-syntax -- fallback to SessionBar More button when trigger's wrapper is hidden in narrow mode
+		const moreButton = trigger.closest('.conversation-lens-session-bar')?.querySelector<HTMLElement>('.conversation-lens-session-more .monaco-button');
+		if (moreButton && !moreButton.hidden && moreButton.getClientRects().length > 0) {
+			moreButton.focus();
+		}
 		return;
 	}
 	trigger.focus();
@@ -247,7 +252,7 @@ export class ConversationConfirmationSeat extends Disposable {
 			actions.setAttribute('aria-label', localize('conversationLens.permissionDecision', "Permission decision"));
 			const writesEnabled = options.writesEnabled !== false && options.responseInFlight !== true;
 			const holdReason = options.responseInFlight
-				? conversationLensDockSendBusy
+				? conversationLensDockResponseInFlight
 				: (options.writesEnabled === false
 					? localize('conversationLens.turnWritesUnavailable', "This session cannot be edited right now.")
 					: undefined);
@@ -270,8 +275,8 @@ export class ConversationConfirmationSeat extends Disposable {
 					return;
 				}
 				sent = true;
-				presentDecision(allow, allowLabel, false, conversationLensDockSendBusy);
-				presentDecision(skip, skipLabel, false, conversationLensDockSendBusy);
+				presentDecision(allow, allowLabel, false, conversationLensDockResponseInFlight);
+				presentDecision(skip, skipLabel, false, conversationLensDockResponseInFlight);
 				this.element.setAttribute('aria-busy', 'true');
 				run();
 			};

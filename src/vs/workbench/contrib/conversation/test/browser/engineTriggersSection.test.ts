@@ -10,7 +10,7 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest, UniverseAgentDeleteTriggerResult, UniverseAgentFireTriggerResult, UniverseAgentUpsertTriggerResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IDialogService, type IInput, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -18,6 +18,7 @@ import { getCatalogFailedCopy, getCatalogUnknownCopy } from '../../browser/engin
 import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { engineWriteNotSentCopy } from '../../browser/engineWriteGate.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createUnknownConversationEntryCapability, readConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { createConversationConnectionTestStub as baseCreateConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -110,6 +111,23 @@ suite('EngineTriggersSection', () => {
 
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
+	}
+
+	/** Earlier mounts leave their context view in the document; the newest popover is the open one. */
+	function newestPopoverElement<T extends HTMLElement>(selector: string): T | undefined {
+		const matches = document.querySelectorAll<T>(selector);
+		return matches[matches.length - 1];
+	}
+
+	/** Delete asks on an anchored confirm; other writes open none, so the confirm click is a no-op for them. */
+	async function clickAndConfirm(button: HTMLButtonElement): Promise<void> {
+		const before = document.querySelectorAll('.engine-confirm-popover-confirm').length;
+		button.click();
+		const confirms = document.querySelectorAll<HTMLButtonElement>('.engine-confirm-popover-confirm');
+		if (confirms.length > before || button.classList.contains('is-confirm-open')) {
+			confirms[confirms.length - 1]?.click();
+		}
+		await flushMicrotasks();
 	}
 
 	test('ListTriggers does not send when listTriggers capability is UNKNOWN', async () => {
@@ -1360,7 +1378,7 @@ suite('EngineTriggersSection', () => {
 		await flushMicrotasks();
 		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
 		assert.ok(del);
-		del.click();
+		await clickAndConfirm(del);
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteCalls, [{ scope: '', scopeId: '', triggerId: '' }]);
 		pane.getDomNode().parentElement?.remove();
@@ -1390,7 +1408,7 @@ suite('EngineTriggersSection', () => {
 		row.click();
 		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
 		assert.ok(del);
-		del.click();
+		await clickAndConfirm(del);
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteCalls, [{ scope: '', scopeId: '', triggerId: '  trig  ' }]);
 		pane.getDomNode().parentElement?.remove();
@@ -1429,7 +1447,7 @@ suite('EngineTriggersSection', () => {
 		row.click();
 		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
 		assert.ok(del);
-		del.click();
+		await clickAndConfirm(del);
 		await flushMicrotasks();
 		assert.ok(listTriggersCalls >= 2);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
@@ -1476,7 +1494,7 @@ suite('EngineTriggersSection', () => {
 			row.click();
 			const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
 			assert.ok(del);
-			del.click();
+			await clickAndConfirm(del);
 			await flushMicrotasks();
 			assert.ok(listTriggersCalls >= 2);
 			const leftover = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
@@ -1533,7 +1551,7 @@ suite('EngineTriggersSection', () => {
 		row.click();
 		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
 		assert.ok(del);
-		del.click();
+		await clickAndConfirm(del);
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
 		const leftover = pane.getDomNode().querySelector('.engine-triggers-row');
@@ -1543,6 +1561,69 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(deleteStatus.textContent, 'boom');
 		assert.notStrictEqual(deleteStatus.style.display, 'none');
 		assert.deepStrictEqual([...deleteStatus.classList], ['engine-triggers-delete-status', 'is-error']);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('DeleteTrigger asks on an anchored confirm; Cancel does not send and focus returns to Delete', async () => {
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [emptyTrigger({ triggerId: 'trig', name: 'Nightly', type: 'cron' })] }),
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+		}));
+		await flushMicrotasks();
+		(pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement).click();
+		const del = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL);
+		assert.ok(del);
+		del.click();
+		const message = newestPopoverElement('.engine-confirm-popover-message')?.textContent;
+		newestPopoverElement('.engine-confirm-popover-cancel')?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual({
+			message,
+			deleteCalls,
+			deleteFocused: document.activeElement === del,
+			confirmOpen: del.classList.contains('is-confirm-open'),
+		}, {
+			message: 'Delete trigger "Nightly"?',
+			deleteCalls: [],
+			deleteFocused: true,
+			confirmOpen: false,
+		});
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger dialog held across a link change writes the not-sent copy instead of dropping silently', async () => {
+		const state: PublishedTriggerState = { engineIdentityId: 'eng', linkId: 1 };
+		const changed = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+			onDidChangeConnection: changed.event,
+			listTriggers: async () => ({ triggers: [] }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		});
+		const dialog = new class extends TestDialogService {
+			override async input(): Promise<IInputResult> {
+				state.linkId = 2;
+				changed.fire(connection.getConnectionSnapshot());
+				return { confirmed: true, values: ['Nightly', 'cron', '', '', '', ''], checkboxChecked: true };
+			}
+		}();
+		const pane = mountSection(connection, dialog);
+		await flushMicrotasks();
+		findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL)?.click();
+		await flushMicrotasks();
+		const status = pane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement;
+		assert.deepStrictEqual({ upsertCalls, text: status.textContent, visible: status.style.display !== 'none' }, { upsertCalls: [], text: engineWriteNotSentCopy(), visible: true });
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -2250,7 +2331,7 @@ suite('EngineTriggersSection', () => {
 			});
 			const button = findActionButton(pane.getDomNode(), options.buttonLabel);
 			assert.ok(button, `${options.buttonLabel} write button must be painted`);
-			button.click();
+			await clickAndConfirm(button);
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
@@ -2419,7 +2500,7 @@ suite('EngineTriggersSection', () => {
 		root.parentElement?.remove();
 	});
 
-	test('upsert dialog does not send when the published link or identity changed', async () => {
+	test('upsert dialog does not send when the published link or identity changed and says so', async () => {
 		async function run(label: string, duringDialog: (state: PublishedTriggerState) => void, values: readonly string[]): Promise<void> {
 			const state: PublishedTriggerState = { engineIdentityId: 'eng-start', linkId: 4 };
 			const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
@@ -2449,7 +2530,7 @@ suite('EngineTriggersSection', () => {
 			await flushMicrotasks();
 			assert.deepStrictEqual(upsertCalls, [], label);
 			assert.deepStrictEqual(listCalls, ['list'], label);
-			assertWriteStatusUnpainted(pane.getDomNode().querySelector('.engine-triggers-upsert-status'), label);
+			assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-upsert-status')?.textContent, engineWriteNotSentCopy(), label);
 			assert.ok(!(pane.getDomNode().textContent ?? '').includes('Name is required.'), label);
 			pane.getDomNode().parentElement?.remove();
 		}
@@ -2535,7 +2616,7 @@ suite('EngineTriggersSection', () => {
 			} else if (op === 'setEnabled') {
 				findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL)?.click();
 			} else if (op === 'delete') {
-				findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL)?.click();
+				await clickAndConfirm(findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL)!);
 			} else {
 				findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL)?.click();
 			}
@@ -2658,7 +2739,7 @@ suite('EngineTriggersSection', () => {
 		}));
 		await flushMicrotasks();
 		(deletePane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement).click();
-		findActionButton(deletePane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL)?.click();
+		await clickAndConfirm(findActionButton(deletePane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL)!);
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteList, ['list', 'list']);
 		assert.strictEqual(deletePane.getDomNode().querySelector('.engine-triggers-row'), null);
@@ -2726,8 +2807,7 @@ suite('EngineTriggersSection', () => {
 			for (const label of [ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_ADD_LABEL]) {
 				const button = findActionButton(section.getDomNode(), label);
 				assert.ok(button);
-				button.click();
-				await flushMicrotasks();
+				await clickAndConfirm(button);
 			}
 			assert.deepStrictEqual({ owners, contexts: contexts.map(request => ({ scope: request.scope, scopeId: request.scopeId })) }, {
 				owners: Array.from({ length: 4 }, () => ({ engineIdentityId: identity, linkId: 7 })),
@@ -2756,7 +2836,7 @@ suite('EngineTriggersSection', () => {
 				rows[0].click();
 				const button = findActionButton(root, method === 'fire' ? ENGINE_TRIGGER_FIRE_LABEL : ENGINE_TRIGGER_DELETE_LABEL);
 				assert.ok(button);
-				button.click();
+				await clickAndConfirm(button);
 				rows[1].click();
 				const before = root.innerHTML;
 				if (fail) { await result.error(new Error('old A rejection')); } else { await result.complete({ status: 'queued', eventId: 'old-A', reason: '' }); }
@@ -2783,7 +2863,7 @@ suite('EngineTriggersSection', () => {
 				rows[0].click();
 				const button = findActionButton(root, method === 'delete' ? ENGINE_TRIGGER_DELETE_LABEL : ENGINE_TRIGGER_EDIT_LABEL);
 				assert.ok(button);
-				button.click();
+				await clickAndConfirm(button);
 				await flushMicrotasks();
 				assert.strictEqual(lists, 2);
 				rows[1].click();
@@ -2820,7 +2900,7 @@ suite('EngineTriggersSection', () => {
 			rows[0].click();
 			const button = findActionButton(root, ENGINE_TRIGGER_DELETE_LABEL);
 			assert.ok(button);
-			button.click();
+			await clickAndConfirm(button);
 			await flushMicrotasks();
 			rows[1].click();
 			changed.fire(snapshot());
@@ -2851,5 +2931,169 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(section.getDomNode().parentElement, null);
 		assert.strictEqual(section.getDomNode().childNodes.length, 0);
 		parent.remove();
+	});
+});
+
+suite('EngineTriggersSection (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('late listTriggers after dispose does not paint trigger rows', async () => {
+		let releaseList: ((value: UniverseAgentListTriggersResult) => void) | undefined;
+		const lateTrigger: UniverseAgentTrigger = {
+			triggerId: 'late-after-dispose',
+			name: 'Late Session Trigger',
+			type: 'cron',
+			promptTemplate: '',
+			enabled: true,
+			pauseReason: '',
+			target: { kind: 'self' },
+			intervalMs: 0,
+			cronExpression: '',
+			runAtEpochMs: 0,
+		};
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listTriggers: 'SUPPORTED',
+				},
+			}),
+			listTriggers: () => new Promise(resolve => {
+				releaseList = resolve;
+			}),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = store.add(instantiationService.createInstance(EngineTriggersSection, parent));
+		section.setSectionActive(true);
+		await timeout(0);
+
+		section.dispose();
+		releaseList?.({ triggers: [lateTrigger] });
+		await timeout(0);
+
+		assert.strictEqual(section.getItemCount(), undefined);
+		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(formatEngineTriggerListLabel(lateTrigger)));
+	});
+
+	test('set enabled is one stateful action for the selected trigger', async () => {
+		const trigger: UniverseAgentTrigger = {
+			triggerId: 'nightly',
+			name: 'Nightly build',
+			type: 'cron',
+			promptTemplate: 'run checks',
+			enabled: true,
+			pauseReason: '',
+			target: { kind: 'self' },
+			intervalMs: 0,
+			cronExpression: '0 0 * * *',
+			runAtEpochMs: 0,
+		};
+		const capabilities = createTestCapabilitySnapshot({
+			setTriggerEnabled: { support: 'SUPPORTED' },
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities,
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listTriggers: 'SUPPORTED',
+				},
+			}),
+			getCapabilitySnapshot: () => capabilities,
+			listTriggers: async () => ({ triggers: [trigger] }),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = store.add(instantiationService.createInstance(EngineTriggersSection, parent));
+		section.setSectionActive(true);
+		await timeout(0);
+
+		const row = parent.querySelector('.engine-triggers-row');
+		assert.ok(row);
+		row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		const actions = parent.querySelectorAll('.engine-triggers-actions .monaco-button');
+		assert.strictEqual(actions.length, 5, 'add, edit, fire, toggle, and delete actions');
+		assert.ok([...actions].some(button => button.getAttribute('aria-label') === 'Disable'), 'enabled trigger exposes only the Disable action');
+		assert.strictEqual([...actions].filter(button => ['Enable', 'Disable'].includes(button.getAttribute('aria-label') ?? '')).length, 1);
+	});
+
+	test('late trigger actions after pairing hold do not paint success', async () => {
+		let pairingPending = false;
+		let releaseFire: ((value: UniverseAgentFireTriggerResult) => void) | undefined;
+		let releaseDelete: ((value: UniverseAgentDeleteTriggerResult) => void) | undefined;
+		let releaseUpsert: ((value: UniverseAgentUpsertTriggerResult) => void) | undefined;
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const trigger: UniverseAgentTrigger = {
+			triggerId: 'nightly', name: 'Nightly build', type: 'cron', promptTemplate: 'run checks', enabled: true,
+			pauseReason: '', target: { kind: 'self' }, intervalMs: 0, cronExpression: '0 0 * * *', runAtEpochMs: 0,
+		};
+		const capabilities = createTestCapabilitySnapshot({
+			fireTrigger: { support: 'SUPPORTED' },
+			deleteTrigger: { support: 'SUPPORTED' }, upsertTrigger: { support: 'SUPPORTED' },
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: connectionChanged.event,
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({
+				transport: 'ok', pairingPending, channelAlive: true, sharedFsRootSent: false, capabilities,
+				conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listTriggers: 'SUPPORTED' },
+			}),
+			listTriggers: async () => ({ triggers: [trigger] }),
+			fireTrigger: () => new Promise<UniverseAgentFireTriggerResult>(resolve => { releaseFire = resolve; }),
+			deleteTrigger: () => new Promise<UniverseAgentDeleteTriggerResult>(resolve => { releaseDelete = resolve; }),
+			upsertTrigger: () => new Promise<UniverseAgentUpsertTriggerResult>(resolve => { releaseUpsert = resolve; }),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IDialogService, { input: async () => ({ confirmed: true, values: ['New trigger', 'cron', '', '', '', ''] }) } as unknown as IDialogService);
+		const section = store.add(instantiationService.createInstance(EngineTriggersSection, parent));
+		section.setSectionActive(true);
+		await timeout(0);
+		parent.querySelector('.engine-triggers-row')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		const internals = section as unknown as { handleFire(): Promise<void>; handleDelete(): Promise<void>; handleUpsert(mode: 'add' | 'edit'): Promise<void> };
+		const enterPairing = async (): Promise<void> => { pairingPending = true; connectionChanged.fire(connection.getConnectionSnapshot()); await timeout(0); };
+		const leavePairing = async (): Promise<void> => { pairingPending = false; connectionChanged.fire(connection.getConnectionSnapshot()); await timeout(0); };
+
+		const firePromise = internals.handleFire();
+		await enterPairing(); releaseFire?.({ status: 'fired', eventId: 'late', reason: '' }); await firePromise;
+		assert.strictEqual(parent.querySelector('.engine-triggers-fire-status')?.textContent, '');
+		await leavePairing();
+		const deletePromise = internals.handleDelete();
+		await enterPairing(); releaseDelete?.({}); await deletePromise;
+		assert.strictEqual(parent.querySelector('.engine-triggers-delete-status')?.textContent, '');
+		await leavePairing();
+		const upsertPromise = internals.handleUpsert('add');
+		await timeout(0); await enterPairing(); releaseUpsert?.({ trigger }); await upsertPromise;
+		assert.strictEqual(parent.querySelector('.engine-triggers-upsert-status')?.textContent, '');
 	});
 });

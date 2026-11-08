@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { INotification, INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import type { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 
@@ -41,5 +41,25 @@ suite('ConversationTimelineRevealService (scroll scheduling)', () => {
 		await timeout(0);
 
 		assert.deepStrictEqual(calls, [], 'must not scroll when the lens that was active at schedule time is gone');
+	});
+
+	test('a lens failure toasts one line of explanation and keeps the raw error as the source', () => {
+		const notifications: Array<{ severity: Severity; message: unknown; source: unknown }> = [];
+		const service = store.add(new ConversationTimelineRevealService({
+			notify: (notification: INotification) => {
+				notifications.push({ severity: notification.severity, message: notification.message, source: notification.source });
+			},
+		} as unknown as INotificationService));
+		service.registerLens('session-a', {
+			revealTimelineItem: () => { throw new Error('lens detached: item-1'); },
+		} as unknown as ConversationLens);
+
+		service.revealItem('item-1', 'session-a');
+
+		assert.deepStrictEqual(notifications, [{
+			severity: Severity.Error,
+			message: 'Could not show this item in the conversation.',
+			source: 'lens detached: item-1',
+		}]);
 	});
 });

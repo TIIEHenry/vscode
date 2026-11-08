@@ -444,7 +444,7 @@ export class TunnelModel extends Disposable {
 		@IContextKeyService private readonly contextKeyService: IContextKeyService
 	) {
 		super();
-		this.configPortsAttributes = new PortsAttributes(configurationService);
+		this.configPortsAttributes = this._register(new PortsAttributes(configurationService));
 		this.tunnelRestoreValue = this.getTunnelRestoreValue();
 		this._register(this.configPortsAttributes.onDidChangeAttributes(this.updateAttributes, this));
 		this.forwarded = new Map();
@@ -744,15 +744,14 @@ export class TunnelModel extends Disposable {
 			} : undefined;
 
 			const key = makeAddress(tunnelProperties.remote.host, tunnelProperties.remote.port);
-			const forwardGenerations = ((this as { _forwardGenerationsByKey?: Map<string, number> })._forwardGenerationsByKey ??= new Map<string, number>());
-			const forwardGeneration = (forwardGenerations.get(key) ?? 0) + 1;
-			forwardGenerations.set(key, forwardGeneration);
 			this.inProgress.set(key, true);
 			tunnelProperties = this.mergeCachedAndUnrestoredProperties(key, tunnelProperties);
 
+			// Only a close of this port while this attempt waits makes it stale; another forward of the same port must not.
+			let closedWhileOpening = false;
 			const closedListener = this.tunnelService.onTunnelClosed(address => {
 				if (address.host === tunnelProperties.remote.host && address.port === tunnelProperties.remote.port) {
-					forwardGenerations.set(key, (forwardGenerations.get(key) ?? 0) + 1);
+					closedWhileOpening = true;
 				}
 			});
 			try {
@@ -766,9 +765,10 @@ export class TunnelModel extends Disposable {
 						((tunnel.protocol === TunnelProtocol.Https) ? TunnelProtocol.Https : TunnelProtocol.Http)
 						: (attributes?.protocol ?? TunnelProtocol.Http));
 					const localUri = await this.makeLocalUri(tunnel.localAddress, attributes);
-					if (forwardGenerations.get(key) !== forwardGeneration) {
+					if (closedWhileOpening) {
 						this.inProgress.delete(key);
-						await this.tunnelService.closeTunnel(tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort);
+						// Release only this attempt's reference; other holders may share the same tunnel.
+						await tunnel.dispose();
 						return undefined;
 					}
 					if (mapHasAddressLocalhostOrAllInterfaces(this.forwarded, tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort)) {

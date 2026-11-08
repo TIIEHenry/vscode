@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	collectTrajectoryTurnIdsFromSnapshot,
 	findTurnIdForTrajectoryRecord,
 	getTrajectoryRecordSearchHaystack,
 	projectSnapshotToTrajectory,
 	type ConversationTrajectoryRecord,
-} from './conversationTrajectoryModel.js';
-import type { OverlayBlockId, SessionViewSnapshot, TimelineCanvasRef, TimelineItemId } from '../../../../platform/universeAgent/common/sessionView/index.js';
+} from '../../browser/conversationTrajectoryModel.js';
+import type { OverlayBlockId, SessionViewSnapshot, TimelineCanvasRef, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 
 suite('conversationTrajectoryModel (unit)', () => {
 

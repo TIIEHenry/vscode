@@ -11,6 +11,7 @@ import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { isDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { localize } from '../../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
@@ -33,6 +34,7 @@ import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import '../../browser/conversationDiffReview.contribution.js';
@@ -535,6 +537,9 @@ suite('Sources - review list model', () => {
 				if (id === IEditorGroupsService) {
 					return instantiationService.invokeFunction(accessor => accessor.get(IEditorGroupsService)) as T;
 				}
+				if (id === IWorkbenchLayoutService) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IWorkbenchLayoutService)) as T;
+				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},
 		};
@@ -629,6 +634,8 @@ suite('Sources - review list model', () => {
 		const banner = host.querySelector('.sources-review-path-filter') as HTMLElement;
 		const count = host.querySelector('.sources-review-path-filter-count');
 		assert.strictEqual(count?.textContent, localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", 1));
+		assert.strictEqual(count?.getAttribute('aria-live'), 'polite');
+		assert.strictEqual(count?.getAttribute('aria-atomic'), 'true');
 		assert.notStrictEqual(count?.textContent, localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", 5));
 		assert.strictEqual(banner.style.display, 'block');
 
@@ -1155,7 +1162,7 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(sourcesChangeOpenIncompleteMessage())));
 		assert.ok(statusIsError(host));
 		assert.strictEqual(marked, 0);
-		assert.strictEqual(editorOpens, 1);
+		assert.strictEqual(editorOpens, 0);
 		assert.ok(harness.opened[0] instanceof ConversationDiffReviewInput);
 	});
 
@@ -2639,7 +2646,9 @@ suite('Sources - review list model', () => {
 			return openAction.label;
 		} finally {
 			for (const action of actions) {
-				action.dispose();
+				if (isDisposable(action)) {
+					action.dispose();
+				}
 			}
 		}
 	}
@@ -2773,7 +2782,7 @@ suite('Sources - review list model', () => {
 				assert.ok(openAction);
 				await openAction.run();
 			} finally {
-				for (const action of actions) { action.dispose(); }
+				for (const action of actions) { if (isDisposable(action)) { action.dispose(); } }
 			}
 			if (attempt === 0) {
 				assert.ok((await waitForStatusText(host, '.sources-changes-status', 'changes-open-failed')).includes('changes-open-failed'));
@@ -2796,7 +2805,7 @@ suite('Sources - review list model', () => {
 			assert.ok(openAction);
 			await openAction.run();
 		} finally {
-			for (const action of actions) { action.dispose(); }
+			for (const action of actions) { if (isDisposable(action)) { action.dispose(); } }
 		}
 		const settled = Date.now() + 2000;
 		while (dispatches < 3 && Date.now() < settled) { await timeout(10); }
@@ -2968,7 +2977,9 @@ suite('Sources - review list model', () => {
 			await openAction.run();
 		} finally {
 			for (const action of actions) {
-				action.dispose();
+				if (isDisposable(action)) {
+					action.dispose();
+				}
 			}
 		}
 
@@ -3578,5 +3589,280 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(Number(list.length), 1, 'filter must repaint without another git read');
 		await timeout(400);
 		assert.strictEqual(readCalls, afterLoad);
+	});
+
+	function reviewedSetProgressService(reviewed: Set<string>): ISourcesReviewProgressService {
+		const changed = store.add(new Emitter<void>());
+		return {
+			onDidChange: changed.event,
+			hasReviewed: () => reviewed.size > 0,
+			isReviewed: () => false,
+			isEntryReviewed: (target: { resource: URI }) => reviewed.has(target.resource.toString()),
+			getReviewedKey: () => undefined,
+			markReviewed: (key: ISourcesReviewProgressKey) => {
+				reviewed.add(key.path);
+				changed.fire();
+			},
+			markUnreviewed: () => { },
+			markAllReviewed: (keys: readonly ISourcesReviewProgressKey[]) => {
+				keys.forEach(key => reviewed.add(key.path));
+				changed.fire();
+			},
+			noteRefreshedKey: () => { },
+			resolveKey: async (target: { resource: URI }) => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: target.resource.toString(), contentHash: '' }),
+			pruneMissingKeys: () => { },
+		} as unknown as ISourcesReviewProgressService;
+	}
+
+	function scmReviewEntries(context: Mocha.Context, names: readonly string[]): ISourcesChangeEntry[] {
+		return names.map(name => {
+			const resource = toResource.call(context, `/project/${name}`);
+			return { ...entry(resource), scmResource: { sourceUri: resource, open: async () => { } } as unknown as ISCMResource };
+		});
+	}
+
+	async function mountReviewList(entries: ISourcesChangeEntry[], options: { reviewed?: Set<string>; roster?: IConversationRosterService } = {}) {
+		const { model, snapshot } = mutableChangesModel();
+		snapshot.current = { generation: 1, settled: true, state: { kind: 'scm' }, entries };
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection(), roster: options.roster, scmService: createIndexScmService(entries[0].resource) });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, reviewedSetProgressService(options.reviewed ?? new Set()));
+		const host = mountListHost();
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> }) as WorkbenchList<ISourcesChangeEntry>;
+		return { host, widget, list };
+	}
+
+	test('Unreviewed only moves list focus to the next row, or the previous one at the end, when an opened row is marked reviewed', async function () {
+		const { host, list } = await mountReviewList(scmReviewEntries(this, ['a.ts', 'b.ts', 'c.ts']));
+		const toggle = host.querySelector('.sources-review-unreviewed-toggle input') as HTMLInputElement;
+		toggle.checked = true;
+		toggle.dispatchEvent(new mainWindow.Event('change'));
+		async function openFocused(index: number): Promise<{ focused: string[]; selected: string[] }> {
+			const length = list.length;
+			list.setFocus([index]);
+			list.setSelection([index], getSelectionKeyboardEvent('keydown', true, false));
+			const deadline = Date.now() + 2000;
+			while (list.length === length && Date.now() < deadline) {
+				await timeout(10);
+			}
+			return { focused: list.getFocusedElements().map(row => row.name), selected: list.getSelectedElements().map(row => row.name) };
+		}
+		const afterMiddle = await openFocused(1);
+		const afterLast = await openFocused(1);
+		assert.deepStrictEqual({ afterMiddle, afterLast }, {
+			afterMiddle: { focused: ['c.ts'], selected: ['c.ts'] },
+			afterLast: { focused: ['a.ts'], selected: ['a.ts'] },
+		});
+	});
+
+	/** Reviewed marks keyed by session and resource, so the same file can differ per session. */
+	function sessionReviewedProgressService(reviewed: Set<string>) {
+		const changed = store.add(new Emitter<void>());
+		const writes: string[] = [];
+		const reviewId = (sessionId: string | undefined, resource: string) => `${sessionId ?? ''}\0${resource}`;
+		const service = {
+			onDidChange: changed.event,
+			hasReviewed: () => reviewed.size > 0,
+			isReviewed: () => false,
+			isEntryReviewed: (target: { resource: URI; sessionId?: string }) => reviewed.has(reviewId(target.sessionId, target.resource.toString())),
+			getReviewedKey: () => undefined,
+			markReviewed: (key: ISourcesReviewProgressKey) => {
+				writes.push(`mark ${key.path}`);
+				reviewed.add(reviewId(key.sessionId, key.path));
+				changed.fire();
+			},
+			markUnreviewed: (key: ISourcesReviewProgressKey) => {
+				writes.push(`unmark ${key.path}`);
+			},
+			markAllReviewed: (keys: readonly ISourcesReviewProgressKey[]) => {
+				writes.push(...keys.map(key => `mark ${key.path}`));
+			},
+			noteRefreshedKey: () => { },
+			resolveKey: async (target: { resource: URI; sessionId?: string }) => ({ origin: 'engine' as const, sessionId: target.sessionId ?? '', scopeKeyId: 'root', path: target.resource.toString(), contentHash: '' }),
+			pruneMissingKeys: () => { },
+		} as unknown as ISourcesReviewProgressService;
+		return { service, writes };
+	}
+
+	function engineReviewSnapshot(context: Mocha.Context, sessionId: string, names: readonly string[], generation: number): ISourcesChangesSnapshot {
+		return {
+			generation,
+			settled: true,
+			state: { kind: 'engine-live', sessionId },
+			entries: names.map(name => ({
+				...entry(toResource.call(context, `/project/${name}`)),
+				gitPath: name,
+				indexState: 'WORKTREE',
+				kind: 'MODIFIED',
+				origin: 'engine' as const,
+				sessionId,
+			})),
+		};
+	}
+
+	async function mountSwitchableReviewList(first: ISourcesChangesSnapshot, reviewed = new Set<string>()) {
+		const changed = store.add(new Emitter<void>());
+		let current = first;
+		const model = {
+			_serviceBrand: undefined,
+			onDidChange: changed.event,
+			getSnapshot: () => current,
+			isWriteClosed: () => false,
+			isFileDiffOpenSkipped: () => false,
+			refresh: async () => { },
+			scheduleRefresh: () => { },
+			flushScheduledRefresh: () => { },
+		} as unknown as ISourcesChangesModel;
+		const progress = sessionReviewedProgressService(reviewed);
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection(), scmService: createIndexScmService(first.entries[0].resource) });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, progress.service);
+		const host = mountListHost();
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		const listContainer = host.querySelector('.sources-review-list') as HTMLElement;
+		listContainer.style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> }) as WorkbenchList<ISourcesChangeEntry>;
+		const show = async (next: ISourcesChangesSnapshot) => {
+			current = next;
+			changed.fire();
+			await timeout(10);
+		};
+		const showUnreviewedOnly = () => {
+			const toggle = host.querySelector('.sources-review-unreviewed-toggle input') as HTMLInputElement;
+			toggle.checked = true;
+			toggle.dispatchEvent(new mainWindow.Event('change'));
+		};
+		const selection = () => ({ rows: list.length, focus: list.getFocus(), selection: list.getSelection(), selected: widget.getSelectedEntry() });
+		return { host, widget, list, listContainer, writes: progress.writes, show, showUnreviewedOnly, selection };
+	}
+
+	for (const unreviewedOnly of [false, true]) {
+		test(`a text filter that hides the selected row clears focus and selection (Unreviewed only ${unreviewedOnly ? 'on' : 'off'})`, async function () {
+			const first: ISourcesChangesSnapshot = { generation: 1, settled: true, state: { kind: 'scm' }, entries: scmReviewEntries(this, ['a.ts', 'b.ts', 'c.ts']) };
+			const { host, widget, list, writes, showUnreviewedOnly, selection } = await mountSwitchableReviewList(first);
+			if (unreviewedOnly) {
+				showUnreviewedOnly();
+			}
+			list.setFocus([1]);
+			list.setSelection([1]);
+			const input = host.querySelector('.sources-list-filter-input') as HTMLInputElement;
+			input.value = 'c.ts';
+			input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+			const afterFilter = selection();
+			widget.toggleReviewedSelected();
+			await timeout(0);
+			assert.deepStrictEqual({ afterFilter, writes }, {
+				afterFilter: { rows: 1, focus: [], selection: [], selected: undefined },
+				writes: [],
+			});
+		});
+	}
+
+	test('switching to another session clears focus and selection and keeps DOM focus in the list', async function () {
+		const { host, list, listContainer, show, selection } = await mountSwitchableReviewList(engineReviewSnapshot(this, 'session-1', ['a.ts', 'b.ts', 'c.ts'], 1));
+		list.setFocus([1]);
+		list.setSelection([1]);
+		const rowButton = host.querySelector<HTMLElement>('.monaco-list-row[data-index="1"] button.sources-review-state');
+		assert.ok(rowButton, 'the selected row renders its review button');
+		rowButton.focus();
+		assert.ok(listContainer.contains(document.activeElement), 'precondition: DOM focus starts inside the selected row');
+
+		await show(engineReviewSnapshot(this, 'session-2', ['x.ts'], 2));
+		assert.strictEqual(rowButton.isConnected, false, 'the focused row node must be released, not reused in place');
+		assert.deepStrictEqual(selection(), { rows: 1, focus: [], selection: [], selected: undefined });
+		assert.ok(listContainer.contains(document.activeElement), 'DOM focus stays in the list');
+		assert.notStrictEqual(document.activeElement, document.body);
+	});
+
+	test('Unreviewed only does not hand the selection over when the same file is reviewed in the session switched to', async function () {
+		const names = ['a.ts', 'b.ts', 'c.ts'];
+		const second = engineReviewSnapshot(this, 'session-2', names, 2);
+		const reviewed = new Set([`session-2\0${second.entries[1].resource.toString()}`]);
+		const { list, show, showUnreviewedOnly, selection } = await mountSwitchableReviewList(engineReviewSnapshot(this, 'session-1', names, 1), reviewed);
+		showUnreviewedOnly();
+		list.setFocus([1]);
+		list.setSelection([1]);
+
+		await show(second);
+		assert.deepStrictEqual(selection(), { rows: 2, focus: [], selection: [], selected: undefined });
+	});
+
+	test('Unreviewed only does not move the selection when the selected file leaves the changes', async function () {
+		const { list, show, showUnreviewedOnly, selection } = await mountSwitchableReviewList(engineReviewSnapshot(this, 'session-1', ['a.ts', 'b.ts', 'c.ts'], 1));
+		showUnreviewedOnly();
+		list.setFocus([1]);
+		list.setSelection([1]);
+
+		await show(engineReviewSnapshot(this, 'session-1', ['a.ts', 'c.ts'], 2));
+		assert.deepStrictEqual(selection(), { rows: 2, focus: [], selection: [], selected: undefined });
+	});
+
+	test('switching the active session clears the turn path filter', async function () {
+		const entries = scmReviewEntries(this, ['hit.ts', 'other.ts']);
+		const sessionChanges = store.add(new Emitter<string>());
+		let activeSessionId = 'session-1';
+		const roster = {
+			getActiveSessionId: () => activeSessionId,
+			onDidChangeActiveSession: sessionChanges.event,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+		const { host, widget, list } = await mountReviewList(entries, { roster });
+		const banner = host.querySelector('.sources-review-path-filter') as HTMLElement;
+		widget.setPathFilter([entries[0].resource]);
+		sessionChanges.fire('session-1');
+		const sameSession = { banner: banner.style.display, rows: list.length };
+		activeSessionId = 'session-2';
+		sessionChanges.fire('session-2');
+		assert.deepStrictEqual({ sameSession, banner: banner.style.display, rows: list.length }, {
+			sameSession: { banner: 'block', rows: 1 },
+			banner: 'none',
+			rows: 2,
+		});
+	});
+
+	test('Review open follows the pinned option of the list open event', async function () {
+		const { widget, list } = await mountReviewList(scmReviewEntries(this, ['a.ts']));
+		const pinned: (boolean | undefined)[] = [];
+		(widget as unknown as { openReviewEntryMarkingReviewed(element: ISourcesChangeEntry, options: { pinned?: boolean }): Promise<void> }).openReviewEntryMarkingReviewed = async (_element, options) => {
+			pinned.push(options.pinned);
+		};
+		list.setFocus([0]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, true));
+		list.setSelection([]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', true, false));
+		assert.deepStrictEqual(pinned, [true, false]);
+	});
+
+	test('progress counts every change while Mark all names the shown scope, and a text-filter miss offers Clear filter', async function () {
+		const entries = scmReviewEntries(this, ['a.ts', 'b.ts', 'c.ts']);
+		const { host, list } = await mountReviewList(entries, { reviewed: new Set([entries[1].resource.toString()]) });
+		const input = host.querySelector('.sources-list-filter-input') as HTMLInputElement;
+		const progress = () => host.querySelector('.sources-review-progress-count')?.textContent;
+		const typeFilter = (value: string) => {
+			input.value = value;
+			input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		};
+		typeFilter('a.ts');
+		const filtered = { progress: progress(), mark: markAllButton(host)?.textContent };
+		typeFilter('zzz');
+		const link = host.querySelector<HTMLElement>('.sources-review-empty .sources-list-filter-clear-link');
+		const linkText = link?.textContent;
+		link?.click();
+		assert.deepStrictEqual({ filtered, linkText, cleared: { progress: progress(), mark: markAllButton(host)?.textContent, value: input.value, rows: list.length } }, {
+			filtered: {
+				progress: localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", 1, 3),
+				mark: localize('sourcesReviewList.markShownReviewed', "Mark {0} shown as reviewed", 1),
+			},
+			linkText: localize('sourcesListFilter.clearFilterLink', "Clear filter"),
+			cleared: {
+				progress: localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", 1, 3),
+				mark: localize('sourcesReviewList.markAllReviewed', "Mark all as reviewed"),
+				value: '',
+				rows: 3,
+			},
+		});
 	});
 });

@@ -59,7 +59,9 @@ function isSafeRedirectDestination(dest: string, isPowerShell?: boolean): boolea
 }
 
 /**
- * Classification of a tree-sitter `file_redirect` node.
+ * Classification of a PowerShell redirect from its text (`redirection` nodes
+ * and no-space `generic_token` redirects). Bash `file_redirect` nodes are
+ * classified from their syntax by {@link getBashFileRedirectWriteDestinations}.
  * - `read`: input-only redirect (`<`, `<&N`) — never writes.
  * - `safeWrite`: write to a known-safe sink (`/dev/null`, fd duplication, ...).
  * - `unsafeWrite`: write to an arbitrary destination. The destination string
@@ -89,6 +91,89 @@ function classifyFileRedirect(redirectText: string, isPowerShell?: boolean): Fil
 		dest = dest.slice(1, -1);
 	}
 	return { kind: 'unsafeWrite', dest };
+}
+
+type SyntaxNode = QueryCapture['node'];
+
+function stripMatchingQuotes(value: string): string {
+	if (value.length >= 2 && ((value.startsWith(`'`) && value.endsWith(`'`)) ||
+		(value.startsWith('"') && value.endsWith('"')))) {
+		return value.slice(1, -1);
+	}
+	return value;
+}
+
+/**
+ * Write destinations of a bash `file_redirect` node, read from the grammar's
+ * `destination` field rather than from the node text: in `>&word` the `&`
+ * belongs to the operator, so a text match would fold it into the path.
+ * Returns no entries for input redirects, known-safe sinks and file-descriptor
+ * duplication or closing, and an `undefined` entry for a write whose
+ * destination cannot be read.
+ */
+function getBashFileRedirectWriteDestinations(node: SyntaxNode): (string | undefined)[] {
+	// `<>` parses with an ERROR child and a `<` operator, so any `>` in the
+	// text still marks the redirect as a write.
+	if (!node.text.includes('>')) {
+		return [];
+	}
+	const operatorTypes = new Set(node.children.map(child => child?.type));
+	if (operatorTypes.has('>&-')) {
+		return [];
+	}
+	const destinations = node.childrenForFieldName('destination').filter((child): child is SyntaxNode => child !== null);
+	if (destinations.length === 0) {
+		return [undefined];
+	}
+	if (operatorTypes.has('>&') && destinations.length === 1 && (destinations[0].type === 'number' || destinations[0].text === '-')) {
+		return [];
+	}
+	const dests: (string | undefined)[] = [];
+	for (const destination of destinations) {
+		if (!isSafeRedirectDestination(destination.text)) {
+			dests.push(stripMatchingQuotes(destination.text.trim()));
+		}
+	}
+	return dests;
+}
+
+/**
+ * Directory-changing commands, matched the way the `cd` allow rule matches
+ * (`^cd\b`, case-insensitive for PowerShell) so that prefixed shapes such as
+ * PowerShell's `cd..` and `cd\` are recognized too.
+ */
+const bashDirectoryChangeRegex = /^(cd|pushd|popd)(?:\W|$)/;
+const pwshDirectoryChangeRegex = /^(cd|chdir|sl|set-location|pushd|push-location|popd|pop-location)(?:\W|$)/i;
+const directoryChangeExpansionRegex = /[$(){}`~%]/;
+
+/**
+ * The directory a sub-command changes to. Returns `null` when the sub-command
+ * does not change directory, and `undefined` when it does but the target
+ * cannot be read from the text: no argument or several, options, `-`,
+ * expansions, directory-stack pops, or a name that only starts with `cd`.
+ */
+function getDirectoryChangeTarget(subCommand: string, isPowerShell: boolean): string | undefined | null {
+	const text = subCommand.trim();
+	const match = (isPowerShell ? pwshDirectoryChangeRegex : bashDirectoryChangeRegex).exec(text);
+	if (!match) {
+		return null;
+	}
+	const nameEnd = text.search(/\s/);
+	const name = nameEnd === -1 ? text : text.slice(0, nameEnd);
+	const commandName = match[1].toLowerCase();
+	if (name.toLowerCase() !== commandName || commandName === 'popd' || commandName === 'pop-location') {
+		return undefined;
+	}
+	let argument = nameEnd === -1 ? '' : text.slice(nameEnd).trim();
+	if (isPowerShell) {
+		argument = argument.replace(/^-(?:literalpath|path)\s+/i, '');
+	}
+	const quoted = /^(['"])(.*)\1$/.exec(argument);
+	const target = quoted && !quoted[2].includes(quoted[1]) ? quoted[2] : argument;
+	if (!target || (target === argument && /\s/.test(target)) || target.startsWith('-') || directoryChangeExpansionRegex.test(target)) {
+		return undefined;
+	}
+	return target;
 }
 
 /**
@@ -312,6 +397,19 @@ export class CommandAutoApprover extends Disposable {
 		return parsed?.unsafeWriteDests ?? [];
 	}
 
+	/**
+	 * Directories that sub-commands change to (`cd`, `pushd`, `Set-Location`,
+	 * ...). `undefined` entries change to a directory that cannot be read from
+	 * the text. Returns `undefined` when the command line cannot be analyzed.
+	 */
+	getDirectoryChangeTargets(commandLine: string, options?: Pick<IShouldAutoApproveOptions, 'language'>): readonly (string | undefined)[] | undefined {
+		const trimmed = commandLine.trimStart();
+		if (trimmed.length === 0) {
+			return [];
+		}
+		return this._extractSubCommands(trimmed, options?.language === 'powershell')?.directoryChanges;
+	}
+
 	/** Evaluates the command and reports whether adding a persistent allow rule could resolve the result. */
 	evaluate(commandLine: string, options?: IShouldAutoApproveOptions): ICommandApprovalEvaluation {
 		const trimmed = commandLine.trimStart();
@@ -402,7 +500,7 @@ export class CommandAutoApprover extends Disposable {
 
 	// ---- Tree-sitter --------------------------------------------------------
 
-	private _extractSubCommands(commandLine: string, isPowerShell: boolean): { subCommands: string[]; unsafeWriteDests: (string | undefined)[] } | undefined {
+	private _extractSubCommands(commandLine: string, isPowerShell: boolean): { subCommands: string[]; unsafeWriteDests: (string | undefined)[]; directoryChanges: (string | undefined)[] } | undefined {
 		const language = isPowerShell ? this._powershellLanguage : this._bashLanguage;
 		if (!this._parser || !language || !this._queryClass) {
 			return undefined;
@@ -435,14 +533,21 @@ export class CommandAutoApprover extends Disposable {
 				const captures: QueryCapture[] = query.captures(tree.rootNode);
 				const subCommands: string[] = [];
 				const unsafeWriteDests: (string | undefined)[] = [];
+				const directoryChanges: (string | undefined)[] = [];
 				let unanalyzableType: string | undefined;
 				for (const capture of captures) {
 					const text = masked === commandLine ? capture.node.text : commandLine.substring(capture.node.startIndex, capture.node.endIndex);
 					if (capture.name === 'command') {
 						subCommands.push(text);
+						const directoryChange = getDirectoryChangeTarget(text, isPowerShell);
+						if (directoryChange !== null) {
+							directoryChanges.push(directoryChange);
+						}
 					} else if (capture.name === 'unanalyzable' && (capture.node.type !== 'variable_assignment' || capture.node.parent?.type !== 'command')) {
 						unanalyzableType ??= capture.node.type;
-					} else if (capture.name === 'file_redirect' || capture.name === 'redirection' || (capture.name === 'generic_token' && pwshNoSpaceRedirectRegex.test(text))) {
+					} else if (capture.name === 'file_redirect') {
+						unsafeWriteDests.push(...getBashFileRedirectWriteDestinations(capture.node));
+					} else if (capture.name === 'redirection' || (capture.name === 'generic_token' && pwshNoSpaceRedirectRegex.test(text))) {
 						// Writes to known-safe sinks (e.g. `> /dev/null`, `2>$null`)
 						// and file-descriptor duplications (e.g. `2>&1`) are allowed.
 						const cls = classifyFileRedirect(text, isPowerShell);
@@ -460,7 +565,7 @@ export class CommandAutoApprover extends Disposable {
 					this._logService.trace(`[CommandAutoApprover] Command line contains an unanalyzable ${unanalyzableType}, requiring confirmation`);
 					return undefined;
 				}
-				return subCommands.length > 0 || unsafeWriteDests.length > 0 ? { subCommands, unsafeWriteDests } : undefined;
+				return subCommands.length > 0 || unsafeWriteDests.length > 0 ? { subCommands, unsafeWriteDests, directoryChanges } : undefined;
 			} finally {
 				tree.delete();
 			}
@@ -691,6 +796,11 @@ const DEFAULT_TERMINAL_AUTO_APPROVE_RULES: Readonly<Record<string, AgentHostTerm
 	// TODO: replace sed deny regexes with a shared script analyzer — https://github.com/microsoft/vscode/issues/329218
 	sed: true,
 	'/^sed\\b.*\\s(-[a-zA-Z]*(e|f)[a-zA-Z]*|--expression|--file)\\b/': false,
+	// GNU sed accepts unique abbreviations of long options (`--e`, `--expr=`, `--fi`), and the
+	// shell removes quotes, backslashes and line continuations, so `-n"e"` and `\-e` reach
+	// sed as `-ne` and `-e`.
+	'/^sed\\b[\\s\\S]*\\s(?-i:(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*(?:e|f(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*i))/': false,
+	'/^sed\\b[\\s\\S]*\\s(?-i:(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\|[a-zA-Z])*[ef])/': false,
 	'/^sed\\b.*s\\/.*\\/.*\\/[ew]/': false,
 	// Quoted positional script whose first command is e/r/R/w/W. The opening quote is
 	// captured so the closing quote must match it, and whitespace and `!` are allowed

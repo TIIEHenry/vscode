@@ -22,6 +22,7 @@ import { openEditorInSlot } from '../../../services/editor/browser/editorOpenSlo
 import { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
 import { runSuppressingExplorerAutoReveal } from '../../../services/editor/common/explorerAutoRevealGate.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { ConversationChatInput } from '../../conversation/common/conversationChatInput.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMResource } from '../../scm/common/scm.js';
@@ -67,6 +68,7 @@ export interface ISourcesChangeEntryOpenDeps {
 	readonly readGitFileDiff?: (entry: ISourcesChangeEntry) => Promise<UniverseAgentReadGitFileDiffResult | undefined>;
 	readonly editorGroupsService?: IEditorGroupsService;
 	readonly session?: IAgentSessionContext;
+	readonly layoutService?: Pick<IWorkbenchLayoutService, 'isVisible' | 'setPartHidden'>;
 }
 
 /**
@@ -187,7 +189,11 @@ async function openSourcesChangeInPreview(
 			scope.dispose();
 		}
 		if (opened) {
-			rememberSourcesDiffOpenIdentity(opened.input, { groupId: ref.groupId, scmResource: ref.scmResource });
+			rememberSourcesDiffOpenIdentity(opened.input, {
+				groupId: ref.groupId,
+				scmResource: ref.scmResource,
+				...sourcesChangeIdentity(ref),
+			});
 			// API commands apply context options themselves, with provider options winning.
 			if (!dispatch.isApi && (options.slot === 'newTab' || options.pinned)) {
 				opened.group.pinEditor(opened.input);
@@ -216,7 +222,11 @@ async function openSourcesChangeInPreview(
 				source: EditorOpenSource.USER,
 			}, ACTIVE_GROUP)
 			: await deps.editorService.openEditor(input, ACTIVE_GROUP);
-		rememberSourcesDiffOpenIdentity(pane?.input, { groupId: ref.groupId, scmResource: ref.scmResource });
+		rememberSourcesDiffOpenIdentity(pane?.input, {
+			groupId: ref.groupId,
+			scmResource: ref.scmResource,
+			...sourcesChangeIdentity(ref),
+		});
 		return pane !== undefined;
 	}
 
@@ -415,14 +425,13 @@ export async function openSourcesChangeInConversation(
 		if (!targetGroup) {
 			return false;
 		}
-		const pane = options.slot && deps.editorGroupsService
-			? await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
-				preserveFocus: options.preserveFocus,
-			}, targetGroup)
-			: await targetGroup.openEditor(input, {
-				preserveFocus: options.preserveFocus,
-				pinned: options.pinned,
-			});
+		if (deps.layoutService && !deps.layoutService.isVisible(Parts.CONVERSATION_PART)) {
+			deps.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
+		}
+		const pane = await targetGroup.openEditor(input, {
+			preserveFocus: options.preserveFocus,
+			pinned: options.pinned,
+		});
 		if (pane === undefined) {
 			return false;
 		}

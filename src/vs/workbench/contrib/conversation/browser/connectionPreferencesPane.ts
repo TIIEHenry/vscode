@@ -131,6 +131,7 @@ class ConnectionNavRenderer implements IListRenderer<typeof CONNECTION_ZONE_NAV_
 
 	renderElement(entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number], _index: number, templateData: IConnectionNavTemplateData): void {
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 	}
 
 	disposeTemplate(): void {
@@ -330,6 +331,7 @@ class ConnectionProfilesRenderer implements IListRenderer<IConnectionProfileEntr
 
 	renderElement(entry: IConnectionProfileEntry, _index: number, templateData: IConnectionProfileTemplateData): void {
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 		templateData.state.textContent = entry.stateLabel;
 	}
 
@@ -381,7 +383,7 @@ class HubDevicesRenderer implements IListRenderer<HubDeviceProjection, IHubDevic
 		const row = DOM.append(container, $('.connection-hub-device-row'));
 		const name = DOM.append(row, $('.connection-hub-device-name'));
 		const status = DOM.append(row, $('.connection-hub-device-status'));
-		const connectButton = new Button(row, defaultButtonStyles);
+		const connectButton = new Button(row, { ...defaultButtonStyles, secondary: true });
 		connectButton.label = localize('ua.connectionDeviceConnect', "Connect");
 		const templateData: IHubDeviceTemplateData = {
 			row,
@@ -400,8 +402,11 @@ class HubDevicesRenderer implements IListRenderer<HubDeviceProjection, IHubDevic
 
 	renderElement(device: HubDeviceProjection, _index: number, templateData: IHubDeviceTemplateData): void {
 		templateData.device = device;
+		const statusLabel = getHubDeviceRowStatusLabel(device);
 		templateData.name.textContent = device.name;
-		templateData.status.textContent = getHubDeviceRowStatusLabel(device);
+		templateData.name.title = device.name;
+		templateData.status.textContent = statusLabel;
+		templateData.status.title = statusLabel;
 		const showConnect = this.canConnect(device);
 		templateData.connectButton.element.style.display = showConnect ? '' : 'none';
 		templateData.connectButton.enabled = showConnect;
@@ -510,6 +515,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly hubRefreshButton: Button;
 	private readonly connectDirectButton: Button;
 	private readonly connectProfileButton: Button;
+	private readonly disconnectButton: Button;
+	private readonly forgetButton: Button;
 	private connectInFlight = false;
 
 	constructor(
@@ -771,14 +778,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
 		this._register(this.connectProfileButton.onDidClick(() => void this.handleConnectSelectedProfile().catch(onUnexpectedError)));
 
-		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
-		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
-		this._register(disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError)));
+		this.disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
+		this._register(this.disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError)));
 
-		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
-		forgetButton.element.classList.add('is-danger');
-		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
-		this._register(forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError)));
+		this.forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.forgetButton.element.classList.add('is-danger');
+		this.forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
+		this._register(this.forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError)));
 
 		this.profilesConnectStatus = DOM.append(this.profilesSection, DOM.$('.connection-status.connection-profiles-status'));
 		this.profilesConnectStatus.setAttribute('role', 'status');
@@ -793,6 +800,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			if (selected && selected.id !== this.activeProfileId) {
 				this.activeProfileId = selected.id;
 				this.testGeneration++;
+				this.updateConnectGates();
 			}
 		}));
 
@@ -815,8 +823,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.pairingConfirmHost.style.display = 'none';
 		this.pairingConfirmHost.setAttribute('aria-live', 'polite');
 
+		// Narrow: the detail replaces the nav, so arrows only move focus and Enter / open enters it.
 		this._register(this.navList.onDidChangeFocus(e => {
-			if (this.syncingNav) {
+			if (this.syncingNav || this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
 				return;
 			}
 			const entry = e.elements[0] as typeof CONNECTION_ZONE_NAV_ENTRIES[number] | undefined;
@@ -831,7 +840,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.selectZone(entry.id);
 		}));
 		this._register(this.navList.onDidChangeSelection(e => {
-			if (this.syncingNav) {
+			if (this.syncingNav || this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
 				return;
 			}
 			const entry = e.elements[0] as typeof CONNECTION_ZONE_NAV_ENTRIES[number] | undefined;
@@ -1244,6 +1253,19 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				? this.writeHoldReason()
 				: localize('ua.connectionProfileSelectFirst', "Select a profile first."),
 		);
+		const phase = this.connectionService.getConnectionPhase().kind;
+		this.presentAction(
+			this.disconnectButton,
+			phase === 'connecting' || phase === 'connected',
+			localize('ua.connectionDisconnectIdle', "No engine is connected."),
+		);
+		this.presentAction(
+			this.forgetButton,
+			!this.connectInFlight && !!this.activeProfileId,
+			this.connectInFlight
+				? localize('ua.connectionActionInFlight', "A connection is already in progress.")
+				: localize('ua.connectionProfileSelectFirst', "Select a profile first."),
+		);
 		if (this.hubDevices.length > 0) {
 			this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
 		}
@@ -1611,6 +1633,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'click', () => {
 					this.selectedPending = pending;
 					this.renderPendingPairs();
+				}));
+				this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'keydown', (e: KeyboardEvent) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						this.selectedPending = pending;
+						this.renderPendingPairs();
+					}
 				}));
 			}
 		}
@@ -2280,7 +2309,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const input = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
-			inputs: [{ type: 'text', value: device.name, placeholder: localize('ua.connectionRenameDevicePlaceholder', "Device name") }],
+			inputs: [{ type: 'text', label: localize('ua.connectionRenameDevicePlaceholder', "Device name"), value: device.name, placeholder: localize('ua.connectionRenameDevicePlaceholder', "Device name") }],
 			primaryButton: localize('ua.connectionRenameDeviceConfirm', "Rename"),
 		});
 		const name = input.confirmed ? input.values?.[0]?.trim() : undefined;

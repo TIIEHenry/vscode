@@ -72,7 +72,17 @@
 
 .multiCallStackFrame .collapse-button a {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .multiCallStackFrame .collapse-button a {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .multiCallStackFrame .collapse-button a {
+		transition: none;
+	}
 }
 
 .multiCallStackFrame .collapse-button a:active {
@@ -92,7 +102,17 @@
 
 .multiCallStackFrame .title[role="link"] {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .multiCallStackFrame .title[role="link"] {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .multiCallStackFrame .title[role="link"] {
+		transition: none;
+	}
 }
 
 .multiCallStackFrame .title[role="link"]:active {
@@ -112,7 +132,17 @@
 
 .monaco-editor .call-stack-go-to-file-link {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-editor .call-stack-go-to-file-link {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .call-stack-go-to-file-link {
+		transition: none;
+	}
 }
 
 .monaco-editor .call-stack-go-to-file-link:active {

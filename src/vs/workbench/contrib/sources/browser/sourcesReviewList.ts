@@ -25,6 +25,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import type { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
 import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
@@ -58,7 +59,7 @@ import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
-import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { focusSourcesListFromFilter, SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from './sourcesReviewListStrings.js';
 
 const $ = dom.$;
@@ -228,6 +229,7 @@ export class SourcesReviewList extends Disposable {
 	private readonly markAllButton: Button;
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
+	private readonly clearFilterLink: HTMLButtonElement;
 	private readonly statusMessage: HTMLElement;
 	private modelStatusMessage: { readonly message: string; readonly isError: boolean } | undefined;
 	private openStatusMessage: { readonly message: string; readonly isError: boolean } | undefined;
@@ -236,7 +238,11 @@ export class SourcesReviewList extends Disposable {
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler = { flush: () => this.changesModel.flushScheduledRefresh() };
 	private pathFilter: URI[] | undefined;
+	private pathFilterSessionId: string | undefined;
 	private unreviewedOnly = false;
+	/** Unreviewed only and snapshot session of the previous paint, for `spliceKeepingFocus`. */
+	private lastPaintUnreviewedOnly = false;
+	private lastPaintSessionKey: string | undefined;
 	private visibleEntries: ISourcesReviewEntry[] = [];
 	private allEntries: ISourcesReviewEntry[] = [];
 	private chipMap = new Map<string, readonly IReviewAttributionChipDisplay[]>();
@@ -256,7 +262,7 @@ export class SourcesReviewList extends Disposable {
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
 			: chip.label,
-		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId).catch(onUnexpectedError),
+		onChipClick: (toolCallId) => void this.revealAttributionItem(toolCallId).catch(onUnexpectedError).catch(onUnexpectedError),
 		onReviewToggle: (entry) => this.toggleEntryReview(entry),
 	};
 
@@ -277,6 +283,7 @@ export class SourcesReviewList extends Disposable {
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
 		super();
 
@@ -287,14 +294,19 @@ export class SourcesReviewList extends Disposable {
 			this.filterRow,
 			localize('sourcesReviewList.filterPlaceholder', "Filter changes"),
 			localize('sourcesReviewList.filterAriaLabel', "Filter changes"),
+			first => focusSourcesListFromFilter(this.list, first),
 		));
+		this.clearFilterLink = this.filterBox.createClearFilterLink();
 		this._register(this.filterBox.onDidChange(() => this.repaint()));
 
+		const unreviewedLabel = localize('sourcesReviewList.unreviewedOnly', "Unreviewed only");
 		const toggleLabel = dom.append(this.filterRow, $('label.sources-review-unreviewed-toggle'));
+		toggleLabel.title = unreviewedLabel;
 		this.unreviewedToggle = dom.append(toggleLabel, $('input')) as HTMLInputElement;
 		this.unreviewedToggle.type = 'checkbox';
-		this.unreviewedToggle.setAttribute('aria-label', localize('sourcesReviewList.unreviewedOnly', "Unreviewed only"));
-		dom.append(toggleLabel, $('span')).textContent = localize('sourcesReviewList.unreviewedOnly', "Unreviewed only");
+		this.unreviewedToggle.title = unreviewedLabel;
+		this.unreviewedToggle.setAttribute('aria-label', unreviewedLabel);
+		dom.append(toggleLabel, $('span')).textContent = unreviewedLabel;
 		this._register(dom.addStandardDisposableListener(this.unreviewedToggle, 'change', () => {
 			this.unreviewedOnly = this.unreviewedToggle.checked;
 			this.repaint();
@@ -305,8 +317,15 @@ export class SourcesReviewList extends Disposable {
 		this.pathFilterClear = dom.append(this.pathFilterBanner, $('button.sources-review-path-filter-clear')) as HTMLButtonElement;
 		this.pathFilterClear.type = 'button';
 		this.pathFilterClear.textContent = localize('sourcesReviewList.clearPathFilter', "Clear");
+		this.pathFilterClear.title = localize('sourcesReviewList.clearPathFilterTitle', "Clear path filter");
 		this._register(dom.addDisposableListener(this.pathFilterClear, dom.EventType.CLICK, () => {
+			const hadClearFocus = dom.isActiveElement(this.pathFilterClear);
 			this.setPathFilter(undefined);
+			if (hadClearFocus) {
+				if (!focusSourcesListFromFilter(this.list, false)) {
+					this.filterBox.focus();
+				}
+			}
 		}));
 
 		this.headerHint = dom.append(host, $('.sources-review-header-hint'));
@@ -335,6 +354,11 @@ export class SourcesReviewList extends Disposable {
 		this._register(this.reviewProgressService.onDidChange(() => this.repaint()));
 		this._register(this.attributionService.onDidChange(() => this.repaint()));
 		this._register(this.changesModel.onDidChange(() => this.onModelChange()));
+		this._register(this.session.onDidChangeActiveSession(sessionId => {
+			if (this.pathFilter && sessionId !== this.pathFilterSessionId) {
+				this.setPathFilter(undefined);
+			}
+		}));
 		this.onModelChange();
 		// Leak tests flush this proxy and call scheduleRefresh. The model owns the timer.
 		void this.refreshScheduler;
@@ -353,8 +377,10 @@ export class SourcesReviewList extends Disposable {
 		super.dispose();
 	}
 
+	/** The paths belong to one turn of the active session; switching session clears them. */
 	setPathFilter(paths: URI[] | undefined): void {
 		this.pathFilter = paths && paths.length > 0 ? paths : undefined;
+		this.pathFilterSessionId = this.pathFilter ? this.session.getActiveSessionId() : undefined;
 		this.repaint();
 	}
 
@@ -432,7 +458,7 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private onModelChange(): void {
-		void this.paintFromModel().catch(onUnexpectedError);
+		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private scheduleRefresh(): void {
@@ -539,14 +565,14 @@ export class SourcesReviewList extends Disposable {
 			false,
 			entry => this.isEntryReviewed(entry),
 		);
-		void this.markEntriesReviewed(countEntries, true).catch(onUnexpectedError);
+		void this.markEntriesReviewed(countEntries, true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private markEntryReviewed(entry: ISourcesReviewEntry): void {
 		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
-		void this.markEntriesReviewed([entry], false).catch(onUnexpectedError);
+		void this.markEntriesReviewed([entry], false).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async markEntriesReviewed(entries: readonly ISourcesReviewEntry[], all: boolean): Promise<void> {
@@ -636,8 +662,8 @@ export class SourcesReviewList extends Disposable {
 		}
 
 		// The banner says how many files are listed. Unreviewed-only hides rows,
-		// so it has to use the same filter as the list. Progress and Mark all
-		// stay on the text + path-set set and ignore that toggle.
+		// so it has to use the same filter as the list. Mark all stays on the
+		// text + path-set set and ignores that toggle; progress counts every change.
 		const visibleCount = filterReviewEntries(
 			this.allEntries,
 			this.filterBox.value,
@@ -650,16 +676,23 @@ export class SourcesReviewList extends Disposable {
 			this.pathFilterBanner.removeChild(this.pathFilterBanner.firstChild);
 		}
 		const text = dom.append(this.pathFilterBanner, $('span.sources-review-path-filter-count'));
+		text.setAttribute('aria-live', 'polite');
+		text.setAttribute('aria-atomic', 'true');
 		text.textContent = localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", visibleCount);
 		this.pathFilterBanner.appendChild(document.createTextNode(' · '));
 		this.pathFilterBanner.appendChild(this.pathFilterClear);
 	}
 
-	private updateProgressHeader(entries: readonly ISourcesReviewEntry[]): void {
-		const { reviewed, total } = countReviewProgress(entries, entry => this.isEntryReviewed(entry));
-		this.progressCount.textContent = localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", reviewed, total);
+	/** Progress counts every change; Mark all acts on the text + path-set entries and names that scope when it is narrower. */
+	private updateProgressHeader(markEntries: readonly ISourcesReviewEntry[]): void {
+		const isReviewed = (entry: ISourcesReviewEntry) => this.isEntryReviewed(entry);
+		const progress = countReviewProgress(this.allEntries, isReviewed);
+		this.progressCount.textContent = localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", progress.reviewed, progress.total);
+		const { reviewed, total } = countReviewProgress(markEntries, isReviewed);
 		const canMark = total > 0 && reviewed < total && !this.isSourcesGitWriteClosed();
-		const markLabel = localize('sourcesReviewList.markAllReviewed', "Mark all as reviewed");
+		const markLabel = total > 0 && total < this.allEntries.length
+			? localize('sourcesReviewList.markShownReviewed', "Mark {0} shown as reviewed", total)
+			: localize('sourcesReviewList.markAllReviewed', "Mark all as reviewed");
 		const markReason = this.isSourcesGitWriteClosed()
 			? (this.session.isPairingHold()
 				? sourcesGitReadPairingHoldMessage()
@@ -667,6 +700,7 @@ export class SourcesReviewList extends Disposable {
 			: (total === 0
 				? localize('sourcesReviewList.nothingToReview', "There is nothing to mark as reviewed.")
 				: localize('sourcesReviewList.alreadyReviewed', "Everything listed is already reviewed."));
+		this.markAllButton.label = markLabel;
 		this.markAllButton.enabled = canMark;
 		this.markAllButton.setTitle(canMark ? markLabel : markReason);
 		this.markAllButton.setAriaLabel(canMark ? markLabel : `${markLabel}. ${markReason}`);
@@ -696,6 +730,7 @@ export class SourcesReviewList extends Disposable {
 						modelService: this.modelService,
 						readGitFileDiff: entry => this.readGitFileDiff(entry),
 						editorGroupsService: this.editorGroupsService,
+						layoutService: this.layoutService,
 						session: this.session,
 					}, {
 						preserveFocus: options.preserveFocus,
@@ -757,9 +792,9 @@ export class SourcesReviewList extends Disposable {
 			}
 			void this.openReviewEntryMarkingReviewed(element, {
 				preserveFocus: e.editorOptions.preserveFocus,
-				pinned: false,
+				pinned: e.editorOptions.pinned,
 				slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
-			}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onContextMenu(e => {
@@ -777,7 +812,7 @@ export class SourcesReviewList extends Disposable {
 					const openAction = this.isSourcesGitFileDiffOpenSkipped()
 						? []
 						: [sourcesAlternateOpenAction(sourcesEditorOpenSlot(this.configurationService), slot => {
-							void this.openReviewEntryMarkingReviewed(element, { preserveFocus: true, slot }).catch(onUnexpectedError);
+							void this.openReviewEntryMarkingReviewed(element, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
 						})];
 					return [
 						...openAction,
@@ -867,6 +902,9 @@ export class SourcesReviewList extends Disposable {
 			this.emptyMessage.textContent = gitReadError;
 		} else if (emptyReason) {
 			this.emptyMessage.textContent = sourcesReviewListEmptyMessage(emptyReason);
+			if (emptyReason === 'textFilterEmpty') {
+				this.emptyMessage.appendChild(this.clearFilterLink);
+			}
 		}
 
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
@@ -888,11 +926,60 @@ export class SourcesReviewList extends Disposable {
 			this.setStatusMessage(undefined);
 		}
 
+		// Entry identity has no session id, so a session switch must not pass for a row just marked reviewed.
+		const sessionKey = snapshot.state.kind === 'scm' ? '' : snapshot.state.sessionId;
+		const handOffReviewedRow = this.unreviewedOnly && this.lastPaintUnreviewedOnly && sessionKey === this.lastPaintSessionKey;
 		if (this.list) {
-			this.list.splice(0, this.list.length, this.visibleEntries);
+			this.spliceKeepingFocus(this.list, this.visibleEntries, handOffReviewedRow);
 		} else if (hasVisibleEntries) {
 			this.ensureList().splice(0, 0, this.visibleEntries);
 		}
+		this.lastPaintUnreviewedOnly = this.unreviewedOnly;
+		this.lastPaintSessionKey = sessionKey;
 		this.listViewport?.layout();
+	}
+
+	/**
+	 * Rows keep focus and selection by identity. Only a row that left Unreviewed only
+	 * because it is now reviewed hands focus to the row that took its place, or the last
+	 * row when it was at the end, and selection follows when it had it. Any other removal
+	 * (session switch, filter, a file no longer changed) leaves focus and selection cleared.
+	 * DOM focus that was in the list stays in the list either way.
+	 */
+	private spliceKeepingFocus(list: WorkbenchList<ISourcesReviewEntry>, entries: readonly ISourcesReviewEntry[], handOffReviewedRow: boolean): void {
+		const hadFocus = this.listContainer.contains(dom.getActiveElement());
+		const focusedIndex = list.getFocus()[0];
+		const focused = list.getFocusedElements()[0];
+		const wasSelected = !!focused && list.getSelectedElements().includes(focused);
+		list.splice(0, list.length, entries);
+		if (list.length === 0) {
+			if (hadFocus) {
+				if (this.unreviewedToggle.offsetParent !== null) {
+					this.unreviewedToggle.focus();
+				} else {
+					this.filterBox.focus();
+				}
+			}
+			return;
+		}
+		if (focusedIndex === undefined || !focused || list.getFocus().length > 0) {
+			if (hadFocus && !this.listContainer.contains(dom.getActiveElement())) {
+				list.domFocus();
+			}
+			return;
+		}
+		const identity = sourcesChangeEntryIdentity(focused);
+		const current = handOffReviewedRow ? this.allEntries.find(entry => sourcesChangeEntryIdentity(entry) === identity) : undefined;
+		if (current && this.isEntryReviewed(current)) {
+			const next = Math.min(focusedIndex, list.length - 1);
+			list.setFocus([next]);
+			if (wasSelected) {
+				list.setSelection([next]);
+			}
+			list.reveal(next);
+		}
+		if (hadFocus && !this.listContainer.contains(dom.getActiveElement())) {
+			list.domFocus();
+		}
 	}
 }

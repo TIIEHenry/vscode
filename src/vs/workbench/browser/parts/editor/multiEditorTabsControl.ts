@@ -2614,6 +2614,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// Check for tree items
 		else if (this.treeItemsTransfer.hasData(DraggedTreeItemsIdentifier.prototype)) {
 			const data = this.treeItemsTransfer.getData(DraggedTreeItemsIdentifier.prototype);
+
+			// Clear before awaiting so an abandoned drop cannot leave stale tree items for the next drop
+			this.treeItemsTransfer.clearData(DraggedTreeItemsIdentifier.prototype);
+
 			if (Array.isArray(data) && data.length > 0) {
 				const editors: IUntypedEditorInput[] = [];
 				for (const id of data) {
@@ -2630,8 +2634,6 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 				this.editorService.openEditors(editors, this.groupView, { validateTrust: true }).catch(onUnexpectedError);
 			}
-
-			this.treeItemsTransfer.clearData(DraggedTreeItemsIdentifier.prototype);
 		}
 
 		// Check for URI transfer

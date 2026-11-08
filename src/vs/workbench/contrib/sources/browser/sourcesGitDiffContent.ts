@@ -6,8 +6,32 @@
 import { URI } from '../../../../base/common/uri.js';
 import { ITextModel } from '../../../../editor/common/model.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
+import type { SourcesGitAcceptCursorBasis } from '../common/sourcesGitHunkPatch.js';
 
 export const SOURCES_GIT_DIFF_SCHEME = 'sources-git-diff';
+
+/**
+ * Accept caret basis from the comparison's original side. A Git index original
+ * (`git:` with an empty `ref`, as the primary quick diff returns) lines up with the
+ * `@@` ranges of an Unstaged FileDiff, so the caret is a file line. A missing original,
+ * or a `git:` original of any other ref, offers no Accept. Other originals keep the
+ * hunk body count.
+ */
+export function sourcesGitAcceptCursorBasis(original: URI | undefined): SourcesGitAcceptCursorBasis | undefined {
+	if (!original) {
+		return undefined;
+	}
+	if (original.scheme !== 'git') {
+		return 'hunkBody';
+	}
+	let query: unknown;
+	try {
+		query = JSON.parse(original.query);
+	} catch {
+		return undefined;
+	}
+	return typeof query === 'object' && query !== null && Reflect.get(query, 'ref') === '' ? 'fileLine' : undefined;
+}
 
 interface ISourcesGitDiffText {
 	readonly text: string;

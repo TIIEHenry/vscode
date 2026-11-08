@@ -101,7 +101,11 @@ export interface ConversationStubSession {
 	workDir?: string;
 	/** SessionSummary.turn_count. Omit when the engine left it blank. */
 	turnCount?: number;
-	/** SessionSummary.last_accessed_at, Unix seconds or milliseconds. Omit when blank. */
+	/**
+	 * SessionSummary.last_accessed_at, Unix seconds or milliseconds. Omit when blank.
+	 * A session created in this window carries its local adopt time (ms) until the next List,
+	 * and only when other rows already have one.
+	 */
 	lastAccessedAt?: number;
 }
 

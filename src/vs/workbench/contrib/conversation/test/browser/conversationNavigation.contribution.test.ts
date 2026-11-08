@@ -4,19 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
-import { TestConfigurationService } from '../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
-import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../services/history/common/history.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ConversationNavigationContribution } from './conversationNavigation.contribution.js';
-import { IConversationNavigationService } from './conversationNavigationService.js';
-import { IConversationSessionChatService } from './conversationSessionChatService.js';
-import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
-import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from '../test/browser/conversationTimelineLinkTestStubs.js';
+import { Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../../services/history/common/history.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationNavigationContribution } from '../../browser/conversationNavigation.contribution.js';
+import { IConversationNavigationService } from '../../browser/conversationNavigationService.js';
+import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
 
 const SESSION_KEY = 'session-mouse-nav';
 
@@ -74,7 +74,7 @@ suite('ConversationNavigationContribution', () => {
 			getConversationPart: () => ({ sessionKey: SESSION_KEY } as IConversationEditorPart),
 		});
 
-		const contribution = instantiationService.createInstance(ConversationNavigationContribution);
+		const contribution = store.add(instantiationService.createInstance(ConversationNavigationContribution));
 
 		const dispatchMouseBack = () => {
 			layoutService.mainContainer.dispatchEvent(new MouseEvent('mousedown', {

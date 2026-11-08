@@ -53,6 +53,16 @@ export interface IBYOKStorageService {
 	 * 3. Custom model, and isDeletingCustomModel = false -> Do not delete from storage as we do not have the known model list. Instead mark unregistered
 	 */
 	removeModelConfig(modelId: string, providerName: string, isDeletingCustomModel: boolean): Promise<void>;
+
+	/**
+	 * Whether the provider-level API key stored by older versions needs no further migration into a language model group.
+	 */
+	isLegacyApiKeyMigrated(providerName: string): boolean;
+
+	/**
+	 * Record that the provider-level API key stored by older versions needs no further migration into a language model group.
+	 */
+	markLegacyApiKeyMigrated(providerName: string): Promise<void>;
 }
 
 export class BYOKStorageService implements IBYOKStorageService {
@@ -165,5 +175,13 @@ export class BYOKStorageService implements IBYOKStorageService {
 				existingConfigs
 			);
 		}
+	}
+
+	public isLegacyApiKeyMigrated(providerName: string): boolean {
+		return this._extensionContext.globalState.get<boolean>(`copilot-byok-migration-${providerName}-apiKey`, false);
+	}
+
+	public async markLegacyApiKeyMigrated(providerName: string): Promise<void> {
+		await this._extensionContext.globalState.update(`copilot-byok-migration-${providerName}-apiKey`, true);
 	}
 }

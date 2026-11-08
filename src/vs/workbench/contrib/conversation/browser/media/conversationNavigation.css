@@ -14,9 +14,9 @@
 	align-items: center;
 	gap: 2px;
 	flex-shrink: 0;
-	height: 28px;
-	min-height: 28px;
-	max-height: 28px;
+	height: 36px;
+	min-height: 36px;
+	max-height: 36px;
 	padding: 0 2px 0 4px;
 	border-bottom: none;
 	background-color: var(--vscode-sideBarTitle-background, var(--vscode-sideBar-background));
@@ -45,4 +45,14 @@
 	max-height: 22px;
 	padding: 0;
 	background: none;
+}
+
+.monaco-workbench .part.conversation .conversation-editor-nav .conversation-window-nav .monaco-button {
+	width: 22px;
+	height: 22px;
+	min-width: 22px;
+	min-height: 22px;
+	max-width: 22px;
+	max-height: 22px;
+	line-height: 22px;
 }

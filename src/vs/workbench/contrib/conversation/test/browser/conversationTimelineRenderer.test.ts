@@ -16,7 +16,9 @@ import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat
 import { getConversationEntryAriaLabel } from '../../browser/conversationSessionView.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import { conversationLensErrorRetry, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow, summarizeConversationError } from '../../browser/conversationTimelineRenderer.js';
+import { conversationLensErrorRetry, conversationLensErrorRetrying, conversationLensTurnRegenerate, conversationLensTurnRegenerating, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow, summarizeConversationError } from '../../browser/conversationTimelineRenderer.js';
+import { conversationLensDockResponseInFlight, conversationLensDockSendBusy } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensTurnDelete } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
 import { ConversationTurnContentAdapter, type IConversationTurnContentAdapter } from '../../browser/conversationTurnContentAdapter.js';
@@ -601,6 +603,19 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		dispose();
 	});
 
+	test('settled user row keeps an accessible trajectory control and routes its turn id', () => {
+		const trajectory: string[] = [];
+		const { row, dispose } = renderUserBubble(true, [], { id: 'u-trajectory', kind: 'user', text: 'second' }, turnId => trajectory.push(turnId));
+		const header = row.querySelector('.conversation-lens-turn-header-trajectory');
+		const button = header?.querySelector<HTMLButtonElement>('.monaco-button');
+		assert.ok(header);
+		assert.ok(button);
+		assert.ok(button!.getAttribute('aria-label'));
+		button!.click();
+		assert.deepStrictEqual(trajectory, ['u-trajectory']);
+		dispose();
+	});
+
 	test('pending user row shows Sending and is not an edit button', () => {
 		const edits: string[] = [];
 		const trajectory: string[] = [];
@@ -880,5 +895,256 @@ suite('user row refs trailer is not read or copied', () => {
 		} finally {
 			assistant.dispose();
 		}
+	});
+});
+
+suite('ConversationTimelineRenderer row height generation', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function turnNode(turn: ConversationStubTurn): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function flushAnimationFrames(): Promise<void> {
+		return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+	}
+
+	test('stale rAF after row recycle does not apply height to the previous item', async () => {
+		const reported: { turnId: string; height: number }[] = [];
+		const renderer = new ConversationTimelineRenderer(
+			{
+				renderTurnBody: (turn, body) => {
+					body.replaceChildren();
+					const probe = document.createElement('div');
+					probe.style.height = turn.id === 'tall-turn' ? '240px' : '24px';
+					probe.style.width = '1px';
+					body.appendChild(probe);
+					return Disposable.None;
+				},
+			},
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			(item, height) => reported.push({ turnId: item.turn.id, height }),
+		);
+
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		const template = renderer.renderTemplate(host);
+
+		renderer.renderElement(turnNode({ id: 'tall-turn', kind: 'assistant', text: 'long body' }), 0, template);
+		renderer.renderElement(turnNode({ id: 'short-turn', kind: 'assistant', text: 'x' }), 0, template);
+
+		await flushAnimationFrames();
+
+		assert.ok(!reported.some(entry => entry.turnId === 'tall-turn'), `unexpected stale height for tall-turn: ${JSON.stringify(reported)}`);
+		assert.ok(reported.some(entry => entry.turnId === 'short-turn' && entry.height > 0), `expected height for short-turn: ${JSON.stringify(reported)}`);
+
+		template.disposables.dispose();
+		host.remove();
+	});
+});
+
+suite('ConversationTimelineRenderer turn write holds', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	interface IWriteCalls {
+		readonly regenerate: string[];
+		readonly deleted: string[];
+		readonly retried: string[];
+		readonly edited: string[];
+		readonly decisions: string[];
+	}
+
+	function createRenderer(hold: () => string | undefined, calls: IWriteCalls): ConversationTimelineRenderer {
+		return new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			(turnId, status) => calls.decisions.push(`${turnId}:${status}`),
+			undefined,
+			undefined,
+			turn => calls.deleted.push(turn.id),
+			turnId => calls.edited.push(turnId),
+			undefined,
+			undefined,
+			turn => calls.retried.push(turn.id),
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => true,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+			undefined,
+			undefined,
+			turn => calls.regenerate.push(turn.id),
+			undefined,
+			undefined,
+			() => 'live',
+			hold,
+		);
+	}
+
+	function paint(renderer: ConversationTimelineRenderer, turn: ConversationStubTurn): HTMLElement {
+		const container = document.createElement('div');
+		const template = renderer.renderTemplate(container);
+		store.add(template.disposables);
+		renderer.renderElement({ element: { variant: 'turn', turn } } as unknown as ITreeNode<ConversationTimelineItem, void>, 0, template);
+		return container;
+	}
+
+	function button(container: HTMLElement, selector: string): HTMLElement {
+		const element = container.querySelector<HTMLElement>(`${selector} .monaco-button`);
+		assert.ok(element, selector);
+		return element;
+	}
+
+	function newCalls(): IWriteCalls {
+		return { regenerate: [], deleted: [], retried: [], edited: [], decisions: [] };
+	}
+
+	test('a streaming reply holds Regenerate, Delete, error Retry and user edit with the Send sentence', () => {
+		const calls = newCalls();
+		const renderer = createRenderer(() => conversationLensDockSendBusy, calls);
+		const assistant = paint(renderer, { id: 'a1', kind: 'assistant', text: 'done' });
+		const user = paint(renderer, { id: 'u1', kind: 'user', text: 'hi' });
+		const error = paint(renderer, { id: 'e1', kind: 'error', text: 'boom', retryable: true });
+		const regenerate = button(assistant, '.conversation-lens-turn-action-regenerate');
+		const remove = button(assistant, '.conversation-lens-turn-action-delete');
+		const retry = button(error, '.conversation-lens-turn-error-retry');
+		const bubble = user.querySelector<HTMLElement>('.conversation-lens-turn-body--user-bubble')!;
+
+		regenerate.click();
+		remove.click();
+		retry.click();
+		bubble.click();
+
+		assert.deepStrictEqual({
+			regenerate: regenerate.getAttribute('aria-label'),
+			remove: remove.getAttribute('aria-label'),
+			retry: retry.getAttribute('aria-label'),
+			disabled: [regenerate, remove, retry].map(el => el.getAttribute('aria-disabled')),
+			bubbleTitle: bubble.title,
+			bubbleRole: bubble.getAttribute('role'),
+			calls,
+		}, {
+			regenerate: `${conversationLensTurnRegenerate}. ${conversationLensDockSendBusy}`,
+			remove: `${conversationLensTurnDelete}. ${conversationLensDockSendBusy}`,
+			retry: `${conversationLensErrorRetry}. ${conversationLensDockSendBusy}`,
+			disabled: ['true', 'true', 'true'],
+			bubbleTitle: conversationLensDockSendBusy,
+			bubbleRole: null,
+			calls: newCalls(),
+		});
+	});
+
+	test('Regenerate posts once and shows Regenerating… until the outcome settles', () => {
+		const calls = newCalls();
+		const renderer = createRenderer(() => undefined, calls);
+		const turn: ConversationStubTurn = { id: 'a1', kind: 'assistant', text: 'done' };
+		const first = button(paint(renderer, turn), '.conversation-lens-turn-action-regenerate');
+		first.click();
+		first.click();
+		const repainted = button(paint(renderer, turn), '.conversation-lens-turn-action-regenerate');
+		const inFlight = [first.getAttribute('aria-label'), repainted.getAttribute('aria-label'), repainted.getAttribute('aria-disabled')];
+		repainted.click();
+		renderer.settleTurnWrite('a1');
+		const settled = button(paint(renderer, turn), '.conversation-lens-turn-action-regenerate');
+
+		assert.deepStrictEqual({ calls: calls.regenerate, inFlight, settled: [settled.getAttribute('aria-label'), settled.getAttribute('aria-disabled')] }, {
+			calls: ['a1'],
+			inFlight: [`${conversationLensTurnRegenerate}. ${conversationLensTurnRegenerating}`, `${conversationLensTurnRegenerate}. ${conversationLensTurnRegenerating}`, 'true'],
+			settled: [conversationLensTurnRegenerate, 'false'],
+		});
+	});
+
+	test('error Retry posts once and shows Retrying… until the outcome settles', () => {
+		const calls = newCalls();
+		const renderer = createRenderer(() => undefined, calls);
+		const turn: ConversationStubTurn = { id: 'e1', kind: 'error', text: 'boom', retryable: true };
+		const first = button(paint(renderer, turn), '.conversation-lens-turn-error-retry');
+		first.click();
+		first.click();
+		const repainted = button(paint(renderer, turn), '.conversation-lens-turn-error-retry');
+		const inFlight = [first.textContent, repainted.textContent, repainted.getAttribute('aria-disabled')];
+		renderer.settleTurnWrite('e1');
+		const settled = button(paint(renderer, turn), '.conversation-lens-turn-error-retry');
+
+		assert.deepStrictEqual({ calls: calls.retried, inFlight, settled: [settled.textContent, settled.getAttribute('aria-disabled')] }, {
+			calls: ['e1'],
+			inFlight: [conversationLensErrorRetrying, conversationLensErrorRetrying, 'true'],
+			settled: [conversationLensErrorRetry, 'false'],
+		});
+	});
+
+	test('a response refused before it left shows on the seat and offers Allow again', () => {
+		const calls = newCalls();
+		const renderer = createRenderer(() => undefined, calls);
+		const turn: ConversationStubTurn = { id: 'c1', kind: 'confirmation', text: 'Run tool?', status: 'pending' };
+		button(paint(renderer, turn), '.conversation-lens-confirmation-actions').click();
+		const held = button(paint(renderer, turn), '.conversation-lens-confirmation-actions').getAttribute('aria-label');
+		renderer.setLocalRespondFailure('c1', 'engine disconnected');
+		const seat = paint(renderer, turn);
+		const allow = button(seat, '.conversation-lens-confirmation-actions');
+
+		assert.deepStrictEqual({
+			held,
+			failure: seat.querySelector('.conversation-lens-confirmation-failure')?.textContent,
+			allow: [allow.getAttribute('aria-label'), allow.getAttribute('aria-disabled')],
+			decisions: calls.decisions,
+		}, {
+			held: `Allow. ${conversationLensDockResponseInFlight}`,
+			failure: 'Couldn\'t send this response: engine disconnected',
+			allow: ['Allow', 'false'],
+			decisions: ['c1:allowed'],
+		});
+	});
+
+	test('a failed copy is explained in the row\'s own action bar', () => {
+		const renderer = createRenderer(() => undefined, newCalls());
+		renderer.setTurnActionFailure('a1', 'Couldn\'t copy to the clipboard.');
+		const row = paint(renderer, { id: 'a1', kind: 'assistant', text: 'done' });
+		const actions = row.querySelector('.conversation-lens-turn-actions')!;
+		renderer.setTurnActionFailure('a1', '');
+		const cleared = paint(renderer, { id: 'a1', kind: 'assistant', text: 'done' });
+
+		assert.deepStrictEqual({
+			hasFailure: actions.classList.contains('has-failure'),
+			text: actions.querySelector('.conversation-lens-turn-action-failure')?.textContent,
+			role: actions.querySelector('.conversation-lens-turn-action-failure')?.getAttribute('role'),
+			cleared: cleared.querySelector('.conversation-lens-turn-action-failure'),
+		}, {
+			hasFailure: true,
+			text: 'Couldn\'t copy to the clipboard.',
+			role: 'alert',
+			cleared: null,
+		});
 	});
 });

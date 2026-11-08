@@ -99,6 +99,8 @@ function renderVisualizeCardChrome(
 	const header = append(row, $('button.conversation-visualize-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('aria-expanded', String(expanded));
+	const bodyId = `conversation-visualize-body-${turnId}`;
+	header.setAttribute('aria-controls', bodyId);
 
 	const chevron = append(header, $('span.conversation-visualize-chevron.ua-motion'));
 	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
@@ -106,9 +108,11 @@ function renderVisualizeCardChrome(
 
 	const label = append(header, $('span.conversation-visualize-header-label'));
 	label.textContent = labelText;
+	label.title = labelText;
 	renderHeaderActions?.(row);
 
 	const body = append(root, $('div.conversation-visualize-body'));
+	body.id = bodyId;
 	body.hidden = !expanded;
 	renderBody(body);
 

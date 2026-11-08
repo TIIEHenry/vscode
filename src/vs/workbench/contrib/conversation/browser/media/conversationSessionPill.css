@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .part.conversation a.conversation-session-pill {
+	position: relative;
+	isolation: isolate;
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
@@ -23,27 +25,73 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
+.monaco-workbench .part.conversation a.conversation-session-pill::before {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: inherit;
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+/* Keep timeline links inside the reading flow instead of adding a second text line. */
+.monaco-workbench .part.conversation .conversation-lens-turn-body--reading-text a.conversation-session-pill {
+	box-sizing: border-box;
+	min-height: 20px;
+	line-height: 16px;
+	font-size: var(--vscode-fontSize-label1, 12px);
+	border-radius: var(--vscode-cornerRadius-circle, 9999px);
+}
+
 .monaco-workbench .part.conversation a.conversation-session-pill:hover {
 	color: var(--vscode-foreground);
-	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	outline: none;
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill:hover::before {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
 }
 
 .monaco-workbench .part.conversation a.conversation-session-pill:focus-visible {
 	color: var(--vscode-foreground);
-	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	outline: none;
 	box-shadow: none;
 }
 
+.monaco-workbench .part.conversation a.conversation-session-pill:focus-visible::before {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+}
+
 .monaco-workbench .part.conversation a.conversation-session-pill:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill:active::before {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-composer-ref-chip > a.conversation-session-pill:focus-visible {
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-composer-ref-chip > a.conversation-session-pill:focus-visible::before {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-composer-ref-chip > a.conversation-session-pill:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench.hc-black .part.conversation a.conversation-session-pill:focus-visible,
 .monaco-workbench.hc-light .part.conversation a.conversation-session-pill:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation a.conversation-session-pill .conversation-session-pill-icon {
@@ -56,4 +104,22 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.conversation a.conversation-session-pill {
+	transition: none;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.conversation a.conversation-session-pill::before {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation a.conversation-session-pill {
+		transition: none;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation a.conversation-session-pill::before {
+		transition: none;
+	}
 }

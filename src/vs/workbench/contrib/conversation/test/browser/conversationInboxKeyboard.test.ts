@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { isConversationInboxQueueItemActivationKey, shouldActivateConversationInboxQueueItem } from './conversationInboxKeyboard.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { isConversationInboxQueueItemActivationKey, shouldActivateConversationInboxQueueItem } from '../../browser/conversationInboxKeyboard.js';
 
 suite('Conversation Inbox keyboard', () => {
 

@@ -87,7 +87,6 @@ suite('AICustomizationManagementEditor leftover save / editor-action catch scan 
 		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.strictEqual((source.match(/void this\.handleEditorActionButton\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\.saveExistingCustomization\(saveRequest\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.saveBuiltinPromptCopy\(saveRequest\)\.then\(\(\) => \{\s*(?:if \(!this\._store\.isDisposed\) \{\s*)?void this\.listWidget\?\.refresh\(\);\s*\}?\s*\}\)\.catch\(onUnexpectedError\);/g) ?? []).length, 1);
 		assert.ok(source.includes(singleHandle));
 		assert.ok(source.includes(singleSaveExisting));
 		assert.ok(source.includes('await this.saveBuiltinPromptCopy(saveRequest);'));

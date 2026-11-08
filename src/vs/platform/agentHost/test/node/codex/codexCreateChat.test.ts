@@ -2990,6 +2990,340 @@ suite('CodexAgent chat backing durability', () => {
 		}
 	});
 
+	/** Records the method of every request the agent writes to the app-server until disposed. */
+	function recordOutboundMethods(peer: ITestPeer): { readonly methods: string[]; dispose(): void } {
+		const methods: string[] = [];
+		const onData = (chunk: Buffer | string) => {
+			for (const line of String(chunk).split('\n')) {
+				const method = line.trim() ? (JSON.parse(line) as { method?: unknown }).method : undefined;
+				if (typeof method === 'string') {
+					methods.push(method);
+				}
+			}
+		};
+		peer.outbound.on('data', onData);
+		return { methods, dispose: () => peer.outbound.off('data', onData) };
+	}
+
+	/** Records the turn id of every `ChatTurnCancelled` action the agent fires. */
+	function recordCancelledTurnIds(agent: CodexAgent): string[] {
+		const turnIds: string[] = [];
+		disposables.add(agent.onDidChatProgress(signal => {
+			if (signal.kind === 'action' && signal.action.type === ActionType.ChatTurnCancelled) {
+				turnIds.push(signal.action.turnId);
+			}
+		}));
+		return turnIds;
+	}
+
+	test('abort before turn/start keeps the cancelled prompt from reaching the app-server', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-before-turn-start');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-before-turn-start');
+		const context = { configurationResource: session, resource: chat };
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'abort-before-turn-start-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = undefined;
+			const outbound = recordOutboundMethods(peer);
+			const cancelledTurnIds = recordCancelledTurnIds(agent);
+
+			const sending = agent.chats.sendMessage(chat, 'cancelled prompt', [folder], undefined, 'host-1', undefined, undefined, context);
+			await agent.chats.abort(chat, context);
+			await sending;
+			await new Promise(resolve => setImmediate(resolve));
+			outbound.dispose();
+
+			// The abandoned turn is reported cancelled, so the host still ends it
+			// when the abort was meant for an earlier turn.
+			assert.deepStrictEqual({
+				methods: outbound.methods,
+				cancelledTurnIds,
+				currentTurnId: entry.currentTurnId,
+				unclaimedSends: entry.unclaimedSendCancellations.size,
+			}, {
+				methods: [],
+				cancelledTurnIds: ['host-1'],
+				currentTurnId: undefined,
+				unclaimedSends: 0,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('abort between turn/start and turn/started interrupts the app turn once it starts', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true, sessionStore: createTestSessionStore() });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-before-turn-started');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-before-turn-started');
+		const context = { configurationResource: session, resource: chat };
+		const threadId = 'abort-before-turn-started-thread';
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, threadId);
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = undefined;
+
+			const sending = agent.chats.sendMessage(chat, 'prompt', [folder], undefined, 'host-1', undefined, undefined, context);
+			const turn = await readNextRequest(peer.outbound);
+			// The turn is claimed but Codex has not reported its app turn yet, so
+			// there is nothing to interrupt until `turn/started` binds it.
+			await agent.chats.abort(chat, context);
+			const markedBeforeStart = entry.cancelledUnboundHostTurnIds.has('host-1');
+			peer.push({ id: turn.id, result: {} });
+			await sending;
+
+			const interrupt = readNextRequest(peer.outbound);
+			agent['_handleTurnStartedNotification'](entry, {
+				threadId,
+				turn: {
+					id: 'app-1',
+					items: [],
+					itemsView: 'full',
+					status: 'inProgress',
+					error: null,
+					startedAt: null,
+					completedAt: null,
+					durationMs: null,
+				},
+			});
+			const interruptRequest = await interrupt;
+			peer.push({ id: interruptRequest.id, result: {} });
+
+			assert.deepStrictEqual({
+				turnMethod: turn.method,
+				markedBeforeStart,
+				interruptMethod: interruptRequest.method,
+				interruptParams: interruptRequest.params,
+				markedAfterStart: entry.cancelledUnboundHostTurnIds.has('host-1'),
+			}, {
+				turnMethod: 'turn/start',
+				markedBeforeStart: true,
+				interruptMethod: 'turn/interrupt',
+				interruptParams: { threadId, turnId: 'app-1' },
+				markedAfterStart: false,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('abort cancels a send that has not claimed its turn but not a send started after it', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-interleaved');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-interleaved');
+		const context = { configurationResource: session, resource: chat };
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'abort-interleaved-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = undefined;
+			const cancelledTurnIds = recordCancelledTurnIds(agent);
+
+			const cancelled = agent.chats.sendMessage(chat, 'cancelled prompt', [folder], undefined, 'host-1', undefined, undefined, context);
+			await agent.chats.abort(chat, context);
+			const later = agent.chats.sendMessage(chat, 'later prompt', [folder], undefined, 'host-2', undefined, undefined, context);
+			const turn = await readNextRequest(peer.outbound);
+			peer.push({ id: turn.id, result: {} });
+			await Promise.all([cancelled, later]);
+			const input = JSON.stringify(turn.params.input ?? []);
+
+			assert.deepStrictEqual({
+				method: turn.method,
+				sendsLaterPrompt: input.includes('later prompt'),
+				sendsCancelledPrompt: input.includes('cancelled prompt'),
+				cancelledTurnIds,
+				currentTurnId: entry.currentTurnId,
+				unclaimedSends: entry.unclaimedSendCancellations.size,
+			}, {
+				method: 'turn/start',
+				sendsLaterPrompt: true,
+				sendsCancelledPrompt: false,
+				cancelledTurnIds: ['host-1'],
+				currentTurnId: 'host-2',
+				unclaimedSends: 0,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('each abort cancels the sends in flight when it lands', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-interleaved-both');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-interleaved-both');
+		const context = { configurationResource: session, resource: chat };
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'abort-interleaved-both-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = undefined;
+			const outbound = recordOutboundMethods(peer);
+
+			const first = agent.chats.sendMessage(chat, 'first prompt', [folder], undefined, 'host-1', undefined, undefined, context);
+			await agent.chats.abort(chat, context);
+			const second = agent.chats.sendMessage(chat, 'second prompt', [folder], undefined, 'host-2', undefined, undefined, context);
+			await agent.chats.abort(chat, context);
+			await Promise.all([first, second]);
+			await new Promise(resolve => setImmediate(resolve));
+			outbound.dispose();
+
+			assert.deepStrictEqual({
+				methods: outbound.methods,
+				currentTurnId: entry.currentTurnId,
+				unclaimedSends: entry.unclaimedSendCancellations.size,
+			}, {
+				methods: [],
+				currentTurnId: undefined,
+				unclaimedSends: 0,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('abort during first-send materialization keeps the prompt from reaching the app-server', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-during-materialize');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-during-materialize');
+		const context = { configurationResource: session, resource: chat };
+
+		try {
+			await createSessionBackedChat(agent, chat, context, {
+				workingDirectories: [folder],
+				model: { id: COPILOT_TEST_MODEL },
+			});
+			const start = await readNextRequest(peer.outbound);
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+
+			// The send waits on the pending `thread/start`; the thread id and the
+			// first-turn state are still unset when the abort lands.
+			const sending = agent.chats.sendMessage(chat, 'first prompt', [folder], undefined, 'host-1', undefined, undefined, context);
+			await agent.chats.abort(chat, context);
+			const threadIdAtAbort = entry.threadId;
+			const outbound = recordOutboundMethods(peer);
+			peer.push({ id: start.id, result: { thread: { id: 'abort-during-materialize-thread', cwd: folder.fsPath } } });
+			await sending;
+			await new Promise(resolve => setImmediate(resolve));
+			outbound.dispose();
+
+			assert.deepStrictEqual({
+				startMethod: start.method,
+				threadIdAtAbort,
+				methods: outbound.methods,
+				currentTurnId: entry.currentTurnId,
+				firstTurnSent: entry.firstTurnSent,
+				unclaimedSends: entry.unclaimedSendCancellations.size,
+			}, {
+				startMethod: 'thread/start',
+				threadIdAtAbort: undefined,
+				methods: [],
+				currentTurnId: undefined,
+				firstTurnSent: false,
+				unclaimedSends: 0,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('abort before compaction starts keeps thread/compact/start from being sent', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-before-compact');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-before-compact');
+		const context = { configurationResource: session, resource: chat };
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'abort-before-compact-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = undefined;
+			const outbound = recordOutboundMethods(peer);
+
+			const sending = agent.chats.sendMessage(chat, '/compact', [folder], undefined, 'host-compact', undefined, undefined, context);
+			await agent.chats.abort(chat, context);
+			await sending;
+			await new Promise(resolve => setImmediate(resolve));
+			outbound.dispose();
+
+			assert.deepStrictEqual({
+				methods: outbound.methods,
+				currentTurnId: entry.currentTurnId,
+				unclaimedSends: entry.unclaimedSendCancellations.size,
+			}, {
+				methods: [],
+				currentTurnId: undefined,
+				unclaimedSends: 0,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('a send abandoned after its chat was torn down settles without reporting the turn', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'abort-then-teardown');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/abort-then-teardown');
+		const context = { configurationResource: session, resource: chat };
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'abort-then-teardown-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = undefined;
+			const cancelledTurnIds = recordCancelledTurnIds(agent);
+			// The chat is aborted and torn down after the send's last disposal
+			// check, right before it claims the turn.
+			const turnStartOptions = agent['_turnStartOptions'].bind(agent);
+			const pending: Promise<void>[] = [];
+			agent['_turnStartOptions'] = (...args) => {
+				const options = turnStartOptions(...args);
+				pending.push(agent.chats.abort(chat, context), agent['_teardownSessionInMemory'](entry, entry.sessionId, false));
+				return options;
+			};
+
+			const unsubscribe = readNextRequest(peer.outbound);
+			await agent.chats.sendMessage(chat, 'cancelled prompt', [folder], undefined, 'host-1', undefined, undefined, context);
+			const unsubscribeRequest = await unsubscribe;
+			peer.push({ id: unsubscribeRequest.id, result: {} });
+			await Promise.all(pending);
+
+			assert.deepStrictEqual({
+				unsubscribeMethod: unsubscribeRequest.method,
+				cancelledTurnIds,
+				currentTurnId: entry.currentTurnId,
+				hasRuntime: agent['_sessions'].has(AgentSession.id(session)),
+			}, {
+				unsubscribeMethod: 'thread/unsubscribe',
+				cancelledTurnIds: [],
+				currentTurnId: undefined,
+				hasRuntime: false,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
 	test('approval cards show the scope that the decision grants', async () => {
 		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
 		const peer = disposables.add(createTestPeer());

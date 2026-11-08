@@ -34,12 +34,21 @@
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-switcher {
 	display: flex;
 	align-items: center;
+	flex: 1 1 auto;
+	min-width: 0;
 	height: 28px;
 	padding: 0 4px;
 	gap: 2px;
-	flex-shrink: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 	user-select: none;
 	box-sizing: border-box;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-switcher::-webkit-scrollbar {
+	display: none;
 }
 
 .monaco-workbench .part.editor.preview-categorized .preview-category-tab {
@@ -71,9 +80,10 @@
 	background-color: var(--vscode-toolbar-activeBackground);
 }
 
-.monaco-workbench .part.editor.preview-categorized .preview-category-tab:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor.preview-categorized .preview-category-tab:focus-visible {
+	outline: none !important;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench.hc-black .part.editor.preview-categorized .preview-category-tab:focus-visible,
@@ -141,6 +151,11 @@
 	width: 6px;
 	height: 6px;
 	border-radius: 50%;
-	background-color: var(--vscode-activityBarBadge-background, var(--vscode-focusBorder));
+	background-color: var(--vscode-textLink-foreground, var(--vscode-focusBorder));
 	pointer-events: none;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.editor.preview-categorized .preview-category-tab .category-hint {
+	border: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	box-sizing: border-box;
 }

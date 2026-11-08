@@ -69,6 +69,9 @@
 }
 
 .monaco-workbench .connection-preferences-nav-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	box-sizing: border-box;
@@ -82,12 +85,36 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .connection-preferences-nav-row:active {
-	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+.monaco-workbench .connection-preferences-nav-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .connection-preferences-nav-row:hover:not(.selected) {
+	background: transparent;
+}
+
+.monaco-workbench .connection-preferences-nav-row:hover:not(.selected)::before {
 	background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+}
+
+/* Keep pointer-down feedback above the shared hover surface. */
+.monaco-workbench .connection-preferences-nav-row:active:not(.selected) {
+	background-color: transparent;
+}
+
+.monaco-workbench .connection-preferences-nav-row:active:not(.selected)::before {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench .connection-preferences-nav-row.selected:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .connection-preferences-nav-label {
@@ -136,8 +163,17 @@
 	outline: none !important;
 }
 
-.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus-visible .monaco-list-row.focused {
-	outline: 1px solid var(--vscode-focusBorder) !important;
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus-visible .monaco-list-row.focused:not(.selected) {
+	outline: none !important;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus-visible .monaco-list-row.focused:not(.selected)::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-nav .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
 	outline-offset: -1px;
 }
 
@@ -237,14 +273,15 @@
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
-.monaco-workbench .connection-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-back:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 	box-shadow: none;
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 1px;
 	box-shadow: none;
 }
 
@@ -416,10 +453,10 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
-.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox.synthetic-focus,
-.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within {
-	outline: none;
-	border-color: var(--vscode-focusBorder) !important;
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox.synthetic-focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within {
+	outline: none !important;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent) !important;
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox {
@@ -667,7 +704,7 @@
 }
 
 .monaco-workbench .connection-hub-device-status {
-	flex: 0 1 auto;
+	flex: 0 0 auto;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -702,15 +739,13 @@
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
-.monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-engine-pending-row:focus-visible {
+	outline: none !important;
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.monaco-workbench.hc-black .connection-preferences-pane .connection-engine-pending-row:focus-visible,
-.monaco-workbench.hc-light .connection-preferences-pane .connection-engine-pending-row:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-engine-pending-row:focus-visible {
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 	background-color: var(--vscode-list-hoverBackground);
 }
@@ -761,7 +796,7 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-profile-state {
-	flex: 0 1 auto;
+	flex: 0 0 auto;
 	min-width: 0;
 	padding-inline-end: var(--vscode-spacing-size80, 8px);
 	font-size: var(--vscode-fontSize-label1, 12px);
@@ -781,16 +816,23 @@
 	box-sizing: border-box;
 }
 
-.monaco-workbench .connection-preferences-pane .connection-field-input > input:focus-visible,
-.monaco-workbench .connection-preferences-pane .connection-field-input > select:focus-visible,
-.monaco-workbench .connection-preferences-pane .connection-field-input > textarea:focus-visible {
-	outline: none;
-	border-color: var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-field-input > input:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-field-input > select:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-field-input > textarea:focus-visible {
+	outline: none !important;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent) !important;
 }
 
-.monaco-workbench .connection-preferences-pane .monaco-button:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > input:focus-visible,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > select:focus-visible,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > textarea:focus-visible {
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-detail-body {
@@ -805,7 +847,8 @@
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .monaco-button:focus-visible {
-	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 1px;
 }
 
 /* The narrow layout is a single column; the detail card only wastes scarce width. */
@@ -823,6 +866,7 @@
 
 .monaco-workbench.monaco-reduce-motion .connection-preferences-pane .monaco-button,
 .monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-preferences-nav-row,
+.monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-preferences-nav-row::before,
 .monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-preferences-back,
 .monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-engine-pending-row,
 .monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-toggle-details {
@@ -830,11 +874,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.monaco-workbench .connection-preferences-pane .monaco-button,
-	.monaco-workbench .connection-preferences-pane .connection-preferences-nav-row,
-	.monaco-workbench .connection-preferences-pane .connection-preferences-back,
-	.monaco-workbench .connection-preferences-pane .connection-engine-pending-row,
-	.monaco-workbench .connection-preferences-pane .connection-toggle-details {
+	.monaco-workbench:not(.monaco-enable-motion) .connection-preferences-pane .monaco-button,
+	.monaco-workbench:not(.monaco-enable-motion) .connection-preferences-pane .connection-preferences-nav-row,
+	.monaco-workbench:not(.monaco-enable-motion) .connection-preferences-pane .connection-preferences-nav-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .connection-preferences-pane .connection-preferences-back,
+	.monaco-workbench:not(.monaco-enable-motion) .connection-preferences-pane .connection-engine-pending-row,
+	.monaco-workbench:not(.monaco-enable-motion) .connection-preferences-pane .connection-toggle-details {
 		transition: none;
 	}
 }
@@ -871,7 +916,7 @@
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
 }
 
@@ -907,8 +952,19 @@
 	right: var(--vscode-spacing-size20, 2px);
 }
 
-.monaco-workbench .connection-preferences-pane .connection-toggle-row .monaco-custom-toggle:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-toggle-row .monaco-custom-toggle:focus-visible {
+	--ua-connection-switch-track: color-mix(in srgb, var(--vscode-foreground) 24%, var(--vscode-editor-background));
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-pane .connection-toggle-row .monaco-custom-toggle.checked:focus-visible {
+	--ua-connection-switch-track: color-mix(in srgb, var(--vscode-textLink-foreground) 78%, var(--vscode-foreground));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-toggle-row .monaco-custom-toggle:focus-visible {
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 2px;
 }
 

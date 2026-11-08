@@ -315,6 +315,11 @@ export const terminalChatAgentToolsConfiguration: IStringDictionary<IConfigurati
 			// TODO: replace sed deny regexes with a shared script analyzer — https://github.com/microsoft/vscode/issues/329218
 			sed: true,
 			'/^sed\\b.*\\s(-[a-zA-Z]*(e|f)[a-zA-Z]*|--expression|--file)\\b/': false,
+			// GNU sed accepts unique abbreviations of long options (`--e`, `--expr=`, `--fi`), and the
+			// shell removes quotes, backslashes and line continuations, so `-n"e"` and `\-e` reach
+			// sed as `-ne` and `-e`.
+			'/^sed\\b[\\s\\S]*\\s(?-i:(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*(?:e|f(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*i))/': false,
+			'/^sed\\b[\\s\\S]*\\s(?-i:(?:\\$?[\'"]|\\\\\\r?\\n|\\\\)*-(?:\\$?[\'"]|\\\\\\r?\\n|\\\\|[a-zA-Z])*[ef])/': false,
 			'/^sed\\b.*s\\/.*\\/.*\\/[ew]/': false,
 			// Quoted positional script whose first command is e/r/R/w/W. The opening quote is
 			// captured so the closing quote must match it, and whitespace and `!` are allowed

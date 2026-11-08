@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, getActiveElement, isHTMLElement } from '../../../../base/browser/dom.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -14,7 +14,7 @@ import type { IInstantiationService } from '../../../../platform/instantiation/c
 import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
 import { MarkdownDiffBlockPart, parseUnifiedDiff, type IMarkdownDiffBlockData } from '../../chat/browser/widget/chatContentParts/chatDiffBlockPart.js';
 import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
-import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
+import { conversationLensDockResponseInFlight } from './conversationLensDockStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summarizeProcessStepParts, summarizeThinkingTools } from './conversationProcessFoldModel.js';
 import { isConversationRowActive, type ConversationDisplayMode } from './conversationLivePhase.js';
@@ -44,10 +44,12 @@ function syncProcessFoldToolAria(header: HTMLElement, toolName: string, summaryT
 
 const conversationProcessFoldCollapsedClass = 'conversation-process-fold--collapsed';
 const conversationProcessFoldMotionClass = 'conversation-process-fold-motion';
+let nextProcessFoldChildrenId = 0;
 
 /** Collapsed class on the panel and its grid wrapper. `hidden` would cancel the grid-row transition. */
 function setProcessFoldCollapsed(panel: HTMLElement, collapsed: boolean): void {
 	panel.classList.toggle(conversationProcessFoldCollapsedClass, collapsed);
+	panel.inert = collapsed;
 	const motion = panel.parentElement;
 	if (motion?.classList.contains(conversationProcessFoldMotionClass)) {
 		motion.classList.toggle(conversationProcessFoldCollapsedClass, collapsed);
@@ -222,6 +224,8 @@ export function renderProcessFoldSpan(
 	const statuses = append(header, $('span.conversation-process-fold-statuses'));
 	let summaryText = '';
 	const children = appendProcessFoldPanel(root, 'div.conversation-process-fold-children');
+	children.id = `conversation-process-fold-children-${++nextProcessFoldChildrenId}`;
+	header.setAttribute('aria-controls', children.id);
 	const stickyBreadcrumb = append(children, $('div.conversation-process-fold-sticky-breadcrumb'));
 	stickyBreadcrumb.hidden = true;
 	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));
@@ -296,6 +300,7 @@ export function renderProcessFoldSpan(
 	function syncFoldSummary(next: ProcessFoldSpan): void {
 		const parts = summarizeProcessStepParts(next, { showLiveChrome: options.showLiveChrome, displayMode: options.displayMode });
 		summary.textContent = parts.steps;
+		summary.title = parts.steps;
 		statuses.replaceChildren(...parts.statuses.map(text => {
 			const count = $('span.conversation-process-fold-status-count');
 			count.textContent = text;
@@ -324,6 +329,7 @@ export function renderProcessFoldSpan(
 	function reconcileToolRows(parent: HTMLElement, turns: readonly ConversationStubTurn[], nested: boolean, owner: DisposableStore, mountedTools: Map<string, ToolRowEntry>): void {
 		const keep = new Set<string>();
 		const ordered: HTMLElement[] = [];
+		const pendingFocusRestores: (() => void)[] = [];
 		for (const turn of turns) {
 			const id = turn.id;
 			if (keep.has(id)) {
@@ -335,11 +341,15 @@ export function renderProcessFoldSpan(
 				entry = mountTool(turn, nested, parent, owner);
 				mountedTools.set(id, entry);
 			} else if (entry.turn !== turn) {
+				const restoreFocus = captureFoldEntryFocus(entry.element);
 				const fresh = mountTool(turn, nested, parent, owner);
 				entry.element.replaceWith(fresh.element);
 				owner.delete(entry.store);
 				entry = fresh;
 				mountedTools.set(id, entry);
+				if (restoreFocus) {
+					pendingFocusRestores.push(() => restoreFocus(fresh.element));
+				}
 			} else {
 				entry.paint(turn);
 			}
@@ -353,12 +363,16 @@ export function renderProcessFoldSpan(
 			}
 		}
 		orderElementsAfter(parent, null, ordered);
+		for (const restore of pendingFocusRestores) {
+			restore();
+		}
 	}
 
 	function syncThinkingRowChrome(entry: ThinkingRowEntry, node: Extract<ProcessFoldNode, { kind: 'thinking' }>): void {
 		const summaryText = formatThinkingSummary(node.turn, node.tools, options);
 		if (entry.summary.textContent !== summaryText) {
 			entry.summary.textContent = summaryText;
+			entry.summary.title = summaryText;
 		}
 		entry.paint(node.turn);
 	}
@@ -377,6 +391,7 @@ export function renderProcessFoldSpan(
 		const summaryText = formatThinkingSummary(node.turn, node.tools, options);
 		if (entry.summary.textContent !== summaryText) {
 			entry.summary.textContent = summaryText;
+			entry.summary.title = summaryText;
 		}
 		entry.paint(node.turn);
 		reconcileToolRows(entry.toolsHost, node.tools, true, entry.store, entry.nested);
@@ -418,6 +433,7 @@ export function renderProcessFoldSpan(
 	function reconcileTop(): void {
 		const keep = new Set<string>();
 		const ordered: HTMLElement[] = [];
+		const pendingFocusRestores: (() => void)[] = [];
 		for (const block of coalesceFileEditNodes(current.nodes)) {
 			if (block.kind === 'files') {
 				const id = `files:${block.turns.map(turn => turn.id).join('\n')}`;
@@ -427,12 +443,17 @@ export function renderProcessFoldSpan(
 				keep.add(id);
 				let entry = mounted.get(id);
 				if (!entry || entry.kind !== 'files' || !sameTurnRefs(entry.turns, block.turns)) {
+					const restoreFocus = entry ? captureFoldEntryFocus(entry.element) : undefined;
 					if (entry) {
 						dropChild(entry);
 						mounted.delete(id);
 					}
 					entry = mountFileCard(block.turns);
 					mounted.set(id, entry);
+					if (restoreFocus) {
+						const targetElement = entry.element;
+						pendingFocusRestores.push(() => restoreFocus(targetElement));
+					}
 				}
 				ordered.push(entry.element);
 				continue;
@@ -445,34 +466,47 @@ export function renderProcessFoldSpan(
 			keep.add(id);
 			let entry = mounted.get(id);
 			if (!entry || entry.kind !== node.kind) {
+				const restoreFocus = entry ? captureFoldEntryFocus(entry.element) : undefined;
 				if (entry) {
 					dropChild(entry);
 					mounted.delete(id);
 				}
 				entry = node.kind === 'thinking' ? mountThinking(node) : mountTool(node.turn, false, children, disposables);
 				mounted.set(id, entry);
+				if (restoreFocus) {
+					const targetElement = entry.element;
+					pendingFocusRestores.push(() => restoreFocus(targetElement));
+				}
 			} else if (entry.kind === 'thinking' && node.kind === 'thinking') {
 				if (entry.turn !== node.turn || !sameTurnRefs(entry.tools, node.tools)) {
 					if (patchThinking(entry, node)) {
 						entry.turn = node.turn;
 						entry.tools = node.tools;
 					} else {
+						const restoreFocus = captureFoldEntryFocus(entry.element);
 						const fresh = mountThinking(node);
 						entry.element.replaceWith(fresh.element);
 						disposables.delete(entry.store);
 						entry = fresh;
 						mounted.set(id, entry);
+						if (restoreFocus) {
+							pendingFocusRestores.push(() => restoreFocus(fresh.element));
+						}
 					}
 				} else {
 					syncThinkingRowChrome(entry, node);
 				}
 			} else if (entry.kind === 'tool' && node.kind === 'tool') {
 				if (entry.turn !== node.turn) {
+					const restoreFocus = captureFoldEntryFocus(entry.element);
 					const fresh = mountTool(node.turn, false, children, disposables);
 					entry.element.replaceWith(fresh.element);
 					disposables.delete(entry.store);
 					entry = fresh;
 					mounted.set(id, entry);
+					if (restoreFocus) {
+						pendingFocusRestores.push(() => restoreFocus(fresh.element));
+					}
 				} else {
 					entry.paint(node.turn);
 				}
@@ -486,6 +520,9 @@ export function renderProcessFoldSpan(
 			}
 		}
 		orderElementsAfter(children, stickyBreadcrumb, ordered);
+		for (const restore of pendingFocusRestores) {
+			restore();
+		}
 	}
 
 	function update(next: ProcessFoldSpan): void {
@@ -575,10 +612,13 @@ function renderThinkingNode(
 
 	const summary = append(header, $('span.conversation-process-fold-thinking-summary'));
 	summary.textContent = formatThinkingSummary(turn, node.tools, options);
+	summary.title = summary.textContent;
 
 	appendProcessFoldTrajectoryJump(line, turn.id, options, disposables);
 
 	const body = appendProcessFoldPanel(thinking, 'div.conversation-process-fold-thinking-body');
+	body.id = `conversation-process-fold-thinking-body-${++nextProcessFoldChildrenId}`;
+	header.setAttribute('aria-controls', body.id);
 	const textNode = body.ownerDocument.createTextNode(thinkingBodyText(turn));
 	body.appendChild(textNode);
 
@@ -754,7 +794,10 @@ export interface FileEditCardOptions {
 	readonly setToolExpanded?: (turnId: string, expanded: boolean) => void;
 	readonly onLayoutChange?: () => void;
 	readonly showLiveChrome?: boolean;
+	readonly displayMode?: ConversationDisplayMode;
 	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
+	readonly onRespondClientTool?: (turn: ConversationStubTurn) => void;
+	readonly isRespondInFlight?: (turn: ConversationStubTurn) => boolean;
 	readonly writesEnabled?: boolean;
 	readonly onViewInTrajectory?: (turnId: string) => void;
 	readonly diffEditorPool?: DiffEditorPool;
@@ -835,6 +878,23 @@ export function renderFileEditCard(
 		const diffText = fileEditDiffText(turn);
 		const canOpen = showDetails && !!diffText;
 		const line = append(card, $('div.conversation-file-edit-line'));
+		line.setAttribute('data-turn-id', turn.id);
+		const executing = isExecutingTurn(turn, options);
+		if (turn.toolStatus === 'failed') {
+			line.classList.add('conversation-process-fold-tool--failed');
+		} else if (turn.toolStatus === 'cancelled') {
+			line.classList.add('conversation-process-fold-tool--cancelled');
+		} else if (executing) {
+			line.classList.add('conversation-process-fold-tool--executing');
+		}
+		if (turn.toolStatus && turn.toolStatus !== 'completed') {
+			const statusIcon = resolveToolStatusIcon(turn, options);
+			if (statusIcon) {
+				const iconSpan = append(line, $('span.conversation-process-fold-tool-icon.ua-motion'));
+				iconSpan.setAttribute('aria-hidden', 'true');
+				iconSpan.appendChild(renderIcon(statusIcon));
+			}
+		}
 		const path = canOpen
 			? append(line, $('button.conversation-file-edit-path')) as HTMLButtonElement
 			: append(line, $('div.conversation-file-edit-path'));
@@ -844,16 +904,25 @@ export function renderFileEditCard(
 			path.classList.add('is-static');
 		}
 		const label = fileEditDisplayPath(turn);
-		path.textContent = label;
-		path.title = label;
-		const executing = isExecutingTurn(turn, options);
+		const isCachedIncomplete = options.displayMode === 'cached'
+			&& options.showLiveChrome !== true
+			&& (turn.toolStatus === 'running' || turn.toolStatus === 'pending');
+		const displayLabel = isCachedIncomplete ? `${label} · ${localize('conversationProcessFold.incomplete', "Incomplete")}` : label;
+		path.textContent = displayLabel;
+		path.title = displayLabel;
+		if (isCachedIncomplete) {
+			path.setAttribute('aria-label', displayLabel);
+		}
 		appendProcessFoldToolCancel(line, turn, executing, options, disposables);
+		appendProcessFoldToolRespond(line, turn, options, disposables);
 
 		if (!canOpen) {
 			continue;
 		}
 		const button = path as HTMLButtonElement;
 		const diffArea = append(card, $('div.conversation-file-edit-diff'));
+		diffArea.id = `conversation-file-edit-diff-${++nextProcessFoldChildrenId}`;
+		button.setAttribute('aria-controls', diffArea.id);
 		let expanded = options.isToolExpanded?.(turn.id) ?? false;
 		const filediff = fileEditFilediff(turn);
 		const paint = (open: boolean) => {
@@ -923,9 +992,11 @@ function renderToolRow(
 
 	const name = append(header, $('span.conversation-process-fold-tool-name'));
 	name.textContent = turn.toolName ?? turn.kind;
+	name.title = name.textContent;
 
 	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
 	summary.textContent = formatToolSummary(turn, options);
+	summary.title = summary.textContent;
 
 	// Diff counts are invocation detail. Details off keeps the name and summary only.
 	const diffStatsText = showDetails && isFileEdit ? formatProcessFoldDiffStats(metadata, diffText) : undefined;
@@ -965,6 +1036,8 @@ function renderToolRow(
 	let paint: (next: ConversationStubTurn) => void;
 	if (hasContent) {
 		const body = appendProcessFoldPanel(row, 'div.conversation-process-fold-tool-body');
+		body.id = `conversation-process-fold-tool-body-${++nextProcessFoldChildrenId}`;
+		header.setAttribute('aria-controls', body.id);
 		const filediff = typeof metadata?.filediff === 'object' && metadata?.filediff !== null
 			? (metadata.filediff as Record<string, unknown>)
 			: undefined;
@@ -1061,7 +1134,7 @@ function processFoldSpanHasExecutingTurn(span: ProcessFoldSpan, options: { reado
 	return false;
 }
 
-function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldDomOptions): ThemeIcon | undefined {
+function resolveToolStatusIcon(turn: ConversationStubTurn, options: { readonly showLiveChrome?: boolean }): ThemeIcon | undefined {
 	switch (turn.toolStatus) {
 		case 'pending':
 		case 'running':
@@ -1143,7 +1216,11 @@ function appendProcessFoldToolCancel(
 function appendProcessFoldToolRespond(
 	parent: HTMLElement,
 	turn: ConversationStubTurn,
-	options: ProcessFoldDomOptions,
+	options: {
+		readonly writesEnabled?: boolean;
+		readonly isRespondInFlight?: (turn: ConversationStubTurn) => boolean;
+		readonly onRespondClientTool?: (turn: ConversationStubTurn) => void;
+	},
 	disposables: DisposableStore,
 ): void {
 	if (turn.respondable !== true || !turn.id.trim()) {
@@ -1164,7 +1241,7 @@ function appendProcessFoldToolRespond(
 	const respond = append(parent, $('button.conversation-process-fold-tool-respond')) as HTMLButtonElement;
 	respond.type = 'button';
 	respond.classList.add(...ThemeIcon.asClassNameArray(Codicon.reply));
-	const holdReason = responseInFlight ? conversationLensDockSendBusy : undefined;
+	const holdReason = responseInFlight ? conversationLensDockResponseInFlight : undefined;
 	const presented = !writesEnabled
 		? `${conversationProcessFoldToolRespond}. ${conversationProcessFoldWritesUnavailable}`
 		: holdReason
@@ -1206,5 +1283,53 @@ function appendProcessFoldTrajectoryJump(
 		e.stopPropagation();
 		options.onViewInTrajectory!(turnId);
 	}));
+}
+
+function collectFoldDescendants(root: HTMLElement, predicate: (el: HTMLElement) => boolean, out: HTMLElement[] = []): HTMLElement[] {
+	for (const child of root.children) {
+		if (!isHTMLElement(child)) {
+			continue;
+		}
+		if (predicate(child)) {
+			out.push(child);
+		}
+		collectFoldDescendants(child, predicate, out);
+	}
+	return out;
+}
+
+function captureFoldEntryFocus(oldElement: HTMLElement): ((newElement: HTMLElement) => void) | undefined {
+	const active = getActiveElement();
+	if (!isHTMLElement(active) || !oldElement.contains(active)) {
+		return undefined;
+	}
+	const turnId = active.closest<HTMLElement>('[data-turn-id]')?.dataset.turnId;
+	const tagName = active.tagName;
+	const convClasses = [...active.classList].filter(cls => cls.startsWith('conversation-'));
+	const matches = (el: HTMLElement): boolean => {
+		if (el.tagName !== tagName) {
+			return false;
+		}
+		if (turnId !== undefined && el.closest<HTMLElement>('[data-turn-id]')?.dataset.turnId !== turnId) {
+			return false;
+		}
+		return convClasses.length > 0 && convClasses.every(cls => el.classList.contains(cls));
+	};
+	const before = collectFoldDescendants(oldElement, matches);
+	const index = Math.max(0, before.indexOf(active));
+	return (newElement: HTMLElement) => {
+		const after = collectFoldDescendants(newElement, matches);
+		const fallbackButtons = collectFoldDescendants(newElement, el =>
+			el.tagName === 'BUTTON'
+			&& (turnId === undefined || el.closest<HTMLElement>('[data-turn-id]')?.dataset.turnId === turnId)
+			&& !(el as HTMLButtonElement).disabled
+			&& !el.hidden
+			&& !el.inert
+		);
+		const candidate = after[index] ?? after[0] ?? fallbackButtons[0];
+		if (candidate && !(candidate as HTMLButtonElement).disabled && !candidate.hidden && !candidate.inert) {
+			candidate.focus({ preventScroll: true });
+		}
+	};
 }
 

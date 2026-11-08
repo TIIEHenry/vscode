@@ -32,6 +32,7 @@
 		"button.hoverBackground": "#2E2E2E",
 		"button.border": "#1F1F1F",
 		"button.secondaryBackground": "#00000000",
+		"button.secondaryHoverBackground": "#00000014",
 		"button.secondaryBorder": "#2020201F",
 		"quickInputList.focusBackground": "#00000014",
 		"quickInputList.focusForeground": "#202020",

@@ -17,6 +17,7 @@ import {
 	conversationTrajectoryOverviewExpand,
 	conversationTrajectorySearchPlaceholder,
 	formatConversationTrajectoryLimitNotice,
+	formatConversationTrajectoryRevealOutsideWindow,
 	conversationTrajectoryInspectorPayload,
 	conversationTrajectoryInspectorSummary,
 	conversationTrajectoryKindContext,
@@ -216,15 +217,22 @@ suite('ConversationTrajectoryUi', () => {
 		await flushTimelineHeightUpdates();
 
 		const toggle = slots.timeline.querySelector('.conversation-lens-trajectory-overview-toggle') as HTMLButtonElement;
+		const track = slots.timeline.querySelector('.conversation-lens-trajectory-overview-track') as HTMLElement;
 		assert.ok(toggle);
+		assert.ok(track);
+		assert.strictEqual(toggle.getAttribute('aria-controls'), track.id);
 		assert.strictEqual(toggle.getAttribute('aria-expanded'), 'true');
 		assert.strictEqual(toggle.getAttribute('aria-label'), conversationTrajectoryOverviewCollapse);
 		assert.strictEqual(toggle.title, conversationTrajectoryOverviewCollapse);
 
 		toggle.click();
 		assert.strictEqual(toggle.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(track.hidden, true);
 		assert.strictEqual(toggle.getAttribute('aria-label'), conversationTrajectoryOverviewExpand);
 		assert.strictEqual(toggle.title, conversationTrajectoryOverviewExpand);
+		toggle.click();
+		assert.strictEqual(toggle.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(track.hidden, false);
 	});
 
 	test('trajectory user row paints source block chips without duplicating them in preview text', async () => {
@@ -319,6 +327,8 @@ suite('ConversationTrajectoryUi', () => {
 
 		const foldChildren = trajectory.querySelector('.conversation-process-fold-children') as HTMLElement;
 		assert.ok(foldChildren);
+		assert.strictEqual(foldHeader.getAttribute('aria-controls'), foldChildren.id);
+		assert.ok(foldChildren.id);
 		assert.strictEqual(foldChildren.hidden, false);
 		assert.ok(foldChildren.querySelector('.conversation-lens-trajectory-record-row[data-kind="thinking"]'));
 		assert.ok(foldChildren.querySelector('.conversation-lens-trajectory-record-row[data-kind="tool"]'));
@@ -339,6 +349,7 @@ suite('ConversationTrajectoryUi', () => {
 		const foldChildrenAfter = trajectory.querySelector('.conversation-process-fold-children') as HTMLElement;
 		assert.ok(foldHeaderAfter);
 		assert.ok(foldChildrenAfter);
+		assert.strictEqual(foldHeaderAfter.getAttribute('aria-controls'), foldChildrenAfter.id);
 		assert.strictEqual(foldHeaderAfter.getAttribute('aria-expanded'), 'false');
 		assert.strictEqual(foldChildrenAfter.hidden, true);
 		assert.ok(trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="system"]'));
@@ -546,6 +557,39 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(!ids.includes('bulk-0'), 'overview must not offer a record the table window already dropped');
 		assert.ok(ids.includes('bulk-5'));
 		assert.ok(ids.includes(`bulk-${CONVERSATION_TRAJECTORY_RECORD_LIMIT + 4}`));
+	});
+
+	test('revealRecord with focus puts keyboard focus on the target row', async () => {
+		const { trajectory, parent, layout } = mountTrajectory();
+		trajectory.setRecords(Array.from({ length: 12 }, (_, index) => ({ id: `m-${index}`, kind: 'message' as const, text: `line ${index}` })));
+		layout();
+		await flushTimelineHeightUpdates();
+
+		const result = trajectory.revealRecord('m-7', { focus: true });
+
+		const tableScroll = parent.querySelector('.conversation-lens-trajectory-table-scroll')!;
+		const notice = parent.querySelector('.conversation-lens-trajectory-reveal-notice') as HTMLElement;
+		assert.deepStrictEqual({
+			result,
+			focusInTable: tableScroll.contains(document.activeElement),
+			focusedRow: tableScroll.querySelector('.monaco-list-row.focused .conversation-lens-trajectory-record-row')?.getAttribute('data-record-id'),
+			noticeHidden: notice.hidden,
+		}, { result: 'revealed', focusInTable: true, focusedRow: 'm-7', noticeHidden: true });
+	});
+
+	test('revealRecord outside the record window says why instead of returning silently', async () => {
+		const { trajectory, parent, layout } = mountTrajectory();
+		trajectory.setRecords(Array.from({ length: CONVERSATION_TRAJECTORY_RECORD_LIMIT + 5 }, (_, index) => ({ id: `bulk-${index}`, kind: 'message' as const, text: `Bulk ${index}` })));
+		layout();
+		await flushTimelineHeightUpdates();
+
+		const result = trajectory.revealRecord('bulk-0', { focus: true });
+
+		const notice = parent.querySelector('.conversation-lens-trajectory-reveal-notice') as HTMLElement;
+		assert.deepStrictEqual({ result, notice: notice.hidden ? undefined : notice.textContent }, {
+			result: 'outsideWindow',
+			notice: formatConversationTrajectoryRevealOutsideWindow(CONVERSATION_TRAJECTORY_RECORD_LIMIT),
+		});
 	});
 
 	test('closing the inspector after the column becomes narrow keeps the list where the user left it', async () => {

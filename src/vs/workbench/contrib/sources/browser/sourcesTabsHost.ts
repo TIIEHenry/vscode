@@ -38,6 +38,12 @@ const TAB_DESCRIPTORS: readonly ISourcesTabDescriptor[] = [
 	{ id: SourcesTabId.Review, label: localize('sourcesTab.review', "Review") },
 ];
 
+let nextSourcesAriaId = 0;
+
+function createSourcesAriaId(): string {
+	return `sources-${++nextSourcesAriaId}`;
+}
+
 export function sourcesSelectedTabStorageKey(sessionId: string): string {
 	return `sources.selectedTab.session:${sessionId}`;
 }
@@ -62,6 +68,8 @@ export function sourcesTabForSessionChange(
 
 export class SourcesTabsHost extends Disposable implements ISourcesReviewListHost {
 
+	private readonly ariaId = createSourcesAriaId();
+	private readonly focusDelegate = () => this.focusSelectedPanel();
 	private selectedTab: SourcesTabId = DEFAULT_SOURCES_TAB;
 	private selectedTabSessionId: string | undefined;
 	private readonly tabButtons = new Map<SourcesTabId, HTMLElement>();
@@ -92,7 +100,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			: DEFAULT_SOURCES_TAB;
 		this.selectTab(initialTab, false);
 		this._register(this.session.onDidChangeActiveSession(sessionId => this.restoreTabForSession(sessionId)));
-		this.sourcesPartService.setFocusDelegate(() => this.focusSelectedPanel());
+		this.sourcesPartService.setFocusDelegate(this.focusDelegate);
 		const observer = new ResizeObserver(() => this.syncDocks());
 		observer.observe(this.tabHost);
 		this._register(toDisposable(() => observer.disconnect()));
@@ -100,8 +108,12 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	}
 
 	override dispose(): void {
-		this.sourcesPartService.setFocusDelegate(undefined);
-		this.reviewHostService.registerReviewListHost(undefined);
+		if ((this.sourcesPartService as { readonly focusDelegate?: (() => boolean) | undefined }).focusDelegate === undefined || (this.sourcesPartService as { readonly focusDelegate?: (() => boolean) | undefined }).focusDelegate === this.focusDelegate) {
+			this.sourcesPartService.setFocusDelegate(undefined);
+		}
+		if (this.reviewHostService.getReviewListHost() === undefined || this.reviewHostService.getReviewListHost() === this) {
+			(this.reviewHostService.registerReviewListHost as (host: ISourcesReviewListHost | undefined, currentHost?: ISourcesReviewListHost) => void)(undefined, this);
+		}
 		this.tabHost.classList.remove('sources-tab-host');
 		this.contentHost.classList.remove('sources-tabs-content');
 		dom.clearNode(this.tabHost);
@@ -216,8 +228,8 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			tab.type = 'button';
 			tab.setAttribute('role', 'tab');
 			tab.setAttribute('data-tab-id', descriptor.id);
-			tab.setAttribute('aria-controls', `sources-panel-${descriptor.id}`);
-			tab.id = `sources-tab-${descriptor.id}`;
+			tab.setAttribute('aria-controls', `${this.ariaId}-panel-${descriptor.id}`);
+			tab.id = `${this.ariaId}-tab-${descriptor.id}`;
 			tab.textContent = descriptor.label;
 			tab.title = descriptor.label;
 
@@ -239,9 +251,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.contentHost.classList.add('sources-tabs-content');
 
 		for (const tabId of SOURCES_TAB_ORDER) {
-			const panel = dom.append(this.contentHost, $(`#sources-panel-${tabId}.sources-tab-panel`));
+			const panel = dom.append(this.contentHost, $(`#${this.ariaId}-panel-${tabId}.sources-tab-panel`));
 			panel.setAttribute('role', 'tabpanel');
-			panel.setAttribute('aria-labelledby', `sources-tab-${tabId}`);
+			panel.setAttribute('aria-labelledby', `${this.ariaId}-tab-${tabId}`);
 			panel.tabIndex = -1;
 			this.tabPanels.set(tabId, panel);
 		}
@@ -385,7 +397,7 @@ function focusFirstControlInSourcesPanel(panel: HTMLElement): boolean {
 }
 
 function focusSourcesControl(element: HTMLElement): boolean {
-	if (isSourcesNodeHidden(element)) {
+	if (isSourcesNodeHidden(element) || element.classList.contains('explorer-location-breadcrumb')) {
 		return false;
 	}
 	if (isSourcesFocusableControl(element)) {

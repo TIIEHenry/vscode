@@ -684,6 +684,17 @@ interface ICodexSession {
 	 * live host turn id to a `thread/rollback` target.
 	 */
 	readonly codexTurnIdByHostTurnId: Map<string, string>;
+	/**
+	 * One cancellation source per in-flight `sendMessage` that has not claimed
+	 * the turn yet. `abort` cancels every one, so a cancelled prompt never
+	 * reaches the app-server, even when sends interleave.
+	 */
+	readonly unclaimedSendCancellations: Set<CancellationTokenSource>;
+	/**
+	 * Host turns cancelled after claiming the turn but before `turn/started`
+	 * bound them to an app turn. That app turn is interrupted once bound.
+	 */
+	readonly cancelledUnboundHostTurnIds: Set<string>;
 	/** Set when this session was restored (Phase 3) and needs `thread/resume` before the first `turn/start`. */
 	needsResume: boolean;
 	/**
@@ -2957,6 +2968,11 @@ export class CodexAgent extends Disposable implements IAgent {
 		}
 		this._persistTurnEventId(session, mapped.turn.id, appTurnId);
 		mapTurnStarted(session.mapState, mapped, session.lastPromptText);
+		if (session.cancelledUnboundHostTurnIds.delete(mapped.turn.id)) {
+			// The host turn was cancelled before Codex reported its app turn.
+			// Its interrupted completion clears the current turn as usual.
+			void this._interruptAppTurn(session, appTurnId);
+		}
 		return [];
 	}
 
@@ -2996,6 +3012,7 @@ export class CodexAgent extends Disposable implements IAgent {
 		session.currentTurnId = undefined;
 		session.currentAppTurnId = undefined;
 		session.hostTurnIdByAppTurnId.delete(appTurnId);
+		session.cancelledUnboundHostTurnIds.delete(hostTurnId);
 		// Every approval parked for this turn is now moot: the turn will not
 		// consume an accept. Resolve them as cancel so waiters unwind.
 		this._cancelPendingApprovals(session);
@@ -3585,6 +3602,8 @@ export class CodexAgent extends Disposable implements IAgent {
 			currentAppTurnId: undefined,
 			hostTurnIdByAppTurnId: new Map<string, string>(),
 			codexTurnIdByHostTurnId: new Map<string, string>(),
+			unclaimedSendCancellations: new Set<CancellationTokenSource>(),
+			cancelledUnboundHostTurnIds: new Set<string>(),
 			needsResume: false,
 			unsubscribeBeforeResume: false,
 			resumePromise: undefined,
@@ -3981,6 +4000,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			const appTurnId = session.currentAppTurnId;
 			session.currentTurnId = undefined;
 			session.currentAppTurnId = undefined;
+			session.cancelledUnboundHostTurnIds.clear();
 			if (appTurnId) {
 				session.hostTurnIdByAppTurnId.delete(appTurnId);
 			}
@@ -4597,6 +4617,8 @@ export class CodexAgent extends Disposable implements IAgent {
 			currentAppTurnId: undefined,
 			hostTurnIdByAppTurnId: new Map<string, string>(),
 			codexTurnIdByHostTurnId: new Map<string, string>(),
+			unclaimedSendCancellations: new Set<CancellationTokenSource>(),
+			cancelledUnboundHostTurnIds: new Set<string>(),
 			needsResume: false,
 			unsubscribeBeforeResume: false,
 			resumePromise: undefined,
@@ -4912,6 +4934,8 @@ export class CodexAgent extends Disposable implements IAgent {
 			currentAppTurnId: undefined,
 			hostTurnIdByAppTurnId: new Map<string, string>(),
 			codexTurnIdByHostTurnId: new Map<string, string>(),
+			unclaimedSendCancellations: new Set<CancellationTokenSource>(),
+			cancelledUnboundHostTurnIds: new Set<string>(),
 			needsResume: true,
 			unsubscribeBeforeResume: false,
 			resumePromise: undefined,
@@ -5568,6 +5592,42 @@ export class CodexAgent extends Disposable implements IAgent {
 		if (!session) {
 			throw new Error(`Codex session not found: ${sessionUri.toString()} (chat=${chat.toString()}, binding=${this._sessionIdByChatUri.get(chat.toString()) ?? 'none'}, sessions=${[...this._sessions.keys()].join(',') || 'none'})`);
 		}
+		const effectiveTurnId = turnId ?? generateUuid();
+		// Registered before the first await, so an abort that lands while this
+		// send is still preparing (first-send materialization included) keeps
+		// it from starting the turn.
+		const sendCancellation = new CancellationTokenSource();
+		session.unclaimedSendCancellations.add(sendCancellation);
+		try {
+			await this._sendMessageInSession(session, sessionUri, sessionId, operationContext, prompt, attachments, workingDirectories, effectiveTurnId, sendCancellation);
+		} finally {
+			session.unclaimedSendCancellations.delete(sendCancellation);
+			sendCancellation.dispose();
+		}
+	}
+
+	/**
+	 * Whether a send may still claim the turn. Either way the send leaves the
+	 * unclaimed set: once claimed, an abort is recorded against the claimed
+	 * turn instead. An abandoned send reports its turn cancelled to a chat
+	 * that is still bound, because the abort may have been meant for an
+	 * earlier turn while this one is still active on the host.
+	 */
+	private _mayClaimTurn(session: ICodexSession, hostTurnId: string, sendCancellation: CancellationTokenSource): boolean {
+		session.unclaimedSendCancellations.delete(sendCancellation);
+		if (sendCancellation.token.isCancellationRequested) {
+			this._logService.info(`[Codex:${session.sessionId}] Turn ${hostTurnId} was cancelled before it started; not sending it`);
+			if (!session.disposed && session.chatChannel) {
+				// No stopwatch was started for this turn; the running one may belong
+				// to another turn.
+				this._fire(session.sessionUri, { type: ActionType.ChatTurnCancelled, turnId: hostTurnId, duration: 0 });
+			}
+			return false;
+		}
+		return true;
+	}
+
+	private async _sendMessageInSession(session: ICodexSession, sessionUri: URI, sessionId: string, operationContext: IAgentChatContext | undefined, prompt: string, attachments: readonly MessageAttachment[] | undefined, workingDirectories: readonly URI[] | undefined, effectiveTurnId: string, sendCancellation: CancellationTokenSource): Promise<void> {
 		const configResource = operationContext?.configurationResource ?? sessionUri;
 		this._ensureModelProviderAuthenticated(session.model);
 		// The host hands us the complete resolved snapshot (index 0 = the process
@@ -5590,7 +5650,6 @@ export class CodexAgent extends Disposable implements IAgent {
 				: workingDirectories;
 		}
 		await this._refreshSessionMcpDiscovery(session);
-		const effectiveTurnId = turnId ?? generateUuid();
 
 		// Materialize the addressed Codex thread on first send.
 		try {
@@ -5688,6 +5747,9 @@ export class CodexAgent extends Disposable implements IAgent {
 				await this._ensureCurrentLaunchBeforeTurn(session, configResource, conn);
 				conn = (await this._ensureThreadConnection(session, conn)).connection;
 				const threadId = session.threadId!;
+				if (!this._mayClaimTurn(session, effectiveTurnId, sendCancellation)) {
+					return;
+				}
 				// Claim the host turn only once every reconnect-prone preparation step
 				// has completed. From here, connection-loss handling owns finalization.
 				session.lastPromptText = prompt;
@@ -5708,6 +5770,9 @@ export class CodexAgent extends Disposable implements IAgent {
 			const threadId = session.threadId!;
 			const turnOptions = this._turnStartOptions(session, resolvedModel.modelId, currentCustomizationLaunch.developerInstructions, configResource);
 			const hostInstructions = resolveAgentHostInstructions(operationContext);
+			if (!this._mayClaimTurn(session, effectiveTurnId, sendCancellation)) {
+				return;
+			}
 			session.lastPromptText = prompt;
 			session.currentTurnId = effectiveTurnId;
 			session.modifiedTime = Date.now();
@@ -5738,6 +5803,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			if (turnRequestStarted) {
 				session.currentTurnId = undefined;
 				session.currentAppTurnId = undefined;
+				session.cancelledUnboundHostTurnIds.delete(effectiveTurnId);
 			}
 			if (err instanceof CancellationError) {
 				this._fire(sessionUri, { type: ActionType.ChatTurnCancelled, turnId: effectiveTurnId, duration: this._clearTurnStopWatch(session) });
@@ -5892,21 +5958,36 @@ export class CodexAgent extends Disposable implements IAgent {
 		// before codex echoes `turn/completed`. Resolve parked approvals now so
 		// a late Allow cannot be applied to a turn that is already over.
 		this._cancelPendingApprovals(session);
-		if (!session.currentAppTurnId || session.threadId === undefined) {
+		// Before the thread and connection checks, so an abort that lands while
+		// a send is still preparing (first-send materialization included) holds:
+		// unclaimed sends never start their turn, and a claimed turn that has
+		// no app turn yet is interrupted once `turn/started` binds it.
+		for (const sendCancellation of session.unclaimedSendCancellations) {
+			sendCancellation.cancel();
+		}
+		if (session.currentTurnId !== undefined && !session.currentAppTurnId) {
+			session.cancelledUnboundHostTurnIds.add(session.currentTurnId);
+		}
+		if (!session.currentAppTurnId) {
 			return;
 		}
+		await this._interruptAppTurn(session, session.currentAppTurnId);
+	}
+
+	/** Sends `turn/interrupt` for `appTurnId` on the session's thread; failures are logged. */
+	private async _interruptAppTurn(session: ICodexSession, appTurnId: string): Promise<void> {
 		const threadId = session.threadId;
 		const conn = this._connection;
-		if (conn.kind !== 'ready') {
+		if (threadId === undefined || conn.kind !== 'ready') {
 			return;
 		}
 		try {
 			await conn.client.request<'turn/interrupt'>('turn/interrupt', {
 				threadId,
-				turnId: session.currentAppTurnId,
+				turnId: appTurnId,
 			});
 		} catch (err) {
-			this._logService.warn(`[Codex:${sessionId}] turn/interrupt failed: ${err instanceof Error ? err.message : String(err)}`);
+			this._logService.warn(`[Codex:${session.sessionId}] turn/interrupt failed: ${err instanceof Error ? err.message : String(err)}`);
 		}
 	}
 

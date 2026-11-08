@@ -6,18 +6,23 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { beforeEach, expect, it, suite } from 'vitest';
+import type { LanguageModelToolInvocationOptions, LanguageModelToolInvocationPrepareOptions, TextEdit } from 'vscode';
+import { NotebookDocumentSnapshot } from '../../../../../platform/editing/common/notebookDocumentSnapshot';
+import { TextDocumentSnapshot } from '../../../../../platform/editing/common/textDocumentSnapshot';
+import { IEndpointProvider } from '../../../../../platform/endpoint/common/endpointProvider';
 import { ITestingServicesAccessor } from '../../../../../platform/test/node/services';
+import { applyEdits } from '../../../../../platform/test/node/simulationWorkspace';
 import { TestWorkspaceService } from '../../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../../platform/workspace/common/workspaceService';
 import { ChatResponseStreamImpl } from '../../../../../util/common/chatResponseStreamImpl';
-import { createTextDocumentData } from '../../../../../util/common/test/shims/textDocument';
+import { createTextDocumentData, IExtHostDocumentData, setDocText } from '../../../../../util/common/test/shims/textDocument';
 import { CancellationToken } from '../../../../../util/vs/base/common/cancellation';
-import { ResourceSet } from '../../../../../util/vs/base/common/map';
+import { ResourceMap, ResourceSet } from '../../../../../util/vs/base/common/map';
 import { assertType } from '../../../../../util/vs/base/common/types';
 import { URI } from '../../../../../util/vs/base/common/uri';
 import { SyncDescriptor } from '../../../../../util/vs/platform/instantiation/common/descriptors';
 import { IInstantiationService } from '../../../../../util/vs/platform/instantiation/common/instantiation';
-import { ChatResponseTextEditPart } from '../../../../../vscodeTypes';
+import { ChatResponseTextEditPart, Range } from '../../../../../vscodeTypes';
 import { ChatVariablesCollection } from '../../../../prompt/common/chatVariablesCollection';
 import { WorkingCopyOriginalDocument } from '../../../../prompts/node/inline/workingCopies';
 import { createExtensionUnitTestingServices } from '../../../../test/node/services';
@@ -147,5 +152,109 @@ suite('ReplaceString Tool', () => {
 		expect(result.hasError).toBe(true);
 		expect(seenEdits).toBe(0);
 		expect(workingCopyDocument.text).toBe(document.getText());
+	});
+});
+
+class CountingReplaceStringTool extends ReplaceStringTool {
+	generateCount = 0;
+
+	protected override doGenerateEdit(uri: URI, oldString: string, newString: string, options: LanguageModelToolInvocationOptions<IReplaceStringToolParams> | LanguageModelToolInvocationPrepareOptions<IReplaceStringToolParams>) {
+		this.generateCount++;
+		return super.doGenerateEdit(uri, oldString, newString, options);
+	}
+}
+
+suite('ReplaceString Tool - prepared edits', () => {
+
+	// A family that skips edit healing, so a missing match is reported without an endpoint request.
+	const model = { id: 'test-model', family: 'test-family', vendor: 'test', name: 'Test Model' };
+	const uri = URI.file('/workspace/reuse.ts');
+	const input: IReplaceStringToolParams = { explanation: 'add an argument', filePath: uri.fsPath, oldString: 'foo()', newString: 'foo(bar)' };
+
+	let docData: IExtHostDocumentData;
+	let tool: CountingReplaceStringTool;
+
+	beforeEach(() => {
+		docData = createTextDocumentData(uri, 'const a = foo();\n', 'ts');
+		const services = createExtensionUnitTestingServices();
+		services.define(IWorkspaceService, new SyncDescriptor(TestWorkspaceService, [[URI.file('/workspace')], [docData.document]]));
+		services.set(IEndpointProvider, { getChatEndpoint: async () => ({ model: model.id }) } as unknown as IEndpointProvider);
+		tool = services.createTestingAccessor().get(IInstantiationService).createInstance(CountingReplaceStringTool);
+	});
+
+	/** Starts one tool call and returns the text edits it streams. */
+	async function resolve(turnEditedDocuments?: ResourceMap<NotebookDocumentSnapshot | TextDocumentSnapshot>): Promise<TextEdit[]> {
+		const edits: TextEdit[] = [];
+		const stream = new ChatResponseStreamImpl((part) => {
+			if (part instanceof ChatResponseTextEditPart) {
+				edits.push(...part.edits);
+			}
+		}, () => { }, () => { }, undefined, undefined, () => Promise.resolve(undefined));
+		await tool.resolveInput(input, {
+			history: [],
+			stream,
+			query: 'add an argument',
+			chatVariables: new ChatVariablesCollection([]),
+			request: { model } as any,
+			turnEditedDocuments,
+		});
+		return edits;
+	}
+
+	async function invokeAndApply(chatRequestId: string, edits: TextEdit[]) {
+		const result = await tool.invoke({ input, toolInvocationToken: undefined, chatRequestId }, CancellationToken.None);
+		applyEdits(docData, edits, new Range(0, 0, 0, 0), new Range(0, 0, 0, 0));
+		return result;
+	}
+
+	it('does not replay edits when the same input is called again', async () => {
+		await invokeAndApply('request-1', await resolve());
+		expect(docData.document.getText()).toBe('const a = foo(bar);\n');
+
+		const secondEdits = await resolve();
+		const second = await invokeAndApply('request-1', secondEdits);
+
+		expect(second.hasError).toBe(true);
+		expect(secondEdits).toHaveLength(0);
+		expect(docData.document.getText()).toBe('const a = foo(bar);\n');
+	});
+
+	it('computes again after a rejected confirmation left edits for the same input', async () => {
+		await resolve();
+		await tool.prepareInvocation({ input, chatRequestId: 'request-1', forceConfirmationReason: 'test' }, CancellationToken.None);
+		// The user rejects, so invoke does not run; then the file changes.
+		setDocText(docData, '// header\nconst a = foo();\n');
+
+		const edits = await resolve();
+		await tool.prepareInvocation({ input, chatRequestId: 'request-1' }, CancellationToken.None);
+		const result = await invokeAndApply('request-1', edits);
+
+		expect(result.hasError).toBe(false);
+		expect(tool.generateCount).toBe(2);
+		expect(docData.document.getText()).toBe('// header\nconst a = foo(bar);\n');
+	});
+
+	it('computes again when the live document changed although the turn snapshot did not', async () => {
+		const turnEditedDocuments = new ResourceMap<NotebookDocumentSnapshot | TextDocumentSnapshot>();
+		turnEditedDocuments.set(uri, TextDocumentSnapshot.create(docData.document));
+		const edits = await resolve(turnEditedDocuments);
+		await tool.prepareInvocation({ input, chatRequestId: 'request-1', forceConfirmationReason: 'test' }, CancellationToken.None);
+		setDocText(docData, '// header\nconst a = foo();\n');
+
+		const result = await invokeAndApply('request-1', edits);
+
+		expect(result.hasError).toBe(false);
+		expect(tool.generateCount).toBe(2);
+		expect(docData.document.getText()).toBe('// header\nconst a = foo(bar);\n');
+	});
+
+	it('reuses the edits prepared for the confirmation while the document is unchanged', async () => {
+		const edits = await resolve();
+		await tool.prepareInvocation({ input, chatRequestId: 'request-1', forceConfirmationReason: 'test' }, CancellationToken.None);
+		const result = await invokeAndApply('request-1', edits);
+
+		expect(result.hasError).toBe(false);
+		expect(tool.generateCount).toBe(1);
+		expect(docData.document.getText()).toBe('const a = foo(bar);\n');
 	});
 });

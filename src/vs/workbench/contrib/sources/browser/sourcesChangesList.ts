@@ -9,6 +9,7 @@ import { Button, type IButtonStyles } from '../../../../base/browser/ui/button/b
 import { Checkbox, TriStateCheckbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { Action, Separator } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -29,10 +30,12 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { normalizeAgentWorkDirKey } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import {
@@ -106,7 +109,7 @@ import { SourcesListViewport } from './sourcesListViewport.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions, sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import { beginSourcesChangesOpenStatus, isCurrentSourcesChangesOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
-import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { focusSourcesListFromFilter, SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
 
@@ -191,6 +194,7 @@ interface ISourcesChangesRendererDelegate {
 	folderCheckboxEnabled(folderId: string): boolean;
 	setFolderChecked(folderId: string, checked: boolean): void;
 	isFolderCollapsedAnchor(entry: ISourcesChangeEntry): boolean;
+	isEntryCheckboxEnabled(entry: ISourcesChangeEntry): boolean;
 	setEntryChecked(entry: ISourcesChangeEntry, checked: boolean): void;
 	isEntryChecked(entry: ISourcesChangeEntry): boolean;
 	toggleFolder(folderId: string): void;
@@ -290,16 +294,19 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		if (this.delegate.isGroupStart(element)) {
 			const heading = sourcesGitChangeDescription(element.groupId);
 			const count = this.delegate.groupCount(element.groupId);
+			const groupExpanded = this.delegate.isGroupExpanded(element.groupId);
 			templateData.groupCheckbox.checked = this.delegate.groupCheckboxState(element.groupId);
 			if (this.delegate.groupCheckboxEnabled(element.groupId)) {
 				templateData.groupCheckbox.enable();
 			} else {
 				templateData.groupCheckbox.disable();
 			}
+			templateData.groupCheckbox.domNode.tabIndex = -1;
 			templateData.groupCheckbox.setTitle(localize('sourcesChangesList.groupCheckbox', "Select all {0}", heading));
-			templateData.group.classList.toggle('is-collapsed', !this.delegate.isGroupExpanded(element.groupId));
-			templateData.groupToggle.classList.toggle('codicon-chevron-down', this.delegate.isGroupExpanded(element.groupId));
-			templateData.groupToggle.classList.toggle('codicon-chevron-right', !this.delegate.isGroupExpanded(element.groupId));
+			templateData.group.classList.toggle('is-collapsed', !groupExpanded);
+			templateData.group.setAttribute('aria-expanded', String(groupExpanded));
+			templateData.groupToggle.classList.toggle('codicon-chevron-down', groupExpanded);
+			templateData.groupToggle.classList.toggle('codicon-chevron-right', !groupExpanded);
 			templateData.groupTitle.textContent = heading;
 			templateData.groupCount.textContent = sourcesChangeFileCount(count);
 			templateData.group.setAttribute('aria-label', localize('sourcesChangesList.groupAria', "{0}, {1} files", heading, count));
@@ -312,21 +319,24 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 				this.delegate.toggleGroup(element.groupId);
 			}));
 			this.renderGroupAction(element, templateData);
+		} else {
+			templateData.group.removeAttribute('aria-expanded');
 		}
 
 		const folderCheckboxes: { id: string; checkbox: TriStateCheckbox }[] = [];
 		for (const folder of folderHeaders) {
 			const folderRow = dom.append(templateData.folders, $('.sources-change-folder-row'));
 			folderRow.style.setProperty('--sources-change-depth', String(folder.depth));
+			folderRow.setAttribute('aria-expanded', String(folder.expanded));
 			const checkbox = templateData.elementDisposables.add(new TriStateCheckbox('', this.delegate.folderCheckboxState(folder.id), defaultCheckboxStyles));
 			folderCheckboxes.push({ id: folder.id, checkbox });
-			checkbox.domNode.tabIndex = -1;
 			checkbox.domNode.classList.add('sources-change-folder-checkbox');
 			if (this.delegate.folderCheckboxEnabled(folder.id)) {
 				checkbox.enable();
 			} else {
 				checkbox.disable();
 			}
+			checkbox.domNode.tabIndex = -1;
 			checkbox.setTitle(localize('sourcesChangesList.folderCheckbox', "Select folder {0}", folder.label));
 			dom.append(folderRow, checkbox.domNode);
 			const twistie = dom.append(folderRow, $('span.sources-change-folder-toggle.codicon'));
@@ -353,6 +363,12 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		const collapsed = this.delegate.isFolderCollapsedAnchor(element);
 		templateData.fileRow.style.display = collapsed ? 'none' : '';
 		templateData.fileCheckbox.checked = this.delegate.isEntryChecked(element);
+		if (this.delegate.isEntryCheckboxEnabled(element)) {
+			templateData.fileCheckbox.enable();
+		} else {
+			templateData.fileCheckbox.disable();
+		}
+		templateData.fileCheckbox.domNode.tabIndex = -1;
 		templateData.fileCheckbox.setTitle(localize('sourcesChangesList.fileCheckbox', "Select {0}", element.name));
 		templateData.elementDisposables.add(templateData.fileCheckbox.onChange(() => this.delegate.setEntryChecked(element, templateData.fileCheckbox.checked)));
 		templateData.elementDisposables.add(dom.addDisposableListener(templateData.fileCheckbox.domNode, 'click', event => dom.EventHelper.stop(event, true)));
@@ -519,6 +535,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly collapseAllButton: Button;
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
+	private readonly clearFilterLink: HTMLButtonElement;
 	private readonly commitRow: HTMLElement;
 	private readonly commitInput: HTMLTextAreaElement;
 	private readonly provenance: HTMLElement;
@@ -528,8 +545,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private currentEntries: readonly ISourcesChangeEntry[] = [];
 	private readonly checkedEntryIds = new Set<string>();
 	private readonly onDidChangeCheckedState = this._register(new Emitter<void>());
-	private readonly expandedGroupIds = new Set<string>();
-	private readonly expandedFolderIds = new Set<string>();
+	/** Only user collapses are recorded; anything not in these sets is expanded. */
+	private readonly collapsedGroupKeys = new Set<string>();
+	private readonly collapsedFolderIds = new Set<string>();
+	/** Resource root and tree scope of the last paint. Group and folder ids carry the scope. */
+	private treeRoot: URI | undefined;
+	private treeScope = '';
 	private folderHeadersByEntry = new Map<string, readonly ISourcesChangeFolderHeader[]>();
 	private folderCounts = new Map<string, number>();
 	private folderEntries = new Map<string, ISourcesChangeEntry[]>();
@@ -569,6 +590,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
 		super();
 		this.host = host;
@@ -579,7 +601,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			host,
 			localize('sourcesChangesList.filterPlaceholder', "Filter changes"),
 			localize('sourcesChangesList.filterAriaLabel', "Filter changes"),
+			first => focusSourcesListFromFilter(this.list, first),
 		));
+		this.clearFilterLink = this.filterBox.createClearFilterLink();
 		this._register(this.filterBox.onDidChange(() => this.renderFromSnapshot()));
 
 		this.toolbar = dom.append(host, $('.sources-changes-toolbar'));
@@ -634,29 +658,18 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const provenanceIcon = dom.append(this.provenance, $('span.sources-changes-provenance-icon.codicon.codicon-info'));
 		provenanceIcon.setAttribute('aria-hidden', 'true');
 		this.provenanceText = dom.append(this.provenance, $('span.sources-changes-provenance-text'));
-		this.provenanceText.setAttribute('aria-hidden', 'true');
 
 		this.statusMessage = dom.append(host, $('.sources-changes-status'));
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.setAttribute('role', 'status');
 
-		this._register(this.stageSelectedButton.onDidClick(() => {
-			if (this._store.isDisposed) {
-				return;
-			}
-			void this.runOnSelected('stage').catch(onUnexpectedError);
-		}));
-		this._register(this.unstageSelectedButton.onDidClick(() => {
-			if (this._store.isDisposed) {
-				return;
-			}
-			void this.runOnSelected('unstage').catch(onUnexpectedError);
-		}));
+		this._register(this.stageSelectedButton.onDidClick(() => void this.runOnSelected('stage').catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.unstageSelectedButton.onDidClick(() => void this.runOnSelected('unstage').catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(this.refreshButton.onDidClick(() => {
 			if (this._store.isDisposed) {
 				return;
 			}
-			void this.changesModel.refresh().catch(onUnexpectedError);
+			void this.changesModel.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.expandAllButton.onDidClick(() => {
 			if (this._store.isDisposed) {
@@ -670,12 +683,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 			this.setAllFoldersExpanded(false);
 		}));
-		this._register(this.commitButton.onDidClick(() => {
-			if (this._store.isDisposed) {
-				return;
-			}
-			void this.runCommit().catch(onUnexpectedError);
-		}));
+		this._register(this.commitButton.onDidClick(() => void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this._register(dom.addStandardDisposableListener(this.commitInput, 'input', () => {
 			if (this._store.isDisposed) {
 				return;
@@ -696,7 +704,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (event.keyCode === KeyCode.Enter && !event.shiftKey && this.commitButton.enabled && !this.isCommitInFlight) {
 				event.preventDefault();
 				event.stopPropagation();
-				void this.runCommit().catch(onUnexpectedError);
+				void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
@@ -730,7 +738,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (this._store.isDisposed) {
 				return;
 			}
-			void this.paintFromModel().catch(onUnexpectedError);
+			void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.session.onDidChangeActiveSession(() => {
 			if (this._store.isDisposed) {
@@ -738,7 +746,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 			this.refreshStageChrome();
 		}));
-		void this.paintFromModel().catch(onUnexpectedError);
+		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
 		// Leak tests flush this proxy. The model owns the timer.
 		void this.refreshScheduler;
 	}
@@ -757,8 +765,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.groupStartKeys.clear();
 		this.groupCounts.clear();
 		this.checkedEntryIds.clear();
-		this.expandedGroupIds.clear();
-		this.expandedFolderIds.clear();
+		this.collapsedGroupKeys.clear();
+		this.collapsedFolderIds.clear();
 		this.folderHeadersByEntry.clear();
 		this.folderCounts.clear();
 		this.folderEntries.clear();
@@ -892,7 +900,32 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
-		void this.runResourceAction(entry, action).catch(onUnexpectedError);
+		void this.runResourceAction(entry, action).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	/** Same action, write gates and blocked state as the row's inline Stage / Unstage button. */
+	private contextMenuWriteAction(entry: ISourcesChangeEntry): Action | undefined {
+		const rowAction = resolveSourcesChangesRowAction({
+			groupId: entry.groupId,
+			hasScmResource: !!entry.scmResource,
+			canWriteStage: this.canWriteStage(),
+			hasGitStageCommand: this.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND),
+			hasGitUnstageCommand: this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND),
+		});
+		if ((rowAction !== 'stage' && rowAction !== 'unstage') || this.isSourcesGitWritePairingHold()) {
+			return undefined;
+		}
+		const writeHold = this.isSourcesGitWriteListFailed() || this.isSourcesKeepLeftoverWrite();
+		const blocked = rowAction === 'stage' && this.isEngineStageButtonBlocked(entry);
+		return new Action(
+			rowAction === 'stage' ? 'sources.changes.stage' : 'sources.changes.unstage',
+			rowAction === 'stage'
+				? localize('sourcesChangesList.stage', "Stage")
+				: localize('sourcesChangesList.unstage', "Unstage"),
+			undefined,
+			!writeHold && !blocked,
+			() => this.onRowAction(entry, rowAction),
+		);
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
@@ -938,6 +971,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				modelService: this.modelService,
 				readGitFileDiff: entry => this.readGitFileDiff(entry),
 				editorGroupsService: this.editorGroupsService,
+				layoutService: this.layoutService,
 				session: this.session,
 			}, options);
 			if (this._store.isDisposed) {
@@ -997,6 +1031,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				if (!element) {
 					return;
 				}
+				// A collapsed group or folder keeps its first file as a hidden anchor row; opening it expands, never opens that file.
+				if (this.isFolderCollapsedAnchor(element)) {
+					this.handleCollapseOrExpandFocusedRow(element, true);
+					return;
+				}
 				// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
 				if (this.isSourcesGitFileDiffOpenSkipped()) {
 					return;
@@ -1007,28 +1046,151 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					pinned: e.editorOptions.pinned,
 					slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
 				});
-			})().catch(onUnexpectedError);
+			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
 
+		this._register(this.list.onKeyDown(rawEvent => {
+			if (this._store.isDisposed || !this.list) {
+				return;
+			}
+			const target = rawEvent.target;
+			if (dom.isHTMLElement(target) && (target.closest('.monaco-custom-toggle') || target.closest('.sources-change-action') || target.closest('.sources-change-group-action'))) {
+				return;
+			}
+			const focused = this.list.getFocusedElements()[0];
+			if (!focused) {
+				return;
+			}
+			const event = new StandardKeyboardEvent(rawEvent);
+			if (event.keyCode === KeyCode.Space) {
+				event.preventDefault();
+				event.stopPropagation();
+				this.handleSpaceOnFocusedRow(focused);
+			} else if (event.keyCode === KeyCode.LeftArrow) {
+				if (this.handleCollapseOrExpandFocusedRow(focused, false)) {
+					event.preventDefault();
+					event.stopPropagation();
+				}
+			} else if (event.keyCode === KeyCode.RightArrow) {
+				if (this.handleCollapseOrExpandFocusedRow(focused, true)) {
+					event.preventDefault();
+					event.stopPropagation();
+				}
+			}
+		}));
+
 		this._register(this.list.onContextMenu(e => {
 			const element = e.element;
-			if (!element || this.isSourcesGitFileDiffOpenSkipped()) {
+			if (!element || this.isFolderCollapsedAnchor(element) || this.isSourcesGitFileDiffOpenSkipped()) {
 				return;
 			}
 			const current = sourcesEditorOpenSlot(this.configurationService);
 			this.contextMenuService.showContextMenu({
 				getMenuClassName: () => 'ua-rounded-menu',
 				getAnchor: () => e.anchor,
-				getActions: () => [sourcesAlternateOpenAction(current, slot => {
-					void this.openChangeEntry(element, { preserveFocus: true, slot }).catch(onUnexpectedError);
-				})],
+				getActions: () => {
+					const writeAction = this.contextMenuWriteAction(element);
+					return [
+						sourcesAlternateOpenAction(current, slot => {
+							void this.openChangeEntry(element, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+						}),
+						...(writeAction ? [new Separator(), writeAction] : []),
+					];
+				},
 			});
 		}));
 
 		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
+	}
+
+	private handleSpaceOnFocusedRow(entry: ISourcesChangeEntry): void {
+		if (!this.isGroupExpanded(entry.groupId)) {
+			if (this.isGroupStart(entry) && this.groupCheckboxEnabled(entry.groupId)) {
+				this.setGroupChecked(entry.groupId, this.groupCheckboxState(entry.groupId) !== true);
+			}
+			return;
+		}
+		const collapsedFolder = this.folderHeaders(entry).find(header => !header.expanded);
+		if (collapsedFolder) {
+			if (this.folderCheckboxEnabled(collapsedFolder.id)) {
+				this.setFolderChecked(collapsedFolder.id, this.folderCheckboxState(collapsedFolder.id) !== true);
+			}
+			return;
+		}
+		if (this.isEntryCheckboxEnabled(entry)) {
+			this.setEntryChecked(entry, !this.isEntryChecked(entry));
+		}
+	}
+
+	private handleCollapseOrExpandFocusedRow(entry: ISourcesChangeEntry, expand: boolean): boolean {
+		const identity = sourcesChangeEntryIdentity(entry);
+		const restoreFocus = () => {
+			if (!this.list) {
+				return;
+			}
+			const visible = this.getVisibleEntries(this.currentEntries);
+			const nextIndex = visible.findIndex(candidate => sourcesChangeEntryIdentity(candidate) === identity);
+			if (nextIndex >= 0) {
+				this.list.setFocus([nextIndex]);
+				this.list.reveal(nextIndex);
+			}
+		};
+
+		if (expand) {
+			if (!this.isGroupExpanded(entry.groupId) && this.isGroupStart(entry)) {
+				this.toggleGroup(entry.groupId);
+				restoreFocus();
+				return true;
+			}
+			const collapsedFolder = this.folderHeaders(entry).find(header => !header.expanded);
+			if (collapsedFolder) {
+				this.toggleFolder(collapsedFolder.id);
+				restoreFocus();
+				return true;
+			}
+			return false;
+		}
+
+		const headers = this.folderHeaders(entry);
+		for (let i = headers.length - 1; i >= 0; i--) {
+			if (headers[i].expanded) {
+				this.toggleFolder(headers[i].id);
+				restoreFocus();
+				return true;
+			}
+		}
+		const folderIds = this.folderIdsForEntry(entry);
+		for (let i = folderIds.length - 1; i >= 0; i--) {
+			if (!this.collapsedFolderIds.has(folderIds[i])) {
+				const anchorIdentity = this.folderFirstEntries.get(folderIds[i]);
+				this.toggleFolder(folderIds[i]);
+				if (this.list && anchorIdentity) {
+					const visible = this.getVisibleEntries(this.currentEntries);
+					const nextIndex = visible.findIndex(candidate => sourcesChangeEntryIdentity(candidate) === anchorIdentity);
+					if (nextIndex >= 0) {
+						this.list.setFocus([nextIndex]);
+						this.list.reveal(nextIndex);
+					}
+				}
+				return true;
+			}
+		}
+		if (this.isGroupExpanded(entry.groupId)) {
+			this.toggleGroup(entry.groupId);
+			if (this.list) {
+				const visible = this.getVisibleEntries(this.currentEntries);
+				const nextIndex = visible.findIndex(candidate => candidate.groupId === entry.groupId && this.isGroupStart(candidate));
+				if (nextIndex >= 0) {
+					this.list.setFocus([nextIndex]);
+					this.list.reveal(nextIndex);
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 	private async paintFromModel(): Promise<void> {
@@ -1078,6 +1240,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.emptyMessage.textContent = localize('sourcesChangesList.noChanges', "No changes.");
 		} else if (!hasVisibleEntries) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
+			this.emptyMessage.appendChild(this.clearFilterLink);
 		}
 
 		this.emptyMessage.classList.toggle('is-error', !!gitReadError && !hasAnyEntries);
@@ -1091,9 +1254,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.syncCommitInputFromRepository();
 		this.updateCommitRow();
 
+		this.updateTreeScope();
 		this.rememberGroups(entries);
+		this.pruneCollapsedIds(allEntries);
+		const listedIds = new Set(allEntries.map(entry => sourcesChangeEntryIdentity(entry)));
 		this.checkedEntryIds.forEach(id => {
-			if (!entries.some(entry => sourcesChangeEntryIdentity(entry) === id)) {
+			if (!listedIds.has(id)) {
 				this.checkedEntryIds.delete(id);
 			}
 		});
@@ -1112,6 +1278,47 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			workDir: this.session.getWorkRoot?.(sessionId)?.workDir,
 			repositoryRoots: sourcesRepositoryRootUris(this.scmService.repositories),
 			workspaceFolders: this.workspaceContext.getWorkspace().folders.map(folder => folder.uri),
+		});
+	}
+
+	/**
+	 * Fixed per paint so ids stay stable until the next one. The same relative path under
+	 * another resource root (or engine work directory without one) is a different node.
+	 */
+	private updateTreeScope(): void {
+		this.treeRoot = this.getGitResourceRoot();
+		this.treeScope = this.treeRoot
+			? this.treeRoot.toString()
+			: normalizeAgentWorkDirKey(this.session.getWorkRoot?.(this.session.getActiveSessionId())?.workDir);
+	}
+
+	private groupStateKey(groupId: string): string {
+		return `${groupId}\0${this.treeScope}`;
+	}
+
+	private folderId(groupId: string, path: string): string {
+		return `${groupId}\0${this.treeScope}\0${path}`;
+	}
+
+	/** Collapse records live as long as their node is in the full snapshot; the filter does not prune them. */
+	private pruneCollapsedIds(allEntries: readonly ISourcesChangeEntry[]): void {
+		const groupKeys = new Set<string>();
+		const folderIds = new Set<string>();
+		for (const entry of allEntries) {
+			groupKeys.add(this.groupStateKey(entry.groupId));
+			for (const id of this.folderIdsForEntry(entry)) {
+				folderIds.add(id);
+			}
+		}
+		this.collapsedGroupKeys.forEach(key => {
+			if (!groupKeys.has(key)) {
+				this.collapsedGroupKeys.delete(key);
+			}
+		});
+		this.collapsedFolderIds.forEach(id => {
+			if (!folderIds.has(id)) {
+				this.collapsedFolderIds.delete(id);
+			}
 		});
 	}
 
@@ -1153,23 +1360,24 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	isGroupExpanded(groupId: string): boolean {
-		return this.expandedGroupIds.has(groupId);
+		return !this.collapsedGroupKeys.has(this.groupStateKey(groupId));
 	}
 
 	toggleGroup(groupId: string): void {
-		if (this.expandedGroupIds.has(groupId)) {
-			this.expandedGroupIds.delete(groupId);
+		const key = this.groupStateKey(groupId);
+		if (this.collapsedGroupKeys.has(key)) {
+			this.collapsedGroupKeys.delete(key);
 		} else {
-			this.expandedGroupIds.add(groupId);
+			this.collapsedGroupKeys.add(key);
 		}
 		this.refreshVisibleList();
 	}
 
 	toggleFolder(folderId: string): void {
-		if (this.expandedFolderIds.has(folderId)) {
-			this.expandedFolderIds.delete(folderId);
+		if (this.collapsedFolderIds.has(folderId)) {
+			this.collapsedFolderIds.delete(folderId);
 		} else {
-			this.expandedFolderIds.add(folderId);
+			this.collapsedFolderIds.add(folderId);
 		}
 		this.refreshVisibleList();
 	}
@@ -1179,9 +1387,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return [];
 		}
 		const headers = this.folderHeadersByEntry.get(sourcesChangeEntryIdentity(entry)) ?? [];
-		const collapsedIndex = this.folderIdsForEntry(entry).findIndex(id => !this.expandedFolderIds.has(id));
+		const collapsedIndex = this.folderIdsForEntry(entry).findIndex(id => this.collapsedFolderIds.has(id));
 		const visible = collapsedIndex < 0 ? headers : headers.filter(header => header.depth <= collapsedIndex);
-		return visible.map(header => ({ ...header, expanded: this.expandedFolderIds.has(header.id) }));
+		return visible.map(header => ({ ...header, expanded: !this.collapsedFolderIds.has(header.id) }));
 	}
 
 	folderCheckboxState(folderId: string): boolean | 'mixed' {
@@ -1230,14 +1438,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	onGroupAction(groupId: string, action: SourcesChangeRowAction): void {
-		void this.runOnEntries(this.entriesInGroup(groupId), action).catch(onUnexpectedError);
+		void this.runOnEntries(this.entriesInGroup(groupId), action).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private rememberGroups(entries: readonly ISourcesChangeEntry[]): void {
 		this.currentEntries = entries;
 		this.groupStartKeys = sourcesChangeGroupStartIdentities(entries);
 		this.groupCounts = new Map(sourcesChangeGroupCounts(entries));
-		const root = this.getGitResourceRoot();
 		this.folderHeadersByEntry = new Map();
 		this.folderCounts = new Map();
 		this.folderEntries = new Map();
@@ -1245,16 +1452,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const headersByEntry = new Map<string, ISourcesChangeFolderHeader[]>();
 		for (const entry of entries) {
 			const identity = sourcesChangeEntryIdentity(entry);
-			const parent = sourcesChangeParentDirectory(entry.gitPath, entry.resource, root);
+			const parent = sourcesChangeParentDirectory(entry.gitPath, entry.resource, this.treeRoot);
 			const segments = parent.split(/[\\/]/).filter(Boolean);
 			let path = '';
 			const headers: ISourcesChangeFolderHeader[] = [];
 			for (let depth = 0; depth < segments.length; depth++) {
 				path = path ? `${path}/${segments[depth]}` : segments[depth];
-				const id = `${entry.groupId}\0${path}`;
-				if (!this.expandedFolderIds.has(id)) {
-					this.expandedFolderIds.add(id);
-				}
+				const id = this.folderId(entry.groupId, path);
 				const folderEntries = this.folderEntries.get(id) ?? [];
 				folderEntries.push(entry);
 				this.folderEntries.set(id, folderEntries);
@@ -1263,31 +1467,28 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					this.folderFirstEntries.set(id, identity);
 				}
 				if (this.folderFirstEntries.get(id) === identity) {
-					headers.push({ id, label: segments[depth], depth, count: 0, expanded: this.expandedFolderIds.has(id) });
+					headers.push({ id, label: segments[depth], depth, count: 0, expanded: !this.collapsedFolderIds.has(id) });
 				}
 			}
 			headersByEntry.set(identity, headers);
-			if (!this.expandedGroupIds.has(entry.groupId)) {
-				this.expandedGroupIds.add(entry.groupId);
-			}
 		}
 		for (const [identity, headers] of headersByEntry) {
 			this.folderHeadersByEntry.set(identity, headers.map(header => ({
 				...header,
 				count: this.folderCounts.get(header.id) ?? 0,
-				expanded: this.expandedFolderIds.has(header.id),
+				expanded: !this.collapsedFolderIds.has(header.id),
 			})));
 		}
 	}
 
 	private folderIdsForEntry(entry: ISourcesChangeEntry): string[] {
-		const parent = sourcesChangeParentDirectory(entry.gitPath, entry.resource, this.getGitResourceRoot());
+		const parent = sourcesChangeParentDirectory(entry.gitPath, entry.resource, this.treeRoot);
 		const segments = parent.split(/[\\/]/).filter(Boolean);
 		const ids: string[] = [];
 		let path = '';
 		for (const segment of segments) {
 			path = path ? `${path}/${segment}` : segment;
-			ids.push(`${entry.groupId}\0${path}`);
+			ids.push(this.folderId(entry.groupId, path));
 		}
 		return ids;
 	}
@@ -1296,14 +1497,14 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.collapsedAnchorIds.clear();
 		const visible: ISourcesChangeEntry[] = [];
 		for (const entry of entries) {
-			if (!this.expandedGroupIds.has(entry.groupId)) {
+			if (!this.isGroupExpanded(entry.groupId)) {
 				if (this.groupStartKeys.has(sourcesChangeEntryIdentity(entry))) {
 					this.collapsedAnchorIds.add(sourcesChangeEntryIdentity(entry));
 					visible.push(entry);
 				}
 				continue;
 			}
-			const collapsedFolder = this.folderIdsForEntry(entry).find(id => !this.expandedFolderIds.has(id));
+			const collapsedFolder = this.folderIdsForEntry(entry).find(id => this.collapsedFolderIds.has(id));
 			if (collapsedFolder) {
 				if (this.folderFirstEntries.get(collapsedFolder) === sourcesChangeEntryIdentity(entry)) {
 					this.collapsedAnchorIds.add(sourcesChangeEntryIdentity(entry));
@@ -1326,16 +1527,17 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private setAllFoldersExpanded(expanded: boolean): void {
 		for (const id of this.folderCounts.keys()) {
 			if (expanded) {
-				this.expandedFolderIds.add(id);
+				this.collapsedFolderIds.delete(id);
 			} else {
-				this.expandedFolderIds.delete(id);
+				this.collapsedFolderIds.add(id);
 			}
 		}
 		for (const groupId of this.groupCounts.keys()) {
+			const key = this.groupStateKey(groupId);
 			if (expanded) {
-				this.expandedGroupIds.add(groupId);
+				this.collapsedGroupKeys.delete(key);
 			} else {
-				this.expandedGroupIds.delete(groupId);
+				this.collapsedGroupKeys.add(key);
 			}
 		}
 		this.refreshVisibleList();
@@ -1350,7 +1552,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return checked === 0 ? false : checked === selectable.length ? true : 'mixed';
 	}
 
-	private isEntryCheckboxEnabled(entry: ISourcesChangeEntry): boolean {
+	isEntryCheckboxEnabled(entry: ISourcesChangeEntry): boolean {
 		return this.isEntryStageOffered(entry)
 			|| (isSourcesChangeUnstageable(entry.groupId) && !!entry.scmResource && this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 	}
@@ -1360,6 +1562,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private describeEntry(element: ISourcesChangeEntry): string {
+		if (this.isFolderCollapsedAnchor(element)) {
+			const collapsedFolder = this.isGroupExpanded(element.groupId) ? this.folderHeaders(element).find(header => !header.expanded) : undefined;
+			return collapsedFolder
+				? localize('sourcesChangesList.collapsedFolderAria', "{0}, {1} files, collapsed", collapsedFolder.label, collapsedFolder.count)
+				: localize('sourcesChangesList.collapsedGroupAria', "{0}, {1} files, collapsed", sourcesGitChangeDescription(element.groupId), this.groupCount(element.groupId));
+		}
 		const parent = sourcesChangeParentDirectory(element.gitPath, element.resource, this.getGitResourceRoot());
 		const mark = sourcesChangeStatusMark({
 			groupId: element.groupId,
@@ -1395,9 +1603,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private updateSelectionToolbar(): void {
-		const selected = this.checkedEntryIds.size > 0
-			? this.currentEntries.filter(entry => this.checkedEntryIds.has(sourcesChangeEntryIdentity(entry)))
-			: this.list?.getSelectedElements() ?? [];
+		const matchedChecked = this.currentEntries.filter(entry => this.checkedEntryIds.has(sourcesChangeEntryIdentity(entry)));
+		const selected = matchedChecked.length > 0
+			? matchedChecked
+			: (this.list?.getSelectedElements() ?? []).filter(entry => !this.isFolderCollapsedAnchor(entry));
 		const canStage = selected.some(entry => this.isEntryStageOffered(entry));
 		const canUnstage = selected.some(entry =>
 			isSourcesChangeUnstageable(entry.groupId)

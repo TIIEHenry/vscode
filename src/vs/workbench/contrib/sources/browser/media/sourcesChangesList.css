@@ -38,7 +38,17 @@
 	padding: 0;
 	border-radius: 4px;
 	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-changes-toolbar .monaco-button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-changes-toolbar .monaco-button {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:active:not(.disabled) {
@@ -48,6 +58,18 @@
 .monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:hover:not(.disabled) {
 	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-changes-toolbar .monaco-button:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-changes-toolbar .monaco-button:focus-visible {
+	outline: none !important;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-changes-toolbar .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources .sources-tab-panel .sources-changes-list,
@@ -74,7 +96,15 @@
 }
 
 .monaco-workbench .part.sources .sources-changes-empty.is-error {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.sources .sources-changes-empty.is-error::before {
+	font-family: codicon;
+	content: "\ea87";
 	color: var(--vscode-errorForeground);
+	opacity: 0.9;
+	margin-right: 4px;
 }
 
 
@@ -109,9 +139,9 @@
 	display: flex;
 }
 
-.monaco-workbench .part.sources .monaco-list-row:hover .sources-change-group,
-.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-group,
-.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-group {
+.monaco-workbench .part.sources .monaco-list-row:hover .sources-change-group:not(.is-collapsed),
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-group:not(.is-collapsed),
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-group:not(.is-collapsed) {
 	background-color: var(--vscode-sideBar-background);
 }
 
@@ -149,6 +179,9 @@
 }
 
 .monaco-workbench .part.sources .sources-change-folder-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	flex: 0 0 22px;
@@ -164,10 +197,31 @@
 	transition: background-color 0.08s ease;
 }
 
-.monaco-workbench .part.sources .monaco-list-row:hover .sources-change-folder-row,
-.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-folder-row,
-.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-folder-row {
+.monaco-workbench .part.sources .sources-change-folder-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.sources .sources-change-folder-row:hover,
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-folder-row[aria-expanded="false"],
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-folder-row[aria-expanded="false"] {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.sources .sources-change-folder-row:hover::before,
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-folder-row[aria-expanded="false"]::before,
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-folder-row[aria-expanded="false"]::before {
 	background-color: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench .part.sources .monaco-list-row:active .sources-change-folder-row::before {
+	background-color: var(--vscode-toolbar-activeBackground, var(--vscode-list-activeSelectionBackground));
 }
 
 .monaco-workbench .part.sources .sources-change-folder-row .codicon-chevron-right,
@@ -235,6 +289,20 @@
 	min-width: 0;
 	padding-left: calc(6px + (var(--sources-change-depth, 0) * 16px));
 	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-folder-row,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-folder-row::before,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-file {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-folder-row,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-folder-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-file {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part.sources .monaco-list-row:active .sources-change-file {
@@ -316,6 +384,9 @@
 
 .monaco-workbench .part.sources .sources-change-action,
 .monaco-workbench .part.sources .sources-change-group-action {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	flex-shrink: 0;
 	min-width: 22px;
 	width: 22px;
@@ -331,13 +402,33 @@
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
+.monaco-workbench .part.sources .sources-change-action::after,
+.monaco-workbench .part.sources .sources-change-group-action::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.1s ease;
+}
+
 .monaco-workbench .part.sources .sources-change-action:active:not(.disabled),
 .monaco-workbench .part.sources .sources-change-group-action:active:not(.disabled) {
+	background-color: transparent !important;
+}
+
+.monaco-workbench .part.sources .sources-change-action:active:not(.disabled)::after,
+.monaco-workbench .part.sources .sources-change-group-action:active:not(.disabled)::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-change-group:hover .sources-change-group-action,
+.monaco-workbench .part.sources .sources-change-group:focus-within .sources-change-group-action,
 .monaco-workbench .part.sources .sources-change-file:hover .sources-change-action,
+.monaco-workbench .part.sources .sources-change-file:focus-within .sources-change-action,
+.monaco-workbench .part.sources .monaco-list-row:is(.focused, .selected) .sources-change-group .sources-change-group-action,
 .monaco-workbench .part.sources .monaco-list-row.focused .sources-change-file .sources-change-action,
 .monaco-workbench .part.sources .monaco-list-row.selected .sources-change-file .sources-change-action,
 .monaco-workbench .part.sources .sources-change-action:focus-visible,
@@ -348,8 +439,35 @@
 
 .monaco-workbench .part.sources .sources-change-action:hover:not(.disabled),
 .monaco-workbench .part.sources .sources-change-group-action:hover:not(.disabled) {
-	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	background-color: transparent !important;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench .part.sources .sources-change-action:hover:not(.disabled)::after,
+.monaco-workbench .part.sources .sources-change-group-action:hover:not(.disabled)::after {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-action:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-action:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-group-action:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-group-action:focus-visible {
+	outline: none !important;
+	background-color: transparent !important;
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-action:focus::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-action:focus-visible::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-group-action:focus::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-change-group-action:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-change-action:focus-visible,
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-change-group-action:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources .sources-changes-commit {
@@ -384,13 +502,21 @@
 	overflow-y: auto;
 }
 
-.monaco-workbench .part.sources .sources-changes-commit-input:focus {
-	outline: none;
-	border-color: var(--vscode-focusBorder);
+.monaco-workbench .part.sources .sources-changes-commit-input:disabled {
+	color: var(--vscode-disabledForeground);
+	cursor: not-allowed;
+	opacity: 0.7;
 }
 
-.monaco-workbench .part.sources .sources-changes-commit-input:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-changes-commit-input:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-changes-commit-input:focus-visible {
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-changes-commit-input:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-changes-commit-input:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 }
 
@@ -406,8 +532,38 @@
 	transition: background-color 0.1s ease;
 }
 
-.monaco-workbench .part.sources .sources-changes-commit .monaco-button:active:not(.disabled) {
-	background-color: var(--vscode-toolbar-activeBackground);
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-changes-commit .monaco-button:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-changes-commit .monaco-button:focus-visible {
+	outline: none !important;
+	background-color: var(--vscode-button-hoverBackground) !important;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-changes-commit .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-action,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-group-action,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-action::after,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-change-group-action::after,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-changes-commit .monaco-button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-action,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-group-action,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-action::after,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-change-group-action::after,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-changes-commit .monaco-button {
+		transition: none;
+	}
+}
+
+.monaco-workbench .part.sources .sources-changes-commit .monaco-button:active:not(.disabled),
+.monaco-workbench .part.sources .sources-changes-commit-button.monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-button-hoverBackground) !important;
 }
 
 .monaco-workbench .part.sources .sources-changes-provenance {
@@ -447,5 +603,13 @@
 }
 
 .monaco-workbench .part.sources .sources-changes-status.is-error {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.sources .sources-changes-status.is-error::before {
+	font-family: codicon;
+	content: "\ea87";
 	color: var(--vscode-errorForeground);
+	opacity: 0.9;
+	margin-right: 4px;
 }

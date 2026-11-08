@@ -9,7 +9,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
-import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { INotification, INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -77,8 +77,8 @@ suite('Sources - review attribution', () => {
 
 	function stubNotification(errors: string[] = []): INotificationService {
 		return {
-			error: (error: string | Error) => {
-				errors.push(typeof error === 'string' ? error : getErrorMessage(error));
+			notify: (notification: INotification) => {
+				errors.push(`${notification.message} | ${notification.source}`);
 			},
 		} as INotificationService;
 	}
@@ -573,7 +573,7 @@ suite('Sources - review attribution', () => {
 				notificationErrors: errors,
 			});
 			assert.strictEqual(service.resolveRevealItemId('tc-1'), undefined);
-			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(errors, [`Could not find where this change was made in the conversation. | ${getErrorMessage(boom)}`]);
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
@@ -596,7 +596,7 @@ suite('Sources - review attribution', () => {
 			});
 			const chipMap = service.buildChipMapForEntries([{ resource }]);
 			assert.strictEqual(chipMap.size, 0);
-			assert.deepStrictEqual(errors, [getErrorMessage(boom)]);
+			assert.deepStrictEqual(errors, [`Could not load which agent made these changes. | ${getErrorMessage(boom)}`]);
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {

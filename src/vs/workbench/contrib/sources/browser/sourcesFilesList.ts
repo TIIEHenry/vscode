@@ -173,6 +173,7 @@ export class SourcesFilesList extends Disposable {
 			toolbar,
 			localize('sourcesFilesList.filterPlaceholder', "Filter files"),
 			localize('sourcesFilesList.filterAriaLabel', "Filter files"),
+			first => this.focusListFromFilter(first),
 		));
 		this._register(this.filterBox.onDidChange(() => {
 			if (this._store.isDisposed) {
@@ -448,6 +449,17 @@ export class SourcesFilesList extends Disposable {
 
 		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
+	}
+
+	private focusListFromFilter(first: boolean): boolean {
+		if (!this.list || this.list.getHTMLElement().offsetParent === null || this.list.getNode(null).children.length === 0) {
+			return false;
+		}
+		if (first || this.list.getFocus().length === 0) {
+			this.list.focusFirst();
+		}
+		this.list.domFocus();
+		return true;
 	}
 
 	private async refresh(): Promise<void> {

@@ -25,7 +25,11 @@ export class NavigatorAgentsInlineFilterBox extends Disposable {
 	private readonly _onDidChange = this._register(new Emitter<string>());
 	readonly onDidChange = this._onDidChange.event;
 
-	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string) {
+	/**
+	 * @param focusList moves focus into the owner's list: `'first'` for ArrowDown,
+	 * `'current'` for Escape in an empty box. Returns false when the list cannot take focus.
+	 */
+	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string, private readonly focusList?: (target: 'first' | 'current') => boolean) {
 		super();
 
 		this.element = dom.append(parent, $('.navigator-agents-inline-filter'));
@@ -37,9 +41,11 @@ export class NavigatorAgentsInlineFilterBox extends Disposable {
 		this.input.placeholder = placeholder;
 		this.input.setAttribute('aria-label', ariaLabel);
 
+		const clearLabel = localize('navigatorAgents.clearFilter', "Clear filter");
 		this.clearButton = dom.append(this.element, $('button.navigator-agents-inline-filter-clear'));
 		this.clearButton.setAttribute('type', 'button');
-		this.clearButton.setAttribute('aria-label', localize('navigatorAgents.clearFilter', "Clear filter"));
+		this.clearButton.setAttribute('aria-label', clearLabel);
+		this.clearButton.title = clearLabel;
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'focus', () => {
@@ -60,6 +66,11 @@ export class NavigatorAgentsInlineFilterBox extends Disposable {
 				this.input.value = '';
 				this.updateClearVisibility();
 				this._onDidChange.fire('');
+			} else if (e.keyCode === KeyCode.Escape || e.keyCode === KeyCode.DownArrow) {
+				if (this.focusList?.(e.keyCode === KeyCode.DownArrow ? 'first' : 'current')) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
 			}
 		}));
 

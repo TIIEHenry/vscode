@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../log/common/log.js';
+import { gitAutoApproveRules } from '../../../terminal/common/autoApprove/gitAutoApproveRules.js';
 import { CommandAutoApprover, type ICommandApprovalEvaluation } from '../../node/commandAutoApprover.js';
 
 suite('CommandAutoApprover initialization', () => {
@@ -87,7 +88,21 @@ suite('CommandAutoApprover', () => {
 				approver.shouldAutoApprove('git show --output-format=text HEAD'),
 				approver.shouldAutoApprove('git ls-files'),
 				approver.shouldAutoApprove('git branch'),
+				approver.shouldAutoApprove('git diff --output-indicator-new=+ HEAD'),
+				approver.shouldAutoApprove('git grep -C 3 -o pat'),
+				approver.shouldAutoApprove('git branch -a'),
+				approver.shouldAutoApprove('git branch -vv'),
+				approver.shouldAutoApprove('git branch --list'),
+				approver.shouldAutoApprove('git branch --sort -committerdate'),
+				approver.shouldAutoApprove('git branch -c old new'),
 			], [
+				'approved',
+				'approved',
+				'approved',
+				'approved',
+				'approved',
+				'approved',
+				'approved',
 				'approved',
 				'approved',
 				'approved',
@@ -112,7 +127,52 @@ suite('CommandAutoApprover', () => {
 				approver.shouldAutoApprove('git show --format=%B --output=message.txt HEAD'),
 				approver.shouldAutoApprove('git --no-pager show --output=message.txt HEAD'),
 				approver.shouldAutoApprove('git -C repo show --output message.txt HEAD'),
+				// Pager options that the upstream grep rules miss
+				approver.shouldAutoApprove('git grep \'--open-files-in-pager=echo X;\' -e pat'),
+				approver.shouldAutoApprove('git grep "-O" -e pat'),
+				approver.shouldAutoApprove('git grep \\-Ovi -e pat'),
+				approver.shouldAutoApprove('git grep -pOvi -e pat'),
+				approver.shouldAutoApprove('git grep -WOvi -e pat'),
+				approver.shouldAutoApprove('git grep -rOvi -e pat'),
+				approver.shouldAutoApprove('git grep -3Ovi -e pat'),
+				approver.shouldAutoApprove('git grep -e pat \\\n  -Ovi'),
+				// --output, including git diff and quoted, escaped or continued spellings
+				approver.shouldAutoApprove('git diff --output=/tmp/x HEAD'),
+				approver.shouldAutoApprove('git diff HEAD --output /tmp/x'),
+				approver.shouldAutoApprove('git log "--output=/tmp/x"'),
+				approver.shouldAutoApprove('git show \\--output=/tmp/x HEAD'),
+				approver.shouldAutoApprove('git diff --\\\noutput=/tmp/x'),
+				// Branch rewrites in other short, clustered, long or abbreviated spellings
+				approver.shouldAutoApprove('git branch -f main HEAD~1'),
+				approver.shouldAutoApprove('git branch -C a b'),
+				approver.shouldAutoApprove('git branch -rd origin/x'),
+				approver.shouldAutoApprove('git branch -vD x'),
+				approver.shouldAutoApprove('git branch --move a b'),
+				approver.shouldAutoApprove('git branch --mo a b'),
+				approver.shouldAutoApprove('git branch --del x'),
+				approver.shouldAutoApprove('git branch --forc main HEAD~1'),
 			], [
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
 				'denied',
 				'denied',
 				'denied',
@@ -153,6 +213,24 @@ suite('CommandAutoApprover', () => {
 				approver.shouldAutoApprove('sort --compress-program\\=/bin/sh input.txt'),
 				approver.shouldAutoApprove('sort --"compress-program=/bin/sh" input.txt'),
 				approver.shouldAutoApprove('sort $\'--compress-program=/bin/sh\' input.txt'),
+				// Option values after -t/-k are not options
+				approver.shouldAutoApprove('sort -t, -k2 in.csv'),
+				approver.shouldAutoApprove('sort -to -k1 in.txt'),
+				approver.shouldAutoApprove('sort -rn input.txt'),
+				approver.shouldAutoApprove('sort -t$\'\\t\' -k2,2 in.tsv'),
+				// --output and its abbreviations, attached or clustered -o, and quoted, escaped or continued spellings
+				approver.shouldAutoApprove('sort --output=/etc/x in.txt'),
+				approver.shouldAutoApprove('sort --o=/etc/x in.txt'),
+				approver.shouldAutoApprove('sort in.txt --output /etc/x'),
+				approver.shouldAutoApprove('sort -ofoo in.txt'),
+				approver.shouldAutoApprove('sort -o/etc/x in.txt'),
+				approver.shouldAutoApprove('sort -ro /etc/x in.txt'),
+				approver.shouldAutoApprove('sort -uo/etc/x in.txt'),
+				approver.shouldAutoApprove('sort "--output=/etc/x" in.txt'),
+				approver.shouldAutoApprove('sort --"output"=/etc/x in.txt'),
+				approver.shouldAutoApprove('sort \\-\\-output=/etc/x in.txt'),
+				approver.shouldAutoApprove('sort --\\\noutput=/etc/x in.txt'),
+				approver.shouldAutoApprove('sort -n \\\n  --output=/etc/x in.txt'),
 			], [
 				'approved',
 				'approved',
@@ -161,6 +239,22 @@ suite('CommandAutoApprover', () => {
 				'approved',
 				'denied',
 				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'approved',
+				'approved',
+				'approved',
+				'approved',
 				'denied',
 				'denied',
 				'denied',
@@ -211,8 +305,31 @@ suite('CommandAutoApprover', () => {
 				approver.shouldAutoApprove('sed -i \'\' "s/foo/bar/" file.txt'),
 				approver.shouldAutoApprove('sed --in-place "s/foo/bar/" file.txt'),
 				approver.shouldAutoApprove('sed --in-place=.bak "s/foo/bar/" file.txt'),
+				// GNU abbreviation of --in-place, and quoted or continued spellings the shell removes
+				approver.shouldAutoApprove('sed --in \'s/a/b/\' file.txt'),
+				approver.shouldAutoApprove('sed "--in-place" \'s/a/b/\' file.txt'),
+				approver.shouldAutoApprove('sed \\\n-i \'s/a/b/\' file.txt'),
+				// Abbreviated, quoted or escaped -e/--expression and -f/--file
+				approver.shouldAutoApprove('sed --e=\'1e id\' file.txt'),
+				approver.shouldAutoApprove('sed --expr=\'1e id\' file.txt'),
+				approver.shouldAutoApprove('sed --fi=script.sed file.txt'),
+				approver.shouldAutoApprove('sed -n"e"\'1e id\' file.txt'),
+				approver.shouldAutoApprove('sed \\-e \'1e id\' file.txt'),
+				// -i after arguments that split differently from the shell
+				approver.shouldAutoApprove('sed $\'s/a/\\\'/\' -i /home/u/.bashrc'),
+				approver.shouldAutoApprove('sed "$(echo \'p;#"\')" -i /etc/x'),
 			], [
 				'approved',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
+				'denied',
 				'denied',
 				'denied',
 				'denied',
@@ -340,6 +457,89 @@ suite('CommandAutoApprover', () => {
 			], ['approved', 'approved', 'approved']);
 		});
 
+		test('keeps the Git directory option case-sensitive in PowerShell', () => {
+			const pwsh = { language: 'powershell' } as const;
+			const safeSubcommands = ['status', 'log', 'show', 'diff', 'ls-files', 'grep needle', 'branch'];
+			const commands = [
+				...safeSubcommands.map(subcommand => `git -C repo ${subcommand}`),
+				'GIT -C repo DIFF',
+				...safeSubcommands.map(subcommand => `git -c key=value ${subcommand}`),
+				'git --no-pager -c core.pager=program log',
+				'git -C repo -c diff.external=program diff',
+			];
+			const expected = [
+				...safeSubcommands.map(() => 'approved'),
+				'approved',
+				...safeSubcommands.map(() => 'noMatch'),
+				'noMatch',
+				'noMatch',
+			];
+
+			assert.deepStrictEqual(commands.map(command => approver.shouldAutoApprove(command, pwsh)), expected);
+			assert.deepStrictEqual(commands.map(command => approver.shouldAutoApprove(command, { ...pwsh, autoApproveRules: gitAutoApproveRules })), expected);
+		});
+
+		test('requires confirmation for Git grep pager options', () => {
+			const approvedCommands = [
+				'git grep needle',
+				'git grep -n needle',
+				'git grep -o needle',
+				'git grep -e TODO',
+				'git grep -eTODO',
+				'git grep --only-matching needle',
+				'git -C repo grep needle',
+				'git --no-pager grep needle',
+			];
+			const deniedCommands = [
+				'git grep -O needle',
+				'git grep -Osh -e needle',
+				'git grep -nOsh -e needle',
+				'git grep --open-files-in-pager -e needle',
+				'git grep --open-files-in-pager=sh -e needle',
+				'git --no-pager -C repo grep --"op=sh" -e needle',
+				'git --no-pager -C repo grep --\'op=sh\' -e needle',
+			];
+			const options = [
+				undefined,
+				{ language: 'powershell' } as const,
+				{ autoApproveRules: gitAutoApproveRules },
+				{ language: 'powershell', autoApproveRules: gitAutoApproveRules } as const,
+			];
+
+			for (const option of options) {
+				assert.deepStrictEqual(
+					approvedCommands.map(command => approver.shouldAutoApprove(command, option)),
+					approvedCommands.map(() => 'approved')
+				);
+				assert.deepStrictEqual(
+					deniedCommands.map(command => approver.shouldAutoApprove(command, option)),
+					deniedCommands.map(() => 'denied')
+				);
+			}
+		});
+
+		test('keeps Git branch, grep and output option letters case-sensitive in PowerShell', () => {
+			const pwsh = { language: 'powershell' } as const;
+			assert.deepStrictEqual([
+				approver.shouldAutoApprove('git grep -o pat', pwsh),
+				approver.shouldAutoApprove('git branch -c old new', pwsh),
+				approver.shouldAutoApprove('git branch -C a b', pwsh),
+				approver.shouldAutoApprove('git diff --output=/tmp/x HEAD', pwsh),
+				approver.shouldAutoApprove('git grep -iOvi -e pat', pwsh),
+			], ['approved', 'approved', 'denied', 'denied', 'denied']);
+		});
+
+		test('does not read Sort-Object parameters as sort output options in PowerShell', () => {
+			const pwsh = { language: 'powershell' } as const;
+			assert.deepStrictEqual([
+				approver.shouldAutoApprove('Sort-Object -Bottom 5', pwsh),
+				approver.shouldAutoApprove('Sort-Object Name -Descending', pwsh),
+				approver.shouldAutoApprove('sort -Bottom 5', pwsh),
+				approver.shouldAutoApprove('sort --output=x.txt in.txt', pwsh),
+				approver.shouldAutoApprove('sort -ro x.txt in.txt', pwsh),
+			], ['approved', 'approved', 'approved', 'denied', 'denied']);
+		});
+
 		test('does not auto-approve arbitrary PowerShell cmdlets by verb', () => {
 			const pwsh = { language: 'powershell' } as const;
 			assert.deepStrictEqual([
@@ -451,6 +651,62 @@ suite('CommandAutoApprover', () => {
 			seen.length = 0;
 			assert.strictEqual(approver.shouldAutoApprove('echo hi > /dev/null 2>&1', opts), 'approved');
 			assert.deepStrictEqual(seen, []);
+		});
+
+		// In `>&word` the `&` belongs to the operator, so the destination handed
+		// to the predicate is the file itself, never a string starting with `&`.
+		test('treats >& with a file word as a write to that file', () => {
+			const seen: string[] = [];
+			const opts = {
+				isWriteDestApproved: (d: string) => {
+					seen.push(d);
+					return d === 'out.txt';
+				},
+			};
+			assert.deepStrictEqual({
+				results: [
+					approver.shouldAutoApprove('echo hi >& /tmp/fake-home/.bashrc', opts),
+					approver.shouldAutoApprove('echo hi >&/tmp/fake-home/.bashrc', opts),
+					approver.shouldAutoApprove('echo hi >& out.txt', opts),
+				],
+				seen,
+				destinations: approver.getWriteRedirectDestinations('echo hi >& /x/y'),
+				// Regression guard only: without a predicate these were never approved.
+				withoutPredicate: [
+					approver.shouldAutoApprove('echo hi >& /tmp/fake-home/.bashrc'),
+					approver.shouldAutoApprove('echo hi >&/tmp/fake-home/.bashrc'),
+				],
+			}, {
+				results: ['noMatch', 'noMatch', 'approved'],
+				seen: ['/tmp/fake-home/.bashrc', '/tmp/fake-home/.bashrc', 'out.txt'],
+				destinations: ['/x/y'],
+				withoutPredicate: ['noMatch', 'noMatch'],
+			});
+		});
+
+		// `>&-`, `2>&-` and `>& -` close a descriptor and `>&2` / `2>&1`
+		// duplicate one. None of them writes a file.
+		test('treats >& descriptor duplication and closing as safe', () => {
+			const seen: string[] = [];
+			const opts = {
+				isWriteDestApproved: (d: string) => {
+					seen.push(d);
+					return false;
+				},
+			};
+			assert.deepStrictEqual({
+				results: [
+					approver.shouldAutoApprove('echo hi >&-', opts),
+					approver.shouldAutoApprove('echo hi 2>&-', opts),
+					approver.shouldAutoApprove('echo hi >& -', opts),
+					approver.shouldAutoApprove('echo hi >&2', opts),
+					approver.shouldAutoApprove('echo hi 2>&1', opts),
+				],
+				seen,
+			}, {
+				results: ['approved', 'approved', 'approved', 'approved', 'approved'],
+				seen: [],
+			});
 		});
 	});
 
@@ -674,6 +930,40 @@ suite('CommandAutoApprover', () => {
 				approver.shouldAutoApprove('Write-Host hi >out.txt', { language: 'powershell', autoApproveRules: redirectAllow }),
 				approver.shouldAutoApprove('Get-ChildItem; Remove-Item x', { language: 'powershell', autoApproveRules: deniedSubCommand }),
 			], ['noMatch', 'denied', 'noMatch', 'noMatch', 'denied']);
+		});
+	});
+
+	suite('getDirectoryChangeTargets', () => {
+
+		const pwsh = { language: 'powershell' } as const;
+
+		test('reads the directory each directory-changing sub-command moves to', () => {
+			assert.deepStrictEqual({
+				bash: [
+					approver.getDirectoryChangeTargets('cd /x && echo hi > y'),
+					approver.getDirectoryChangeTargets('pushd /x && echo hi > y'),
+					approver.getDirectoryChangeTargets('echo hi > y'),
+				],
+				pwsh: [
+					approver.getDirectoryChangeTargets('Set-Location -Path C:\\x', pwsh),
+					approver.getDirectoryChangeTargets('CD ..', pwsh),
+				],
+			}, {
+				bash: [['/x'], ['/x'], []],
+				pwsh: [['C:\\x'], ['..']],
+			});
+		});
+
+		// The `cd` allow rule (`^cd\b`, case-insensitive for PowerShell) also
+		// approves these shapes, so they count as a move to an unknown directory.
+		test('reports an unknown target for options, expansions, pops and cd-prefixed names', () => {
+			assert.deepStrictEqual({
+				bash: ['cd', 'cd -', 'cd $HOME', 'cd -P /x', 'popd', 'cd..'].map(commandLine => approver.getDirectoryChangeTargets(commandLine)),
+				pwsh: ['cd..', 'cd\\', 'Pop-Location'].map(commandLine => approver.getDirectoryChangeTargets(commandLine, pwsh)),
+			}, {
+				bash: [[undefined], [undefined], [undefined], [undefined], [undefined], [undefined]],
+				pwsh: [[undefined], [undefined], [undefined]],
+			});
 		});
 	});
 });

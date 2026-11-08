@@ -92,6 +92,83 @@ suite('CommandLineAutoApprover', () => {
 			];
 			deepStrictEqual(await Promise.all(commands.map(isAutoApproved)), [false, false, false, false, false]);
 		});
+
+		test('keeps the Git directory option case-sensitive', async () => {
+			const safeSubcommands = ['status', 'log', 'show', 'diff', 'ls-files', 'grep needle', 'branch'];
+			const commands = [
+				...safeSubcommands.map(subcommand => `git -C repo ${subcommand}`),
+				'GIT -C repo DIFF',
+				...safeSubcommands.map(subcommand => `git -c key=value ${subcommand}`),
+				'git --no-pager -c core.pager=program log',
+				'git -C repo -c diff.external=program diff',
+			];
+			deepStrictEqual(
+				await Promise.all(commands.map(isAutoApproved)),
+				[
+					...safeSubcommands.map(() => true),
+					true,
+					...safeSubcommands.map(() => false),
+					false,
+					false,
+				]
+			);
+		});
+
+		test('requires confirmation for Git grep pager options', async () => {
+			const autoApprovedCommands = [
+				'git grep needle',
+				'git grep -n needle',
+				'git grep -o needle',
+				'git grep -e TODO',
+				'git grep -eTODO',
+				'git grep --only-matching needle',
+				'git -C repo grep needle',
+				'git --no-pager grep needle',
+			];
+			const confirmationRequiredCommands = [
+				'git grep -O needle',
+				'git grep -Osh -e needle',
+				'git grep -nOsh -e needle',
+				'git grep --open-files-in-pager -e needle',
+				'git grep --open-files-in-pager=sh -e needle',
+				'git --no-pager -C repo grep --"op=sh" -e needle',
+				'git --no-pager -C repo grep --\'op=sh\' -e needle',
+			];
+			for (const [testShell, testOs] of [['bash', OperatingSystem.Linux], ['pwsh', OperatingSystem.Windows]] as const) {
+				shell = testShell;
+				os = testOs;
+				deepStrictEqual(await Promise.all(autoApprovedCommands.map(isAutoApproved)), autoApprovedCommands.map(() => true));
+				deepStrictEqual(await Promise.all(confirmationRequiredCommands.map(isAutoApproved)), confirmationRequiredCommands.map(() => false));
+			}
+		});
+
+		test('keeps Git branch, grep and output option letters case-sensitive', async () => {
+			const autoApprovedCommands = [
+				'git grep -o pat',
+				'git branch -c old new',
+			];
+			const confirmationRequiredCommands = [
+				'git branch -C a b',
+				'git diff --output=/tmp/x HEAD',
+				'git grep -iOvi -e pat',
+			];
+			deepStrictEqual(await Promise.all(autoApprovedCommands.map(isAutoApproved)), autoApprovedCommands.map(() => true));
+			deepStrictEqual(await Promise.all(confirmationRequiredCommands.map(isAutoApproved)), confirmationRequiredCommands.map(() => false));
+		});
+
+		test('does not read Sort-Object parameters as sort output options', async () => {
+			const autoApprovedCommands = [
+				'Sort-Object -Bottom 5',
+				'Sort-Object Name -Descending',
+				'sort -Bottom 5',
+			];
+			const confirmationRequiredCommands = [
+				'sort --output=x.txt in.txt',
+				'sort -ro x.txt in.txt',
+			];
+			deepStrictEqual(await Promise.all(autoApprovedCommands.map(isAutoApproved)), autoApprovedCommands.map(() => true));
+			deepStrictEqual(await Promise.all(confirmationRequiredCommands.map(isAutoApproved)), confirmationRequiredCommands.map(() => false));
+		});
 	});
 
 	suite('default sort rules', () => {
@@ -109,6 +186,10 @@ suite('CommandLineAutoApprover', () => {
 				'sort "--check" input.txt',
 				'sort --buffer-size=1K input.txt',
 				'sort<input.txt',
+				'sort -t, -k2 in.csv',
+				'sort -to -k1 in.txt',
+				'sort -rn input.txt',
+				'sort -t$\'\\t\' -k2,2 in.tsv',
 			];
 			deepStrictEqual(await Promise.all(commands.map(isAutoApproved)), commands.map(() => true));
 		});
@@ -129,6 +210,18 @@ suite('CommandLineAutoApprover', () => {
 				'sort --compress-program\\=/bin/sh input.txt',
 				'sort --"compress-program=/bin/sh" input.txt',
 				'sort $\'--compress-program=/bin/sh\' input.txt',
+				'sort --output=/etc/x in.txt',
+				'sort --o=/etc/x in.txt',
+				'sort in.txt --output /etc/x',
+				'sort -ofoo in.txt',
+				'sort -o/etc/x in.txt',
+				'sort -ro /etc/x in.txt',
+				'sort -uo/etc/x in.txt',
+				'sort "--output=/etc/x" in.txt',
+				'sort --"output"=/etc/x in.txt',
+				'sort \\-\\-output=/etc/x in.txt',
+				'sort --\\\noutput=/etc/x in.txt',
+				'sort -n \\\n  --output=/etc/x in.txt',
 			];
 			deepStrictEqual(await Promise.all(commands.map(isAutoApproved)), commands.map(() => false));
 		});
@@ -149,6 +242,10 @@ suite('CommandLineAutoApprover', () => {
 				'sed "y/abc/xyz/" file.txt',
 				'sed "s/a/b/;s/c/d/" file.txt',
 				'sed "/w/d" file.txt',
+				'sed -E "s/x/y/" file.txt',
+				'sed --posix "s/a/b/" file.txt',
+				'sed --follow-symlinks -n p file.txt',
+				'sed --debug -n "1p" file.txt',
 			];
 			deepStrictEqual(await Promise.all(commands.map(isAutoApproved)), commands.map(() => true));
 		});
@@ -180,6 +277,12 @@ suite('CommandLineAutoApprover', () => {
 				'sed "s/a/\\"/;e id" input.txt',
 				'sed "/x/p;//e id" input.txt',
 				'sed e',
+				'sed --e="1e id" file.txt',
+				'sed --expr="1e id" file.txt',
+				'sed --fi=script.sed file.txt',
+				'sed --"expr"="1e id" file.txt',
+				'sed -n"e" "s/a/b/" file.txt',
+				'sed \\-e "s/a/b/" file.txt',
 			];
 			deepStrictEqual(await Promise.all(commands.map(isAutoApproved)), commands.map(() => false));
 		});

@@ -58,7 +58,7 @@ suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', ()
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise single-catch sites and zero double-chain sites', () => {
+	test('this knife covers five leftover Promise single-catch sites and zero double-chain sites', () => {
 		const files = [SHELL_REL, COMMAND_REL, AUTO_REL, CHILD_REL, ADDON_REL];
 		let singleSites = 0;
 		let doubleSites = 0;
@@ -69,18 +69,20 @@ suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', ()
 			assert.ok(!source.includes(doubleCatch), `${rel} must have zero chained double catches`);
 		}
 		assert.strictEqual(files.length, 5);
-		assert.strictEqual(singleSites, 8);
+		assert.strictEqual(singleSites, 5);
 		assert.strictEqual(doubleSites, 0);
 	});
 
-	test('windowsShellHelper leftover _startMonitoringShell / checkShell / getShellName then are Promise single-catch', () => {
+	test('windowsShellHelper leftover _startMonitoringShell / getShellName then are Promise single-catch; debounced checkShell is called bare', () => {
 		const source = fs.readFileSync(resolveSource(SHELL_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _startMonitoringShell(): Promise<void> {');
 		assertPromiseSignature(source, 'async checkShell(): Promise<void> {');
 		assertPromiseSignature(source, 'async getShellName(): Promise<string> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assertSingleCatch(source, 'this._startMonitoringShell()');
-		assertSingleCatch(source, 'this.checkShell()');
+		// @debounce returns nothing, so the call site never receives the Promise of checkShell
+		assert.ok(source.includes('this.checkShell();'));
+		assert.ok(!source.includes('this.checkShell().catch'));
 		const thenCall = `this.getShellName().then(title => {
 				if (generation !== this._checkShellGeneration || this._store.isDisposed) {
 					return;
@@ -119,18 +121,31 @@ suite('platform terminal leftover Promise fire-and-forget catch scan (D720)', ()
 		assert.ok(!source.includes(doubleCatch));
 	});
 
-	test('childProcessMonitor leftover _refreshActive fire-and-forgets are Promise single-catch; sync handleInput / _refreshInactive stay skipped', () => {
+	test('childProcessMonitor calls the debounced _refreshActive bare; sync handleInput / _refreshInactive stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(CHILD_REL), 'utf8');
 		assertPromiseSignature(source, 'private async _refreshActive(): Promise<void> {');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(source.includes('handleInput() {'));
 		assert.ok(source.includes('private _refreshInactive(): void {'));
-		assertSingleCatch(source, 'this._refreshActive()');
-		assert.strictEqual((source.match(/this\._refreshActive\(\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
-		assert.ok(!source.includes('this._refreshActive();'));
+		// @debounce returns nothing, so the call sites never receive the Promise of _refreshActive
+		assert.strictEqual((source.match(/this\._refreshActive\(\);/g) ?? []).length, 2);
+		assert.ok(!source.includes('this._refreshActive().catch'));
+		assert.ok(!source.includes("import { onUnexpectedError } from '../../../base/common/errors.js';"));
 		assert.ok(!source.includes(doubleCatch));
 		assert.ok(!source.includes('this.handleInput().catch'));
 		assert.ok(!source.includes('this._refreshInactive().catch'));
+	});
+
+	test('methods decorated with @debounce or @throttle are never used as Promises', () => {
+		for (const rel of [CHILD_REL, SHELL_REL]) {
+			const source = fs.readFileSync(resolveSource(rel), 'utf8');
+			const decorated = [...source.matchAll(/@(?:debounce|throttle)\([^)]*\)\s*(?:(?:private|protected|public)\s+)?(?:async\s+)?(\w+)\(/g)].map(match => match[1]);
+			assert.ok(decorated.length > 0, `${rel} has no decorated methods`);
+			for (const name of decorated) {
+				assert.ok(!source.includes(`this.${name}().catch`), `${rel} chains .catch on decorated ${name}`);
+				assert.ok(!source.includes(`this.${name}().then`), `${rel} chains .then on decorated ${name}`);
+				assert.ok(!source.includes(`await this.${name}(`), `${rel} awaits decorated ${name}`);
+			}
+		}
 	});
 
 	test('shellIntegration leftover _ensureCapabilitiesOrAddFailureTelemetry is Promise single-catch', () => {

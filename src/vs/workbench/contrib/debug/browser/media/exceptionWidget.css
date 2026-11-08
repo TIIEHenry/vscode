@@ -57,7 +57,17 @@
 
 .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
+		transition: none;
+	}
 }
 
 .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:active {
@@ -77,7 +87,17 @@
 
 .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
+		transition: none;
+	}
 }
 
 .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a:active {

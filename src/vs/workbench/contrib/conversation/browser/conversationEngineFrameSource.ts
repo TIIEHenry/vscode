@@ -293,10 +293,22 @@ class SharedEngineHostBinding {
 	}
 
 	recordDetail(ref: string, content: string): void {
+		const hadPrevious = this._details.get(ref) === content;
 		this._details.set(ref, content);
 		for (const consumer of [...this.consumers]) {
 			if (!consumer.isDisposed()) {
 				consumer.noteDetail(ref, content);
+			}
+		}
+		if (!hadPrevious) {
+			const changedIds = new Set<string>();
+			for (const item of this.replica.timeline) {
+				if (item.detail !== undefined && String(item.detail) === ref) {
+					changedIds.add(String(item.id));
+				}
+			}
+			if (changedIds.size > 0) {
+				this.publish({ kind: 'patches', changedIds });
 			}
 		}
 	}

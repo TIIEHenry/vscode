@@ -101,6 +101,8 @@ export class EngineContextVariableSection extends Disposable {
 		}));
 
 		this.readStatus = DOM.append(this.container, $('.engine-context-variable-read-status'));
+		this.readStatus.setAttribute('role', 'status');
+		this.readStatus.setAttribute('aria-live', 'polite');
 		this.readStatus.style.display = 'none';
 		this.updateReadAction();
 

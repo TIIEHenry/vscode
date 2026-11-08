@@ -4,20 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { emptySessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { IWorkspaceContextService, IWorkspaceFolder, IWorkspaceFoldersChangeEvent, WorkspaceFolder } from '../../../../platform/workspace/common/workspace.js';
-import { URI } from '../../../../base/common/uri.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
-import { AgentSessionContext } from './agentSessionContext.js';
-import { ConversationStubSession } from './conversationStubModel.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IWorkspaceContextService, IWorkspaceFolder, IWorkspaceFoldersChangeEvent, WorkspaceFolder } from '../../../../../platform/workspace/common/workspace.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { AgentSessionContext } from '../../browser/agentSessionContext.js';
+import { ConversationStubSession } from '../../browser/conversationStubModel.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
 
 suite('AgentSessionContext (browser)', () => {
 
@@ -84,6 +84,24 @@ suite('AgentSessionContext (browser)', () => {
 		harness.fireActiveSession('b');
 		assert.deepStrictEqual(seen, ['b']);
 		assert.strictEqual(context.getActiveWorkRoot().workDir, '/repo');
+	});
+
+	test('metadata event replaces connection fallback only for the corresponding active session', () => {
+		const harness = createWorkRootHarness(store);
+		harness.setSnapshot({ linkId: 1, engineIdentityId: 'eng', workDir: '/agent-home' });
+		harness.sessions = [{ id: 'a', title: 'A', turns: [] }, { id: 'b', title: 'B', turns: [] }];
+		const context = harness.create();
+		const roots: string[] = [];
+		store.add(context.onDidChangeActiveWorkRoot(root => roots.push(root.workDir ?? '')));
+		assert.strictEqual(context.getActiveWorkRoot().workDir, '/agent-home');
+		harness.sessions[1]!.workDir = '/other-workspace';
+		harness.fireSession('b');
+		assert.deepStrictEqual(roots, []);
+		harness.sessions[0]!.workDir = '/session-workspace';
+		harness.fireSession('a');
+		assert.strictEqual(context.getActiveWorkRoot().workDir, '/session-workspace');
+		assert.deepStrictEqual(roots, ['/session-workspace']);
+		assert.strictEqual(harness.activeSessionId, 'a');
 	});
 
 	test('a new engine link replaces the cached identity', () => {
@@ -188,6 +206,7 @@ function createWorkRootHarness(store: { add: <T extends { dispose(): void }>(dis
 	setSnapshot(partial: Partial<UniverseAgentConnectionSnapshot>): void;
 	fireConnection(): void;
 	fireActiveSession(sessionId: string): void;
+	fireSession(sessionId: string): void;
 	fireFolders(): void;
 	fireRepository(): void;
 	create(): AgentSessionContext;
@@ -226,6 +245,9 @@ function createWorkRootHarness(store: { add: <T extends { dispose(): void }>(dis
 		fireActiveSession(sessionId: string): void {
 			harness.activeSessionId = sessionId;
 			activeEmitter.fire(sessionId);
+		},
+		fireSession(sessionId: string): void {
+			sessionEmitter.fire(sessionId);
 		},
 		fireFolders(): void {
 			folderEmitter.fire({ added: [], removed: [], changed: [] });

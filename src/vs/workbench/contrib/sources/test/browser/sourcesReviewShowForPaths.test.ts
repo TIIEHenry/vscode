@@ -49,6 +49,13 @@ suite('Sources - review showForPaths', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
+	function stubVisibleLayoutService(): Pick<IWorkbenchLayoutService, 'isVisible' | 'setPartHidden'> {
+		return {
+			isVisible: () => true,
+			setPartHidden: () => { },
+		};
+	}
+
 	function stubOpenSelectedSession(): IAgentSessionContext {
 		return {
 			_serviceBrand: undefined,
@@ -286,6 +293,9 @@ suite('Sources - review showForPaths', () => {
 			if (id === IAgentSessionContext) {
 				return stubOpenSelectedSession();
 			}
+			if (id === IWorkbenchLayoutService) {
+				return stubVisibleLayoutService();
+			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
 
@@ -371,6 +381,9 @@ suite('Sources - review showForPaths', () => {
 			}
 			if (id === IAgentSessionContext) {
 				return stubOpenSelectedSession();
+			}
+			if (id === IWorkbenchLayoutService) {
+				return stubVisibleLayoutService();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
@@ -469,6 +482,9 @@ suite('Sources - review showForPaths', () => {
 			if (id === IAgentSessionContext) {
 				return stubOpenSelectedSession();
 			}
+			if (id === IWorkbenchLayoutService) {
+				return stubVisibleLayoutService();
+			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
 
@@ -565,6 +581,9 @@ suite('Sources - review showForPaths', () => {
 			}
 			if (id === IAgentSessionContext) {
 				return stubOpenSelectedSession();
+			}
+			if (id === IWorkbenchLayoutService) {
+				return stubVisibleLayoutService();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});

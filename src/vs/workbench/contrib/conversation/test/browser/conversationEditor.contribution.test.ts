@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { EditorInputCapabilities } from '../../../common/editor.js';
-import { TestInstantiationService } from '../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { getConversationChatResource, getDefaultConversationChatResource } from '../common/conversationChatInput.js';
-import { ConversationChatInputSerializer } from './conversationEditor.contribution.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { EditorInputCapabilities } from '../../../../common/editor.js';
+import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { getConversationChatResource, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
+import { ConversationChatInputSerializer } from '../../browser/conversationEditor.contribution.js';
 
 suite('ConversationEditorContribution', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();

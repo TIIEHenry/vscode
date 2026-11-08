@@ -442,7 +442,19 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	protected breadcrumbFolderUri(): URI | undefined {
 		const folders = this.contextService.getWorkspace().folders;
-		return folders.length > 0 ? folders[0].uri : undefined;
+		if (folders.length === 0) {
+			return undefined;
+		}
+		const activeResource = this.tree?.getFocus()[0]?.resource
+			?? this.tree?.getSelection()[0]?.resource
+			?? EditorResourceAccessor.getCanonicalUri(this.editorService.activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
+		if (activeResource) {
+			const root = this.explorerService.findClosestRoot(activeResource);
+			if (root) {
+				return root.resource;
+			}
+		}
+		return folders[0].uri;
 	}
 
 	protected updateLocationBreadcrumb(): void {
@@ -455,8 +467,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	}
 
 	private onLocationBreadcrumbSelect(id: string): void {
-		const folders = this.contextService.getWorkspace().folders;
-		const workspaceFolder = folders.length > 0 ? folders[0].uri : undefined;
+		const workspaceFolder = this.breadcrumbFolderUri();
 		if (!workspaceFolder && id !== EXPLORER_LOCATION_ROOT_ID) {
 			return;
 		}
@@ -485,6 +496,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 			container,
 			nls.localize('explorerFilterPlaceholder', "Filter files"),
 			nls.localize('explorerFilterAriaLabel', "Filter files"),
+			first => this.focusTreeFromFilter(first),
 		));
 
 		this.updateLocationBreadcrumb();
@@ -563,6 +575,17 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	focusLast(): void {
 		this.tree.focusLast();
+	}
+
+	private focusTreeFromFilter(first: boolean): boolean {
+		if (!this.tree || this.tree.getHTMLElement().offsetParent === null) {
+			return false;
+		}
+		if (first || this.tree.getFocus().length === 0) {
+			this.tree.focusFirst();
+		}
+		this.tree.domFocus();
+		return true;
 	}
 
 	getContext(respectMultiSelection: boolean): ExplorerItem[] {

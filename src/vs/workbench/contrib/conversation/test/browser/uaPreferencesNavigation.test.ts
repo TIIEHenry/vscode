@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
-import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
-import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
-import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { IPreferencesService } from '../../../../services/preferences/common/preferences.js';
+import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	CONNECTION_PROFILES_ZONE,
 	ENGINE_MODELS_ZONE,
@@ -20,8 +20,8 @@ import {
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
 	UA_CONNECTION_PANE_ID,
 	UA_ENGINE_PANE_ID,
-} from '../common/uaPreferencesPanes.js';
-import { registerUaPreferencesNavigationActions } from './uaPreferencesNavigation.js';
+} from '../../common/uaPreferencesPanes.js';
+import { registerUaPreferencesNavigationActions } from '../../browser/uaPreferencesNavigation.js';
 
 suite('uaPreferencesNavigation', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();

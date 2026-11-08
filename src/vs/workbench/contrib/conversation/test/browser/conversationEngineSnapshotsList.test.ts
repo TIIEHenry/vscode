@@ -1798,6 +1798,195 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(writeStatus(overlayParent)?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
 	});
 
+	test('delete confirmed after a same-link refresh paints success and lists again', async () => {
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: listCalls.length <= 2
+						? [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before delete', createdAt: 1, turnCount: 2 }]
+						: [{ id: 'snap-2', sessionId: 'sess-1', title: 'After delete', createdAt: 2, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), {
+			confirmResult: true,
+			onConfirm: () => onDidChangeConnection.fire(publishedSnapshot('eng-start', 4)),
+		});
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+		assert.strictEqual(listCalls.length, 3);
+		assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
+		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+		assert.strictEqual(writeStatus(overlayParent)?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+	});
+
+	test('delete failure after a same-link refresh during the confirm paints the failure and does not list again', async () => {
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: async () => ({ ok: false, message: 'gone' }),
+		}), createRosterStub(), {
+			confirmResult: true,
+			onConfirm: () => onDidChangeConnection.fire(publishedSnapshot('eng-start', 4)),
+		});
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.strictEqual(listCalls.length, 2);
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		assert.strictEqual(writeStatus(overlayParent)?.textContent, formatEngineSnapshotDeleteFailedCopy('gone'));
+	});
+
+	test('delete success after a same-link refresh during the confirm does not keep success when the next list fails', async () => {
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				if (listCalls.length > 2) {
+					throw new Error('list boom');
+				}
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: async () => ({ ok: true }),
+		}), createRosterStub(), {
+			confirmResult: true,
+			onConfirm: () => onDidChangeConnection.fire(publishedSnapshot('eng-start', 4)),
+		});
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.strictEqual(listCalls.length, 3);
+		assert.ok(!(writeStatus(overlayParent)?.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY));
+		assert.ok(overlayParent.textContent?.includes(formatEngineSnapshotFailedCopy('list boom')));
+	});
+
+	test('delete return after an in-flight same-link refresh does not paint success or list again', async () => {
+		let releaseDelete: ((value: { ok: true }) => void) | undefined;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: () => new Promise(resolve => {
+				releaseDelete = resolve;
+			}),
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.ok(releaseDelete, 'delete was sent');
+		onDidChangeConnection.fire(publishedSnapshot('eng-start', 4));
+		await flushMicrotasks();
+		releaseDelete({ ok: true });
+		await flushMicrotasks();
+		assert.strictEqual(listCalls.length, 2);
+		assert.ok(!(writeStatus(overlayParent)?.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY));
+	});
+
+	test('delete return after the overlay closes does not paint success or list again', async () => {
+		let releaseDelete: ((value: { ok: true }) => void) | undefined;
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: () => new Promise(resolve => {
+				releaseDelete = resolve;
+			}),
+		}), createRosterStub(), { confirmResult: true });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.ok(releaseDelete, 'delete was sent');
+		list.close({ restoreFocus: false });
+		releaseDelete({ ok: true });
+		await flushMicrotasks();
+		assert.strictEqual(listCalls.length, 1);
+		assert.strictEqual(list.isOpen(), false);
+		assert.ok(!(writeStatus(overlayParent)?.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY));
+	});
+
+	test('delete confirmed after the overlay closed still sends, does not paint, and the next open lists again', async () => {
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		let duringConfirm = () => { };
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: listCalls.length === 1
+						? [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before delete', createdAt: 1, turnCount: 2 }]
+						: [{ id: 'snap-2', sessionId: 'sess-1', title: 'After delete', createdAt: 2, turnCount: 1 }],
+				};
+			},
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub(), { confirmResult: true, onConfirm: () => duringConfirm() });
+		duringConfirm = () => list.close({ restoreFocus: false });
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+		assert.strictEqual(listCalls.length, 1);
+		assert.strictEqual(list.isOpen(), false);
+		assert.ok(!(writeStatus(overlayParent)?.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY));
+
+		list.show();
+		await flushMicrotasks();
+		assert.strictEqual(listCalls.length, 2);
+		assert.strictEqual(snapshotRow(overlayParent, 'snap-1'), null);
+		assert.ok(snapshotRow(overlayParent, 'snap-2'));
+	});
+
 	test('restore return does not paint success or refresh when the link or session changed', async () => {
 		async function run(label: string, duringRestore: (state: { sessionId: string; linkId?: number; engineIdentityId?: string }) => void): Promise<void> {
 			const state = { sessionId: 'sess-1', linkId: 4 as number | undefined, engineIdentityId: 'eng-start' as string | undefined };
@@ -1974,5 +2163,61 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.notStrictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
 		assert.ok(!(status?.textContent ?? '').includes(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY));
 		assert.ok(!status?.classList.contains('is-success'));
+	});
+});
+
+suite('ConversationEngineSnapshotsList (browser dispose gate)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('late listSnapshots after show-then-dispose does not paint snapshot rows', async () => {
+		let releaseList: ((value: { snapshots: UniverseAgentSessionSnapshotInfo[] }) => void) | undefined;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: () => new Promise(resolve => {
+				releaseList = resolve;
+			}),
+		});
+
+		const roster: IConversationRosterService = {
+			getActiveSessionId: () => 'sess-1',
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			onDidChangeEngineConnection: Event.None,
+			isEngineConnected: () => true,
+		} as IConversationRosterService;
+
+		const buttonParent = document.createElement('div');
+		const overlayParent = document.createElement('div');
+		document.body.appendChild(buttonParent);
+		document.body.appendChild(overlayParent);
+		store.add({ dispose: () => { buttonParent.remove(); overlayParent.remove(); } });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IDialogService, { confirm: async () => ({ confirmed: false }) } as unknown as IDialogService);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		instantiationService.stub(IConversationRosterService, roster);
+
+		const list = instantiationService.createInstance(ConversationEngineSnapshotsList, buttonParent, overlayParent, undefined);
+		list.show();
+		list.dispose();
+		await timeout(0);
+
+		releaseList!({
+			snapshots: [{
+				id: 'late-after-dispose',
+				sessionId: 'sess-1',
+				title: 'Late',
+				createdAt: 1,
+				turnCount: 1,
+			}],
+		});
+		await timeout(0);
+
+		assert.strictEqual(
+			list.overlayElement.querySelectorAll(`.${conversationLensSnapshotsRowClass}`).length,
+			0,
+		);
+		assert.ok(!(list.overlayElement.textContent ?? '').includes('late-after-dispose'));
 	});
 });
