@@ -5997,7 +5997,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -6053,7 +6053,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -6105,7 +6105,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			section.getDomNode().parentElement?.remove();
 		} finally {
@@ -6130,22 +6130,22 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			connection.setPublishedLink(identity, 7);
 			const section = mountAgentsSection(connection);
 			await flushMicrotasks();
-			assert.strictEqual(await section.createProfile({ ...profile, id: 'derived' }), true);
+			assert.strictEqual(await section.createProfile({ ...profile, id: 'derived' }), true, 'create');
 			await section.selectProfileByIdForTest('demo');
-			assert.strictEqual(await section.saveSelectedProfile({ summary: 'changed' }), true);
+			assert.strictEqual(await section.saveSelectedProfile({ summary: 'changed' }), true, 'save');
 			section.setAgentsMarkdownValue('new instructions');
-			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			assert.strictEqual(await section.saveAgentsMarkdown(), true, 'markdown');
 			section.setActiveAgentDetailTabForTest('model');
 			section.setAgentModelIdForTest('fixture-model');
-			assert.strictEqual(await section.saveAgentModelForTest(), true);
+			assert.strictEqual(await section.saveAgentModelForTest(), true, 'model');
 			section.setActiveAgentDetailTabForTest('tools');
 			await flushMicrotasks();
 			section.setAgentToolPendingForTest({ name: 'bash' }, false);
-			assert.strictEqual(await section.saveAgentToolEnablementForTest(), true);
+			assert.strictEqual(await section.saveAgentToolEnablementForTest(), true, 'tools');
 			await section.selectProfileByIdForTest('builtin');
-			assert.strictEqual(await section.resetSelectedProfile(), true);
+			assert.strictEqual(await section.resetSelectedProfile(), true, 'reset');
 			await section.selectProfileByIdForTest('demo');
-			assert.strictEqual(await section.deleteSelectedProfile(), true);
+			assert.strictEqual(await section.deleteSelectedProfile(), true, 'delete');
 			assert.deepStrictEqual(writes, [
 				{ method: 'save', id: 'derived' }, { method: 'save', id: 'demo' }, { method: 'save', id: 'demo' },
 				{ method: 'save', id: 'demo' }, { method: 'save', id: 'demo' }, { method: 'reset', id: 'builtin' }, { method: 'delete', id: 'demo' },

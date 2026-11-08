@@ -35,6 +35,7 @@ import { engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import { localize } from '../../../../../nls.js';
+import { createConversationConnectionTestStub, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const TOOLS_FEATURE = localize('ua.engineToolsFeatureLabel', "engine tools");
 
@@ -903,7 +904,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const list = readList();
 		assert.ok(list);
 		assert.strictEqual(list.renderHeight, 160);
-		assert.strictEqual(list.contentHeight, 2 * 24);
+		assert.strictEqual(list.contentHeight, 28 + 44);
 	});
 
 	test('fixed-height rows paint initial, pending and profile state immediately without moving focus or reloading detail', async () => {
@@ -1242,7 +1243,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		recycledToggle.click();
 		assert.deepStrictEqual(pendingUpdates, [{ name: tool.name, enabled: false }, { name: recycledName, enabled: false }], 'one click on a recycled row must enter the original pending edit handler exactly once');
 		assert.strictEqual(recycledToggle.getAttribute('aria-checked'), 'false', 'the observed original handler must still apply the edit');
-		assert.strictEqual(list.contentHeight, (tools.length + 1) * 24);
+		assert.strictEqual(list.contentHeight, 28 + tools.length * 44);
 	});
 
 	for (const transition of ['same-engine-link', 'workroot'] as const) {
@@ -1588,5 +1589,107 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.strictEqual(section.getDomNode().parentElement, null);
 		assert.strictEqual(section.getDomNode().childNodes.length, 0);
 		parent.remove();
+	});
+});
+
+suite('EngineToolsSection (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('late listTools after dispose does not paint tool rows', async () => {
+		let releaseList: ((value: UniverseAgentListToolsResult) => void) | undefined;
+		const capabilities = createTestCapabilitySnapshot({
+			tools: { support: 'SUPPORTED' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			listTools: () => new Promise(resolve => {
+				releaseList = resolve;
+			}),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = instantiationService.createInstance(EngineToolsSection, parent);
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await timeout(0);
+
+		section.dispose();
+		releaseList?.({
+			tools: [{ name: 'late-after-dispose-bash', description: 'shell tool', category: 'shell' }],
+		});
+		await timeout(0);
+
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-catalog-row').length, 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('late-after-dispose-bash'));
+	});
+
+	test('group header renders group item count in .engine-catalog-group-count (S9)', async () => {
+		const capabilities = createTestCapabilitySnapshot({
+			tools: { support: 'SUPPORTED' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+			listTools: async () => ({
+				tools: [
+					{ name: 'tool-1', description: 't1', category: 'cat' },
+					{ name: 'tool-2', description: 't2', category: 'cat' },
+					{ name: 'tool-3', description: 't3', category: 'cat' },
+				],
+			}),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await timeout(0);
+		section.layout(640, 160);
+
+		const counts = Array.from(parent.querySelectorAll('.engine-catalog-group-count')).map(el => el.textContent?.trim());
+		assert.ok(counts.some(c => c && parseInt(c, 10) > 0), `expected non-empty group count, got: ${counts.join(', ')}`);
 	});
 });

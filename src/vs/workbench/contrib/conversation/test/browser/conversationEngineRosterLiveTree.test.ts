@@ -351,7 +351,7 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

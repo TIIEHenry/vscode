@@ -320,7 +320,7 @@ suite('ConnectionPreferencesPane', () => {
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		// The pane keeps the fire-and-forget promise handled even when the handler rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -335,9 +335,28 @@ suite('ConnectionPreferencesPane', () => {
 		try {
 			await run();
 			await timeout(0);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(unexpectedWarns.length, 1);
+			assert.strictEqual(unexpectedWarns[0], paintBoom);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	async function assertUnexpectedErrorDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => unexpectedWarns.push(error));
+		try {
+			await run();
+			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -4251,6 +4270,7 @@ suite('ConnectionPreferencesPane', () => {
 
 	test('Disconnect throw paints visible Profiles status', async () => {
 		const pane = mountPane({}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			disconnect: async () => {
 				throw new Error('boom');
 			},
@@ -4272,6 +4292,60 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(profilesStatus.classList.contains('is-error'));
 		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'profile-a');
 		container.remove();
+	});
+
+	test('Disconnect and Forget are disabled with a reason when there is nothing to act on', () => {
+		const describeActions = (pane: ConnectionPreferencesPane) => {
+			pane.layout(new Dimension(800, 800));
+			pane.selectZone('profiles');
+			const buttons = [...pane.getDomNode().querySelectorAll('.connection-profile-actions .monaco-button')];
+			const result = ['Disconnect', 'Forget this Engine'].map(label => {
+				const button = buttons.find(candidate => candidate.textContent === label);
+				return { disabled: button?.getAttribute('aria-disabled') === 'true', ariaLabel: button?.getAttribute('aria-label') };
+			});
+			pane.getDomNode().remove();
+			return result;
+		};
+		const idle = describeActions(mountPane());
+		const live = describeActions(mountPane({
+			listConnectionProfiles: () => [{ profileId: 'profile-1', displayName: 'Studio', state: 'active', hasTrust: true, targetKind: 'hubDevice' }],
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		}));
+		assert.deepStrictEqual({ idle, live }, {
+			idle: [
+				{ disabled: true, ariaLabel: 'Disconnect. No engine is connected.' },
+				{ disabled: true, ariaLabel: 'Forget this Engine. Select a profile first.' },
+			],
+			live: [
+				{ disabled: false, ariaLabel: 'Disconnect' },
+				{ disabled: false, ariaLabel: 'Forget this Engine' },
+			],
+		});
+	});
+
+	test('narrow navigation: arrows only move focus, Enter opens the focused zone', async () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(480, 800));
+		(container.querySelector('.connection-preferences-back') as HTMLButtonElement).click();
+		const list = container.querySelector('.connection-preferences-nav .monaco-list') as HTMLElement;
+		const title = container.querySelector('.connection-preferences-detail-title') as HTMLElement;
+		const press = (key: string, keyCode: number) => list.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+		const snapshot = () => ({ showingDetail: container.classList.contains('is-showing-detail'), title: title.textContent });
+		const before = snapshot();
+		press('ArrowDown', 40);
+		await timeout(0);
+		const afterArrow = snapshot();
+		press('Enter', 13);
+		await timeout(0);
+		const afterEnter = snapshot();
+		container.remove();
+		assert.deepStrictEqual({ before, afterArrow, enteredOtherZone: afterEnter.showingDetail && afterEnter.title !== before.title }, {
+			before: { showingDetail: false, title: before.title },
+			afterArrow: { showingDetail: false, title: before.title },
+			enteredOtherZone: true,
+		});
 	});
 
 	test('Forget throw paints visible Profiles status', async () => {
@@ -6689,9 +6763,9 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('does not leak unhandled rejection when constructor initializeState throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when constructor initializeState throws and onUnexpectedError reports', async () => {
 		const paintBoom = new Error('paint boom');
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+		await assertUnexpectedErrorDoesNotLeak(paintBoom, () => {
 			const pane = mountPane({
 				isEncryptionAvailable: () => {
 					throw paintBoom;
@@ -7034,6 +7108,7 @@ suite('ConnectionPreferencesPane', () => {
 	test('does not leak unhandled rejection when handleDisconnect catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('paint boom');
 		const pane = mountPane({}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			disconnect: async () => {
 				throw new Error('boom');
 			},
@@ -8043,5 +8118,191 @@ suite('Conversation Session StatusBar H4a negative', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 	test('engine status copy stays not connected before H4b phase wiring', () => {
 		assert.strictEqual(getConversationEngineStatusText(), 'Engine not connected');
+	});
+});
+
+suite('ConnectionPreferencesPane (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function createHubStub(): Partial<IUniverseAgentHubService> {
+		return {
+			_serviceBrand: undefined,
+			getActiveHubBaseUrl: () => undefined,
+			setActiveHubBaseUrl: () => { },
+			getAuthStatus: () => ({ kind: 'signedOut' }),
+			getDirectoryStatus: () => ({ kind: 'idle' }),
+			listConnectionProfiles: () => [],
+			onDidChangeAuthStatus: Event.None,
+			onDidChangeDirectory: Event.None,
+			onDidChangeProfiles: Event.None,
+			login: async () => ({ ok: true }),
+			logout: async () => { },
+			changePassword: async () => ({ ok: true }),
+			refreshDirectory: async () => ({ kind: 'idle' }),
+			renameDevice: async () => ({ ok: true }),
+			revokeDevice: async () => ({ ok: true }),
+			confirmDeviceCode: async () => ({ ok: true }),
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
+			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
+			forgetConnectionProfile: async () => ({ ok: true }),
+			isEncryptionAvailable: async () => true,
+		};
+	}
+
+	test('late listDevices after dispose does not paint hub device rows', async () => {
+		let resolveList!: (value: UniverseAgentListDevicesResult) => void;
+		const listDevices = new Promise<UniverseAgentListDevicesResult>(resolve => {
+			resolveList = resolve;
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listDevices: () => listDevices,
+		});
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: true }),
+			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
+		} as unknown as IDialogService);
+
+		const pane = instantiationService.createInstance(ConnectionPreferencesPane);
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(800, 800));
+		await timeout(0);
+
+		pane.dispose();
+
+		resolveList({
+			devices: [{
+				deviceId: 'eng-late',
+				displayName: 'late-after-dispose',
+				role: '',
+				platform: '',
+				pairedAt: 0,
+				lastSeenAt: 0,
+				active: false,
+			}],
+		});
+		await timeout(0);
+
+		assert.ok(!(pane.getDomNode().textContent ?? '').includes('late-after-dispose'));
+	});
+
+	test('late probeEngine after dispose does not paint test status', async () => {
+		let resolveProbe!: (value: { ok: true; engineIdentityId: string }) => void;
+		const probe = new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+			resolveProbe = resolve;
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			probeEngine: () => probe,
+		});
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IDialogService, {
+			_serviceBrand: undefined,
+			prompt: async () => ({ result: false }),
+			confirm: async () => ({ confirmed: true }),
+			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
+		} as unknown as IDialogService);
+
+		const pane = instantiationService.createInstance(ConnectionPreferencesPane);
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('test');
+
+		const testButton = pane.getDomNode().querySelector('.connection-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = pane.getDomNode().querySelector('.connection-test-status') as HTMLElement;
+		assert.ok(testButton);
+		assert.ok(testStatus);
+
+		testButton.click();
+		await timeout(0);
+
+		pane.dispose();
+
+		resolveProbe({ ok: true, engineIdentityId: 'late-engine' });
+		await timeout(0);
+
+		assert.ok(!(testStatus.textContent ?? '').includes('Reachable'));
+	});
+
+	test('narrow navigation returns focus to Back when opening a detail section', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(480, 600));
+
+		const backButton = pane.getDomNode().querySelector('.connection-preferences-back') as HTMLButtonElement;
+		backButton.click();
+		const navHost = pane.getDomNode().querySelector('.connection-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		// The Back button is the first reachable control after the nav is hidden.
+		pane.selectZone('direct');
+		await timeout(0);
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
+		assert.strictEqual(pane.getDomNode().classList.contains('is-showing-detail'), true);
+	});
+
+	test('resizing from wide navigation returns focus to Back', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(800, 800));
+
+		const navHost = pane.getDomNode().querySelector('.connection-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		pane.layout(new Dimension(480, 800));
+		await timeout(0);
+
+		const backButton = pane.getDomNode().querySelector('.connection-preferences-back') as HTMLButtonElement;
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
 	});
 });

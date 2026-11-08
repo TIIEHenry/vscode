@@ -10,12 +10,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type {
-	UniverseAgentCapabilitySnapshot,
-	UniverseAgentConnectionSnapshot,
-	UniverseAgentSessionEvent,
-	UniverseAgentSessionStreamCloseCause,
-} from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot, UniverseAgentSessionEvent, UniverseAgentSessionStreamCloseCause, UniverseAgentGetMcpServerStatusesResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
@@ -23,6 +18,7 @@ import { isConversationPairingHold } from '../../browser/conversationSessionStat
 import { EngineMcpRuntimePanel } from '../../browser/engineMcpRuntimePanel.js';
 import { EngineCatalogStatusWidget } from '../../browser/engineCatalogStatus.js';
 import { localize } from '../../../../../nls.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const MCP_RUNTIME_FEATURE = localize('ua.engineMcpRuntimeFeatureLabel', "MCP server runtime");
 const MCP_RUNTIME_TOOLS_FEATURE = localize('ua.engineMcpRuntimeToolsFeature', "MCP server tools");
@@ -1423,7 +1419,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			panel.getDomNode().parentElement?.remove();
 		} finally {
@@ -1469,12 +1465,65 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			panel.getDomNode().parentElement?.remove();
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+});
+
+suite('EngineMcpRuntimePanel (browser)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('late getMcpServerStatuses after dispose does not paint runtime rows', async () => {
+		let releaseStatuses: ((value: UniverseAgentGetMcpServerStatusesResult) => void) | undefined;
+		const capabilities = {
+			...createEmptyTestCapabilitySnapshot(),
+			mcpRuntime: { support: 'SUPPORTED' as const },
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			getMcpServerStatuses: () => new Promise(resolve => {
+				releaseStatuses = resolve;
+			}),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const panel = instantiationService.createInstance(EngineMcpRuntimePanel, parent);
+		panel.layout(640, 240);
+		await timeout(0);
+
+		panel.dispose();
+		releaseStatuses?.({
+			statuses: [{ serverId: 'late-runtime-server', status: 'connected' }],
+			checkedAt: Date.now(),
+		});
+		await timeout(0);
+
+		assert.strictEqual(panel.getListEntryCount(), 0);
+		assert.strictEqual(panel.getDomNode().querySelectorAll('.engine-catalog-row').length, 0);
+		assert.ok(!(panel.getDomNode().textContent ?? '').includes('late-runtime-server'));
 	});
 });

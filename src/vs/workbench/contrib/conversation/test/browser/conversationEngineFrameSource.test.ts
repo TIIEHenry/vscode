@@ -435,7 +435,7 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			assert.deepStrictEqual({ unhandledRejections, windowUnhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
 				windowUnhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

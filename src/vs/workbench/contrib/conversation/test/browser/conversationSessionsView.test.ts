@@ -12,6 +12,10 @@ import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuItemAction, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import type { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import type { IContextMenuDelegate } from '../../../../../base/browser/contextmenu.js';
+import { Action } from '../../../../../base/common/actions.js';
+import type { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
+import { KeybindingsRegistry } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
@@ -27,7 +31,7 @@ import { IEditorOptions } from '../../../../../platform/editor/common/editor.js'
 import { IEditorService, PreferredGroup } from '../../../../services/editor/common/editorService.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.contribution.js';
-import { CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
+import { CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_FOCUSED_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import type { SessionRosterEntry } from '../../browser/conversationSessionsViewStrings.js';
@@ -39,6 +43,12 @@ import { createConversationConnectionTestStub } from '../common/conversationConn
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { createNoopConversationSessionWindowService, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import '../../../conversation/browser/conversation.contribution.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { Color, RGBA } from '../../../../../base/common/color.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { asCssVariableName, getColorRegistry } from '../../../../../platform/theme/common/colorRegistry.js';
+import { ColorThemeData } from '../../../../services/themes/common/colorThemeData.js';
+import { COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS } from '../../../../services/themes/common/workbenchThemeService.js';
 
 suite('ConversationSessionsView', () => {
 
@@ -202,7 +212,7 @@ suite('ConversationSessionsView', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -761,6 +771,138 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(stubService.getActiveSessionId(), secondId);
 	});
 
+	function rosterEntries(view: ConversationSessionsView): SessionRosterEntry[] {
+		const list = getViewList(view) as unknown as WorkbenchList<SessionRosterEntry>;
+		return Array.from({ length: list.length }, (_, index) => list.element(index));
+	}
+
+	function rosterIndexOf(view: ConversationSessionsView, sessionId: string): number {
+		return rosterEntries(view).findIndex(entry => entry.kind === 'session' && entry.session.id === sessionId);
+	}
+
+	function keydown(target: HTMLElement, key: string, keyCode: number): void {
+		target.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+	}
+
+	function attachToDocument(view: ConversationSessionsView): void {
+		const host = view.element.parentElement!;
+		document.body.appendChild(host);
+		store.add(toDisposable(() => host.remove()));
+	}
+
+	test('roster refresh keeps keyboard focus on the row the user moved to', () => {
+		const { view, stubService } = mountView();
+		const activeId = stubService.getActiveSessionId();
+		const otherId = stubService.getSessions().find(session => session.id !== activeId)!.id;
+		const list = getViewList(view);
+		const otherIndex = rosterIndexOf(view, otherId);
+		list.setFocus([otherIndex]);
+
+		stubService.renameSession(otherId, 'Background update');
+
+		assert.deepStrictEqual({ active: stubService.getActiveSessionId(), focus: list.getFocus() }, { active: activeId, focus: [otherIndex] });
+	});
+
+	test('switching the active session still moves selection and focus to it', () => {
+		const { view, stubService } = mountView();
+		const otherId = stubService.getSessions().find(session => session.id !== stubService.getActiveSessionId())!.id;
+		const list = getViewList(view);
+
+		stubService.switchSession(otherId);
+
+		const otherIndex = rosterIndexOf(view, otherId);
+		assert.deepStrictEqual({ focus: list.getFocus(), selection: list.getSelection() }, { focus: [otherIndex], selection: [otherIndex] });
+	});
+
+	test('ArrowDown in the filter box moves focus to the first session row', () => {
+		const { view, stubService } = mountView();
+		const otherId = stubService.getSessions().find(session => session.id !== stubService.getActiveSessionId())!.id;
+		stubService.switchSession(otherId);
+		attachToDocument(view);
+		const input = getFilterInput(view)!;
+		const list = getViewList(view);
+		input.focus();
+
+		keydown(input, 'ArrowDown', 40);
+
+		const firstSession = rosterEntries(view).findIndex(entry => entry.kind === 'session');
+		assert.deepStrictEqual({ focus: list.getFocus(), listHasDomFocus: list.getHTMLElement().contains(document.activeElement) }, { focus: [firstSession], listHasDomFocus: true });
+	});
+
+	test('Escape in the filter box clears it first, then hands focus back to the list', async () => {
+		const { view } = mountView();
+		attachToDocument(view);
+		const input = getFilterInput(view)!;
+		const list = getViewList(view);
+		await setFilterQuery(view, 'zzz-no-match');
+		input.focus();
+
+		keydown(input, 'Escape', 27);
+		const afterFirst = { value: input.value, listHasDomFocus: list.getHTMLElement().contains(document.activeElement) };
+		keydown(input, 'Escape', 27);
+		const afterSecond = { value: input.value, listHasDomFocus: list.getHTMLElement().contains(document.activeElement) };
+
+		assert.deepStrictEqual({ afterFirst, afterSecond }, {
+			afterFirst: { value: '', listHasDomFocus: false },
+			afterSecond: { value: '', listHasDomFocus: true },
+		});
+	});
+
+	test('row More menu deletes that row after confirmation, not the active session', async () => {
+		const { view, stubService, dialog, errors } = mountView();
+		const activeId = stubService.getActiveSessionId();
+		const other = stubService.getSessions().find(session => session.id !== activeId)!;
+		const contextMenuService = (view as unknown as { contextMenuService: IContextMenuService }).contextMenuService;
+		let menu: IContextMenuDelegate | undefined;
+		contextMenuService.showContextMenu = delegate => { menu = delegate as IContextMenuDelegate; };
+		const row = [...view.element.querySelectorAll('.conversation-sessions-item')]
+			.find(candidate => candidate.querySelector('.conversation-sessions-item-label')?.textContent === other.title)!;
+		(row.querySelector('.conversation-sessions-item-more') as HTMLButtonElement).click();
+		dialog.setConfirmResult({ confirmed: true });
+
+		const actions = menu!.getActions();
+		for (const action of actions) {
+			store.add(action as Action);
+		}
+		const deleteAction = actions.find(action => action.id === 'workbench.action.conversationSessions.deleteSessionRow');
+		await deleteAction!.run();
+
+		assert.deepStrictEqual({
+			labels: actions.map(action => action.label),
+			remaining: stubService.getSessions().some(session => session.id === other.id),
+			active: stubService.getActiveSessionId(),
+			errors,
+		}, {
+			labels: ['Open beside', 'Delete'],
+			remaining: false,
+			active: activeId,
+			errors: [],
+		});
+	});
+
+	test('Delete key in the Sessions list deletes the focused row', async () => {
+		const { view, stubService, dialog } = mountView();
+		const activeId = stubService.getActiveSessionId();
+		const otherId = stubService.getSessions().find(session => session.id !== activeId)!.id;
+		getViewList(view).setFocus([rosterIndexOf(view, otherId)]);
+		dialog.setConfirmResult({ confirmed: true });
+
+		await view.deleteFocusedSession();
+
+		assert.deepStrictEqual(stubService.getSessions().map(session => session.id), [activeId]);
+	});
+
+	test('Delete keybinding is scoped to a focused Sessions list', () => {
+		const binding = KeybindingsRegistry.getDefaultKeybindings().find(item => item.command === CONVERSATION_SESSIONS_DELETE_FOCUSED_SESSION_COMMAND_ID);
+		assert.ok(binding?.when);
+		const when = binding.when.serialize();
+		assert.deepStrictEqual({
+			view: when.includes(`focusedView == '${CONVERSATION_SESSIONS_VIEW_ID}'`),
+			list: when.includes('listFocus'),
+			notInput: when.includes('!inputFocus'),
+		}, { view: true, list: true, notInput: true });
+	});
+
 	test('createNewSession leftover history while pairingPending shows notice and does not create', () => {
 		class PairingHoldCreateRoster extends ConversationStubService {
 			createSessionCalls = 0;
@@ -1308,4 +1450,226 @@ suite('ConversationSessionsView', () => {
 			view.openSessionBeside(stubService.getActiveSessionId());
 		});
 	});
+});
+
+suite('ConversationSessionsView (browser co-located)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	const stubViewContainer = {
+		id: 'conversation-sessions-colocated-test-container',
+		title: { value: 'Sessions', original: 'Sessions' },
+	} as ViewContainer;
+
+	function createViewDescriptorServiceStub(): IViewDescriptorService {
+		return new class extends mock<IViewDescriptorService>() {
+			override onDidChangeLocation = Event.None;
+			override getViewLocationById(_id: string): ViewContainerLocation {
+				return ViewContainerLocation.Sidebar;
+			}
+			override getViewDescriptorById(_id: string) {
+				return null;
+			}
+			override getViewContainerByViewId(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			}
+			override getViewContainerModel(_viewContainer: ViewContainer): IViewContainerModel {
+				return {
+					title: stubViewContainer.title.value,
+					onDidChangeContainerInfo: Event.None,
+				} as IViewContainerModel;
+			}
+			override getDefaultContainerById(_id: string): ViewContainer | null {
+				return stubViewContainer;
+			}
+		}();
+	}
+
+	async function setFilterQuery(view: ConversationSessionsView, query: string): Promise<void> {
+		const input = view.element.querySelector('.conversation-sessions-inline-filter-input') as HTMLInputElement | null;
+		assert.ok(input, 'filter input must exist');
+		input.value = query;
+		input.dispatchEvent(new globalThis.Event('input'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+	}
+
+	function getVisibleSessionTitles(view: ConversationSessionsView): string[] {
+		return [...view.element.querySelectorAll('.conversation-sessions-item-label')]
+			.map(label => label.textContent ?? '');
+	}
+
+	function mountView(stubService?: ConversationStubService): { view: ConversationSessionsView; stubService: ConversationStubService } {
+		const service = stubService ?? store.add(new ConversationStubService());
+		const layoutService = new class extends TestLayoutService {
+			override isVisible(part: Parts): boolean {
+				return part === Parts.CONVERSATION_PART ? true : super.isVisible(part);
+			}
+		}();
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, service);
+		instantiationService.stub(IWorkbenchLayoutService, layoutService);
+		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		instantiationService.stub(INotificationService, {
+			error: (message: string | Error) => {
+				void (typeof message === 'string' ? message : getErrorMessage(message));
+			},
+		} as INotificationService);
+		stubConversationTimelineLinkServices(instantiationService);
+		instantiationService.stub(IEditorService, store.add(new TestEditorService()));
+
+		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
+		conversationPart.create(document.createElement('div'));
+		instantiationService.stub(IConversationPartService, conversationPart);
+
+		const view = store.add(instantiationService.createInstance(ConversationSessionsView, {
+			id: CONVERSATION_SESSIONS_VIEW_ID,
+			title: 'Sessions',
+		}));
+		const container = document.createElement('div');
+		view.render();
+		container.appendChild(view.element);
+		view.setExpanded(true);
+		view.setVisible(true);
+		return { view, stubService: service };
+	}
+
+	test('inline filter keeps the active session visible when its title does not match', async () => {
+		const { view, stubService } = mountView();
+		const alphaId = stubService.getActiveSessionId();
+		stubService.renameSession(alphaId, 'Alpha roster item');
+		const betaId = stubService.createSession();
+		stubService.renameSession(betaId, 'Beta roster item');
+		stubService.switchSession(betaId);
+
+		await setFilterQuery(view, 'alpha');
+
+		const titles = getVisibleSessionTitles(view);
+		assert.strictEqual(stubService.getActiveSessionId(), betaId);
+		assert.ok(titles.includes('Beta roster item'), 'active session must stay in the filtered roster');
+		assert.ok(titles.includes('Alpha roster item'));
+		assert.strictEqual(titles.length, 2);
+		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label')?.textContent === 'Beta roster item');
+		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-more'));
+		assert.ok(view.element.querySelector('.conversation-sessions-item-icon--waiting, .conversation-sessions-item-icon--idle, .conversation-sessions-item-icon--running, .conversation-sessions-item-icon--failed'));
+	});
+
+	function paintedColor(...layers: string[]): Color {
+		const canvas = document.createElement('canvas');
+		canvas.width = canvas.height = 1;
+		const context = canvas.getContext('2d')!;
+		for (const layer of layers) {
+			context.fillStyle = layer;
+			context.fillRect(0, 0, 1, 1);
+		}
+		const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+		return new Color(new RGBA(r, g, b, a / 255));
+	}
+
+	const rosterThemes = [
+		{ name: 'Light+', selector: 'vs', colors: {} },
+		{ name: 'UniverseAgentStudio Light', selector: 'vs', colors: COLOR_THEME_LIGHT_INITIAL_COLORS },
+		{ name: 'UniverseAgentStudio Dark', selector: 'vs-dark', colors: COLOR_THEME_DARK_INITIAL_COLORS },
+		{ name: 'High Contrast Dark', selector: 'hc-black', colors: {} },
+		{ name: 'High Contrast Light', selector: 'hc-light', colors: {} },
+	];
+
+	for (const theme of rosterThemes) {
+		test(`${theme.name}: selected session text follows the real list across focus changes`, async function () {
+			// The Electron unit runner keeps its BrowserWindow hidden. These CSS
+			// focus checks run in the browser runner with an actually focused page.
+			const testWindow = getWindow(document.body);
+			testWindow.focus();
+			await timeout(0);
+			if (!testWindow.document.hasFocus()) {
+				this.skip();
+			}
+
+			const stylesheet = document.createElement('link');
+			stylesheet.rel = 'stylesheet';
+			stylesheet.href = new URL('./media/conversationSessions.css', import.meta.url).href;
+			store.add(toDisposable(() => stylesheet.remove()));
+			await new Promise<void>((resolve, reject) => {
+				stylesheet.onload = () => resolve();
+				stylesheet.onerror = () => reject(new Error('Session roster stylesheet failed to load'));
+				document.head.appendChild(stylesheet);
+			});
+
+			// Resolve the platform defaults and the actual product palettes, rather
+			// than painting a hand-made selected background over a fake list row.
+			const colorTheme = ColorThemeData.createLoadedEmptyTheme(theme.selector, theme.name);
+			colorTheme.setCustomColors(theme.colors);
+			const workbench = document.createElement('div');
+			const ownerDocument = getWindow(workbench).document;
+			workbench.className = `monaco-workbench ${theme.selector}`;
+			for (const { id } of getColorRegistry().getColors()) {
+				const color = colorTheme.getColor(id);
+				workbench.style.setProperty(asCssVariableName(id), color?.toString() ?? 'initial');
+			}
+			workbench.style.color = 'var(--vscode-foreground)';
+			workbench.style.backgroundColor = 'var(--vscode-sideBar-background)';
+			workbench.style.width = '300px';
+			document.body.appendChild(workbench);
+			store.add(toDisposable(() => workbench.remove()));
+
+			const { view, stubService } = mountView();
+			const inactiveSession = stubService.getActiveSessionId();
+			stubService.renameSession(inactiveSession, 'Inactive session');
+			const activeSession = stubService.createSession();
+			stubService.renameSession(activeSession, 'Selected session');
+			workbench.appendChild(view.element);
+			const outsideInput = document.createElement('textarea');
+			outsideInput.setAttribute('aria-label', 'Message');
+			workbench.appendChild(outsideInput);
+			view.orthogonalSize = 300;
+			view.layout(240);
+
+			const list = view.element.querySelector<HTMLElement>('.conversation-sessions-list .monaco-list')!;
+			const activeItem = view.element.querySelector<HTMLElement>('.conversation-sessions-item-active')!;
+			const selectedRow = activeItem.closest<HTMLElement>('.monaco-list-row')!;
+			const label = selectedRow.querySelector<HTMLElement>('.conversation-sessions-item-label')!;
+			const inactiveLabel = [...view.element.querySelectorAll<HTMLElement>('.conversation-sessions-item-label')]
+				.find(element => !element.closest('.conversation-sessions-item-active'))!;
+			const subtitle = selectedRow.querySelector<HTMLElement>('.conversation-sessions-item-subtitle')!;
+			const idleIcon = selectedRow.querySelector<HTMLElement>('.conversation-sessions-item-icon--idle')!;
+			assert.ok(list && activeItem && selectedRow && label && inactiveLabel && subtitle && idleIcon);
+			assert.strictEqual(getWindow(label).getComputedStyle(label).fontWeight, '600');
+			assert.strictEqual(getWindow(inactiveLabel).getComputedStyle(inactiveLabel).fontWeight, '400');
+
+			for (const focused of [true, false, true]) {
+				getWindow(workbench).focus();
+				(focused ? list : outsideInput).focus();
+				await timeout(0);
+				assert.deepStrictEqual({ documentFocus: ownerDocument.hasFocus(), listFocus: list.matches(':focus') }, {
+					documentFocus: true, listFocus: focused,
+				}, `${theme.name}: the test window must have native focus before measuring list styles`);
+				assert.strictEqual(ownerDocument.activeElement, focused ? list : outsideInput);
+				const rowStyle = getWindow(selectedRow).getComputedStyle(selectedRow);
+				const background = paintedColor(
+					colorTheme.getColor('sideBar.background')!.toString(), rowStyle.backgroundColor,
+				);
+				const rowColor = paintedColor(rowStyle.color).toString();
+				const colorContext = {
+					theme: theme.name, focused,
+					foreground: rowStyle.color, background: rowStyle.backgroundColor,
+				};
+				const colors = [label, subtitle, idleIcon].map(element => {
+					const foreground = paintedColor(getWindow(element).getComputedStyle(element).color);
+					const contrast = foreground.getContrastRatio(background);
+					assert.ok(contrast >= 4.5, `${theme.name} ${focused ? 'active' : 'inactive'} ${element.className}: ${contrast.toFixed(2)}:1 ${JSON.stringify(colorContext)}`);
+					return foreground.toString();
+				});
+				const iconColor = colorTheme.getColor(`list.${focused ? 'activeSelection' : 'inactiveSelection'}IconForeground`);
+				assert.deepStrictEqual(colors, [rowColor, rowColor, iconColor?.toString() ?? rowColor], JSON.stringify(colorContext));
+				if (focused) {
+					assert.deepStrictEqual({
+						focused: selectedRow.classList.contains('focused'),
+						outlineVisible: !['none', 'hidden'].includes(rowStyle.outlineStyle)
+							&& parseFloat(rowStyle.outlineWidth) > 0
+							&& paintedColor(rowStyle.outlineColor).getContrastRatio(background) > 1,
+					}, { focused: true, outlineVisible: true }, JSON.stringify(colorContext));
+				}
+			}
+		});
+	}
 });

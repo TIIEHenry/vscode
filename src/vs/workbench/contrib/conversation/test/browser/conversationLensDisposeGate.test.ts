@@ -58,6 +58,7 @@ import {
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarTitleEmpty } from '../../browser/conversationLensSessionBarStrings.js';
+import { conversationSessionHoldReason, getConversationSessionReadiness } from '../../browser/conversationSessionAvailability.js';
 import { ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensResponseHost, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
@@ -667,7 +668,7 @@ suite('conversation lens dispose gate', () => {
 					throw paintBoom;
 				},
 			}, ['file:///tmp/readme.md']);
-		}, 2);
+		});
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0]!.id, SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND);
 		const uris = calls[0]!.args[0] as URI[];
@@ -725,7 +726,7 @@ suite('conversation lens dispose gate', () => {
 				throw paintBoom;
 			},
 		});
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host), 2);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host));
 	});
 
 	test('does not leak unhandled rejection when mermaid getExtension rejects, then-callback throws, and onUnexpectedError warn-then-rethrows', async () => {
@@ -737,7 +738,7 @@ suite('conversation lens dispose gate', () => {
 				throw paintBoom;
 			},
 		});
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host), 2);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host));
 	});
 
 	test('conversation lens mermaid resolve fire-and-forget voids double-catch onUnexpectedError', async () => {
@@ -1823,7 +1824,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => retryError(host, { id: 'msg-1' }), 2);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => retryError(host, { id: 'msg-1' }));
 		assert.deepStrictEqual(failures, ['failed']);
 	});
 
@@ -2906,9 +2907,10 @@ suite('conversation lens dispose gate', () => {
 		const renameCalls: number[] = [];
 		const draftWrites: string[] = [];
 		const sessions = [{ id: 'ua-a', title: 'A' }];
-		const titleButton = document.createElement('button');
+		const titleWrap = document.createElement('div');
+		const titleButton = titleWrap.appendChild(document.createElement('button'));
 		titleButton.textContent = 'A';
-		const titleInput = document.createElement('input');
+		const titleInput = titleWrap.appendChild(document.createElement('input'));
 		titleInput.hidden = true;
 		const titleLive = document.createElement('span');
 		titleLive.textContent = 'A';
@@ -3008,15 +3010,26 @@ suite('conversation lens dispose gate', () => {
 		fixture.host.sessionTitleInput.hidden = false;
 		fixture.host.sessionTitleInput.value = 'Hacked leftover title';
 		commitSessionTitleEdit(fixture.host);
-		assert.strictEqual(fixture.host.sessionTitleEditing, false);
-		assert.strictEqual(fixture.host.sessionTitleButton.hidden, false);
-		assert.strictEqual(fixture.host.sessionTitleInput.hidden, true);
+		assert.deepStrictEqual(sessionTitleEditorState(fixture.host), {
+			editing: true,
+			value: 'Hacked leftover title',
+			error: conversationSessionHoldReason(false, getConversationSessionReadiness(fixture.host.stubService)),
+		});
 		assert.deepStrictEqual(fixture.renameCalls, []);
 		assert.deepStrictEqual(fixture.createCalls, []);
 		assert.deepStrictEqual(fixture.deleteCalls, []);
 		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
-		assert.deepStrictEqual(fixture.failures, ['session_not_ready', 'session_not_ready', 'session_not_ready']);
+		assert.deepStrictEqual(fixture.failures, ['session_not_ready', 'session_not_ready']);
 	});
+
+	function sessionTitleEditorState(host: IConversationLensSessionBarHost): { editing: boolean; value: string; error: string | undefined } {
+		const error = host.sessionTitleInput.parentElement?.querySelector<HTMLElement>('.conversation-lens-session-title-error');
+		return {
+			editing: Boolean(host.sessionTitleEditing && !host.sessionTitleInput.hidden && host.sessionTitleButton.hidden),
+			value: host.sessionTitleInput.value,
+			error: error && !error.hidden ? error.textContent ?? '' : undefined,
+		};
+	}
 
 	test('pairing-hold SessionBar handlers still refuse title edit create delete', () => {
 		const fixture = sessionBarHandlerHost({ pairingPending: true, engineSessionReady: true });
@@ -3089,10 +3102,10 @@ suite('conversation lens dispose gate', () => {
 		beginSessionTitleEdit(blank.host);
 		blank.host.sessionTitleInput.value = '   ';
 		commitSessionTitleEdit(blank.host);
-		assert.strictEqual(blank.host.sessionTitleEditing, false);
+		assert.deepStrictEqual(sessionTitleEditorState(blank.host), { editing: true, value: '   ', error: conversationLensSessionBarTitleEmpty });
 		assert.strictEqual(blank.host.sessionTitleButton.textContent, 'A');
 		assert.deepStrictEqual(blank.renameCalls, []);
-		assert.deepStrictEqual(blank.failures, ['empty_session_title']);
+		assert.deepStrictEqual(blank.failures, []);
 		assert.strictEqual(blank.host.stubService.getSessions()[0].title, 'A');
 	});
 
@@ -3103,12 +3116,10 @@ suite('conversation lens dispose gate', () => {
 		fixture.host.sessionTitleInput.hidden = false;
 		fixture.host.sessionTitleInput.value = 'Renamed while pairing';
 		commitSessionTitleEdit(fixture.host);
-		assert.strictEqual(fixture.host.sessionTitleEditing, false);
-		assert.strictEqual(fixture.host.sessionTitleButton.hidden, false);
-		assert.strictEqual(fixture.host.sessionTitleInput.hidden, true);
+		assert.deepStrictEqual(sessionTitleEditorState(fixture.host), { editing: true, value: 'Renamed while pairing', error: conversationLensDockEngineNotConnected });
 		assert.strictEqual(fixture.host.sessionTitleButton.textContent, 'A');
 		assert.deepStrictEqual(fixture.renameCalls, []);
-		assert.deepStrictEqual(fixture.failures, ['engine_disconnected']);
+		assert.deepStrictEqual(fixture.failures, []);
 		assert.strictEqual(fixture.host.stubService.getSessions()[0].title, 'A');
 	});
 
@@ -5214,7 +5225,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => copyTurn(host, 'copied'), 2);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => copyTurn(host, 'copied'));
 		assert.deepStrictEqual(failures, ['failed']);
 	});
 

@@ -26,6 +26,9 @@ import {
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
+	conversationLensDockStopFailed,
+	conversationLensDockStopping,
+	conversationLensDockGoalFailed,
 	conversationLensInboxQueueClear,
 	conversationLensInboxQueueEnqueue,
 	conversationLensInboxQueueEnqueueUnavailable,
@@ -64,7 +67,7 @@ async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => voi
 		await timeout(0);
 		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 			unhandledRejections: [],
-			unexpectedWarns: [paintBoom, paintBoom],
+			unexpectedWarns: [paintBoom],
 		});
 	} finally {
 		setUnexpectedErrorHandler(originalErrorHandler);
@@ -110,6 +113,11 @@ async function assertInboxClickCatchPathDoesNotLeak(
 	} finally {
 		host.render = originalRender;
 	}
+}
+
+function inboxGoalFailure(overlay: ConversationInboxOverlay): string | undefined {
+	const label = overlay.element.querySelector('.conversation-lens-inbox-goal .conversation-lens-inbox-action-failure') as HTMLElement | null;
+	return label && !label.hidden ? label.textContent ?? undefined : undefined;
 }
 
 function stubInboxServices(
@@ -352,6 +360,12 @@ suite('ConversationInboxOverlay Stop', () => {
 		assert.strictEqual(roster.cancelGeneration(roster.getActiveSessionId()), false);
 	});
 
+	function getStopFailure(overlay: ConversationInboxOverlay): HTMLElement {
+		const label = overlay.element.querySelector('.conversation-lens-inbox-right .conversation-lens-inbox-action-failure') as HTMLElement | null;
+		assert.ok(label);
+		return label;
+	}
+
 	test('connected streaming Stop forwards cancelGeneration', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GeneratingRoster());
@@ -364,7 +378,31 @@ suite('ConversationInboxOverlay Stop', () => {
 		assert.deepStrictEqual(failures, []);
 	});
 
-	test('Stop cancelGeneration false with history shows engine_disconnected', () => {
+	test('accepted Stop shows Stopping… and ignores more clicks until the stream ends', () => {
+		const roster = store.add(new GeneratingRoster());
+		let streaming = true;
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, document.createElement('div'), createInboxDelegate({
+			hasStreamingEntry: () => streaming,
+		}), undefined));
+		const stop = getStopButton(overlay);
+		stop.click();
+		const stopping = [stop.textContent?.trim(), stop.getAttribute('aria-disabled'), stop.getAttribute('aria-label')];
+		stop.click();
+		overlay.render();
+		const stillStopping = stop.getAttribute('aria-disabled');
+		streaming = false;
+		overlay.render();
+		assert.deepStrictEqual({ stopping, stillStopping, cancels: roster.cancelCalls.length, settled: [stop.textContent?.trim(), stop.getAttribute('aria-label')] }, {
+			stopping: [conversationLensDockStopping, 'true', `${conversationLensDockStop}, ${conversationLensDockStopping}`],
+			stillStopping: 'true',
+			cancels: 1,
+			settled: [conversationLensDockStop, `${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`],
+		});
+	});
+
+	test('Stop refused after disconnect is explained beside Stop, not on the composer', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GeneratingRoster());
 		roster.cancelResult = false;
@@ -373,17 +411,17 @@ suite('ConversationInboxOverlay Stop', () => {
 		roster.connected = false;
 		getStopButton(overlay).click();
 		assert.deepStrictEqual(roster.cancelCalls, [{ sessionId: roster.getActiveSessionId(), agentId: undefined }]);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual({ failures, hidden: getStopFailure(overlay).hidden, text: getStopFailure(overlay).textContent }, { failures: [], hidden: false, text: conversationLensDockStopFailed });
 	});
 
-	test('Stop cancelGeneration false without history shows failed', () => {
+	test('Stop refused while streaming is explained beside Stop and Stop stays available', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GeneratingRoster());
 		roster.cancelResult = false;
 		const overlay = createOverlay(roster, failures, { hasStreamingEntry: true });
 		getStopButton(overlay).click();
 		assert.deepStrictEqual(roster.cancelCalls, [{ sessionId: roster.getActiveSessionId(), agentId: undefined }]);
-		assert.deepStrictEqual(failures, ['failed']);
+		assert.deepStrictEqual({ failures, text: getStopFailure(overlay).textContent, stop: getStopButton(overlay).getAttribute('aria-disabled') }, { failures: [], text: conversationLensDockStopFailed, stop: 'false' });
 	});
 
 	test('projection streaming without getTurns streaming enables Stop and cancelGeneration', () => {
@@ -559,7 +597,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.deepStrictEqual(roster.setGoalCalls, [{ sessionId: roster.getActiveSessionId(), goal: 'Ship the slice' }]);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
 		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-label'), `${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
-		assert.deepStrictEqual(failures, ['failed']);
+		assert.deepStrictEqual({ failures, goalFailure: inboxGoalFailure(overlay) }, { failures: [], goalFailure: conversationLensDockGoalFailed });
 	});
 
 	test('connected Goal cancelSessionGoal false shows failed and keeps existing goal', async () => {
@@ -573,10 +611,10 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.deepStrictEqual(roster.cancelGoalCalls, [roster.getActiveSessionId()]);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), 'Existing');
 		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-label'), `${conversationLensDockGoal}, Existing`);
-		assert.deepStrictEqual(failures, ['failed']);
+		assert.deepStrictEqual({ failures, goalFailure: inboxGoalFailure(overlay) }, { failures: [], goalFailure: conversationLensDockGoalFailed });
 	});
 
-	test('Goal setSessionGoal false after disconnect during prompt shows engine_disconnected', async () => {
+	test('Goal setSessionGoal false after disconnect during prompt is explained beside Goal', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new GoalRoster());
 		roster.setGoalResult = false;
@@ -589,7 +627,7 @@ suite('ConversationInboxOverlay Goal', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.setGoalCalls, [{ sessionId: roster.getActiveSessionId(), goal: 'Ship the slice' }]);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual({ failures, goalFailure: inboxGoalFailure(overlay) }, { failures: [], goalFailure: conversationLensDockGoalFailed });
 	});
 
 	test('disconnected Goal stays disabled without setSessionGoal', async () => {
@@ -628,16 +666,6 @@ suite('ConversationInboxOverlay Goal', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when Goal click catch-path showPostFailure throws and onUnexpectedError warn-then-rethrows', async () => {
-		const paintBoom = new Error('paint boom');
-		const roster = store.add(new GoalRoster());
-		roster.setGoalResult = false;
-		const overlay = createOverlay(roster, 'Ship the slice', [], undefined, undefined, connectionWithSetSessionGoal());
-		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'showPostFailure', () => {
-			getGoalButton(overlay).click();
-		});
-	});
-
 	test('does not leak unhandled rejection when Goal click catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('paint boom');
 		const roster = store.add(new GoalRoster());
@@ -647,17 +675,18 @@ suite('ConversationInboxOverlay Goal', () => {
 		});
 	});
 
-	test('inbox overlay goal and enqueue fire-and-forget voids double-catch onUnexpectedError', async () => {
+	test('inbox overlay goal and enqueue fire-and-forget voids single-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts`);
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void this.onGoalClicked()${doubleCatch}`));
-		assert.ok(source.includes(`void this.onEnqueueClicked()${doubleCatch};`));
-		assert.ok(!source.includes('void this.onGoalClicked().catch(onUnexpectedError))'));
-		assert.ok(!source.includes('void this.onEnqueueClicked().catch(onUnexpectedError);'));
+		const singleCatch = '.catch(onUnexpectedError)';
+		assert.ok(source.includes(`void this.onGoalClicked()${singleCatch}`));
+		assert.ok(source.includes(`void this.onEnqueueClicked()${singleCatch};`));
+		assert.ok(!source.includes(`void this.onGoalClicked()${doubleCatch}`));
+		assert.ok(!source.includes(`void this.onEnqueueClicked()${doubleCatch};`));
 		assert.ok(!source.includes('void this.onGoalClicked();'));
 		assert.ok(!source.includes('void this.onEnqueueClicked();'));
-		assert.strictEqual((source.match(/void this\.onGoalClicked\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
-		assert.strictEqual((source.match(/void this\.onEnqueueClicked\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.onGoalClicked\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
+		assert.strictEqual((source.match(/void this\.onEnqueueClicked\(\)\.catch\(onUnexpectedError\)/g) ?? []).length, 1);
 		assert.ok(source.includes('this.stubService.cancelGeneration(sessionId)'));
 		assert.ok(source.includes('this.syncStatus.hidden = true'));
 		for (const needle of [
