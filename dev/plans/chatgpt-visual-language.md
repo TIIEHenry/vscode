@@ -2476,3 +2476,8 @@ AuxiliaryBar 标题栏的普通 `title-actions` 是未承载 checked/selected �
 ### §350 Workbench stateful face audit second pass（2026-11-08）
 
 复查 statusbar、Panel composite、ActivityBar、AuxiliaryBar 与 Editor 的直接宿主面，确认 status item 的 warning/error/prominent 状态、composite checked/tab 状态和 ActivityBar selected/status 伪层仍是产品语义。Editor 与 modal action 为次级或状态操作，未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+### §351 Editor group toolbar action face（2026-11-08）
+
+Editor group container toolbar 的普通 action-label 保留命中区、图标、命令、ARIA/键盘与 HC 焦点。普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，并补 reduced-motion 合同。
+
+验证：`editorGroupToolbarCss.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage、commit、push；真实默认窗口与高对比观察仍待补。
