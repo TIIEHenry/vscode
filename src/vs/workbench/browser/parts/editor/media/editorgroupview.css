@@ -531,7 +531,22 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 100ms ease;
 }
 
@@ -539,18 +554,42 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label {
 		transition: none;
 	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label::after {
+		transition: none;
+	}
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:hover {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
