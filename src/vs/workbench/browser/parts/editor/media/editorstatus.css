@@ -38,13 +38,19 @@
 	transition: background-color 0.12s ease;
 }
 
-.monaco-workbench.monaco-reduce-motion .screen-reader-detected-explanation .cancel,
+.monaco-workbench.monaco-reduce-motion .screen-reader-detected-explanation .cancel {
+	transition: none;
+}
+
 .monaco-workbench.monaco-reduce-motion .screen-reader-detected-explanation .cancel::after {
 	transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .cancel,
+	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .cancel {
+		transition: none;
+	}
+
 	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .cancel::after {
 		transition: none;
 	}
