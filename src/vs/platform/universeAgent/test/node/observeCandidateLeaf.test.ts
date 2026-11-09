@@ -33,6 +33,14 @@ suite('observeCandidateLeaf Direct Address SNI', () => {
 		assert.strictEqual(grpcSslTargetNameOverride('relay.example.com'), 'relay.example.com');
 	});
 
+	test('treats bracketed IPv6 literals as IPs, not SNI hostnames', () => {
+		assert.deepStrictEqual(
+			['[::1]', ' [2001:db8::1] ', '[fe80::1%eth0]', '[engine.example.com]'].map(tlsServernameForObserve),
+			[undefined, undefined, undefined, '[engine.example.com]'],
+		);
+		assert.strictEqual(grpcSslTargetNameOverride('[::1]'), DIRECT_ADDRESS_SNI_PLACEHOLDER);
+	});
+
 	test('buildObserveTlsOptions drops IP SNI and keeps Hub hostname SNI', () => {
 		const direct = buildObserveTlsOptions({
 			host: '127.0.0.1',

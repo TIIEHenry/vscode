@@ -106,4 +106,64 @@ suite('Connection profile store', () => {
 		assert.deepStrictEqual(store.list(), []);
 	});
 
+	test('skips profiles whose target is malformed for its kind', () => {
+		const ids = Array.from({ length: 12 }, (_, i) => `${String(i).padStart(8, '0')}-1111-4111-8111-111111111111`);
+		const malformedTargets: unknown[] = [
+			null,
+			[],
+			'directAddress',
+			{ kind: 'carrierPigeon', host: 'h', port: 1 },
+			{ kind: 'directAddress', port: 50061 },
+			{ kind: 'directAddress', host: '127.0.0.1', port: '50061' },
+			{ kind: 'directAddress', host: '127.0.0.1', port: 70000 },
+			{ kind: 'directAddress', host: ' ', port: 50061 },
+			{ kind: 'loopback', socketOrPort: null },
+			{ kind: 'loopback', socketOrPort: 1.5 },
+			{ kind: 'hubDevice', hubBaseUrl: 'https://hub.example.com', accountId: 'usr_1' },
+			{ kind: 'hubDevice', hubBaseUrl: 42, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		];
+		const storage = new TestApplicationStorage();
+		storage.seedProfiles([
+			...malformedTargets.map((target, i) => ({ ...validPersistedProfile(ids[i]), target })),
+			{ ...validPersistedProfile(VALID_PROFILE_ID), target: { kind: 'loopback', socketOrPort: 50051 } },
+			{ ...validPersistedProfile(VALID_PROFILE_ID_2), target: { kind: 'hubDevice', hubBaseUrl: 'https://hub.example.com', accountId: 'usr_1', hubDeviceId: 'dev-1' } },
+		]);
+		const store = new ConnectionProfileStore(storage.asService());
+
+		assert.deepStrictEqual(store.list().map(p => [p.profileId, p.target]), [
+			[VALID_PROFILE_ID, { kind: 'loopback', socketOrPort: 50051 }],
+			[VALID_PROFILE_ID_2, { kind: 'hubDevice', hubBaseUrl: 'https://hub.example.com', accountId: 'usr_1', hubDeviceId: 'dev-1' }],
+		]);
+		assert.strictEqual(store.get(ids[0]), undefined);
+	});
+
+	test('put and remove keep entries that fail validation in storage', () => {
+		const trust = createEngineTrustRecord({
+			leafDer: Uint8Array.from([1, 2, 3]),
+			engineIdentityId: '0123456789abcdef'.repeat(4),
+			establishedAt: 1,
+		});
+		const unverifiableTrustProfile = {
+			...validPersistedProfile(VALID_PROFILE_ID),
+			trust: {
+				leafDer: [1, 2, 3],
+				leafSha256Hex: '0'.repeat(64),
+				engineIdentityId: trust.engineIdentityId,
+				establishedAt: trust.establishedAt,
+				establishedVia: 'sas',
+			},
+			state: 'active',
+		};
+		const unknownTarget = { ...validPersistedProfile('33333333-3333-4333-8333-333333333333'), target: { kind: 'futureKind' } };
+		const storage = new TestApplicationStorage();
+		storage.seedProfiles([unverifiableTrustProfile, unknownTarget, validPersistedProfile(VALID_PROFILE_ID_2)]);
+		const store = new ConnectionProfileStore(storage.asService());
+		const valid = store.get(VALID_PROFILE_ID_2)!;
+
+		store.put({ ...valid, displayName: 'Renamed' });
+		store.remove(VALID_PROFILE_ID_2);
+
+		assert.deepStrictEqual(JSON.parse(storage.get(STORAGE_KEY, StorageScope.APPLICATION)!), [unverifiableTrustProfile, unknownTarget]);
+	});
+
 });

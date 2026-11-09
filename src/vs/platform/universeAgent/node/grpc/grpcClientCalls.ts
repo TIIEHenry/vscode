@@ -402,7 +402,12 @@ export function makeResidentBidiStreamClient<TResponse>(
 			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
 		);
 		const gate = createStreamCloseGate(onClosed);
-		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('data', (data: TResponse) => {
+			if (gate.closed) {
+				return;
+			}
+			onResponse(data);
+		});
 		call.on('error', (error: grpc.ServiceError) => {
 			if (gate.closed) {
 				return;
@@ -449,7 +454,12 @@ export function makeResidentBidiHandleClient<TRequest, TResponse>(
 			(buffer: Buffer) => JSON.parse(buffer.toString('utf8')) as TResponse,
 		);
 		const gate = createStreamCloseGate(onClosed);
-		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('data', (data: TResponse) => {
+			if (gate.closed) {
+				return;
+			}
+			onResponse(data);
+		});
 		call.on('error', (error: grpc.ServiceError) => {
 			if (gate.closed) {
 				return;

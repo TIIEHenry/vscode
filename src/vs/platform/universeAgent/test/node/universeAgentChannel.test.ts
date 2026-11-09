@@ -7,6 +7,7 @@ import assert from 'assert';
 import { X509Certificate } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import net from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from '../../../../base/common/path.js';
 import tls from 'node:tls';
@@ -115,6 +116,37 @@ suite('universeAgentChannel pinned TLS (S21)', () => {
 			});
 			assert.strictEqual(correctPin.ok, true);
 		} finally {
+			server.close();
+		}
+	});
+
+	test('probe fails closed when the peer accepts TCP but never answers the TLS handshake', async () => {
+		const { cert } = createSelfSignedCert();
+		const leafDer = Uint8Array.from(cert.raw);
+		const sockets = new Set<net.Socket>();
+		const server = net.createServer(socket => {
+			sockets.add(socket);
+			socket.on('close', () => sockets.delete(socket));
+		});
+		await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+		const address = server.address();
+		assert.ok(address && typeof address === 'object');
+		try {
+			const result = await probePinnedTlsHandshake({
+				host: '127.0.0.1',
+				port: address.port,
+				servername: 'r-random-nonce.example',
+				tls: {
+					trustAnchorLeafDer: leafDer,
+					expectedLeafSha256Hex: deriveEngineLeafFingerprintHex(leafDer),
+					hostnameVerification: 'replaced-by-pin',
+				},
+			}, { timeoutMs: 100 });
+			assert.deepStrictEqual(result, { ok: false, reason: 'TLS probe timed out after 100ms' });
+		} finally {
+			for (const socket of sockets) {
+				socket.destroy();
+			}
 			server.close();
 		}
 	});

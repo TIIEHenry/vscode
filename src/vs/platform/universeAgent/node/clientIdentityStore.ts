@@ -92,7 +92,7 @@ export class ClientIdentityStore implements IClientIdentityStore {
 		try {
 			const identity = await this.loadIdentity();
 			if (!identity) {
-				return { kind: 'ready', identity: mintClientIdentityMaterial() };
+				return this.getOrCreateIdentity();
 			}
 			return { kind: 'ready', identity };
 		} catch (err) {
@@ -188,7 +188,7 @@ export class InMemoryClientIdentityStore implements IClientIdentityStore {
 			return { kind: 'encryption_unavailable' };
 		}
 		if (!this.identity) {
-			return { kind: 'ready', identity: mintClientIdentityMaterial() };
+			return this.getOrCreateIdentity();
 		}
 		return { kind: 'ready', identity: this.identity };
 	}

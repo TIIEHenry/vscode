@@ -15,6 +15,8 @@ import {
 	makeClientStreamBytesClient,
 	makeClientStreamClient,
 	makeResidentBidiBytesHandleClient,
+	makeResidentBidiHandleClient,
+	makeResidentBidiStreamClient,
 } from '../../node/grpc/grpcClientCalls.js';
 import { mapUploadResponse } from '../../node/grpc/grpcClientMappers.js';
 import { encodeInt64Field, encodePresentMessageField, encodeStringField, lastString, readProtoFields } from '../../node/grpc/grpcProtoCodec.js';
@@ -121,6 +123,29 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		channel.emitData({ n: 2 });
 		assert.deepStrictEqual(responses, [1], 'locally disposed stream must drop late frames');
 		assert.deepStrictEqual(causes, []);
+	});
+
+	test('resident JSON bidi stream and handle drop data after local dispose', () => {
+		const streamChannel = fakeBidiChannel();
+		const streamResponses: number[] = [];
+		const stream = makeResidentBidiStreamClient<{ n: number }>(streamChannel as never, 'agentservice.ChatService', 'Chat')(
+			's1',
+			response => streamResponses.push(response.n),
+		);
+		streamChannel.emitData({ n: 1 });
+		stream.dispose();
+		streamChannel.emitData({ n: 2 });
+
+		const handleChannel = fakeBidiChannel();
+		const handleResponses: number[] = [];
+		const handle = makeResidentBidiHandleClient<unknown, { n: number }>(handleChannel as never, 'agentservice.ChatService', 'Chat')(
+			response => handleResponses.push(response.n),
+		);
+		handleChannel.emitData({ n: 1 });
+		handle.dispose();
+		handleChannel.emitData({ n: 2 });
+
+		assert.deepStrictEqual({ streamResponses, handleResponses }, { streamResponses: [1], handleResponses: [1] });
 	});
 
 	test('openUploadAttachmentStream wires makeClientStreamBytesClient and Connect/ResolveTurn/ResolveAnchor/Watch use proto bytes', async () => {

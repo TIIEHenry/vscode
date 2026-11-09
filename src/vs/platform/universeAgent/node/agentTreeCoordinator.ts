@@ -123,7 +123,7 @@ export class AgentTreeCoordinator {
 	private async doFetch(onBound: (fact: AgentTreeBoundFact) => void): Promise<AgentTreeBoundFact | undefined> {
 		try {
 			const root = await this.transport.fetchAgentTree(this.sessionId);
-			if (!root) {
+			if (this.disposed || !root) {
 				return undefined;
 			}
 			const fact = mapAgentTreeToBound(root);

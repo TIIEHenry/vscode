@@ -41,7 +41,8 @@ export function tlsServernameForObserve(servername: string | undefined): string 
 	if (!trimmed) {
 		return undefined;
 	}
-	if (net.isIP(trimmed)) {
+	const unbracketed = trimmed.startsWith('[') && trimmed.endsWith(']') ? trimmed.slice(1, -1) : trimmed;
+	if (net.isIP(unbracketed)) {
 		return undefined;
 	}
 	return trimmed;

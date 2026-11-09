@@ -297,6 +297,12 @@ suite('grpc git unary protobuf wire', () => {
 			stdout: '',
 		});
 	});
+
+	test('decodeWriteGitWriteResponse decodes negative int32 exit_code', () => {
+		const exitCodes = [-1, -128, -2147483648].map(exitCode =>
+			mapWriteGitWriteResponse(decodeWriteGitWriteResponse(encodeInt32Field(5, exitCode))).exitCode);
+		assert.deepStrictEqual(exitCodes, [-1, -128, -2147483648]);
+	});
 });
 
 function protoStrings(encoded: Uint8Array): Map<number, string> {

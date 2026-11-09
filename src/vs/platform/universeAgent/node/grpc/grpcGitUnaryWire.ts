@@ -158,7 +158,7 @@ export function decodeWriteGitWriteResponse(bytes: Uint8Array): WriteGitWriteRes
 		reason: lastString(fields, 2),
 		success: lastVarint(fields, 3) === 1n,
 		error_message: lastString(fields, 4),
-		exit_code: numberOrUndefined(lastVarint(fields, 5)),
+		exit_code: int32OrUndefined(lastVarint(fields, 5)),
 		stdout: lastString(fields, 6),
 	};
 }
@@ -172,4 +172,9 @@ function encodeRepeatedString(field: number, values: readonly string[]): Buffer 
 
 function numberOrUndefined(value: bigint | undefined): number | undefined {
 	return value === undefined ? undefined : Number(value);
+}
+
+/** proto3 `int32` sends negatives as 10-byte two's-complement varints. */
+function int32OrUndefined(value: bigint | undefined): number | undefined {
+	return value === undefined ? undefined : Number(BigInt.asIntN(32, value));
 }

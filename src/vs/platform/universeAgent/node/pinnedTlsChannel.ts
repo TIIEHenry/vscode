@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import tls from 'node:tls';
-import { grpcSslTargetNameOverride } from './deviceGrant/observe-candidate-leaf.js';
+import { grpcSslTargetNameOverride, OBSERVE_CANDIDATE_LEAF_TIMEOUT_MS } from './deviceGrant/observe-candidate-leaf.js';
 import {
 	createPinnedServerIdentityCheck,
 	type PinnedTlsPlanInput,
@@ -27,15 +27,18 @@ export function createPinnedTlsSecureContext(tlsPlan: PinnedTlsPlanInput): tls.S
 	});
 }
 
+type PinnedTlsProbeResult = { readonly ok: true } | { readonly ok: false; readonly reason: string };
+
 /**
  * TLS-only probe using the same pinned secure context as the gRPC channel (S21 mock tests).
+ * Settles exactly once; a peer that never completes the handshake fails after `timeoutMs`.
  */
 export function probePinnedTlsHandshake(input: {
 	readonly host: string;
 	readonly port: number;
 	readonly tls: PinnedTlsPlanInput;
 	readonly servername: string;
-}): Promise<{ readonly ok: true } | { readonly ok: false; readonly reason: string }> {
+}, options: { readonly timeoutMs?: number } = {}): Promise<PinnedTlsProbeResult> {
 	const verified = verifyPinnedTlsPlan(input.tls);
 	if (!verified.ok) {
 		return Promise.resolve({ ok: false, reason: verified.reason });
@@ -43,8 +46,21 @@ export function probePinnedTlsHandshake(input: {
 
 	const secureContext = createPinnedTlsSecureContext(input.tls);
 	const pinnedCheck = createPinnedServerIdentityCheck(input.tls.expectedLeafSha256Hex);
+	const timeoutMs = options.timeoutMs ?? OBSERVE_CANDIDATE_LEAF_TIMEOUT_MS;
 
-	return new Promise((resolve) => {
+	return new Promise((outerResolve) => {
+		let settled = false;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const resolve = (result: PinnedTlsProbeResult): void => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			if (timer !== undefined) {
+				clearTimeout(timer);
+			}
+			outerResolve(result);
+		};
 		let socket: tls.TLSSocket;
 		try {
 			socket = tls.connect({
@@ -69,7 +85,13 @@ export function probePinnedTlsHandshake(input: {
 			return;
 		}
 
+		timer = setTimeout(() => {
+			socket.destroy();
+			resolve({ ok: false, reason: `TLS probe timed out after ${timeoutMs}ms` });
+		}, timeoutMs);
+
 		socket.on('error', (err) => {
+			socket.destroy();
 			resolve({ ok: false, reason: err.message });
 		});
 	});

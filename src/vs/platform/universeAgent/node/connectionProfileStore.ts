@@ -76,6 +76,37 @@ function deserializeTrust(raw: unknown): EngineTrustRecord | null {
 	}
 }
 
+function isNonEmptyString(value: unknown): value is string {
+	return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isTcpPort(value: unknown): value is number {
+	return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 65535;
+}
+
+function validateTarget(raw: unknown): ConnectionTarget | undefined {
+	if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+		return undefined;
+	}
+	const target = raw as Record<string, unknown>;
+	switch (target.kind) {
+		case 'loopback':
+			return isNonEmptyString(target.socketOrPort) || isTcpPort(target.socketOrPort)
+				? { kind: 'loopback', socketOrPort: target.socketOrPort }
+				: undefined;
+		case 'directAddress':
+			return isNonEmptyString(target.host) && isTcpPort(target.port)
+				? { kind: 'directAddress', host: target.host, port: target.port }
+				: undefined;
+		case 'hubDevice':
+			return isNonEmptyString(target.hubBaseUrl) && isNonEmptyString(target.accountId) && isNonEmptyString(target.hubDeviceId)
+				? { kind: 'hubDevice', hubBaseUrl: target.hubBaseUrl, accountId: target.accountId, hubDeviceId: target.hubDeviceId }
+				: undefined;
+		default:
+			return undefined;
+	}
+}
+
 function validateProfile(input: PersistedProfile): ConnectionProfile | undefined {
 	if (typeof input.profileId !== 'string' || !PROFILE_ID_PATTERN.test(input.profileId)) {
 		return undefined;
@@ -94,6 +125,10 @@ function validateProfile(input: PersistedProfile): ConnectionProfile | undefined
 	if (typeof input.allowPrivateNetwork !== 'boolean') {
 		return undefined;
 	}
+	const target = validateTarget(input.target);
+	if (!target) {
+		return undefined;
+	}
 	const trust = deserializeTrust(input.trust);
 	if (input.trust !== null && trust === null) {
 		return undefined;
@@ -101,7 +136,7 @@ function validateProfile(input: PersistedProfile): ConnectionProfile | undefined
 	return {
 		profileId: input.profileId,
 		displayName: input.displayName,
-		target: input.target,
+		target,
 		trust,
 		state: input.state,
 		allowPrivateNetwork: input.allowPrivateNetwork,
@@ -145,14 +180,15 @@ export class ConnectionProfileStore implements IConnectionProfileStore {
 		return this.readAll().find(p => p?.profileId === profileId);
 	}
 
+	/** Entries that fail validation stay in storage untouched; only the matching id is replaced. */
 	put(profile: ConnectionProfile): void {
-		const profiles = this.list().filter(p => p.profileId !== profile.profileId);
-		profiles.push(profile);
-		this.writeAll(profiles);
+		const entries = this.readRaw().filter(item => !hasPersistedProfileId(item, profile.profileId));
+		entries.push(serializeProfile(profile));
+		this.writeRaw(entries);
 	}
 
 	remove(profileId: string): void {
-		this.writeAll(this.list().filter(p => p.profileId !== profileId));
+		this.writeRaw(this.readRaw().filter(item => !hasPersistedProfileId(item, profileId)));
 	}
 
 	createDraft(input: {
@@ -171,6 +207,10 @@ export class ConnectionProfileStore implements IConnectionProfileStore {
 	}
 
 	private readAll(): (ConnectionProfile | undefined)[] {
+		return this.readRaw().map(item => parsePersistedProfile(item));
+	}
+
+	private readRaw(): unknown[] {
 		const raw = this.storageService.get(STORAGE_KEY, StorageScope.APPLICATION);
 		if (!raw) {
 			return [];
@@ -181,21 +221,25 @@ export class ConnectionProfileStore implements IConnectionProfileStore {
 		} catch {
 			return [];
 		}
-		if (!Array.isArray(parsed)) {
-			return [];
-		}
-		return parsed.map(item => parsePersistedProfile(item));
+		return Array.isArray(parsed) ? parsed : [];
 	}
 
-	private writeAll(profiles: ConnectionProfile[]): void {
-		const payload: PersistedProfile[] = profiles.map(profile => ({
-			profileId: profile.profileId,
-			displayName: profile.displayName,
-			target: profile.target,
-			trust: profile.trust ? serializeTrust(profile.trust) : null,
-			state: profile.state,
-			allowPrivateNetwork: profile.allowPrivateNetwork,
-		}));
-		this.storageService.store(STORAGE_KEY, JSON.stringify(payload), StorageScope.APPLICATION, StorageTarget.MACHINE);
+	private writeRaw(entries: unknown[]): void {
+		this.storageService.store(STORAGE_KEY, JSON.stringify(entries), StorageScope.APPLICATION, StorageTarget.MACHINE);
 	}
+}
+
+function hasPersistedProfileId(item: unknown, profileId: string): boolean {
+	return item !== null && typeof item === 'object' && !Array.isArray(item) && (item as { profileId?: unknown }).profileId === profileId;
+}
+
+function serializeProfile(profile: ConnectionProfile): PersistedProfile {
+	return {
+		profileId: profile.profileId,
+		displayName: profile.displayName,
+		target: profile.target,
+		trust: profile.trust ? serializeTrust(profile.trust) : null,
+		state: profile.state,
+		allowPrivateNetwork: profile.allowPrivateNetwork,
+	};
 }
