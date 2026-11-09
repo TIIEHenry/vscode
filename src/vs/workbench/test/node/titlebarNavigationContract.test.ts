@@ -26,6 +26,10 @@ suite('Titlebar navigation placement', () => {
 		assert.doesNotMatch(actions, /MenuId\.CommandCenter, order:\s*[12]/);
 		assert.match(actions, /class NavigateForwardAction[\s\S]*?precondition:\s*ContextKeyExpr\.has\('canNavigateForward'\)[\s\S]*?keybinding:/);
 		assert.match(actions, /class NavigateBackwardsAction[\s\S]*?precondition:\s*ContextKeyExpr\.has\('canNavigateBack'\)[\s\S]*?keybinding:/);
+		const forwardOrder = actions.match(/class NavigateForwardAction[\s\S]*?MenuId\.TitleBarNavigation, order:\s*(\d+)/)?.[1];
+		const backOrder = actions.match(/class NavigateBackwardsAction[\s\S]*?MenuId\.TitleBarNavigation, order:\s*(\d+)/)?.[1];
+		assert.strictEqual(backOrder, '1', 'back must stay first in the titlebar navigation group');
+		assert.strictEqual(forwardOrder, '2', 'forward must stay second in the titlebar navigation group');
 		assert.match(menuIds, /static readonly TitleBarNavigation = new MenuId\('TitleBarNavigation'\);/);
 		assert.match(titlebar, /this\.navigationToolbarElement = prepend\(this\.leftContent, \$\('div\.navigation-toolbar-container'\)\);/);
 		assert.match(titlebar, /createInstance\(MenuWorkbenchToolBar, this\.navigationToolbarElement, MenuId\.TitleBarNavigation/);
@@ -34,6 +38,7 @@ suite('Titlebar navigation placement', () => {
 		assert.doesNotMatch(nativeTitlebar, /appIcon|window-appicon/);
 		assert.match(css, /titlebar-left > \.navigation-toolbar-container\s*\{[^}]*order:\s*1;/);
 		assert.match(css, /titlebar-left > \.navigation-toolbar-container\.has-no-actions\s*\{[^}]*display:\s*none;/);
+		assert.match(css, /\.monaco-workbench \.part\.titlebar button,[\s\S]*?\.monaco-workbench \.part\.titlebar \.action-item\s*\{[^}]*-webkit-app-region:\s*no-drag;/, 'titlebar actions must stay clickable above the draggable region');
 		assert.match(css, /navigation-toolbar-container \.action-label\s*\{[^}]*height:\s*28px[^}]*background-color:\s*transparent/s);
 		assert.match(css, /navigation-toolbar-container \.action-label::after\s*\{[^}]*inset:\s*1px 2px[^}]*background-color:\s*transparent/s);
 		assert.match(css, /navigation-toolbar-container .*action-item:not\(\.disabled\):active \.action-label::after\s*\{[^}]*toolbar-activeBackground/s);

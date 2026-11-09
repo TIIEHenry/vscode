@@ -396,10 +396,6 @@
 	}
 }
 
-.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .terminal-tabs-chat-entry:focus-visible {
 	outline: none;
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
@@ -409,6 +405,10 @@
 .monaco-workbench.hc-light .pane-body.integrated-terminal .terminal-tabs-chat-entry:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-entry {
@@ -472,10 +472,6 @@
 	}
 }
 
-.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:hover .terminal-tabs-chat-entry-delete,
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:focus-within .terminal-tabs-chat-entry-delete {
 	display: flex;
@@ -498,6 +494,10 @@
 	opacity: 1;
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-container:not(.has-text) .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete,
@@ -577,8 +577,23 @@
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 100ms ease;
 }
 
@@ -586,19 +601,43 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .pane-body.integrated-terminal .tabs-list .actions .action-label::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .tabs-list .actions .action-label {
 		transition: none;
 	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .pane-body.integrated-terminal .tabs-list .actions .action-label::after {
+		transition: none;
+	}
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:hover {
+	background-color: transparent;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .tabs-list .actions .action-label:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-body.integrated-terminal .tabs-list .actions .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .pane-body.integrated-terminal .tabs-list .actions .action-label:focus-visible,
@@ -616,7 +655,22 @@
 .monaco-action-bar .action-item .single-terminal-tab {
 	display: flex !important;
 	align-items: center;
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 100ms ease;
+}
+
+.monaco-action-bar .action-item .single-terminal-tab::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 100ms ease;
 }
 
@@ -624,18 +678,26 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-action-bar .action-item .single-terminal-tab::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .monaco-action-bar .action-item .single-terminal-tab {
 		transition: none;
 	}
-}
 
-.monaco-action-bar .action-item .single-terminal-tab:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-action-bar .action-item .single-terminal-tab::after {
+		transition: none;
+	}
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .monaco-action-bar .action-item .single-terminal-tab:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-action-bar .action-item .single-terminal-tab:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
@@ -643,6 +705,22 @@
 .monaco-workbench.hc-light .monaco-action-bar .action-item .single-terminal-tab:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.monaco-action-bar .action-item .single-terminal-tab:active {
+	background-color: transparent;
+}
+
+.monaco-action-bar .action-item .single-terminal-tab:hover {
+	background-color: transparent;
+}
+
+.monaco-action-bar .action-item .single-terminal-tab:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-action-bar .action-item .single-terminal-tab:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .action-item .single-terminal-tab .codicon:first-child {

@@ -17,8 +17,33 @@ suite('Search view replace actions', () => {
 
 	test('ordinary replace action focus uses hover feedback while HC keeps a contrast ring', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/search/browser/media/searchview.css'), 'utf8');
-		assert.match(css, /\.search-view \.search-widget \.replace-container \.monaco-action-bar \.action-label:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
+		assert.match(css, /\.search-view \.search-widget \.replace-container \.monaco-action-bar \.action-label:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*transparent/);
+		assert.match(css, /\.search-view \.search-widget \.replace-container \.monaco-action-bar \.action-label:focus-visible::after\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
 		assert.match(css, /\.monaco-workbench\.hc-black \.search-view \.search-widget \.replace-container \.monaco-action-bar \.action-label:focus-visible,[\s\S]*?\.monaco-workbench\.hc-light \.search-view \.search-widget \.replace-container \.monaco-action-bar \.action-label:focus-visible\s*\{[^}]*outline:\s*1px solid var\(--vscode-contrastActiveBorder,\s*var\(--vscode-focusBorder\)\)/);
 		assert.doesNotMatch(css, /\.search-view \.search-widget \.replace-container \.monaco-action-bar \.action-label\s*\{[^}]*outline-color:\s*var\(--vscode-focusBorder\)/);
+	});
+
+	test('ordinary replace actions paint inset hover and pressed faces without shrinking their targets', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/search/browser/media/searchview.css'), 'utf8');
+		assert.match(css, /replace-container \.monaco-action-bar \.action-label\s*\{[^}]*position:\s*relative[^}]*background-color:\s*transparent/);
+		assert.match(css, /replace-container \.monaco-action-bar \.action-label::after\s*\{[^}]*inset:\s*1px 2px/);
+		assert.match(css, /replace-container \.monaco-action-bar \.action-label:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /replace-container \.monaco-action-bar \.action-label:active::after\s*\{[^}]*toolbar-activeBackground/);
+	});
+
+	test('replace action faces honor reduced motion while HC keeps a contrast ring', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/search/browser/media/searchview.css'), 'utf8');
+		assert.match(css, /monaco-reduce-motion[\s\S]*?replace-container \.monaco-action-bar \.action-label::after[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?replace-container \.monaco-action-bar \.action-label::after[\s\S]*?transition:\s*none/);
+		assert.match(css, /search-view[\s\S]*?\.hc-black \.search-view \.search-widget \.replace-container[\s\S]*?action-label:focus-visible/);
+	});
+
+	test('search result actions keep their target while painting inset hover and pressed faces', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/search/browser/media/searchview.css'), 'utf8');
+		assert.match(css, /\.search-view \.monaco-list \.monaco-list-row \.monaco-action-bar \.action-label\s*\{[^}]*position:\s*relative;[^}]*isolation:\s*isolate;[^}]*background-color:\s*transparent/);
+		assert.match(css, /\.search-view \.monaco-list \.monaco-list-row \.monaco-action-bar \.action-label::after\s*\{[^}]*inset:\s*1px\s+2px;[^}]*z-index:\s*-1;[^}]*pointer-events:\s*none;/);
+		assert.match(css, /\.monaco-list-row \.monaco-action-bar \.action-label:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /\.monaco-list-row \.monaco-action-bar \.action-label:active::after\s*\{[^}]*toolbar-activeBackground/);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.monaco-list-row \.monaco-action-bar \.action-label::after\s*\{[^}]*transition:\s*none/);
 	});
 });

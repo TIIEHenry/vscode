@@ -151,10 +151,6 @@
 	background-color: transparent;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label:active::after {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label:focus-visible {
 	outline: none;
 	background-color: transparent;
@@ -162,6 +158,10 @@
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label:focus-visible,
@@ -412,6 +412,9 @@
 }
 
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	width: 24px;
 	height: 24px;
 	padding: 0;
@@ -420,21 +423,58 @@
 	justify-content: center;
 	box-sizing: border-box;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label,
+.monaco-workbench.monaco-reduce-motion .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label::after {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:hover {
 	color: var(--vscode-foreground);
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:hover::after {
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:active {
-	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+	background-color: transparent;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:focus-visible {
 	outline: none;
 	color: var(--vscode-foreground);
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label:focus-visible {
@@ -580,10 +620,6 @@
 	background-color: transparent;
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:active::after {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:focus-visible {
 	outline: none;
 	background-color: transparent;
@@ -591,6 +627,10 @@
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:focus-visible,
@@ -671,6 +711,9 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	gap: var(--vscode-spacing-size80, 8px);
@@ -687,12 +730,31 @@
 	transition: background-color 0.12s ease;
 }
 
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.12s ease;
+}
+
 .monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button {
+	transition: none;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button::after {
 	transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button {
+		transition: none;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button::after {
 		transition: none;
 	}
 }
@@ -703,7 +765,11 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible {
 	outline: none;
-	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	background: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench.hc-black .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible,
@@ -713,12 +779,20 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:hover {
-	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	background: transparent;
 	border-color: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
 }
 
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:active {
-	background: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
+	background: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 14%, transparent));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-icon {

@@ -38,6 +38,31 @@ suite('ConversationLensSessionBar', () => {
 		}
 	});
 
+	test('lens tab clicks and keyboard events are forwarded to the host', () => {
+		const listeners: { dispose(): void }[] = [];
+		const selectedLensIds: string[] = [];
+		let forwardedKeydown: KeyboardEvent | undefined;
+		const host = {
+			lensAriaId: 'lens-test',
+			isDisposed: false,
+			register: <T extends { dispose(): void }>(d: T) => { listeners.push(d); return d; },
+			setLensId: (lensId: string) => { selectedLensIds.push(lensId); },
+			handleLensTablistKeyDown: (event: KeyboardEvent) => { forwardedKeydown = event; },
+		} as unknown as IConversationLensSessionBarHost;
+		try {
+			mountLensTablist(host, document.createElement('div'));
+			host.lensTabConversation.click();
+			host.lensTabTrajectory.click();
+			const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+			host.lensTablist.dispatchEvent(event);
+
+			assert.deepStrictEqual(selectedLensIds, ['conversation', 'trajectory']);
+			assert.strictEqual(forwardedKeydown, event);
+		} finally {
+			listeners.forEach(d => d.dispose());
+		}
+	});
+
 	test('lens aria ids are unique per mounted lens', () => {
 		assert.notStrictEqual(createConversationLensAriaId(), createConversationLensAriaId());
 	});

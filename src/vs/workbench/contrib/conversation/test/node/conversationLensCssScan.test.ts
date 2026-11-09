@@ -207,7 +207,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.match(tab!.body, /border-radius\s*:\s*var\(--vscode-cornerRadius-medium,\s*6px\)/);
 		const surface = rules.find(rule => rule.selector.trim() === '.monaco-workbench .part.conversation .conversation-lens-lens-tab::before');
 		assert.ok(surface, 'lens tabs need an inset visual surface');
-		assert.match(surface!.body, /inset\s*:\s*8px\s+7px/);
+		assert.match(surface!.body, /inset\s*:\s*4px\s+7px/);
 		assert.match(surface!.body, /border-radius\s*:\s*var\(--vscode-cornerRadius-small,\s*4px\)/);
 		assert.match(surface!.body, /background-color\s*:\s*transparent/);
 		const hoverHost = rules.find(rule => rule.selector.trim() === '.monaco-workbench .part.conversation .conversation-lens-lens-tab:hover');
@@ -2064,6 +2064,10 @@ suite('Conversation lens keyboard focus ring', () => {
 		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*line-height:\s*32px/s);
 		assert.match(lensCss, /\.conversation-lens-lens-tab\[aria-selected="true"\]::before\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground\)/s);
 		assert.match(lensCss, /\.conversation-lens-lens-tab\[aria-selected="true"\]\s*\{[^}]*font-weight:\s*400/s);
+		// The editable session title shares the session bar with 28px icon controls.
+		// Keep its button hit target aligned without changing the compact visual face.
+		assert.match(lensCss, /\.conversation-lens-session-title\s*\{[^}]*height:\s*28px/s);
+		assert.match(lensCss, /\.conversation-lens-session-title\s*\{[^}]*line-height:\s*28px/s);
 
 		// 2. Sources tabs: 24px height, line-height 24px, unbolded selected state with toolbar-hoverBackground
 		assert.match(sourcesCss, /\.sources-tab\s*\{[^}]*height:\s*24px/s);

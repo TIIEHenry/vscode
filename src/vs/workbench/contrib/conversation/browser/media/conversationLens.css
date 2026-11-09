@@ -82,9 +82,9 @@
 .monaco-workbench .part.conversation .conversation-lens-lens-tab::before {
 	content: "";
 	position: absolute;
-	/* Keep the 32px keyboard/pointer target, but keep the selected/pressed
-	   surface close to the label instead of reading as a full-row fill. */
-	inset: 8px 7px;
+	/* Keep the 32px keyboard/pointer target, while giving the selected/pressed
+	   surface the same compact vertical rhythm as the 28px toolbar controls. */
+	inset: 4px 7px;
 	z-index: -1;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background-color: transparent;
@@ -194,8 +194,8 @@
 	flex: none;
 	min-width: 0;
 	max-width: 100%;
-	height: 20px;
-	line-height: 20px;
+	height: 28px;
+	line-height: 28px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

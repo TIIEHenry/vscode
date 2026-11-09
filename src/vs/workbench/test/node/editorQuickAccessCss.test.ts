@@ -17,14 +17,25 @@ suite('Editor quick access actions', () => {
 
 	test('ordinary dirty-editor action focus uses hover feedback while HC keeps a contrast ring', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorquickaccess.css'), 'utf8');
-		assert.match(css, /\.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
+		assert.match(css, /\.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*transparent/);
+		assert.match(css, /\.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor:focus-visible::after\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
 		assert.match(css, /\.monaco-workbench\.hc-black \.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor:focus-visible,[\s\S]*?\.monaco-workbench\.hc-light \.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor:focus-visible\s*\{[^}]*outline:\s*1px solid var\(--vscode-contrastActiveBorder,\s*var\(--vscode-focusBorder\)\)/);
 		assert.doesNotMatch(css, /\.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor\s*\{[^}]*outline-color:\s*var\(--vscode-focusBorder\)/);
+	});
+
+	test('dirty-editor action keeps its target while painting inset hover and pressed faces', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorquickaccess.css'), 'utf8');
+		assert.match(css, /\.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor\s*\{[^}]*position:\s*relative[^}]*background-color:\s*transparent/);
+		assert.match(css, /\.quick-input-list \.quick-input-list-entry-action-bar \.action-label\.dirty-editor::after\s*\{[^}]*inset:\s*1px 2px/);
+		assert.match(css, /\.action-label\.dirty-editor:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /\.action-label\.dirty-editor:active::after\s*\{[^}]*toolbar-activeBackground/);
 	});
 
 	test('dirty-editor action transitions honor reduced motion without changing focus semantics', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorquickaccess.css'), 'utf8');
 		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.action-label\.dirty-editor\s*\{[^}]*transition:\s*none;/);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.action-label\.dirty-editor::after\s*\{[^}]*transition:\s*none;/);
 		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\)[\s\S]*?\.action-label\.dirty-editor\s*\{[^}]*transition:\s*none;/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\)[\s\S]*?\.action-label\.dirty-editor::after\s*\{[^}]*transition:\s*none;/);
 	});
 });

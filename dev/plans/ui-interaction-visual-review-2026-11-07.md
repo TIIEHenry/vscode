@@ -3,7 +3,7 @@ title: "2026-11-07 默认窗口并行交互与视觉审查收口"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-11-07
+updated: 2026-11-09
 summary: "五路并行只读审查默认编辑器窗口（对话阅读面、Composer/Inbox/SessionBar、Sessions/Navigator/Trajectory、Engine/Connection/Settings、Sources/Preview/壳层）的交互与视觉问题；经规则 16 审查（C5/I4/M2）核验改稿后，分四个实施切片修复 P0–P3 键盘焦点闭环、浮层互斥、视觉与状态清晰度、高对比与减少动效合同。"
 ---
 
@@ -279,3 +279,308 @@ summary: "五路并行只读审查默认编辑器窗口（对话阅读面、Comp
 - **§349 Workbench status and composite state face read-only audit**：复查 statusbar、Panel composite、AuxiliaryBar 与 ActivityBar 的直接 hover/active/focus 面；status item 承载 status、warning、error、prominent 语义，Panel/AuxiliaryBar composite actions 承载 checked/tab 语义，ActivityBar 使用 selected/status 伪层。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
 - **§350 Workbench stateful face audit second pass**：复查 statusbar、Panel composite、ActivityBar、AuxiliaryBar 与 Editor 的直接宿主面，确认 status item 的 warning/error/prominent 状态、composite checked/tab 状态和 ActivityBar selected/status 伪层仍是产品语义；Editor 与 modal action 为次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
 - **§351 Editor group toolbar action face**：Editor group container toolbar 的普通 action-label 保留命中区、图标、命令、ARIA/键盘与 HC 焦点；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupToolbarCss.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§352 Preview category empty-group action face**：编辑器分类预览空组中的普通 action-label 保留 24px 命中区、图标、命令、ARIA/键盘与 HC 焦点；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupToolbarCss.test.ts` 6 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§353 Workbench stateful face audit third pass**：复查 statusbar、Panel composite、ActivityBar、Editor group 与其他工作台直接宿主面；status item、Panel composite、ActivityBar pseudo layers 继续承载状态、checked/tab、selected/status 语义，Editor group 的剩余按钮为次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§354 Workbench stateful face audit fourth pass**：再次复查 statusbar、Panel composite、ActivityBar、Editor group 与其他 Workbench 直接宿主面；statusbar 与 composite/status pseudo layers 继续承载产品状态，Editor group 的剩余按钮为次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§355 Preview category empty action button face**：编辑器分类预览空态中的普通 `button.preview-category-empty-action-button` 保留完整命中区、文本与命令、原生键盘/ARIA 和 HC 焦点环；普通主题 hover/focus/active 面迁到不遮挡内容的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupToolbarCss.test.ts` 8 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§356 Workbench ordinary face read-only audit fifth pass**：复查 statusbar、Panel composite、ActivityBar、Editor group 与其他 Workbench 直接宿主面；statusbar 的 status、warning、error、prominent 语义，Panel composite 的 checked/tab 语义，ActivityBar 的 selected/status 伪层，以及 Editor 的次级或状态操作均保持。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§357 Workbench ordinary face read-only audit sixth pass**：复查 Sidebar、statusbar、Panel composite、ActivityBar、Editor group 与其他 Workbench 直接宿主面；Sidebar/composite 依赖 selected/ActivityBar 状态，Panel 依赖 checked/tab，statusbar 依赖 item 状态，Editor 仍是次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§358 Workbench ordinary face read-only audit seventh pass**：基于当前 HEAD 细查 Editor group、statusbar、Panel 与 ActivityBar 的剩余普通 action-label。Editor group 的 watermark、preview/category 与 container toolbar 均已有内缩 ghost 面或属于次级/状态按钮；statusbar 的 status、warning、error、prominent item，Panel composite 的 checked/tab 面，以及 ActivityBar 的 selected/status pseudo layer 均承载明确状态语义。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§359 Workbench ordinary face read-only audit eighth pass**：继续复查 Workbench、Editor、statusbar、Panel 与 ActivityBar 的普通 action 面。statusbar 的 label/anchor 由 status、warning、error、prominent item 语义驱动，Panel composite action-label 由 checked/tab 选择语义驱动，ActivityBar 由 selected/status 伪层驱动，Editor breadcrumbs、tabs、dirty/close、preview 与次级 action 保留各自状态反馈。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§360 Conversation/Trajectory tab 按压范围聚焦复查**：针对截图复核 `button.conversation-lens-lens-tab` 的真实命中区与视觉层。当前源码已保持 32px button 命中区、`role="tab"`、`aria-selected`、键盘切换和 HC `contrastActiveBorder` 焦点环；普通主题宿主 hover/selected/active/focus 保持透明，背景只落在 `::before inset: 8px 7px` 的紧凑面。截图中的整颗灰色胶囊与当前源码不符，判断为旧 bundle 或未刷新窗口；本轮不再盲目收窄几何，无代码改动，未修改 Navigator、Connection。
+- **§361 Single editor title action 面收窄**：编辑器单标签标题栏的普通 `.title-actions .action-label` 保留完整命中区、命令、ARIA/键盘与 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`singleEditorTabsControlCss.test.ts` 7 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），目标 Stylelint exit 0（保留既有 1 条 spacing suggestion），`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§362 Modal editor header action 面收窄**：Modal editor header 的普通 `.modal-editor-action-container .actions-container .action-label` 保留完整命中区、命令、ARIA/键盘与 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`modalEditorActionsCss.test.ts` 4 passing，`modalEditorPartCss.test.ts` 3 passing，`modalEditorSidebarToggleCss.test.ts` 2 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§363 Multi-editor tab action 面收窄**：编辑器多标签页中的普通 tab action 保留 16px 命中区、关闭/固定/脏状态语义、命令、ARIA/键盘和 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`multiEditorTabsControlTabActionsCss.test.ts` 4 passing，`multiEditorTabsControlCss.test.ts` 3 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§364 Conversation region chrome action 面收窄**：Conversation 区域隐藏控件的普通 `.title-actions .action-label` 保留 28px 命中区、命令、ARIA/键盘和 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`conversationRegionChromeCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§365 Breadcrumbs editor type action 面收窄**：编辑器 Breadcrumbs 的 editor-type action 保留完整命中区、编辑器类型跳转命令、ARIA/键盘和 HC 对比焦点环；普通主题 hover、active、focus 面迁到 `::after inset: 1px 2px`，保留正常 breadcrumb 背景，并补 class/media reduced-motion。`breadcrumbsControlCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§366 Editor placeholder 与剩余 Conversation action 只读审计**：Editor placeholder 按钮承载主 CTA/filled 语义，ConversationLens 剩余 monaco-button 承载状态或 filled 语义，或已有内缩 `::after` 面。未发现新的安全普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§367 Quick Access dirty-editor action 面收窄**：Quick Access dirty-editor 关闭图标保留独立命中区、关闭语义、ARIA/键盘和 HC 对比焦点环；普通主题 hover、active、focus 面迁到透明宿主的 `::after inset: 1px 2px`，保留既有 `::before` 图标内容，并补 class/media reduced-motion。`editorQuickAccessCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage、commit、push，真实默认窗口与高对比观察仍待补。
+- **§368 Notifications toolbar action 面收窄**：Notifications list 与 center header 的普通 action-label 保留命中区、通知命令、ARIA/键盘和 HC 对比焦点环；普通主题 hover、focus、active 面迁到透明宿主的 `::after inset: 1px 2px`，补 class/media reduced-motion。`notificationsActionsCss.test.ts` 3 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage、commit、push，真实默认窗口与高对比观察仍待补。
+- **§369 Workbench remaining ordinary face read-only audit**：复查 `views.css` custom-view tree actions、viewpane-filter、Sidebar title/collapsible actions、Pane composite 与 ActivityBar。custom tree/viewpane/Sidebar 行承载 selected/status/filled 语义，Sidebar 涉及 Navigator 边界，未发现可安全迁移的普通 ghost action。本轮无代码改动，未修改 Navigator、Connection。
+- **§370 User Data Profiles header action 面收窄**：profile header 的普通 action-label 保留完整命中区、命令、ARIA/键盘和 HC 对比焦点环，普通主题 hover、focus、active 面迁到透明宿主的 `::after inset: 1px 2px`，补 class/media reduced-motion。新增 `userDataProfilesEditorCss.test.ts`，3 passing，transpile-client 10225 files / 2047 resources，git diff-check 通过。未修改 Navigator、Connection，未 stage、commit、push。
+
+- **§372 Remaining Workbench ordinary face read-only audit**：复查 custom-view tree、viewpane-filter、Sidebar title/collapsible、Pane composite、ActivityBar 与 Conversation 剩余控件。相关 action 承载 selected/status/filled 语义或触及 Navigator 边界，未发现新的安全普通 ghost action。本轮无代码改动。
+
+- **§373 Remaining Workbench ordinary face read-only audit**：继续复查 Workbench、Editor 与 Conversation 剩余普通 action 面。候选均属于 selected/status/filled 或 CTA/反馈语义，或触及 Navigator 边界，未发现新的安全普通 ghost action。本轮无代码改动，未修改 Navigator、Connection。
+
+- **§375 Remaining Workbench ordinary face read-only audit**：复查剩余 Workbench、Editor、Conversation 普通 action 面。候选均属于 selected/status/filled/CTA/反馈语义或涉及 Navigator 边界，未发现安全普通 ghost action。本轮无代码改动，未修改 Navigator、Connection。
+
+### §371 Ports view action 面收窄（2026-11-08）
+
+Ports view 行内普通 action 保留完整命中区、端口命令、ARIA/键盘和 HC ring，普通主题将 hover、focus、active 面迁移到透明 host 的 `::after inset: 1px 2px`，补 reduced-motion。`tunnelViewCss.test.ts` 2 passing。
+
+### §374 Comments panel metadata action 面收窄（2026-11-08）
+
+Comments panel 普通 metadata action 保留命中区、命令、ARIA/键盘和 HC ring，普通主题将 hover、focus、active 面迁移到透明 host 的 `::after inset: 1px 2px`，补 reduced-motion。`commentsPanelCss.test.ts` 4 passing。
+
+### §376 Keybindings 与 Debug tree 普通 action 面收窄（2026-11-08）
+
+复核 Keybindings 搜索头部 action 与 Debug tree row action。两处普通主题均使用透明宿主和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，保持原命中区、命令、键盘、ARIA 与 HC ring，并覆盖 class/media reduced-motion。
+
+验证：两个 focused CSS contract 测试合计 5 passing，`npm run transpile-client` 通过（10226 files / 2047 resources），`git diff --check` 通过。
+
+### §377 Settings editor 搜索 action 面收窄（2026-11-08）
+
+Settings 搜索头部普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，`.monaco-custom-toggle` 保持原有选择态，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：focused CSS contract 测试合计 43 passing，`npm run transpile-client` 通过（10226 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 47 条既有 design-token suggestions。
+
+### §378 Merge editor code-view header action 面收窄（2026-11-08）
+
+Merge editor code-view header 普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：新增 `mergeEditorCss.test.ts`，focused CSS contract 测试合计 45 passing，`npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 11 条既有 design-token suggestions。
+
+### §379 Workbench ordinary action fourth audit（2026-11-08）
+
+复核 Settings、Merge editor、Debug tree、多编辑器 tabs 和 generic `part.css`。已改 action 的命中区与状态合同保持，generic 全局规则因可能触及 Navigator/状态语义继续保留。本轮无代码改动。
+
+### §380 Workbench ordinary action fifth audit（2026-11-08）
+
+复核 Search replace、Settings tabs、generic `part.css` 与已有 action 面。替换动作和选中状态继续保留各自语义，generic 全局规则继续跳过。本轮无代码改动。
+
+### §381 Search replace action 面收窄（2026-11-08）
+
+Sol 复核发现 Search view replace-container 的普通 action host 仍偏重。改为透明 host，并将 hover、active、focus 面迁移到 `::after inset: 1px 2px`，保留命中区、命令、键盘、ARIA 与 HC ring，补 class/media reduced-motion。
+
+验证：`searchViewReplaceActionsCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 仅报告该文件既有 11 条 design-token suggestions，`git diff --check` 通过。未修改 Navigator、Connection，真实默认窗口与高对比人工观察仍待补。
+
+### §382 Workbench ordinary action sixth audit（2026-11-08）
+
+复核 Search、Debug toolbar、Exception widget、Settings、Merge editor、多编辑器 tabs 和 generic `part.css`。状态型与全局规则继续保留，本轮无代码改动。
+
+### §383 Debug exception widget action 面收窄（2026-11-08）
+
+Debug exception widget 标题普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：`exceptionWidgetCss.test.ts` 4 passing，`npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 3 条既有 design-token suggestions。
+
+### §384 Terminal tabs ordinary action 面收窄（2026-11-08）
+
+Integrated terminal tabs-list 普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：`terminalTabsActionsCss.test.ts` 4 passing，`npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 18 条既有 design-token suggestions。
+
+### §385 Workbench ordinary action seventh audit（2026-11-08）
+
+复核 generic `part.css`、Sources/Navigator、SCM、Markers、Testing、Notebook、BrowserView 与 Chat 剩余 action 面。状态型、CTA 和边界选择器继续保留，本轮无代码改动。
+
+### §386 Workbench ordinary action eighth audit（2026-11-08）
+
+复核 generic `part.css`、Titlebar、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat 与剩余 Workbench action。全局、导航和状态型控件继续保留，本轮无代码改动。
+
+### §387 Workbench ordinary action ninth audit（2026-11-08）
+
+复核 generic `part.css`、Titlebar、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat 与剩余 Workbench action。全局、导航和状态型控件继续保留，本轮无代码改动。
+
+### §388 Workbench ordinary action tenth audit（2026-11-08）
+
+复核 generic `part.css`、Titlebar/global、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat 与状态/CTA/Navigator 面。本轮无代码改动。
+
+### §389 Workbench ordinary action eleventh audit（2026-11-08）
+
+复核 Titlebar/global、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat、Sidebar/Navigator 和 Settings 选中态。本轮无代码改动。
+
+### §390 Workbench ordinary action twelfth audit（2026-11-08）
+
+复核 Titlebar/global、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat、Sidebar/Navigator、Settings 选中态和其余 Workbench action。本轮无代码改动。
+
+### §391 UI contract batch verification（2026-11-08）
+
+批量运行 §360–§390 相关 CSS contract，共 54 passing，并确认计划编号唯一、transpile-client、docs health 和 diff-check 通过。本轮无代码改动。
+
+### §392 UI audit and provenance check（2026-11-08）
+
+确认源码改动、CSS contract 与计划登记一致，未发现重复章节或额外 UI 路径。本轮无代码改动。
+
+### §393 UI selector and provenance final audit（2026-11-08）
+
+核对 §360–§392 的 CSS、测试和文档登记，未发现重复章节或额外 UI 路径。本轮无代码改动。
+
+### §394 UI selector and test coverage final audit（2026-11-08）
+
+确认计划编号、18 个 CSS selector 与 18 个相关测试覆盖一致，未发现几何、ARIA、键盘或边界回归。本轮无代码改动。
+
+### §395 UI contract consistency audit（2026-11-08）
+
+确认 §360–§394 的 CSS contract、测试和计划登记一致，未发现新的普通 ghost action。本轮无代码改动。
+
+### §396 UI selector consistency audit（2026-11-08）
+
+复核当前工作树仅包含已登记 UI CSS、companion tests 和文档，§371/§374/§376–§395 计划标题唯一，18 个修改 CSS 均有 `::after`、hover token、reduced-motion 合同。未发现新的安全普通 ghost action，未触及 Navigator、Connection。
+
+### §397 UI contract and provenance final audit（2026-11-08）
+
+确认计划编号、CSS contract、测试与边界记录一致。本轮无代码改动。
+
+### §398 UI final boundary audit（2026-11-08）
+
+确认计划、CSS、测试和边界记录一致。本轮无代码改动。
+
+### §399 Final UI provenance audit（2026-11-08）
+
+确认计划编号、CSS contract 与测试合同一致。本轮无代码改动。
+
+### §400 Final UI audit（2026-11-08）
+
+确认计划编号、CSS contract、测试合同和工作树路径一致。本轮无代码改动。
+
+### §401 Final source-order and boundary audit（2026-11-08）
+
+确认计划编号唯一并记录历史 bullet 顺序差异，本轮无代码改动。
+
+### §402 Final CSS geometry and accessibility audit（2026-11-08）
+
+确认 CSS 几何与可访问性合同保持，未发现新增边界回归。本轮无代码改动。
+
+### §403 Final test and boundary audit（2026-11-08）
+
+确认测试合同、选择器和边界记录一致。本轮无代码改动。
+
+### §404 Final tracked-path UI consistency audit（2026-11-08）
+
+工作树仅含已登记 UI CSS/tests/docs、既有 `SHA256SUMS` 与 3 个新增 CSS tests；18 个修改 CSS 均有 `::after`、hover、reduced-motion 合同，计划标题 §371、§374、§376–§403 唯一，未发现新的安全普通 ghost action 或 Navigator/Connection 回归。
+
+### §405 Final tracked-path and accessibility audit（2026-11-08）
+
+确认 tracked/untracked 测试路径、CSS contract 和边界记录一致。本轮无代码改动。
+
+### §406 Final changed-path audit（2026-11-08）
+
+确认 changed paths、测试和计划登记一致。本轮无代码改动。
+
+### §407 Final selector and test audit（2026-11-08）
+
+确认 selector、tests、计划和边界记录一致。本轮无代码改动。
+
+### §408 Final source-contract audit（2026-11-08）
+
+确认 source contracts、测试与文档 provenance 一致。本轮无代码改动。
+- Terra SGLang next371 availability/chat gate（2026-11-08 06:49:00 UTC）：只读复核真实 `127.0.0.1:50061` 与 `192.168.10.68:8192`；两端 TCP、current/noproxy `/health`、`/v1/models`、`/v1/loads` 均 `ConnectionRefusedError`，`served_model_ids=[]`、`mimo_candidates=[]`、`selected_mimo_model=null`，`chat_attempted=false`、`chat_request_sent=false`，因此未发送对话。证据目录 `/tmp/sglang-terra-next371-20261108T064900Z/`，summary SHA256 `50590166eb6ee0f7c45e1db0602fc9a13fca308098dfb5ecc0a80fb13d77492f`，probe-metadata SHA256 `5c6e91309238659867f88c21f69914416167dcf16133e2b3823aec2a430dc8d9`，SHA256SUMS 2/2 校验通过，F21 缺口保持。
+
+### §409 CSS contract companion coverage closure（2026-11-08）
+
+Sol 补齐 5 个 companion CSS 测试的缺口断言，覆盖 notifications HC ring、keybindings/settings/debug reduced-motion 过渡禁用、conversation title action HC ring 且不落 background。transpile-client 通过（10227 files / 2047 resources），5 个窄测试共 16 passing，未改行为，未暂存/提交。
+
+### §410 Terra real Mimo via Magpie and SGLang boundary（2026-11-08）
+
+Terra 在本机 Magpie 127.0.0.1:3425 的 /v1/models 发现 sub2api-mimo/mimo-v2.6-flash，使用 Claude CLI 兼容签名头发送最小真实对话，HTTP 200、finish_reason=stop、回复为“收到”，耗时约 6120ms。成功证据目录 /tmp/magpie-mimo-terra-next371-success-20261108T070222Z/，result.json SHA256 2e76ec0538515427d40204693b4d648ace34c8ecd4004047371fd1e1ff4b04aa，metadata.json SHA256 59a6bea962074171aa10a166a07b3150c6196b2d30af22045673fbabb6eb306a，SHA256SUMS 2/2 通过。SGLang next371 的两个目标端点仍 ConnectionRefused，served_model_ids=[]、mimo_candidates=[]，未向 SGLang 发送 chat，该成功结果不计作 SGLang served-model 证据。
+
+### §411 Terra two-round real Mimo context（2026-11-08）
+
+Terra 复用本机 Claude CLI 的 Magpie 路由（ANTHROPIC_BASE_URL=http://127.0.0.1:3425，model=sub2api-mimo/mimo-v2.6-flash）完成同一 session 两轮上下文对话，round1 返回“第一轮”，round2 通过 --continue 返回“第二轮记得”，两轮均 success，modelUsage 确认同一 Mimo 模型。证据目录 /tmp/magpie-mimo-terra-followup-20261108T071217Z/，metadata SHA256 8f9c183ca16547952b37b70717a955a1ab52273670a6dcd1b9346bf1ffc49b87，round1 SHA256 3fa58bc412d61e0533b336efbb0963d0eeef46318bf3fcc6e299274a8944a506，round2 SHA256 8b1a75950b635ac51eecf88f3553369ff99a1f44320cf8dcd06ca4c71bf22d4d，SHA256SUMS 4/4 通过。SGLang 两个目标端点仍 ConnectionRefused，未发送 SGLang chat。
+
+### §412 GPT navigation and lens final visual audit（2026-11-08）
+
+只读复核确认 Conversation/Trajectory lens 保持 32px 命中区与 8px/7px 内缩视觉面，Titlebar 前进后退保持 28px 命中区与 1px/2px 内缩视觉面，位置由 titlebarPart.ts 固定在菜单前，HC、reduced-motion、ARIA/键盘合同均保留，未触及 Navigator/Connection。本轮无代码改动。
+
+### §413 Focused UI contract gate（2026-11-08）
+
+Sol 用 VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run ... 覆盖 titlebar、navigation、ConversationLens、conversation region、notifications、keybindings、settings、debug 相关合同，共 127 passing，exit 0。5 个 companion 断言仍在，18 个 CSS selector 保持透明 host、::after inset 1px 2px、完整命中区、HC/reduced-motion、ARIA/键盘合同，无几何或 Navigator/Connection 回归。
+### §414 Round165 runtime and UI regression closure（2026-11-08）
+
+Terra fresh SGLang probe 仍显示两个目标端点的 TCP、env/noproxy /health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round165-20261108T072420Z/，summary SHA256 040b44bcedc93cb7464037026182c71a0181afbaf65a2ef54b006d1999daa0aa，probe-metadata SHA256 fc48047eedd7acd61f26b34135dccd4f3b1fedd218498ac8079a96ea39442966，SHA256SUMS 2/2。Sol 同轮窄门禁 127 passing，18 个 CSS selector 的透明 host、inset 视觉面、完整命中区、HC/reduced-motion、ARIA/键盘合同保持，无几何或 Navigator/Connection 回归。
+### §415 Round168 SGLang availability and compile gate（2026-11-08）
+
+Terra fresh probe 仍显示两个 SGLang 端点的 TCP、/health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round168-20261108T073000Z/，summary SHA256 8ec751090515f83c66a4e3b6254147ea6ff7fea8bc7c0c0b32b9a089addd7f37，probe-metadata SHA256 75712a0a5433e9e03760dfe43818b6a0d9243d7cf55c1c6c4f1462f020bf07d4。Magpie /v1/models 仍列出三个 Mimo 模型。Sol 的 transpile-client 通过，10227 files / 2047 resources，9 组窄测试 127 passing，exit 0，git diff --check 通过，未改、未暂存、未提交。
+
+### §416 SGLang入口发现与UI静态收口（2026-11-08）
+
+Terra 只读确认仓库记录的 SGLang 入口仅为 192.168.10.68:8192、UA engine 127.0.0.1:50061，以及并列 Magpie 127.0.0.1:3425。新证据目录 /tmp/sglang-discovery-round171-20261108T073500Z/，50061 与 8192 的 TCP、/health、/v1/models、/v1/loads 全部拒绝连接，未发送 chat；Magpie /v1/models HTTP 200，models body SHA256 d24445115fdad664d6cf3d696db9bc4162f88987fcca6a065907ed339f3311b4。Sol 与视觉复核确认 18 个 CSS、companion tests、Titlebar/ConversationLens 合同完整，未触及 Navigator/Connection，git diff --check 通过。
+
+### §417 Round175 SGLang fresh gate（2026-11-08）
+
+Terra 再次探测两个 SGLang 端点，TCP、/health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round175-20261108T073529Z/，SHA256SUMS 2/2，summary SHA256 bfce1e4022935d19b5e8758a877dffd8a05a45acf3f2c53cb5a5a54f844f7dad，probe-metadata SHA256 9874149690ffacd85a050c38fbadbe7dad3597deac4dff3245390ecdd9944d1b。Magpie /v1/models 仍列出三个 Mimo 模型。Sol 跨文件合同扫描未发现 CSS、命中区、HC、reduced-motion、ARIA 或键盘缺项。
+
+### §418 Round178 SGLang availability and source-contract audit（2026-11-08）
+
+Terra 新鲜探针仍显示两个 SGLang 端点 TCP、/health、/v1/models、/v1/loads 全部拒绝，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round178-20261108T073905Z/，SHA256SUMS 2/2，summary SHA256 758fea5e27b9818fc978e3af8a86f0af3262403e3f76ecd2cf081d98bd8d42c5，probe-metadata SHA256 586e465e84fee8fe957484a9cf9eb713a3a54ef44cf5b6b2d4e28f427977f0df。Magpie /v1/models HTTP 200 且仍列出三个 Mimo ID。Sol 与视觉复核确认 Titlebar/ConversationLens 源码、测试、ARIA、HC、reduced-motion 合同完整，未触及 Navigator/Connection。
+
+### §419 Terra current two-round Mimo and UI gate（2026-11-08）
+
+Terra 当前真实探针确认 SGLang 两个端点仍拒绝连接，未发送 SGLang chat。Magpie 同一 session 两轮 Mimo 对话成功，round1 返回“第一轮”，round2 通过 --continue 返回“第二轮记得”，modelUsage 精确为 sub2api-mimo/mimo-v2.6-flash。证据目录 /tmp/terra-mimo-round180，SHA256SUMS 四项通过：round1 16f6475e2a6d7507c4423eb1bec8d5e16dba8f63f6211ba62d05d3b5846105bc、round2 18eb11e3583e015bea8f06fa6f660c8408e59fc73e3087d23aad201c15daa548、metadata a2b5f168fdcf23af6bd78fbb8ae127fb800b00d87de48292a9d900016d5e029d、sglang 40577a74258b09ce1f6f2aa41fec4e5e9a583b4a009dd9dc92e00d48052d73e5。Sol 窄门禁 127 passing，exit 0。
+
+### §420 Terra round183 Mimo continuity and UI gate（2026-11-08）
+
+Terra 再次确认 SGLang 两个端点全部拒绝连接，未发送 SGLang chat。Magpie 同一 session 两轮真实 Mimo 对话成功，round1=第一轮、round2=第二轮记得，modelUsage 均为 sub2api-mimo/mimo-v2.6-flash。证据目录 /tmp/terra-mimo-round183，SHA256SUMS 四项通过：sglang 40577a74258b09ce1f6f2aa41fec4e5、metadata 34018c6d198c8a9f1e105f653587db49addf0c89df57eee08f5bfe2bd93b6fec、round1 04d8d1e29b44c5ef7b6be86ba23708f5f265b44d5ac431d0a2c6a031fecb337a、round2 4b97f54c49fa543fcff42a2f4f690325ed2c16a7107da94e2aa06743dc82d941。Sol 窄门禁继续 127 passing。
+### §421 Terra round186 Mimo continuity and UI gate（2026-11-08）
+
+Terra 再次确认 SGLang 两个端点 TCP、health、models、loads 全部拒绝连接，未发送 SGLang chat。Magpie 同一 session 两轮成功，返回“第一轮”和“第二轮记得”，modelUsage=sub2api-mimo/mimo-v2.6-flash，is_error=false。证据目录 /tmp/terra-mimo-round186，SHA256SUMS 四项通过：metadata cf772222595c5473363008d322bdb81bcc1456eafc3e365a77088046853d15af、round1 74bec551ff97332b078dc6125a838ad4e1199629e25afd2b787e285dc356b25d、round2 514045244e8e85323c85654ad1638432e9be3a99749c3f64f1cf9f08c2d2a15f、sglang 112f87ca76bf4f87ba586949c67fcc3f0468e506107dcf752e0e827cf10ddc0a。Sol 窄门禁 127 passing。
+### §422 Round190 final availability audit（2026-11-08）
+
+Terra 复核 SGLang 两个端点 TCP、/health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round190-20261108T074500Z/，SHA256SUMS 2/2，summary SHA256 59d23cd76f0fb2f3aedaf3e4f21b5c4c66b0346e236d01d467f74a93d68821b3，probe-metadata SHA256 b53dda6c6609dfdc0684abb2d2504bcd345256dd279c110b82168520fef5760f。Magpie TCP 正常，/v1/models HTTP 200，网关型 /health 与 /v1/loads 返回 404。文档审计确认两份计划编号唯一、status 200 行、docs health 0 errors。
+### §423 Round191 SGLang availability and static UI audit（2026-11-08）
+
+Terra 新鲜探针确认 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round191-20261108T075708Z/，SHA256SUMS 2/2，summary SHA256 7692e53540d75de92304b6974e2c23884f9f1e12dd6e6f34af8e74aea07f80f6，probe-metadata SHA256 e994d4a53ee9cd4a3ece1ba902c1d3afea58ec0a57706120ba6f4f1751a71ba3。Magpie /v1/models HTTP 200 且列出三个 Mimo ID。Sol 静态扫描确认 18 个 CSS 的视觉面、HC、reduced-motion 合同完整，docs health 0 errors，status 200 行。窄门禁沿用此前权威 127 passing 证据。
+### §424 Resumed blocked audit round193（2026-11-08）
+
+Goal 恢复后的首次 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume193-20261108T080259，summary SHA256 d86c1ecb65006b70cbb9926329100e2bdcd7c94415e42d2165211dda82d5d49e，metadata SHA256 03098cf1eb2d888e6bb635371e0012d7e3a8f3ad20e4a0e7466b61bfd481eb2a，SHA256SUMS 2/2。Magpie 可达并列出三个 Mimo ID。Sol 复核 git diff、docs health、status 和 18 个 CSS/test 路径无回归，当前 scripts/test.sh 仅有 Electron 启动警告并被自身中断，继续沿用权威 127 passing。
+### §425 Resumed blocked audit round195（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume195-20261108T080854Z，summary SHA256 4f0f238fd5b959fda86fb42cb9625cc49bdb7b5ca18ed46cff04f95bf8a17889，metadata SHA256 0bee47382f27454729bb42e401850bfcb0a9ffc2336677d8ebcafb3fbba0e4e2。Magpie /v1/models HTTP 200。Sol 静态/diff 检查通过，脚本运行仍受 Electron 启动警告阻塞，沿用权威 127 passing。
+### §426 Resumed blocked audit round197（2026-11-08）
+
+Goal 恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume197-20261108T0815，summary SHA256 9609f758dc2e1394d8335637545761fb4a9e8a5f12f3245cf382cce61e0ec312，metadata SHA256 824769f5f69e264b31ee0505d937c76df1eb4571de80a0de05d93999535b0bd0，SHA256SUMS 2/2。Magpie /v1/models HTTP 200 且包含 Mimo。Sol 复核 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §427 Fresh resumed blocked audit round199（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume199-20261108T081453Z，summary SHA256 4c641f6c0a84d8c569e0eacf103963acf5145a7dcc3aee98a402732a52c68d78，metadata SHA256 9072adaeb08dffaf5093f36967b9759e94b645bc53d85e3f8a77825b56cc26ea，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，models body SHA256 d24445115fdad664d6cf3d696db9bc4162f88987fcca6a065907ed339f3311b4。Sol 复核 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §428 Fresh resumed blocked audit round201（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume201-20261108T082403，summary SHA256 2c58af28c09770aeed385920e0998b91d4cc46f3244d390b4281d5782304269e，metadata SHA256 bfe942c773cf05400ed721b4830562a6360c9e110d0b6720d54eeb230fa16b31，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 复核 18 个 CSS 合同与 status/docs 无回归，权威窄门禁仍 127 passing。
+### §429 Fresh resumed blocked audit round203（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume203-20261108T082602Z，summary SHA256 a3c365d240e7df5530021d714d944c7f9872696bd455942b63474df35d2b4cbd，metadata SHA256 e36fb629eb4626be61fbf611d8b670554af52236fdfc7adf772f73ec17ed0f37，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §430 Fresh resumed blocked audit round205（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume205-20261108T083100，summary SHA256 3ebfd4fd281e240ba26f187ce3ede70a2b8aaa6a90080d70a78a1b4e290c4c1c，metadata SHA256 42b69387378d55a14acfcbc025d2541573d493b8c7df9381c3dc1e79c9ce7850，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同和权威 127 passing。
+### §431 Fresh resumed blocked audit round207（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume207-20261108T083229，summary SHA256 45e456e11ae5a628d102c87542b0e8f3bb79c066e939b962d18646c8f3847ccf，metadata SHA256 484ad5e91d27cb8400b651c6d791767c6d3f24c7d948539790b65411505260da，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §432 Fresh resumed blocked audit round209（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefused，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round209-20261108T0838，summary SHA256 2f7503b094ceddb6e267a02554c957706fb2858d508dcb93a4920018ddf73ae4，metadata SHA256 533d77cf1b4232c63f6d391f6823feb11fd4bc4cb4c15128762d9517592596b0，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §433 Fresh resumed blocked audit round211（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume211-20261108T0840，summary SHA256 131edd1d4fda37c2ac7057a3ee389624423079be5ab4f40859a06ab52f86f343，metadata SHA256 9fb245197cc5fbb9142a6e8c04df190b2d9c5a2d0bf91ba8643e82af505e822e，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 复核 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §434 Fresh resumed blocked audit round213（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume213-20261108T083950，summary SHA256 4fade431409d9cb791e278135edb17c2210dc5143359aef8663d0fd022b73e10，metadata SHA256 68b886eb9629a273ffbb0f071b7168b74f3e6a1624ffd6f0e7cd799782115bad，SHA256SUMS 2/2。Magpie /v1/models HTTP 200 且 catalog 包含三个 Mimo ID。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §435 Fresh resumed blocked audit round215（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round215-20261108T084208，summary SHA256 39e3d321227e731c8667a41df51116fc0d6b3324948a5550805cb227cbf83151，metadata SHA256 9500f540480b39b458a3104b198c34fc61e21e1cf4408d4dd8093c1daba3981a，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §436 Fresh resumed blocked audit round217（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round217-20261108T084507，summary SHA256 6924df865de566b6535177a62cc67bdfb749d59fa39b96d76deb9f075a74d6ef，metadata SHA256 5489b1e57995a88e7c7a418222567624174fa7ae519786711a2971038e19656f，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §437 Fresh resumed blocked audit round219（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round219-20261108T0845，summary SHA256 81ec88b9188380d0158fc4fcf2dfb8e6e6a263215cf1411ecf5ac45a70b27426，probe-metadata SHA256 0969b44d86b1c7b52b88c3d94b6d7bda259ede0db34e94ce02d208465c5e6c79，SHA256SUMS 2/2。Magpie catalog probe completed。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §438 Fresh resumed blocked audit round221（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP 拒绝，health、models、loads 无 HTTP 响应，served_model_ids=[]、mimo_candidates=[]、未发送 chat。证据目录 /tmp/sglang-resume-round221-20261108T085020，summary SHA256 56339766ab5ccdb04d2bf717337af82aded207e1a5c00cc291737f9103cca236，metadata SHA256 5df5abf40de70cfb57389b5d5032864540e4fa13f4831f9b7335323ea02498b0，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，/health 与 /v1/loads 返回 404。Sol 门禁、CSS 合同和 docs/status 状态保持有效。
+### §439 Fresh resumed blocked audit round223（2026-11-08）
+
+Goal 恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume223-20261108T0855，summary SHA256 f5bea075ff49914a4bce50650cfd32ba57b0ecfbdda1f9f6979db46704cc362c，metadata SHA256 b006260e679733fdbd6010cba664a03ed0f620c1e18886520ef3f34e0831dd12，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，列出三个 Mimo ID。Sol 既有 CSS 合同和权威窄门禁保持有效。
+### §440 Fresh resumed blocked audit round225（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round225-20261108T0855，summary SHA256 c41d898a73d637bb583b3f2001ba40ead595738f85b517aa36fd6a4a45155fcf，metadata SHA256 7f44807c5882f1b04206bf76123200733425014534eb09f699ac9efb4cdb58e9，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。当前 UI合同与权威窄门禁保持有效。
+### §441 Fresh resumed blocked audit round227（2026-11-08）
+
+Goal 恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round227-20261108T0855，summary SHA256 47ae7d67eca88c625fa44fff3fb8f059e17c7b5d3b638e7a8c3f40494929bcac，metadata SHA256 6520eb5c9097f36979a7fce5b5f8dd11039d40c7a7e5da0779bdea1fa46e632e，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，列出三个 Mimo ID。Sol 既有 CSS 合同、docs/status 和权威窄门禁保持有效。
+### §442 Fresh resumed blocked audit round229（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang/UA 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、未发送 chat。证据目录 /tmp/sglang-resume-round229-20261108T085853，summary SHA256 1d864cf3cde951825f1aa522bb6c2ba6e6aa86675e04adaacf8b74752dd68f77，metadata SHA256 1fcd329d746581f2bf60eb9d480c7ee6e157de7182f4856546381ea5b9854cc7，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，catalog 包含 flash、[1M]、pro。
+### §443 Fresh resumed blocked audit round231（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round231-20261108T090000，summary SHA256 c9080aa7a7fc6b94d158aa1174241c688b04c4f463a097147dc7081507b5875f，probe-metadata SHA256 db4ff9ec57aa47c2604aea0448c4cd686a2b83c48b543b92b0e3441b98545349，catalog SHA256 d24445115fdad664d6cf3d696db9bc4162f88987fcca6a065907ed339f3311b4。SHA256SUMS 三项通过。
+### §444 Fresh resumed blocked audit round233（2026-11-08）
+
+当前 Python urllib 直接探测 127.0.0.1:50061/health 与 192.168.10.68:8192/health 均 ConnectionRefusedError，确认外部状态未改变。此前 round231 的 catalog/hash 仍为最近完整证据，Sol 静态合同和权威 127 passing 保持有效。
+### §445 Fresh resumed blocked audit round235（2026-11-08）
+
+当前 Python 与 Terra 探针均确认 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round235-20261108T090500，summary SHA256 291da3da47b10a81079554b4ca18f59dda4b4eed2654f07edc7c3792004e3e87，probe-metadata SHA256 4ea039894839b7dbc1d14d08374dc2a280400c1a57dd8e38d9bdae233d876e34，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，列出 flash[1M]、pro、flash。
+### §446 Fresh resumed blocked audit round237（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang/UA 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null、未发送 chat。证据目录 /tmp/sglang-resume-round237-20261108T090700，summary SHA256 0ed2664cc9ae8b0ba36384fb960ef2758fb5c98f64c93a81dd0f80d9e330168c，probe-metadata SHA256 b908ee90c4007b4393ea5b7ee96199479b3aa9e852dbfb4d9fa649e1ea5894cc，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，catalog 包含 flash[1M]、pro、flash。
+### §447 Fresh resumed blocked audit round239（2026-11-08）
+
+Goal 恢复后的第三轮直接探针确认 127.0.0.1:50061 与 192.168.10.68:8192 的 /health 均 ConnectionRefusedError，未发送 chat。证据目录 /tmp/sglang-resume-round239-20261108T0855，summary SHA256 93486d61c6a0daef4f234a64f3bc35dac31c42190c2c6f662ec9ca87549e6f25，probe-metadata SHA256 f96319003b2c76217d16b7a1c586ba2aabae74e5b37ed394bd51aa365f9b405b，SHA256SUMS 2/2。Magpie /v1/models 状态已记录。

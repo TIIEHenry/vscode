@@ -17,9 +17,18 @@ suite('Single editor title actions', () => {
 
 	test('ordinary title action focus uses hover feedback while HC keeps a contrast ring', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/singleeditortabscontrol.css'), 'utf8');
-		assert.match(css, /\.editor-group-container > \.title > \.title-actions \.action-label:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
+		assert.match(css, /\.editor-group-container > \.title > \.title-actions \.action-label:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*transparent/);
+		assert.match(css, /\.editor-group-container > \.title > \.title-actions \.action-label:focus-visible::after\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
 		assert.match(css, /\.monaco-workbench\.hc-black \.part\.editor[\s\S]*?\.title > \.title-actions \.action-label:focus-visible,[\s\S]*?\.monaco-workbench\.hc-light \.part\.editor[\s\S]*?\.title > \.title-actions \.action-label:focus-visible\s*\{[^}]*outline:\s*1px solid var\(--vscode-contrastActiveBorder,\s*var\(--vscode-focusBorder\)\)/);
 		assert.doesNotMatch(css, /\.title > \.title-actions \.action-label\s*\{[^}]*outline-color:\s*var\(--vscode-focusBorder\)/);
+	});
+
+	test('ordinary title actions keep the full target while painting inset hover and pressed faces', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/singleeditortabscontrol.css'), 'utf8');
+		assert.match(css, /\.title > \.title-actions \.action-label\s*\{[^}]*position:\s*relative[^}]*background-color:\s*transparent/);
+		assert.match(css, /\.title > \.title-actions \.action-label::after\s*\{[^}]*inset:\s*1px 2px/);
+		assert.match(css, /\.title > \.title-actions \.action-label:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /\.title > \.title-actions \.action-label:active::after\s*\{[^}]*toolbar-activeBackground/);
 	});
 
 	test('inline breadcrumbs focus uses hover feedback while HC keeps a contrast ring', () => {
@@ -31,7 +40,9 @@ suite('Single editor title actions', () => {
 	test('title action transitions honor reduced motion without changing focus semantics', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/singleeditortabscontrol.css'), 'utf8');
 		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.title > \.title-actions \.action-label\s*\{[^}]*transition:\s*none;/);
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?\.title > \.title-actions \.action-label::after\s*\{[^}]*transition:\s*none;/);
 		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\)[\s\S]*?\.title > \.title-actions \.action-label\s*\{[^}]*transition:\s*none;/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\)[\s\S]*?\.title > \.title-actions \.action-label::after\s*\{[^}]*transition:\s*none;/);
 	});
 
 	test('single editor title label transitions honor reduced motion without changing active feedback', () => {

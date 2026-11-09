@@ -460,7 +460,7 @@ export function mountLensTablist(host: IConversationLensSessionBarHost, tablistH
 		host.lensTabTrajectory.setAttribute('role', 'tab');
 		host.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
 		host.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
-			for (const [tab, label, icon] of [
+	for (const [tab, label, icon] of [
 			[host.lensTabConversation, conversationLensSessionBarConversationTab, Codicon.commentDiscussion],
 			[host.lensTabTrajectory, conversationLensSessionBarTrajectoryTab, Codicon.listTree],
 		] as const) {

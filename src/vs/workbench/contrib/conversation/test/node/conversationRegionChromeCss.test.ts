@@ -36,6 +36,10 @@ suite('Conversation hide chrome aligns with the preview category bar', () => {
 		assert.match(label, /width:\s*28px/);
 		assert.match(label, /height:\s*28px/);
 		assert.match(label, /padding:\s*0/);
+		assert.match(label, /background-color:\s*transparent/);
+		const face = ruleBody(part, '.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label::after');
+		assert.match(face, /inset:\s*1px 2px/);
+		assert.match(face, /background-color:\s*transparent/);
 
 		const sessionBar = ruleBody(part, '.monaco-workbench .part.conversation .conversation-session-bar');
 		assert.match(sessionBar, /height:\s*36px/);
@@ -56,13 +60,24 @@ suite('Conversation hide chrome aligns with the preview category bar', () => {
 		const titlePressed = part.indexOf('.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:active');
 		assert.ok(titleHover >= 0, 'conversation title action hover surface contract');
 		assert.ok(titlePressed > titleHover, 'conversation title action pressed surface must follow hover surface');
-		assert.match(part.slice(titlePressed, titlePressed + 220), /background-color:\s*var\(--vscode-toolbar-activeBackground/);
+		assert.match(part.slice(titlePressed, titlePressed + 260), /background-color:\s*transparent/);
+		const titlePressedFace = part.indexOf('.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:active::after');
+		assert.ok(titlePressedFace > titlePressed, 'conversation title action pressed face must follow host state');
+		assert.match(part.slice(titlePressedFace, titlePressedFace + 220), /background-color:\s*var\(--vscode-toolbar-activeBackground/);
+		assert.match(part, /\.monaco-workbench\.monaco-reduce-motion \.part\.conversation > \.conversation-region-chrome \.title-actions \.action-label::after\s*\{[^}]*transition:\s*none;/s);
+		assert.match(part, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\) \.part\.conversation > \.conversation-region-chrome \.title-actions \.action-label::after\s*\{[^}]*transition:\s*none;/s);
 
 		const sessionHover = part.indexOf('.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled)');
 		const sessionPressed = part.indexOf('.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:active:not(.disabled)');
 		assert.ok(sessionHover >= 0, 'conversation session action hover surface contract');
 		assert.ok(sessionPressed > sessionHover, 'conversation session action pressed surface must follow hover surface');
 		assert.match(part.slice(sessionPressed, sessionPressed + 420), /background-color:\s*var\(--vscode-toolbar-activeBackground/);
+	});
+
+	test('conversation title action keeps a contrast ring in HC themes', () => {
+		const part = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/media/conversationPart.css'), 'utf8');
+		assert.match(part, /\.monaco-workbench:is\(\.hc-black, \.hc-light\) \.part\.conversation > \.conversation-region-chrome \.title-actions \.action-label:focus-visible\s*\{[^}]*outline:\s*1px solid var\(--vscode-contrastActiveBorder, var\(--vscode-focusBorder\)\) !important/);
+		assert.doesNotMatch(part, /\.monaco-workbench:is\(\.hc-black, \.hc-light\) \.part\.conversation > \.conversation-region-chrome \.title-actions \.action-label:focus-visible\s*\{[^}]*background-color:/);
 	});
 
 	test('session leaf hide control keeps motion within the 100ms contract and honors reduced motion', () => {

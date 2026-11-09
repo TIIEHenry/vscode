@@ -37,4 +37,36 @@ suite('Editor group toolbar', () => {
 		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?editor-group-container-toolbar \.action-label\s*\{[^}]*transition:\s*none;/);
 		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\)[\s\S]*?editor-group-container-toolbar \.action-label\s*\{[^}]*transition:\s*none;/);
 	});
+
+	test('preview category empty-group actions keep the hit target while painting an inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorgroupview.css'), 'utf8');
+		assert.match(css, /preview-category-empty-group-actions \.action-label\s*\{[^}]*width:\s*24px[^}]*height:\s*24px[^}]*background-color:\s*transparent/);
+		assert.match(css, /preview-category-empty-group-actions \.action-label::after\s*\{[^}]*inset:\s*1px 2px/);
+		assert.match(css, /preview-category-empty-group-actions \.action-label:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /preview-category-empty-group-actions \.action-label:active::after\s*\{[^}]*toolbar-activeBackground/);
+		assert.match(css, /preview-category-empty-group-actions \.action-label:focus-visible::after\s*\{[^}]*toolbar-hoverBackground/);
+	});
+
+	test('preview category empty-group actions honor reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorgroupview.css'), 'utf8');
+		assert.match(css, /monaco-reduce-motion[\s\S]*?preview-category-empty-group-actions \.action-label[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?preview-category-empty-group-actions \.action-label[\s\S]*?transition:\s*none/);
+	});
+
+	test('preview category empty actions keep the full target while painting an inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorgroupview.css'), 'utf8');
+		assert.match(css, /preview-category-empty-action-button\s*\{[^}]*position:\s*relative[^}]*background:\s*none/);
+		assert.match(css, /preview-category-empty-action-button::after\s*\{[^}]*inset:\s*1px 2px/);
+		assert.match(css, /preview-category-empty-action-button:hover\s*\{[^}]*background:\s*transparent/);
+		assert.match(css, /preview-category-empty-action-button:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /preview-category-empty-action-button:active\s*\{[^}]*background:\s*transparent/);
+		assert.match(css, /preview-category-empty-action-button:active::after\s*\{[^}]*toolbar-activeBackground/);
+		assert.match(css, /preview-category-empty-action-button:focus-visible::after\s*\{[^}]*toolbar-hoverBackground/);
+	});
+
+	test('preview category empty actions honor reduced motion for the inset face', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorgroupview.css'), 'utf8');
+		assert.match(css, /monaco-reduce-motion[\s\S]*?preview-category-empty-action-button::after[\s\S]*?transition:\s*none/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?preview-category-empty-action-button::after[\s\S]*?transition:\s*none/);
+	});
 });
