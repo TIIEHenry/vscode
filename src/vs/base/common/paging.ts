@@ -5,7 +5,7 @@
 
 import { range } from './arrays.js';
 import { CancellationToken, CancellationTokenSource } from './cancellation.js';
-import { DeferredPromise } from './async.js';
+import { DeferredPromise, raceCancellationError } from './async.js';
 import { CancellationError } from './errors.js';
 import { Event, Emitter } from './event.js';
 
@@ -328,6 +328,8 @@ export class IterativePagedModel<T> implements IPagedModel<T> {
 	private _hasNextPage = true;
 	private readonly _onDidIncrementLength = new Emitter<number>();
 	private loadingPromise: Promise<void> | null = null;
+	/** Cancelled only when this model goes away, never by an individual caller. */
+	private readonly loadCancellation = new CancellationTokenSource();
 
 	private readonly pager: IIterativePager<T>;
 
@@ -393,11 +395,13 @@ export class IterativePagedModel<T> implements IPagedModel<T> {
 
 		// If already loading, return the cached promise
 		if (this.loadingPromise) {
-			await this.loadingPromise;
+			await raceCancellationError(this.loadingPromise, cancellationToken);
 			return;
 		}
 
-		const pagePromise = this.pager.getNextPage(cancellationToken);
+		// The load is shared by every caller that reaches the sentinel, so a caller's token
+		// governs only its own wait.
+		const pagePromise = this.pager.getNextPage(this.loadCancellation.token);
 
 		this.loadingPromise = pagePromise
 			.then(page => {
@@ -415,10 +419,12 @@ export class IterativePagedModel<T> implements IPagedModel<T> {
 				throw err;
 			});
 
-		await this.loadingPromise;
+		await raceCancellationError(this.loadingPromise, cancellationToken);
 	}
 
 	dispose(): void {
+		this.loadCancellation.cancel();
+		this.loadCancellation.dispose();
 		this._onDidIncrementLength.dispose();
 	}
 }

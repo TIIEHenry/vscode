@@ -52,8 +52,18 @@ export async function createIPCServer(context?: string): Promise<IPCServer> {
 	return new Promise((c, e) => {
 		try {
 			server.on('error', err => e(err));
-			server.listen(ipcHandlePath);
-			c(new IPCServer(server, ipcHandlePath));
+			server.listen(ipcHandlePath, () => {
+				if (process.platform === 'win32') {
+					c(new IPCServer(server, ipcHandlePath));
+					return;
+				}
+
+				// The socket answers askpass requests with credentials, so only the owner may connect
+				fs.promises.chmod(ipcHandlePath, 0o600).then(() => c(new IPCServer(server, ipcHandlePath)), err => {
+					server.close();
+					e(err);
+				});
+			});
 		} catch (err) {
 			e(err);
 		}

@@ -307,9 +307,9 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 	) {
 		super(tree as unknown as AbstractTree<T, TFilterData, unknown>, filter, contextViewProvider, options);
 		// Always make sure to end the session before disposing
-		this.disposables.add(toDisposable(async () => {
+		this.disposables.add(toDisposable(() => {
 			if (this.activeSession) {
-				await this.findProvider.endSession?.();
+				this.deactivateFindSession().catch(onUnexpectedError);
 			}
 		}));
 	}
@@ -320,7 +320,15 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 		this.activeTokenSource?.cancel();
 		this.activeTokenSource = new CancellationTokenSource();
 
-		this.taskQueue.trigger(() => this.applyPatternAsync());
+		this.taskQueue.trigger(() => this.applyPatternAsync()).catch(onUnexpectedError);
+	}
+
+	override dispose(): void {
+		// `super.dispose()` closes the find widget, which queues one more empty pattern; the
+		// queue must be stopped after that so the pending round never runs against a disposed tree
+		super.dispose();
+		this.activeTokenSource?.cancel();
+		this.taskQueue.dispose();
 	}
 
 	private async applyPatternAsync(): Promise<void> {

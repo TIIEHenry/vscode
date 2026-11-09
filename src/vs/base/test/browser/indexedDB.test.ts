@@ -44,6 +44,28 @@ flakySuite('IndexedDB', () => {
 		assert.strictEqual(keyValues.get('key2'), 'hello2');
 	});
 
+	test('getKeyValues rejects instead of returning a partial map when its transaction is aborted', async () => {
+		await indexedDB.runInTransaction('test-store', 'readwrite', store => [
+			store.add('hello1', 'key1'),
+			store.add('hello2', 'key2'),
+		]);
+		function isValid(value: unknown): value is string {
+			return typeof value === 'string';
+		}
+
+		const originalConsoleError = console.error;
+		console.error = () => { };
+		try {
+			const promise = indexedDB.getKeyValues('test-store', isValid);
+			indexedDB.close();
+
+			await assert.rejects(promise);
+			assert.strictEqual(indexedDB.hasPendingTransactions(), false);
+		} finally {
+			console.error = originalConsoleError;
+		}
+	});
+
 	test('hasPendingTransactions', async () => {
 		const promise = indexedDB.runInTransaction('test-store', 'readwrite', store => store.add('hello2', 'key2'));
 		assert.deepStrictEqual(indexedDB.hasPendingTransactions(), true);

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from './cancellation.js';
-import { onUnexpectedError } from './errors.js';
+import { CancellationError, onUnexpectedError } from './errors.js';
 import { DisposableStore, toDisposable } from './lifecycle.js';
 
 /**
@@ -219,7 +219,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 		end: [] as { (): void }[]
 	};
 
-	private readonly pendingWritePromises: Function[] = [];
+	private readonly pendingWritePromises: { resolve: () => void; reject: (error: Error) => void }[] = [];
 
 	/**
 	 * @param reducer a function that reduces the buffered data into a single object;
@@ -268,7 +268,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 
 			// highWaterMark: if configured, signal back when buffer reached limits
 			if (typeof this.options?.highWaterMark === 'number' && this.buffer.data.length > this.options.highWaterMark) {
-				return new Promise(resolve => this.pendingWritePromises.push(resolve));
+				return new Promise((resolve, reject) => this.pendingWritePromises.push({ resolve, reject }));
 			}
 		}
 	}
@@ -296,7 +296,11 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 
 		// end with data if provided
 		if (typeof result !== 'undefined') {
-			this.write(result);
+			// nobody can await this write, so a later destroy() must not surface as an unhandled rejection
+			const writePromise = this.write(result);
+			if (writePromise) {
+				writePromise.catch(() => { });
+			}
 		}
 
 		// flowing: send end event to listeners
@@ -425,7 +429,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 		// when the buffer is empty, resolve all pending writers
 		const pendingWritePromises = [...this.pendingWritePromises];
 		this.pendingWritePromises.length = 0;
-		pendingWritePromises.forEach(pendingWritePromise => pendingWritePromise());
+		pendingWritePromises.forEach(pendingWritePromise => pendingWritePromise.resolve());
 	}
 
 	private flowErrors(): void {
@@ -460,7 +464,10 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 			this.listeners.error.length = 0;
 			this.listeners.end.length = 0;
 
+			// writers waiting for the buffer to drain must learn that it never will
+			const pendingWritePromises = [...this.pendingWritePromises];
 			this.pendingWritePromises.length = 0;
+			pendingWritePromises.forEach(pendingWritePromise => pendingWritePromise.reject(new CancellationError()));
 		}
 	}
 }

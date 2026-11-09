@@ -8,6 +8,7 @@ import { timeout } from '../../common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 import { bufferToReadable, VSBuffer } from '../../common/buffer.js';
 import { CancellationTokenSource } from '../../common/cancellation.js';
+import { isCancellationError } from '../../common/errors.js';
 import { consumeReadable, consumeStream, isReadable, isReadableBufferedStream, isReadableStream, listenStream, newWriteableStream, peekReadable, peekStream, prefixedReadable, prefixedStream, Readable, ReadableStream, toReadable, toStream, transform } from '../../common/stream.js';
 
 suite('Stream', () => {
@@ -284,6 +285,26 @@ suite('Stream', () => {
 		assert.strictEqual(drained2, true);
 	});
 
+	test('WriteableStream - highWaterMark write waiting for drain is rejected on destroy', async () => {
+		const stream = newWriteableStream<string>(strings => strings.join(), { highWaterMark: 1 });
+
+		assert.ok(!stream.write('1'));
+		const pending = stream.write('2');
+		assert.ok(pending instanceof Promise);
+
+		let outcome: unknown = 'pending';
+		pending.then(() => outcome = 'resolved', err => outcome = err);
+
+		stream.destroy();
+		await timeout(0);
+		assert.ok(isCancellationError(outcome));
+
+		const data: string[] = [];
+		stream.on('data', chunk => data.push(chunk));
+		stream.resume();
+		assert.deepStrictEqual(data, []);
+		assert.strictEqual(stream.write('3'), undefined);
+	});
 	test('consumeReadable', () => {
 		const readable = arrayToReadable(['1', '2', '3', '4', '5']);
 		const consumed = consumeReadable(readable, strings => strings.join());

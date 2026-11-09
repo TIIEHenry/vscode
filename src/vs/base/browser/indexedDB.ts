@@ -177,7 +177,7 @@ export class IndexedDB {
 		}
 		const transaction = this.database.transaction(store, 'readonly');
 		this.pendingTransactions.push(transaction);
-		return new Promise<Map<string, V>>(resolve => {
+		return new Promise<Map<string, V>>((resolve, reject) => {
 			const items = new Map<string, V>();
 
 			const objectStore = transaction.objectStore(store);
@@ -205,13 +205,22 @@ export class IndexedDB {
 			};
 
 			// Error handlers
+			let failed = false;
 			const onError = (error: Error | null) => {
+				// one failure reaches the cursor, then the transaction, then its abort handler
+				if (failed) {
+					return;
+				}
+				failed = true;
+
 				console.error(`IndexedDB getKeyValues(): ${toErrorMessage(error, true)}`);
 
-				resolve(items);
+				// a partial map must not be mistaken for the full store contents
+				reject(error ? ErrorNoTelemetry.fromError(error) : new ErrorNoTelemetry('unknown error'));
 			};
 			cursor.onerror = () => onError(cursor.error);
 			transaction.onerror = () => onError(transaction.error);
+			transaction.onabort = () => onError(transaction.error);
 		}).finally(() => this.pendingTransactions.splice(this.pendingTransactions.indexOf(transaction), 1));
 	}
 }
