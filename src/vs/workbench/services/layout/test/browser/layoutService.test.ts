@@ -25,6 +25,7 @@ import { ISourcesPartService } from '../../../../browser/parts/sources/sourcesPa
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
 
@@ -728,21 +729,64 @@ suite('LayoutService - zen mode End column', () => {
 		internal.statusBarPartView = {};
 	}
 
-	function readZenExitInfo(storageService: IStorageService): IZenModeExitInfo {
+	/** Workspace-scoped layout state only reaches storage when the workbench saves state. */
+	function readZenExitInfo(layout: ZenModeTestLayout, storageService: IStorageService): IZenModeExitInfo {
+		// eslint-disable-next-line local/code-no-any-casts
+		(layout as any).stateModel.save(true, false);
 		return JSON.parse(storageService.get('workbench.zenMode.exitInfo', StorageScope.WORKSPACE)!);
 	}
 
-	async function createZenLayout(disposables: DisposableStore): Promise<{ layout: ZenModeTestLayout; storageService: IStorageService }> {
-		const instantiationService = workbenchInstantiationService(undefined, disposables);
-		instantiationService.stub(IConversationPartService, { _serviceBrand: undefined } as IConversationPartService);
-		instantiationService.stub(ISourcesPartService, { _serviceBrand: undefined } as ISourcesPartService);
+	async function createZenLayout(disposables: DisposableStore, seedStorage?: (storageService: IStorageService) => void): Promise<{ layout: ZenModeTestLayout; storageService: IStorageService }> {
+		const instantiationService = workbenchInstantiationService({
+			configurationService: () => new TestConfigurationService({
+				zenMode: {
+					centerLayout: true,
+					fullScreen: false,
+					hideActivityBar: true,
+					hideLineNumbers: true,
+					hideStatusBar: true,
+					showTabs: 'multiple',
+					restore: true,
+					silentNotifications: true,
+				},
+			}),
+		}, disposables);
+		instantiationService.stub(IConversationPartService, { _serviceBrand: undefined, focus: () => { } } as unknown as IConversationPartService);
+		instantiationService.stub(ISourcesPartService, { _serviceBrand: undefined, focus: () => { } } as unknown as ISourcesPartService);
+		instantiationService.stub(ITitleService, { _serviceBrand: undefined, onMenubarVisibilityChange: Event.None } as unknown as ITitleService);
+		instantiationService.stub(IAuxiliaryWindowService, { _serviceBrand: undefined, onDidOpenAuxiliaryWindow: Event.None } as unknown as IAuxiliaryWindowService);
+		instantiationService.stub(IViewDescriptorService, {
+			_serviceBrand: undefined,
+			getDefaultViewContainer: () => undefined,
+			getViewContainersByLocation: () => [],
+			getViewContainerById: () => undefined,
+		} as unknown as IViewDescriptorService);
+		instantiationService.stub(IPaneCompositePartService, {
+			_serviceBrand: undefined,
+			onDidPaneCompositeOpen: Event.None,
+			onDidPaneCompositeClose: Event.None,
+			getActivePaneComposite: () => undefined,
+			getPaneCompositeIds: () => [],
+			getVisiblePaneCompositeIds: () => [],
+			getLastActivePaneCompositeId: () => undefined,
+			openPaneComposite: async () => undefined,
+			hideActivePaneComposite: () => { },
+		} as unknown as IPaneCompositePartService);
 		const parts = await createEditorParts(instantiationService, disposables);
 		disposables.add(parts);
 		instantiationService.stub(IEditorGroupsService, parts);
 		const storageService = instantiationService.invokeFunction(accessor => accessor.get(IStorageService));
-		const layout = disposables.add(new ZenModeTestLayout(document.createElement('div'), { resetLayout: true }));
+		seedStorage?.(storageService);
+		const layout = disposables.add(new ZenModeTestLayout(document.createElement('div'), { resetLayout: !seedStorage }));
 		instantiationService.invokeFunction(accessor => layout.initialize(accessor));
 		stubWorkbenchGrid(layout);
+		for (const id of [Parts.ACTIVITYBAR_PART, Parts.SIDEBAR_PART, Parts.CONVERSATION_PART, Parts.PANEL_PART, Parts.AUXILIARYBAR_PART, Parts.EDITOR_PART, Parts.SOURCES_PART, Parts.STATUSBAR_PART]) {
+			disposables.add(layout.registerPart({
+				getId: () => id,
+				getContainer: () => document.createElement('div'),
+				updateStyles: () => { },
+			} as unknown as Parameters<Layout['registerPart']>[0]));
+		}
 		return { layout, storageService };
 	}
 
@@ -753,7 +797,7 @@ suite('LayoutService - zen mode End column', () => {
 		await layout.setPartHidden(true, Parts.CONVERSATION_PART);
 		await layout.setPartHidden(false, Parts.EDITOR_PART);
 		layout.toggleZenMode(true);
-		assert.strictEqual(readZenExitInfo(storageService).wasVisible.conversation, false);
+		assert.strictEqual(readZenExitInfo(layout, storageService).wasVisible.conversation, false);
 		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
 
 		layout.toggleZenMode(true);
@@ -762,7 +806,7 @@ suite('LayoutService - zen mode End column', () => {
 
 		await layout.setPartHidden(false, Parts.CONVERSATION_PART);
 		layout.toggleZenMode(true);
-		assert.strictEqual(readZenExitInfo(storageService).wasVisible.conversation, true);
+		assert.strictEqual(readZenExitInfo(layout, storageService).wasVisible.conversation, true);
 		layout.toggleZenMode(true);
 		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
 
@@ -771,13 +815,17 @@ suite('LayoutService - zen mode End column', () => {
 
 	test('toggleZenMode does not hide conversation when exit info lacks conversation snapshot', async () => {
 		const disposables = new DisposableStore();
-		const { layout, storageService } = await createZenLayout(disposables);
+		const previousSession = await createZenLayout(disposables);
 
-		await layout.setPartHidden(false, Parts.EDITOR_PART);
-		layout.toggleZenMode(true);
-		const exitInfo = readZenExitInfo(storageService);
+		await previousSession.layout.setPartHidden(false, Parts.EDITOR_PART);
+		previousSession.layout.toggleZenMode(true);
+		const exitInfo = readZenExitInfo(previousSession.layout, previousSession.storageService);
 		delete (exitInfo.wasVisible as { conversation?: boolean }).conversation;
-		storageService.store('workbench.zenMode.exitInfo', JSON.stringify(exitInfo), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+
+		const { layout } = await createZenLayout(disposables, storageService => {
+			storageService.store('workbench.zenMode.active', true, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			storageService.store('workbench.zenMode.exitInfo', JSON.stringify(exitInfo), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		});
 
 		layout.toggleZenMode(true);
 		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
