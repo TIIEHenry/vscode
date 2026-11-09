@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
@@ -19,7 +19,7 @@ import type {
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { ConversationEngineRosterService } from '../../browser/conversationEngineRosterService.js';
+import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from '../../browser/conversationSessionStatus.js';
 import { ConversationStubService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
 
@@ -209,6 +209,29 @@ function createHarness(connection: MockUniverseAgentConnection, sessionView: Moc
 	return service;
 }
 
+class GatedBindHarness extends ObservableRosterHarness {
+	bindGate: DeferredPromise<boolean> | undefined;
+
+	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+		const lease = super.acquireSessionView(sessionId);
+		const gate = this.bindGate;
+		if (gate && lease instanceof TrackingSessionViewLease) {
+			lease.whenBindReady = () => gate.p;
+		}
+		return lease;
+	}
+}
+
+function createGatedHarness(connection: MockUniverseAgentConnection, sessionView: MockUniverseAgentSessionView): GatedBindHarness {
+	const service = new GatedBindHarness(
+		connection as unknown as IUniverseAgentConnection,
+		sessionView as unknown as IUniverseAgentSessionView,
+		{ _serviceBrand: undefined, shouldAdvertise: () => true },
+	);
+	service.pairingHoldSource = connection;
+	return service;
+}
+
 function makeLiveAgentTree(agentId: string, name: string): LiveAgentTreeNodeView {
 	return {
 		agentId: 'root',
@@ -333,6 +356,96 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 		assert.strictEqual(treeEvents.at(-1)?.sessionId, 'ua-b');
 	});
 
+	async function startListedBindOnSecondSession(connection: MockUniverseAgentConnection): Promise<{ service: GatedBindHarness; gate: DeferredPromise<boolean> }> {
+		const sessionView = store.add(new MockUniverseAgentSessionView());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createGatedHarness(connection, sessionView));
+		connection.setConnected(true);
+		await service.whenEngineCatalogRefreshComplete();
+		await settle();
+		const gate = new DeferredPromise<boolean>();
+		service.bindGate = gate;
+		service.switchSession('ua-b');
+		await settle();
+		assert.ok(service.acquireCalls.includes('ua-b'));
+		return { service, gate };
+	}
+
+	test('listed bind settling false after a true disconnect keeps the leftover rows', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const { service, gate } = await startListedBindOnSecondSession(connection);
+
+		connection.setConnected(false);
+		await settle();
+		gate.complete(false);
+		await settle();
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+	});
+
+	test('listed bind settling false during pairing-hold keeps the leftover rows', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const { service, gate } = await startListedBindOnSecondSession(connection);
+
+		connection.setPairingPending(true);
+		await settle();
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		gate.complete(false);
+		await settle();
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+	});
+
+	async function startPendingBind(connection: MockUniverseAgentConnection): Promise<{ service: GatedBindHarness; gate: DeferredPromise<boolean> }> {
+		const sessionView = store.add(new MockUniverseAgentSessionView());
+		connection.setListSessions([]);
+		const service = store.add(createGatedHarness(connection, sessionView));
+		const gate = new DeferredPromise<boolean>();
+		service.bindGate = gate;
+		connection.setConnected(true);
+		await service.whenEngineCatalogRefreshComplete();
+		await settle();
+		assert.strictEqual(service.acquireCalls.length, 1);
+		return { service, gate };
+	}
+
+	test('pending bind settling after dispose does not adopt or request a tree refresh', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const { service, gate } = await startPendingBind(connection);
+		const treeRefreshBefore = connection.treeRefreshCalls.length;
+
+		service.dispose();
+		gate.complete(true);
+		await settle();
+
+		assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBefore);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), []);
+	});
+
+	test('pending bind settling false after a true disconnect does not mark bind-failed, and reconnect lists again', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const { service, gate } = await startPendingBind(connection);
+
+		connection.setConnected(false);
+		await settle();
+		gate.complete(false);
+		await settle();
+		assert.notStrictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+
+		service.bindGate = undefined;
+		connection.setListSessions([{ sessionId: 'ua-x', title: 'X' }]);
+		connection.setConnected(true);
+		await service.whenEngineCatalogRefreshComplete();
+		await settle();
+		assert.strictEqual(service.getActiveSessionId(), 'ua-x');
+		assert.strictEqual(service.isEngineSessionReady(), true);
+	});
+
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -356,7 +469,7 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 	}
 
 	test('does not leak unhandled rejection when listed bind monitor rejects and onUnexpectedError logs it', async () => {
-		// monitorListedEngineSessionBind has no method-body catch; bindReady reject still needs double catch.
+		// monitorListedEngineSessionBind has no method-body catch; bindReady reject needs the call-site catch.
 		const paintBoom = new Error('paint boom');
 		class RejectListedBindHarness extends ObservableRosterHarness {
 			rejectBind = false;
@@ -391,7 +504,7 @@ suite('ConversationEngineRosterService live agent tree observation (GC-4)', () =
 	});
 
 	test('does not leak unhandled rejection when pending bind monitor rejects and onUnexpectedError logs it', async () => {
-		// monitorPendingEngineSessionBind has no method-body catch; bindReady reject still needs double catch.
+		// monitorPendingEngineSessionBind has no method-body catch; bindReady reject needs the call-site catch.
 		const paintBoom = new Error('paint boom');
 		class RejectPendingBindHarness extends ObservableRosterHarness {
 			override acquireSessionView(sessionId: string): IConversationSessionViewLease {

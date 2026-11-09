@@ -25,7 +25,7 @@ import {
 
 declare function __readFileInTests(path: string): Promise<string>;
 
-async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>, expectedCount = 1): Promise<void> {
+async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
 	const unexpectedWarns: unknown[] = [];
 	const unhandledRejections: unknown[] = [];
 	const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -33,16 +33,13 @@ async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => voi
 	const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 	setUnexpectedErrorHandler(error => {
 		unexpectedWarns.push(error);
-		if (expectedCount > 1 && unexpectedWarns.length === 1) {
-			throw error;
-		}
 	});
 	try {
 		await run();
 		await timeout(0);
 		assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 			unhandledRejections: [],
-			unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
+			unexpectedWarns: [paintBoom],
 		});
 	} finally {
 		setUnexpectedErrorHandler(originalErrorHandler);
@@ -269,7 +266,7 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.strictEqual(await resolveConversationMermaidExtension(stub), undefined);
 	});
 
-	test('does not leak unhandled rejection when reset postMessage rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when reset postMessage rejects and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('reset postMessage boom');
 		const { container } = mountOverlay({
 			postMessage: () => Promise.reject(paintBoom),

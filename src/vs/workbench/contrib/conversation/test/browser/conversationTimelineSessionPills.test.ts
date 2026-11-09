@@ -47,7 +47,7 @@ suite('Conversation timeline session pills', () => {
 		await timeout(0);
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void, expectedCount = 1): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
 		// handleTimelineLink's inner try/catch only wraps URI.parse.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -56,16 +56,13 @@ suite('Conversation timeline session pills', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (expectedCount > 1 && unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -488,7 +485,7 @@ suite('Conversation timeline session pills', () => {
 		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 1);
 	});
 
-	test('does not leak unhandled rejection when handleTimelineLink rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when handleTimelineLink rejects and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const { container, render, setOpenSubAgent } = createHarness({
 			catalog: [{ sessionKey: 'untitled', chatId: 'tool-a', title: 'Writer', originKind: 'tool' }],

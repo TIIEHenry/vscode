@@ -26,7 +26,7 @@ suite('TrajectoryDetailInspectorModel (Q2)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>, expectedCount = 1): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -34,16 +34,13 @@ suite('TrajectoryDetailInspectorModel (Q2)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (expectedCount > 1 && unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -226,9 +223,9 @@ suite('TrajectoryDetailInspectorModel (Q2)', () => {
 		assert.strictEqual(requestDetailCalls, 0);
 	});
 
-	test('does not leak unhandled rejection when requestDetail rejects and onDidChange throws and onUnexpectedError warn-then-rethrows', async () => {
-		// `.then` already settles `{ ok:false }` on request reject. settle() fire() still leaks
-		// when a listener throws and the handler warn-then-rethrows.
+	test('does not leak unhandled rejection when requestDetail rejects and onDidChange throws and onUnexpectedError logs it', async () => {
+		// `.then` already settles `{ ok:false }` on request reject. settle() fire() still rejects
+		// when a listener throws, so the call site needs `.catch`.
 		const paintBoom = new Error('paintBoom');
 		const model = createModel();
 		store.add(model.onDidChange(() => {

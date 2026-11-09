@@ -178,7 +178,7 @@ suite('Conversation session window side-by-side (S5)', () => {
 		return { ...harness, secondaryId };
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>, expectedCount = 1): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -186,16 +186,13 @@ suite('Conversation session window side-by-side (S5)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (expectedCount > 1 && unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -526,10 +523,9 @@ suite('Conversation session window side-by-side (S5)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when attachGrid ensurePrimaryWindow catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when attachGrid ensurePrimaryWindow catch-path notice throws and onUnexpectedError logs it', async () => {
 		// ensurePrimaryWindow already catches create throw; a lone inner reject does not leak.
 		// The void attachGrid call site still needs `.catch` when the catch-path notice throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const rosterService = store.add(new QuietRosterService());

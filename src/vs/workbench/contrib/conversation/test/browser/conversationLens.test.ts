@@ -2957,6 +2957,43 @@ suite('ConversationLens', () => {
 		assert.ok(stubService.getTurns(sessionId).some(turn => turn.kind === 'assistant' && turn.text === 'Cached assistant'));
 	});
 
+	test('pairing-hold leftover running tool keeps · Running and a disabled Cancel Tool that does not cancel', async () => {
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const cancelCalls: string[] = [];
+		const stubService = store.add(new class extends ConversationStubService {
+			override cancelToolCall(_sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
+				cancelCalls.push(options.toolCallId);
+				return true;
+			}
+		}());
+		const sessionId = stubService.createSession();
+		stubService.appendUserTurn(sessionId, 'Read the leftover file');
+		const tool = stubService.appendToolTurn(sessionId, 'read README.md');
+		assert.ok(tool);
+		Object.assign(tool, { toolStatus: 'running', toolCallId: 'tc-hold' });
+		const { part, layoutReadingColumn } = mountLens({ connection, stubService, sessionKey: sessionId });
+		const slots = getLensSlots(part);
+		await flushProjectedTimeline(layoutReadingColumn);
+
+		const fold = queryTimeline(slots, '[data-process-fold]');
+		assert.ok(fold);
+		assert.ok(fold.textContent?.includes('read README.md · Running'), fold.textContent ?? '');
+		const cancel = fold.querySelector('.conversation-process-fold-tool-cancel') as HTMLButtonElement | null;
+		assert.ok(cancel);
+		assert.strictEqual(cancel.disabled, true);
+		assert.strictEqual(cancel.getAttribute('aria-disabled'), 'true');
+		cancel.click();
+		await flushProjectedTimeline(layoutReadingColumn);
+		assert.deepStrictEqual(cancelCalls, []);
+	});
+
 	test('allow on confirmation hides CTAs and updates inbox pending count', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
