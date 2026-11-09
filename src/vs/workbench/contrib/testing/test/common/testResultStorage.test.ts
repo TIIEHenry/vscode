@@ -12,7 +12,7 @@ import { NullTelemetryService } from '../../../../../platform/telemetry/common/t
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { ITestResult, LiveTestResult } from '../../common/testResult.js';
 import { InMemoryResultStorage, RETAIN_MAX_RESULTS } from '../../common/testResultStorage.js';
-import { TestRunProfileBitset } from '../../common/testTypes.js';
+import { ISerializedTestResults, TestRunProfileBitset } from '../../common/testTypes.js';
 import { testStubs } from './testStubs.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 
@@ -89,6 +89,27 @@ suite('Workbench - Test Result Storage', () => {
 		const r = range(20).map(() => makeResult('a'.repeat(1024 * 10)));
 		await storage.persist(r);
 		await assertStored(r.slice(0, 16));
+	});
+
+	test('does not index a result whose write failed, so the next persist retries it', async () => {
+		const writes: string[] = [];
+		let failNextWrite = true;
+		const flaky = ds.add(new class extends InMemoryResultStorage {
+			protected override storeForResultId(id: string, contents: ISerializedTestResults) {
+				writes.push(id);
+				if (failNextWrite) {
+					failNextWrite = false;
+					return Promise.reject(new Error('disk full'));
+				}
+				return super.storeForResultId(id, contents);
+			}
+		}({ asCanonicalUri: uri => uri } as IUriIdentityService, ds.add(new TestStorageService()), new NullLogService()));
+		const r = [makeResult()];
+
+		await flaky.persist(r).catch(() => undefined);
+		await flaky.persist(r);
+
+		assert.deepStrictEqual({ writes: writes.length, stored: (await flaky.read()).map(s => s.id) }, { writes: 2, stored: r.map(s => s.id) });
 	});
 
 	test('takes into account existing stored bytes', async () => {

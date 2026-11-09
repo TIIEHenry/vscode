@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { findFirstIdxMonotonousOrArrLen } from '../../../../base/common/arraysFind.js';
-import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { RunOnceScheduler, Sequencer } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
-import { Disposable, DisposableStore, dispose, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
@@ -76,7 +76,8 @@ export class TestResultService extends Disposable implements ITestResultService 
 	declare _serviceBrand: undefined;
 	private changeResultEmitter = this._register(new Emitter<ResultChangeEvent>());
 	private _results: ITestResult[] = [];
-	private readonly _resultsDisposables: DisposableStore[] = [];
+	private readonly _resultsDisposables = this._register(new DisposableMap<ITestResult, DisposableStore>());
+	private readonly persistSequencer = new Sequencer();
 	private testChangeEmitter = this._register(new Emitter<TestResultItemChange>());
 	private insertOrderCounter = 0;
 
@@ -115,7 +116,6 @@ export class TestResultService extends Disposable implements ITestResultService 
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 	) {
 		super();
-		this._register(toDisposable(() => dispose(this._resultsDisposables)));
 		this.isRunning = TestingContextKeys.isRunning.bindTo(contextKeyService);
 		this.hasAnyResults = TestingContextKeys.hasAnyResults.bindTo(contextKeyService);
 	}
@@ -182,12 +182,12 @@ export class TestResultService extends Disposable implements ITestResultService 
 
 		this.hasAnyResults.set(true);
 		if (this.results.length > RETAIN_MAX_RESULTS) {
-			this.results.pop();
-			this._resultsDisposables.pop()?.dispose();
+			const removed = this.results.pop()!;
+			this._resultsDisposables.deleteAndDispose(removed);
 		}
 
 		const ds = new DisposableStore();
-		this._resultsDisposables.push(ds);
+		this._resultsDisposables.set(result, ds);
 
 		if (result instanceof LiveTestResult) {
 			ds.add(result);
@@ -237,6 +237,9 @@ export class TestResultService extends Disposable implements ITestResultService 
 		}
 
 		this._results = keep;
+		for (const result of removed) {
+			this._resultsDisposables.deleteAndDispose(result);
+		}
 		this.persistScheduler.schedule();
 		if (keep.length === 0) {
 			this.hasAnyResults.set(false);
@@ -269,10 +272,13 @@ export class TestResultService extends Disposable implements ITestResultService 
 		this.isRunning.set(isRunningTests(this));
 	}
 
-	protected async persistImmediately() {
-		// ensure results are loaded before persisting to avoid deleting once
-		// that we don't have yet.
-		await this.loadResults();
-		this.storage.persist(this.results);
+	protected persistImmediately() {
+		// Each persist reads the index the previous one committed, so they must not overlap.
+		return this.persistSequencer.queue(async () => {
+			// ensure results are loaded before persisting to avoid deleting once
+			// that we don't have yet.
+			await this.loadResults();
+			await this.storage.persist(this.results);
+		});
 	}
 }

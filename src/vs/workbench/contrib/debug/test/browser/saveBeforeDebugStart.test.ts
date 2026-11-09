@@ -6,7 +6,9 @@
 import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { Schemas } from '../../../../../base/common/network.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { CancellationError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
@@ -307,7 +309,7 @@ function createRestartHarness(options: {
 		runResolvedTests: () => { tests++; },
 	};
 	internals.viewModel = { focusedSession: undefined };
-	internals.restartingSessions = new Set();
+	internals.restartingSessions = new Map();
 	internals._onDidEndSession = { fire: () => { } };
 	internals.sessionCancellationTokens = new Map();
 	internals.substituteVariables = async (_launch: ILaunch | undefined, configToSubstitute: IConfig) => {
@@ -402,6 +404,49 @@ suite('Debug - restart and create cancellation', () => {
 
 		assert.strictEqual(harness.restarts, 1);
 		assert.strictEqual(harness.setConfigurationCalls, 1);
+	});
+
+	test('a restart superseded by a newer restart neither fails nor ends the session', async () => {
+		const harness = createRestartHarness({
+			launchConfig: { type: 'node', name: 'app', request: 'launch' },
+		});
+		const internals = harness.service as unknown as Record<string, unknown>;
+		const ends: boolean[] = [];
+		internals._onDidEndSession = { fire: (e: { restart: boolean }) => ends.push(e.restart) };
+		const restartingSessions = internals.restartingSessions as Map<IDebugSession, unknown>;
+		const session = (harness as unknown as { session: IDebugSession }).session;
+		const pendingRestarts: DeferredPromise<void>[] = [];
+		(session as unknown as { restart(): Promise<void> }).restart = () => {
+			const restart = new DeferredPromise<void>();
+			pendingRestarts.push(restart);
+			return restart.p;
+		};
+		const waitForRestarts = async (count: number) => {
+			while (pendingRestarts.length < count) {
+				await timeout(0);
+			}
+		};
+
+		const firstRestart = harness.service.restartSession(session);
+		await waitForRestarts(1);
+		const secondRestart = harness.service.restartSession(session);
+		await waitForRestarts(2);
+
+		pendingRestarts[0].error(new CancellationError());
+		await firstRestart;
+		const afterSuperseded = { ends: [...ends], restarting: restartingSessions.has(session) };
+		pendingRestarts[1].complete();
+		await secondRestart;
+
+		assert.deepStrictEqual({
+			afterSuperseded,
+			ends,
+			restarting: restartingSessions.has(session),
+		}, {
+			afterSuperseded: { ends: [], restarting: true },
+			ends: [],
+			restarting: false,
+		});
 	});
 
 	test('createSession returns false when cancelled after the configuration resolved', async () => {

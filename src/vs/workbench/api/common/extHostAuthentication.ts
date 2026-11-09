@@ -28,6 +28,7 @@ import { IExtHostProgress } from './extHostProgress.js';
 import { IProgressStep } from '../../../platform/progress/common/progress.js';
 import { CancellationError, isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { raceCancellationError, SequencerByKey } from '../../../base/common/async.js';
+import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { XaaifyAuthProvider } from './extHostXaaAuthProvider.js';
 
 export interface IExtHostAuthentication extends ExtHostAuthentication { }
@@ -455,6 +456,11 @@ class TaskSingler<T> {
 	}
 }
 
+/**
+ * The authorization server rejected the refresh token or the client, so the token can never be refreshed.
+ */
+class RefreshTokenRejectedError extends Error { }
+
 export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 	id: string;
 	readonly label: string;
@@ -560,10 +566,10 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 					// Check if the token is about to expire in 5 minutes or if it is expired
 					if (now > token.created_at + expiresInMS - (5 * 60 * 1000)) {
 						this._logger.info(`Token for session ${session.id} is about to expire, refreshing...`);
-						removedTokens.push(token);
 						if (!token.refresh_token) {
 							// No refresh token available, cannot refresh
 							this._logger.warn(`No refresh token available for scopes ${session.scopes.join(' ')}. Throwing away token.`);
+							removedTokens.push(token);
 							continue;
 						}
 						try {
@@ -576,8 +582,13 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 							}
 							this._logger.info(`Successfully created a new token for scopes ${session.scopes.join(' ')}.`);
 							newTokens.push(newToken);
+							removedTokens.push(token);
 						} catch (err) {
 							this._logger.error(`Failed to refresh token: ${err}`);
+							// Only drop the token when the server rejected it; transient failures keep it for the next attempt.
+							if (err instanceof RefreshTokenRejectedError) {
+								removedTokens.push(token);
+							}
 						}
 
 					}
@@ -708,37 +719,42 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 		const redirectUri = 'https://vscode.dev/redirect';
 		authorizationUrl.searchParams.append('redirect_uri', redirectUri);
 
-		const promise = this.waitForAuthorizationCode(callbackUri);
-
-		// Open the browser for user authorization
-		this._logger.info(`Opening authorization URL for scopes: ${scopeString}`);
-		this._logger.trace(`Authorization URL: ${authorizationUrl.toString()}`);
-		const opened = await this._extHostWindow.openUri(authorizationUrl.toString(), {});
-		if (!opened) {
-			throw new CancellationError();
-		}
-		progress.report({
-			message: nls.localize('completeAuth', "Complete the authentication in the browser window that has opened."),
-		});
-
-		// Wait for the authorization code via a redirect
-		let code: string | undefined;
+		const uriHandlerCts = new CancellationTokenSource(token);
+		const promise = this.waitForAuthorizationCode(callbackUri, uriHandlerCts.token);
 		try {
-			const response = await raceCancellationError(promise, token);
-			code = response.code;
-		} catch (err) {
-			if (isCancellationError(err)) {
-				this._logger.info('Authorization code request was cancelled by the user.');
-				throw err;
+			// Open the browser for user authorization
+			this._logger.info(`Opening authorization URL for scopes: ${scopeString}`);
+			this._logger.trace(`Authorization URL: ${authorizationUrl.toString()}`);
+			const opened = await this._extHostWindow.openUri(authorizationUrl.toString(), {});
+			if (!opened) {
+				promise.catch(() => { /* the wait is cancelled in finally */ });
+				throw new CancellationError();
 			}
-			this._logger.error(`Failed to receive authorization code: ${err}`);
-			throw new Error(`Failed to receive authorization code: ${err}`);
-		}
-		this._logger.info(`Authorization code received for scopes: ${scopeString}`);
+			progress.report({
+				message: nls.localize('completeAuth', "Complete the authentication in the browser window that has opened."),
+			});
 
-		// Exchange the authorization code for tokens
-		const tokenResponse = await this.exchangeCodeForToken(code, codeVerifier, redirectUri);
-		return tokenResponse;
+			// Wait for the authorization code via a redirect
+			let code: string | undefined;
+			try {
+				const response = await raceCancellationError(promise, token);
+				code = response.code;
+			} catch (err) {
+				if (isCancellationError(err)) {
+					this._logger.info('Authorization code request was cancelled by the user.');
+					throw err;
+				}
+				this._logger.error(`Failed to receive authorization code: ${err}`);
+				throw new Error(`Failed to receive authorization code: ${err}`);
+			}
+			this._logger.info(`Authorization code received for scopes: ${scopeString}`);
+
+			// Exchange the authorization code for tokens
+			const tokenResponse = await this.exchangeCodeForToken(code, codeVerifier, redirectUri);
+			return tokenResponse;
+		} finally {
+			uriHandlerCts.dispose(true);
+		}
 	}
 
 	protected generateRandomString(length: number): string {
@@ -762,8 +778,14 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 			.replace(/=+$/, '');
 	}
 
-	private async waitForAuthorizationCode(expectedState: URI): Promise<{ code: string }> {
-		const result = await this._proxy.$waitForUriHandler(expectedState);
+	private async waitForAuthorizationCode(expectedState: URI, token: CancellationToken): Promise<{ code: string }> {
+		const result = await this._proxy.$waitForUriHandler(expectedState, token);
+		const nonceRegex = /(?:^|[?&])nonce=([^&]+)/;
+		const expectedNonce = nonceRegex.exec(expectedState.query)?.[1];
+		const receivedNonce = nonceRegex.exec(result.query || '')?.[1];
+		if (!expectedNonce || receivedNonce !== expectedNonce) {
+			throw new Error('Authentication failed: The redirect does not belong to this sign-in request');
+		}
 		// Extract the code parameter directly from the query string. NOTE, URLSearchParams does not work here because
 		// it will decode the query string and we need to keep it encoded.
 		const codeMatch = /[?&]code=([^&]+)/.exec(result.query || '');
@@ -869,11 +891,13 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 		} else if (isAuthorizationErrorResponse(result) && result.error === AuthorizationErrorType.InvalidClient) {
 			if (!allowClientRegistration) {
 				this._logger.warn(`Client ID (${this._clientId}) was invalid while silently refreshing the token.`);
-				throw new Error(`Client ID was invalid while silently refreshing the token.`);
+				throw new RefreshTokenRejectedError(`Client ID was invalid while silently refreshing the token.`);
 			}
 			this._logger.warn(`Client ID (${this._clientId}) was invalid, generated a new one.`);
 			await this._generateNewClientId();
-			throw new Error(`Client ID was invalid, generated a new one. Please try again.`);
+			throw new RefreshTokenRejectedError(`Client ID was invalid, generated a new one. Please try again.`);
+		} else if (isAuthorizationErrorResponse(result) && result.error === AuthorizationErrorType.InvalidGrant) {
+			throw new RefreshTokenRejectedError(`Refresh token was rejected: ${JSON.stringify(result)}`);
 		}
 		throw new Error(`Invalid authorization token response: ${JSON.stringify(result)}`);
 	}

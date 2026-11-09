@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Event } from '../../../base/common/event.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { illegalState } from '../../../base/common/errors.js';
@@ -48,7 +49,7 @@ export class ExtHostDocumentSaveParticipant implements ExtHostDocumentSavePartic
 		};
 	}
 
-	async $participateInSave(data: UriComponents, reason: SaveReason): Promise<boolean[]> {
+	async $participateInSave(data: UriComponents, reason: SaveReason, token: CancellationToken = CancellationToken.None): Promise<boolean[]> {
 		const resource = URI.revive(data);
 
 		let didTimeout = false;
@@ -57,13 +58,13 @@ export class ExtHostDocumentSaveParticipant implements ExtHostDocumentSavePartic
 		const results: boolean[] = [];
 		try {
 			for (const listener of [...this._callbacks]) { // copy to prevent concurrent modifications
-				if (didTimeout) {
-					// timeout - no more listeners
+				if (didTimeout || token.isCancellationRequested) {
+					// timeout or main thread stopped waiting - no more listeners
 					break;
 				}
 				const document = this._documents.getDocument(resource);
 
-				const success = await this._deliverEventAsyncAndBlameBadListeners(listener, { document, reason: TextDocumentSaveReason.to(reason) });
+				const success = await this._deliverEventAsyncAndBlameBadListeners(listener, { document, reason: TextDocumentSaveReason.to(reason) }, token);
 				results.push(success);
 			}
 		} finally {
@@ -72,16 +73,16 @@ export class ExtHostDocumentSaveParticipant implements ExtHostDocumentSavePartic
 		return results;
 	}
 
-	private _deliverEventAsyncAndBlameBadListeners([listener, thisArg, extension]: Listener, stubEvent: Pick<vscode.TextDocumentWillSaveEvent, 'document' | 'reason'>): Promise<boolean> {
+	private _deliverEventAsyncAndBlameBadListeners([listener, thisArg, extension]: Listener, stubEvent: Pick<vscode.TextDocumentWillSaveEvent, 'document' | 'reason'>, token: CancellationToken): Promise<boolean> {
 		const errors = this._badListeners.get(listener);
 		if (typeof errors === 'number' && errors > this._thresholds.errors) {
 			// bad listener - ignore
 			return Promise.resolve(false);
 		}
 
-		return this._deliverEventAsync(extension, listener, thisArg, stubEvent).then(() => {
-			// don't send result across the wire
-			return true;
+		return this._deliverEventAsync(extension, listener, thisArg, stubEvent, token).then(applied => {
+			// don't send result across the wire, only whether the edits could be applied
+			return applied !== false;
 
 		}, err => {
 
@@ -100,7 +101,7 @@ export class ExtHostDocumentSaveParticipant implements ExtHostDocumentSavePartic
 		});
 	}
 
-	private _deliverEventAsync(extension: IExtensionDescription, listener: Function, thisArg: unknown, stubEvent: Pick<vscode.TextDocumentWillSaveEvent, 'document' | 'reason'>): Promise<boolean | undefined> {
+	private _deliverEventAsync(extension: IExtensionDescription, listener: Function, thisArg: unknown, stubEvent: Pick<vscode.TextDocumentWillSaveEvent, 'document' | 'reason'>, token: CancellationToken): Promise<boolean | undefined> {
 
 		const promises: Promise<vscode.TextEdit[]>[] = [];
 
@@ -165,6 +166,10 @@ export class ExtHostDocumentSaveParticipant implements ExtHostDocumentSavePartic
 			// didn't change somehow in the meantime
 			if (dto.edits.length === 0) {
 				return undefined;
+			}
+
+			if (token.isCancellationRequested) {
+				return false;
 			}
 
 			if (version === document.version) {

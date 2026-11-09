@@ -368,15 +368,16 @@ export class DebugSession implements IDebugSession {
 			const debugAdapter = await dbgr.createDebugAdapter(this);
 			unclaimedAdapter = debugAdapter;
 			if (generation !== this.initializeGeneration) {
-				this.disposeUnclaimedDebugAdapter(unclaimedAdapter);
-				return;
+				// A newer initialize or a shutdown superseded this attempt; callers must not launch or attach.
+				// The catch below disposes the unclaimed adapter.
+				throw canceled();
 			}
 			this.raw = this.instantiationService.createInstance(RawDebugSession, debugAdapter, dbgr, this.id, this.configuration.name);
 			unclaimedAdapter = undefined;
 
 			await this.raw.start();
 			if (generation !== this.initializeGeneration) {
-				return;
+				throw canceled();
 			}
 			this.registerListeners();
 			await this.raw.initialize({
@@ -399,7 +400,7 @@ export class DebugSession implements IDebugSession {
 				supportsANSIStyling: true,
 			});
 			if (generation !== this.initializeGeneration) {
-				return;
+				throw canceled();
 			}
 
 			this.initialized = true;
@@ -410,7 +411,7 @@ export class DebugSession implements IDebugSession {
 		} catch (err) {
 			if (generation !== this.initializeGeneration) {
 				this.disposeUnclaimedDebugAdapter(unclaimedAdapter);
-				return;
+				throw canceled();
 			}
 			this.initialized = true;
 			this._onDidChangeState.fire();

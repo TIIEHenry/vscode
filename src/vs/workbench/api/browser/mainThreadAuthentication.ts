@@ -24,7 +24,8 @@ import { ILogService } from '../../../platform/log/common/log.js';
 import { ExtensionHostKind } from '../../services/extensions/common/extensionHostKind.js';
 import { Dto, Proxied } from '../../services/extensions/common/proxyIdentifier.js';
 import { IURLService } from '../../../platform/url/common/url.js';
-import { DeferredPromise, raceTimeout } from '../../../base/common/async.js';
+import { DeferredPromise, raceCancellationError, raceTimeout } from '../../../base/common/async.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
 import { fetchAuthorizationServerMetadata, IAuthorizationTokenResponse } from '../../../base/common/oauth.js';
 import { IDynamicAuthenticationProviderStorageService } from '../../services/authentication/common/dynamicAuthenticationProviderStorage.js';
 import { IClipboardService } from '../../../platform/clipboard/common/clipboardService.js';
@@ -298,7 +299,7 @@ export class MainThreadAuthentication extends Disposable implements MainThreadAu
 		return this.authenticationService.removeSession(providerId, sessionId);
 	}
 
-	async $waitForUriHandler(expectedUri: UriComponents): Promise<UriComponents> {
+	async $waitForUriHandler(expectedUri: UriComponents, token: CancellationToken): Promise<UriComponents> {
 		const deferredPromise = new DeferredPromise<UriComponents>();
 		const disposable = this.urlService.registerHandler({
 			handleURL: async (uri: URI) => {
@@ -310,11 +311,15 @@ export class MainThreadAuthentication extends Disposable implements MainThreadAu
 				return true;
 			}
 		});
-		const result = await raceTimeout(deferredPromise.p, 5 * 60 * 1000); // 5 minutes
-		if (!result) {
-			throw new Error('Timed out waiting for URI handler');
+		try {
+			const result = await raceCancellationError(raceTimeout(deferredPromise.p, 5 * 60 * 1000), token); // 5 minutes
+			if (!result) {
+				throw new Error('Timed out waiting for URI handler');
+			}
+			return result;
+		} finally {
+			disposable.dispose();
 		}
-		return await deferredPromise.p;
 	}
 
 	$showContinueNotification(message: string): Promise<boolean> {
