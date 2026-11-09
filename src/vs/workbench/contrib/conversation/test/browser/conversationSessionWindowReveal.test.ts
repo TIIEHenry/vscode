@@ -209,7 +209,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return windowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-session-leaf-hide') as HTMLButtonElement | null;
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>, expectedCount = 1): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -217,16 +217,13 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (expectedCount > 1 && unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			await run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -1227,7 +1224,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(sessionWindowService.isSessionWindowHidden(b), true);
 	});
 
-	test('does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError logs it', async () => {
 		const harness = await createRevealHarness();
 		const pane = await waitForSessionPane(harness, harness.primaryId);
 		assert.ok(pane.leafSessionBarHost);
@@ -1240,7 +1237,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError logs it', async () => {
 		const harness = await createRevealHarness();
 		const pane = await waitForSessionPane(harness, harness.primaryId);
 		assert.ok(pane.leafSessionBarHost);
@@ -1583,10 +1580,9 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.ok(paneA2.activeConversationLens?.sessionViewLease, 'restore must reacquire sessionViewLease');
 	});
 
-	test('does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError logs it', async () => {
 		// revealSessionWindow already catches create throw; a lone inner reject does not leak.
 		// The void onDidChangeActiveSession call site still needs `.catch` when the catch-path notice throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const harness = createLightweightWindowHarness();
 		await timeout(0);
@@ -1602,7 +1598,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError logs it', async () => {
 		// revealSessionWindow already catches create throw; a lone inner reject does not leak.
 		// The void attachGrid pending call site still needs `.catch` when the catch-path notice throws.
 		const paintBoom = new Error('paint boom');

@@ -446,7 +446,7 @@ suite('Conversation session chat (S3)', () => {
 		return { instantiationService, parts, conversationPart, sessionChatService, rosterService, sessionWindow, sessionBar };
 	}
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void, expectedCount = 1): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
 		// Method bodies already catch the inner reject; catch-path notice throw still
 		// needs a call-site catch.
 		const unexpectedWarns: unknown[] = [];
@@ -456,16 +456,13 @@ suite('Conversation session chat (S3)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (expectedCount > 1 && unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			run();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -1514,7 +1511,7 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when overlay promote catch-path notify throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when overlay promote catch-path notify throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		let throwOnError = false;
 		const { sessionChatService, sessionWindow } = await createHarness(undefined, {
@@ -1721,7 +1718,7 @@ suite('Conversation session chat (S3)', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when overlay breadcrumb catch-path notify throws and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when overlay breadcrumb catch-path notify throws and onUnexpectedError logs it', async () => {
 		const paintBoom = new Error('paint boom');
 		const boom = new Error('boom');
 		let throwOnError = false;

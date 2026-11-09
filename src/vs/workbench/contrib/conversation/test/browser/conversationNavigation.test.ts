@@ -791,7 +791,7 @@ suite('Conversation navigation (S2)', () => {
 		assert.deepStrictEqual(harness.goForwardParts, []);
 	});
 
-	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void, expectedCount = 1): Promise<void> {
+	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void): Promise<void> {
 		// goBack / goForward / closeNonRootTabs return Promises.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -800,9 +800,6 @@ suite('Conversation navigation (S2)', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (expectedCount > 1 && unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			run();
@@ -815,7 +812,7 @@ suite('Conversation navigation (S2)', () => {
 		}
 	}
 
-	test('does not leak unhandled rejection when window-nav goBack rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when window-nav goBack rejects and onUnexpectedError logs it', async () => {
 		const harness = mountNavigationContribution();
 		await assertWarnThenRethrowDoesNotLeak(
 			() => harness.back.click(),
@@ -828,7 +825,7 @@ suite('Conversation navigation (S2)', () => {
 		);
 	});
 
-	test('does not leak unhandled rejection when window-nav goForward rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when window-nav goForward rejects and onUnexpectedError logs it', async () => {
 		const harness = mountNavigationContribution();
 		await assertWarnThenRethrowDoesNotLeak(
 			() => harness.forward.click(),
@@ -841,7 +838,7 @@ suite('Conversation navigation (S2)', () => {
 		);
 	});
 
-	test('does not leak unhandled rejection when mouse goBack rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when mouse goBack rejects and onUnexpectedError logs it', async () => {
 		const harness = mountNavigationContribution();
 		await assertWarnThenRethrowDoesNotLeak(
 			() => {
@@ -860,7 +857,7 @@ suite('Conversation navigation (S2)', () => {
 		);
 	});
 
-	test('does not leak unhandled rejection when mouse goForward rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when mouse goForward rejects and onUnexpectedError logs it', async () => {
 		const harness = mountNavigationContribution();
 		await assertWarnThenRethrowDoesNotLeak(
 			() => {
@@ -879,7 +876,7 @@ suite('Conversation navigation (S2)', () => {
 		);
 	});
 
-	test('does not leak unhandled rejection when up-to-parent rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when up-to-parent rejects and onUnexpectedError logs it', async () => {
 		const harness = mountNavigationContribution();
 		await assertWarnThenRethrowDoesNotLeak(
 			() => harness.up.click(),
@@ -892,7 +889,7 @@ suite('Conversation navigation (S2)', () => {
 		);
 	});
 
-	test('does not leak unhandled rejection when closeNonRootTabs rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when closeNonRootTabs rejects and onUnexpectedError logs it', async () => {
 		const harness = mountNavigationContribution();
 		await assertWarnThenRethrowDoesNotLeak(
 			() => harness.close.click(),

@@ -91,7 +91,8 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onReviewNavClick: paths => executeReadingColumnSourcesReview(host.commandService, paths),
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
 		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
-		displayMode: () => getConversationDisplayMode(host),
+		// D304 pairing-hold leftover keeps live chrome; its rows stay live so D297 Cancel Tool renders disabled.
+		displayMode: () => shouldShowReadingColumnLiveChrome(host) ? 'live' : getConversationDisplayMode(host),
 		writesEnabled: () => isReadingColumnWritesEnabled(host),
 		getResponseProjection: () => host.sessionViewLease?.sessionId === host.getBoundSessionId() ? host.sessionViewLease.responseProjection : undefined,
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
