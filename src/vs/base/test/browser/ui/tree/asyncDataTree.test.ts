@@ -5,12 +5,14 @@
 
 import assert from 'assert';
 import { IIdentityProvider, IListVirtualDelegate } from '../../../../browser/ui/list/list.js';
-import { AsyncDataTree, CompressibleAsyncDataTree, ITreeCompressionDelegate } from '../../../../browser/ui/tree/asyncDataTree.js';
+import { IContextViewProvider } from '../../../../browser/ui/contextview/contextview.js';
+import { AsyncDataTree, CompressibleAsyncDataTree, IAsyncFindProvider, ITreeCompressionDelegate } from '../../../../browser/ui/tree/asyncDataTree.js';
 import { ICompressedTreeNode } from '../../../../browser/ui/tree/compressedObjectTreeModel.js';
 import { ICompressibleTreeRenderer } from '../../../../browser/ui/tree/objectTree.js';
-import { IAsyncDataSource, ITreeNode } from '../../../../browser/ui/tree/tree.js';
+import { IAsyncDataSource, ITreeFilter, ITreeNode } from '../../../../browser/ui/tree/tree.js';
 import { timeout } from '../../../../common/async.js';
 import { Iterable } from '../../../../common/iterator.js';
+import { IDisposable } from '../../../../common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../common/utils.js';
 import { runWithFakedTimers } from '../../../common/timeTravelScheduler.js';
 
@@ -598,6 +600,59 @@ suite('AsyncDataTree', function () {
 		tree.dispose();
 		await input;
 		assert.strictEqual(container.innerHTML, '');
+	});
+
+	test('dispose during an active async find session stops the pending find round', () => {
+		return runWithFakedTimers({ useFakeTimers: true }, async () => {
+			const container = document.createElement('div');
+			const calls = { startSession: 0, find: 0, endSession: 0, filterAfterDispose: 0 };
+			let disposed = false;
+
+			const findProvider: IAsyncFindProvider<Element> = {
+				startSession: () => { calls.startSession++; },
+				find: async () => { calls.find++; return { matchCount: 1, isMatch: element => element.id === 'a' }; },
+				endSession: async () => { calls.endSession++; },
+			};
+			const filter: ITreeFilter<Element> = {
+				filter: () => {
+					if (disposed) {
+						calls.filterAfterDispose++;
+					}
+					return true;
+				}
+			};
+			const contextViewProvider: IContextViewProvider = {
+				showContextView: () => { },
+				hideContextView: () => { },
+				layout: () => { },
+			};
+
+			const tree = new AsyncDataTree<Element, Element>('test', container, new VirtualDelegate(), [new Renderer()], new DataSource(), {
+				identityProvider: new IdentityProvider(),
+				findProvider,
+				filter,
+				keyboardNavigationLabelProvider: { getKeyboardNavigationLabel: element => element.id },
+				contextViewProvider,
+			});
+			// `AsyncDataTree` never disposes the find filter it creates
+			store.add((tree as unknown as { readonly findController: { readonly filter: IDisposable } }).findController.filter);
+			tree.layout(200);
+			await tree.setInput(new Model({ id: 'root', children: [{ id: 'a' }, { id: 'b' }] }).root);
+
+			tree.openFind();
+			const input = container.querySelector('input');
+			assert.ok(input);
+			input.value = 'a';
+			input.dispatchEvent(new Event('input'));
+			await timeout(300);
+			assert.deepStrictEqual(calls, { startSession: 1, find: 1, endSession: 0, filterAfterDispose: 0 });
+
+			tree.dispose();
+			disposed = true;
+			await timeout(1000);
+
+			assert.deepStrictEqual(calls, { startSession: 1, find: 1, endSession: 1, filterAfterDispose: 0 });
+		});
 	});
 
 	test('a refresh cancelled by setInput does not publish the previous input', async () => {

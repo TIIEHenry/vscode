@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
-import { IPCServer } from '../ipc/ipcServer';
+import { createIPCServer, IPCServer } from '../ipc/ipcServer';
 
 interface IResponse {
 	readonly status: number | undefined;
@@ -88,5 +88,21 @@ suite('IPCServer', () => {
 
 	test('unregisters the git-editor route when its registration is disposed', async () => {
 		await assertRouteCallsHandler('git-editor');
+	});
+});
+
+suite('createIPCServer', () => {
+	test('restricts the unix socket to its owner', async function () {
+		if (process.platform === 'win32') {
+			this.skip();
+		}
+
+		const ipcServer = await createIPCServer();
+		try {
+			const stat = await fs.promises.stat(ipcServer.ipcHandlePath);
+			assert.strictEqual(stat.mode & 0o777, 0o600);
+		} finally {
+			ipcServer.dispose();
+		}
 	});
 });

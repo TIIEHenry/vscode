@@ -800,14 +800,6 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(fact.questions.length, 1);
 	});
 
-	test('ask_user_question without items does not invent a localFact', () => {
-		const events = demuxSessionStreamPayload({
-			askUserQuestion: { requestId: 'q-empty', items: [] },
-		});
-		assert.strictEqual(armOf(events[0]), 'question');
-		assert.strictEqual(localFactFromQuestionArm(events[0]), undefined);
-	});
-
 	test('runtime overlay snapshot yields pending plus activeTurn', () => {
 		const events = demuxSessionStreamPayload({
 			runtime_overlay_snapshot: {

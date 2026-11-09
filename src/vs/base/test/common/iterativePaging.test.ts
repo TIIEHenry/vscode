@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../common/cancellation.js';
+import { CancellationError } from '../../common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from './utils.js';
 import { IterativePagedModel, IIterativePager, IIterativePage } from '../../common/paging.js';
 
@@ -144,6 +146,60 @@ suite('IterativePagedModel', () => {
 		assert.strictEqual(item2, 10);
 		assert.strictEqual(item3, 10);
 		assert.strictEqual(model.length, 21); // 20 items + 1 sentinel
+	});
+
+	function createControlledPager(): { pager: IIterativePager<number>; tokens: CancellationToken[]; complete(page: IIterativePage<number>): void } {
+		const tokens: CancellationToken[] = [];
+		const pending = new DeferredPromise<IIterativePage<number>>();
+		const pager: IIterativePager<number> = {
+			firstPage: { items: [0, 1], hasMore: true },
+			getNextPage: token => {
+				tokens.push(token);
+				return new Promise((resolve, reject) => {
+					const listener = token.onCancellationRequested(() => {
+						listener.dispose();
+						reject(new CancellationError());
+					});
+					pending.p.then(page => {
+						listener.dispose();
+						resolve(page);
+					});
+				});
+			}
+		};
+		return { pager, tokens, complete: page => pending.complete(page) };
+	}
+
+	test('cancelling the first caller does not fail another caller waiting on the same page', async () => {
+		const { pager, tokens, complete } = createControlledPager();
+		const model = store.add(new IterativePagedModel(pager));
+
+		const first = new CancellationTokenSource();
+		const firstResult = model.resolve(2, first.token);
+		const secondResult = model.resolve(2, CancellationToken.None);
+
+		first.cancel();
+		await assert.rejects(firstResult, /Canceled/);
+
+		complete({ items: [2, 3], hasMore: false });
+
+		assert.strictEqual(await secondResult, 2);
+		assert.strictEqual(tokens.length, 1);
+		assert.strictEqual(tokens[0].isCancellationRequested, false);
+		assert.strictEqual(model.length, 4);
+		first.dispose();
+	});
+
+	test('dispose cancels the shared page load', async () => {
+		const { pager, tokens } = createControlledPager();
+		const model = new IterativePagedModel(pager);
+
+		const result = model.resolve(2, CancellationToken.None);
+		model.dispose();
+
+		await assert.rejects(result, /Canceled/);
+		assert.strictEqual(tokens.length, 1);
+		assert.strictEqual(tokens[0].isCancellationRequested, true);
 	});
 
 	test('empty pager with no items', () => {

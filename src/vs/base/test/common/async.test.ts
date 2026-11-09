@@ -290,6 +290,21 @@ suite('Async', () => {
 			return Promise.all(promises);
 		});
 
+		test('rejection of the queued factory rejects every merged caller', async () => {
+			const throttler = new async.Throttler();
+			const calls: number[] = [];
+			const queuedError = new Error('queued factory failed');
+
+			const first = throttler.queue(() => async.timeout(0).then(() => 1));
+			const second = throttler.queue(() => { calls.push(2); return Promise.reject(new Error('should not run')); });
+			const third = throttler.queue(() => { calls.push(3); return Promise.reject(queuedError); });
+
+			assert.strictEqual(await first, 1);
+			await assert.rejects(second, err => err === queuedError);
+			await assert.rejects(third, err => err === queuedError);
+			assert.deepStrictEqual(calls, [3]);
+		});
+
 		test('disposal after queueing', async () => {
 			let factoryCalls = 0;
 			const factory = async () => {
