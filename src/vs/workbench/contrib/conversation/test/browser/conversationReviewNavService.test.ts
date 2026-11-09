@@ -52,6 +52,18 @@ suite('ConversationReviewNavService', () => {
 		}]);
 	});
 
+	test('history mutation yields review nav without a settle signal; a live one still waits', () => {
+		const harness = store.add(new ConversationReviewNavTestHarness({ roots: [WORKSPACE_ROOT], connectionWorkDir: WORKSPACE_ROOT.fsPath }));
+		harness.mutation.fire(makeRecord({ path: 'src/live.ts', toolCallId: 'tc-live', turnId: 'runtime-live' }));
+		harness.mutation.fire(makeRecord({ path: 'src/hist.ts', toolCallId: 'tc-hist', turnId: 'assistant-hist', fromHistory: true }));
+
+		assert.deepStrictEqual(harness.service.getReviewNavForSession('session-1'), [{
+			sessionId: 'session-1',
+			turnId: 'assistant-hist',
+			paths: [URI.joinPath(WORKSPACE_ROOT, 'src/hist.ts').toString()],
+		}]);
+	});
+
 	test('resolves by the session root when it differs from the connection workDir', () => {
 		const harness = store.add(new ConversationReviewNavTestHarness({
 			roots: [OTHER_ROOT, WORKSPACE_ROOT],

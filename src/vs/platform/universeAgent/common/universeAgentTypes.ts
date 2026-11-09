@@ -1971,6 +1971,11 @@ export interface IFileMutationRecord {
 		readonly removedLines: number;
 		readonly changedFiles: number;
 	};
+	/**
+	 * From a `GetHistory` L2 envelope (G-REV-1). Its `turnId` is the persisted
+	 * assistant envelope id, so no `TurnCompletedChange` settle follows.
+	 */
+	readonly fromHistory?: true;
 }
 
 /** Turn settle signal after TurnCompletedChange.assistant_turn_id (m6 §11 / PRD-023 §2.4). */

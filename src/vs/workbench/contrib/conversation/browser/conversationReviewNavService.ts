@@ -91,15 +91,22 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 		if (assistantTurnId !== undefined) {
 			stored.turnId = assistantTurnId;
 		}
+		if (record.fromHistory) {
+			this.markSettled(record.sessionId, record.turnId);
+		}
 		bucket.push(stored);
 		this.mutationBuckets.set(record.sessionId, bucket);
 		this._onDidChange.fire();
 	}
 
+	private markSettled(sessionId: string, turnId: string): void {
+		const settled = this.settledTurnIds.get(sessionId) ?? new Set<string>();
+		settled.add(turnId);
+		this.settledTurnIds.set(sessionId, settled);
+	}
+
 	private applyTurnSettle(signal: ITurnSettleSignal): void {
-		const settled = this.settledTurnIds.get(signal.sessionId) ?? new Set<string>();
-		settled.add(signal.assistantTurnId);
-		this.settledTurnIds.set(signal.sessionId, settled);
+		this.markSettled(signal.sessionId, signal.assistantTurnId);
 
 		const runtimeMap = this.runtimeToAssistantTurnId.get(signal.sessionId) ?? new Map<string, string>();
 		runtimeMap.set(signal.runtimeTurnId, signal.assistantTurnId);

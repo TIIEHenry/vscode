@@ -1589,6 +1589,88 @@ suite('RunInTerminalTool', () => {
 			strictEqual(actions[10].label, 'Configure Auto Approve...');
 		});
 
+		test('should still confirm leaving the sandbox when the displayed command matches an auto approve rule', async () => {
+			setAutoApprove({ echo: true });
+			sandboxEnabled = true;
+			sandboxPrereqResult = {
+				enabled: true,
+				sandboxConfigPath: '/tmp/sandbox.json',
+				failedCheck: undefined,
+			};
+			runInTerminalTool.setBackendOs(OperatingSystem.Linux);
+			terminalSandboxService.wrapCommand = async (command: string) => ({
+				command: `unsandboxed:${command}`,
+				isSandboxWrapped: false,
+				requiresUnsandboxConfirmation: true,
+			});
+
+			const result = await executeToolTest({ command: 'echo hello' });
+
+			assertConfirmationRequired(result, 'Run `bash` command outside the [sandbox](https://aka.ms/vscode-sandboxing)?');
+			const terminalData = result?.toolSpecificData as IChatTerminalToolInvocationData;
+			strictEqual(terminalData.requestUnsandboxedExecution, true);
+			strictEqual(terminalData.commandLine.toolEdited, 'unsandboxed:echo hello');
+		});
+
+		test('should still confirm allowing sandbox network access when the displayed command matches an auto approve rule', async () => {
+			setAutoApprove({ echo: true });
+			setConfig(AgentSandboxSettingId.AgentSandboxRetryWithAllowNetworkRequests, true);
+			sandboxEnabled = true;
+			sandboxPrereqResult = {
+				enabled: true,
+				sandboxConfigPath: '/tmp/sandbox.json',
+				failedCheck: undefined,
+			};
+			terminalSandboxService.wrapCommand = async (command: string, _requestUnsandboxedExecution?: boolean, _shell?: string, _cwd?: URI, _details?: readonly ITerminalSandboxCommand[], requestAllowNetwork?: boolean) => ({
+				command: requestAllowNetwork ? `network-sandbox:${command}` : `sandbox:${command}`,
+				isSandboxWrapped: true,
+				requiresAllowNetworkConfirmation: requestAllowNetwork ? true : undefined,
+			});
+
+			const result = await executeToolTest({ command: 'echo hello', requestAllowNetwork: true });
+
+			assertConfirmationRequired(result, 'Allow bash command to access the network?');
+			const terminalData = result?.toolSpecificData as IChatTerminalToolInvocationData;
+			strictEqual(terminalData.requestAllowNetwork, true);
+			strictEqual(terminalData.commandLine.toolEdited, 'network-sandbox:echo hello');
+		});
+
+		test('should still confirm leaving the sandbox when the session is auto approved', async () => {
+			sandboxEnabled = true;
+			sandboxPrereqResult = {
+				enabled: true,
+				sandboxConfigPath: '/tmp/sandbox.json',
+				failedCheck: undefined,
+			};
+			// The request was sent with default approvals (sandbox on), then the picker switched to auto approve.
+			const sessionResource = LocalChatSessionUri.forSession('unsandbox-session-auto-approve');
+			const requestId = 'unsandbox-session-auto-approve-request';
+			createChatModelWithRequest(sessionResource, createChatModeInfo(ChatPermissionLevel.Default), requestId);
+			instantiationService.stub(IChatWidgetService, {
+				getWidgetBySessionResource: (() => ({ input: { currentModeInfo: { permissionLevel: ChatPermissionLevel.AutoApprove } } })) as unknown as IChatWidgetService['getWidgetBySessionResource'],
+				lastFocusedWidget: undefined,
+			});
+			const sessionAutoApproveTool = store.add(instantiationService.createInstance(TestRunInTerminalTool));
+			sessionAutoApproveTool.setBackendOs(OperatingSystem.Linux);
+
+			const result = await sessionAutoApproveTool.prepareToolInvocation({
+				parameters: {
+					command: 'echo hello',
+					explanation: 'Print hello',
+					goal: 'Print hello',
+					requestUnsandboxedExecution: true,
+					requestUnsandboxedExecutionReason: 'Needs access outside the sandbox',
+				} as IRunInTerminalInputParams,
+				chatSessionResource: sessionResource,
+				chatRequestId: requestId,
+			} as IToolInvocationPreparationContext, CancellationToken.None);
+
+			assertConfirmationRequired(result, 'Run `bash` command outside the [sandbox](https://aka.ms/vscode-sandboxing)?');
+			const terminalData = result?.toolSpecificData as IChatTerminalToolInvocationData;
+			strictEqual(terminalData.requestUnsandboxedExecution, true);
+			strictEqual(terminalData.commandLine.toolEdited, 'unsandboxed:echo hello');
+		});
+
 		test('should reject explicit unsandboxed execution requests when unsandboxed commands are disabled', async () => {
 			setConfig(AgentSandboxSettingId.AgentSandboxAllowUnsandboxedCommands, false);
 			sandboxEnabled = true;

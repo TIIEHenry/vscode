@@ -136,7 +136,8 @@ export class FileMutationJoin {
 
 	/**
 	 * History L2 `ToolCallBlock.file_mutation` (G-REV-1). Envelope already
-	 * carries turn_id / agent_id; do not parse arguments_json.
+	 * carries turn_id / agent_id; do not parse arguments_json. Records are
+	 * marked `fromHistory`: their turn id is already settled.
 	 */
 	handleHistoryPayload(
 		payload: unknown,
@@ -291,6 +292,7 @@ export class FileMutationJoin {
 				path: parsed.path,
 				operation: parsed.operation,
 				diffStats: parsed.diffStats,
+				fromHistory: true,
 			}, onRecord);
 		}
 	}
@@ -307,6 +309,7 @@ export class FileMutationJoin {
 			path: partial.path,
 			operation: partial.operation,
 			...(partial.diffStats !== undefined ? { diffStats: partial.diffStats } : {}),
+			...(partial.fromHistory ? { fromHistory: true } : {}),
 		};
 		const key = emitKey(record);
 		if (this.emitted.has(key)) {

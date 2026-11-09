@@ -155,7 +155,7 @@ suite('FileMutationJoin', () => {
 		assert.strictEqual(emitted.length, 1);
 	});
 
-	test('history envelope file_mutation emits without lifecycle join', () => {
+	test('history envelope file_mutation emits a settled record without lifecycle join', () => {
 		const join = new FileMutationJoin('sess-hist');
 		const emitted: unknown[] = [];
 		join.handleHistoryPayload({
@@ -180,6 +180,7 @@ suite('FileMutationJoin', () => {
 			agentId: 'agent-h',
 			path: 'src/hist.ts',
 			operation: 'edit',
+			fromHistory: true,
 		});
 	});
 

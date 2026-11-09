@@ -198,6 +198,10 @@ export class CommentService extends Disposable implements ICommentService {
 		this._handleZenMode();
 		this._workspaceHasCommenting = CommentContextKeys.WorkspaceHasCommenting.bindTo(contextKeyService);
 		this._commentingEnabled = CommentContextKeys.commentingEnabled.bindTo(contextKeyService);
+		const storedContinueOnComments: PendingCommentThread[] | undefined = this.storageService.getObject(CONTINUE_ON_COMMENTS, StorageScope.WORKSPACE);
+		if (storedContinueOnComments) {
+			this._addContinueOnComments(storedContinueOnComments, this._continueOnComments);
+		}
 		const storageListener = this._register(new DisposableStore());
 
 		const storageEvent = Event.debounce(this.storageService.onDidChangeValue(StorageScope.WORKSPACE, CONTINUE_ON_COMMENTS, storageListener), (last, event) => last?.external ? last : event, 500);
@@ -232,6 +236,10 @@ export class CommentService extends Disposable implements ICommentService {
 			const map: Map<string, PendingCommentThread[]> = new Map();
 			for (const provider of this._continueOnCommentProviders) {
 				const pendingComments = provider.provideContinueOnComments();
+				this._addContinueOnComments(pendingComments, map);
+			}
+			// Keep pending comments that have not been picked up by an editor yet (e.g. their file is not open).
+			for (const pendingComments of this._continueOnComments.values()) {
 				this._addContinueOnComments(pendingComments, map);
 			}
 			this._saveContinueOnComments(map);

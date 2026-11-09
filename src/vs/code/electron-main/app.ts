@@ -159,6 +159,7 @@ import { NativeWebContentExtractorService } from '../../platform/webContentExtra
 import { AgentNetworkFilterService, IAgentNetworkFilterService } from '../../platform/networkFilter/common/networkFilterService.js';
 import { ITerminalSandboxService, NullTerminalSandboxService } from '../../platform/sandbox/common/terminalSandboxService.js';
 import ErrorTelemetry from '../../platform/telemetry/electron-main/errorTelemetry.js';
+import { appendToArgvJson } from './argvJson.js';
 
 type OSProxyConfigEvent = {
 	readonly success: boolean;
@@ -1896,7 +1897,7 @@ export class CodeApplication extends Disposable {
 					`	"crash-reporter-id": "${generateUuid()}"`,
 					'}'
 				];
-				const newArgvString = argvString.substring(0, argvString.length - 2).concat(',\n', additionalArgvContent.join('\n'));
+				const newArgvString = appendToArgvJson(argvString, additionalArgvContent.join('\n'));
 
 				await this.fileService.writeFile(this.environmentMainService.argvResource, VSBuffer.fromString(newArgvString));
 			}
