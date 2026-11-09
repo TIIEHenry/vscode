@@ -7,7 +7,7 @@ updated: 2026-11-09
 summary: "并行看板索引；含 wave27/28 关仓、会话工作根 S1–S4、自研架构审查、自有界面视觉审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
-[wave27/28 槽位关仓 2026-11-09](active/wave27-28-closeout-2026-11-09.md)：9 槽已合入 `codex/merge`（`2b5cbae6272`，compile 0 errors）；A 槽 blocked（双链 catch 与 D1400 冲突）；未合 main、未 push。
+[wave27/28 槽位关仓 2026-11-09](active/wave27-28-closeout-2026-11-09.md)：9 槽已合入 `codex/merge`（`2b5cbae6272`），A 槽按 D1400 单链合入；人类工位 `agent-ide` 的 10 个提交随后真三路合入（46 冲突解完，compile 0 errors，定向单测绿）；未合 main、未 push。
 
 [队列与技能跨仓](active/engine-queue-and-skill-contracts.md)：completed。
 

@@ -1308,6 +1308,17 @@ suite('RunInTerminalTool', () => {
 			'git show --format=%B --output=message.txt HEAD',
 			'git show --output message.txt HEAD',
 
+			// git grep external pagers
+			'git grep -Osh -e TODO',
+			'git grep --open-files-in-pager=sh -e TODO',
+			'git --no-pager -C repo grep --"op=sh" -e TODO',
+
+			// Quoted git grep pagers, git diff file output and branch rewrites
+			'git grep \'--open-files-in-pager=echo X;\' -e pat',
+			'git diff --output=out.txt HEAD',
+			'git branch -f main HEAD~1',
+			'git branch -rd origin/x',
+
 			// Dangerous file operations
 			'rm README.md',
 			'rmdir folder',
@@ -1373,8 +1384,12 @@ suite('RunInTerminalTool', () => {
 			'sed "s/foo/bar/e" file.txt',
 			'sed "s/foo/bar/w output.txt" file.txt',
 			'sed ";W output.txt" file.txt',
+			'sed --in "s/foo/bar/" file.txt',
+			'sed --expr="1e id" file.txt',
 			'sort -o /etc/passwd file.txt',
 			'sort -S 100G file.txt',
+			'sort --output=/etc/passwd file.txt',
+			'sort -ro /etc/passwd file.txt',
 			'tree -o output.txt',
 
 			// Transient environment variables

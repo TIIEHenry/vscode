@@ -37,6 +37,7 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { runSuppressingExplorerAutoReveal } from '../../../services/editor/common/explorerAutoRevealGate.js';
 import { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
+import { OpenFolderWorkspaceSupportContext } from '../../../common/contextkeys.js';
 import { ExplorerFindProviderActive } from '../../files/common/files.js';
 import { ExplorerItem } from '../../files/common/explorerModel.js';
 import { IAsyncDataTreeViewState } from '../../../../base/browser/ui/tree/asyncDataTree.js';
@@ -340,6 +341,18 @@ export class SourcesFilesExplorer extends ExplorerView {
 		const list = stored.mode === 'list';
 		if (this.listMode !== list) {
 			this.setListMode(list);
+			return;
+		}
+		if (this.listMode) {
+			this.listDirectory = undefined;
+			this.updateLocationBreadcrumb();
+			void this.setTreeInput().then(() => {
+				if (!this.isDisposed) {
+					this.updateLocationBreadcrumb();
+				}
+			}).catch(onUnexpectedError);
+		} else {
+			this.updateLocationBreadcrumb();
 		}
 	}
 
@@ -366,7 +379,14 @@ export class SourcesFilesExplorer extends ExplorerView {
 	}
 
 	protected override breadcrumbFolderUri(): URI | undefined {
-		return this.listMode && this.listDirectory ? this.listDirectory : super.breadcrumbFolderUri();
+		if (this.listMode && this.listDirectory) {
+			return this.listDirectory;
+		}
+		const activeLocalRoot = this.session.getActiveWorkRoot?.()?.localRoot;
+		if (activeLocalRoot) {
+			return activeLocalRoot;
+		}
+		return super.breadcrumbFolderUri();
 	}
 
 	protected override onLocationBreadcrumbPick(resource: URI): Promise<void> {
@@ -385,7 +405,8 @@ export class SourcesFilesExplorer extends ExplorerView {
 			return undefined;
 		}
 		const folders = this.contextService.getWorkspace().folders.map(folder => folder.uri);
-		const target = sourcesListDirectoryTarget(this.listDirectory, folders, (resource, parent) => this.uriIdentityService.extUri.isEqualOrParent(resource, parent));
+		const defaultRoot = this.listDirectory ?? this.session.getActiveWorkRoot?.()?.localRoot;
+		const target = sourcesListDirectoryTarget(defaultRoot, folders, (resource, parent) => this.uriIdentityService.extUri.isEqualOrParent(resource, parent));
 		if (!target) {
 			this.listRootItem = undefined;
 			return undefined;
@@ -441,6 +462,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 
 	private readonly root: HTMLElement;
 	private readonly empty: HTMLElement;
+	private readonly openFolderButton: HTMLButtonElement;
 	private readonly panelActionsRow: HTMLElement;
 	private readonly scopedInstantiation: IInstantiationService;
 	private explorer: SourcesFilesExplorer | undefined;
@@ -456,6 +478,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 		container: HTMLElement,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
+		@ICommandService private readonly commandService: ICommandService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
@@ -465,7 +488,17 @@ export class SourcesFilesExplorerHost extends Disposable {
 		this.panelActionsRow = dom.append(this.root, $('.sources-files-actions-row'));
 		this.panelActionsRow.hidden = true;
 		this.empty = dom.append(this.root, $('.sources-files-explorer-empty'));
-		this.empty.textContent = localize('sourcesFilesExplorer.noFolder', "You have not yet opened a folder.");
+		const emptyMessage = dom.append(this.empty, $('span.sources-files-explorer-empty-message'));
+		emptyMessage.textContent = localize('sourcesFilesExplorer.noFolder', "You have not yet opened a folder.");
+		this.openFolderButton = dom.append(this.empty, $('button.sources-files-explorer-open-folder'));
+		this.openFolderButton.type = 'button';
+		this.openFolderButton.textContent = localize('sourcesFilesExplorer.openFolder', "Open Folder...");
+		this.openFolderButton.title = localize('sourcesFilesExplorer.openFolderCommand', "Runs workbench.action.files.openFolder");
+		this.openFolderButton.addEventListener('click', () => {
+			void this.commandService.executeCommand('workbench.action.files.openFolder').catch(onUnexpectedError);
+		});
+		this.syncOpenFolderButton(contextKeyService);
+		this._register(contextKeyService.onDidChangeContext(() => this.syncOpenFolderButton(contextKeyService)));
 
 		const scopedContextKeyService = this._register(contextKeyService.createScoped(this.root));
 		this.scopedInstantiation = this._register(instantiationService.createChild(new ServiceCollection([IContextKeyService, scopedContextKeyService])));
@@ -479,6 +512,10 @@ export class SourcesFilesExplorerHost extends Disposable {
 			this._register(connectionChanged(() => this.syncExplorer()));
 		}
 		this.syncExplorer();
+	}
+
+	private syncOpenFolderButton(contextKeyService: IContextKeyService): void {
+		this.openFolderButton.hidden = contextKeyService.getContextKeyValue(OpenFolderWorkspaceSupportContext.key) !== true;
 	}
 
 	setFilterDock(dock: HTMLElement | undefined): void {

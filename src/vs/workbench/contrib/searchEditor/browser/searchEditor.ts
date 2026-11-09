@@ -48,6 +48,7 @@ import { SearchModelImpl } from '../../search/browser/searchTreeModel/searchMode
 import { InSearchEditor, SearchEditorID, SearchEditorInputTypeId, SearchConfiguration } from './constants.js';
 import type { SearchEditorInput } from './searchEditorInput.js';
 import { serializeSearchResultForEditor } from './searchEditorSerialization.js';
+import { AttachedSearchDecision, SearchResultOwner } from './searchEditorResultOwner.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IPatternInfo, ISearchComplete, ISearchConfigurationProperties, ITextQuery, SearchSortOrder } from '../../../services/search/common/search.js';
@@ -99,6 +100,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 	private updatingModelForSearch: boolean = false;
 	private _searchSeq = 0;
 	private _openAttachmentSearchSeq = 0;
+	private readonly searchResultOwner = new SearchResultOwner();
 
 	constructor(
 		group: IEditorGroup,
@@ -619,6 +621,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			return;
 		}
 		configurationModel.updateConfig(config);
+		this.searchResultOwner.searchStarting();
 		const result = this.searchModel.search(query);
 		const operation = result.asyncResults.finally(() => {
 			this.ongoingOperations--;
@@ -627,6 +630,7 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			}
 		});
 		startInput.ongoingSearchOperation = operation;
+		this.searchResultOwner.searchStarted(operation);
 
 		const searchOperation = await operation;
 		if (this._store.isDisposed || searchSeq !== this._searchSeq) {
@@ -652,6 +656,20 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 			return;
 		}
 
+		const isAttachedCompletion = searchSeq === undefined && operation === undefined;
+		const attachedOperation = isAttachedCompletion ? input.ongoingSearchOperation : undefined;
+		if (isAttachedCompletion) {
+			const decision = this.searchResultOwner.decideAttached(attachedOperation);
+			if (decision === AttachedSearchDecision.Handled) {
+				return;
+			}
+			if (decision === AttachedSearchDecision.NotOwned) {
+				input.ongoingSearchOperation = undefined;
+				this.toggleRunAgainMessage(true);
+				return;
+			}
+		}
+
 		if (operation === undefined) {
 			input.ongoingSearchOperation = undefined;
 		} else if (input.ongoingSearchOperation === operation) {
@@ -669,6 +687,16 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 
 		if (searchSeq !== undefined && searchSeq !== this._searchSeq) {
 			return;
+		}
+
+		if (isAttachedCompletion) {
+			if (this._searchSeq !== this._openAttachmentSearchSeq) {
+				return;
+			}
+			if (!this.searchResultOwner.owns(attachedOperation)) {
+				this.toggleRunAgainMessage(true);
+				return;
+			}
 		}
 
 		const controller = ReferencesController.get(this.searchResultEditor);

@@ -5,7 +5,22 @@
 
 
 .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 0.08s ease;
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 0.08s ease;
 }
 
@@ -13,19 +28,43 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor {
 		transition: none;
 	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor::after {
+		transition: none;
+	}
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:hover {
+	background-color: transparent;
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:focus-visible,

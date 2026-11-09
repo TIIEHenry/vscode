@@ -4,13 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { beginSessionTitleEdit, mountLensTablist, updateSessionTitle, formatSessionSwitchMeta, sessionSwitcherRows, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IContextMenuService, IContextViewService } from '../../../../../platform/contextview/browser/contextView.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { beginSessionTitleEdit, mountLensTablist, mountSessionBar, updateSessionTitle, formatSessionSwitchMeta, sessionSwitcherRows, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import { conversationLensSessionBarTitleEmpty } from '../../browser/conversationLensSessionBarStrings.js';
+import { createConversationLensAriaId } from '../../browser/conversationLensProjection.js';
 import type { ConversationStubSession } from '../../browser/conversationStubModel.js';
+import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 suite('ConversationLensSessionBar', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('compact-capable lens tabs retain complete accessible names and hide decorative icons', () => {
 		const listeners: { dispose(): void }[] = [];
@@ -26,6 +36,35 @@ suite('ConversationLensSessionBar', () => {
 		} finally {
 			listeners.forEach(d => d.dispose());
 		}
+	});
+
+	test('lens tab clicks and keyboard events are forwarded to the host', () => {
+		const listeners: { dispose(): void }[] = [];
+		const selectedLensIds: string[] = [];
+		let forwardedKeydown: KeyboardEvent | undefined;
+		const host = {
+			lensAriaId: 'lens-test',
+			isDisposed: false,
+			register: <T extends { dispose(): void }>(d: T) => { listeners.push(d); return d; },
+			setLensId: (lensId: string) => { selectedLensIds.push(lensId); },
+			handleLensTablistKeyDown: (event: KeyboardEvent) => { forwardedKeydown = event; },
+		} as unknown as IConversationLensSessionBarHost;
+		try {
+			mountLensTablist(host, document.createElement('div'));
+			host.lensTabConversation.click();
+			host.lensTabTrajectory.click();
+			const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+			host.lensTablist.dispatchEvent(event);
+
+			assert.deepStrictEqual(selectedLensIds, ['conversation', 'trajectory']);
+			assert.strictEqual(forwardedKeydown, event);
+		} finally {
+			listeners.forEach(d => d.dispose());
+		}
+	});
+
+	test('lens aria ids are unique per mounted lens', () => {
+		assert.notStrictEqual(createConversationLensAriaId(), createConversationLensAriaId());
 	});
 
 	function titleHost(options: {
@@ -89,6 +128,148 @@ suite('ConversationLensSessionBar', () => {
 
 		assert.strictEqual(host.sessionTitleEditing, false);
 		assert.ok(host.sessionTitleInput.hidden);
+	});
+
+	function mountBar(stubService: ConversationStubService): { host: IConversationLensSessionBarHost; switched: string[] } {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const connection = createConversationConnectionTestStub();
+		instantiationService.stub(IConversationRosterService, stubService);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const disposables = store.add(new DisposableStore());
+		const barHost = document.createElement('div');
+		barHost.classList.add('monaco-workbench');
+		document.body.appendChild(barHost);
+		disposables.add(toDisposable(() => barHost.remove()));
+		const switched: string[] = [];
+		const host = {
+			isDisposed: false,
+			lensAriaId: createConversationLensAriaId(),
+			readingColumn: document.createElement('div'),
+			dockTextarea: document.createElement('textarea'),
+			composerPolicy: 'compose',
+			composeDraftSnapshot: '',
+			sessionTitleEditing: false,
+			sessionTitleEditSnapshot: '',
+			suppressSessionSelect: false,
+			sessionMoreContextView: undefined,
+			stubService,
+			uaConnection: connection,
+			dialogService: instantiationService.get(IDialogService),
+			contextViewService: instantiationService.get(IContextViewService),
+			contextMenuService: instantiationService.get(IContextMenuService),
+			configurationService: instantiationService.get(IConfigurationService),
+			instantiationService,
+			visualizeOverlay: { close: () => { } },
+			register: <T extends IDisposable>(disposable: T) => disposables.add(disposable),
+			getBoundSessionId: () => stubService.getActiveSessionId(),
+			listSessionId: () => stubService.getActiveSessionId(),
+			switchLeafSession: async (sessionId: string) => { switched.push(sessionId); },
+			writeComposerDraft: () => { },
+			setInputMaximized: () => { },
+			showPostFailure: () => { },
+			handleLensTablistKeyDown: () => { },
+			setLensId: () => { },
+		} as unknown as IConversationLensSessionBarHost;
+		mountSessionBar(host, barHost, { omitLensTablist: true });
+		updateSessionTitle(host);
+		return { host, switched };
+	}
+
+	function keydown(key: string, keyCode: number, target: Element | null = document.activeElement): void {
+		target!.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+	}
+
+	function morePopup(): HTMLElement | null {
+		return document.querySelector('.conversation-lens-dock-more-popup');
+	}
+
+	test('session More menu focuses the first item, moves with arrows and returns focus to the button', () => {
+		const stubService = store.add(new ConversationStubService());
+		const { host } = mountBar(stubService);
+		const moreButton = host.sessionMoreButton.element;
+
+		moreButton.click();
+		const items = [...morePopup()!.querySelectorAll<HTMLButtonElement>('.conversation-lens-dock-more-item')];
+		const opened = items.indexOf(document.activeElement as HTMLButtonElement);
+		keydown('ArrowDown', 40);
+		const down = items.indexOf(document.activeElement as HTMLButtonElement);
+		keydown('ArrowUp', 38);
+		keydown('ArrowUp', 38);
+		const wrapped = items.indexOf(document.activeElement as HTMLButtonElement);
+		keydown('Escape', 27);
+		const afterEscape = { open: !!morePopup(), buttonFocused: document.activeElement === moreButton };
+
+		moreButton.click();
+		const current = morePopup()!.querySelector<HTMLButtonElement>('.conversation-lens-session-more-session[aria-checked="true"]')!;
+		current.focus();
+		current.click();
+		const afterPick = { open: !!morePopup(), buttonFocused: document.activeElement === moreButton };
+
+		assert.deepStrictEqual({ opened, down, wrapped, afterEscape, afterPick }, {
+			opened: 0,
+			down: 1,
+			wrapped: items.length - 1,
+			afterEscape: { open: false, buttonFocused: true },
+			afterPick: { open: false, buttonFocused: true },
+		});
+	});
+
+	test('session More menu rows follow the Sessions list order with muted meta and a check on the current session', () => {
+		const stubService = store.add(new ConversationStubService());
+		const [older, newer] = stubService.getSessions();
+		older.lastAccessedAt = Date.now() - 60_000;
+		newer.lastAccessedAt = Date.now() - 1_000;
+		stubService.switchSession(older.id);
+		const { host } = mountBar(stubService);
+
+		host.sessionMoreButton.element.click();
+		const rows = [...morePopup()!.querySelectorAll<HTMLElement>('.conversation-lens-session-more-session')].map(row => ({
+			title: row.querySelector('.conversation-lens-session-more-session-title')?.textContent,
+			meta: !!row.querySelector('.conversation-lens-session-more-session-meta')?.textContent,
+			role: row.getAttribute('role'),
+			checked: row.getAttribute('aria-checked'),
+			check: !!row.querySelector('.conversation-lens-session-more-session-check.codicon-check'),
+		}));
+		keydown('Escape', 27);
+
+		assert.deepStrictEqual(rows, [
+			{ title: newer.title, meta: true, role: 'menuitemradio', checked: 'false', check: false },
+			{ title: older.title, meta: true, role: 'menuitemradio', checked: 'true', check: true },
+		]);
+	});
+
+	test('empty or failed rename keeps the editor open with the typed text and says why beside it', () => {
+		const stubService = store.add(new class extends ConversationStubService {
+			override renameSession(): boolean { return false; }
+		}());
+		const { host } = mountBar(stubService);
+		const errorText = () => host.sessionTitleInput.parentElement!.querySelector<HTMLElement>('.conversation-lens-session-title-error');
+		const snapshot = () => ({
+			editing: host.sessionTitleEditing,
+			inputHidden: host.sessionTitleInput.hidden,
+			value: host.sessionTitleInput.value,
+			invalid: host.sessionTitleInput.getAttribute('aria-invalid'),
+			error: errorText()?.hidden === false ? errorText()!.textContent : undefined,
+		});
+
+		host.sessionTitleButton.click();
+		host.sessionTitleInput.value = '   ';
+		keydown('Enter', 13, host.sessionTitleInput);
+		const empty = snapshot();
+		host.sessionTitleInput.value = 'Renamed';
+		host.sessionTitleInput.dispatchEvent(new Event('input'));
+		const typing = snapshot();
+		keydown('Enter', 13, host.sessionTitleInput);
+		const failed = snapshot();
+		keydown('Escape', 27, host.sessionTitleInput);
+		const cancelled = snapshot();
+
+		assert.deepStrictEqual({ empty, typing, failed, cancelled }, {
+			empty: { editing: true, inputHidden: false, value: '   ', invalid: 'true', error: conversationLensSessionBarTitleEmpty },
+			typing: { editing: true, inputHidden: false, value: 'Renamed', invalid: null, error: undefined },
+			failed: { editing: true, inputHidden: false, value: 'Renamed', invalid: 'true', error: 'Could not rename the session.' },
+			cancelled: { editing: false, inputHidden: true, value: stubService.getActiveSession().title, invalid: null, error: undefined },
+		});
 	});
 
 	suite('formatSessionSwitchMeta', () => {

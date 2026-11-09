@@ -145,10 +145,16 @@ export class EngineClipboardSection extends Disposable {
 		}));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-clipboard-write-status'));
+		this.writeStatus.setAttribute('role', 'status');
+		this.writeStatus.setAttribute('aria-live', 'polite');
 		this.writeStatus.style.display = 'none';
 		this.readStatus = DOM.append(this.container, $('.engine-clipboard-read-status'));
+		this.readStatus.setAttribute('role', 'status');
+		this.readStatus.setAttribute('aria-live', 'polite');
 		this.readStatus.style.display = 'none';
 		this.clearStatus = DOM.append(this.container, $('.engine-clipboard-clear-status'));
+		this.clearStatus.setAttribute('role', 'status');
+		this.clearStatus.setAttribute('aria-live', 'polite');
 		this.clearStatus.style.display = 'none';
 		this.updateWriteAction();
 		this.updateReadAction();

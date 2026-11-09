@@ -13,7 +13,7 @@ import { PluginFormat } from '../../../agentPlugins/common/pluginParsers.js';
 import { isCustomizationEnabled } from '../../common/customizationEnablement.js';
 import { DeferredPromise, timeout } from '../../../../base/common/async.js';
 import { encodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
-import { Emitter } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { join, sep } from '../../../../base/common/path.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -46,6 +46,7 @@ import { STREAMING_TOOL_DISPLAY_INTERVAL_MS } from '../../common/streamingToolCa
 import { CustomizationEnablementKind, CustomizationType, McpAuthRequiredReason, McpServerStatus, type Customization, type McpServerCustomization } from '../../common/state/protocol/channels-session/state.js';
 import { CopilotAgentSession } from '../../node/copilot/copilotAgentSession.js';
 import { buildNonPtyShellTerminalUri } from '../../node/copilot/copilotNonPtyShellTerminals.js';
+import type { ShellManager } from '../../node/copilot/copilotShellTools.js';
 import { buildMcpChannel } from '../../node/shared/mcpCustomizationController.js';
 import { buildSandboxConfigForSdk } from '../../node/copilot/sandboxConfigForSdk.js';
 import { ActiveClientToolSet } from '../../node/activeClientState.js';
@@ -701,6 +702,8 @@ async function createAgentSession(disposables: DisposableStore, options?: {
 	isEphemeral?: boolean;
 	/** Whether the owning chat surface is scoped to editing a single file. */
 	hasScopedEditSurface?: boolean;
+	/** Shell manager of the Agent Host's own terminal tool; omitted means the SDK's built-in shell. */
+	shellManager?: ShellManager;
 	/** Platform used to compute the SDK sandbox policy. Defaults to `'linux'` so sandbox tests are deterministic. */
 	platform?: NodeJS.Platform;
 	githubToken?: string;
@@ -772,7 +775,7 @@ async function createAgentSession(disposables: DisposableStore, options?: {
 		workingDirectory: options?.workingDirectory,
 		resolvedAgentName: undefined,
 		snapshot: options?.clientSnapshot ?? { tools: [], plugins: [], mcpServers: {} },
-		shellManager: undefined,
+		shellManager: options?.shellManager,
 		githubToken: options?.githubToken,
 		isEphemeral: options?.isEphemeral,
 		hasScopedEditSurface: options?.hasScopedEditSurface,
@@ -958,7 +961,7 @@ async function createAgentSession(disposables: DisposableStore, options?: {
 			onDidSessionProgress: progressEmitter,
 			sessionLauncher,
 			launchPlan,
-			shellManager: undefined,
+			shellManager: options?.shellManager,
 			clientSnapshot: options?.clientSnapshot,
 			activeClientToolSet: options?.activeClientToolSet,
 			// The owning session's last host-published customization snapshot
@@ -4437,6 +4440,92 @@ suite('CopilotAgentSession', () => {
 				toolInput: command,
 				shellLanguage: toolName,
 			})));
+		});
+
+		test('custom shell permissions with a write redirect report whether the shell starts in the working directory; other permissions do not', async () => {
+			const checked: string[] = [];
+			const forgotten: string[] = [];
+			const shellManager = {
+				onDidAssociateTerminal: Event.None,
+				checkStartsInWorkingDirectory: (_shellType: string, toolCallId: string) => {
+					checked.push(toolCallId);
+					return true;
+				},
+				forgetWorkingDirectoryStart: (toolCallId: string) => {
+					forgotten.push(toolCallId);
+				},
+				dispose: () => { },
+			} as Partial<ShellManager> as ShellManager;
+			const { session, runtime, waitForSignal } = await createAgentSession(disposables, { shellManager });
+			const facts: (boolean | undefined)[] = [];
+
+			const customResult = runtime.handlePermissionRequest({
+				kind: 'custom-tool',
+				toolCallId: 'tc-custom-cwd',
+				toolName: 'bash',
+				args: { command: 'echo hi > out.txt' },
+			});
+			const customSignal = await waitForSignal(s => s.kind === 'pending_confirmation' && s.state.toolCallId === 'tc-custom-cwd');
+			facts.push(customSignal.kind === 'pending_confirmation' ? customSignal.shellStartsInPrimaryWorkingDirectory : undefined);
+			// A denied request drops the recorded start requirement.
+			assert.ok(session.respondToPermissionRequest('tc-custom-cwd', false));
+			assert.strictEqual((await customResult).kind, 'reject');
+
+			// Without a write redirect the host never reads the fact, so the
+			// command is not pinned to a shell at the working directory.
+			const noRedirectResult = runtime.handlePermissionRequest({
+				kind: 'custom-tool',
+				toolCallId: 'tc-custom-no-redirect',
+				toolName: 'bash',
+				args: { command: 'git status' },
+			});
+			const noRedirectSignal = await waitForSignal(s => s.kind === 'pending_confirmation' && s.state.toolCallId === 'tc-custom-no-redirect');
+			facts.push(noRedirectSignal.kind === 'pending_confirmation' ? noRedirectSignal.shellStartsInPrimaryWorkingDirectory : undefined);
+			assert.ok(session.respondToPermissionRequest('tc-custom-no-redirect', true));
+			assert.strictEqual((await noRedirectResult).kind, 'approve-once');
+
+			// Managed approvals are never auto-approved, so the fact is not read.
+			const managedResult = runtime.handlePermissionRequest({
+				kind: 'custom-tool',
+				toolCallId: 'tc-custom-managed',
+				toolName: 'bash',
+				args: { command: 'echo hi > out.txt' },
+				managedApprovalRequired: true,
+			});
+			const managedSignal = await waitForSignal(s => s.kind === 'pending_confirmation' && s.state.toolCallId === 'tc-custom-managed');
+			facts.push(managedSignal.kind === 'pending_confirmation' ? managedSignal.shellStartsInPrimaryWorkingDirectory : undefined);
+			assert.ok(session.respondToPermissionRequest('tc-custom-managed', false));
+			assert.strictEqual((await managedResult).kind, 'reject');
+
+			const sdkResult = runtime.handlePermissionRequest({
+				kind: 'shell',
+				toolCallId: 'tc-sdk-cwd',
+				fullCommandText: 'echo hi > out.txt',
+			});
+			const sdkSignal = await waitForSignal(s => s.kind === 'pending_confirmation' && s.state.toolCallId === 'tc-sdk-cwd');
+			facts.push(sdkSignal.kind === 'pending_confirmation' ? sdkSignal.shellStartsInPrimaryWorkingDirectory : undefined);
+			assert.ok(session.respondToPermissionRequest('tc-sdk-cwd', true));
+			assert.strictEqual((await sdkResult).kind, 'approve-once');
+
+			assert.deepStrictEqual({ facts, checked, forgotten }, {
+				facts: [true, undefined, undefined, undefined],
+				checked: ['tc-custom-cwd'],
+				forgotten: ['tc-custom-cwd'],
+			});
+		});
+
+		test('custom shell permissions with a write redirect report false without a shell manager', async () => {
+			const { session, runtime, waitForSignal } = await createAgentSession(disposables);
+			const result = runtime.handlePermissionRequest({
+				kind: 'custom-tool',
+				toolCallId: 'tc-custom-no-manager',
+				toolName: 'bash',
+				args: { command: 'echo hi > out.txt' },
+			});
+			const signal = await waitForSignal(s => s.kind === 'pending_confirmation' && s.state.toolCallId === 'tc-custom-no-manager');
+			assert.strictEqual(signal.kind === 'pending_confirmation' ? signal.shellStartsInPrimaryWorkingDirectory : undefined, false);
+			assert.ok(session.respondToPermissionRequest('tc-custom-no-manager', false));
+			assert.strictEqual((await result).kind, 'reject');
 		});
 
 		test('auto-approves sandboxed-by-default shell command without prompting', async () => {

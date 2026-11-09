@@ -34,7 +34,17 @@
 	z-index: 32;
 	opacity: 0.5;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .terminal-env-var-info {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .terminal-env-var-info {
+		transition: none;
+	}
 }
 
 .monaco-workbench .terminal-env-var-info:active {

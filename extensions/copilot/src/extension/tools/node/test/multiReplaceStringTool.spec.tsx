@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { readFileSync } from 'fs';
-import { afterAll, beforeAll, expect, suite, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, expect, suite, test } from 'vitest';
 import type { ChatResponseStream, TextEdit } from 'vscode';
+import { IEndpointProvider } from '../../../../platform/endpoint/common/endpointProvider';
 import { ITestingServicesAccessor } from '../../../../platform/test/node/services';
 import { applyEdits } from '../../../../platform/test/node/simulationWorkspace';
 import { TestWorkspaceService } from '../../../../platform/test/node/testWorkspaceService';
@@ -242,5 +243,63 @@ export function sumThreeFloats(a, b, c) {`,
 			const e2 = edits[i];
 			expect(e1.range.end.isBeforeOrEqual(e2.range.start)).toBe(true);
 		}
+	});
+});
+
+suite('MultiReplaceString - prepared edits', () => {
+	const model = { id: 'test-model', family: 'test-family', vendor: 'test', name: 'Test Model' };
+	let accessor: ITestingServicesAccessor;
+	let docData: IExtHostDocumentData;
+
+	beforeEach(() => {
+		docData = createTextDocumentData(URI.file('/workspace/reuse.ts'), 'const a = foo();\n', 'ts');
+		const services = createExtensionUnitTestingServices();
+		services.define(IWorkspaceService, new SyncDescriptor(TestWorkspaceService, [[URI.file('/workspace')], [docData.document]]));
+		services.set(IEndpointProvider, { getChatEndpoint: async () => ({ model: model.id }) } as unknown as IEndpointProvider);
+		accessor = services.createTestingAccessor();
+	});
+
+	afterEach(() => {
+		accessor.dispose();
+	});
+
+	async function invokeAndApply(input: IMultiReplaceStringToolParams) {
+		const edits: TextEdit[] = [];
+		const stream: Partial<ChatResponseStream> = {
+			markdown: () => { },
+			codeblockUri: () => { },
+			push: part => {
+				if (part instanceof ChatResponseTextEditPart) {
+					edits.push(...part.edits);
+				}
+			},
+			textEdit: (_uri, edit) => {
+				if (typeof edit !== 'boolean') {
+					edits.push(...(Array.isArray(edit) ? edit : [edit]));
+				}
+			}
+		};
+		const toolsService = accessor.get(IToolsService);
+		toolsService.getCopilotTool(ToolName.MultiReplaceString)?.resolveInput?.(input, { stream, request: { model } } as any, CopilotToolMode.FullContext);
+		await toolsService.invokeTool(ToolName.MultiReplaceString, { input, toolInvocationToken: null as never }, CancellationToken.None);
+		applyEdits(docData, edits, new Range(0, 0, 0, 0), new Range(0, 0, 0, 0));
+		return edits;
+	}
+
+	test('does not replay edits when the same input is called again', async () => {
+		const input: IMultiReplaceStringToolParams = {
+			explanation: 'Add an argument',
+			replacements: [{
+				filePath: '/workspace/reuse.ts',
+				newString: 'foo(bar)',
+				oldString: 'foo()',
+			}]
+		};
+
+		expect(await invokeAndApply(input)).not.toHaveLength(0);
+		expect(docData.document.getText()).toBe('const a = foo(bar);\n');
+
+		expect(await invokeAndApply(input)).toHaveLength(0);
+		expect(docData.document.getText()).toBe('const a = foo(bar);\n');
 	});
 });

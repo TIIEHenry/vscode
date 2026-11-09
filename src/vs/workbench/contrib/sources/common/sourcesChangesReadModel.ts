@@ -50,7 +50,7 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	private activeSessionId: string | undefined;
 	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
 	private readonly refreshScheduler = this._register(new RunOnceScheduler(() => {
-		void this.runScheduledRefresh().catch(onUnexpectedError);
+		void this.runRefresh().catch(onUnexpectedError);
 	}, 250));
 
 	constructor(
@@ -88,7 +88,7 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 			this.activeSessionId = currentSessionId;
 			this.refreshScheduler.cancel();
 			this.refreshAgain = false;
-			void this.runScheduledRefresh().catch(onUnexpectedError);
+			void this.runRefresh().catch(onUnexpectedError);
 			return;
 		}
 		if (this.refreshRunning) {
@@ -109,7 +109,7 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 			this.activeSessionId = currentSessionId;
 			this.refreshScheduler.cancel();
 			this.refreshAgain = false;
-			void this.runScheduledRefresh().catch(onUnexpectedError);
+			void this.runRefresh().catch(onUnexpectedError);
 			return;
 		}
 		if (this.refreshScheduler.isScheduled()) {
@@ -118,11 +118,11 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		}
 		if (this.refreshAgain) {
 			this.refreshAgain = false;
-			void this.runScheduledRefresh().catch(onUnexpectedError);
+			void this.runRefresh().catch(onUnexpectedError);
 		}
 	}
 
-	private async runScheduledRefresh(): Promise<void> {
+	private async runRefresh(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
 		}
@@ -177,7 +177,7 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	}
 
 	async refresh(): Promise<void> {
-		return this.refreshWithGeneration(++this.readGeneration);
+		return this.runRefresh();
 	}
 
 	private async refreshWithGeneration(generation: number): Promise<void> {

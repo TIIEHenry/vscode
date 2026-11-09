@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationEditorPart.css';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { DisposableMap, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -13,7 +13,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPart } from './editorPart.js';
 import { IEditorPartsView, IEditorGroupView } from './editor.js';
-import { GroupIdentifier } from '../../../common/editor.js';
+import { GroupIdentifier, GroupModelChangeKind } from '../../../common/editor.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
 import { IConversationEditorPart, IConversationLeafHostState, IEditorGroup, IEditorSideGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_SIDE_GROUP } from '../../../services/editor/common/editorService.js';
@@ -26,6 +26,7 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 	readonly excludeFromGlobalEditorAggregation = true as const;
 
 	private readonly partOptionsDisposable = this._register(new DisposableStore());
+	private readonly groupModelDisposables = this._register(new DisposableMap<GroupIdentifier, IDisposable>());
 	private readonly hiddenGroupIds = new Set<GroupIdentifier>();
 
 	// Visible until the host says otherwise, so a leaf that was created but
@@ -84,8 +85,24 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 		);
 
 		this.applyConversationPartOptions();
-		this._register(this.onDidAddGroup(() => this.applyConversationPartOptions()));
-		this._register(this.onDidRemoveGroup(() => this.applyConversationPartOptions()));
+		this._register(this.onDidAddGroup(group => {
+			this.watchGroupModel(group);
+			this.applyConversationPartOptions();
+		}));
+		this._register(this.onDidRemoveGroup(group => {
+			this.groupModelDisposables.deleteAndDispose(group.id);
+			this.applyConversationPartOptions();
+		}));
+	}
+
+	private watchGroupModel(group: IEditorGroupView): void {
+		this.groupModelDisposables.set(group.id, group.onDidModelChange(e => {
+			if (e.kind === GroupModelChangeKind.EDITOR_CLOSE && group.isEmpty && group.id !== this.groups[0]?.id) {
+				this.setGroupHidden(group, true);
+				return;
+			}
+			this.applyConversationPartOptions();
+		}));
 	}
 
 	setGroupHidden(group: IEditorGroup | GroupIdentifier, hidden: boolean): void {
@@ -143,6 +160,10 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 	override create(parent: HTMLElement, options?: object): void {
 		parent.classList.add('conversation-editor-part-host');
 		super.create(parent, options);
+		for (const group of this.groups) {
+			this.watchGroupModel(group);
+		}
+		this.applyConversationPartOptions();
 	}
 
 	override notifyGroupsLabelChange(label: string): void {

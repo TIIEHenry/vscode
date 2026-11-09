@@ -26,7 +26,7 @@ import type {
 	ViewPatch,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationVisualizeArgs, parseVisualizeArgs } from '../common/conversationVisualize.js';
-import { passesTrajectoryAgentFilter } from './conversationTrajectoryModel.js';
+import { isCompactedItemAttribution, passesTrajectoryAgentFilter } from './conversationTrajectoryModel.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { conversationTurnReadText } from './conversationUserRefs.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationReadOnlyText, ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
@@ -275,6 +275,7 @@ export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
 
 function stubTurnAttribution(turn: ConversationStubTurn): ItemAttribution {
 	const agent = turn.agentId !== undefined ? { agentId: turn.agentId } : {};
+	const meta = turn.metadata !== undefined ? { metadata: turn.metadata } : {};
 	switch (turn.kind) {
 		case 'user':
 			return { role: 'user', ...agent };
@@ -284,11 +285,11 @@ function stubTurnAttribution(turn: ConversationStubTurn): ItemAttribution {
 			return { role: 'assistant', stub: true, ...agent };
 		case 'tool':
 		case 'visualization':
-			return { role: 'tool', stub: true, ...agent };
+			return { role: 'tool', stub: true, ...agent, ...meta };
 		case 'confirmation':
 			return { role: 'assistant', stub: true, ...agent };
 		case 'system':
-			return { role: 'system', ...agent };
+			return turn.readOnlyText === 'context' ? { role: 'tool', ...agent } : { role: 'system', ...agent };
 		case 'question':
 		case 'error':
 		case 'unknown':
@@ -391,6 +392,10 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 				break;
 			}
 			case 'system': {
+				if (turn.readOnlyText === 'neutral') {
+					timeline.push({ id, orderKey, summary: { kind: 'text', title: turn.text } });
+					break;
+				}
 				timeline.push({ id, orderKey, summary: { kind: 'text', title: roleTitle('system'), preview: turn.text } });
 				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
@@ -1351,6 +1356,9 @@ function timelineItemToEntry(
 			if (!attr) {
 				return { id, kind: 'system', readOnlyText: 'neutral', text, ...thought, ...streaming, ...turn };
 			}
+			if (isCompactedItemAttribution(attr)) {
+				return undefined;
+			}
 			if (isLocalToolAttribution(attr)) {
 				const localTool = attr.localTool;
 				return {
@@ -1561,6 +1569,8 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			...(entry.questionItems !== undefined ? { questionItems: entry.questionItems } : {}),
 			...(entry.answerKeysValid !== undefined ? { answerKeysValid: entry.answerKeysValid } : {}),
 			...(entry.questionRequestId !== undefined ? { questionRequestId: entry.questionRequestId } : {}),
+			...(entry.metadata !== undefined ? { metadata: entry.metadata } : {}),
+			...(entry.readOnlyText !== undefined ? { readOnlyText: entry.readOnlyText } : {}),
 		});
 	}
 	return turns;

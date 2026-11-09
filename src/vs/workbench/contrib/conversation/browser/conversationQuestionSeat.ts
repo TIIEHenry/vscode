@@ -76,9 +76,11 @@ export class ConversationQuestionSeat extends Disposable {
 		if (options.agentId && options.agentId !== 'default') {
 			const identity = append(header, $('span.conversation-lens-turn-agent-identity'));
 			identity.textContent = options.agentId;
+			identity.title = options.agentId;
 		}
 		const status = append(header, $('span.conversation-lens-turn-honest-status'));
 		status.textContent = statusLabel;
+		status.hidden = statusLabel.length === 0;
 
 		const body = append(this.element, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
 		body.textContent = options.message;
@@ -165,6 +167,9 @@ export class ConversationQuestionSeat extends Disposable {
 		}
 		let submitted = options.responseInFlight === true;
 		const requiredLabelMissing = (): boolean => required.some(item => {
+			if (item.allowCustom === true && customText.trim().length > 0) {
+				return false;
+			}
 			const labels = selections.get(item.id) ?? [];
 			return !labels.some(label => label.trim().length > 0);
 		});

@@ -37,18 +37,27 @@ export class CustomSessionTitleService implements ICustomSessionTitleService {
 		}
 
 		// Fall back to global storage (legacy) and migrate if found.
-		const entries = this._getCustomSessionTitles();
-		const entry = entries[sessionId];
+		const entry = this._getCustomSessionTitles()[sessionId];
 		if (!entry) {
 			return undefined;
 		}
-		delete entries[sessionId];
 
-		// Migrate: store in metadata file and remove from global storage.
-		await Promise.all([
-			this.chatSessionMetadataStore.setCustomTitle(sessionId, entry.title),
-			this.context.globalState.update(CUSTOM_SESSION_TITLE_MEMENTO_KEY, Object.keys(entries).length > 0 ? entries : undefined)
-		]);
+		// Migrate: store in metadata file, then remove from global storage. Keep the legacy
+		// title when it could not be stored, so it is still shown and migrated again later.
+		try {
+			await this.chatSessionMetadataStore.setCustomTitle(sessionId, entry.title);
+		} catch (error) {
+			this.logService.warn(`[CustomSessionTitleService] Keeping the legacy title of session ${sessionId}: ${error}`);
+			return entry.title;
+		}
+		// `globalState.get` returns the memento's own object, so remove the entry from a copy of the current value.
+		const remaining = { ...this._getCustomSessionTitles() };
+		delete remaining[sessionId];
+		try {
+			await this.context.globalState.update(CUSTOM_SESSION_TITLE_MEMENTO_KEY, Object.keys(remaining).length > 0 ? remaining : undefined);
+		} catch (error) {
+			this.logService.warn(`[CustomSessionTitleService] Could not remove the legacy title of session ${sessionId}: ${error}`);
+		}
 
 		return entry.title;
 	}

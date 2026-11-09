@@ -74,7 +74,17 @@
 
 .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button {
+		transition: none;
+	}
 }
 
 .monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button:active {

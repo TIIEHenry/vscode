@@ -19,6 +19,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import {
+	applySessionTitleHold,
 	beginSessionTitleEdit,
 	cancelSessionTitleEdit,
 	commitSessionTitleEdit,
@@ -28,20 +29,27 @@ import {
 	mountSessionBar,
 	refreshSessionSelectOptions,
 	shouldRefreshActiveSessionChrome,
+	updateSessionBarWriteChrome,
 	updateSessionTitle,
 } from './conversationLensSessionBar.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
-import type { ConversationLensId } from './conversationLensProjection.js';
+import { createConversationLensAriaId, type ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationComposerModel } from './conversationComposerModel.js';
+import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
+import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
+import { shouldOpenPendingOnFocus } from '../common/uaClientSettingsHelpers.js';
 
 export interface IConversationLeafPaneAccessors {
 	writeComposerDraft(sessionId: string, text: string): void;
 	deleteComposerDraftsForSession(sessionId: string): void;
-	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'>;
+	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot' | 'tuneContextView' | 'setTuneContextView' | 'moreContextView' | 'setMoreContextView'>;
+	/** The lens's own chip array, not a copy: draft restore splices it in place. */
+	getComposerRefResources?(): string[] | undefined;
+	syncComposerRefs?(): void;
 	getDockTextarea(): HTMLTextAreaElement | undefined;
 	getReadingColumn(): HTMLElement | undefined;
 	getVisualizeOverlay(): ConversationVisualizeOverlay | undefined;
@@ -49,9 +57,11 @@ export interface IConversationLeafPaneAccessors {
 	setLensId(lensId: ConversationLensId): void;
 	handleLensTablistKeyDown(event: KeyboardEvent): void;
 	setInputMaximized(maximized: boolean): void;
+	closeInboxListPanel?(): void;
 }
 
 export class ConversationLeafSessionBar extends Disposable implements IConversationLensSessionBarHost {
+	readonly lensAriaId = createConversationLensAriaId();
 
 	get isDisposed(): boolean {
 		return this._store.isDisposed;
@@ -113,6 +123,7 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		@IInstantiationService public readonly instantiationService: IInstantiationService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@IDialogService public readonly dialogService: IDialogService,
+		@IConversationTimelineRevealService private readonly timelineRevealService: IConversationTimelineRevealService,
 	) {
 		super();
 		this.readingColumn = accessors.getReadingColumn() ?? $('div');
@@ -145,15 +156,35 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 				return;
 			}
 			this.refreshSessionSelectOptions();
+			updateSessionBarWriteChrome(this);
 			if (shouldRefreshActiveSessionChrome(this, sessionId)) {
 				if (!this.sessionTitleEditing) {
 					this.updateSessionTitle();
 				}
 			}
 		}));
+		this._register(this.stubService.onDidChangeActiveSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			updateSessionBarWriteChrome(this);
+		}));
+		this._register(this.stubService.onDidChangeEngineConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			updateSessionBarWriteChrome(this);
+		}));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			updateSessionBarWriteChrome(this);
+		}));
 		this.updateHideButton();
 		this.updateSessionTitle();
 		this.refreshSessionSelectOptions();
+		updateSessionBarWriteChrome(this);
 
 		const initialWidth = barHost.clientWidth > 0
 			? barHost.clientWidth
@@ -197,6 +228,9 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		if (this._store.isDisposed) {
 			return;
 		}
+		if (this.sessionTitleEditing) {
+			this.cancelSessionTitleEdit();
+		}
 		const replaceOutgoingLeaf = this.sessionWindowService.getVisibleWindowCount() >= 2
 			&& !this.sessionWindowService.isSessionWindowVisible(sessionId);
 		const result = replaceOutgoingLeaf
@@ -208,6 +242,23 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		if (this.stubService.getActiveSessionId() !== sessionId) {
 			this.stubService.switchSession(sessionId);
 		}
+		if (
+			this.timelineRevealService
+			&& shouldOpenPendingOnFocus(this.configurationService)
+			&& shouldAutoRevealPendingConfirmation(this.uaConnection)
+			&& this.stubService.hasPendingAttentionSeat(sessionId)
+		) {
+			this.timelineRevealService.scrollToFirstPendingConfirmation(sessionId);
+		}
+	}
+
+	get inboxOverlay(): { closeListPanel(): void } | undefined {
+		if (!this.accessors.closeInboxListPanel) {
+			return undefined;
+		}
+		return {
+			closeListPanel: () => this.accessors.closeInboxListPanel?.(),
+		};
 	}
 
 	setLensId(lensId: ConversationLensId): void {
@@ -266,8 +317,16 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		void this.switchLeafSession(sessionId).catch(onUnexpectedError);
 	}
 
-	get composerModel(): Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'> {
+	get composerModel(): Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot' | 'tuneContextView' | 'setTuneContextView' | 'moreContextView' | 'setMoreContextView'> {
 		return this.accessors.composerModel;
+	}
+
+	get composerRefResources(): string[] | undefined {
+		return this.accessors.getComposerRefResources?.();
+	}
+
+	syncComposerRefs(): void {
+		this.accessors.syncComposerRefs?.();
 	}
 
 	writeComposerDraft(sessionId: string, text: string): void {
@@ -295,6 +354,7 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 			this.sessionTitleButton.textContent = '';
 			this.sessionTitleButton.setAttribute('aria-label', localize('conversationLens.sessionTitleAria', "Session title: {0}", ''));
 			this.sessionTitleLive.textContent = '';
+			applySessionTitleHold(this);
 			return;
 		}
 		updateSessionTitle(this);

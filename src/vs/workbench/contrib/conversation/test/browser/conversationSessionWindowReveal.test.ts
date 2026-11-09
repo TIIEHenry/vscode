@@ -1310,21 +1310,26 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		const { sessionWindowService, primaryId } = harness;
 		const pane = await waitForSessionPane(harness, primaryId);
 		const leaf = sessionWindowService.getLeafSlots(primaryId)!;
+		// The leaf bar measures its own width, so the harness DOM must match the pane.
+		const layoutAt = (width: number) => {
+			leaf.container.style.width = `${width}px`;
+			pane.layout(new Dimension(width, 600));
+		};
 
-		pane.layout(new Dimension(500, 600));
+		layoutAt(500);
 		assert.ok(leaf.sessionBar.classList.contains('is-medium'));
 		assert.ok(!leaf.sessionBar.classList.contains('is-narrow'));
 
-		pane.layout(new Dimension(400, 600));
+		layoutAt(400);
 		assert.ok(leaf.sessionBar.classList.contains('is-narrow'));
 		assert.ok(leaf.container.classList.contains('is-narrow'));
 		assert.ok(!leaf.sessionBar.classList.contains('is-compact'));
 
-		pane.layout(new Dimension(250, 600));
+		layoutAt(250);
 		assert.ok(leaf.sessionBar.classList.contains('is-narrow'));
 		assert.ok(leaf.sessionBar.classList.contains('is-compact'));
 
-		pane.layout(new Dimension(950, 600));
+		layoutAt(950);
 		assert.ok(!leaf.sessionBar.classList.contains('is-narrow'));
 		assert.ok(!leaf.container.classList.contains('is-narrow'));
 		assert.ok(!leaf.sessionBar.classList.contains('is-compact'));

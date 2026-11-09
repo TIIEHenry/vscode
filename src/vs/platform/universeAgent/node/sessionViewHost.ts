@@ -369,8 +369,13 @@ export class SessionViewHost extends Disposable {
 		}));
 	}
 
-	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent> {
-		return this.leases.get(leaseId)?.emitter.event ?? Event.None;
+	onDynamicDidApplyFrame(leaseId: string, owner?: string): Event<IUniverseAgentSessionViewFrameEvent> {
+		const binding = this.leases.get(leaseId);
+		// Reject before touching the emitter: a foreign listener must not trigger the first-listener flush.
+		if (!binding || leaseOwnerMismatch(binding.owner, owner)) {
+			return Event.None;
+		}
+		return binding.emitter.event;
 	}
 
 	acquireLease(sessionId: string, owner?: string): string {

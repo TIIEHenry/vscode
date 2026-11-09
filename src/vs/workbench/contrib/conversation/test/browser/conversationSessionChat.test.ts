@@ -16,7 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { IEditorOptions } from '../../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
-import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { INotification, INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -1032,8 +1032,8 @@ suite('Conversation session chat (S3)', () => {
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
 			const { sessionChatService, sessionWindow } = await createHarness(roster, {
-				error: (message: string | Error) => {
-					errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+				notify: (notification: INotification) => {
+					errors.push(String(notification.source));
 				},
 			} as INotificationService);
 			assert.ok(errors.length >= 1);
@@ -1491,8 +1491,8 @@ suite('Conversation session chat (S3)', () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		const { sessionChatService } = await createHarness(undefined, {
-			error: (message: string | Error) => {
-				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			notify: (notification: INotification) => {
+				errors.push(String(notification.source));
 			},
 		} as INotificationService);
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
@@ -1515,7 +1515,7 @@ suite('Conversation session chat (S3)', () => {
 		const paintBoom = new Error('paint boom');
 		let throwOnError = false;
 		const { sessionChatService, sessionWindow } = await createHarness(undefined, {
-			error: () => {
+			notify: () => {
 				if (throwOnError) {
 					throw paintBoom;
 				}
@@ -1653,8 +1653,8 @@ suite('Conversation session chat (S3)', () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		const { conversationPart, sessionChatService } = await createHarness(undefined, {
-			error: (message: string | Error) => {
-				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			notify: (notification: INotification) => {
+				errors.push(String(notification.source));
 			},
 		} as INotificationService);
 		sessionChatService.getConversationPart = () => undefined;
@@ -1693,8 +1693,8 @@ suite('Conversation session chat (S3)', () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		const { conversationPart, sessionChatService } = await createHarness(undefined, {
-			error: (message: string | Error) => {
-				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			notify: (notification: INotification) => {
+				errors.push(String(notification.source));
 			},
 		} as INotificationService);
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
@@ -1723,7 +1723,7 @@ suite('Conversation session chat (S3)', () => {
 		const boom = new Error('boom');
 		let throwOnError = false;
 		const { conversationPart, sessionChatService, sessionWindow } = await createHarness(undefined, {
-			error: () => {
+			notify: () => {
 				if (throwOnError) {
 					throw paintBoom;
 				}
@@ -1751,8 +1751,8 @@ suite('Conversation session chat (S3)', () => {
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		const { conversationPart, parts, sessionChatService } = await createHarness(undefined, {
-			error: (message: string | Error) => {
-				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			notify: (notification: INotification) => {
+				errors.push(String(notification.source));
 			},
 		} as INotificationService);
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');

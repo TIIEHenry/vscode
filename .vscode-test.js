@@ -58,6 +58,11 @@ const extensions = [
 		mocha: { timeout: 60_000 }
 	},
 	{
+		label: 'merge-conflict',
+		workspaceFolder: path.join(os.tmpdir(), `merge-conflict-${Math.floor(Math.random() * 100000)}`),
+		mocha: { timeout: 60_000 }
+	},
+	{
 		label: 'npm',
 		workspaceFolder: path.join(os.tmpdir(), `npmout-${Math.floor(Math.random() * 100000)}`),
 		mocha: { timeout: 60_000 }

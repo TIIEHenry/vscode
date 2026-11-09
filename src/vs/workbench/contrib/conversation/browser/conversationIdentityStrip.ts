@@ -325,6 +325,7 @@ export class ConversationIdentityStrip extends Disposable {
 			snapshot.pairingPending,
 		);
 		this.engineLabel.data = engineText;
+		this.engineChip.title = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
 		const tone = getConversationEngineChipTone(phase, snapshot.pairingPending);
 		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', tone === 'error');

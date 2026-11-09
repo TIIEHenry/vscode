@@ -107,7 +107,11 @@ export function onBugIndicatingError(e: any): undefined {
 export function onUnexpectedError(e: any): undefined {
 	// ignore errors from cancelled promises
 	if (!isCancellationError(e)) {
-		errorHandler.onUnexpectedError(e);
+		try {
+			errorHandler.onUnexpectedError(e);
+		} catch {
+			// Keep fire-and-forget Promise rejection handlers safe when a reporter throws.
+		}
 	}
 	return undefined;
 }

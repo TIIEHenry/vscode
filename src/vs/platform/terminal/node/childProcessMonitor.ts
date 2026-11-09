@@ -5,7 +5,6 @@
 
 import { parse } from '../../../base/common/path.js';
 import { debounce, throttle } from '../../../base/common/decorators.js';
-import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { ProcessItem } from '../../../base/common/processes.js';
@@ -75,7 +74,7 @@ export class ChildProcessMonitor extends Disposable {
 	 * Input was triggered on the process.
 	 */
 	handleInput() {
-		this._refreshActive().catch(onUnexpectedError);
+		this._refreshActive();
 	}
 
 	/**
@@ -105,7 +104,7 @@ export class ChildProcessMonitor extends Disposable {
 
 	@throttle(Constants.InactiveThrottleDuration)
 	private _refreshInactive(): void {
-		this._refreshActive().catch(onUnexpectedError);
+		this._refreshActive();
 	}
 
 	private _processContainsChildren(processItem: ProcessItem): boolean {

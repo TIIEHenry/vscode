@@ -72,11 +72,11 @@ export class SessionRequestLifecycle extends Disposable implements ISessionReque
 	async startRequest(sessionId: string, request: vscode.ChatRequest, isFirstRequest: boolean, workspace: IWorkspaceInfo, agentName?: string): Promise<void> {
 		if (isFirstRequest) {
 			if (workspace.worktreeProperties) {
-				void this.worktreeService.setWorktreeProperties(sessionId, workspace.worktreeProperties);
+				void this.worktreeService.setWorktreeProperties(sessionId, workspace.worktreeProperties).catch(ex => this.logService.error(ex, 'Failed to store worktree properties'));
 			}
 			const workingDirectory = getWorkingDirectory(workspace);
 			if (workingDirectory && !isIsolationEnabled(workspace)) {
-				void this.workspaceFolderService.trackSessionWorkspaceFolder(sessionId, workingDirectory.fsPath, workspace.repositoryProperties);
+				void this.workspaceFolderService.trackSessionWorkspaceFolder(sessionId, workingDirectory.fsPath, workspace.repositoryProperties).catch(ex => this.logService.error(ex, 'Failed to track session workspace folder'));
 			}
 		}
 

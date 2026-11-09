@@ -236,10 +236,6 @@
 	}
 }
 
-.monaco-modal-editor-block .modal-editor-header .modal-editor-navigation .modal-editor-nav-button.monaco-button:active:not(.disabled) {
-	background-color: var(--vscode-commandCenter-activeBackground);
-}
-
 .monaco-workbench:not(.hc-black):not(.hc-light) .monaco-modal-editor-block .modal-editor-header .modal-editor-navigation .modal-editor-nav-button.monaco-button:focus-visible:not(.disabled) {
 	outline: none;
 	opacity: 1;
@@ -252,8 +248,27 @@
 	outline-offset: -1px;
 }
 
+.monaco-modal-editor-block .modal-editor-header .modal-editor-navigation .modal-editor-nav-button.monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-commandCenter-activeBackground);
+}
+
 .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 0.12s ease;
 }
 
@@ -261,19 +276,43 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label {
 		transition: none;
 	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label::after {
+		transition: none;
+	}
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:hover {
+	background-color: transparent;
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:focus-visible,

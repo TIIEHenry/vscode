@@ -131,6 +131,13 @@ export interface IAgentHostTerminalManager {
 	getClaim(uri: string): TerminalClaim | undefined;
 	hasTerminal(uri: string): boolean;
 	supportsCommandDetection(uri: string): boolean;
+	/**
+	 * The terminal's cwd, only while shell integration shows it sitting at a
+	 * clean prompt: no command running, since the last command started or
+	 * finished both a prompt and a cwd report arrived, and no input was
+	 * written since the last command started. `undefined` otherwise.
+	 */
+	getPromptConfirmedCwd(uri: string): string | undefined;
 	disposeTerminal(uri: string): void;
 	getTerminalInfos(): TerminalInfo[];
 	getTerminalState(uri: string): TerminalState | undefined;
@@ -159,6 +166,16 @@ interface ICommandTracker {
 	pendingCommandLine?: string;
 	activeCommandId?: string;
 	activeCommandTimestamp?: number;
+	/** A prompt started since the last command started or finished. */
+	promptSinceCommand: boolean;
+	/** A cwd report arrived since the last command started or finished. */
+	cwdSinceCommand: boolean;
+	/**
+	 * Input was written since the last command started. Shells keep typed
+	 * text across prompt redraws and command ends, so only a command start
+	 * clears this.
+	 */
+	inputSinceCommandStart: boolean;
 }
 
 /** Represents a single managed terminal with its PTY process. */
@@ -384,6 +401,9 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 				nonce,
 				commandCounter: 0,
 				detectionAvailableEmitted: false,
+				promptSinceCommand: false,
+				cwdSinceCommand: false,
+				inputSinceCommandStart: false,
 			};
 		} else {
 			this._logService.info(`[TerminalManager] Shell integration not available for ${uri}: ${injection.reason}`);
@@ -502,6 +522,9 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 	writeInput(uri: string, data: string): void {
 		const terminal = this._terminals.get(uri);
 		if (terminal?.lifecycle.status === TerminalLifecycleStatus.Running) {
+			if (terminal.commandTracker) {
+				terminal.commandTracker.inputSinceCommandStart = true;
+			}
 			terminal.pty.write(data);
 		}
 	}
@@ -584,6 +607,21 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 	supportsCommandDetection(uri: string): boolean {
 		const terminal = this._terminals.get(uri);
 		return terminal?.commandTracker?.detectionAvailableEmitted ?? false;
+	}
+
+	getPromptConfirmedCwd(uri: string): string | undefined {
+		const terminal = this._terminals.get(uri);
+		const tracker = terminal?.commandTracker;
+		if (!terminal || !tracker
+			|| terminal.lifecycle.status !== TerminalLifecycleStatus.Running
+			|| !tracker.detectionAvailableEmitted
+			|| tracker.activeCommandId !== undefined
+			|| !tracker.promptSinceCommand
+			|| !tracker.cwdSinceCommand
+			|| tracker.inputSinceCommandStart) {
+			return undefined;
+		}
+		return terminal.cwd;
 	}
 
 	/** Resize a terminal. */
@@ -690,6 +728,13 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 		}
 
 		switch (event.type) {
+			case Osc633EventType.PromptStart: {
+				if (!tracker.activeCommandId) {
+					tracker.promptSinceCommand = true;
+				}
+				break;
+			}
+
 			case Osc633EventType.CommandLine: {
 				// Only trust command lines with a valid nonce
 				if (event.nonce === tracker.nonce) {
@@ -699,6 +744,9 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 			}
 
 			case Osc633EventType.CommandExecuted: {
+				tracker.promptSinceCommand = false;
+				tracker.cwdSinceCommand = false;
+				tracker.inputSinceCommandStart = false;
 				const commandId = `cmd-${++tracker.commandCounter}`;
 				const commandLine = tracker.pendingCommandLine ?? '';
 				const timestamp = Date.now();
@@ -726,6 +774,10 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 			}
 
 			case Osc633EventType.CommandFinished: {
+				// Reset before the finished event fires: a listener may release the
+				// shell, and its cwd is not confirmed until the next report and prompt.
+				tracker.promptSinceCommand = false;
+				tracker.cwdSinceCommand = false;
 				const finishedCommandId = tracker.activeCommandId;
 				if (!finishedCommandId) {
 					break;
@@ -770,6 +822,7 @@ export class AgentHostTerminalManager extends Disposable implements IAgentHostTe
 			case Osc633EventType.Property: {
 				if (event.key === 'Cwd') {
 					managed.cwd = event.value;
+					tracker.cwdSinceCommand = true;
 					this._stateManager.dispatchServerAction(managed.uri, {
 						type: ActionType.TerminalCwdChanged,
 						cwd: event.value,

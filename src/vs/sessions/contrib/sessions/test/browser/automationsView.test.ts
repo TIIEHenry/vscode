@@ -7,7 +7,7 @@ import assert from 'assert';
 import { IContextMenuDelegate } from '../../../../../base/browser/contextmenu.js';
 import { ModifierKeyEmitter } from '../../../../../base/browser/dom.js';
 import { GestureEvent, EventType as TouchEventType } from '../../../../../base/browser/touch.js';
-import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, raceTimeout, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
@@ -122,6 +122,7 @@ class FakeAutomationService extends mock<IAutomationService>() {
 	updateResult: IGuardedAutomationUpdateResult | undefined;
 	updateCalls = 0;
 	deleteRunCalls = 0;
+	deleteRunError: Error | undefined;
 	createError: Error | undefined;
 	deleteError: Error | undefined;
 	canDelete = true;
@@ -224,6 +225,9 @@ class FakeAutomationService extends mock<IAutomationService>() {
 
 	override async deleteRun(runId: string): Promise<void> {
 		this.deleteRunCalls++;
+		if (this.deleteRunError) {
+			throw this.deleteRunError;
+		}
 		this.setRuns(this.runValue.get().filter(run => run.id !== runId));
 		this.deleteRunCompleted.complete();
 	}
@@ -268,9 +272,26 @@ class FakeAutomationDialogService extends mock<IAutomationDialogService>() {
 
 class TestLogService extends NullLogService {
 	readonly errors: { message: string | Error; args: readonly unknown[] }[] = [];
+	private readonly errorWaiters = new Map<string, DeferredPromise<void>>();
 
 	override error(message: string | Error, ...args: unknown[]): void {
 		this.errors.push({ message, args });
+		if (typeof message === 'string') {
+			this.errorWaiter(message).complete();
+		}
+	}
+
+	whenErrorLogged(message: string): Promise<void> {
+		return this.errorWaiter(message).p;
+	}
+
+	private errorWaiter(message: string): DeferredPromise<void> {
+		let waiter = this.errorWaiters.get(message);
+		if (!waiter) {
+			waiter = new DeferredPromise<void>();
+			this.errorWaiters.set(message, waiter);
+		}
+		return waiter;
 	}
 }
 
@@ -424,6 +445,8 @@ class FakeSessionsManagementService extends mock<ISessionsManagementService>() i
 	cancelCurrentRequestCalls = 0;
 	deleteError: Error | undefined;
 	cancelError: Error | undefined;
+	/** Runs where a provider fires its removal event: before `deleteSession` resolves and before `onDidDeleteSession`. */
+	onSessionRemoved: (() => void) | undefined;
 	readonly markAllReadCompleted = new DeferredPromise<void>();
 
 	override getSessions(): ISession[] {
@@ -465,6 +488,7 @@ class FakeSessionsManagementService extends mock<ISessionsManagementService>() i
 			throw this.deleteError;
 		}
 		this.deletedSessionResources.add(session.resource.toString());
+		this.onSessionRemoved?.();
 		this.sessionDeletedEmitter.fire(session);
 	}
 
@@ -1875,6 +1899,83 @@ suite('AutomationsCardsWidget', () => {
 			deleteRunCalls: 0,
 			historyItemStillVisible: true,
 			error: [{ message: 'Failed to delete the automation run session.', detail: 'delete failed' }],
+		});
+	});
+
+	test('reports a run history removal failure after the session is deleted', async () => {
+		const { automationService, dialogService, logService, sessionsManagementService, widget } = setup();
+		automationService.setAutomations([automation()]);
+		automationService.setRuns([run()]);
+		dialogService.confirmResult = { confirmed: true };
+		automationService.deleteRunError = new Error('run delete failed');
+		await waitForSessionActions();
+
+		getSessionAction(widget, 'Delete')?.click();
+		await dialogService.errorCalled.p;
+
+		assert.deepStrictEqual({
+			deleteSessionCalls: sessionsManagementService.deleteSessionCalls,
+			deleteRunCalls: automationService.deleteRunCalls,
+			runRemovalFailuresLogged: logService.errors.filter(entry => entry.message === '[AutomationsCards] Failed to remove deleted automation run from history').length,
+			error: dialogService.errors,
+		}, {
+			deleteSessionCalls: 1,
+			deleteRunCalls: 1,
+			runRemovalFailuresLogged: 1,
+			error: [{ message: 'The session was deleted, but its run history item could not be removed.', detail: 'run delete failed' }],
+		});
+	});
+
+	test('removes the run even when the history is disposed before session deletion returns', async () => {
+		const { automationService, dialogService, sessionsManagementService, widget } = setup();
+		automationService.setAutomations([automation()]);
+		automationService.setRuns([run()]);
+		dialogService.confirmResult = { confirmed: true };
+		sessionsManagementService.onSessionRemoved = () => widget.dispose();
+		await waitForSessionActions();
+
+		const deleteButton = getSessionAction(widget, 'Delete');
+		assert.ok(deleteButton);
+		deleteButton.click();
+		const runRemoved = await raceTimeout(automationService.deleteRunCompleted.p.then(() => true), 1000);
+
+		assert.deepStrictEqual({
+			runRemoved,
+			deleteSessionCalls: sessionsManagementService.deleteSessionCalls,
+			deleteRunCalls: automationService.deleteRunCalls,
+			error: dialogService.errors,
+		}, {
+			runRemoved: true,
+			deleteSessionCalls: 1,
+			deleteRunCalls: 1,
+			error: [],
+		});
+	});
+
+	test('logs a run history removal failure without a dialog when the history is already disposed', async () => {
+		const { automationService, dialogService, logService, sessionsManagementService, widget } = setup();
+		automationService.setAutomations([automation()]);
+		automationService.setRuns([run()]);
+		dialogService.confirmResult = { confirmed: true };
+		automationService.deleteRunError = new Error('run delete failed');
+		sessionsManagementService.onSessionRemoved = () => widget.dispose();
+		await waitForSessionActions();
+
+		const deleteButton = getSessionAction(widget, 'Delete');
+		assert.ok(deleteButton);
+		deleteButton.click();
+		const logged = await raceTimeout(logService.whenErrorLogged('[AutomationsCards] Failed to remove deleted automation run from history').then(() => true), 1000);
+
+		assert.deepStrictEqual({
+			logged,
+			deleteRunCalls: automationService.deleteRunCalls,
+			runRemovalFailuresLogged: logService.errors.filter(entry => entry.message === '[AutomationsCards] Failed to remove deleted automation run from history').length,
+			error: dialogService.errors,
+		}, {
+			logged: true,
+			deleteRunCalls: 1,
+			runRemovalFailuresLogged: 1,
+			error: [],
 		});
 	});
 

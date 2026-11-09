@@ -192,11 +192,22 @@
 	height: 22px;
 	width: 38vw;
 	max-width: 600px;
-	transition: background-color 0.12s ease, border-color 0.12s ease;
+	transition: background-color 100ms ease, border-color 100ms ease;
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:active {
 	background-color: var(--vscode-commandCenter-activeBackground, var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12)));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-quick-pick:focus-visible {
+	outline: none;
+	background-color: var(--vscode-commandCenter-activeBackground, var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.12)));
+}
+
+.monaco-workbench.hc-black .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-quick-pick:focus-visible,
+.monaco-workbench.hc-light .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-quick-pick:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center .action-item.command-center-quick-pick {
@@ -267,6 +278,104 @@
 }
 
 /* Menubar */
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container {
+	display: flex;
+	height: 100%;
+	align-items: center;
+	flex-shrink: 0;
+	order: 1;
+	z-index: 2500;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container.has-no-actions {
+	display: none;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .monaco-action-bar .action-item {
+	display: flex;
+	height: 100%;
+	align-items: center;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
+	width: 28px;
+	height: 28px;
+	padding: 6px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 0.08s ease, opacity 0.08s ease;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:not(.disabled):hover .action-label,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:not(.disabled):focus-visible .action-label {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:not(.disabled):hover .action-label::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:not(.disabled):focus-visible .action-label::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:not(.disabled):active .action-label {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:not(.disabled):active .action-label::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:focus-visible .action-label {
+	outline: none;
+}
+
+.monaco-workbench.hc-black .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:focus-visible .action-label,
+.monaco-workbench.hc-light .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item:focus-visible .action-label {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-item.disabled .action-label.icon {
+	opacity: 0.45;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-label,
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-label::after,
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center > .monaco-toolbar > .monaco-action-bar > .actions-container > .action-item > .action-label,
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center,
+.monaco-workbench.monaco-reduce-motion .part.titlebar .window-controls-container > .window-icon,
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label,
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label,
+.monaco-workbench.monaco-reduce-motion .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-left > .navigation-toolbar-container .action-label::after,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center > .monaco-toolbar > .monaco-action-bar > .actions-container > .action-item > .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar .window-controls-container > .window-icon,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label {
+		transition: none;
+	}
+}
+
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .menubar {
 	/* move menubar above drag region as negative z-index on drag region cause greyscale AA */
 	z-index: 2500;
@@ -296,31 +405,6 @@
 
 .monaco-workbench.windows.fullscreen .part.titlebar > .titlebar-container > .resizer,
 .monaco-workbench.linux.fullscreen .part.titlebar > .titlebar-container > .resizer {
-	display: none;
-}
-
-/* App Icon */
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .window-appicon {
-	width: 35px;
-	height: 100%;
-	position: relative;
-	z-index: 2500;
-	flex-shrink: 0;
-	order: 1;
-}
-
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .window-appicon:not(.codicon) {
-	background-image: url('../../../media/code-icon.svg');
-	background-repeat: no-repeat;
-	background-position: center center;
-	background-size: 16px;
-}
-
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .window-appicon.codicon {
-	line-height: 30px;
-}
-
-.monaco-workbench.fullscreen .part.titlebar > .titlebar-container > .titlebar-left > .window-appicon {
 	display: none;
 }
 
@@ -473,13 +557,63 @@
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label,
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label::after,
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:active,
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:active {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-item:not(.disabled):hover .action-label,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-item:not(.disabled):hover .action-label {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-item:not(.disabled):hover .action-label::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-item:not(.disabled):hover .action-label::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:focus-visible {
+	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:focus-visible::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:active::after,
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
+}
+
+.monaco-workbench.hc-black .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:focus-visible,
+.monaco-workbench.hc-light .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:focus-visible,
+.monaco-workbench.hc-black .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:focus-visible,
+.monaco-workbench.hc-light .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 /* Hidden when the title bar is too narrow to fit it without pushing the window controls off-screen (#303222). */
@@ -518,13 +652,56 @@
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	opacity: 0.45;
+	background-color: transparent;
+	transition: background-color 0.08s ease, opacity 0.08s ease;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar:hover > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label,
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-item:hover .action-label,
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-item:focus-visible .action-label {
 	opacity: 1;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-item:focus-visible .action-label,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-label:focus-visible {
+	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-item:focus-visible .action-label::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-label:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.titlebar .action-toolbar-container .action-item:active .action-label {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.titlebar .action-toolbar-container .action-item:active .action-label::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
+}
+
+.monaco-workbench.hc-black .part.titlebar .action-toolbar-container .action-item:focus-visible .action-label,
+.monaco-workbench.hc-light .part.titlebar .action-toolbar-container .action-item:focus-visible .action-label,
+.monaco-workbench.hc-black .part.titlebar .action-toolbar-container .action-label:focus-visible,
+.monaco-workbench.hc-light .part.titlebar .action-toolbar-container .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .codicon {

@@ -8,9 +8,10 @@ import { getErrorMessage, onUnexpectedError } from '../../../../base/common/erro
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
+import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, IConversationEditorPart, IEditorGroup, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
@@ -113,8 +114,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		} catch (error) {
 			this.liveTreeLeaseStore.clear();
 			this.liveTreeLease = undefined;
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('conversationSessionChat.agentTreeFailed', "Could not load the agent tree for this session."), error);
 		}
+	}
+
+	private notifyFailure(message: string, error: unknown): void {
+		this.notificationService.notify({ severity: Severity.Error, message, source: getErrorMessage(error) });
 	}
 
 	private applyLiveTreeFromLease(): void {
@@ -275,7 +280,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			}], group);
 			this.fireCloseNonRootStateChange();
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('conversationSessionChat.switchAgentFailed', "Could not switch to that agent."), error);
 		}
 	}
 
@@ -463,7 +468,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 				await editorService.closeEditors(toClose);
 			}
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('conversationSessionChat.closeExtensionTabsFailed', "Could not close the extension tabs."), error);
 		} finally {
 			this.fireCloseNonRootStateChange();
 		}
@@ -679,7 +684,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		try {
 			await this.openExtensionTab(state.sessionKey, state.chatId, { title: state.title });
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('conversationSessionChat.openAgentTabFailed', "Could not open this agent in a tab."), error);
 		}
 	}
 
@@ -792,7 +797,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 			await sideGroup.focus();
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('conversationSessionChat.splitFailed', "Could not split the conversation."), error);
 		}
 	}
 

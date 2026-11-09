@@ -71,8 +71,11 @@ class EngineMcpRuntimeRowRenderer implements IListRenderer<EngineMcpRuntimeListE
 	}
 
 	renderElement(entry: EngineMcpRuntimeListEntry, _index: number, templateData: IMcpRuntimeRowTemplateData): void {
+		const summaryText = formatMcpRuntimeRowSummary(entry.status);
 		templateData.name.textContent = entry.status.serverId;
-		templateData.summary.textContent = formatMcpRuntimeRowSummary(entry.status);
+		templateData.name.title = entry.status.serverId;
+		templateData.summary.textContent = summaryText;
+		templateData.summary.title = summaryText;
 	}
 
 	disposeTemplate(): void {
@@ -645,8 +648,13 @@ export class EngineMcpRuntimePanel extends Disposable {
 				const row = DOM.append(this.toolsList, $('.engine-catalog-row'));
 				row.setAttribute('role', 'listitem');
 				const text = DOM.append(row, $('.engine-catalog-text'));
-				DOM.append(text, $('.engine-catalog-name')).textContent = tool.name;
-				DOM.append(text, $('.engine-catalog-description')).textContent = tool.description ?? '';
+				const name = DOM.append(text, $('.engine-catalog-name'));
+				name.textContent = tool.name;
+				name.title = tool.name;
+				const descriptionText = tool.description ?? '';
+				const description = DOM.append(text, $('.engine-catalog-description'));
+				description.textContent = descriptionText;
+				description.title = descriptionText;
 			}
 			this.toolsList.style.display = '';
 		}

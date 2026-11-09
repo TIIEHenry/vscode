@@ -49,7 +49,6 @@ export class SourcesCommitRow extends Disposable {
 		const provenanceIcon = dom.append(this.provenance, $('span.sources-changes-provenance-icon.codicon.codicon-info'));
 		provenanceIcon.setAttribute('aria-hidden', 'true');
 		this.provenanceText = dom.append(this.provenance, $('span.sources-changes-provenance-text'));
-		this.provenanceText.setAttribute('aria-hidden', 'true');
 
 		this._register(this.commitButton.onDidClick(() => {
 			if (this._store.isDisposed) {

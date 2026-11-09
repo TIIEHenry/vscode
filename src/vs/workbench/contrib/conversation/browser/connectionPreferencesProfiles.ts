@@ -54,6 +54,7 @@ class ConnectionProfilesRenderer implements IListRenderer<IConnectionProfileEntr
 
 	renderElement(entry: IConnectionProfileEntry, _index: number, templateData: IConnectionProfileTemplateData): void {
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 		templateData.state.textContent = entry.stateLabel;
 	}
 
@@ -96,6 +97,8 @@ export class ConnectionPreferencesProfiles extends Disposable {
 	private readonly list: WorkbenchList<IConnectionProfileEntry>;
 	private readonly profileActionsRow: HTMLElement;
 	private readonly connectProfileButton: Button;
+	private readonly disconnectButton: Button;
+	private readonly forgetButton: Button;
 	private entries: IConnectionProfileEntry[] = [];
 	private syncingProfiles = false;
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
@@ -131,14 +134,14 @@ export class ConnectionPreferencesProfiles extends Disposable {
 		this.connectProfileButton.label = localize('ua.connectionProfileConnect', "Connect");
 		this._register(this.connectProfileButton.onDidClick(() => void host.handleConnectSelectedProfile().catch(onUnexpectedError)));
 
-		const disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
-		disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
-		this._register(disconnectButton.onDidClick(() => void host.handleDisconnect().catch(onUnexpectedError)));
+		this.disconnectButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.disconnectButton.label = localize('ua.connectionProfileDisconnect', "Disconnect");
+		this._register(this.disconnectButton.onDidClick(() => void host.handleDisconnect().catch(onUnexpectedError)));
 
-		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
-		forgetButton.element.classList.add('is-danger');
-		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
-		this._register(forgetButton.onDidClick(() => void host.handleForgetSelectedProfile().catch(onUnexpectedError)));
+		this.forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.forgetButton.element.classList.add('is-danger');
+		this.forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
+		this._register(this.forgetButton.onDidClick(() => void host.handleForgetSelectedProfile().catch(onUnexpectedError)));
 
 		this.status = DOM.append(this.element, DOM.$('.connection-status.connection-profiles-status'));
 		this.status.setAttribute('role', 'status');
@@ -158,6 +161,23 @@ export class ConnectionPreferencesProfiles extends Disposable {
 
 	presentConnectGate(enabled: boolean, disabledReason: string): void {
 		presentConnectionAction(this.connectProfileButton, enabled, disabledReason);
+	}
+
+	/** Disconnect follows the live phase; Forget needs a selected profile and no dial in flight. */
+	presentProfileActions(connectInFlight: boolean, hasActiveProfile: boolean): void {
+		const phase = this.connectionService.getConnectionPhase().kind;
+		presentConnectionAction(
+			this.disconnectButton,
+			phase === 'connecting' || phase === 'connected',
+			localize('ua.connectionDisconnectIdle', "No engine is connected."),
+		);
+		presentConnectionAction(
+			this.forgetButton,
+			!connectInFlight && hasActiveProfile,
+			connectInFlight
+				? localize('ua.connectionActionInFlight', "A connection is already in progress.")
+				: localize('ua.connectionProfileSelectFirst', "Select a profile first."),
+		);
 	}
 
 	layoutList(budget: number, detailWidth: () => number): void {

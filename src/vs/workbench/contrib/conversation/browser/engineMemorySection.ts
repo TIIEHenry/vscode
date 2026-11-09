@@ -113,6 +113,7 @@ export class EngineMemorySection extends Disposable {
 		this.writeStatus.style.display = 'none';
 
 		this.listHost = DOM.append(this.container, $('.engine-catalog-list.engine-memory-list'));
+		this.listHost.setAttribute('role', 'list');
 		this.listHost.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
@@ -443,6 +444,7 @@ export class EngineMemorySection extends Disposable {
 
 	private paintRow(title: string, category: string, filename: string, snippet: string | undefined): void {
 		const row = DOM.append(this.listHost, $('.engine-catalog-row.engine-memory-row'));
+		row.setAttribute('role', 'listitem');
 		const text = DOM.append(row, $('.engine-catalog-text'));
 		DOM.append(text, $('.engine-catalog-name')).textContent = title;
 		const bits = [category, filename];

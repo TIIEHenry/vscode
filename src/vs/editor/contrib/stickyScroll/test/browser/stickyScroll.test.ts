@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
+import * as sinon from 'sinon';
 import { withAsyncTestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
 import { StickyScrollController } from '../../browser/stickyScrollController.js';
+import { StickyScrollWidget } from '../../browser/stickyScrollWidget.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { ILanguageFeaturesService } from '../../../../common/services/languageFeatures.js';
 import { createTextModel } from '../../../../test/common/testTextModel.js';
@@ -23,6 +25,9 @@ import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelSc
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { timeout } from '../../../../../base/common/async.js';
+import { Position } from '../../../../common/core/position.js';
+import { Range } from '../../../../common/core/range.js';
 
 suite('Sticky Scroll Tests', () => {
 
@@ -358,5 +363,197 @@ suite('Sticky Scroll Tests', () => {
 				model.dispose();
 			});
 		});
+	});
+
+	function renderedStickyLineNumbers(widget: StickyScrollWidget): number[] {
+		const lineNumbers: number[] = [];
+		for (const node of Array.from(widget.getDomNode().querySelectorAll('.sticky-line-content'))) {
+			for (const className of Array.from(node.classList)) {
+				const match = /^stickyLine(?<lineNumber>\d+)$/.exec(className);
+				const lineNumber = match?.groups?.lineNumber;
+				if (lineNumber !== undefined) {
+					lineNumbers.push(Number(lineNumber));
+				}
+			}
+		}
+		return lineNumbers;
+	}
+
+	function renderedStickyLineNumberTexts(widget: StickyScrollWidget): (string | null)[] {
+		return Array.from(widget.getDomNode().querySelectorAll('.sticky-line-number-inner'), node => node.textContent);
+	}
+
+	test('relative sticky line numbers follow a cursor line change that is followed by a scroll in the same task', () => {
+		return runWithFakedTimers({ useFakeTimers: true }, async () => {
+			const model = createTextModel(text);
+			await withAsyncTestCodeEditor(model, {
+				stickyScroll: {
+					enabled: true,
+					maxLineCount: 5,
+					defaultModel: 'outlineModel'
+				},
+				lineNumbers: 'relative',
+				envConfig: {
+					outerHeight: 500
+				},
+				serviceCollection
+			}, async (editor, _viewModel, instantiationService) => {
+
+				const stickyScrollController: StickyScrollController = editor.registerAndInstantiateContribution(StickyScrollController.ID, StickyScrollController);
+				const lineHeight = editor.getOption(EditorOption.lineHeight);
+				const languageService = instantiationService.get(ILanguageFeaturesService);
+				disposables.add(languageService.documentSymbolProvider.register('*', documentSymbolProviderForTestModel()));
+				await stickyScrollController.stickyScrollCandidateProvider.update();
+				const setStateSpy = sinon.spy(StickyScrollWidget.prototype, 'setState');
+				try {
+					editor.setScrollTop(8 * lineHeight + 1);
+					editor.setPosition(new Position(10, 1));
+					await timeout(0);
+					const widget: StickyScrollWidget = setStateSpy.lastCall.thisValue;
+					const stateBefore = stickyScrollController.findScrollWidgetState();
+					setStateSpy.resetHistory();
+
+					editor.setPosition(new Position(11, 1));
+					editor.setScrollTop(8 * lineHeight + 2);
+					await timeout(0);
+
+					const stateAfter = stickyScrollController.findScrollWidgetState();
+					assert.deepStrictEqual({
+						stateUnchanged: stateAfter.equals(stateBefore),
+						stickyLines: stateAfter.startLineNumbers,
+						rebuildFromIndexes: setStateSpy.getCalls().map(call => call.args[2]),
+						lineNumberTexts: renderedStickyLineNumberTexts(widget),
+					}, {
+						stateUnchanged: true,
+						stickyLines: [7, 9],
+						rebuildFromIndexes: [0],
+						lineNumberTexts: ['4', '2'],
+					});
+				} finally {
+					setStateSpy.restore();
+					stickyScrollController.dispose();
+					stickyScrollController.stickyScrollCandidateProvider.dispose();
+					model.dispose();
+				}
+			});
+		});
+	});
+
+	test('a full rebuild requested by a configuration change survives a scroll in the same task', () => {
+		return runWithFakedTimers({ useFakeTimers: true }, async () => {
+			const model = createTextModel(text);
+			await withAsyncTestCodeEditor(model, {
+				stickyScroll: {
+					enabled: true,
+					maxLineCount: 5,
+					defaultModel: 'outlineModel'
+				},
+				envConfig: {
+					outerHeight: 500
+				},
+				serviceCollection
+			}, async (editor, _viewModel, instantiationService) => {
+
+				const stickyScrollController: StickyScrollController = editor.registerAndInstantiateContribution(StickyScrollController.ID, StickyScrollController);
+				const lineHeight = editor.getOption(EditorOption.lineHeight);
+				const languageService = instantiationService.get(ILanguageFeaturesService);
+				disposables.add(languageService.documentSymbolProvider.register('*', documentSymbolProviderForTestModel()));
+				await stickyScrollController.stickyScrollCandidateProvider.update();
+				const setStateSpy = sinon.spy(StickyScrollWidget.prototype, 'setState');
+				try {
+					editor.setScrollTop(8 * lineHeight + 1);
+					await timeout(0);
+					const widget: StickyScrollWidget = setStateSpy.lastCall.thisValue;
+					setStateSpy.resetHistory();
+
+					editor.updateOptions({ showFoldingControls: 'always' });
+					editor.setScrollTop(8 * lineHeight + 2);
+					await timeout(0);
+
+					assert.deepStrictEqual({
+						stickyLines: stickyScrollController.findScrollWidgetState().startLineNumbers,
+						rebuildFromIndexes: setStateSpy.getCalls().map(call => call.args[2]),
+						renderedLines: renderedStickyLineNumbers(widget),
+					}, {
+						stickyLines: [7, 9],
+						rebuildFromIndexes: [0],
+						renderedLines: [7, 9],
+					});
+				} finally {
+					setStateSpy.restore();
+					stickyScrollController.dispose();
+					stickyScrollController.stickyScrollCandidateProvider.dispose();
+					model.dispose();
+				}
+			});
+		});
+	});
+
+	async function assertLineRequestAndScrollRebuildTheWholeWidget(lineHeightChangeFirst: boolean): Promise<void> {
+		const model = createTextModel(text);
+		await withAsyncTestCodeEditor(model, {
+			stickyScroll: {
+				enabled: true,
+				maxLineCount: 5,
+				defaultModel: 'outlineModel'
+			},
+			envConfig: {
+				outerHeight: 500
+			},
+			serviceCollection
+		}, async (editor, _viewModel, instantiationService) => {
+
+			const stickyScrollController: StickyScrollController = editor.registerAndInstantiateContribution(StickyScrollController.ID, StickyScrollController);
+			const lineHeight = editor.getOption(EditorOption.lineHeight);
+			const languageService = instantiationService.get(ILanguageFeaturesService);
+			disposables.add(languageService.documentSymbolProvider.register('*', documentSymbolProviderForTestModel()));
+			await stickyScrollController.stickyScrollCandidateProvider.update();
+			const setStateSpy = sinon.spy(StickyScrollWidget.prototype, 'setState');
+			try {
+				editor.setScrollTop(9 * lineHeight + 1);
+				await timeout(0);
+				const widget: StickyScrollWidget = setStateSpy.lastCall.thisValue;
+				const stickyLinesBefore = stickyScrollController.findScrollWidgetState().startLineNumbers;
+				setStateSpy.resetHistory();
+
+				// The controller only requests a rebuild for line height changes of current sticky lines, and line 9 is one.
+				const doubleTheHeightOfLine9 = () => model.changeDecorations(accessor => accessor.addDecoration(new Range(9, 1, 9, 1), { description: 'sticky-scroll-test-line-height', lineHeight: 2 }));
+				const scrollPastTheScopeOfLine9 = () => editor.setScrollTop(11 * lineHeight + 1);
+				if (lineHeightChangeFirst) {
+					doubleTheHeightOfLine9();
+					scrollPastTheScopeOfLine9();
+				} else {
+					scrollPastTheScopeOfLine9();
+					doubleTheHeightOfLine9();
+				}
+				await timeout(0);
+
+				const stickyLinesAfter = stickyScrollController.findScrollWidgetState().startLineNumbers;
+				assert.deepStrictEqual({
+					stickyLinesBefore,
+					stickyLinesAfter,
+					rebuildFromIndexes: setStateSpy.getCalls().map(call => call.args[2]),
+					renderedLines: renderedStickyLineNumbers(widget),
+				}, {
+					stickyLinesBefore: [7, 9],
+					stickyLinesAfter: [7],
+					rebuildFromIndexes: [0],
+					renderedLines: [7],
+				});
+			} finally {
+				setStateSpy.restore();
+				stickyScrollController.dispose();
+				stickyScrollController.stickyScrollCandidateProvider.dispose();
+				model.dispose();
+			}
+		});
+	}
+
+	test('a line number request and a scroll in the same task rebuild the whole widget (line height change first)', () => {
+		return runWithFakedTimers({ useFakeTimers: true }, () => assertLineRequestAndScrollRebuildTheWholeWidget(true));
+	});
+
+	test('a line number request and a scroll in the same task rebuild the whole widget (scroll first)', () => {
+		return runWithFakedTimers({ useFakeTimers: true }, () => assertLineRequestAndScrollRebuildTheWholeWidget(false));
 	});
 });

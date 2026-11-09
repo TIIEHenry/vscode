@@ -27,6 +27,7 @@ import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { ITextFileService } from '../../../services/textfile/common/textfiles.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
 import { resolveSourcesDiffWriteGate } from '../common/sourcesChangeRef.js';
@@ -77,6 +78,7 @@ import {
 } from '../common/sourcesDiffWriteController.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
+import { sourcesGitAcceptCursorBasis } from './sourcesGitDiffContent.js';
 import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import type { ISourcesConversationDiffMoveSource, SourcesDiffMoveResult } from './sourcesDiffRefHelpers.js';
 
@@ -141,6 +143,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
+		@ITextFileService private readonly textFileService: ITextFileService,
 	) {
 		super(ConversationDiffReviewPane.ID, group, telemetryService, themeService, storageService);
 
@@ -208,8 +211,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.toolbar.style.display = 'none';
 
 		this.noticeElement = dom.append(this.container, $('.conversation-diff-review-notice'));
+		this.noticeElement.setAttribute('role', 'status');
+		this.noticeElement.setAttribute('aria-live', 'polite');
 		this.noticeElement.style.display = 'none';
 		this.moveNoticeElement = dom.append(this.container, $('.conversation-diff-review-notice.conversation-diff-review-move-notice'));
+		this.moveNoticeElement.setAttribute('role', 'status');
+		this.moveNoticeElement.setAttribute('aria-live', 'polite');
 		this.hideMoveNotice();
 		this.editorContainer = dom.append(this.container, $('.conversation-diff-review-editor'));
 	}
@@ -480,7 +487,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(input.kind, input.indexState) && gate.path !== '' && hasSourcesGitSessionId(pinnedSessionId),
+			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(input.kind, input.indexState) && sourcesGitAcceptCursorBasis(input.original) !== undefined && gate.path !== '' && hasSourcesGitSessionId(pinnedSessionId),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
@@ -608,7 +615,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 		const cursor = this.readAcceptCursor();
 		const kind = input instanceof ConversationDiffReviewInput ? input.kind : undefined;
 		const indexState = input instanceof ConversationDiffReviewInput ? input.indexState : undefined;
-		if (!isCurrent() || !canOfferSourcesGitAcceptHunk(kind, indexState) || path === '' || sessionId === '' || !cursor) {
+		const modified = input instanceof ConversationDiffReviewInput ? input.modified : undefined;
+		const basis = input instanceof ConversationDiffReviewInput ? sourcesGitAcceptCursorBasis(input.original) : undefined;
+		if (!isCurrent() || !canOfferSourcesGitAcceptHunk(kind, indexState) || path === '' || sessionId === '' || !cursor || !basis) {
 			return;
 		}
 
@@ -645,7 +654,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.updateReviewActions();
 				return;
 			}
-			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
+			// File lines come from the saved file the engine diffed; unsaved edits shift them.
+			if (basis === 'fileLine' && modified && this.textFileService.isDirty(modified)) {
+				this.showNotice(sourcesDiffAcceptUnavailableMessage());
+				this.updateReviewActions();
+				return;
+			}
+			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side, basis) : undefined;
 			if (!patch || !hasSourcesGitApplyHunksPayload(sessionId, [patch])) {
 				this.showNotice(sourcesDiffAcceptUnavailableMessage());
 				this.updateReviewActions();
@@ -760,6 +775,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.moveNoticeElement.textContent = message;
 			this.moveNoticeElement.classList.add('is-error');
 			this.moveNoticeElement.style.display = '';
+			this.layoutEditors();
 		}
 	}
 
@@ -767,6 +783,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (this.moveNoticeElement) {
 			this.moveNoticeElement.textContent = '';
 			this.moveNoticeElement.style.display = 'none';
+			this.layoutEditors();
 		}
 	}
 
@@ -777,6 +794,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.noticeElement.textContent = message;
 		this.noticeElement.classList.toggle('is-error', isError);
 		this.noticeElement.style.display = '';
+		this.layoutEditors();
 	}
 
 	private hideNotice(): void {
@@ -786,6 +804,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.noticeElement.textContent = '';
 		this.noticeElement.classList.remove('is-error');
 		this.noticeElement.style.display = 'none';
+		this.layoutEditors();
 	}
 
 	private async renderDiff(input: ConversationDiffReviewInput, token: CancellationToken, generation: number): Promise<boolean> {
@@ -869,7 +888,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 		const toolbarHeight = this.toolbar?.offsetHeight ?? 0;
 		const noticeHeight = this.noticeElement?.style.display === 'none' ? 0 : (this.noticeElement?.offsetHeight ?? 0);
-		const editorDimension = new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - toolbarHeight - noticeHeight));
+		const moveNoticeHeight = this.moveNoticeElement?.style.display === 'none' ? 0 : (this.moveNoticeElement?.offsetHeight ?? 0);
+		const editorDimension = new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - toolbarHeight - noticeHeight - moveNoticeHeight));
 		this.diffWidget.value?.layout(editorDimension);
 		this.codeWidget.value?.layout(editorDimension);
 	}

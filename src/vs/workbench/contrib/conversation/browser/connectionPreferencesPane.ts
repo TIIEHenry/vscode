@@ -75,6 +75,7 @@ class ConnectionNavRenderer implements IListRenderer<typeof CONNECTION_ZONE_NAV_
 
 	renderElement(entry: typeof CONNECTION_ZONE_NAV_ENTRIES[number], _index: number, templateData: IConnectionNavTemplateData): void {
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 	}
 
 	disposeTemplate(): void {
@@ -219,6 +220,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			selectActiveProfile: profileId => {
 				this.activeProfileId = profileId;
 				this.test.invalidateProfileProbe();
+				this.updateConnectGates();
 			},
 			setActiveProfileId: profileId => {
 				this.activeProfileId = profileId;
@@ -240,8 +242,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.pairingConfirmHost.style.display = 'none';
 		this.pairingConfirmHost.setAttribute('aria-live', 'polite');
 
+		// Narrow: the detail replaces the nav, so arrows only move focus and Enter / open enters it.
 		this._register(this.navList.onDidChangeFocus(e => {
-			if (this.syncingNav) {
+			if (this.syncingNav || this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
 				return;
 			}
 			const entry = e.elements[0] as typeof CONNECTION_ZONE_NAV_ENTRIES[number] | undefined;
@@ -256,7 +259,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.selectZone(entry.id);
 		}));
 		this._register(this.navList.onDidChangeSelection(e => {
-			if (this.syncingNav) {
+			if (this.syncingNav || this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
 				return;
 			}
 			const entry = e.elements[0] as typeof CONNECTION_ZONE_NAV_ENTRIES[number] | undefined;
@@ -578,6 +581,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				? this.writeHoldReason()
 				: localize('ua.connectionProfileSelectFirst', "Select a profile first."),
 		);
+		this.profiles.presentProfileActions(this.flow.isConnectInFlight(), !!this.activeProfileId);
 		this.devices.refreshConnectButtons();
 	}
 

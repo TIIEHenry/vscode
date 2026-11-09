@@ -36,13 +36,13 @@ export type UniverseAgentSessionViewChannelService = {
 	requestResync(leaseId: string, owner: string): Promise<void>;
 	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }, owner: string): Promise<void>;
 	requestDetail(leaseId: string, ref: string, owner: string): Promise<DetailFetchOutcome>;
-	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent>;
+	onDynamicDidApplyFrame(leaseId: string, owner: string): Event<IUniverseAgentSessionViewFrameEvent>;
 };
 
 /**
  * Host-side session-view channel. `acquireLease` takes owner from IPC `ctx`
- * (never from renderer-supplied args). Release, post, resync, ack, and detail
- * pass that same `ctx` so the host can match the lease owner.
+ * (never from renderer-supplied args). Release, post, resync, ack, detail, and
+ * the frame subscription pass that same `ctx` so the host can match the lease owner.
  */
 export class UniverseAgentSessionViewChannel implements IServerChannel<string> {
 
@@ -77,9 +77,9 @@ export class UniverseAgentSessionViewChannel implements IServerChannel<string> {
 		}
 	}
 
-	listen<T>(_ctx: string, event: string, arg?: any): Event<T> {
+	listen<T>(ctx: string, event: string, arg?: any): Event<T> {
 		if (event === 'onDynamicDidApplyFrame') {
-			return Event.map(this.service.onDynamicDidApplyFrame(String(arg ?? '')), frameEvent => {
+			return Event.map(this.service.onDynamicDidApplyFrame(String(arg ?? ''), String(ctx)), frameEvent => {
 				if (frameEvent.applied.kind !== 'patches') {
 					return frameEvent as unknown as T;
 				}

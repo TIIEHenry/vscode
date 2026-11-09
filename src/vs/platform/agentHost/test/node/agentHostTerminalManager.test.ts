@@ -844,6 +844,59 @@ suite('AgentHostTerminalManager – command detection integration', () => {
 			{ type: ActionType.TerminalCommandFinished },
 		]);
 	});
+
+	test('getPromptConfirmedCwd reports the cwd only at a clean prompt after a cwd report', async () => {
+		const logService = new NullLogService();
+		const stateManager = disposables.add(new AgentHostStateManager(logService));
+		const configurationService = disposables.add(new AgentConfigurationService(stateManager, logService));
+		const productService = { _serviceBrand: undefined, applicationName: 'vscode' } as IProductService;
+		const pty = new TestPty();
+		const manager = disposables.add(new TestAgentHostTerminalManager(stateManager, logService, productService, configurationService, pty));
+		const uri = 'agenthost-terminal://test/prompt-confirmed-cwd';
+
+		const createTerminal = manager.createTerminal({
+			channel: uri,
+			claim: { kind: TerminalClaimKind.Client, clientId: 'test-client' },
+			cwd: process.cwd(),
+			cols: 80,
+			rows: 24,
+		}, { shell: process.platform === 'win32' ? 'pwsh.exe' : '/bin/bash' });
+
+		await pty.dataListenerRegistered.p;
+		pty.fireData(osc633('A'));
+		await createTerminal;
+
+		const states: (string | undefined)[] = [];
+		// A prompt with no cwd report since the terminal was created.
+		states.push(manager.getPromptConfirmedCwd(uri));
+		pty.fireData(`${osc633('P;Cwd=/repo')}${osc633('A')}`);
+		states.push(manager.getPromptConfirmedCwd(uri));
+		// Typed input may change directory once submitted, and the shell keeps
+		// it when it redraws the prompt.
+		manager.writeInput(uri, 'cd /tmp; ');
+		states.push(manager.getPromptConfirmedCwd(uri));
+		pty.fireData(osc633('A'));
+		states.push(manager.getPromptConfirmedCwd(uri));
+		// While a command runs, and after it ends until the next cwd report and prompt.
+		pty.fireData(osc633('C'));
+		states.push(manager.getPromptConfirmedCwd(uri));
+		pty.fireData(osc633('D;0'));
+		states.push(manager.getPromptConfirmedCwd(uri));
+		pty.fireData(osc633('P;Cwd=/home/user'));
+		states.push(manager.getPromptConfirmedCwd(uri));
+		pty.fireData(osc633('A'));
+		states.push(manager.getPromptConfirmedCwd(uri));
+		// Input typed while a command runs is still pending at the next prompt.
+		pty.fireData(osc633('C'));
+		manager.writeInput(uri, 'cd /tmp; ');
+		pty.fireData(`${osc633('D;0')}${osc633('P;Cwd=/home/user')}${osc633('A')}`);
+		states.push(manager.getPromptConfirmedCwd(uri));
+		// The next command consumes it.
+		pty.fireData(`${osc633('C')}${osc633('D;0')}${osc633('P;Cwd=/tmp')}${osc633('A')}`);
+		states.push(manager.getPromptConfirmedCwd(uri));
+
+		assert.deepStrictEqual(states, [undefined, '/repo', undefined, undefined, undefined, undefined, undefined, '/home/user', undefined, '/tmp']);
+	});
 });
 
 suite('AgentHostTerminalManager – output-only terminals', () => {

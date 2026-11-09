@@ -10,6 +10,7 @@ import { AnchorPosition } from '../../../../base/common/layout.js';
 import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 
 const engineConfirmCancel = localize('ua.engineConfirmCancel', "Cancel");
@@ -31,6 +32,20 @@ export function showEngineConfirmPopover(options: IEngineConfirmPopoverOptions):
 	openConfirm?.close();
 	return new Promise(resolve => {
 		let settled = false;
+		let anchorCleaned = false;
+		options.anchor.classList.add('is-confirm-open');
+		options.anchor.setAttribute('aria-expanded', 'true');
+		const cleanupAnchor = (restoreFocus = true) => {
+			if (anchorCleaned) {
+				return;
+			}
+			anchorCleaned = true;
+			options.anchor.classList.remove('is-confirm-open');
+			options.anchor.removeAttribute('aria-expanded');
+			if (restoreFocus && options.anchor.isConnected) {
+				options.anchor.focus();
+			}
+		};
 		const finish = (confirmed: boolean) => {
 			if (settled) {
 				return;
@@ -66,6 +81,7 @@ export function showEngineConfirmPopover(options: IEngineConfirmPopoverOptions):
 				}
 				const store = new DisposableStore();
 				const close = (confirmed: boolean) => {
+					cleanupAnchor();
 					finish(confirmed);
 					view.close();
 				};
@@ -76,6 +92,16 @@ export function showEngineConfirmPopover(options: IEngineConfirmPopoverOptions):
 				store.add(addDisposableListener(confirm, 'click', event => {
 					event.preventDefault();
 					close(true);
+				}));
+				store.add(addDisposableListener(popup, 'keydown', event => {
+					if (handleConversationOverlayTab(popup, event)) {
+						return;
+					}
+					if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+						event.preventDefault();
+						event.stopPropagation();
+						(popup.ownerDocument.activeElement === cancel ? confirm : cancel).focus();
+					}
 				}));
 				store.add(addStandardDisposableListener(popup.ownerDocument, 'keydown', event => {
 					if (event.keyCode !== KeyCode.Escape) {
@@ -88,6 +114,7 @@ export function showEngineConfirmPopover(options: IEngineConfirmPopoverOptions):
 				(danger ? cancel : confirm).focus();
 				return toDisposable(() => {
 					store.dispose();
+					cleanupAnchor();
 					finish(false);
 				});
 			},
@@ -97,6 +124,7 @@ export function showEngineConfirmPopover(options: IEngineConfirmPopoverOptions):
 				}
 				const target = getContextViewEventTarget(event);
 				if (target && !options.anchor.contains(target) && !target.closest('.engine-confirm-popover')) {
+					cleanupAnchor(false);
 					finish(false);
 					view.close();
 				}
@@ -105,6 +133,7 @@ export function showEngineConfirmPopover(options: IEngineConfirmPopoverOptions):
 				if (openConfirm === view) {
 					openConfirm = undefined;
 				}
+				cleanupAnchor();
 				finish(false);
 			},
 		});

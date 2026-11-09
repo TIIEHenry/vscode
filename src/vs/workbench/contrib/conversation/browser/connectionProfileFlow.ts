@@ -171,6 +171,8 @@ export interface IConnectionProfileFlow {
 	getSettledProfileId(): string | undefined;
 	readonly onDidChangeSettledProfile: Event<string | undefined>;
 	isConnectWriteHeld(): boolean;
+	/** Narrower than {@link isConnectWriteHeld}: only a dial or a direct profile write is running. */
+	isConnectInFlight(): boolean;
 	writeHoldReason(): string;
 	connectDirectAddress(): Promise<void>;
 	connectSelectedProfile(): Promise<void>;
@@ -226,6 +228,10 @@ export class ConnectionProfileFlow extends Disposable implements IConnectionProf
 			|| this.engineSwitchPromptOpen
 			|| this.host.isDeviceWritePairingHold()
 			|| this.host.isPairingConfirmHostLive();
+	}
+
+	isConnectInFlight(): boolean {
+		return this.connectInFlight;
 	}
 
 	/** Copy order is not the order of {@link isConnectWriteHeld}: device pairing hold reads first. */

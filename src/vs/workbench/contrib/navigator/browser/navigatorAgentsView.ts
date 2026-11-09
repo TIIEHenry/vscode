@@ -24,7 +24,7 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { WorkbenchList, WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
+import { IOpenEvent, WorkbenchList, WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IProgressRunner } from '../../../../platform/progress/common/progress.js';
@@ -137,6 +137,35 @@ function iconForAgentStatus(tone: AgentStatusTone): ThemeIcon {
 	}
 }
 
+/**
+ * A plain pointer click only selects the row (Inspect target). Enter and double-click
+ * run the row's open action.
+ */
+export function isNavigatorRowPointerSelect(e: IOpenEvent<unknown>): boolean {
+	return !!e.browserEvent && !dom.isKeyboardEvent(e.browserEvent) && e.browserEvent.detail < 2;
+}
+
+export interface INavigatorRowStatusTemplate {
+	readonly element: HTMLElement;
+	readonly icon: HTMLElement;
+	readonly text: HTMLElement;
+}
+
+/** Trailing status column (icon plus engine status text) that never takes part in the name's ellipsis. */
+export function renderNavigatorRowStatus(row: HTMLElement): INavigatorRowStatusTemplate {
+	const element = dom.append(row, $('.navigator-row-status'));
+	const icon = dom.append(element, $('.navigator-row-status-icon'));
+	icon.setAttribute('aria-hidden', 'true');
+	const text = dom.append(element, $('.navigator-row-status-text'));
+	return { element, icon, text };
+}
+
+export function updateNavigatorRowStatus(template: INavigatorRowStatusTemplate, status: string | undefined, tone: AgentStatusTone): void {
+	template.element.style.display = status ? '' : 'none';
+	template.text.textContent = status ?? '';
+	template.icon.className = `navigator-row-status-icon navigator-agents-status-glyph is-${tone} ${ThemeIcon.asClassName(iconForAgentStatus(tone))}`;
+}
+
 export class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchyNode, void, IAgentsHierarchyTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorAgentsHierarchy';
 	readonly templateId = AgentsHierarchyRenderer.TEMPLATE_ID;
@@ -229,6 +258,7 @@ export class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHi
 		const live = this.areRowActionsLive();
 		templateData.inspectAction.enabled = live;
 		templateData.revealAction.enabled = live;
+		templateData.actionBar.setFocusable(live);
 		const inspectLabel = localize('navigatorAgents.rowInspect', "Inspect");
 		const revealLabel = localize('navigatorAgents.rowReveal', "Reveal in Conversation");
 		const holdReason = localize('navigatorAgents.rowActionsUnavailable', "This session cannot be changed right now.");
@@ -257,6 +287,7 @@ class AgentsActivityDelegate implements IListVirtualDelegate<INavigatorAgentsAct
 
 interface IAgentsActivityTemplateData {
 	readonly label: HTMLElement;
+	readonly status: INavigatorRowStatusTemplate;
 }
 
 class AgentsActivityRenderer implements IListRenderer<INavigatorAgentsActivityItem, IAgentsActivityTemplateData> {
@@ -264,12 +295,15 @@ class AgentsActivityRenderer implements IListRenderer<INavigatorAgentsActivityIt
 	readonly templateId = AgentsActivityRenderer.TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): IAgentsActivityTemplateData {
-		return { label: dom.append(container, $('.navigator-agents-activity-label')) };
+		const row = dom.append(container, $('.navigator-agents-activity-row'));
+		const label = dom.append(row, $('.navigator-agents-activity-label'));
+		return { label, status: renderNavigatorRowStatus(row) };
 	}
 
 	renderElement(item: INavigatorAgentsActivityItem, _index: number, templateData: IAgentsActivityTemplateData): void {
-		templateData.label.textContent = item.label;
+		templateData.label.textContent = [item.toolName, item.agentId].filter(part => !!part).join(' · ') || item.label;
 		templateData.label.title = item.label;
+		updateNavigatorRowStatus(templateData.status, item.status, agentStatusTone(item.status));
 	}
 
 	disposeTemplate(): void {
@@ -319,6 +353,8 @@ export class NavigatorAgentsView extends ViewPane {
 	private lastLiveAgentTree: unknown;
 	private hadHierarchySnapshot = false;
 	private hadActivitySnapshot = false;
+	private hierarchyNoteMessage: string | undefined;
+	private activityNoteMessage: string | undefined;
 	/** D445: leftover KEEP must close Inspect / Reveal / row-open without reselect. */
 	private leftoverRowActionsClosed = false;
 	private hierarchyRenderer: AgentsHierarchyRenderer | undefined;
@@ -447,20 +483,42 @@ export class NavigatorAgentsView extends ViewPane {
 		if (this._store.isDisposed || this.subview === 'hierarchy') {
 			return;
 		}
+		const prevSubviewHadFocus = this.subviewContainedFocus(this.activityBody, 'activity');
 		this.subview = 'hierarchy';
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
 		this.relayoutCurrentSubview();
+		if (prevSubviewHadFocus) {
+			if (this.hierarchyTreeContainer && this.hierarchyTreeContainer.style.display !== 'none' && this.filteredHierarchyCount() > 0) {
+				if (this.hierarchyTree && this.hierarchyTree.getFocus().length === 0) {
+					this.hierarchyTree.focusFirst();
+				}
+				this.hierarchyTree?.domFocus();
+			} else {
+				this.filterBox?.focus();
+			}
+		}
 	}
 
 	showActivity(): void {
 		if (this._store.isDisposed || this.subview === 'activity') {
 			return;
 		}
+		const prevSubviewHadFocus = this.subviewContainedFocus(this.hierarchyBody, 'hierarchy');
 		this.subview = 'activity';
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
 		this.relayoutCurrentSubview();
+		if (prevSubviewHadFocus) {
+			if (this.activityListContainer && this.activityListContainer.style.display !== 'none' && (this.activityList?.length ?? 0) > 0) {
+				if (this.activityList && this.activityList.getFocus().length === 0) {
+					this.activityList.focusFirst();
+				}
+				this.activityList?.domFocus();
+			} else {
+				this.filterBox?.focus();
+			}
+		}
 	}
 
 	refreshAgentTree(): void {
@@ -503,6 +561,7 @@ export class NavigatorAgentsView extends ViewPane {
 			container,
 			filterPlaceholder,
 			filterPlaceholder,
+			target => this.focusListFromFilter(target),
 		));
 		this._register(this.filterBox.onDidChange(query => {
 			if (this._store.isDisposed) {
@@ -515,7 +574,10 @@ export class NavigatorAgentsView extends ViewPane {
 		this.hierarchyBody = dom.append(container, $('.navigator-agents-subview'));
 		this.hierarchyEmpty = dom.append(this.hierarchyBody, $('.navigator-stub-empty'));
 		this.hierarchyEmpty.setAttribute('role', 'status');
+		this.hierarchyEmpty.setAttribute('aria-live', 'polite');
 		this.hierarchyNote = dom.append(this.hierarchyBody, $('.navigator-stub-note'));
+		this.hierarchyNote.setAttribute('role', 'status');
+		this.hierarchyNote.setAttribute('aria-live', 'polite');
 		this.hierarchyNote.style.display = 'none';
 		this.hierarchyTreeContainer = dom.append(this.hierarchyBody, $('.navigator-agents-hierarchy-tree'));
 		this.ensureHierarchyTree();
@@ -523,7 +585,10 @@ export class NavigatorAgentsView extends ViewPane {
 		this.activityBody = dom.append(container, $('.navigator-agents-subview'));
 		this.activityEmpty = dom.append(this.activityBody, $('.navigator-stub-empty'));
 		this.activityEmpty.setAttribute('role', 'status');
+		this.activityEmpty.setAttribute('aria-live', 'polite');
 		this.activityNote = dom.append(this.activityBody, $('.navigator-stub-note'));
+		this.activityNote.setAttribute('role', 'status');
+		this.activityNote.setAttribute('aria-live', 'polite');
 		this.activityNote.style.display = 'none';
 		this.activityListContainer = dom.append(this.activityBody, $('.navigator-agents-activity-list'));
 		this.ensureActivityList();
@@ -585,8 +650,12 @@ export class NavigatorAgentsView extends ViewPane {
 			if (this._store.isDisposed || !e.element || !this.isAgentsRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'agent', node: e.element.source, sessionId: e.element.sessionId });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label, e.element!.sessionId)).catch(onUnexpectedError);
+			const node = e.element;
+			this.inspectService.setTarget({ kind: 'agent', node: node.source, sessionId: node.sessionId });
+			if (isNavigatorRowPointerSelect(e)) {
+				return;
+			}
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label, node.sessionId)).catch(onUnexpectedError);
 		}));
 
 		return this.hierarchyTree;
@@ -618,7 +687,10 @@ export class NavigatorAgentsView extends ViewPane {
 				return;
 			}
 			this.setActivityInspectTarget(e.element);
-			this.openInspectPanel();
+			if (isNavigatorRowPointerSelect(e)) {
+				return;
+			}
+			this.openInspectPanel(false);
 			if (e.element.itemId.startsWith('overlay:')) {
 				return;
 			}
@@ -822,11 +894,12 @@ export class NavigatorAgentsView extends ViewPane {
 				this.setActivityNote(leftoverNote ?? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 				return;
 			}
-			this.hadActivitySnapshot = true;
 			this.setActivityState([], leftoverNote ?? NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 			return;
 		}
-		this.hadActivitySnapshot = true;
+		if (items.length > 0) {
+			this.hadActivitySnapshot = true;
+		}
 		const truncated = navigatorActivityTruncated(snapshot);
 		const note = leftoverNote ?? (truncated ? localize('navigatorAgentsActivity.truncated', "Showing the latest 200 items") : undefined);
 		this.setActivityState(
@@ -910,12 +983,14 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private setHierarchyNote(noteMessage: string | undefined): void {
+		this.hierarchyNoteMessage = noteMessage;
 		if (!this.hierarchyNote) {
 			return;
 		}
+		const isEmpty = this.hierarchyBody?.classList.contains('is-empty') ?? (this.hierarchyEntries.length === 0);
 		if (noteMessage) {
 			this.hierarchyNote.textContent = noteMessage;
-			this.hierarchyNote.style.display = 'block';
+			this.hierarchyNote.style.display = isEmpty ? 'none' : 'block';
 			this.hierarchyNote.classList.toggle('is-error', noteMessage === NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		} else {
 			this.hierarchyNote.style.display = 'none';
@@ -926,12 +1001,14 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private setActivityNote(noteMessage: string | undefined): void {
+		this.activityNoteMessage = noteMessage;
 		if (!this.activityNote) {
 			return;
 		}
+		const isEmpty = this.activityBody?.classList.contains('is-empty') ?? (this.activityEntries.length === 0);
 		if (noteMessage) {
 			this.activityNote.textContent = noteMessage;
-			this.activityNote.style.display = 'block';
+			this.activityNote.style.display = isEmpty ? 'none' : 'block';
 			this.activityNote.classList.toggle('is-error', noteMessage === NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		} else {
 			this.activityNote.style.display = 'none';
@@ -995,11 +1072,42 @@ export class NavigatorAgentsView extends ViewPane {
 		this.notificationService.info(localize('navigatorAgents.inspectNoFocus', "Select an agent or activity item to inspect"));
 	}
 
-	private openInspectPanel(): void {
+	private openInspectPanel(focus = true): void {
 		if (this._store.isDisposed) {
 			return;
 		}
-		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError);
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, focus)).catch(onUnexpectedError);
+	}
+
+	private focusListFromFilter(target: 'first' | 'current'): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		if (this.subview === 'hierarchy') {
+			const tree = this.hierarchyTree;
+			if (!tree || this.hierarchyTreeContainer?.style.display === 'none' || this.filteredHierarchyCount() === 0) {
+				return false;
+			}
+			if (target === 'first' || tree.getFocus().length === 0) {
+				tree.focusFirst();
+			}
+			const focused = tree.getFocus()[0];
+			if (focused) {
+				tree.reveal(focused);
+			}
+			tree.domFocus();
+			return true;
+		}
+		const list = this.activityList;
+		if (!list || this.activityListContainer?.style.display === 'none' || list.length === 0) {
+			return false;
+		}
+		if (target === 'first' || list.getFocus().length === 0) {
+			list.focusFirst();
+		}
+		list.reveal(list.getFocus()[0]);
+		list.domFocus();
+		return true;
 	}
 
 	revealFocusedHierarchyNode(): void {
@@ -1090,6 +1198,10 @@ export class NavigatorAgentsView extends ViewPane {
 		list.splice(0, list.length, filtered);
 	}
 
+	private subviewContainedFocus(container: HTMLElement | undefined, subview: NavigatorAgentsSubview): boolean {
+		return !!container && this.subview === subview && container.contains(container.ownerDocument.activeElement);
+	}
+
 	private updateHierarchyDisplay(): void {
 		if (this._store.isDisposed || !this.hierarchyEmpty || !this.hierarchyTreeContainer || !this.hierarchyBody) {
 			return;
@@ -1098,11 +1210,19 @@ export class NavigatorAgentsView extends ViewPane {
 		const unfilteredEmpty = this.hierarchyEntries.length === 0;
 		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && this.filteredHierarchyCount() === 0;
 		const isEmpty = unfilteredEmpty || filterMiss;
+		const treeHadFocus = this.subviewContainedFocus(this.hierarchyTreeContainer, 'hierarchy');
 		this.hierarchyEmpty.textContent = filterMiss ? AGENTS_FILTER_NO_MATCH : this.hierarchyHonestEmpty;
 		this.hierarchyBody.classList.toggle('is-empty', isEmpty);
 		this.hierarchyEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.hierarchyTreeContainer.style.display = isEmpty ? 'none' : 'block';
+		if (this.hierarchyNote) {
+			this.hierarchyNote.style.display = !isEmpty && this.hierarchyNoteMessage ? 'block' : 'none';
+		}
+		if (isEmpty && treeHadFocus) {
+			this.filterBox?.focus();
+		}
 		this.syncAgentTreeLoadingChrome();
+		this.relayoutCurrentSubview();
 	}
 
 	private updateActivityDisplay(): void {
@@ -1114,11 +1234,19 @@ export class NavigatorAgentsView extends ViewPane {
 		const unfilteredEmpty = this.activityEntries.length === 0;
 		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
 		const isEmpty = unfilteredEmpty || filterMiss;
+		const listHadFocus = this.subviewContainedFocus(this.activityListContainer, 'activity');
 		this.activityEmpty.textContent = filterMiss ? AGENTS_FILTER_NO_MATCH : this.activityHonestEmpty;
 		this.activityBody.classList.toggle('is-empty', isEmpty);
 		this.activityEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.activityListContainer.style.display = isEmpty ? 'none' : 'block';
+		if (this.activityNote) {
+			this.activityNote.style.display = !isEmpty && this.activityNoteMessage ? 'block' : 'none';
+		}
+		if (isEmpty && listHadFocus) {
+			this.filterBox?.focus();
+		}
 		this.syncAgentTreeLoadingChrome();
+		this.relayoutCurrentSubview();
 	}
 
 	/** Hide the lightning glyph only while the visible empty copy is the agent-tree read. */
@@ -1165,7 +1293,9 @@ export class NavigatorAgentsView extends ViewPane {
 			return;
 		}
 		this.hierarchyBody?.classList.toggle('active', this.subview === 'hierarchy');
+		this.hierarchyBody?.setAttribute('aria-hidden', String(this.subview !== 'hierarchy'));
 		this.activityBody?.classList.toggle('active', this.subview === 'activity');
+		this.activityBody?.setAttribute('aria-hidden', String(this.subview !== 'activity'));
 	}
 
 	private relayoutCurrentSubview(): void {
@@ -1265,6 +1395,7 @@ registerAction2(class NavigatorAgentsOpenInspectAction extends ViewAction<Naviga
 			viewId: NAVIGATOR_AGENTS_VIEW_ID,
 			title: localize2('navigatorAgentsView.openInspect', "Inspect"),
 			icon: Codicon.inspect,
+			precondition: UA_ENGINE_CONNECTED_KEY,
 			menu: {
 				id: MenuId.ViewTitle,
 				group: 'navigation',
@@ -1296,7 +1427,7 @@ registerAction2(class NavigatorAgentsInspectItemAction extends ViewAction<Naviga
 	}
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorAgentsView): void {
-		view.inspectFocusedHierarchyNode();
+		view.inspectFocusedTitleAction();
 	}
 });
 

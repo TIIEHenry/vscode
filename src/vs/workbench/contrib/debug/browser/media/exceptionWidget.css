@@ -56,17 +56,61 @@
 }
 
 .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	background-color: transparent;
+	transition: background-color 100ms ease;
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
+		transition: none;
+	}
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:hover {
+	background-color: transparent;
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:focus-visible {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:active {
+	background-color: transparent;
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:focus-visible {
 	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:focus-visible,
@@ -75,13 +119,29 @@
 	outline-offset: -1px;
 }
 
-.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
-	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease;
+.monaco-workbench.monaco-reduce-motion .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label::after {
+	transition: none;
 }
 
-.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label::after {
+		transition: none;
+	}
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
+		transition: none;
+	}
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a:focus-visible {
@@ -94,4 +154,8 @@
 .monaco-workbench.hc-light .monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

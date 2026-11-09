@@ -25,7 +25,11 @@ export class ConversationSessionsInlineFilterBox extends Disposable {
 	private readonly _onDidChange = this._register(new Emitter<string>());
 	readonly onDidChange = this._onDidChange.event;
 
-	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string) {
+	/**
+	 * @param focusList Moves focus into the list: `first` focuses the first row, `current` keeps the list's
+	 * focused row. Returns false when the list cannot take focus.
+	 */
+	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string, focusList?: (target: 'first' | 'current') => boolean) {
 		super();
 
 		this.element = dom.append(parent, $('.conversation-sessions-inline-filter'));
@@ -37,9 +41,11 @@ export class ConversationSessionsInlineFilterBox extends Disposable {
 		this.input.placeholder = placeholder;
 		this.input.setAttribute('aria-label', ariaLabel);
 
+		const clearLabel = localize('conversationSessions.clearFilter', "Clear filter");
 		this.clearButton = dom.append(this.element, $('button.conversation-sessions-inline-filter-clear'));
 		this.clearButton.setAttribute('type', 'button');
-		this.clearButton.setAttribute('aria-label', localize('conversationSessions.clearFilter', "Clear filter"));
+		this.clearButton.setAttribute('aria-label', clearLabel);
+		this.clearButton.title = clearLabel;
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {
@@ -52,6 +58,12 @@ export class ConversationSessionsInlineFilterBox extends Disposable {
 				this.input.value = '';
 				this.updateClearVisibility();
 				this._onDidChange.fire('');
+			} else if (e.keyCode === KeyCode.Escape && focusList?.('current')) {
+				e.preventDefault();
+				e.stopPropagation();
+			} else if (e.keyCode === KeyCode.DownArrow && focusList?.('first')) {
+				e.preventDefault();
+				e.stopPropagation();
 			}
 		}));
 
@@ -80,5 +92,10 @@ export class ConversationSessionsInlineFilterBox extends Disposable {
 
 	private updateClearVisibility(): void {
 		this.element.classList.toggle('has-text', this.input.value.length > 0);
+	}
+
+	override dispose(): void {
+		this.element.remove();
+		super.dispose();
 	}
 }

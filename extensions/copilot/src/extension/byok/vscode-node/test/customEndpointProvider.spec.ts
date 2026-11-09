@@ -5,7 +5,7 @@
 
 import { OpenAI, Raw } from '@vscode/prompt-tsx';
 import * as vscode from 'vscode';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BlockedExtensionService, IBlockedExtensionService } from '../../../../platform/chat/common/blockedExtensionService';
 import { IChatMLFetcher, type IFetchMLOptions } from '../../../../platform/chat/common/chatMLFetcher';
 import { ChatLocation, type ChatResponse, type ChatResponses } from '../../../../platform/chat/common/commonTypes';
@@ -60,6 +60,8 @@ function createStorageService(): IBYOKStorageService {
 		getStoredModelConfigs: async () => ({}),
 		saveModelConfig: async () => undefined,
 		removeModelConfig: async () => undefined,
+		isLegacyApiKeyMigrated: () => false,
+		markLegacyApiKeyMigrated: async () => undefined,
 	};
 }
 
@@ -172,6 +174,23 @@ describe('CustomEndpointBYOKModelProvider', () => {
 				bare: false,
 				baseV1: false,
 			});
+		});
+	});
+
+	describe('legacy API key migration', () => {
+		it('does not read or migrate a stored provider API key because the override skips that migration', async () => {
+			const getAPIKey = vi.fn(async () => 'legacy-key');
+			const isLegacyApiKeyMigrated = vi.fn(() => false);
+			const markLegacyApiKeyMigrated = vi.fn(async () => undefined);
+			const provider = instaService.createInstance(TestCustomEndpointBYOKModelProvider, { ...createStorageService(), getAPIKey, isLegacyApiKeyMigrated, markLegacyApiKeyMigrated });
+			const tokenSource = disposables.add(new vscode.CancellationTokenSource());
+
+			const models = await provider.provideLanguageModelChatInformation({ silent: true }, tokenSource.token);
+
+			expect(models).toEqual([]);
+			expect(getAPIKey).not.toHaveBeenCalled();
+			expect(isLegacyApiKeyMigrated).not.toHaveBeenCalled();
+			expect(markLegacyApiKeyMigrated).not.toHaveBeenCalled();
 		});
 	});
 

@@ -49,12 +49,16 @@ export interface IConversationLensReadingColumnHost {
 	readonly commandService: ICommandService;
 	readonly instantiationService: IInstantiationService;
 	readonly boundSessionId: string | undefined;
+	readonly lensAriaId: string;
 	getBoundSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
 	resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void>;
 	resolveQuestion(turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void>;
-	copyTurn(text: string): void;
-	deleteTurn(turnId: string, agentId?: string): void;
+	copyTurn(text: string, rowId?: string): void;
+	deleteTurn(turnId: string, agentId?: string, rowId?: string): void;
+	/** Shared with Send: why timeline writes are held while a reply streams. */
+	turnWriteHoldReason?(): string | undefined;
+	focusComposerInput?(): void;
 	regenerateTurn(turn: { readonly id: string; readonly turnId?: string; readonly agentId?: string }): void;
 	beginTurnEdit(turnId: string): void;
 	navigateToTrajectoryFromTurn(turnId: string): void;
@@ -80,8 +84,8 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	host.timelineTree = host.register(host.instantiationService.createInstance(ConversationTimelineHost, host.readingColumn, {
 		onResolveConfirmation: (turnId, status) => host.resolveConfirmation(turnId, status),
 		onQuestionRespond: (turnId, requestId, answers, customText) => host.resolveQuestion(turnId, requestId, answers, customText),
-		onCopyTurn: (_turnId, text) => host.copyTurn(text),
-		onDeleteTurn: turn => host.deleteTurn(turn.turnId?.trim() || turn.id, turn.agentId),
+		onCopyTurn: (turnId, text) => host.copyTurn(text, turnId),
+		onDeleteTurn: turn => host.deleteTurn(turn.turnId?.trim() || turn.id, turn.agentId, turn.id),
 		onRegenerateTurn: turn => host.regenerateTurn(turn),
 		onEditUserTurn: turnId => host.beginTurnEdit(turnId),
 		onViewInTrajectory: turnId => host.navigateToTrajectoryFromTurn(turnId),
@@ -94,26 +98,29 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		// D304 pairing-hold leftover keeps live chrome; its rows stay live so D297 Cancel Tool renders disabled.
 		displayMode: () => shouldShowReadingColumnLiveChrome(host) ? 'live' : getConversationDisplayMode(host),
 		writesEnabled: () => isReadingColumnWritesEnabled(host),
+		turnWriteHoldReason: () => host.turnWriteHoldReason?.(),
+		onScrolledToEndByUser: () => host.focusComposerInput?.(),
 		getResponseProjection: () => host.sessionViewLease?.sessionId === host.getBoundSessionId() ? host.sessionViewLease.responseProjection : undefined,
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
 	}));
 	host.trajectoryView = host.register(host.instantiationService.createInstance(ConversationTrajectory, host.readingColumn, {
 		onNavigateToLinkedTurn: turnId => host.navigateToTurnFromTrajectory(turnId),
 		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
+		displayMode: () => getConversationDisplayMode(host),
 		detailContext: {
 			supportsDetailFetch: () => typeof host.sessionViewLease?.requestDetail === 'function',
 			getDetailBody: ref => host.sessionViewLease?.details.get(ref),
 			requestDetail: ref => requestReadingColumnDetail(host, ref),
 		},
 	}));
-	host.timelineTree.domNode.id = 'conversation-lens-panel-conversation';
+	host.timelineTree.domNode.id = `${host.lensAriaId}-panel-conversation`;
 	host.timelineTree.domNode.setAttribute('role', 'tabpanel');
-	host.timelineTree.domNode.setAttribute('aria-labelledby', 'conversation-lens-tab-conversation');
+	host.timelineTree.domNode.setAttribute('aria-labelledby', `${host.lensAriaId}-tab-conversation`);
 	// eslint-disable-next-line no-restricted-syntax -- the trajectory host is built by the lens, not by this column
 	const trajectoryHost = host.readingColumn.querySelector('.conversation-lens-trajectory') as HTMLElement;
-	trajectoryHost.id = 'conversation-lens-panel-trajectory';
+	trajectoryHost.id = `${host.lensAriaId}-panel-trajectory`;
 	trajectoryHost.setAttribute('role', 'tabpanel');
-	trajectoryHost.setAttribute('aria-labelledby', 'conversation-lens-tab-trajectory');
+	trajectoryHost.setAttribute('aria-labelledby', `${host.lensAriaId}-tab-trajectory`);
 
 	const refreshStaleSnapshot = () => refreshStaleSnapshotBanner(host);
 	refreshStaleSnapshot();
@@ -204,7 +211,8 @@ export function isReadingColumnWritesEnabled(host: {
 export function shouldShowReadingColumnLiveChrome(host: {
 	readonly stubService: {
 		isEngineConnected(): boolean;
-		getTurns(sessionId: string): readonly unknown[];
+		getActiveSessionId?(): string;
+		getTurns?(sessionId: string): readonly unknown[];
 	};
 	readonly uaConnection: IConversationPairingHoldSource;
 	readonly sessionViewLease?: { readonly sessionId: string };
@@ -217,21 +225,25 @@ export function shouldShowReadingColumnLiveChrome(host: {
 	if (!sessionId) {
 		return false;
 	}
-	if (host.sessionViewLease?.sessionId === sessionId) {
+	const lease = host.sessionViewLease?.sessionId === sessionId ? host.sessionViewLease : undefined;
+	if (lease) {
 		return true;
 	}
-	return host.stubService.getTurns(sessionId).length > 0;
+	return (host.stubService.getTurns?.(sessionId).length ?? 0) > 0;
 }
 
 export function getConversationDisplayMode(host: {
 	readonly stubService: {
 		isEngineConnected(): boolean;
+		getActiveSessionId?(): string;
+		getTurns?(sessionId: string): readonly unknown[];
 		getSessionSource?(sessionId: string): 'local' | 'engine-cache';
 	};
 	readonly uaConnection: IConversationPairingHoldSource;
+	readonly sessionViewLease?: { readonly sessionId: string };
 	getBoundSessionId(): string;
 }): ConversationDisplayMode {
-	if (!isConversationPairingHold(host.uaConnection) && host.stubService.isEngineConnected()) {
+	if (shouldShowReadingColumnLiveChrome(host)) {
 		return 'live';
 	}
 	return host.stubService.getSessionSource?.(host.getBoundSessionId()) === 'engine-cache' ? 'cached' : 'stub';
@@ -344,6 +356,9 @@ export function layoutReadingSurfaces(host: IConversationLensReadingColumnHost, 
 export function applyConversationDensity(host: IConversationLensReadingColumnHost): void {
 
 	applyConversationDensityClass(host.slotHosts.timeline, host.configurationService);
+	if (host.slotHosts.dock) {
+		applyConversationDensityClass(host.slotHosts.dock, host.configurationService);
+	}
 	if (host.readingColumn) {
 		applyConversationDensityClass(host.readingColumn, host.configurationService);
 	}

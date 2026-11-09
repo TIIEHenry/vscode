@@ -21,6 +21,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentAgentProfileDetail,
@@ -38,7 +39,6 @@ import {
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { captureEnginePublishedLinkOwner, EngineRefreshGate, engineWriteUnconfirmedCopy, isSameEnginePublishedLinkOwner } from './engineWriteGate.js';
-import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { isConversationPairingHold, keepLeftoverCatalogForPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogSectionController } from './engineCatalogSectionController.js';
@@ -78,6 +78,8 @@ export const ENGINE_AGENTS_RESET_SUCCESS_COPY = localize('ua.engineAgentsResetSu
 export const ENGINE_AGENTS_SAVE_SUCCESS_COPY = localize('ua.engineAgentsSaveSuccess', "Saved.");
 
 type EngineAgentDetailTab = 'instructions' | 'tools' | 'model';
+
+let nextEngineAgentsAriaId = 0;
 
 type EngineAgentListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentAgentProfileSource; readonly label: string; readonly count?: number }
@@ -419,15 +421,28 @@ export class EngineAgentsSection extends Disposable {
 
 		this.tabBar = DOM.append(this.detailHost, $('.engine-mcp-tab-bar'));
 		this.tabBar.setAttribute('role', 'tablist');
+		const ariaId = ++nextEngineAgentsAriaId;
+		const instructionsTabId = `engine-agents-instructions-tab-${ariaId}`;
+		const toolsTabId = `engine-agents-tools-tab-${ariaId}`;
+		const modelTabId = `engine-agents-model-tab-${ariaId}`;
+		const instructionsPanelId = `engine-agents-instructions-panel-${ariaId}`;
+		const toolsPanelId = `engine-agents-tools-panel-${ariaId}`;
+		const modelPanelId = `engine-agents-model-panel-${ariaId}`;
 		this.instructionsTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
 		this.instructionsTab.label = localize('ua.engineAgentsTabInstructions', "Instructions");
 		this.instructionsTab.element.setAttribute('role', 'tab');
+		this.instructionsTab.element.id = instructionsTabId;
+		this.instructionsTab.element.setAttribute('aria-controls', instructionsPanelId);
 		this.toolsTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
 		this.toolsTab.label = localize('ua.engineAgentsTabTools', "Tools");
 		this.toolsTab.element.setAttribute('role', 'tab');
+		this.toolsTab.element.id = toolsTabId;
+		this.toolsTab.element.setAttribute('aria-controls', toolsPanelId);
 		this.modelTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
 		this.modelTab.label = localize('ua.engineAgentsTabModel', "Model");
 		this.modelTab.element.setAttribute('role', 'tab');
+		this.modelTab.element.id = modelTabId;
+		this.modelTab.element.setAttribute('aria-controls', modelPanelId);
 		this._register(this.instructionsTab.onDidClick(() => {
 			if (this._store.isDisposed) {
 				return;
@@ -446,8 +461,29 @@ export class EngineAgentsSection extends Disposable {
 			}
 			this.setActiveDetailTab('model');
 		}));
+		this._register(DOM.addDisposableListener(this.tabBar, 'keydown', event => {
+			if (this._store.isDisposed || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) {
+				return;
+			}
+			event.preventDefault();
+			event.stopPropagation();
+			const order: readonly EngineAgentDetailTab[] = ['instructions', 'tools', 'model'];
+			const buttons: Readonly<Record<EngineAgentDetailTab, Button>> = {
+				instructions: this.instructionsTab,
+				tools: this.toolsTab,
+				model: this.modelTab,
+			};
+			const currentIndex = order.indexOf(this.activeDetailTab);
+			const delta = event.key === 'ArrowRight' ? 1 : -1;
+			const nextTab = order[(currentIndex + delta + order.length) % order.length];
+			this.setActiveDetailTab(nextTab);
+			buttons[nextTab].focus();
+		}));
 
 		this.agentsEditorContainer = DOM.append(this.detailHost, $('.engine-agents-editor'));
+		this.agentsEditorContainer.id = instructionsPanelId;
+		this.agentsEditorContainer.setAttribute('role', 'tabpanel');
+		this.agentsEditorContainer.setAttribute('aria-labelledby', instructionsTabId);
 		this.agentsEditorContainer.style.display = 'none';
 		this.agentsEditorLabel = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-label'));
 		this.agentsEditorLabel.textContent = localize('ua.engineAgentsMdEditorLabel', "AGENTS.md");
@@ -479,6 +515,9 @@ export class EngineAgentsSection extends Disposable {
 		this.agentsEditorStatus.style.display = 'none';
 
 		this.toolsPanel = DOM.append(this.detailHost, $('.engine-agents-tools-panel'));
+		this.toolsPanel.id = toolsPanelId;
+		this.toolsPanel.setAttribute('role', 'tabpanel');
+		this.toolsPanel.setAttribute('aria-labelledby', toolsTabId);
 		this.toolsPanel.style.display = 'none';
 		this.toolsStatus = this._register(new EngineCatalogStatusWidget(this.toolsPanel));
 		this.toolsListHost = DOM.append(this.toolsPanel, $('.engine-catalog-list'));
@@ -495,6 +534,9 @@ export class EngineAgentsSection extends Disposable {
 		}));
 
 		this.modelPanel = DOM.append(this.detailHost, $('.engine-agents-model-panel'));
+		this.modelPanel.id = modelPanelId;
+		this.modelPanel.setAttribute('role', 'tabpanel');
+		this.modelPanel.setAttribute('aria-labelledby', modelTabId);
 		this.modelPanel.style.display = 'none';
 		this.modelStatus = this._register(new EngineCatalogStatusWidget(this.modelPanel));
 		this.modelForm = DOM.append(this.modelPanel, $('.engine-agents-model-form'));
@@ -788,7 +830,11 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private publishedWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
-		return captureEnginePublishedLinkOwner(this.connection);
+		const owner = captureEnginePublishedLinkOwner(this.connection);
+		if (!owner || !isSameEnginePublishedLinkOwner(this.connection, owner)) {
+			return undefined;
+		}
+		return owner;
 	}
 
 	/** Published identity and link. Disconnect and pairing-hold still drop the result; catalog mode does not. */

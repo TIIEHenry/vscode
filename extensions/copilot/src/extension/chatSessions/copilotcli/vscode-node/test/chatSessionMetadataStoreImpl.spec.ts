@@ -16,7 +16,7 @@ import { ChatSessionWorktreeProperties } from '../../../common/chatSessionWorktr
 import { IWorkspaceInfo } from '../../../common/workspaceInfo';
 import { getCopilotCLISessionDir } from '../../../copilotcli/node/cliHelpers';
 import { NullCopilotCLIAgents } from '../../../copilotcli/node/test/testHelpers';
-import { ChatSessionMetadataStore } from '../chatSessionMetadataStoreImpl';
+import { ChatSessionMetadataStore, CorruptSessionMetadataError } from '../chatSessionMetadataStoreImpl';
 
 // Hoisted holder lets each test point the JSONL helper at its own mock path.
 const jsonlPathHolder = vi.hoisted(() => {
@@ -581,6 +581,143 @@ describe('ChatSessionMetadataStore', () => {
 			expect(written.workspaceFolder).toEqual(folder);
 			expect(written.worktreeProperties.worktreePath).toBe(Uri.file('/repo/.worktrees/wt2').fsPath);
 			expect(written.worktreeProperties.lastCheckpointRef).toBe('def');
+			store.dispose();
+		});
+
+		it('should not overwrite corrupt per-session metadata with fields that are only cached optimistically', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const raw = '{ "worktreeProperties": { "worktreePath": "/wt", "lastCheckpointRef": "abc" ';
+			const fileUri = sessionMetadataFileUri('session-corrupt-write');
+			mockFs.mockFile(fileUri, raw);
+
+			const store = await createStore();
+			const writeSpy = vi.spyOn(mockFs, 'writeFile');
+			const renameSpy = vi.spyOn(mockFs, 'rename');
+
+			await expect(store.setCustomTitle('session-corrupt-write', 'New title')).rejects.toBeInstanceOf(CorruptSessionMetadataError);
+			await vi.advanceTimersByTimeAsync(1_100);
+
+			expect(new TextDecoder().decode(await mockFs.readFile(fileUri))).toBe(raw);
+			expect(writeSpy.mock.calls.filter(call => call[0].toString().includes('session-corrupt-write'))).toHaveLength(0);
+			expect(renameSpy.mock.calls.filter(call => call[1].toString().includes('session-corrupt-write'))).toHaveLength(0);
+			const bulk = JSON.parse(new TextDecoder().decode(await mockFs.readFile(BULK_METADATA_FILE)));
+			expect(bulk['session-corrupt-write']).toBeUndefined();
+			expect(await store.getCustomTitle('session-corrupt-write')).toBeUndefined();
+			store.dispose();
+		});
+
+		it('should refuse both of two concurrent writes to corrupt per-session metadata', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const raw = '{ "worktreeProperties": { "worktreePath": "/wt" ';
+			const fileUri = sessionMetadataFileUri('session-corrupt-race');
+			mockFs.mockFile(fileUri, raw);
+
+			const store = await createStore();
+			const results = await Promise.allSettled([
+				store.setCustomTitle('session-corrupt-race', 'New title'),
+				store.setSessionArchived('session-corrupt-race', true),
+			]);
+
+			expect(results.map(result => result.status === 'rejected' && result.reason instanceof CorruptSessionMetadataError)).toEqual([true, true]);
+			expect(new TextDecoder().decode(await mockFs.readFile(fileUri))).toBe(raw);
+			store.dispose();
+		});
+
+		it('should repair corrupt per-session metadata from a record this process read from that file', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const folder = { folderPath: Uri.file('/workspace/read').fsPath, timestamp: 100 };
+			const fileUri = sessionMetadataFileUri('session-read');
+			mockFs.mockFile(fileUri, JSON.stringify({ workspaceFolder: folder }));
+
+			const store = await createStore();
+			await store.getWorktreeProperties('session-read');
+			mockFs.mockFile(fileUri, '{ "workspaceFolder": ');
+			await store.storeWorktreeInfo('session-read', makeWorktreeV2Props({ lastCheckpointRef: 'def' }));
+
+			const written = JSON.parse(new TextDecoder().decode(await mockFs.readFile(fileUri)));
+			expect(written.workspaceFolder).toEqual(folder);
+			expect(written.worktreeProperties.lastCheckpointRef).toBe('def');
+			store.dispose();
+		});
+
+		it('should leave a per-session file that turns up unreadable before the stub write unchanged', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const raw = '{ "worktreeProperties": ';
+			const fileUri = sessionMetadataFileUri('session-stub-race');
+
+			const store = await createStore();
+			const originalReadFile = mockFs.readFile.bind(mockFs);
+			let sessionFileReads = 0;
+			vi.spyOn(mockFs, 'readFile').mockImplementation(async (uri: URI, disableLimit?: boolean) => {
+				if (uri.toString() === fileUri.toString()) {
+					sessionFileReads++;
+					if (sessionFileReads === 1) {
+						throw new Error('ENOENT');
+					}
+					return new TextEncoder().encode(raw);
+				}
+				return originalReadFile(uri, disableLimit);
+			});
+			const writeSpy = vi.spyOn(mockFs, 'writeFile');
+
+			await expect(store.getWorktreeProperties('session-stub-race')).resolves.toBeUndefined();
+			expect(writeSpy.mock.calls.filter(call => call[0].toString().includes('session-stub-race'))).toHaveLength(0);
+
+			// The empty placeholder was dropped, so the next read goes back to disk.
+			await store.getWorktreeProperties('session-stub-race');
+			expect(sessionFileReads).toBe(3);
+			store.dispose();
+		});
+
+		it('should not flush a session whose per-session write was refused', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			mockFs.mockFile(sessionMetadataFileUri('session-p'), '{ "worktreeProperties": ');
+
+			const store = await createStore();
+			await expect(store.setCustomTitle('session-p', 'P')).rejects.toBeInstanceOf(CorruptSessionMetadataError);
+			await store.storeWorkspaceFolderInfo('session-q', { folderPath: Uri.file('/q').fsPath, timestamp: 1 });
+			await vi.advanceTimersByTimeAsync(1_100);
+
+			const bulk = JSON.parse(new TextDecoder().decode(await mockFs.readFile(BULK_METADATA_FILE)));
+			expect(bulk['session-q']).toBeDefined();
+			expect(bulk['session-p']).toBeUndefined();
+			store.dispose();
+		});
+
+		it('should write back the bulk entry on disk for a session whose per-session write is still pending', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const store = await createStore();
+
+			const originalRename = mockFs.rename.bind(mockFs);
+			let releaseRename: () => void = () => { };
+			const renameHeld = new Promise<void>(resolve => { releaseRename = resolve; });
+			let renamePending = false;
+			vi.spyOn(mockFs, 'rename').mockImplementation(async (oldURI: URI, newURI: URI, options?: { overwrite?: boolean }) => {
+				if (newURI.toString().includes('session-p')) {
+					renamePending = true;
+					await renameHeld;
+				}
+				return originalRename(oldURI, newURI, options);
+			});
+
+			const pendingWrite = store.setCustomTitle('session-p', 'P');
+			await vi.waitFor(() => expect(renamePending).toBe(true));
+
+			const diskEntry = { workspaceFolder: { folderPath: Uri.file('/p').fsPath, timestamp: 1 }, modified: 1 };
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({ 'session-p': diskEntry }));
+			await store.storeWorkspaceFolderInfo('session-q', { folderPath: Uri.file('/q').fsPath, timestamp: 1 });
+			await vi.advanceTimersByTimeAsync(1_100);
+
+			const bulk = JSON.parse(new TextDecoder().decode(await mockFs.readFile(BULK_METADATA_FILE)));
+			expect(bulk['session-p']).toEqual(diskEntry);
+			expect(await store.getCustomTitle('session-p')).toBe('P');
+
+			releaseRename();
+			await pendingWrite;
+			await vi.advanceTimersByTimeAsync(1_100);
+
+			const after = JSON.parse(new TextDecoder().decode(await mockFs.readFile(BULK_METADATA_FILE)));
+			expect(after['session-p'].customTitle).toBe('P');
 			store.dispose();
 		});
 	});

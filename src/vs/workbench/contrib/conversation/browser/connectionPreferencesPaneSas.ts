@@ -93,6 +93,9 @@ async function promptPairingConfirmInPane(
 ): Promise<{ readonly confirmed: boolean; readonly buttonLabels: readonly [string, string] }> {
 	const buttonLabels = [confirmLabel, cancelLabel] as const;
 	const disposables = new DisposableStore();
+	const previousFocus = DOM.isHTMLElement(container.ownerDocument.activeElement)
+		? container.ownerDocument.activeElement
+		: undefined;
 	try {
 		const { dialogBox, buttonsContainer } = renderPairingConfirmShell(container, message, detail);
 		if (typeof dialogBox.scrollIntoView === 'function') {
@@ -149,15 +152,19 @@ async function promptPairingConfirmInPane(
 			confirmButton.label = confirmLabel;
 			disposables.add(confirmButton.onDidClick(() => settle({ confirmed: true, buttonLabels })));
 
-			const cancelButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));
+			const cancelButton = disposables.add(new Button(buttonsContainer, { ...defaultButtonStyles, secondary: true }));
 			cancelButton.label = cancelLabel;
 			disposables.add(cancelButton.onDidClick(() => settle({ confirmed: false, buttonLabels })));
 			confirmButton.focus();
 		});
 	} finally {
+		const hadFocus = container.contains(container.ownerDocument.activeElement);
 		disposables.dispose();
 		if (container.isConnected) {
 			clearPairingConfirmHost(container);
+		}
+		if (hadFocus && previousFocus && previousFocus.isConnected && !container.contains(previousFocus)) {
+			previousFocus.focus();
 		}
 	}
 }

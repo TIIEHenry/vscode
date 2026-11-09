@@ -55,18 +55,61 @@
 }
 
 .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
 	transition: background-color 0.12s ease;
 }
 
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label,
+.monaco-workbench.monaco-reduce-motion .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label::after {
+		transition: none;
+	}
+}
+
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:hover {
+	background-color: transparent;
+}
+
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
 .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:focus-visible {
 	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 	color: var(--vscode-foreground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:focus-visible,

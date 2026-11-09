@@ -168,3 +168,17 @@ suite('ConversationSessionStatus', () => {
 		}
 	});
 });
+
+suite('ConversationSessionStatus (browser)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('getEngineStatusCommandArguments ignores stale pairingPending when phase is disconnected or failed', () => {
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'disconnected' }, true), [CONNECTION_PROFILES_ZONE]);
+		assert.deepStrictEqual(
+			getEngineStatusCommandArguments({ kind: 'failed', code: 'transport_failed', reason: 'down' }, true),
+			[CONNECTION_PROFILES_ZONE],
+		);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'connecting', reason: 'initial' }, true), []);
+	});
+});

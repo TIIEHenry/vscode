@@ -12,6 +12,7 @@ import { IInstantiationService, ServicesAccessor } from '../../../../platform/in
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
@@ -22,6 +23,7 @@ import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListMode
 import { ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../common/sourcesReviewProgress.js';
 import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
+import { sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 
 export const SOURCES_REVIEW_OPEN_SELECTED_COMMAND = 'sources.review.openSelected';
@@ -69,6 +71,7 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 						sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
 						modelService,
 						editorGroupsService: accessor.get(IEditorGroupsService),
+						layoutService: accessor.get(IWorkbenchLayoutService),
 						session,
 						readGitFileDiff: gitEntry => {
 							const hook = uaConnection.readGitFileDiff;
@@ -85,6 +88,7 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 					}, {
 						preserveFocus: false,
 						pinned: false,
+						slot: sourcesEditorOpenSlot(accessor.get(IConfigurationService)),
 					});
 					return opened;
 				},

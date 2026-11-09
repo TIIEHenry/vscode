@@ -117,21 +117,43 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action {
+	position: relative;
+	isolation: isolate;
 	width: var(--vscode-spacing-size240, 24px);
 	height: var(--vscode-spacing-size240, 24px);
 	padding: var(--vscode-spacing-size40, 4px);
 	box-sizing: border-box;
+	background-color: transparent;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-item:not(.disabled) > .action-label.add-tab-action:hover {
-	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	background-color: transparent;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-item:not(.disabled) > .action-label.add-tab-action:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible {
 	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	background-color: transparent;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-item.disabled > .action-label.add-tab-action {
@@ -146,7 +168,21 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label.add-tab-action::after {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .tabs-container {
@@ -541,6 +577,9 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	color: inherit;
 	font-size: 16px;
 	padding: 2px;
@@ -551,6 +590,18 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 0.12s ease;
 }
 
@@ -558,20 +609,75 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon {
 		transition: none;
 	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon::after {
+		transition: none;
+	}
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:active,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon:hover {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label.codicon:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:hover {
+	background-color: transparent;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:focus-visible,
@@ -582,7 +688,15 @@
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:focus-visible,
@@ -661,8 +775,16 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label {
+		transition: none;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label::after {
 		transition: none;
 	}
 }

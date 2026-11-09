@@ -80,7 +80,13 @@ export function isWorkDirCompatible(workDir: string | undefined, workspaceRoots:
 		return false;
 	}
 	const normalizedWorkDir = normalizeReviewPath(workDir);
-	return workspaceRoots.some(root => root.scheme === 'file' && normalizeReviewPath(root.fsPath) === normalizedWorkDir);
+	return workspaceRoots.some(root => {
+		if (root.scheme !== 'file') {
+			return false;
+		}
+		const rootPath = normalizeReviewPath(root.fsPath);
+		return rootPath === normalizedWorkDir || normalizedWorkDir.startsWith(`${rootPath}/`);
+	});
 }
 
 export function resolveMutationResource(

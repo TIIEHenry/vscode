@@ -65,8 +65,7 @@ suite('ConversationTimelineResourceBudget (browser colocated)', () => {
 
 		budget.release('d2');
 		assert.deepStrictEqual(budget.getMountedIds(), ['d1']);
-		// d1 mounted once, was evicted by the more recently near d2, then remounted into the freed slot.
-		assert.strictEqual(d1.mounts, 2);
-		assert.strictEqual(d1.unmounts, 1);
+		// d1 mounted first, was evicted for d2 under the cap of one, then remounted.
+		assert.deepStrictEqual({ mounts: d1.mounts, unmounts: d1.unmounts }, { mounts: 2, unmounts: 1 });
 	});
 });

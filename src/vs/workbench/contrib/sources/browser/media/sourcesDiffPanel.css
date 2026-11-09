@@ -29,14 +29,26 @@
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-actions button {
 	appearance: none;
-	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
+	border: 1px solid var(--vscode-button-secondaryBorder, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
 	min-height: 24px;
 	padding: 2px 8px;
 	border-radius: 4px;
+	font-family: inherit;
+	font-size: var(--vscode-fontSize-label1, 12px);
 	cursor: pointer;
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .sources-diff-panel .sources-diff-panel-actions button {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .sources-diff-panel .sources-diff-panel-actions button {
+		transition: none;
+	}
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:not(:disabled):active {
@@ -47,10 +59,23 @@
 	background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-secondaryBackground));
 }
 
-.monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .sources-diff-panel .sources-diff-panel-actions button:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .sources-diff-panel .sources-diff-panel-actions button:focus-visible {
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .sources-diff-panel .sources-diff-panel-actions button:not(.sources-diff-panel-accept):focus-visible {
+	background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .sources-diff-panel .sources-diff-panel-actions button.sources-diff-panel-accept:focus-visible {
+	background-color: var(--vscode-button-hoverBackground);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .sources-diff-panel .sources-diff-panel-actions button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
-	background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-secondaryBackground));
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:disabled {
@@ -60,6 +85,7 @@
 
 /* Beats the secondary `actions button` rule at rest; keyboard focus keeps the shared focus chrome, as in Conversation Diff. */
 .monaco-workbench .sources-diff-panel .sources-diff-panel-actions .sources-diff-panel-accept {
+	border-color: var(--vscode-button-border, transparent);
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
 }
@@ -86,7 +112,16 @@
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-action-notice.is-error,
 .monaco-workbench .sources-diff-panel .sources-diff-panel-new-file-notice.is-error {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-action-notice.is-error::before,
+.monaco-workbench .sources-diff-panel .sources-diff-panel-new-file-notice.is-error::before {
+	font-family: codicon;
+	content: "\ea87";
 	color: var(--vscode-errorForeground);
+	opacity: 0.9;
+	margin-right: 4px;
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-editor {

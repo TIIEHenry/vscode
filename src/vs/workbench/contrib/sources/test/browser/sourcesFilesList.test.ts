@@ -22,6 +22,9 @@ import { asCssVariableName, getColorRegistry } from '../../../../../platform/the
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { UniverseAgentConnectionSnapshot, UniverseAgentFileEntry, UniverseAgentListFilesRequest, UniverseAgentListFilesResult, UniverseAgentReadFileRequest, UniverseAgentReadFileResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { OpenFolderWorkspaceSupportContext } from '../../../../common/contextkeys.js';
 import { TestWorkspace, testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { createFileStat, TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
@@ -362,6 +365,11 @@ suite('Sources - Files list search', () => {
 			const selectedRow = mounted.host.querySelector<HTMLElement>('.monaco-list-row.selected')!;
 			const filename = selectedRow.querySelector<HTMLElement>('.label-name')!;
 			assert.strictEqual(filename.textContent, 'a.ts');
+			const fileRow = selectedRow.querySelector<HTMLElement>('.sources-file-row')!;
+			assert.match(getWindow(fileRow).getComputedStyle(fileRow).transition, /background-color 0\.08s/);
+			workbench.classList.add('monaco-reduce-motion');
+			assert.strictEqual(getWindow(fileRow).getComputedStyle(fileRow).transition, 'none');
+			workbench.classList.remove('monaco-reduce-motion');
 
 			const simulatedStyle = document.createElement('style');
 			let simulatedCss = '';
@@ -1186,6 +1194,7 @@ suite('Sources - Files explorer engine directory', () => {
 		readonly explorerVisibilityChanges: number;
 		readonly listFilesCalls: UniverseAgentListFilesRequest[];
 		readonly readFileCalls: UniverseAgentReadFileRequest[];
+		readonly openFolderCalls: string[];
 		setWorkDir(workDir: string | undefined): void;
 		setListFiles(listFiles: ((request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>) | undefined): void;
 		fireSession(): void;
@@ -1223,6 +1232,7 @@ suite('Sources - Files explorer engine directory', () => {
 		readonly workRoot?: IAgentWorkRoot;
 		readonly withListFiles?: boolean;
 		readonly stubExplorer?: boolean;
+		readonly openFolderSupported?: boolean;
 	}): IHostMount {
 		const container = document.createElement('div');
 		container.classList.add('sources-tab-panel', 'visible');
@@ -1233,6 +1243,8 @@ suite('Sources - Files explorer engine directory', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const context = instantiationService.get(IWorkspaceContextService) as TestContextService;
+		const contextKeyService = instantiationService.get(IContextKeyService);
+		OpenFolderWorkspaceSupportContext.bindTo(contextKeyService).set(options?.openFolderSupported ?? true);
 		if (options?.emptyWorkspace) {
 			context.setWorkspace(testWorkspace());
 		}
@@ -1269,6 +1281,12 @@ suite('Sources - Files explorer engine directory', () => {
 			listFiles = async () => ({ entries: [], total: 0 });
 		}
 		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const openFolderCalls: string[] = [];
+		instantiationService.stub(ICommandService, {
+			onWillExecuteCommand: Event.None,
+			onDidExecuteCommand: Event.None,
+			executeCommand: async (id: string) => { openFolderCalls.push(id); },
+		} as unknown as ICommandService);
 		const connection: IUniverseAgentConnection = {
 			onDidChangeConnection: connectionChanged.event,
 			listFiles: (request: UniverseAgentListFilesRequest) => {
@@ -1307,6 +1325,7 @@ suite('Sources - Files explorer engine directory', () => {
 			get explorerVisibilityChanges() { return explorerStub?.visibilityChanges ?? 0; },
 			listFilesCalls,
 			readFileCalls,
+			openFolderCalls,
 			setWorkDir(next) {
 				workDir = next;
 				workRoot = next ? {
@@ -1390,7 +1409,12 @@ suite('Sources - Files explorer engine directory', () => {
 		await timeout(0);
 		const empty = explorerEmpty(mounted.container);
 		assert.strictEqual(empty.style.display, '');
-		assert.strictEqual(empty.textContent, 'You have not yet opened a folder.');
+		assert.strictEqual(empty.querySelector('.sources-files-explorer-empty-message')?.textContent, 'You have not yet opened a folder.');
+		const openFolder = empty.querySelector('.sources-files-explorer-open-folder') as HTMLButtonElement;
+		assert.ok(openFolder);
+		assert.strictEqual(openFolder.textContent, 'Open Folder...');
+		openFolder.click();
+		assert.deepStrictEqual(mounted.openFolderCalls, ['workbench.action.files.openFolder']);
 		assert.strictEqual(mounted.container.querySelector('.sources-files-engine'), null);
 		assert.strictEqual(mounted.listFilesCalls.length, 0);
 
@@ -1401,6 +1425,13 @@ suite('Sources - Files explorer engine directory', () => {
 		assert.strictEqual(explorerEmpty(mounted.container).style.display, '');
 		assert.strictEqual(mounted.container.querySelector('.sources-files-engine'), null);
 		assert.strictEqual(mounted.listFilesCalls.length, 0);
+	});
+
+	test('empty state hides Open Folder when the workbench cannot open folders', function () {
+		const mounted = mountHost.call(this, { emptyWorkspace: true, openFolderSupported: false });
+		const openFolder = explorerEmpty(mounted.container).querySelector('.sources-files-explorer-open-folder') as HTMLButtonElement;
+		assert.ok(openFolder.hidden);
+		assert.deepStrictEqual(mounted.openFolderCalls, []);
 	});
 
 	test('session without own workDir enters engine mode when connection has remote workDir and renders engine directory', async function () {

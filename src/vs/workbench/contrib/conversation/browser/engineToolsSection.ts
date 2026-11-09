@@ -441,8 +441,8 @@ export class EngineToolsSection extends Disposable {
 		if (!this.list || !this.lastLayout) {
 			return;
 		}
-		const width = this.listContainer.clientWidth || this.lastLayout.width;
-		const height = this.listContainer.clientHeight || Math.max(80, this.lastLayout.listHeight - 160);
+		const width = this.lastLayout.width;
+		const height = Math.max(80, this.lastLayout.listHeight);
 		this.list.layout(height, width);
 	}
 

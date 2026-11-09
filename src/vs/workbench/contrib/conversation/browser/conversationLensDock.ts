@@ -20,6 +20,7 @@ import {
 	conversationLensDockAddTitle,
 	conversationLensDockAgentLabel,
 	conversationLensDockEditExit,
+	conversationLensDockEditExitWithKey,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockMaximizeInput,
 	conversationLensDockMoreTitle,
@@ -30,6 +31,7 @@ import {
 	conversationLensDockPermissionPermit,
 	conversationLensDockPlaceholder,
 	conversationLensDockTuneTitle,
+	conversationLensPostFailureDismiss,
 } from './conversationLensDockStrings.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -43,13 +45,14 @@ import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
 import { getConversationDisplayMode } from './conversationLensReadingColumn.js';
-import { isConversationRowActive } from './conversationLivePhase.js';
+import { isConversationRowStreaming } from './conversationLivePhase.js';
 import {
 	applySessionModelIndex,
 	applySessionPermissionIndex,
 	type ComposerPickerRole,
 	type ConversationSessionConfigSelection,
 	dismissComposerPopups,
+	dismissPostFailure,
 	type IConversationLensComposerChromeHost,
 	showPostFailure,
 	updateComposerSessionSelectsEnabled,
@@ -185,12 +188,28 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
 		host.gateLabel = append(host.gateRow, $('span.conversation-lens-dock-gate-label'));
 		host.gateLabel.textContent = conversationLensDockEngineNotConnected;
+		const gateDismissContainer = append(host.gateRow, $('.conversation-lens-dock-gate-dismiss'));
+		host.gateDismissButton = host.register(new Button(gateDismissContainer, {
+			...ghostButtonStyles,
+			supportIcons: true,
+			title: conversationLensPostFailureDismiss,
+			ariaLabel: conversationLensPostFailureDismiss,
+		}));
+		host.gateDismissButton.icon = Codicon.close;
+		host.gateDismissButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost', 'conversation-lens-dock-gate-dismiss-button');
+		host.gateDismissButton.element.hidden = true;
+		host.register(host.gateDismissButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			dismissPostFailure(host);
+		}));
 
 		host.inboxOverlay = host.register(host.instantiationService.createInstance(ConversationInboxOverlay, host.dockRoot, {
 			onQueueItemHold: itemId => host.beginQueueEdit(itemId),
 			onScrollToPendingConfirmation: () => host.scrollToInboxPendingConfirmation(),
 			showPostFailure: reason => showPostFailure(host, reason),
-			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => isConversationRowActive(entry, getConversationDisplayMode(host))),
+			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => isConversationRowStreaming(entry, getConversationDisplayMode(host))),
 		}, () => host.listSessionId()));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));
@@ -202,8 +221,10 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.composerExitButton = host.register(new Button(exitContainer, {
 			...ghostButtonStyles,
 			supportIcons: true,
-			title: conversationLensDockEditExit,
+			title: conversationLensDockEditExitWithKey,
+			ariaLabel: conversationLensDockEditExit,
 		}));
+		host.composerExitButton.element.setAttribute('aria-keyshortcuts', 'Escape');
 		host.composerExitButton.icon = Codicon.close;
 		host.composerExitButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
 		host.register(host.composerExitButton.onDidClick(() => {
@@ -428,11 +449,13 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			// that browse and restores the edit text; the next Escape still leaves the edit.
 			if (e.keyCode === KeyCode.Escape && host.composerModel.inputHistoryBrowse.browseIndex >= 0) {
 				e.preventDefault();
+				e.stopPropagation();
 				host.exitInputHistoryBrowse();
 				return;
 			}
 			if (e.keyCode === KeyCode.Escape && host.composerModel.policy !== 'compose') {
 				e.preventDefault();
+				e.stopPropagation();
 				if (host.cancelQueueEdit) {
 					host.cancelQueueEdit();
 				} else {

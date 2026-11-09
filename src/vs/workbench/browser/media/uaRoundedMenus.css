@@ -4,14 +4,14 @@
 	*--------------------------------------------------------------------------------------------*/
 
 /* Local menu contract: native focus, keyboard and placement remain owned by Menu. */
-.monaco-workbench .context-view.ua-rounded-menu,
-.monaco-workbench .ua-rounded-menu .monaco-submenu {
+.monaco-workbench .context-view:is(.ua-rounded-menu, .conversation-composer-picker-menu),
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-submenu {
 	border-radius: 16px;
 	border: 1px solid var(--vscode-menu-border, var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 8%, transparent)));
 	box-shadow: 0 4px 16px var(--vscode-widget-shadow);
 	background-color: var(--vscode-menu-background);
 }
-.monaco-workbench .ua-rounded-menu .monaco-menu {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-menu {
 	/* The outer shell owns the single border; do not count Menu's own border twice. */
 	border: none;
 	border-radius: inherit;
@@ -19,14 +19,14 @@
 	max-width: calc(100vw - 16px);
 	font-size: 14px;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical {
 	padding: 4px;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-item {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .action-item {
 	height: auto;
 	min-height: 30px;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-menu-item {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .action-menu-item {
 	min-width: 0;
 	min-height: 30px;
 	height: auto;
@@ -35,7 +35,7 @@
 	box-sizing: border-box;
 	border-radius: 12px;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-label:not(.separator) {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .action-label:not(.separator) {
 	min-width: 0;
 	padding: 0 8px 0 0;
 	font-size: 14px;
@@ -43,35 +43,35 @@
 	white-space: normal;
 	overflow-wrap: anywhere;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .keybinding {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .keybinding {
 	flex: 0 0 auto;
 	padding: 0;
 	font-size: 12px;
 	line-height: 20px;
 	color: var(--vscode-descriptionForeground);
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .submenu-indicator {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .submenu-indicator {
 	flex: 0 0 16px;
 	padding: 0;
 	margin-left: 8px;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .submenu-indicator::before {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .submenu-indicator::before {
 	margin: 0;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-item:has(.separator) {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .action-item:has(.separator) {
 	min-height: 0;
 }
-.monaco-workbench .ua-rounded-menu .monaco-action-bar.vertical .action-label.separator {
+.monaco-workbench :is(.ua-rounded-menu, .conversation-composer-picker-menu) .monaco-action-bar.vertical .action-label.separator {
 	margin: 8px !important;
 	width: calc(100% - 16px);
 }
 @media (forced-colors: none) {
-	.monaco-workbench:not(.hc-black):not(.hc-light) .ua-rounded-menu .action-item.focused > .action-menu-item {
+	.monaco-workbench:not(.hc-black):not(.hc-light) :is(.ua-rounded-menu, .conversation-composer-picker-menu) .action-item.focused > .action-menu-item {
 		background-color: color-mix(in srgb, var(--vscode-foreground) 8%, var(--vscode-menu-background)) !important;
 		color: var(--vscode-menu-foreground) !important;
 	}
 }
-.monaco-workbench:is(.hc-black, .hc-light) .context-view.ua-rounded-menu {
+.monaco-workbench:is(.hc-black, .hc-light) .context-view:is(.ua-rounded-menu, .conversation-composer-picker-menu) {
 	border-color: var(--vscode-contrastBorder);
 	box-shadow: none;
 }
@@ -174,7 +174,7 @@
 	font-size: 14px;
 	line-height: 20px;
 }
-.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item[role="menuitemradio"] {
+.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item[role="menuitemradio"]:not(.conversation-lens-session-more-session) {
 	padding-left: 28px;
 }
 @media (forced-colors: active) {

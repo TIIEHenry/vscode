@@ -59,7 +59,7 @@ import type { ConnectionPhase } from '../../../../platform/universeAgent/common/
 const $ = DOM.$;
 
 /** Product list row. The stylesheet row height must stay in lockstep. */
-const NAV_ROW_HEIGHT = 32;
+const NAV_ROW_HEIGHT = 22;
 
 /**
  * Mirrors `media/enginePreferencesPane.css`. Every measurement in this pane prefers the box the
@@ -123,6 +123,7 @@ class EngineNavRenderer implements IListRenderer<EnginePreferencesNavEntry, IEng
 			DOM.append(templateData.icon, renderIcon(entry.icon));
 		}
 		templateData.label.textContent = entry.label;
+		templateData.label.title = entry.label;
 		const count = this.getCount?.(entry.id);
 		if (count !== undefined && count > 0) {
 			templateData.badge.textContent = String(count);
@@ -169,6 +170,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 	private readonly sections = new Map<EnginePreferencesSectionId, IEngineSectionHost & Disposable>();
 	private activeSectionId: EnginePreferencesSectionId = 'overview';
+	private activatedSectionId: EnginePreferencesSectionId | undefined;
 	private lastLayoutWidth = 900;
 	private lastLayoutHeight = 480;
 	private narrowShowingDetail = false;
@@ -285,14 +287,15 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.testStatus.setAttribute('role', 'status');
 		this.testStatus.setAttribute('aria-live', 'polite');
 
-		// Arrowing through the nav previews the section; `selectSection` mirrors the choice back
-		// onto the list, so all three routes converge on one selected row.
+		// Wide: arrowing through the nav previews the section; `selectSection` mirrors the choice
+		// back onto the list, so all three routes converge on one selected row. Narrow: the detail
+		// replaces the nav, so arrows only move focus and Enter / open enters the detail.
 		this._register(this.navList.onDidChangeFocus(e => {
 			if (this._store.isDisposed) {
 				return;
 			}
 			const entry = e.elements[0];
-			if (entry && !this.syncingNav) {
+			if (entry && !this.syncingNav && !this.isNarrow()) {
 				this.selectSection(entry.id);
 			}
 		}));
@@ -301,7 +304,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 				return;
 			}
 			const entry = e.elements[0];
-			if (entry && !this.syncingNav) {
+			if (entry && !this.syncingNav && !this.isNarrow()) {
 				this.selectSection(entry.id);
 			}
 		}));
@@ -423,10 +426,15 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 				this.syncingNav = false;
 			}
 		}
-		for (const [sectionId, section] of this.sections) {
-			const active = sectionId === id;
-			section.setSectionActive(active);
-			section.setShowSectionHeading(false);
+		// One click arrives as focus, selection, and open. Re-activating the same section would
+		// refresh it again and retire its in-flight writes.
+		if (this.activatedSectionId !== id) {
+			this.activatedSectionId = id;
+			for (const [sectionId, section] of this.sections) {
+				const active = sectionId === id;
+				section.setSectionActive(active);
+				section.setShowSectionHeading(false);
+			}
 		}
 		if (this.isNarrow()) {
 			const focusNarrowDetailBackButton = !this.narrowShowingDetail && this.navHost.contains(this.navHost.ownerDocument.activeElement);
@@ -594,6 +602,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		// D354 leftover-looks-live: pairing-hold first. KEEP chrome is not only `!connected`.
 		const disconnected = isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected();
 		const showBanner = disconnected || unsupportedEnvironment;
+		// Empty disconnected sections should hug their copy and recovery actions. Connected
+		// sections keep the flexing viewport so catalog/list sections retain their scroll area.
+		this.detailBody.classList.toggle('is-disconnected', showBanner);
 		this.disconnectedBanner.style.display = showBanner ? '' : 'none';
 		// Disconnected is an ordinary resting state and reads as a neutral notice; an environment
 		// that cannot host an engine at all is the exception that earns the warning surface.

@@ -268,9 +268,9 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 
 	protected readonly customMenubar = this._register(new MutableDisposable<CustomMenubarControl>());
 	private readonly customMenubarDisposables = this._register(new DisposableStore());
-	protected appIcon: HTMLElement | undefined;
-	private appIconBadge: HTMLElement | undefined;
 	protected menubar?: HTMLElement;
+	private readonly navigationToolbarDisposable = this._register(new DisposableStore());
+	private navigationToolbarElement: HTMLElement | undefined;
 	private lastLayoutDimensions: Dimension | undefined;
 
 	private actionToolBar!: WorkbenchToolBar;
@@ -480,11 +480,6 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		this.centerContent = append(this.rootContainer, $('.titlebar-center'));
 		this.rightContent = append(this.rootContainer, $('.titlebar-right'));
 
-		// App Icon (Windows, Linux)
-		if ((isWindows || isLinux) && !hasNativeTitlebar(this.configurationService, this.titleBarStyle)) {
-			this.appIcon = prepend(this.leftContent, $('a.window-appicon'));
-		}
-
 		// Draggable region that we can manipulate for #52522
 		this.dragRegion = prepend(this.rootContainer, $('div.titlebar-drag-region'));
 
@@ -578,6 +573,22 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 					this.windowControlsContainer.classList.add('wco-enabled');
 				}
 			}
+		}
+
+		// Navigation controls sit at the leading edge of the custom title bar, before the menu.
+		if (hasCustomTitlebar(this.configurationService, this.titleBarStyle)) {
+			this.navigationToolbarElement = prepend(this.leftContent, $('div.navigation-toolbar-container'));
+			this.navigationToolbarDisposable.add(this.instantiationService.createInstance(MenuWorkbenchToolBar, this.navigationToolbarElement, MenuId.TitleBarNavigation, {
+				contextMenu: MenuId.TitleBarContext,
+				hiddenItemStrategy: HiddenItemStrategy.NoHide,
+				ariaLabel: localize('ariaLabelTitleNavigation', "Title bar navigation"),
+				toolbarOptions: {
+					primaryGroup: () => true,
+				},
+				getKeyBinding: action => this.getKeybinding(action),
+				actionViewItemProvider: (action, options) => this.actionViewItemProvider(action, options),
+				hoverDelegate: this.hoverDelegate
+			}));
 		}
 
 		// Context menu over title bar: depending on the OS and the location of the click this will either be
@@ -868,10 +879,6 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 			}) || '';
 			this.element.style.backgroundColor = titleBackground;
 			this.layoutService.getContainer(getWindow(this.element)).style.setProperty('--modern-ui-shell-background', titleBackground);
-
-			if (this.appIconBadge) {
-				this.appIconBadge.style.backgroundColor = titleBackground;
-			}
 
 			if (titleBackground && Color.fromHex(titleBackground).isLighter()) {
 				this.element.classList.add('light');

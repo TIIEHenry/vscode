@@ -629,11 +629,15 @@ export class CopilotCLISessionService extends Disposable implements ICopilotCLIS
 
 			// Set origin
 			this._vscodeOriginSessionIds.add(session.object.sessionId);
-			void this._chatSessionMetadataStore.setSessionOrigin(session.object.sessionId);
+			this._chatSessionMetadataStore.setSessionOrigin(session.object.sessionId).catch(err => {
+				this.logService.warn(`[CopilotCLISession] Failed to store origin for session ${session.object.sessionId}: ${err}`);
+			});
 
 			// Set session parent id
 			if (options.sessionParentId) {
-				void this._chatSessionMetadataStore.setSessionParentId(session.object.sessionId, options.sessionParentId);
+				this._chatSessionMetadataStore.setSessionParentId(session.object.sessionId, options.sessionParentId).catch(err => {
+					this.logService.warn(`[CopilotCLISession] Failed to store parent session for session ${session.object.sessionId}: ${err}`);
+				});
 			}
 
 			return session;

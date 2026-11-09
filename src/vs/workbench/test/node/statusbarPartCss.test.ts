@@ -29,4 +29,12 @@ suite('Statusbar part', () => {
 		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.monaco-workbench:not\(\.monaco-enable-motion\) \.part\.statusbar > \.items-container > \.statusbar-item > \.statusbar-item-label\s*\{[^}]*transition:\s*none;/);
 		assert.match(css, /part\.statusbar > \.items-container > \.statusbar-item a:active:not\(\.disabled\) \.statusbar-item-label,[\s\S]*?background-color:\s*var\(--vscode-statusBarItem-activeBackground/);
 	});
+
+	test('pressed status entries keep active surface when hover and active pseudo-classes overlap', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/statusbar/media/statusbarpart.css'), 'utf8');
+		const hoverIndex = css.indexOf('.part.statusbar > .items-container > .statusbar-item a:hover:not(.disabled) {\n\tbackground-color: var(--vscode-statusBarItem-hoverBackground) !important;');
+		const pressedHoverIndex = css.indexOf('.part.statusbar > .items-container > .statusbar-item a:active:hover:not(.disabled) {\n\tbackground-color: var(--vscode-statusBarItem-activeBackground) !important;');
+		assert.ok(hoverIndex >= 0, 'statusbar hover surface declaration is missing');
+		assert.ok(pressedHoverIndex > hoverIndex, 'pressed hover override must follow generic hover declaration');
+	});
 });

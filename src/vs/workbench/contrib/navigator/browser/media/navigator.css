@@ -41,6 +41,12 @@
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row.selected,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list-row.selected {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 9%, transparent);
+	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list-row.focused {
+	color: var(--vscode-foreground) !important;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row,
@@ -56,12 +62,21 @@
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list:focus-visible .monaco-list-row.focused,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list:focus-visible .monaco-list-row.focused {
-	background-color: color-mix(in srgb, var(--vscode-foreground) 7%, transparent);
+	outline: none !important;
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-focusBackground, var(--vscode-list-hoverBackground)));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list:focus-visible .monaco-list-row.focused.selected,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list:focus-visible .monaco-list-row.focused.selected {
-	background-color: color-mix(in srgb, var(--vscode-foreground) 13%, transparent);
+	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+}
+
+.monaco-workbench.hc-black .navigator-agents-hierarchy-tree .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-light .navigator-agents-hierarchy-tree .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-black .navigator-agents-activity-list .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-light .navigator-agents-activity-list .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)),
@@ -94,7 +109,7 @@
 }
 
 .monaco-workbench .navigator-agents-row-actions .action-label:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .navigator-stub-note.is-error {
@@ -138,28 +153,28 @@
 }
 
 .monaco-workbench .navigator-agents-status-glyph.is-running {
-	color: var(--vscode-charts-blue);
+	color: var(--vscode-charts-blue) !important;
 	opacity: 1;
 }
 
-.monaco-workbench .monaco-list-row.selected .navigator-agents-status-glyph,
-.monaco-workbench .monaco-list-row.focused .navigator-agents-status-glyph {
-	color: var(--vscode-list-activeSelectionForeground);
+.monaco-workbench .monaco-list-row.selected .navigator-agents-status-glyph:is(.is-idle, .is-unknown),
+.monaco-workbench .monaco-list-row.focused .navigator-agents-status-glyph:is(.is-idle, .is-unknown) {
+	color: var(--vscode-foreground);
 	opacity: 1;
 }
 
 .monaco-workbench .navigator-agents-status-glyph.is-error {
-	color: var(--vscode-errorForeground);
+	color: var(--vscode-errorForeground) !important;
 	opacity: 1;
 }
 
 .monaco-workbench .navigator-agents-status-glyph.is-done {
-	color: var(--vscode-charts-green);
+	color: var(--vscode-charts-green) !important;
 	opacity: 1;
 }
 
 .monaco-workbench .navigator-agents-status-glyph.is-paused {
-	color: var(--vscode-charts-orange);
+	color: var(--vscode-charts-orange) !important;
 	opacity: 1;
 }
 
@@ -186,6 +201,34 @@
 	padding-left: 8px;
 }
 
+.monaco-workbench .navigator-agents-activity-row {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+	height: 100%;
+}
+
+.monaco-workbench .navigator-row-status {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0 8px 0 6px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+.monaco-workbench .navigator-row-status-icon {
+	font-size: 12px;
+}
+
+.monaco-workbench .monaco-list-row.selected .navigator-row-status,
+.monaco-workbench .monaco-list-row.focused .navigator-row-status {
+	color: inherit;
+}
+
 .monaco-workbench .navigator-agents-row-actions {
 	display: none;
 	margin-left: auto;
@@ -194,6 +237,7 @@
 
 .monaco-workbench .monaco-list-row:hover .navigator-agents-row-actions,
 .monaco-workbench .monaco-list-row.focused .navigator-agents-row-actions,
+.monaco-workbench .monaco-list-row:focus-within .navigator-agents-row-actions,
 .monaco-workbench .monaco-list-row.selected .navigator-agents-row-actions {
 	display: flex;
 }
@@ -202,7 +246,9 @@
 	display: none;
 }
 
+.monaco-workbench .is-compact .monaco-list-row:hover .navigator-agents-row-actions,
 .monaco-workbench .is-compact .monaco-list-row.focused .navigator-agents-row-actions,
+.monaco-workbench .is-compact .monaco-list-row:focus-within .navigator-agents-row-actions,
 .monaco-workbench .is-compact .monaco-list-row.selected .navigator-agents-row-actions {
 	display: flex;
 }

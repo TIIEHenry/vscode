@@ -4,6 +4,31 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
+ * Long options of GNU sed 4.8. GNU sed accepts any unique prefix of a long option, so `--i` and
+ * `--in` mean `--in-place`, and `--expr=...` means `--expression=...`.
+ */
+const sedLongOptions: readonly string[] = [
+	'binary',
+	'debug',
+	'expression',
+	'file',
+	'follow-symlinks',
+	'help',
+	'in-place',
+	'line-length',
+	'null-data',
+	'posix',
+	'quiet',
+	'regexp-extended',
+	'sandbox',
+	'separate',
+	'silent',
+	'unbuffered',
+	'version',
+	'zero-terminated',
+];
+
+/**
  * Parser for detecting file writes from `sed` commands using in-place editing.
  *
  * Handles:
@@ -12,24 +37,43 @@
  * - `sed -i '' 's/foo/bar/' file.txt` (macOS/BSD with empty backup suffix)
  * - `sed --in-place 's/foo/bar/' file.txt` (GNU long form)
  * - `sed --in-place=.bak 's/foo/bar/' file.txt` (GNU long form with backup)
+ * - `sed --in 's/foo/bar/' file.txt` (GNU unique abbreviation of `--in-place`)
+ * - `sed "--in-place" 's/foo/bar/' file.txt` (quotes, escapes and line continuations that the
+ *   shell removes before sed parses its options)
  * - `sed -I 's/foo/bar/' file.txt` (BSD case-insensitive variant)
  */
 export class SedFileWriteParser {
 	readonly commandName = 'sed';
 
 	canHandle(commandText: string): boolean {
+		// Check for -i, -I, or --in-place flag in the text as written first. Splitting arguments
+		// can disagree with the shell (for example around `\'` inside `$'...'` or quotes inside
+		// `$(...)`), so the argument check below may only add detections, never drop these.
+		const inPlaceRegex = /(?:^|\s)(-[a-zA-Z]*[iI][a-zA-Z]*\S*|--in-place(?:=\S*)?|(-i|-I)\s*'[^']*'|(-i|-I)\s*"[^"]*")(?:\s|$)/;
+		if (commandText.match(/^sed\s+/) && inPlaceRegex.test(commandText)) {
+			return true;
+		}
+
+		const text = this._removeLineContinuations(commandText);
+
 		// Check if this is a sed command
-		if (!commandText.match(/^sed\s+/)) {
+		if (!text.match(/^sed\s+/)) {
 			return false;
 		}
 
-		// Check for -i, -I, or --in-place flag
-		const inPlaceRegex = /(?:^|\s)(-[a-zA-Z]*[iI][a-zA-Z]*\S*|--in-place(?:=\S*)?|(-i|-I)\s*'[^']*'|(-i|-I)\s*"[^"]*")(?:\s|$)/;
-		return inPlaceRegex.test(commandText);
+		// Check for -i, -I, --in-place or an abbreviation of it such as --in, as sed sees the
+		// arguments after the shell removes quotes and escapes
+		return this._tokenizeCommand(text).slice(1).some(token => {
+			const option = this._unquoteOption(token);
+			if (option.startsWith('--')) {
+				return this._resolveLongOption(option) === 'in-place';
+			}
+			return /^-[a-zA-Z]*[iI]/.test(option);
+		});
 	}
 
 	extractFileWrites(commandText: string): string[] {
-		const tokens = this._tokenizeCommand(commandText);
+		const tokens = this._tokenizeCommand(this._removeLineContinuations(commandText));
 		return this._extractFileTargets(tokens);
 	}
 
@@ -89,6 +133,76 @@ export class SedFileWriteParser {
 	}
 
 	/**
+	 * Removes line continuations (a backslash before a newline) outside single quotes, as the
+	 * shell does before it splits the arguments.
+	 */
+	private _removeLineContinuations(commandText: string): string {
+		let result = '';
+		let inSingleQuote = false;
+		let inDoubleQuote = false;
+
+		for (let i = 0; i < commandText.length; i++) {
+			const char = commandText[i];
+
+			if (inSingleQuote) {
+				if (char === '\'') {
+					inSingleQuote = false;
+				}
+				result += char;
+				continue;
+			}
+
+			if (char === '\\') {
+				if (commandText[i + 1] === '\n') {
+					i++;
+					continue;
+				}
+				if (commandText[i + 1] === '\r' && commandText[i + 2] === '\n') {
+					i += 2;
+					continue;
+				}
+				// Keep an escaped character together with its backslash
+				result += commandText.slice(i, i + 2);
+				i++;
+				continue;
+			}
+
+			if (char === '"') {
+				inDoubleQuote = !inDoubleQuote;
+			} else if (char === '\'' && !inDoubleQuote) {
+				inSingleQuote = true;
+			}
+			result += char;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Returns an argument as sed sees it when parsing options: the shell removes quotes, a `$`
+	 * before a quote, and backslashes.
+	 */
+	private _unquoteOption(token: string): string {
+		return token.replace(/\$(?=['"])/g, '').replace(/['"\\]/g, '');
+	}
+
+	/**
+	 * Resolves a long option such as `--in` or `--expr=...` to its full name. Returns `undefined`
+	 * when the name is empty, unknown or ambiguous, all of which sed rejects.
+	 */
+	private _resolveLongOption(option: string): string | undefined {
+		const name = option.slice(2).split('=', 1)[0];
+		if (!name) {
+			return undefined;
+		}
+		if (sedLongOptions.includes(name)) {
+			return name;
+		}
+		const candidates = sedLongOptions.filter(longOption => longOption.startsWith(name));
+		return candidates.length === 1 ? candidates[0] : undefined;
+	}
+
+	/**
 	 * Extracts file targets from tokenized sed command arguments.
 	 * Files are generally the last non-option, non-script arguments.
 	 */
@@ -103,22 +217,19 @@ export class SedFileWriteParser {
 
 		while (i < tokens.length) {
 			const token = tokens[i];
+			const option = this._unquoteOption(token);
 
-			// Long options
-			if (token.startsWith('--')) {
-				if (token === '--in-place' || token.startsWith('--in-place=')) {
+			// Long options, including abbreviations such as --in or --expr=...
+			if (option.startsWith('--')) {
+				const name = this._resolveLongOption(option);
+				if (name === 'in-place') {
 					// In-place flag (already verified we have one)
 					i++;
 					continue;
 				}
-				if (token === '--expression' || token === '--file') {
-					// Skip the option and its argument
-					i += 2;
-					foundScript = true;
-					continue;
-				}
-				if (token.startsWith('--expression=') || token.startsWith('--file=')) {
-					i++;
+				if (name === 'expression' || name === 'file') {
+					// Skip the option and its argument, unless the argument is attached with `=`
+					i += option.includes('=') ? 1 : 2;
 					foundScript = true;
 					continue;
 				}
@@ -128,9 +239,9 @@ export class SedFileWriteParser {
 			}
 
 			// Short options
-			if (token.startsWith('-') && token.length > 1 && token[1] !== '-') {
+			if (option.startsWith('-') && option.length > 1 && option[1] !== '-') {
 				// Could be combined flags like -ni or -i.bak
-				const flags = token.slice(1);
+				const flags = option.slice(1);
 
 				// Check if this is -i with backup suffix attached (e.g., -i.bak)
 				const iIndex = flags.indexOf('i');
@@ -145,6 +256,8 @@ export class SedFileWriteParser {
 
 				// Check if -i or -I is the last flag and next token could be backup suffix
 				if ((flags.endsWith('i') || flags.endsWith('I')) && i + 1 < tokens.length) {
+					// Use the raw token: an empty suffix is only visible as `''` or `""` before the
+					// shell removes the quotes
 					const nextToken = tokens[i + 1];
 					// macOS/BSD style: -i '' or -i "" (empty string backup suffix)
 					// Only treat it as a backup suffix if it's empty or looks like a backup

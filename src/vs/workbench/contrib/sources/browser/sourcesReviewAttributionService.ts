@@ -9,7 +9,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IFileMutationRecord, UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -189,7 +189,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			lease = this.session.acquireSessionView(this.activeSessionId);
 			return resolveRevealItemId(lease.attribution, toolCallId);
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('sourcesReviewAttribution.revealFailed', "Could not find where this change was made in the conversation."), error);
 			return undefined;
 		} finally {
 			lease?.dispose();
@@ -228,11 +228,15 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			}
 			return result;
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.notifyFailure(localize('sourcesReviewAttribution.chipsFailed', "Could not load which agent made these changes."), error);
 			return new Map();
 		} finally {
 			lease?.dispose();
 		}
+	}
+
+	private notifyFailure(message: string, error: unknown): void {
+		this.notificationService.notify({ severity: Severity.Error, message, source: getErrorMessage(error) });
 	}
 
 	private activeRecordCount(): number {

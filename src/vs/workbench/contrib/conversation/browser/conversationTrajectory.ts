@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, getActiveElement, getWindow } from '../../../../base/browser/dom.js';
 import { renderMarkdown } from '../../../../base/browser/markdownRenderer.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
@@ -77,11 +77,23 @@ export function formatConversationTrajectoryLimitNotice(visibleCount: number, to
 		.replace('{1}', String(totalCount));
 }
 
+export const conversationTrajectoryRevealUnmapped = localize('conversationTrajectory.revealUnmapped', "This message has no matching trajectory record.");
+
+export function formatConversationTrajectoryRevealOutsideWindow(visibleCount: number): string {
+	return localize('conversationTrajectory.revealOutsideWindow', "This record is older than the most recent {0} records shown.", visibleCount);
+}
+
+/** `revealed` moved to the row; the others wrote why into the reveal notice. */
+export type ConversationTrajectoryRevealResult = 'revealed' | 'missing' | 'outsideWindow';
+
 const TRAJECTORY_SUBTOOL_INDENT_PX = 12;
 /** Product list/table row. Fold headers in this table use the same height. */
 export const TRAJECTORY_ROW_HEIGHT = 22;
 export const TRAJECTORY_FOLD_HEADER_HEIGHT = 22;
 const TRAJECTORY_SEARCH_DEBOUNCE_MS = 150;
+
+let nextTrajectoryOverviewId = 0;
+let nextTrajectoryFoldChildrenId = 0;
 
 /** Kind column label for trajectory record rows. */
 export function getTrajectoryKindLabel(kind: ConversationTrajectoryKind): string {
@@ -197,6 +209,7 @@ export interface IConversationTrajectoryOptions {
 	readonly detailContext?: ITrajectoryDetailContext;
 	/** When false (stub fixture), omit live / duration chrome and keep Stub prefix. */
 	readonly showLiveChrome?: () => boolean;
+	readonly displayMode?: () => 'stub' | 'live' | 'cached';
 }
 
 interface ITrajectoryRecordTemplateData {
@@ -215,7 +228,9 @@ interface ITrajectoryFoldTemplateData {
 interface ITrajectoryTableHost {
 	readonly selectedRecordId: string | undefined;
 	isFoldExpanded(spanId: string): boolean;
+	isFoldForcedOpen(): boolean;
 	showLiveChrome(): boolean;
+	displayMode(): 'stub' | 'live' | 'cached';
 	onSelectRecord(record: ConversationTrajectoryRecord, navigateToConversation: boolean): void;
 	onToggleFold(spanId: string): void;
 }
@@ -300,6 +315,8 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 
 		const summary = append(header, $('span.conversation-process-fold-summary'));
 		const children = append(root, $('div.conversation-process-fold-children'));
+		children.id = `conversation-trajectory-fold-children-${++nextTrajectoryFoldChildrenId}`;
+		header.setAttribute('aria-controls', children.id);
 		const templateData: ITrajectoryFoldTemplateData = { root, header, chevron, summary, children, span: undefined };
 
 		// Owned by the view, not the template: pooled rows outlive individual renders.
@@ -330,6 +347,10 @@ class TrajectoryFoldRenderer implements IListRenderer<TrajectoryTableDisplayItem
 }
 
 class TrajectoryTableAccessibilityProvider implements IListAccessibilityProvider<TrajectoryTableDisplayItem> {
+	constructor(
+		private readonly host?: Pick<ITrajectoryTableHost, 'showLiveChrome' | 'displayMode'>,
+	) { }
+
 	getWidgetAriaLabel(): string {
 		return conversationLensSessionBarTrajectoryListAria;
 	}
@@ -338,7 +359,10 @@ class TrajectoryTableAccessibilityProvider implements IListAccessibilityProvider
 		if (element.type === 'record') {
 			return `${getTrajectoryKindLabel(element.record.kind)}: ${getTrajectoryRecordPreview(element.record)}`;
 		}
-		return summarizeTrajectoryProcessSteps(element.span);
+		return summarizeTrajectoryProcessSteps(element.span, {
+			showLiveChrome: this.host?.showLiveChrome() === true,
+			displayMode: this.host?.displayMode(),
+		});
 	}
 }
 
@@ -358,6 +382,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private readonly detailInspector = new TrajectoryDetailInspectorModel();
 	private readonly searchInput: HTMLInputElement;
 	private readonly limitNotice: HTMLElement;
+	private readonly revealNotice: HTMLElement;
 	private readonly table: HTMLElement;
 	private readonly tableScroll: HTMLElement;
 	private readonly inspector: HTMLElement;
@@ -377,6 +402,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private omittedCount = 0;
 	private pendingRevealRecordId: string | undefined;
 	private lastRevealedRecordId: string | undefined;
+	private focusedFoldRecordId: string | undefined;
 	private inspectorOverlayScrollTop = 0;
 	/** True while the open inspector covers the table. Scroll is saved on that transition, not when the inspector first opened beside it. */
 	private inspectorOverlayActive = false;
@@ -430,12 +456,44 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 		const overviewScroll = append(this.overviewHost, $('.conversation-lens-trajectory-overview-scroll'));
 		this.overviewTrack = append(overviewScroll, $('.conversation-lens-trajectory-overview-track'));
-		this.overviewTrack.setAttribute('role', 'list');
+		this.overviewTrack.id = `conversation-lens-trajectory-overview-${++nextTrajectoryOverviewId}`;
+		this.overviewToggle.setAttribute('aria-controls', this.overviewTrack.id);
+		this.overviewTrack.setAttribute('role', 'toolbar');
 		this.overviewTrack.setAttribute('aria-label', conversationTrajectoryOverviewTitle);
+		this._register(addDisposableListener(this.overviewTrack, 'keydown', (e) => {
+			if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') {
+				return;
+			}
+			// eslint-disable-next-line no-restricted-syntax -- overview segments are owned by overviewTrack
+			const segments = [...this.overviewTrack.querySelectorAll<HTMLButtonElement>('.conversation-lens-trajectory-overview-segment')];
+			if (segments.length === 0) {
+				return;
+			}
+			const currentIndex = Math.max(0, segments.indexOf(e.target as HTMLButtonElement));
+			let nextIndex = currentIndex;
+			if (e.key === 'ArrowRight') {
+				nextIndex = (currentIndex + 1) % segments.length;
+			} else if (e.key === 'ArrowLeft') {
+				nextIndex = (currentIndex - 1 + segments.length) % segments.length;
+			} else if (e.key === 'Home') {
+				nextIndex = 0;
+			} else if (e.key === 'End') {
+				nextIndex = segments.length - 1;
+			}
+			e.preventDefault();
+			segments.forEach((seg, idx) => {
+				seg.tabIndex = idx === nextIndex ? 0 : -1;
+			});
+			segments[nextIndex]?.focus();
+		}));
 
 		this.limitNotice = append(this.body, $('.conversation-lens-trajectory-limit-notice'));
 		this.limitNotice.hidden = true;
 		this.limitNotice.setAttribute('role', 'status');
+
+		this.revealNotice = append(this.body, $('.conversation-lens-trajectory-reveal-notice'));
+		this.revealNotice.hidden = true;
+		this.revealNotice.setAttribute('role', 'status');
 
 		this.table = append(this.body, $('.conversation-lens-trajectory-table'));
 		this.table.setAttribute('role', 'table');
@@ -466,26 +524,102 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 					getId: (element: TrajectoryTableDisplayItem) =>
 						element.type === 'record' ? element.record.id : element.span.id,
 				},
-				accessibilityProvider: new TrajectoryTableAccessibilityProvider(),
+				accessibilityProvider: new TrajectoryTableAccessibilityProvider(this),
 				openOnSingleClick: true,
 				mouseSupport: true,
 				keyboardSupport: true,
 			},
 		)) as WorkbenchList<TrajectoryTableDisplayItem>;
 
+		this._register(this.list.onDidChangeFocus(() => {
+			const focused = this.list.getFocusedElements()[0];
+			if (this.focusedFoldRecordId && (focused?.type !== 'fold' || !focused.span.recordIds.includes(this.focusedFoldRecordId))) {
+				this.focusedFoldRecordId = undefined;
+				this.syncTrajectoryFoldChildFocus(false);
+			}
+		}));
+
 		this._register(addDisposableListener(this.tableScroll, 'click', (e) => {
 			this.activateRecordFromTableRow(e.target as HTMLElement);
 		}));
+		this._register(addDisposableListener(this.tableScroll, 'keydown', (e) => {
+			if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+				const focused = this.list.getFocusedElements()[0];
+				if (focused?.type === 'fold' && this.isFoldExpanded(focused.span.id) && focused.span.records.length > 0) {
+					if (e.key === 'ArrowDown') {
+						if (!this.focusedFoldRecordId) {
+							e.preventDefault();
+							e.stopPropagation();
+							this.focusedFoldRecordId = focused.span.records[0].id;
+							this.scrollRecordIntoView(this.focusedFoldRecordId);
+							this.syncTrajectoryFoldChildFocus(true);
+							return;
+						}
+						const subIdx = focused.span.records.findIndex(r => r.id === this.focusedFoldRecordId);
+						if (subIdx >= 0 && subIdx + 1 < focused.span.records.length) {
+							e.preventDefault();
+							e.stopPropagation();
+							this.focusedFoldRecordId = focused.span.records[subIdx + 1].id;
+							this.scrollRecordIntoView(this.focusedFoldRecordId);
+							this.syncTrajectoryFoldChildFocus(true);
+							return;
+						}
+						const focusIdx = this.list.getFocus()[0] ?? -1;
+						this.focusedFoldRecordId = undefined;
+						this.syncTrajectoryFoldChildFocus(false);
+						if (focusIdx >= 0 && focusIdx + 1 < this.displayItems.length) {
+							e.preventDefault();
+							e.stopPropagation();
+							this.list.setFocus([focusIdx + 1]);
+							this.list.reveal(focusIdx + 1);
+							this.list.domFocus();
+						}
+						return;
+					} else if (this.focusedFoldRecordId) {
+						const subIdx = focused.span.records.findIndex(r => r.id === this.focusedFoldRecordId);
+						e.preventDefault();
+						e.stopPropagation();
+						if (subIdx > 0) {
+							this.focusedFoldRecordId = focused.span.records[subIdx - 1].id;
+							this.scrollRecordIntoView(this.focusedFoldRecordId);
+							this.syncTrajectoryFoldChildFocus(true);
+						} else {
+							this.focusedFoldRecordId = undefined;
+							this.syncTrajectoryFoldChildFocus(false);
+							this.list.domFocus();
+						}
+						return;
+					}
+				}
+			}
+		}, true));
 		this._register(addDisposableListener(this.tableScroll, 'keydown', (e) => {
 			if (e.key !== 'Enter' && e.key !== ' ') {
 				return;
 			}
 			const row = this.resolveTrajectoryRecordRow(e.target as HTMLElement);
-			if (!row) {
+			if (row) {
+				e.preventDefault();
+				this.activateRecordFromTableRow(row);
+				return;
+			}
+			const focused = this.list.getFocusedElements()[0];
+			if (!focused) {
 				return;
 			}
 			e.preventDefault();
-			this.activateRecordFromTableRow(row);
+			if (focused.type === 'record') {
+				this.selectRecord(focused.record, true);
+			} else if (focused.type === 'fold') {
+				if (this.focusedFoldRecordId && this.isFoldExpanded(focused.span.id)) {
+					const childRecord = focused.span.records.find(r => r.id === this.focusedFoldRecordId);
+					if (childRecord) {
+						this.selectRecord(childRecord, true);
+						return;
+					}
+				}
+				this.onToggleFold(focused.span.id);
+			}
 		}));
 
 		this._register(addDisposableListener(this.tableScroll, 'scroll', (e) => {
@@ -533,6 +667,24 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this._register(addDisposableListener(this.searchInput, 'input', () => {
 			this.searchScheduler.schedule();
 		}));
+		this._register(addDisposableListener(this.searchInput, 'keydown', (e) => {
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				e.stopPropagation();
+				if (this.searchInput.value.length > 0 || this.searchQuery.length > 0) {
+					this.clearTrajectorySearch();
+					this.refreshTable();
+				} else {
+					this.list.domFocus();
+				}
+			} else if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				if (this.list.length > 0 && this.list.getFocus().length === 0) {
+					this.list.setFocus([0]);
+				}
+				this.list.domFocus();
+			}
+		}));
 
 		this.inspector = append(this.body, $('.conversation-lens-trajectory-inspector'));
 		this.inspector.hidden = true;
@@ -550,6 +702,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 		const closeButton = append(inspectorHeader, $('button.conversation-lens-trajectory-inspector-close')) as HTMLButtonElement;
 		closeButton.type = 'button';
+		closeButton.title = conversationTrajectoryInspectorClose;
 		closeButton.setAttribute('aria-label', conversationTrajectoryInspectorClose);
 		closeButton.classList.add(...ThemeIcon.asClassNameArray(Codicon.close));
 		this._register(addDisposableListener(closeButton, 'click', () => this.dismissInspectorOverlay()));
@@ -580,8 +733,16 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		return this.processFoldOuterExpanded.get(spanId) ?? true;
 	}
 
+	isFoldForcedOpen(): boolean {
+		return this.searchQuery.trim().length > 0;
+	}
+
 	showLiveChrome(): boolean {
 		return this.options.showLiveChrome?.() ?? false;
+	}
+
+	displayMode(): 'stub' | 'live' | 'cached' {
+		return this.options.displayMode?.() ?? (this.showLiveChrome() ? 'live' : 'stub');
 	}
 
 	onSelectRecord(record: ConversationTrajectoryRecord, navigateToConversation: boolean): void {
@@ -633,6 +794,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	clearSessionState(): void {
+		this.hideRevealNotice();
 		this.detailInspector.clearSession();
 		this.processFoldOuterExpanded.clear();
 		// Search belongs to the session being left. The next table must not stay filtered.
@@ -651,7 +813,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 	refreshDetailInspector(): void {
 		const selectedId = this.selectedRecordIdHolder.current;
-		if (!selectedId) {
+		if (!selectedId || this.inspector.hidden) {
 			return;
 		}
 		const record = this.currentRecords.find(candidate => candidate.id === selectedId);
@@ -672,7 +834,6 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		for (const segment of segments) {
 			const segmentEl = append(this.overviewTrack, $('button.conversation-lens-trajectory-overview-segment')) as HTMLButtonElement;
 			segmentEl.type = 'button';
-			segmentEl.setAttribute('role', 'listitem');
 			segmentEl.dataset.segmentKind = segment.kind;
 			segmentEl.dataset.recordIds = segment.recordIds.join(',');
 			segmentEl.title = segment.label;
@@ -691,12 +852,21 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private syncOverviewActiveSegment(recordId = this.selectedRecordIdHolder.current): void {
-		const segments = this.overviewTrack.querySelectorAll<HTMLElement>('.conversation-lens-trajectory-overview-segment');
-		for (const segment of segments) {
+		const segments = [...this.overviewTrack.querySelectorAll<HTMLElement>('.conversation-lens-trajectory-overview-segment')];
+		let activeIndex = -1;
+		for (let i = 0; i < segments.length; i++) {
+			const segment = segments[i];
 			const ids = segment.dataset.recordIds?.split(',') ?? [];
 			const active = !!recordId && ids.includes(recordId);
+			if (active && activeIndex === -1) {
+				activeIndex = i;
+			}
 			segment.classList.toggle('conversation-lens-trajectory-overview-segment--active', active);
 			segment.setAttribute('aria-current', active ? 'true' : 'false');
+		}
+		const tabStopIndex = activeIndex >= 0 ? activeIndex : 0;
+		for (let i = 0; i < segments.length; i++) {
+			segments[i].tabIndex = i === tabStopIndex ? 0 : -1;
 		}
 	}
 
@@ -709,15 +879,22 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.overviewTrack.hidden = !this.overviewExpanded;
 	}
 
-	revealRecord(recordId: string): void {
+	/** Writes why into the reveal notice when no row is shown for the jump. */
+	reportUnmappedReveal(options?: { readonly focus?: boolean }): void {
+		this.showRevealNotice(conversationTrajectoryRevealUnmapped, options?.focus);
+	}
+
+	revealRecord(recordId: string, options?: { readonly focus?: boolean }): ConversationTrajectoryRevealResult {
 		const record = this.currentRecords.find(candidate => candidate.id === recordId);
 		if (!record) {
-			return;
+			this.showRevealNotice(conversationTrajectoryRevealUnmapped, options?.focus);
+			return 'missing';
 		}
 
 		const windowRecords = applyTrajectoryRecordLimit(this.currentRecords).visibleRecords;
 		if (!windowRecords.some(candidate => candidate.id === recordId)) {
-			return;
+			this.showRevealNotice(formatConversationTrajectoryRevealOutsideWindow(windowRecords.length), options?.focus);
+			return 'outsideWindow';
 		}
 		// Overview is the window map, not the search result. A click still has to land on that row.
 		if (!filterTrajectoryRecordsBySearch(windowRecords, this.searchQuery).some(candidate => candidate.id === recordId)) {
@@ -731,7 +908,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 				: item.span.recordIds.includes(recordId),
 		);
 		if (!visibleRecord) {
-			return;
+			this.showRevealNotice(conversationTrajectoryRevealUnmapped, options?.focus);
+			return 'missing';
 		}
 
 		for (const item of viewModel.items) {
@@ -746,6 +924,42 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.refreshTable();
 		this.selectRecord(record, false);
 		this.scrollRecordIntoView(recordId);
+		if (options?.focus) {
+			this.focusTableRow(this.displayIndexOfRecord(recordId));
+		}
+		return 'revealed';
+	}
+
+	private showRevealNotice(text: string, focus: boolean | undefined): void {
+		this.revealNotice.textContent = text;
+		this.revealNotice.hidden = false;
+		if (focus) {
+			this.focusTableRow(this.list.getFocus()[0] ?? -1);
+		}
+	}
+
+	private hideRevealNotice(): void {
+		this.revealNotice.hidden = true;
+		this.revealNotice.textContent = '';
+	}
+
+	private displayIndexOfRecord(recordId: string): number {
+		return this.displayItems.findIndex(item =>
+			item.type === 'record'
+				? item.record.id === recordId
+				: item.span.recordIds.includes(recordId),
+		);
+	}
+
+	/** Moves DOM focus into the table so the jump does not strand keyboard focus on the hidden lens. */
+	private focusTableRow(index: number): void {
+		if (this.displayItems.length === 0) {
+			return;
+		}
+		if (index >= 0 && index < this.displayItems.length) {
+			this.list.setFocus([index]);
+		}
+		this.list.domFocus();
 	}
 
 	private clearTrajectorySearch(): void {
@@ -851,7 +1065,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			);
 		if (this.selectedRecordIdHolder.current && !selectedStillVisible) {
 			this.closeInspector();
-		} else if (this.selectedRecordIdHolder.current && selectedStillVisible) {
+		} else if (this.selectedRecordIdHolder.current && selectedStillVisible && !this.inspector.hidden) {
 			const selected = this.currentRecords.find(record => record.id === this.selectedRecordIdHolder.current);
 			if (selected) {
 				this.openInspector(selected);
@@ -910,6 +1124,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			return;
 		}
 
+		this.hideRevealNotice();
 		this.selectedRecordIdHolder.current = record.id;
 		this.syncTrajectoryRowSelectionStyles();
 		this.syncOverviewActiveSegment(record.id);
@@ -936,6 +1151,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private dismissInspectorOverlay(): void {
+		const hadFocus = this.inspector.contains(getActiveElement());
 		const restoreOverlayScroll = this.inspectorOverlayActive;
 		const scrollTop = this.inspectorOverlayScrollTop;
 		this.inspector.hidden = true;
@@ -946,6 +1162,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.relayoutList();
 		if (restoreOverlayScroll) {
 			this.list.scrollTop = scrollTop;
+		}
+		if (hadFocus) {
+			this.list.domFocus();
 		}
 	}
 
@@ -1020,6 +1239,19 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 	}
 
+	private syncTrajectoryFoldChildFocus(focusDom: boolean): void {
+		const focusedId = this.focusedFoldRecordId;
+		// eslint-disable-next-line no-restricted-syntax -- rows are virtualized by the list view, so no stable reference exists
+		for (const row of this.host.querySelectorAll<HTMLElement>('.conversation-process-fold-children .conversation-lens-trajectory-record-row')) {
+			const recordId = row.getAttribute('data-record-id');
+			const isFocused = !!focusedId && recordId === focusedId;
+			row.classList.toggle('conversation-lens-trajectory-record-row--focused', isFocused);
+			if (isFocused && focusDom) {
+				row.focus({ preventScroll: true });
+			}
+		}
+	}
+
 	private resolveTrajectoryRecordRow(target: HTMLElement): HTMLElement | undefined {
 		const row = target.closest('.conversation-lens-trajectory-record-row');
 		if (!row || !this.tableScroll.contains(row)) {
@@ -1052,7 +1284,15 @@ function applyTrajectoryFoldTemplate(
 	const expanded = host.isFoldExpanded(span.id);
 	templateData.root.dataset.foldId = span.id;
 	templateData.header.setAttribute('aria-expanded', String(expanded));
-	templateData.summary.textContent = summarizeTrajectoryProcessSteps(span, { showLiveChrome: host.showLiveChrome() });
+	if (host.isFoldForcedOpen()) {
+		templateData.header.setAttribute('aria-disabled', 'true');
+	} else {
+		templateData.header.removeAttribute('aria-disabled');
+	}
+	templateData.summary.textContent = summarizeTrajectoryProcessSteps(span, {
+		showLiveChrome: host.showLiveChrome(),
+		displayMode: host.displayMode(),
+	});
 	const summaryText = templateData.summary.textContent ?? '';
 	templateData.header.setAttribute('aria-label', expanded
 		? localize('conversationProcessFold.outerHeaderExpanded', "Process steps, {0}, expanded", summaryText)
@@ -1064,6 +1304,7 @@ function applyTrajectoryFoldTemplate(
 	if (expanded) {
 		for (const record of span.records) {
 			const row = append(templateData.children, $('.conversation-lens-trajectory-record-row'));
+			row.tabIndex = -1;
 			populateTrajectoryRecordRow(row, record, host.selectedRecordId);
 		}
 	}
@@ -1075,6 +1316,7 @@ function populateTrajectoryRecordRow(
 	selectedRecordId: string | undefined,
 ): void {
 	clearNode(row);
+	row.setAttribute('role', 'row');
 	row.setAttribute('data-record-id', record.id);
 	row.setAttribute('data-kind', record.kind);
 

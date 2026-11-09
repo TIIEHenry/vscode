@@ -6,10 +6,12 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationChatTablistKeyboard } from '../../browser/conversationSplitActions.contribution.js';
+import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 
 suite('Conversation split actions contribution', () => {
 
@@ -93,5 +95,20 @@ suite('Conversation split actions contribution', () => {
 
 		assert.strictEqual(openedInLeft, 1);
 		assert.strictEqual(openedInRight, 0);
+	});
+
+	test('F1 split focuses Conversation first instead of returning silently when it lacks focus', async () => {
+		const calls: string[] = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const layoutService = instantiationService.get(IWorkbenchLayoutService);
+		(layoutService as { hasFocus(part: Parts): boolean }).hasFocus = () => false;
+		(layoutService as { focusPart(part: Parts): void }).focusPart = (part: Parts) => calls.push(`focus:${part}`);
+		instantiationService.stub(IConversationSessionChatService, {
+			splitSessionWindow: async () => { calls.push('split'); },
+		} as unknown as IConversationSessionChatService);
+
+		await instantiationService.invokeFunction(accessor => CommandsRegistry.getCommand('workbench.action.conversation.splitSessionWindow')!.handler(accessor));
+
+		assert.deepStrictEqual(calls, [`focus:${Parts.CONVERSATION_PART}`, 'split']);
 	});
 });

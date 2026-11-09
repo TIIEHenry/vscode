@@ -129,17 +129,60 @@
 }
 
 .search-view .search-widget .replace-container .monaco-action-bar .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
 	transition: background-color 0.12s ease;
 }
 
+.search-view .search-widget .replace-container .monaco-action-bar .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .search-view .search-widget .replace-container .monaco-action-bar .action-label,
+.monaco-workbench.monaco-reduce-motion .search-view .search-widget .replace-container .monaco-action-bar .action-label::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .search-view .search-widget .replace-container .monaco-action-bar .action-label,
+	.monaco-workbench:not(.monaco-enable-motion) .search-view .search-widget .replace-container .monaco-action-bar .action-label::after {
+		transition: none;
+	}
+}
+
+.search-view .search-widget .replace-container .monaco-action-bar .action-label:hover {
+	background-color: transparent;
+}
+
+.search-view .search-widget .replace-container .monaco-action-bar .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .search-widget .replace-container .monaco-action-bar .action-label:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
 .search-view .search-widget .replace-container .monaco-action-bar .action-label:active {
+	background-color: transparent;
+}
+
+.search-view .search-widget .replace-container .monaco-action-bar .action-label:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .search-view .search-widget .replace-container .monaco-action-bar .action-label:focus-visible {
 	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench.hc-black .search-view .search-widget .replace-container .monaco-action-bar .action-label:focus-visible,
@@ -167,10 +210,6 @@
 	transition: background-color 0.12s ease;
 }
 
-.search-view .query-details .more:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench:not(.hc-black):not(.hc-light) .search-view .query-details .more:focus-visible {
 	outline: none;
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
@@ -180,6 +219,10 @@
 .monaco-workbench.hc-light .search-view .query-details .more:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.search-view .query-details .more:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-view .query-details .file-types {
@@ -247,10 +290,6 @@
 	display: inline-block;
 }
 
-.search-view .message a:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .search-view .message a:hover {
 	color: var(--vscode-textLink-activeForeground);
 }
@@ -265,6 +304,10 @@
 .monaco-workbench.hc-light .search-view .message a:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.search-view .message a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-view .message .keyword-refresh {
@@ -405,13 +448,66 @@
 }
 
 .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
 	transition: background-color 0.12s ease;
 }
 
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.12s ease;
+}
+
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:hover {
+	background-color: transparent;
+}
+
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
 .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:active {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:focus-visible {
+	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:focus-visible,
+.monaco-workbench.hc-light .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench.monaco-reduce-motion .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label::after {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label::after {
+		transition: none;
+	}
+}
 }
 
 /* Adjusts spacing in high contrast mode so that actions are vertically centered */
@@ -516,11 +612,6 @@
 	display: inline-block;
 }
 
-.text-search-provider-messages .providerMessage a:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-	color: var(--vscode-textLink-activeForeground);
-}
-
 .monaco-workbench:not(.hc-black):not(.hc-light) .text-search-provider-messages .providerMessage a:focus-visible {
 	outline: none;
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
@@ -531,6 +622,11 @@
 .monaco-workbench.hc-light .text-search-provider-messages .providerMessage a:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
+}
+
+.text-search-provider-messages .providerMessage a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
 }
 
 .monaco-workbench .search-view .monaco-list.element-focused .monaco-list-row.focused.selected:not(.highlighted) .action-label:focus {

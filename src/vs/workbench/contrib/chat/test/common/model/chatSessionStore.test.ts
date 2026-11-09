@@ -321,6 +321,27 @@ suite('ChatSessionStore', () => {
 		assert.strictEqual(index['non-existent'], undefined);
 	});
 
+	test('index entries carry the custom title and setSessionTitle records it', async () => {
+		const store = createChatSessionStore();
+		const titled = testDisposables.add(createMockChatModel(LocalChatSessionUri.forSession('session-1'), { customTitle: 'My Custom Title' }));
+		const untitled = testDisposables.add(createMockChatModel(LocalChatSessionUri.forSession('session-2')));
+
+		await store.storeSessions([titled, untitled]);
+		const afterStore = await store.getIndex();
+		const stored = { titled: afterStore['session-1'].customTitle, untitled: afterStore['session-2'].customTitle };
+
+		await store.setSessionTitle('session-2', 'Renamed');
+		const afterRename = await store.getIndex();
+
+		assert.deepStrictEqual({
+			stored,
+			renamed: { title: afterRename['session-2'].title, customTitle: afterRename['session-2'].customTitle },
+		}, {
+			stored: { titled: 'My Custom Title', untitled: undefined },
+			renamed: { title: 'Renamed', customTitle: 'Renamed' },
+		});
+	});
+
 	test('multiple stores can be created with different workspaces', async () => {
 		const store1 = createChatSessionStore(false);
 		const store2 = createChatSessionStore(true);

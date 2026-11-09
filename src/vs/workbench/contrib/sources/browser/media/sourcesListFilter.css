@@ -51,7 +51,14 @@
 
 .monaco-workbench .part.sources .sources-list-filter-input:focus {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-list-filter-input:focus {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-list-filter-input:focus {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .part.sources .sources-list-filter-clear {
@@ -71,7 +78,19 @@
 	cursor: pointer;
 	border-radius: 3px;
 	z-index: 1;
-	transition: background-color 0.12s ease, color 0.12s ease;
+	transition: background-color 100ms ease, color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-list-filter-input,
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-list-filter-clear {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-list-filter-input,
+	.monaco-workbench:not(.monaco-enable-motion) .part.sources .sources-list-filter-clear {
+		transition: none;
+	}
 }
 
 .monaco-workbench .part.sources .sources-list-filter-clear:active {
@@ -88,8 +107,38 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.monaco-workbench .part.sources .sources-list-filter-clear:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-list-filter-clear:focus-visible {
+	outline: none;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-list-filter-clear:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.sources .sources-list-filter-clear-link {
+	margin-left: 4px;
+	padding: 0 4px;
+	background: none;
+	border: none;
+	border-radius: 4px;
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	font: inherit;
+	user-select: none;
+}
+
+.monaco-workbench .part.sources .sources-list-filter-clear-link:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-list-filter-clear-link:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.sources .sources-list-filter-clear-link:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
 }

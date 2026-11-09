@@ -57,17 +57,26 @@ export interface IPrepareEdit {
 	uri: URI;
 	healed?: IAbstractReplaceStringInput;
 	input: IAbstractReplaceStringInput;
+	/** Text that `applyEdit` read when the edits were generated. Unset when no edits were generated from file text. */
+	sourceText?: string;
 	generatedEdit:
 	| { success: true; textEdits: vscode.TextEdit[]; notebookEdits?: CellOrNotebookEdit[]; updated: NotebookDocumentSnapshot | TextDocumentSnapshot | undefined }
 	| { success: false; errorMessage: string };
+}
+
+function preparedEditsKey(requestId: string | undefined, input: IAbstractReplaceStringInput[]): string | undefined {
+	return requestId ? `${requestId}\u0000${JSON.stringify(input)}` : undefined;
 }
 
 
 export abstract class AbstractReplaceStringTool<T extends { explanation: string }> implements ICopilotTool<T> {
 	protected _promptContext: IBuildPromptContext | undefined;
 
-	// Cache for ReplaceStringsOperation instances
-	private lastOperation?: { inputKey: string; operation: Promise<IPrepareEdit[]> } | undefined;
+	/**
+	 * Edits computed for the confirmation in `prepareInvocation`, keyed by chat request id and input.
+	 * Only the `invoke` of the same call takes them, at most once.
+	 */
+	private readonly _preparedEdits = new Map<string, Promise<IPrepareEdit[]>>();
 
 	constructor(
 		@IPromptPathRepresentationService protected readonly promptPathRepresentationService: IPromptPathRepresentationService,
@@ -99,17 +108,69 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 	 */
 	protected abstract extractReplaceInputs(input: T): IAbstractReplaceStringInput[];
 
-	protected prepareEdits(options: vscode.LanguageModelToolInvocationOptions<T> | vscode.LanguageModelToolInvocationPrepareOptions<T>, token: vscode.CancellationToken): Promise<IPrepareEdit[]> {
+	/**
+	 * Edits for `invoke`. Reuses what this call's `prepareInvocation` computed only while every
+	 * file still has the text those edits were computed from; otherwise computes them again.
+	 */
+	protected prepareEdits(options: vscode.LanguageModelToolInvocationOptions<T>, token: vscode.CancellationToken): Promise<IPrepareEdit[]> {
 		const input = this.extractReplaceInputs(options.input);
-		const cacheKey = JSON.stringify(input);
-		if (this.lastOperation?.inputKey !== cacheKey) {
-			this.lastOperation = {
-				inputKey: cacheKey,
-				operation: this._prepareEdits(options, input, token)
-			};
+		const key = preparedEditsKey(options.chatRequestId, input);
+		const prepared = key === undefined ? undefined : this._preparedEdits.get(key);
+		if (key !== undefined) {
+			this._preparedEdits.delete(key);
 		}
+		return prepared ? this._reusePreparedEdits(prepared, options, input, token) : this._prepareEdits(options, input, token);
+	}
 
-		return this.lastOperation.operation;
+	private _prepareEditsForConfirmation(options: vscode.LanguageModelToolInvocationPrepareOptions<T>, input: IAbstractReplaceStringInput[], token: vscode.CancellationToken): Promise<IPrepareEdit[]> {
+		const operation = this._prepareEdits(options, input, token);
+		const key = preparedEditsKey(options.chatRequestId, input);
+		if (key !== undefined) {
+			// Entries of other requests only make their invoke compute again, so they can go.
+			const requestPrefix = `${options.chatRequestId}\u0000`;
+			for (const existing of this._preparedEdits.keys()) {
+				if (!existing.startsWith(requestPrefix)) {
+					this._preparedEdits.delete(existing);
+				}
+			}
+			this._preparedEdits.set(key, operation);
+		}
+		return operation;
+	}
+
+	private async _reusePreparedEdits(prepared: Promise<IPrepareEdit[]>, options: vscode.LanguageModelToolInvocationOptions<T>, input: IAbstractReplaceStringInput[], token: vscode.CancellationToken): Promise<IPrepareEdit[]> {
+		let edits: IPrepareEdit[];
+		try {
+			edits = await prepared;
+		} catch {
+			return this._prepareEdits(options, input, token);
+		}
+		for (const edit of edits) {
+			if (!await this._isPreparedEditCurrent(edit)) {
+				return this._prepareEdits(options, input, token);
+			}
+		}
+		return edits;
+	}
+
+	private async _isPreparedEditCurrent(edit: IPrepareEdit): Promise<boolean> {
+		try {
+			if (edit.sourceText !== undefined) {
+				// Read the way `applyEdit` does. `openDocumentAndSnapshot` returns this turn's
+				// snapshot for files edited earlier in the turn, which does not follow later changes.
+				const current = this.notebookService.hasSupportedNotebooks(edit.uri)
+					? await this.workspaceService.openNotebookDocumentAndSnapshot(edit.uri, this.alternativeNotebookContent.getFormat(this._promptContext?.request?.model))
+					: await this.workspaceService.openTextDocumentAndSnapshot(edit.uri);
+				return current.getText() === edit.sourceText;
+			}
+			if (!edit.document) {
+				// No file text was read (missing file or not allowed); compute again if the file exists now.
+				return !await this.instantiationService.invokeFunction(canExistingFileBeEdited, edit.uri);
+			}
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	private async _prepareEdits(options: vscode.LanguageModelToolInvocationOptions<T> | vscode.LanguageModelToolInvocationPrepareOptions<T>, input: IAbstractReplaceStringInput[], token: vscode.CancellationToken) {
@@ -204,7 +265,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 				throw new NoChangeError('Input and output are identical', input.filePath);
 			}
 
-			const { updatedFile, edits } = await this.generateEdit(uri, document, options, input, didHealRef, token);
+			const { updatedFile, edits, originalFile } = await this.generateEdit(uri, document, options, input, didHealRef, token);
 			let notebookEdits: (vscode.NotebookEdit | [URI, vscode.TextEdit[]])[] | undefined;
 			let updated: NotebookDocumentSnapshot | TextDocumentSnapshot;
 			if (document instanceof NotebookDocumentSnapshot) {
@@ -228,6 +289,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 				uri,
 				input,
 				healed: didHealRef.healed,
+				sourceText: originalFile,
 				generatedEdit: { success: true, textEdits: edits, notebookEdits, updated }
 			};
 		} catch (error) {
@@ -431,10 +493,12 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 
 		// Apply the edit using the improved applyEdit function that uses VS Code APIs
 		let updatedFile: string;
+		let originalFile: string;
 		let edits: vscode.TextEdit[] = [];
 		try {
 			const result = await this.doGenerateEdit(uri, oldString, newString, options);
 			updatedFile = result.updatedFile;
+			originalFile = result.originalFile;
 			edits = result.edits;
 			this.recordEditSuccess(options, true);
 		} catch (e) {
@@ -483,6 +547,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 					this._promptContext?.request?.model
 				);
 				updatedFile = result.updatedFile;
+				originalFile = result.originalFile;
 				edits = result.edits;
 			} catch (e2) {
 				this.sendHealingTelemetry(options, undefined, String(e2));
@@ -490,7 +555,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 			}
 		}
 
-		return { edits, updatedFile };
+		return { edits, updatedFile, originalFile };
 	}
 
 	private async sendReplaceTelemetry(outcome: string, options: vscode.LanguageModelToolInvocationOptions<T> | vscode.LanguageModelToolInvocationPrepareOptions<T>, input: IAbstractReplaceStringInput, file: string | undefined, isNotebookDocument: boolean | undefined, didHeal: boolean | undefined) {
@@ -580,6 +645,13 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 		const replaceInputs = this.extractReplaceInputs(options.input);
 		const allUris = replaceInputs.map(input => resolveToolInputPath(input.filePath, this.promptPathRepresentationService));
 
+		// Edits left by an earlier call with the same input (for example one the user rejected)
+		// must not reach this call's invoke. Only edits computed for this confirmation may.
+		const preparedKey = preparedEditsKey(options.chatRequestId, replaceInputs);
+		if (preparedKey !== undefined) {
+			this._preparedEdits.delete(preparedKey);
+		}
+
 		return this.instantiationService.invokeFunction(
 			createEditConfirmation,
 			allUris,
@@ -599,7 +671,7 @@ export abstract class AbstractReplaceStringTool<T extends { explanation: string 
 	): Promise<string> {
 		const urisNeedingConfirmationSet = new ResourceSet(urisNeedingConfirmation);
 
-		const allPreparedEdits = await this.prepareEdits(options, token);
+		const allPreparedEdits = await this._prepareEditsForConfirmation(options, replaceInputs, token);
 
 		// Generate diffs only for files needing confirmation
 		const diffResults = await Promise.all(

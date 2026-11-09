@@ -133,8 +133,13 @@
 	/* marker */
 }
 
+.monaco-workbench.monaco-reduce-motion .ua-motion {
+	transition: none;
+	animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-	.ua-motion {
+	.monaco-workbench:not(.monaco-enable-motion) .ua-motion {
 		transition: none;
 		animation: none;
 	}

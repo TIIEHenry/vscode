@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import errno
 import fnmatch
 import hashlib
 import json
@@ -2028,16 +2029,41 @@ def write_replacing(target: Path, data: bytes) -> None:
 
 
 def move_file_without_overwrite(source: Path, destination: Path) -> None:
-    """Move one file while refusing a destination that appeared after preview."""
-    if destination.exists():
-        raise FileExistsError(destination)
+    """Move one path while refusing a destination that appeared after preview.
+
+    Existence checks do not follow symlinks, so a dangling link counts as taken,
+    and a symlink source moves as the link itself. If the hard link is made but
+    the source cannot be removed, the link is taken back only while another link
+    to the file remains; otherwise, or when that fails, the raised error carries
+    the leftover link as partial_destination.
+    """
+    if os.path.lexists(destination):
+        raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), str(destination))
+    identity = os.lstat(source)
     try:
-        os.link(source, destination)
-        os.unlink(source)
-    except OSError:
-        if destination.exists():
-            raise
+        os.link(source, destination, follow_symlinks=False)
+    except (OSError, NotImplementedError) as exc:
+        if getattr(exc, "errno", None) == errno.EEXIST or os.path.lexists(destination):
+            raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), str(destination)) from exc
+        # Directories and filesystems without hard links land here: an entry created
+        # between the check above and this rename is replaced.
         os.rename(source, destination)
+        return
+    try:
+        os.unlink(source)
+    except OSError as exc:
+        try:
+            linked = os.lstat(destination)
+            if (linked.st_dev, linked.st_ino) != (identity.st_dev, identity.st_ino):
+                raise OSError(f"{destination} was replaced before the hard link could be removed")
+            if linked.st_nlink <= 1:
+                raise OSError(f"{destination} is now the only link to the file, so it is kept")
+            os.unlink(destination)
+        except OSError as cleanup_error:
+            error = OSError(f"{exc}; hard link left at {destination}: {cleanup_error}")
+            error.partial_destination = destination
+            raise error from exc
+        raise
 
 
 def restore_bytes(target: Path, data: bytes, mode: int) -> None:
@@ -2125,6 +2151,8 @@ def archive_apply(wiki: Wiki, path: str, expect: str, summary: str | None) -> di
     created_dirs: list[Path] = []
     source_removed = False
     file_moved = False
+    destination_created = False
+    moved_entries: list[str] = []
     applied_targets: list[str] = []
 
     def ensure_parent(target: Path) -> None:
@@ -2156,14 +2184,20 @@ def archive_apply(wiki: Wiki, path: str, expect: str, summary: str | None) -> di
         try:
             if file_moved:
                 move_file_without_overwrite(destination, source)
-            elif destination.exists():
-                if not source.exists():
-                    source.mkdir()
-                for entry in sorted(os.listdir(destination)):
-                    os.rename(destination / entry, source / entry)
+            elif destination_created and not os.path.lexists(destination):
+                if moved_entries or source_removed:
+                    errors.append("archive directory destination disappeared before rollback")
+            elif destination_created:
+                if source_removed:
+                    os.mkdir(source)
+                for entry in reversed(moved_entries):
+                    try:
+                        move_file_without_overwrite(destination / entry, source / entry)
+                    except FileExistsError:
+                        errors.append(f"left {plan['destination']}/{entry} in place: {plan['path']}/{entry} already exists")
+                    except OSError as move_error:
+                        errors.append(f"move {plan['destination']}/{entry} back to {plan['path']}/{entry}: {move_error}")
                 os.rmdir(destination)
-            elif source_removed:
-                errors.append("archive directory destination disappeared before rollback")
         except OSError as exc:
             errors.append(f"move {plan['destination']} back to {plan['path']}: {exc}")
         for directory in sorted(created_dirs, key=lambda item: len(item.parts), reverse=True):
@@ -2177,8 +2211,10 @@ def archive_apply(wiki: Wiki, path: str, expect: str, summary: str | None) -> di
         ensure_parent(destination)
         if plan["is_directory"]:
             os.mkdir(destination)  # Fails if the target appeared since the plan was made.
+            destination_created = True
             for entry in sorted(os.listdir(source)):
                 os.rename(source / entry, destination / entry)
+                moved_entries.append(entry)
             os.rmdir(source)
             source_removed = True
         else:
@@ -2196,6 +2232,9 @@ def archive_apply(wiki: Wiki, path: str, expect: str, summary: str | None) -> di
                 writes.append(f"added a row to {final}")
     except (OSError, WikiError) as exc:
         rollback_errors = rollback()
+        partial_destination = getattr(exc, "partial_destination", None)
+        if partial_destination is not None:
+            rollback_errors.append(f"{os.path.relpath(partial_destination, root)} may still hold the hard link this run created, or was replaced meanwhile")
         findings.append(Finding("archive-apply-failed", "error", plan["path"],
                                 f"Archive commit failed and was rolled back: {exc}"))
         if rollback_errors:

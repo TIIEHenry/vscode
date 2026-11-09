@@ -54,7 +54,17 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .debug-toolbar .monaco-action-bar .action-item .action-label {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .debug-toolbar .monaco-action-bar .action-item .action-label {
+		transition: none;
+	}
 }
 
 .monaco-workbench .debug-toolbar .monaco-action-bar .action-item .action-label:active {

@@ -201,8 +201,11 @@ function cycleConversationChatTab(editorGroupsService: IEditorGroupsService, del
 	return nextGroup.openEditor(target).then(() => undefined);
 }
 
-function conversationPartHasFocus(accessor: ServicesAccessor): boolean {
-	return accessor.get(IWorkbenchLayoutService).hasFocus(Parts.CONVERSATION_PART);
+function ensureConversationPartFocus(accessor: ServicesAccessor): void {
+	const layoutService = accessor.get(IWorkbenchLayoutService);
+	if (!layoutService.hasFocus(Parts.CONVERSATION_PART)) {
+		layoutService.focusPart(Parts.CONVERSATION_PART);
+	}
 }
 
 registerAction2(class ConversationSplitSessionWindowAction extends Action2 {
@@ -223,9 +226,7 @@ registerAction2(class ConversationSplitSessionWindowAction extends Action2 {
 	}
 
 	override run(accessor: ServicesAccessor): Promise<void> {
-		if (!conversationPartHasFocus(accessor)) {
-			return Promise.resolve();
-		}
+		ensureConversationPartFocus(accessor);
 		return accessor.get(IConversationSessionChatService).splitSessionWindow();
 	}
 });
@@ -245,9 +246,7 @@ registerAction2(class ConversationNextChatTabAction extends Action2 {
 	}
 
 	override run(accessor: ServicesAccessor): Promise<void> {
-		if (!conversationPartHasFocus(accessor)) {
-			return Promise.resolve();
-		}
+		ensureConversationPartFocus(accessor);
 		return cycleConversationChatTab(accessor.get(IEditorGroupsService), 1);
 	}
 });
@@ -265,9 +264,7 @@ registerAction2(class ConversationPreviousChatTabAction extends Action2 {
 	}
 
 	override run(accessor: ServicesAccessor): Promise<void> {
-		if (!conversationPartHasFocus(accessor)) {
-			return Promise.resolve();
-		}
+		ensureConversationPartFocus(accessor);
 		return cycleConversationChatTab(accessor.get(IEditorGroupsService), -1);
 	}
 });

@@ -27,6 +27,9 @@
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
@@ -40,7 +43,22 @@
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
+.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 0.1s ease;
+}
+
 .monaco-workbench.monaco-reduce-motion .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type {
+	transition: none;
+}
+
+.monaco-workbench.monaco-reduce-motion .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type::after {
 	transition: none;
 }
 
@@ -48,10 +66,14 @@
 	.monaco-workbench:not(.monaco-enable-motion) .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type {
 		transition: none;
 	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type::after {
+		transition: none;
+	}
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type.hidden {
@@ -59,13 +81,26 @@
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:hover {
+	background-color: transparent;
 	color: var(--vscode-breadcrumb-focusForeground);
+}
+
+.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:hover::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible {
 	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+	background-color: transparent;
 	color: var(--vscode-breadcrumb-focusForeground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:active::after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:focus-visible,

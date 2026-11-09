@@ -29,6 +29,15 @@ suite('Pane composite focus indicator chrome', () => {
 		assert.match(css, /title\.has-composite-bar > \.title-actions[\s\S]*?\.action-item \.action-label:active,[\s\S]*?background-color:\s*var\(--vscode-toolbar-activeBackground/);
 	});
 
+	test('pane composite title actions keep ordinary faces inset while preserving the full hit target', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/media/paneCompositePart.css'), 'utf8');
+		assert.match(css, /title\.has-composite-bar > \.title-actions[\s\S]*?\.action-item \.action-label\s*\{[^}]*position:\s*relative;[^}]*isolation:\s*isolate;/);
+		assert.match(css, /title\.has-composite-bar > \.title-actions[\s\S]*?\.action-item \.action-label::after\s*\{[^}]*inset:\s*1px 2px;[^}]*background-color:\s*transparent;/);
+		assert.match(css, /title\.has-composite-bar > \.title-actions[\s\S]*?\.action-item:active:not\(\.disabled\) \.action-label::after[\s\S]*?toolbar-activeBackground/);
+		assert.match(css, /not\(\.hc-black\):not\(\.hc-light\)[\s\S]*?title\.has-composite-bar > \.title-actions[\s\S]*?\.action-item:not\(\.disabled\):hover \.action-label::after[\s\S]*?toolbar-hoverBackground/);
+		assert.match(css, /monaco-reduce-motion[\s\S]*?title\.has-composite-bar > \.title-actions[\s\S]*?\.action-label::after[\s\S]*?transition:\s*none/);
+	});
+
 	test('pane composite bar items honor reduced motion while preserving active feedback', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/media/paneCompositePart.css'), 'utf8');
 		assert.match(css, /composite-bar-container > \.composite-bar > \.monaco-action-bar \.action-item\s*\{[^}]*transition:\s*background-color 0\.08s ease;/);

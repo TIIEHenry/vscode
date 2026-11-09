@@ -417,6 +417,64 @@ suite('ChatService', () => {
 		assert.deepStrictEqual(retrieved2.getRequests()[0]?.message.text, 'request 2');
 	});
 
+	test('restoring an unloaded session applies a rename that only reached the index', async () => {
+		const testService = createChatService();
+		// Don't add refs to testDisposables so we can control disposal
+		const sessionRef = testService.startNewLocalSession(ChatAgentLocation.Chat);
+		const resource = sessionRef.object.sessionResource;
+		const sessionId = LocalChatSessionUri.parseLocalSessionId(resource);
+		assert.ok(sessionId);
+		(sessionRef.object as ChatModel).addRequest({ parts: [], text: 'request 1' }, { variables: [] }, 0);
+		sessionRef.dispose();
+		await testService.waitForModelDisposals();
+
+		await testService.setChatSessionTitle(resource, 'Renamed');
+
+		// Not getOrRestoreModel: that keeps the reference in testDisposables until teardown.
+		const restoredRef = await testService.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+		assert.ok(restoredRef);
+		const restored = { title: restoredRef.object.title, customTitle: (restoredRef.object as ChatModel).customTitle };
+		restoredRef.dispose();
+		await testService.waitForModelDisposals();
+
+		// The index already has the new title, so only the session file write shows that saving persisted it.
+		// (InMemoryTestFileService ignores `append`, so this write holds just the appended entries.)
+		const lastSessionFileWrite = testFileService.writeOperations.filter(operation => operation.resource.path.includes(sessionId)).at(-1);
+
+		assert.deepStrictEqual({
+			restored,
+			sessionFileHasNewTitle: lastSessionFileWrite?.content.includes('Renamed'),
+			indexedTitle: testService.getSessionTitle(resource),
+		}, {
+			restored: { title: 'Renamed', customTitle: 'Renamed' },
+			sessionFileHasNewTitle: true,
+			indexedTitle: 'Renamed',
+		});
+	});
+
+	test('a rename racing a restore of the same unloaded session keeps the new title', async () => {
+		const testService = createChatService();
+		// Don't add refs to testDisposables so we can control disposal
+		const sessionRef = testService.startNewLocalSession(ChatAgentLocation.Chat);
+		const resource = sessionRef.object.sessionResource;
+		(sessionRef.object as ChatModel).addRequest({ parts: [], text: 'request 1' }, { variables: [] }, 0);
+		sessionRef.dispose();
+		await testService.waitForModelDisposals();
+
+		const restoring = testService.acquireOrLoadSession(resource, ChatAgentLocation.Chat, CancellationToken.None);
+		const renaming = testService.setChatSessionTitle(resource, 'Renamed');
+		const [restoredRef] = await Promise.all([restoring, renaming]);
+		assert.ok(restoredRef);
+		const restoredTitle = restoredRef.object.title;
+		restoredRef.dispose();
+		await testService.waitForModelDisposals();
+
+		assert.deepStrictEqual({ restoredTitle, indexedTitle: testService.getSessionTitle(resource) }, {
+			restoredTitle: 'Renamed',
+			indexedTitle: 'Renamed',
+		});
+	});
+
 	test('reports modified edit keep-alive holders', () => {
 		const testService = createChatService();
 		instantiationService.stub(IChatService, testService);

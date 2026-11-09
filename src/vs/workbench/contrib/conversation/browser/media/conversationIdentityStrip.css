@@ -95,16 +95,17 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2,0,0,1)), color 100ms var(--ua-ease, cubic-bezier(0.2,0,0,1));
 }
 
-.monaco-workbench .part.conversation button.conversation-identity-chip:active {
-	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
-}
-
 .monaco-workbench .part.conversation button.conversation-identity-chip:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-engine--offline:hover {
 	background-color: color-mix(in srgb, var(--vscode-editorWarning-foreground) 16%, var(--vscode-input-background));
+}
+
+/* Keep pointer-down feedback above both the shared and status-specific hover surfaces. */
+.monaco-workbench .part.conversation button.conversation-identity-chip:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip:focus-visible {
@@ -137,10 +138,20 @@
 	font-weight: 400;
 	line-height: 16px;
 	cursor: pointer;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2,0,0,1)), color 100ms var(--ua-ease, cubic-bezier(0.2,0,0,1));
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-add-folder:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation button.conversation-identity-add-folder:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-identity-chip:not(.conversation-identity-chip-engine),
+.monaco-workbench:is(.hc-black, .hc-light) .part.conversation .conversation-identity-add-folder {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-add-folder:focus-visible {
@@ -148,6 +159,34 @@
 	outline-offset: 1px;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation button.conversation-identity-chip:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation button.conversation-identity-add-folder:focus-visible {
+	outline: none !important;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench.hc-black .part.conversation button.conversation-identity-chip:focus-visible,
+.monaco-workbench.hc-light .part.conversation button.conversation-identity-chip:focus-visible,
+.monaco-workbench.hc-black .part.conversation button.conversation-identity-add-folder:focus-visible,
+.monaco-workbench.hc-light .part.conversation button.conversation-identity-add-folder:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: 1px;
+}
+
 .monaco-workbench .part.conversation .conversation-identity-chip-engine--failed {
 	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench.monaco-reduce-motion .part.conversation .conversation-identity-chip,
+.monaco-workbench.monaco-reduce-motion .part.conversation button.conversation-identity-chip,
+.monaco-workbench.monaco-reduce-motion .part.conversation button.conversation-identity-add-folder {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation .conversation-identity-chip,
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation button.conversation-identity-chip,
+	.monaco-workbench:not(.monaco-enable-motion) .part.conversation button.conversation-identity-add-folder {
+		transition: none;
+	}
 }

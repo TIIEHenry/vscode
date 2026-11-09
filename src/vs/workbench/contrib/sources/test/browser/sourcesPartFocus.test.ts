@@ -93,13 +93,13 @@ suite('Sources - part focus', () => {
 	}
 
 	function tabById(tabHost: HTMLElement, tabId: SourcesTabId): HTMLElement {
-		const tab = tabHost.querySelector(`#sources-tab-${tabId}`);
+		const tab = tabHost.querySelector(`.sources-tab[data-tab-id="${tabId}"]`);
 		assert.ok(tab instanceof HTMLElement, `missing tab ${tabId}`);
 		return tab;
 	}
 
 	function panelByTab(contentHost: HTMLElement, tabId: SourcesTabId): HTMLElement {
-		const panel = contentHost.querySelector(`[aria-labelledby="sources-tab-${tabId}"]`);
+		const panel = [...contentHost.querySelectorAll<HTMLElement>('[role="tabpanel"]')].find(panel => panel.getAttribute('aria-labelledby')?.endsWith(`-tab-${tabId}`));
 		assert.ok(panel instanceof HTMLElement, `missing panel ${tabId}`);
 		return panel;
 	}
@@ -147,13 +147,22 @@ suite('Sources - part focus', () => {
 			{ tab: mounted.reviewTab, panel: mounted.reviewPanel, tabId: SourcesTabId.Review },
 		];
 		for (const { tab, panel, tabId } of cases) {
-			assert.strictEqual(panel.id, `sources-panel-${tabId}`);
+				assert.match(panel.id, new RegExp(`^sources-\\d+-panel-${tabId}$`));
 			assert.strictEqual(tab.getAttribute('aria-controls'), panel.id);
 			assert.strictEqual(panel.getAttribute('aria-labelledby'), tab.id);
 			assert.strictEqual(mainWindow.document.getElementById(panel.id), panel);
 			assert.ok(panel.classList.contains('sources-tab-panel'));
 		}
 	});
+
+		test('tab and panel ids are unique per host', () => {
+			const first = mountHost();
+			const second = mountHost();
+			assert.notStrictEqual(first.filesTab.id, second.filesTab.id);
+			assert.notStrictEqual(first.filesPanel.id, second.filesPanel.id);
+			assert.strictEqual(first.filesTab.getAttribute('aria-controls'), first.filesPanel.id);
+			assert.strictEqual(second.filesTab.getAttribute('aria-controls'), second.filesPanel.id);
+		});
 
 	test('focuses the part root when no delegate is registered', () => {
 		const { part, parent } = mountPart();

@@ -119,6 +119,31 @@ suite('ConversationProcessFold', () => {
 		]);
 	});
 
+	test('rendered outer fold header controls its children panel', () => {
+		const span = projectProcessFoldSpans([turn('t1', 'thinking', 'outline')])[0];
+		assert.ok(span);
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		renderProcessFoldSpan(container, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => true,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => true,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: false,
+		}, disposables);
+		const header = container.querySelector('.conversation-process-fold-header') as HTMLButtonElement | null;
+		const children = container.querySelector('.conversation-process-fold-children') as HTMLElement | null;
+		assert.ok(header);
+		assert.ok(children);
+		assert.ok(children.id);
+		assert.strictEqual(header.getAttribute('aria-controls'), children.id);
+		disposables.dispose();
+	});
+
 	test('nestThinkingTools keeps each tool as its own row', () => {
 		const nodes = nestThinkingTools([
 			turn('t1', 'thinking'),

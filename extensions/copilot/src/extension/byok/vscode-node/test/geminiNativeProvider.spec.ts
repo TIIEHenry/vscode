@@ -88,6 +88,8 @@ function createStorageService(overrides?: Partial<IBYOKStorageService>): IBYOKSt
 		getStoredModelConfigs: vi.fn().mockResolvedValue({}),
 		saveModelConfig: vi.fn().mockResolvedValue(undefined),
 		removeModelConfig: vi.fn().mockResolvedValue(undefined),
+		isLegacyApiKeyMigrated: vi.fn().mockReturnValue(false),
+		markLegacyApiKeyMigrated: vi.fn().mockResolvedValue(undefined),
 		...overrides,
 	};
 }

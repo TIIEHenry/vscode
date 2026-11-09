@@ -18,6 +18,7 @@ import { IWorkspaceService } from '../../../platform/workspace/common/workspaceS
 import { createSha256Hash } from '../../../util/common/crypto';
 import { findNotebook, isJupyterNotebookUri } from '../../../util/common/notebooks';
 import { raceCancellationError, raceTimeout } from '../../../util/vs/base/common/async';
+import { isCancellationError } from '../../../util/vs/base/common/errors';
 import { dispose } from '../../../util/vs/base/common/lifecycle';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { ExtendedLanguageModelToolResult, LanguageModelDataPart, LanguageModelPromptTsxPart, LanguageModelTextPart, LanguageModelToolResult, MarkdownString } from '../../../vscodeTypes';
@@ -195,7 +196,12 @@ export class RunNotebookCellTool implements ICopilotTool<IRunNotebookCellToolPar
 
 			return result;
 		} catch (error) {
-			telemetryEvent.failed(error.message || 'exceptionThrown');
+			if (isCancellationError(error)) {
+				telemetryEvent.skipped('canceled');
+			} else {
+				telemetryEvent.failed(error.message || 'exceptionThrown');
+			}
+			throw error;
 		} finally {
 			await telemetryEvent.send(this.telemetryService);
 		}

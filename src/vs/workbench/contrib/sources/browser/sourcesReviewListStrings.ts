@@ -9,12 +9,12 @@ import { ReviewListEmptyReason } from '../common/sourcesReviewListModel.js';
 /** Compact Review tab chrome — shown only when there are changes to review. */
 export const sourcesReviewListHeaderHint = localize(
 	'sourcesReviewList.headerHint',
-	"Review progress stays in this window.",
+	"Review doesn't change files. Progress stays in this window.",
 );
 
 export const sourcesReviewRevealMissHint = localize(
 	'sourcesReviewList.revealMiss',
-	"对话里找不到这一步",
+	"Couldn't find this step in the conversation.",
 );
 
 export function sourcesReviewListEmptyMessage(reason: ReviewListEmptyReason): string {

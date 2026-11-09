@@ -44,14 +44,47 @@ export abstract class AbstractLanguageModelChatProvider<C extends LanguageModelC
 		this._knownModels = { ...this._knownModels, ...knownModels };
 	}
 
+	private _legacyApiKeyMigration: Promise<void> | undefined;
+
 	// TODO: Remove this after 6 months
+	/**
+	 * Starts, once per instance, moving the provider-level API key stored by older versions into a
+	 * language model group. Never returns that key: models are listed only through groups, so the
+	 * stored key and the migrated (or an existing same-name) group cannot both list models.
+	 */
 	protected async configureDefaultGroupWithApiKeyOnly(): Promise<string | undefined> {
-		const apiKey = await this._byokStorageService.getAPIKey(this._name);
-		if (apiKey) {
-			this.configureDefaultGroupIfExists(this._name, { apiKey } as C);
+		this._legacyApiKeyMigration ??= this._migrateLegacyApiKey();
+		return undefined;
+	}
+
+	private async _migrateLegacyApiKey(): Promise<void> {
+		try {
+			const apiKey = await this._byokStorageService.getAPIKey(this._name);
+			if (!apiKey || this._byokStorageService.isLegacyApiKeyMigrated(this._name)) {
+				return;
+			}
+			try {
+				await this.configureDefaultGroupIfExists(this._name, { apiKey } as C);
+			} catch (error) {
+				if (!this._isExistingGroupError(error)) {
+					this._logService.error(error instanceof Error ? error : String(error), `BYOK: could not migrate the stored ${this._name} API key; it is kept and migrated again on the next activation`);
+					return;
+				}
+				// The key stays stored but unused; the existing group is what the user configured.
+				await this._byokStorageService.markLegacyApiKeyMigrated(this._name);
+				this._logService.info(`BYOK: a ${this._name} language model group already exists, so the stored ${this._name} API key is not migrated`);
+				return;
+			}
+			await this._byokStorageService.markLegacyApiKeyMigrated(this._name);
 			await this._byokStorageService.deleteAPIKey(this._name, BYOKAuthType.GlobalApiKey);
+		} catch (error) {
+			this._logService.error(error instanceof Error ? error : String(error), `BYOK: could not finish migrating the stored ${this._name} API key`);
 		}
-		return apiKey;
+	}
+
+	/** The duplicate-name error that `addLanguageModelsProviderGroup` raises in the workbench. */
+	private _isExistingGroupError(error: unknown): boolean {
+		return error instanceof Error && error.message.includes(`Language model group with name ${this._name} already exists for vendor ${this._id}`);
 	}
 
 	protected async configureDefaultGroupIfExists(name: string, configuration: C): Promise<void> {

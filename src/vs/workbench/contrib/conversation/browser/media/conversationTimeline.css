@@ -35,6 +35,37 @@
 	scroll-padding-top: 0;
 }
 
+/* Keep the transcript scrollbar quiet while leaving a comfortable drag target.
+   The transparent track lets the reading surface stay visually continuous; the
+   transparent thumb border narrows the painted handle without shrinking its
+   interactive area. Firefox uses the token-backed thin scrollbar above. */
+.conversation-timeline-viewport::-webkit-scrollbar {
+	width: var(--vscode-spacing-size160, 16px);
+	height: var(--vscode-spacing-size160, 16px);
+}
+
+.conversation-timeline-viewport::-webkit-scrollbar-track,
+.conversation-timeline-viewport::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+.conversation-timeline-viewport::-webkit-scrollbar-thumb {
+	border: var(--vscode-spacing-size40, 4px) solid transparent;
+	border-radius: var(--vscode-cornerRadius-circle);
+	background: var(--vscode-scrollbarSlider-background);
+	background-clip: padding-box;
+}
+
+.conversation-timeline-viewport::-webkit-scrollbar-thumb:hover {
+	background: var(--vscode-scrollbarSlider-hoverBackground);
+	background-clip: padding-box;
+}
+
+.conversation-timeline-viewport::-webkit-scrollbar-thumb:active {
+	background: var(--vscode-scrollbarSlider-activeBackground);
+	background-clip: padding-box;
+}
+
 .conversation-timeline-stream {
 	box-sizing: border-box;
 	align-self: center;
@@ -47,7 +78,10 @@
 }
 
 .conversation-timeline-item {
-	margin-bottom: 32px;
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
+	margin-bottom: var(--vscode-spacing-size160, 16px);
 	min-width: 0;
 	max-width: 100%;
 	user-select: text;
@@ -55,8 +89,18 @@
 	contain-intrinsic-block-size: auto 120px;
 }
 
-.conversation-timeline-item:has(.conversation-lens-turn[data-kind="user"]) {
-	margin-bottom: 24px;
+.conversation-timeline-item::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+}
+
+.monaco-workbench .density-compact .conversation-timeline-item {
+	margin-bottom: var(--vscode-spacing-size40, 4px);
 }
 
 .conversation-timeline-item.conversation-timeline-item--cv-visible,
@@ -69,14 +113,23 @@
 }
 
 /* The article is the roving tabindex target. The workbench [tabindex="0"]:focus
-   rule would otherwise stroke the whole root. Reading rows do not draw that box.
-   High contrast keeps the workbench ring. */
+   rule would otherwise stroke the whole root. Normal themes use a compact reading
+   surface; high contrast keeps a contrast ring. */
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus {
 	outline: none !important;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline: none !important;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus-visible::before {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 3%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .conversation-timeline-item:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 	outline-offset: -1px;
 }
 

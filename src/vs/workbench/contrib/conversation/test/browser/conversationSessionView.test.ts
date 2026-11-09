@@ -1518,4 +1518,47 @@ suite('conversationSessionView (S1)', () => {
 		await submitDraft({ ...host, filterAgentId: undefined, dockTextarea: { value: 'hello root' } } as never);
 		assert.deepStrictEqual(posted, [{ kind: 'submitInput', text: 'hello root' }]);
 	});
+
+	test('entriesToLegacyTurns and stubTurnsToSnapshot preserve tool metadata and readOnlyText across cache round-trip', () => {
+		const initial = stubTurnsToSnapshot('s-cache', [
+			{
+				id: 'fe-1',
+				kind: 'tool',
+				text: 'file_edit',
+				toolName: 'file_edit',
+				toolStatus: 'completed',
+				metadata: { filediff: { file: 'src/app.ts', additions: 4, deletions: 1 }, diff: '@@ -1 +1,4 @@' },
+			},
+			{
+				id: 'sys-neutral',
+				kind: 'system',
+				text: 'neutral note',
+				readOnlyText: 'neutral',
+			},
+			{
+				id: 'sys-context',
+				kind: 'system',
+				text: 'context note',
+				readOnlyText: 'context',
+			},
+		]);
+		const projected = projectSnapshotToEntries(initial.snapshot, initial.attribution, initial.details);
+		const legacy = entriesToLegacyTurns(projected);
+		const roundTripped = stubTurnsToSnapshot('s-cache', legacy);
+		const finalEntries = projectSnapshotToEntries(roundTripped.snapshot, roundTripped.attribution, roundTripped.details);
+
+		const fileEdit = finalEntries.find(entry => entry.id === 'fe-1');
+		assert.ok(fileEdit);
+		assert.deepStrictEqual(fileEdit.metadata, { filediff: { file: 'src/app.ts', additions: 4, deletions: 1 }, diff: '@@ -1 +1,4 @@' });
+
+		const neutral = finalEntries.find(entry => entry.id === 'sys-neutral');
+		assert.ok(neutral);
+		assert.strictEqual(neutral.readOnlyText, 'neutral');
+		assert.strictEqual(neutral.text, 'neutral note');
+
+		const context = finalEntries.find(entry => entry.id === 'sys-context');
+		assert.ok(context);
+		assert.strictEqual(context.readOnlyText, 'context');
+		assert.strictEqual(context.text, 'context note');
+	});
 });

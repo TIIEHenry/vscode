@@ -43,6 +43,14 @@ export function isConversationLivePhaseActive(phase: ConversationLivePhase): boo
 	return phase === 'streaming' || phase === 'running' || phase === 'pending' || phase === 'waiting-input';
 }
 
+export function isConversationLivePhaseStreaming(phase: ConversationLivePhase): boolean {
+	return phase === 'streaming' || phase === 'running';
+}
+
 export function isConversationRowActive(row: ConversationLivePhaseRow, mode: ConversationDisplayMode = 'live'): boolean {
 	return isConversationLivePhaseActive(getConversationLivePhase(row, mode));
+}
+
+export function isConversationRowStreaming(row: ConversationLivePhaseRow, mode: ConversationDisplayMode = 'live'): boolean {
+	return isConversationLivePhaseStreaming(getConversationLivePhase(row, mode));
 }

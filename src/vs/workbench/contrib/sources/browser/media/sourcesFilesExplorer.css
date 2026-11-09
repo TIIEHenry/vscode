@@ -50,9 +50,41 @@
 .monaco-workbench .part.sources .sources-files-explorer-empty {
 	flex: 1;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: var(--vscode-spacing-size80, 8px);
 	padding: 16px;
 	text-align: center;
+	font-size: var(--vscode-fontSize-label1, 12px);
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-files-explorer-empty-message {
+	max-width: 30ch;
+}
+
+.monaco-workbench .part.sources .sources-files-explorer-open-folder {
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--vscode-textLink-foreground);
+	font: inherit;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.sources .sources-files-explorer-open-folder:hover {
+	text-decoration: underline;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .sources-files-explorer-open-folder:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench.hc-black .part.sources .sources-files-explorer-open-folder:focus-visible,
+.monaco-workbench.hc-light .part.sources .sources-files-explorer-open-folder:focus-visible {
+	outline-style: solid;
+	outline-width: 1px;
+	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }

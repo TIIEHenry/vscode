@@ -108,8 +108,11 @@ class HubDevicesRenderer implements IListRenderer<HubDeviceProjection, IHubDevic
 
 	renderElement(device: HubDeviceProjection, _index: number, templateData: IHubDeviceTemplateData): void {
 		templateData.device = device;
+		const statusLabel = getHubDeviceRowStatusLabel(device);
 		templateData.name.textContent = device.name;
-		templateData.status.textContent = getHubDeviceRowStatusLabel(device);
+		templateData.name.title = device.name;
+		templateData.status.textContent = statusLabel;
+		templateData.status.title = statusLabel;
 		const showConnect = this.canConnect(device);
 		templateData.connectButton.element.style.display = showConnect ? '' : 'none';
 		templateData.connectButton.enabled = showConnect;
@@ -571,6 +574,13 @@ export class ConnectionPreferencesDevices extends Disposable {
 					this.selectedPending = pending;
 					this.renderPendingPairs();
 				}));
+				this.pendingRowDisposables.add(DOM.addDisposableListener(row, 'keydown', (e: KeyboardEvent) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						this.selectedPending = pending;
+						this.renderPendingPairs();
+					}
+				}));
 			}
 		}
 		// D441: pending list-fail leftover must close Confirm/Reject without reselect.
@@ -631,7 +641,7 @@ export class ConnectionPreferencesDevices extends Disposable {
 		const input = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
-			inputs: [{ type: 'text', value: device.name, placeholder: localize('ua.connectionRenameDevicePlaceholder', "Device name") }],
+			inputs: [{ type: 'text', label: localize('ua.connectionRenameDevicePlaceholder', "Device name"), value: device.name, placeholder: localize('ua.connectionRenameDevicePlaceholder', "Device name") }],
 			primaryButton: localize('ua.connectionRenameDeviceConfirm', "Rename"),
 		});
 		const name = input.confirmed ? input.values?.[0]?.trim() : undefined;

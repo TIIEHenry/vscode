@@ -12,7 +12,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { stubTurnsToEntries } from '../../browser/conversationSessionView.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
-import { ConversationTimelineHost, conversationTimelineEmptyTitle, conversationTimelineMessagesNotLoaded } from '../../browser/conversationTimelineHost.js';
+import { ConversationTimelineHost, conversationTimelineEmptyTitle, conversationTimelineMessagesNotLoaded, type IConversationLensTimelineHostOptions } from '../../browser/conversationTimelineHost.js';
 
 suite('ConversationTimelineHost', () => {
 
@@ -21,7 +21,7 @@ suite('ConversationTimelineHost', () => {
 	const user = (id: string, text: string): ConversationStubTurn => ({ id, kind: 'user', text });
 	const assistant = (id: string, text: string): ConversationStubTurn => ({ id, kind: 'assistant', text, stubEcho: true });
 
-	function createHost(): ConversationTimelineHost {
+	function createHost(extra: Partial<IConversationLensTimelineHostOptions> = {}): ConversationTimelineHost {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IWebviewService, {
 			_serviceBrand: undefined,
@@ -52,8 +52,41 @@ suite('ConversationTimelineHost', () => {
 					return Disposable.None;
 				},
 			},
+			...extra,
 		}));
 	}
+
+	test('Scroll to Bottom hands focus to the caller once it hides itself', () => {
+		let handedOff = 0;
+		const host = createHost({ onScrolledToEndByUser: () => handedOff++ });
+		host.applyEntries(stubTurnsToEntries([user('u1', 'hello'), assistant('a1', 'one')]), { kind: 'baseline' });
+		const scrollDown = host.domNode.querySelector('.conversation-timeline-scroll-down') as HTMLElement;
+		scrollDown.hidden = false;
+		scrollDown.click();
+		assert.strictEqual(handedOff, 1);
+	});
+
+	test('Inbox reveal of a pending permission focuses its Allow button', () => {
+		const host = createHost();
+		host.applyEntries(stubTurnsToEntries([
+			user('u1', 'hello'),
+			{ id: 'c1', kind: 'confirmation', text: 'Run tool?', status: 'pending' },
+		]), { kind: 'baseline' });
+		host.revealPendingTurn('c1', { focusSeat: true });
+		const active = document.activeElement as HTMLElement | null;
+		assert.deepStrictEqual([active?.getAttribute('aria-label'), !!active?.closest('.conversation-lens-confirmation-actions')], ['Allow', true]);
+	});
+
+	test('a flipped streaming hold repaints the timeline write buttons', () => {
+		let hold: string | undefined;
+		const host = createHost({ onRegenerateTurn: () => { }, turnWriteHoldReason: () => hold });
+		host.applyEntries(stubTurnsToEntries([user('u1', 'hello'), { id: 'a1', kind: 'assistant', text: 'one' }]), { kind: 'baseline' });
+		const regenerate = () => host.domNode.querySelector('.conversation-lens-turn-action-regenerate .monaco-button')?.getAttribute('aria-disabled');
+		const before = regenerate();
+		hold = 'busy';
+		host.refreshTurnWriteHolds();
+		assert.deepStrictEqual([before, regenerate()], ['false', 'true']);
+	});
 
 	function articleCount(host: ConversationTimelineHost): number {
 		return host.domNode.querySelectorAll('article.conversation-timeline-item').length;
@@ -212,5 +245,97 @@ suite('ConversationTimelineHost', () => {
 		host.resetTestApplyMetrics();
 
 		assert.deepStrictEqual(host.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 0 });
+	});
+
+	test('streaming assistant card renders initial text, rendered-markdown class, and sub-agent source header on mount and full re-render', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IWebviewService, {
+			_serviceBrand: undefined,
+			activeWebview: undefined,
+			webviews: [],
+			onDidChangeActiveWebview: Event.None,
+			createWebviewOverlay: () => { throw new Error('not used'); },
+			createWebviewElement: () => ({
+				mountTo() { },
+				setHtml() { },
+				postMessage: () => Promise.resolve(true),
+				onDidWheel: Event.None,
+				onFatalError: Event.None,
+				intrinsicContentSize: observableValue('intrinsicContentSize', undefined),
+				dispose() { },
+			}),
+		} as unknown as IWebviewService);
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+
+		const host = store.add(instantiationService.createInstance(ConversationTimelineHost, parent, {
+			onResolveConfirmation: () => { },
+			contentAdapter: {
+				renderTurnBody: (turn: ConversationStubTurn, container: HTMLElement) => {
+					container.textContent = turn.text;
+					return Disposable.None;
+				},
+				renderStreamingBody: (_turn: ConversationStubTurn, container: HTMLElement) => {
+					return {
+						update(text: string) {
+							container.textContent = text;
+						},
+						dispose() { },
+					};
+				},
+			},
+		}));
+
+		const [baseEntry] = stubTurnsToEntries([assistant('overlay:t1', 'initial stream text')]);
+		assert.ok(baseEntry);
+		const streamingEntry = { ...baseEntry, streaming: true as const, agentId: 'sub-agent-alpha' };
+		host.applyEntries([streamingEntry], { kind: 'baseline' });
+
+		const article = host.getTimelineRowElement('overlay:t1');
+		assert.ok(article);
+		const body = article.querySelector('.conversation-lens-turn-body');
+		assert.ok(body);
+		assert.strictEqual(body.textContent, 'initial stream text');
+		assert.ok(body.classList.contains('rendered-markdown'));
+		assert.strictEqual(article.querySelector('.conversation-lens-turn-source')?.textContent, 'sub-agent-alpha');
+
+		host.refreshPresentation();
+		assert.strictEqual(article.querySelector('.conversation-lens-turn-body')?.textContent, 'initial stream text');
+	});
+
+	test('turns inserted before an initial overlay anchor stay mounted within the window', () => {
+		const host = createHost();
+		const [overlayEntry] = stubTurnsToEntries([assistant('overlay:t1', 'streaming...')]);
+		assert.ok(overlayEntry);
+		host.applyEntries([{ ...overlayEntry, streaming: true }], { kind: 'baseline' });
+		assert.strictEqual(articleCount(host), 1);
+
+		const [u1, a1] = stubTurnsToEntries([user('u1', 'question'), assistant('a1', 'preamble')]);
+		assert.ok(u1 && a1);
+		host.applyEntries([u1, a1, { ...overlayEntry, streaming: true }], { kind: 'patches', changedIds: new Set(['u1', 'a1']) });
+
+		assert.strictEqual(articleCount(host), 3);
+		assert.ok(host.getTimelineRowElement('u1'));
+		assert.ok(host.getTimelineRowElement('a1'));
+		assert.ok(host.getTimelineRowElement('overlay:t1'));
+	});
+
+	test('non-tail error card keeps content-visibility visible so negative inline margins are not paint-clipped', () => {
+		const host = createHost();
+		const turns: ConversationStubTurn[] = [
+			user('u1', 'hello'),
+			{ id: 'err1', kind: 'error', text: 'Something failed', retryable: true },
+			assistant('a1', 'one'),
+			assistant('a2', 'two'),
+			assistant('a3', 'three'),
+			assistant('a4', 'four'),
+		];
+		host.applyEntries(stubTurnsToEntries(turns), { kind: 'baseline' });
+
+		const errArticle = host.getTimelineRowElement('err1');
+		assert.ok(errArticle);
+		assert.ok(errArticle.classList.contains('conversation-timeline-item--cv-visible'));
 	});
 });

@@ -132,7 +132,7 @@ suite('Conversation Session StatusBar', () => {
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), [CONNECTION_PROFILES_ZONE]);
 		assert.strictEqual(engineEntry?.text, 'Engine not connected');
-		assert.strictEqual(engineEntry?.kind, 'warning');
+		assert.strictEqual(engineEntry?.kind, 'standard');
 	});
 
 	test('engine entry opens Connection when roster is connected but phase is not', () => {
@@ -246,11 +246,7 @@ suite('Conversation Session StatusBar', () => {
 				});
 				const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 				assert.strictEqual(engineEntry?.text, expected);
-				const expectedKind = phase.kind === 'failed'
-					? 'error'
-					: (phase.kind === 'disconnected' || phase.kind === 'closed')
-						? 'warning'
-						: 'standard';
+				const expectedKind = phase.kind === 'failed' ? 'error' : 'standard';
 				assert.strictEqual(engineEntry?.kind, expectedKind);
 				const expectedCommand = phase.kind === 'connected'
 					? OPEN_ENGINE_PREFERENCES_COMMAND_ID
@@ -273,7 +269,7 @@ suite('Conversation Session StatusBar', () => {
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
-			assert.strictEqual(engineEntry?.kind, 'warning');
+			assert.strictEqual(engineEntry?.kind, 'standard');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 			assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		});
@@ -292,7 +288,7 @@ suite('Conversation Session StatusBar', () => {
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
-			assert.strictEqual(engineEntry?.kind, 'warning');
+			assert.strictEqual(engineEntry?.kind, 'standard');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 			assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		});

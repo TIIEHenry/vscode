@@ -51,8 +51,16 @@ class RosterDetailPendingRoster extends ConversationStubService {
 			...lease.snapshot,
 			pendingActions: [...lease.snapshot.pendingActions, ...injected],
 		};
-		// Spread drops the prototype `dispose`, which the contribution calls in its finally.
-		return { ...lease, snapshot, dispose: () => lease.dispose() };
+		// A spread would drop the lease's prototype members, including dispose; methods stay bound to the real lease.
+		return new Proxy(lease, {
+			get: (target, property) => {
+				if (property === 'snapshot') {
+					return snapshot;
+				}
+				const value = Reflect.get(target, property, target);
+				return typeof value === 'function' ? value.bind(target) : value;
+			},
+		});
 	}
 
 	emitPendingViaRosterDetailOnly(sessionId: string, requestId: string): void {

@@ -195,7 +195,7 @@ MenuRegistry.appendMenuItems([{
 		group: '3_workbench_layout_move',
 		command: {
 			id: ToggleSidebarPositionAction.ID,
-			title: localize('move side bar right', "Move Primary Side Bar Right")
+			title: localize('moveNavigatorRight', "Move Navigator Right")
 		},
 		when: ContextKeyExpr.and(ContextKeyExpr.notEquals('config.workbench.sideBar.location', 'right'), ContextKeyExpr.equals('viewContainerLocation', ViewContainerLocationToString(ViewContainerLocation.Sidebar))),
 		order: 1
@@ -206,7 +206,7 @@ MenuRegistry.appendMenuItems([{
 		group: '3_workbench_layout_move',
 		command: {
 			id: ToggleSidebarPositionAction.ID,
-			title: localize('move sidebar left', "Move Primary Side Bar Left")
+			title: localize('moveNavigatorLeft', "Move Navigator Left")
 		},
 		when: ContextKeyExpr.and(ContextKeyExpr.equals('config.workbench.sideBar.location', 'right'), ContextKeyExpr.equals('viewContainerLocation', ViewContainerLocationToString(ViewContainerLocation.Sidebar))),
 		order: 1
@@ -239,7 +239,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarAppearanceMenu, {
 	group: '3_workbench_layout_move',
 	command: {
 		id: ToggleSidebarPositionAction.ID,
-		title: localize({ key: 'miMoveSidebarRight', comment: ['&& denotes a mnemonic'] }, "&&Move Primary Side Bar Right")
+		title: localize({ key: 'miMoveNavigatorRight', comment: ['&& denotes a mnemonic'] }, "&&Move Navigator Right")
 	},
 	when: ContextKeyExpr.and(ContextKeyExpr.notEquals('config.workbench.sideBar.location', 'right'), IsSessionsWindowContext.negate()),
 	order: 2
@@ -249,7 +249,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarAppearanceMenu, {
 	group: '3_workbench_layout_move',
 	command: {
 		id: ToggleSidebarPositionAction.ID,
-		title: localize({ key: 'miMoveSidebarLeft', comment: ['&& denotes a mnemonic'] }, "&&Move Primary Side Bar Left")
+		title: localize({ key: 'miMoveNavigatorLeft', comment: ['&& denotes a mnemonic'] }, "&&Move Navigator Left")
 	},
 	when: ContextKeyExpr.and(ContextKeyExpr.equals('config.workbench.sideBar.location', 'right'), IsSessionsWindowContext.negate()),
 	order: 2
@@ -264,14 +264,41 @@ const defaultWindowLayoutTogglePrecondition = ContextKeyExpr.and(
 
 export const ProductLayoutToggleKeybindingPrimary = {
 	navigator: KeyMod.CtrlCmd | KeyCode.KeyB,
-	conversation: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyC,
+	conversation: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyT,
 	preview: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyP,
 	sources: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.KeyS,
+} as const;
+
+export const ProductLayoutFocusKeybindingPrimary = {
+	conversation: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.Digit1,
+	preview: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.Digit2,
+	sources: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.Digit3,
 } as const;
 
 const productLayoutToggleKeybinding = {
 	weight: KeybindingWeight.WorkbenchContrib,
 };
+
+/**
+ * Passed only by the default keybindings of the product region toggles, so a keyboard
+ * toggle that shows a region also focuses it while a toolbar click leaves focus alone.
+ */
+interface IProductLayoutToggleArgs {
+	readonly focus?: boolean;
+}
+
+const productLayoutToggleKeyboardArgs: IProductLayoutToggleArgs = { focus: true };
+
+function isFocusRequested(args: unknown): boolean {
+	return typeof args === 'object' && !!args && (args as IProductLayoutToggleArgs).focus === true;
+}
+
+function showAndFocusAgentShellPart(layoutService: IWorkbenchLayoutService, part: Parts.CONVERSATION_PART | Parts.EDITOR_PART | Parts.SOURCES_PART): void {
+	if (!layoutService.isVisible(part, mainWindow)) {
+		layoutService.setPartHidden(false, part);
+	}
+	layoutService.focusPart(part, mainWindow);
+}
 
 // --- Toggle Editor Visibility
 
@@ -293,14 +320,18 @@ registerAction2(class extends Action2 {
 			keybinding: {
 				...productLayoutToggleKeybinding,
 				primary: ProductLayoutToggleKeybindingPrimary.preview,
+				args: productLayoutToggleKeyboardArgs,
 			},
 		});
 	}
 
-	run(accessor: ServicesAccessor): void {
+	run(accessor: ServicesAccessor, args?: unknown): void {
 		const layoutService = accessor.get(IWorkbenchLayoutService);
 		const hidden = layoutService.isVisible(Parts.EDITOR_PART, mainWindow);
 		layoutService.setPartHidden(hidden, Parts.EDITOR_PART);
+		if (!hidden && isFocusRequested(args)) {
+			layoutService.focusPart(Parts.EDITOR_PART, mainWindow);
+		}
 		alert(hidden
 			? localize("previewHidden", "Preview hidden")
 			: localize("previewShown", "Preview shown"));
@@ -368,6 +399,7 @@ registerAction2(class extends Action2 {
 			keybinding: {
 				...productLayoutToggleKeybinding,
 				primary: ProductLayoutToggleKeybindingPrimary.conversation,
+				args: productLayoutToggleKeyboardArgs,
 			},
 			menu: [{
 				id: MenuId.MenubarAppearanceMenu,
@@ -377,10 +409,13 @@ registerAction2(class extends Action2 {
 		});
 	}
 
-	run(accessor: ServicesAccessor): void {
+	run(accessor: ServicesAccessor, args?: unknown): void {
 		const layoutService = accessor.get(IWorkbenchLayoutService);
 		const hidden = layoutService.isVisible(Parts.CONVERSATION_PART);
 		layoutService.setPartHidden(hidden, Parts.CONVERSATION_PART);
+		if (!hidden && isFocusRequested(args)) {
+			layoutService.focusPart(Parts.CONVERSATION_PART);
+		}
 		alert(hidden
 			? localize('conversationHidden', "Conversation hidden")
 			: localize('conversationShown', "Conversation shown"));
@@ -414,6 +449,7 @@ registerAction2(class extends Action2 {
 			keybinding: {
 				...productLayoutToggleKeybinding,
 				primary: ProductLayoutToggleKeybindingPrimary.sources,
+				args: productLayoutToggleKeyboardArgs,
 			},
 			menu: [{
 				id: MenuId.MenubarAppearanceMenu,
@@ -423,13 +459,85 @@ registerAction2(class extends Action2 {
 		});
 	}
 
-	run(accessor: ServicesAccessor): void {
+	run(accessor: ServicesAccessor, args?: unknown): void {
 		const layoutService = accessor.get(IWorkbenchLayoutService);
 		const hidden = layoutService.isVisible(Parts.SOURCES_PART);
 		layoutService.setPartHidden(hidden, Parts.SOURCES_PART);
+		if (!hidden && isFocusRequested(args)) {
+			layoutService.focusPart(Parts.SOURCES_PART);
+		}
 		alert(hidden
 			? localize('sourcesHidden', "Sources hidden")
 			: localize('sourcesShown', "Sources shown"));
+	}
+});
+
+// --- Focus Conversation / Preview / Sources
+
+export const FocusConversationActionId = 'workbench.action.focusConversation';
+export const FocusPreviewActionId = 'workbench.action.focusPreview';
+export const FocusSourcesActionId = 'workbench.action.focusSources';
+
+registerAction2(class extends Action2 {
+
+	constructor() {
+		super({
+			id: FocusConversationActionId,
+			title: localize2('focusConversation', "Focus Conversation"),
+			category: Categories.View,
+			f1: true,
+			precondition: defaultWindowLayoutTogglePrecondition,
+			keybinding: {
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutFocusKeybindingPrimary.conversation,
+			},
+		});
+	}
+
+	run(accessor: ServicesAccessor): void {
+		showAndFocusAgentShellPart(accessor.get(IWorkbenchLayoutService), Parts.CONVERSATION_PART);
+	}
+});
+
+registerAction2(class extends Action2 {
+
+	constructor() {
+		super({
+			id: FocusPreviewActionId,
+			title: localize2('focusPreview', "Focus Preview"),
+			category: Categories.View,
+			f1: true,
+			precondition: defaultWindowLayoutTogglePrecondition,
+			keybinding: {
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutFocusKeybindingPrimary.preview,
+			},
+		});
+	}
+
+	run(accessor: ServicesAccessor): void {
+		showAndFocusAgentShellPart(accessor.get(IWorkbenchLayoutService), Parts.EDITOR_PART);
+	}
+});
+
+registerAction2(class extends Action2 {
+
+	constructor() {
+		super({
+			id: FocusSourcesActionId,
+			title: localize2('focusSources', "Focus Sources"),
+			category: Categories.View,
+			f1: true,
+			precondition: defaultWindowLayoutTogglePrecondition,
+			keybinding: {
+				...productLayoutToggleKeybinding,
+				primary: ProductLayoutFocusKeybindingPrimary.sources,
+			},
+		});
+	}
+
+	run(accessor: ServicesAccessor): void {
+		showAndFocusAgentShellPart(accessor.get(IWorkbenchLayoutService), Parts.SOURCES_PART);
 	}
 });
 
@@ -464,7 +572,7 @@ export class ToggleSidebarVisibilityAction extends Action2 {
 			toggled: {
 				condition: SideBarVisibleContext,
 				title: localize('navigator', "Navigator"),
-				mnemonicTitle: localize({ key: 'primary sidebar mnemonic', comment: ['&& denotes a mnemonic'] }, "&&Primary Side Bar"),
+				mnemonicTitle: localize({ key: 'miNavigator', comment: ['&& denotes a mnemonic'] }, "&&Navigator"),
 			},
 			metadata: {
 				description: localize('openAndCloseSidebar', 'Open/Show and Close/Hide Sidebar'),
@@ -515,7 +623,7 @@ MenuRegistry.appendMenuItems([
 			group: '3_workbench_layout_move',
 			command: {
 				id: ToggleSidebarVisibilityAction.ID,
-				title: localize('compositePart.hideSideBarLabel', "Hide Primary Side Bar"),
+				title: localize('hideNavigator', "Hide Navigator"),
 			},
 			when: ContextKeyExpr.and(SideBarVisibleContext, ContextKeyExpr.equals('viewContainerLocation', ViewContainerLocationToString(ViewContainerLocation.Sidebar))),
 			order: 2

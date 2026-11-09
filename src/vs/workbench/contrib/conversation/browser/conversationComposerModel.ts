@@ -28,6 +28,7 @@ export class ConversationComposerModel extends Disposable {
 	private _tuneContextView: IOpenContextView | undefined;
 	private _moreContextView: IOpenContextView | undefined;
 	private _postFailureVisible = false;
+	private _postFailureSerial = 0;
 	private _sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	get policy(): ComposerPolicy { return this._policy; }
@@ -40,6 +41,8 @@ export class ConversationComposerModel extends Disposable {
 	get tuneContextView(): IOpenContextView | undefined { return this._tuneContextView; }
 	get moreContextView(): IOpenContextView | undefined { return this._moreContextView; }
 	get postFailureVisible(): boolean { return this._postFailureVisible; }
+	/** Bumped each time the failure row is shown, so a caller can tell whether its write added one. */
+	get postFailureSerial(): number { return this._postFailureSerial; }
 	get sendFailureTimeout(): ReturnType<typeof setTimeout> | undefined { return this._sendFailureTimeout; }
 
 	beginTurnEdit(turnId: string, composeDraftSnapshot: string): void {
@@ -96,8 +99,15 @@ export class ConversationComposerModel extends Disposable {
 		this._onDidChange.fire();
 	}
 
+	/** Drops the failure row without touching the send-failure timeout. */
+	clearPostFailureState(): void {
+		this._postFailureVisible = false;
+		this._onDidChange.fire();
+	}
+
 	showPostFailure(): void {
 		this._postFailureVisible = true;
+		this._postFailureSerial++;
 		if (this._sendFailureTimeout) {
 			clearTimeout(this._sendFailureTimeout);
 			this._sendFailureTimeout = undefined;

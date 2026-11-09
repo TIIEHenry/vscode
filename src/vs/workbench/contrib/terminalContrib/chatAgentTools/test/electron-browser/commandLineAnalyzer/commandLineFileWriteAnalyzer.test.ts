@@ -219,6 +219,10 @@ suite('CommandLineFileWriteAnalyzer', () => {
 			test('sed -i absolute path outside workspace - block', () => t('sed -i \'s/foo/bar/\' /etc/config', 'outsideWorkspace', false, 1));
 			test('sed -i mixed inside/outside - block', () => t('sed -i \'s/foo/bar/\' file.txt /tmp/other.txt', 'outsideWorkspace', false, 1));
 
+			// GNU abbreviation of --in-place
+			test('sed --in outside workspace - block', () => t('sed --in \'s/foo/bar/\' /tmp/file.txt', 'outsideWorkspace', false, 1));
+			test('sed --in inside workspace - allow', () => t('sed --in \'s/foo/bar/\' file.txt', 'outsideWorkspace', true, 1));
+
 			// With blockDetectedFileWrites: all
 			test('sed -i with all setting - block', () => t('sed -i \'s/foo/bar/\' file.txt', 'all', false, 1));
 

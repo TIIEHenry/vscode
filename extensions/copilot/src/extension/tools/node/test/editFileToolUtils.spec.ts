@@ -53,6 +53,12 @@ describe('replace_string_in_file - applyEdit', () => {
 		expect(result.updatedFile).toBe('this is an newString!');
 	});
 
+	test('returns the text it read', async () => {
+		setText('this is an oldString!');
+		const result = await doApplyEdit('oldString', 'newString');
+		expect(result.originalFile).toBe('this is an oldString!');
+	});
+
 	test('exact match - single occurrence', async () => {
 		setText('function hello() {\n\tconsole.log("world");\n}');
 		const result = await doApplyEdit('console.log("world");', 'console.log("hello world");');

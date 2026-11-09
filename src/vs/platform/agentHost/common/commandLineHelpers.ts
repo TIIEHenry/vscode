@@ -100,7 +100,7 @@ export function stripRedundantCdPrefix(
  * Path comparison uses {@link extUriBiasedIgnorePathCase}, which is
  * case-insensitive on Windows / macOS.
  */
-function sameDirectory(extractedDir: string, workingDirectory: URI): boolean {
+export function sameDirectory(extractedDir: string, workingDirectory: URI): boolean {
 	if (!extractedDir) {
 		return false;
 	}

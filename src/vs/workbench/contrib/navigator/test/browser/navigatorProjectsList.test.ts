@@ -34,6 +34,7 @@ import { ConversationStubService, IConversationRosterService, type ConversationD
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView, navigatorProjectsRecentsFailureMessage } from '../../browser/navigatorProjectsList.js';
+import { NavigatorProjectsInlineFilterBox } from '../../browser/navigatorProjectsInlineFilterBox.js';
 import { INavigatorProjectsTreeNode } from '../../browser/navigatorProjectsTree.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
@@ -390,6 +391,34 @@ suite('NavigatorProjectsView', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(input.value, '');
 		assert.strictEqual(countTreeLeaves(view), 1);
+	});
+
+	test('filter box asks its owner to focus the list on ArrowDown, and on Escape once the box is empty', () => {
+		const requests: Array<'first' | 'current'> = [];
+		const parent = document.createElement('div');
+		store.add(new NavigatorProjectsInlineFilterBox(parent, 'Filter projects', 'Filter projects', target => {
+			requests.push(target);
+			return true;
+		}));
+		const input = parent.querySelector('input')!;
+		const press = (key: string, keyCode: number): boolean => {
+			const event = new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true });
+			input.dispatchEvent(event);
+			return event.defaultPrevented;
+		};
+		input.value = 'demo';
+		input.dispatchEvent(new globalThis.Event('input'));
+
+		const clear = { handled: press('Escape', 27), value: input.value, requests: requests.length };
+		const escapeEmpty = press('Escape', 27);
+		const down = press('ArrowDown', 40);
+
+		assert.deepStrictEqual({ clear, escapeEmpty, down, requests }, {
+			clear: { handled: true, value: '', requests: 0 },
+			escapeEmpty: true,
+			down: true,
+			requests: ['current', 'first'],
+		});
 	});
 
 	test('filter input is shown when entries exist', async () => {

@@ -28,18 +28,23 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarNoMessages, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab, formatSessionBarTurnCount } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarNoMessages, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTitleEmpty, conversationLensSessionBarTrajectoryTab, formatSessionBarTurnCount } from './conversationLensSessionBarStrings.js';
+import { conversationLensDockEngineNotConnected, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
+import { orderSessionsForRoster } from './conversationSessionsViewStrings.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import type { ConversationStubSession } from './conversationStubModel.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation, conversationDeleteOwnerSurvivesSnapshot, sameConversationDeleteOwner, type ConversationDeleteOwner } from './conversationDeleteSessionConfirm.js';
-import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText, composerDraftText } from './conversationComposerRefs.js';
 import type { ConversationComposerModel } from './conversationComposerModel.js';
+import { dismissComposerPopups } from './conversationLensComposerChrome.js';
+
+const conversationLensSessionBarRenameFailed = localize('conversationLens.sessionTitleRenameFailed', "Could not rename the session.");
+const conversationLensSessionBarCurrentSession = localize('conversationLens.sessionMoreCurrent', "current session");
 
 export interface IConversationLensSessionBarHost {
 	readonly isDisposed: boolean;
@@ -58,13 +63,19 @@ export interface IConversationLensSessionBarHost {
 	lensTablist: HTMLElement;
 	lensTabConversation: HTMLButtonElement;
 	lensTabTrajectory: HTMLButtonElement;
+	readonly lensAriaId: string;
 	sessionSyncBadge: HTMLElement;
 	suppressSessionSelect: boolean;
 	readingColumn: HTMLElement;
 	engineHistoryList: ConversationEngineHistoryList | undefined;
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
+	readonly inboxOverlay?: { closeListPanel(): void; setOnWillOpenListPanel?(handler: () => void): void };
+	addContextView?: IOpenContextView | undefined;
 	dockTextarea: HTMLTextAreaElement;
-	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'>;
+	readonly composerModel: Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot' | 'tuneContextView' | 'setTuneContextView' | 'moreContextView' | 'setMoreContextView'>;
+	/** Outgoing drafts and delete-refusal restores read and splice these chips with the textarea. */
+	composerRefResources?: string[];
+	syncComposerRefs?(): void;
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly dialogService: IDialogService;
@@ -139,7 +150,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			}
 			beginSessionTitleEdit(host);
 		}));
-		host.register(addDisposableListener(host.sessionTitleInput, 'keydown', e => {
+		host.register(addStandardDisposableListener(host.sessionTitleInput, 'keydown', e => {
 			if (host.isDisposed) {
 				return;
 			}
@@ -152,6 +163,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 				cancelSessionTitleEdit(host);
 			}
 		}));
+		host.register(addDisposableListener(host.sessionTitleInput, 'input', () => clearSessionTitleError(host)));
 		host.register(addDisposableListener(host.sessionTitleInput, 'blur', () => {
 			if (host.isDisposed) {
 				return;
@@ -175,13 +187,33 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			controls,
 			host.readingColumn,
 			() => host.listSessionId()));
-		host.engineHistoryList.setOnWillShow(() => host.setInputMaximized(false));
+		host.engineHistoryList.setOnWillShow(() => {
+			host.setInputMaximized(false);
+			host.sessionMoreContextView?.close();
+			host.inboxOverlay?.closeListPanel();
+		});
+		host.engineHistoryList.setOnUserWillOpen(() => {
+			host.engineSnapshotsList?.close({ restoreFocus: false });
+			dismissComposerPopups(host);
+		});
 		host.engineSnapshotsList = host.register(host.instantiationService.createInstance(
 			ConversationEngineSnapshotsList,
 			controls,
 			host.readingColumn,
 			() => host.listSessionId()));
-		host.engineSnapshotsList.setOnWillShow(() => host.setInputMaximized(false));
+		host.engineSnapshotsList.setOnWillShow(() => {
+			host.setInputMaximized(false);
+			host.sessionMoreContextView?.close();
+			host.inboxOverlay?.closeListPanel();
+		});
+		host.engineSnapshotsList.setOnUserWillOpen(() => {
+			host.engineHistoryList?.close({ restoreFocus: false });
+			dismissComposerPopups(host);
+		});
+		host.inboxOverlay?.setOnWillOpenListPanel?.(() => {
+			host.engineHistoryList?.close({ restoreFocus: false });
+			host.engineSnapshotsList?.close({ restoreFocus: false });
+		});
 
 		const newSessionContainer = append(controls, $('.conversation-lens-session-new'));
 		host.newSessionButton = host.register(new Button(newSessionContainer, {
@@ -257,6 +289,7 @@ function registerSessionMoreEscape(host: IConversationLensSessionBarHost, node: 
 		e.preventDefault();
 		e.stopPropagation();
 		open.close();
+		host.sessionMoreButton?.element?.focus?.();
 	}, useCapture);
 }
 
@@ -265,12 +298,17 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 		host.sessionMoreContextView.close();
 		return;
 	}
+	host.engineHistoryList?.close({ restoreFocus: false });
+	host.engineSnapshotsList?.close({ restoreFocus: false });
+	let popupElement: HTMLElement | undefined;
+	let popupHeldFocus = false;
 	host.sessionMoreContextView = host.contextViewService.showContextView({
 		getAnchor: () => host.sessionMoreButton.element,
 		anchorAlignment: AnchorAlignment.RIGHT,
 		anchorPosition: AnchorPosition.BELOW,
 		render: container => {
 			const popup = append(container, $('.conversation-lens-dock-more-popup'));
+			popupElement = popup;
 			popup.setAttribute('role', 'menu');
 			popup.setAttribute('aria-label', conversationLensSessionBarMore);
 			const store = new DisposableStore();
@@ -278,16 +316,13 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			// A shadow-root popup does not surface its own keys to that capture.
 			store.add(registerSessionMoreEscape(host, popup.ownerDocument, true));
 			store.add(registerSessionMoreEscape(host, popup));
-			const addAction = (label: string, run: () => void, enabled = true, holdReason?: string) => {
-				const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
+			store.add(addDisposableListener(popup, 'focusin', () => { popupHeldFocus = true; }));
+			const items: HTMLButtonElement[] = [];
+			const bindItem = (item: HTMLButtonElement, run: () => void, enabled: boolean) => {
 				item.type = 'button';
-				item.setAttribute('role', 'menuitem');
-				item.textContent = label;
 				item.disabled = !enabled;
 				item.setAttribute('aria-disabled', enabled ? 'false' : 'true');
-				const presented = !enabled && holdReason ? `${label}. ${holdReason}` : label;
-				item.title = presented;
-				item.setAttribute('aria-label', presented);
+				items.push(item);
 				store.add(addDisposableListener(item, 'click', e => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -298,18 +333,89 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 					run();
 				}));
 			};
+			const addAction = (label: string, run: () => void, enabled = true, holdReason?: string) => {
+				const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
+				item.setAttribute('role', 'menuitem');
+				item.textContent = label;
+				const presented = !enabled && holdReason ? `${label}. ${holdReason}` : label;
+				item.title = presented;
+				item.setAttribute('aria-label', presented);
+				bindItem(item, run, enabled);
+			};
+			const addSessionRow = (row: ISessionSwitcherRow, current: boolean) => {
+				const item = append(popup, $('button.conversation-lens-dock-more-item.conversation-lens-session-more-session')) as HTMLButtonElement;
+				item.setAttribute('role', 'menuitemradio');
+				item.setAttribute('aria-checked', String(current));
+				append(item, $('span.conversation-lens-session-more-session-title')).textContent = row.label;
+				const meta = append(item, $('span.conversation-lens-session-more-session-meta'));
+				meta.textContent = row.detail;
+				meta.setAttribute('aria-hidden', 'true');
+				const check = append(item, $('span.conversation-lens-session-more-session-check'));
+				check.setAttribute('aria-hidden', 'true');
+				if (current) {
+					check.classList.add(...ThemeIcon.asClassNameArray(Codicon.check));
+				}
+				const described = row.detail ? `${row.label}, ${row.detail}` : row.label;
+				item.title = described;
+				item.setAttribute('aria-label', current ? `${described}, ${conversationLensSessionBarCurrentSession}` : described);
+				bindItem(item, () => switchToSession(host, row.id), true);
+			};
 			const writesEnabled = sessionBarWritesEnabled(host);
 			const holdReason = sessionBarWriteHoldReason(host);
-			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
-			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
+			addAction(conversationLensSessionBarHistory, () => {
+				host.engineSnapshotsList?.close({ restoreFocus: false });
+				dismissComposerPopups(host);
+				host.engineHistoryList?.show();
+			});
+			addAction(conversationLensSessionBarSnapshots, () => {
+				host.engineHistoryList?.close({ restoreFocus: false });
+				dismissComposerPopups(host);
+				host.engineSnapshotsList?.show();
+			});
 			addAction(conversationLensSessionBarNewSession, () => createNewSession(host), writesEnabled, holdReason);
 			addAction(conversationLensSessionBarDeleteSession, () => {
 				void deleteActiveSession(host).catch(onUnexpectedError);
 			}, writesEnabled, holdReason);
-			for (const row of sessionSwitcherRows(host.stubService.getSessions())) {
-				addAction(row.label, () => switchToSession(host, row.id));
+			const currentId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+			for (const row of sessionSwitcherRows(orderSessionsForRoster(host.stubService.getSessions()))) {
+				addSessionRow(row, row.id === currentId);
+			}
+			const enabledItems = () => items.filter(item => !item.disabled && item.getAttribute('aria-disabled') !== 'true');
+			store.add(addDisposableListener(popup, 'keydown', event => {
+				const isDown = event.key === 'ArrowDown' || event.keyCode === 40 || event.keyCode === KeyCode.DownArrow;
+				const isUp = event.key === 'ArrowUp' || event.keyCode === 38 || event.keyCode === KeyCode.UpArrow;
+				const isHome = event.key === 'Home' || event.keyCode === 36 || event.keyCode === KeyCode.Home;
+				const isEnd = event.key === 'End' || event.keyCode === 35 || event.keyCode === KeyCode.End;
+				if (!isDown && !isUp && !isHome && !isEnd) {
+					return;
+				}
+				const available = enabledItems();
+				if (available.length === 0) {
+					return;
+				}
+				event.preventDefault();
+				event.stopPropagation();
+				const active = popup.ownerDocument.activeElement;
+				const current = available.indexOf(active as HTMLButtonElement);
+				if (isHome) {
+					available[0]?.focus?.();
+					return;
+				}
+				if (isEnd) {
+					available[available.length - 1]?.focus?.();
+					return;
+				}
+				const next = isDown
+					? (current < 0 ? 0 : (current + 1) % available.length)
+					: (current <= 0 ? available.length - 1 : current - 1);
+				available[next]?.focus?.();
+			}));
+			enabledItems()[0]?.focus?.();
+			if (popup.contains(popup.ownerDocument.activeElement)) {
+				popupHeldFocus = true;
 			}
 			return toDisposable(() => {
+				popup.remove();
 				store.dispose();
 				host.sessionMoreContextView = undefined;
 			});
@@ -325,6 +431,13 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 		},
 		onHide: () => {
 			host.sessionMoreContextView = undefined;
+			const anchor = host.sessionMoreButton.element;
+			const doc = anchor.ownerDocument;
+			const active = doc.activeElement;
+			const focusOwnedByPopup = !!popupElement?.contains(active) || (popupHeldFocus && (active === doc.body || active === null));
+			if (focusOwnedByPopup && anchor.isConnected && !anchor.closest('[hidden]')) {
+				anchor.focus();
+			}
 		},
 	});
 }
@@ -336,17 +449,17 @@ export function mountLensTablist(host: IConversationLensSessionBarHost, tablistH
 		host.lensTablist.setAttribute('aria-label', localize('conversationLens.lensTabs', "Conversation lens"));
 		host.lensTabConversation = append(host.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
 		host.lensTabConversation.type = 'button';
-		host.lensTabConversation.id = 'conversation-lens-tab-conversation';
+		host.lensTabConversation.id = `${host.lensAriaId}-tab-conversation`;
 		host.lensTabConversation.setAttribute('role', 'tab');
 		host.lensTabConversation.setAttribute('data-lens-id', 'conversation');
 		host.lensTabConversation.textContent = conversationLensSessionBarConversationTab;
 		host.lensTabTrajectory = append(host.lensTablist, $('button.conversation-lens-lens-tab')) as HTMLButtonElement;
 		host.lensTabTrajectory.type = 'button';
-		host.lensTabTrajectory.id = 'conversation-lens-tab-trajectory';
+		host.lensTabTrajectory.id = `${host.lensAriaId}-tab-trajectory`;
 		host.lensTabTrajectory.setAttribute('role', 'tab');
 		host.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
 		host.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
-			for (const [tab, label, icon] of [
+	for (const [tab, label, icon] of [
 			[host.lensTabConversation, conversationLensSessionBarConversationTab, Codicon.commentDiscussion],
 			[host.lensTabTrajectory, conversationLensSessionBarTrajectoryTab, Codicon.listTree],
 		] as const) {
@@ -441,6 +554,10 @@ export class SessionSelectBox extends SelectBox {
 			ariaLabel: localize('conversationLens.sessionSwitcher', "Switch session"),
 			useNativeSelect: hasNativeContextMenu(this.host.configurationService),
 			alignment: AnchorAlignment.LEFT,
+			onWillOpen: () => {
+				this.host.engineHistoryList?.close({ restoreFocus: false });
+				this.host.engineSnapshotsList?.close({ restoreFocus: false });
+			},
 			getItemDetail: (index: number) => {
 				const sessions = this.host.stubService.getSessions();
 				return sessionSwitcherRows(sessions)[index]?.detail;
@@ -502,6 +619,7 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 		const sessionId = host.getBoundSessionId();
 		const session = host.stubService.getSessions().find(s => s.id === sessionId);
 		if (!session) {
+			applySessionTitleHold(host);
 			return;
 		}
 		const title = session.title;
@@ -539,7 +657,7 @@ function sessionBarWriteHoldReason(host: IConversationLensSessionBarHost): strin
 	);
 }
 
-function applySessionTitleHold(host: IConversationLensSessionBarHost): void {
+export function applySessionTitleHold(host: IConversationLensSessionBarHost): void {
 	const button = host.sessionTitleButton;
 	if (!button) {
 		return;
@@ -593,18 +711,65 @@ export function cancelSessionTitleEdit(host: IConversationLensSessionBarHost): v
 		if (host.isDisposed || !host.sessionTitleEditing) {
 			return;
 		}
+		const hadFocus = host.sessionTitleInput.ownerDocument.activeElement === host.sessionTitleInput;
 		host.sessionTitleEditing = false;
 		host.sessionTitleInput.value = host.sessionTitleEditSnapshot;
 		host.sessionTitleInput.hidden = true;
 		host.sessionTitleButton.hidden = false;
+		clearSessionTitleError(host);
 		updateSessionTitle(host);
+		if (hadFocus && !host.sessionTitleButton.disabled) {
+			host.sessionTitleButton.focus();
+		}
 	
 }
 
 function closeSessionTitleEditor(host: IConversationLensSessionBarHost): void {
+	const hadFocus = host.sessionTitleInput.ownerDocument.activeElement === host.sessionTitleInput;
 	host.sessionTitleEditing = false;
 	host.sessionTitleInput.hidden = true;
 	host.sessionTitleButton.hidden = false;
+	clearSessionTitleError(host);
+	if (hadFocus && !host.sessionTitleButton.disabled) {
+		host.sessionTitleButton.focus();
+	}
+}
+
+const sessionTitleErrors = new WeakMap<IConversationLensSessionBarHost, HTMLElement>();
+let nextSessionTitleErrorId = 0;
+
+function sessionTitleErrorElement(host: IConversationLensSessionBarHost): HTMLElement {
+	let element = sessionTitleErrors.get(host);
+	if (!element) {
+		element = $('span.conversation-lens-session-title-error');
+		element.id = `conversation-lens-session-title-error-${++nextSessionTitleErrorId}`;
+		element.setAttribute('role', 'alert');
+		element.hidden = true;
+		host.sessionTitleInput.after(element);
+		sessionTitleErrors.set(host, element);
+	}
+	return element;
+}
+
+/** Keeps the editor and the typed title open; the reason sits beside the input. */
+function keepSessionTitleEditorWithError(host: IConversationLensSessionBarHost, reason: string): void {
+	const element = sessionTitleErrorElement(host);
+	element.textContent = reason;
+	element.title = reason;
+	element.hidden = false;
+	host.sessionTitleInput.setAttribute('aria-invalid', 'true');
+	host.sessionTitleInput.setAttribute('aria-describedby', element.id);
+}
+
+function clearSessionTitleError(host: IConversationLensSessionBarHost): void {
+	const element = sessionTitleErrors.get(host);
+	if (element) {
+		element.hidden = true;
+		element.textContent = '';
+		element.removeAttribute('title');
+	}
+	host.sessionTitleInput.removeAttribute('aria-invalid');
+	host.sessionTitleInput.removeAttribute('aria-describedby');
 }
 
 /** Title the button would show. Same lookup as {@link updateSessionTitle}. */
@@ -618,52 +783,40 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 			return;
 		}
 		// Pairing-hold and KEEP leftover are not a live rename, even if the editor was already open.
-		if (isConversationPairingHold(host.uaConnection)) {
-			closeSessionTitleEditor(host);
-			updateSessionTitle(host);
-			host.showPostFailure('engine_disconnected');
-			return;
-		}
-		if (isKeepLeftoverListFailWrite(host)) {
-			closeSessionTitleEditor(host);
-			updateSessionTitle(host);
-			host.showPostFailure('session_not_ready');
+		if (!sessionBarWritesEnabled(host)) {
+			keepSessionTitleEditorWithError(host, sessionBarWriteHoldReason(host) ?? conversationLensSessionBarRenameFailed);
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
 		const trimmed = host.sessionTitleInput.value.trim();
 		const currentTitle = displayedSessionTitle(host, sessionId);
 
-		closeSessionTitleEditor(host);
-
 		if (!trimmed) {
-			updateSessionTitle(host);
-			host.showPostFailure('empty_session_title');
+			keepSessionTitleEditorWithError(host, conversationLensSessionBarTitleEmpty);
 			return;
 		}
 
 		// Unchanged titles are not a failed post. renameSession returns false for that case.
 		if (trimmed === currentTitle) {
+			closeSessionTitleEditor(host);
 			updateSessionTitle(host);
 			return;
 		}
 
 		const renamed = host.stubService.renameSession(sessionId, trimmed);
-		if (!renamed) {
-			if (displayedSessionTitle(host, sessionId) === trimmed) {
-				updateSessionTitle(host);
-				return;
-			}
-			host.showPostFailure(
+		if (!renamed && displayedSessionTitle(host, sessionId) !== trimmed) {
+			keepSessionTitleEditorWithError(host,
 				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
+					? conversationLensDockEngineNotConnected
+					: conversationLensSessionBarRenameFailed
 			);
-			updateSessionTitle(host);
 			return;
 		}
+		closeSessionTitleEditor(host);
 		updateSessionTitle(host);
-		refreshSessionSelectOptions(host);
+		if (renamed) {
+			refreshSessionSelectOptions(host);
+		}
 	
 }
 
@@ -728,7 +881,7 @@ function restorePendingDeleteDraft(host: IConversationLensSessionBarHost, sessio
 	const text = pending.text;
 	host.writeComposerDraft(sessionId, text);
 	drafts.delete(sessionId);
-	if (host.getBoundSessionId() === sessionId) {
+	if (host.getBoundSessionId() === sessionId && host.composerModel.policy === 'compose') {
 		applyComposerSurfaceText(host, text);
 	}
 }
@@ -824,7 +977,7 @@ export async function deleteActiveSession(host: IConversationLensSessionBarHost)
 				return;
 			}
 			host.writeComposerDraft(sessionId, draftText);
-			if (host.getBoundSessionId() === sessionId) {
+			if (host.getBoundSessionId() === sessionId && host.composerModel.policy === 'compose') {
 				applyComposerSurfaceText(host, draftText);
 			}
 			if (host.getBoundSessionId() === boundSessionId) {
@@ -844,6 +997,9 @@ export function switchToSession(host: IConversationLensSessionBarHost, sessionId
 
 		if (host.isDisposed) {
 			return;
+		}
+		if (host.sessionTitleEditing) {
+			cancelSessionTitleEdit(host);
 		}
 		const previousId = host.getBoundSessionId();
 		if (previousId !== sessionId) {

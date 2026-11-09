@@ -29,6 +29,7 @@ import { ConversationEditorPaneId } from '../common/conversationSessionWindow.js
 import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { ConversationLeafSessionBar, IConversationLeafPaneAccessors } from './conversationLeafSessionBar.js';
+import { dismissComposerPopups } from './conversationLensComposerChrome.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { shouldAutoFocusComposer } from '../common/uaClientSettingsHelpers.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
@@ -230,7 +231,10 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			? this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar-leading')
 			: undefined;
 		const before = tablist.parentElement;
-		const placeInBar = this.group.activeEditorPane === this && !!leading;
+		const existingTablistInBar = leading?.querySelector('.conversation-editor-lens-tablist');
+		const placeInBar = this.group.activeEditorPane === this
+			&& !!leading
+			&& (!existingTablistInBar || existingTablistInBar === tablist);
 		if (placeInBar && leading) {
 			const icon = leading.querySelector('.conversation-lens-session-icon');
 			const placed = icon
@@ -286,8 +290,15 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		syncLease();
 	}
 
-	get composerModel(): Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot'> {
-		return this.lens?.composerModel ?? { policy: 'compose', composeDraftSnapshot: '' };
+	get composerModel(): Pick<ConversationComposerModel, 'policy' | 'composeDraftSnapshot' | 'tuneContextView' | 'setTuneContextView' | 'moreContextView' | 'setMoreContextView'> {
+		return this.lens?.composerModel ?? {
+			policy: 'compose',
+			composeDraftSnapshot: '',
+			tuneContextView: undefined,
+			setTuneContextView: () => { },
+			moreContextView: undefined,
+			setMoreContextView: () => { },
+		};
 	}
 
 	writeComposerDraft(sessionId: string, text: string): void {
@@ -296,6 +307,14 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 
 	deleteComposerDraftsForSession(sessionId: string): void {
 		this.lens?.deleteComposerDraftsForSession(sessionId);
+	}
+
+	getComposerRefResources(): string[] | undefined {
+		return this.lens?.composerRefResources;
+	}
+
+	syncComposerRefs(): void {
+		this.lens?.syncComposerRefs?.();
 	}
 
 	getDockTextarea(): HTMLTextAreaElement | undefined {
@@ -326,6 +345,12 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		this.lens?.setInputMaximized(maximized);
 	}
 
+	closeInboxListPanel(): void {
+		if (this.lens) {
+			dismissComposerPopups(this.lens);
+		}
+	}
+
 	private publishLeafSessionLists(): void {
 		const lens = this.lens;
 		const bar = this.leafSessionBar;
@@ -337,6 +362,14 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		}
 		if (!lens.engineSnapshotsList) {
 			lens.engineSnapshotsList = bar.engineSnapshotsList;
+		}
+		lens.inboxOverlay?.setOnWillOpenListPanel?.(() => {
+			lens.engineHistoryList?.close({ restoreFocus: false });
+			lens.engineSnapshotsList?.close({ restoreFocus: false });
+		});
+		if (!lens.sessionSyncBadge) {
+			lens.sessionSyncBadge = bar.sessionSyncBadge;
+			lens.updateSyncChrome();
 		}
 	}
 
@@ -361,12 +394,15 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		if (this.pageRoot) {
 			applyLeafWidthClasses(this.pageRoot, dimension.width);
 		}
-		this.leafSessionBar?.applyWidth(dimension.width);
+		const sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;
+		const barHost = sessionKey ? this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar : undefined;
+		const barWidth = barHost && barHost.clientWidth > 0 ? barHost.clientWidth : dimension.width;
+		this.leafSessionBar?.applyWidth(barWidth);
 		this.breadcrumb?.layout(dimension.width);
 		const chromeHeight = this.pageChrome?.offsetHeight ?? 0;
 		const contentHeight = Math.max(0, dimension.height - chromeHeight);
 		this.lens?.layout(contentHeight, dimension.width);
-		this.leafSessionBar?.layout(dimension.width);
+		this.leafSessionBar?.layout(barWidth);
 	}
 
 	override focus(): void {

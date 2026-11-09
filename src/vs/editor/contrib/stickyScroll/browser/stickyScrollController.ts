@@ -75,6 +75,8 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 	private _endLineNumbers: number[] = [];
 	private _showEndForLine: number | undefined;
 	private _minRebuildFromLine: number | undefined;
+	private _pendingMinRebuildFromLine: number | undefined;
+	private _pendingDiffRebuild = false;
 	private _updateSeq = 0;
 	private _mouseTarget: EventTarget | null = null;
 	private _cursorPositionListener: IDisposable | undefined;
@@ -602,19 +604,34 @@ export class StickyScrollController extends Disposable implements IEditorContrib
 	private async _updateState(rebuildFromLine?: number): Promise<void> {
 		const seq = ++this._updateSeq;
 		this._minRebuildFromLine = undefined;
+		// Record the request before awaiting so that the round which finally lands also applies
+		// the requests of the rounds it superseded, whichever round resumes first.
+		if (rebuildFromLine === undefined) {
+			this._pendingDiffRebuild = true;
+		} else {
+			const pendingMinRebuildFromLineOrInfinity = this._pendingMinRebuildFromLine !== undefined ? this._pendingMinRebuildFromLine : Infinity;
+			this._pendingMinRebuildFromLine = Math.min(rebuildFromLine, pendingMinRebuildFromLineOrInfinity);
+		}
 		const foldingModel = await FoldingController.get(this._editor)?.getFoldingModel() ?? undefined;
 		if (this._store.isDisposed || seq !== this._updateSeq) {
 			return;
 		}
+		// `undefined` rebuilds from the first changed line while a number is used as an index,
+		// so the two cannot be compared and a mix of both has to rebuild everything.
+		const mergedRebuildFromLine = this._pendingMinRebuildFromLine !== undefined && this._pendingDiffRebuild ? 0 : this._pendingMinRebuildFromLine;
+		this._pendingMinRebuildFromLine = undefined;
+		this._pendingDiffRebuild = false;
 		this._foldingModel = foldingModel;
 		this._widgetState = this.findScrollWidgetState();
 		const stickyWidgetHasLines = this._widgetState.startLineNumbers.length > 0;
 		this._stickyScrollVisibleContextKey.set(stickyWidgetHasLines);
-		this._stickyScrollWidget.setState(this._widgetState, this._foldingModel, rebuildFromLine);
+		this._stickyScrollWidget.setState(this._widgetState, this._foldingModel, mergedRebuildFromLine);
 	}
 
 	private async _resetState(): Promise<void> {
 		this._minRebuildFromLine = undefined;
+		this._pendingMinRebuildFromLine = undefined;
+		this._pendingDiffRebuild = false;
 		this._foldingModel = undefined;
 		this._widgetState = StickyScrollWidgetState.Empty;
 		this._stickyScrollVisibleContextKey.set(false);

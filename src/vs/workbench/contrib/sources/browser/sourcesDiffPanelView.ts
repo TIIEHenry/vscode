@@ -31,6 +31,7 @@ import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPan
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { ITextFileService } from '../../../services/textfile/common/textfiles.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { ISourcesChangeRef, resolveSourcesDiffWriteGate } from '../common/sourcesChangeRef.js';
 import {
@@ -81,6 +82,7 @@ import {
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { allocateSourcesDiffLoadGeneration, fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
+import { sourcesGitAcceptCursorBasis } from './sourcesGitDiffContent.js';
 
 const $ = dom.$;
 
@@ -138,6 +140,8 @@ export class SourcesDiffPanelView extends ViewPane {
 	private unstageUnavailable: HTMLElement | undefined;
 	private newFileNoticeElement: HTMLElement | undefined;
 	private actionNoticeElement: HTMLElement | undefined;
+	private lastHeight = 0;
+	private lastWidth = 0;
 	private dimension: dom.Dimension | undefined;
 	private currentRef: ISourcesChangeRef | undefined;
 	private comparisonLoadFailed = false;
@@ -168,6 +172,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
+		@ITextFileService private readonly textFileService: ITextFileService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 		this.element.classList.add('sources-diff-panel');
@@ -234,8 +239,12 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.unstageUnavailable.style.display = 'none';
 
 		this.newFileNoticeElement = dom.append(this.bodyContainer, $('.sources-diff-panel-new-file-notice'));
+		this.newFileNoticeElement.setAttribute('role', 'status');
+		this.newFileNoticeElement.setAttribute('aria-live', 'polite');
 		this.newFileNoticeElement.style.display = 'none';
 		this.actionNoticeElement = dom.append(this.bodyContainer, $('.sources-diff-panel-action-notice'));
+		this.actionNoticeElement.setAttribute('role', 'status');
+		this.actionNoticeElement.setAttribute('aria-live', 'polite');
 		this.actionNoticeElement.style.display = 'none';
 		this.editorContainer = dom.append(this.bodyContainer, $('.sources-diff-panel-editor'));
 
@@ -247,6 +256,8 @@ export class SourcesDiffPanelView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		this.lastHeight = height;
+		this.lastWidth = width;
 		this.dimension = new dom.Dimension(width, height);
 
 		const headerHeight = this.headerElement?.offsetHeight ?? 0;
@@ -503,7 +514,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(ref.kind, ref.indexState) && context.path !== '' && hasSourcesGitSessionId(pinnedSessionId),
+			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(ref.kind, ref.indexState) && sourcesGitAcceptCursorBasis(ref.original) !== undefined && context.path !== '' && hasSourcesGitSessionId(pinnedSessionId),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
@@ -628,7 +639,8 @@ export class SourcesDiffPanelView extends ViewPane {
 		const sessionId = stagedRef?.sessionId ?? '';
 		const path = this.currentWriteFacts()?.path ?? '';
 		const cursor = this.readAcceptCursor();
-		if (!isCurrent() || !canOfferSourcesGitAcceptHunk(stagedRef?.kind, stagedRef?.indexState) || path === '' || sessionId === '' || !cursor) {
+		const basis = stagedRef ? sourcesGitAcceptCursorBasis(stagedRef.original) : undefined;
+		if (!isCurrent() || !canOfferSourcesGitAcceptHunk(stagedRef?.kind, stagedRef?.indexState) || path === '' || sessionId === '' || !cursor || !basis) {
 			return;
 		}
 
@@ -665,7 +677,13 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.updateWriteActions();
 				return;
 			}
-			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
+			// File lines come from the saved file the engine diffed; unsaved edits shift them.
+			if (basis === 'fileLine' && stagedRef && this.textFileService.isDirty(stagedRef.modified)) {
+				this.showActionNotice(sourcesDiffAcceptUnavailableMessage());
+				this.updateWriteActions();
+				return;
+			}
+			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side, basis) : undefined;
 			if (!patch || !hasSourcesGitApplyHunksPayload(sessionId, [patch])) {
 				this.showActionNotice(sourcesDiffAcceptUnavailableMessage());
 				this.updateWriteActions();
@@ -751,6 +769,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.actionNoticeElement.textContent = message;
 		this.actionNoticeElement.classList.add('is-error');
 		this.actionNoticeElement.style.display = '';
+		if (this.dimension) {
+			this.layoutBody(this.lastHeight, this.lastWidth);
+		}
 	}
 
 	private hideActionNotice(): void {
@@ -760,6 +781,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.actionNoticeElement.textContent = '';
 		this.actionNoticeElement.classList.remove('is-error');
 		this.actionNoticeElement.style.display = 'none';
+		if (this.dimension) {
+			this.layoutBody(this.lastHeight, this.lastWidth);
+		}
 	}
 
 	private showLoadNotice(message: string): void {
@@ -769,6 +793,9 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.newFileNoticeElement.textContent = message;
 		this.newFileNoticeElement.classList.add('is-error');
 		this.newFileNoticeElement.style.display = '';
+		if (this.dimension) {
+			this.layoutBody(this.lastHeight, this.lastWidth);
+		}
 	}
 
 	private async renderDiff(original: URI, modified: URI, generation: number): Promise<boolean> {

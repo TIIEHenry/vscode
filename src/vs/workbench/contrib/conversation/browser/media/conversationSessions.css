@@ -5,7 +5,7 @@
 
 /* Narrow rows stay comfortable and keep the trailing meta on the same line, so
    same-titled sessions remain distinguishable. */
-.monaco-workbench .is-compact .conversation-sessions-item-subtitle {
+.monaco-workbench .is-compact .conversation-sessions-item[data-tone="waiting"] .conversation-sessions-item-subtitle {
 	flex-shrink: 0;
 }
 
@@ -52,18 +52,62 @@
 	box-sizing: border-box;
 }
 
+/* The list positions rows absolutely; `isolation` alone gives the `::before`
+   wash its own stacking context, so it never escapes behind the rows container. */
 .monaco-workbench .conversation-sessions-list .monaco-list-row {
+	z-index: 0;
+	isolation: isolate;
 	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
 	transition: background-color 100ms ease;
 	box-sizing: border-box;
 }
 
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row:hover {
+.monaco-workbench .conversation-sessions-list .monaco-list-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus .monaco-list-row.focused.selected {
+	outline: none !important;
+	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row:hover:not(.selected):not(:has(.conversation-sessions-group)) {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row:hover:not(.selected):not(:has(.conversation-sessions-group))::before {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 2.5%, transparent);
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row.selected {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row.focused {
+	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused:not(.selected):not(:has(.conversation-sessions-group)) {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused:not(.selected):not(:has(.conversation-sessions-group))::before {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused.selected {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
 /* Focus changes must switch the selected foreground and background together. */
@@ -71,17 +115,33 @@
 	transition: none;
 }
 
-.monaco-workbench .conversation-sessions-list .monaco-list-row:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+.monaco-workbench .conversation-sessions-list .monaco-list-row:active:not(.selected):not(:has(.conversation-sessions-group)) {
+	background-color: transparent;
 }
 
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row:active {
+.monaco-workbench .conversation-sessions-list .monaco-list-row:active:not(.selected):not(:has(.conversation-sessions-group))::before {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row:active:not(.selected):not(:has(.conversation-sessions-group)) {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row:active:not(.selected):not(:has(.conversation-sessions-group))::before {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
-.monaco-workbench .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused {
-	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder));
-	outline-offset: -1px;
+.monaco-workbench .conversation-sessions-list .monaco-list-row.selected:active:not(:has(.conversation-sessions-group)) {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row.selected:active:not(:has(.conversation-sessions-group)) {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+}
+
+.monaco-workbench .conversation-sessions-list .monaco-list-row:has(.conversation-sessions-group) {
+	background-color: transparent !important;
+	cursor: default;
 }
 
 .monaco-workbench .conversation-sessions-group {
@@ -92,7 +152,7 @@
 	padding: var(--vscode-spacing-size120) var(--vscode-spacing-size120) 0;
 	box-sizing: border-box;
 	font-size: var(--vscode-fontSize-body1, 13px);
-	line-height: 42px;
+	line-height: 30px;
 	color: var(--vscode-descriptionForeground);
 	user-select: none;
 }
@@ -121,11 +181,19 @@
 }
 
 .monaco-workbench .conversation-sessions-item-icon--waiting {
-	color: var(--vscode-editorWarning-foreground, var(--vscode-list-warningForeground));
+	color: var(--vscode-editorWarning-foreground, var(--vscode-list-warningForeground)) !important;
 }
 
 .monaco-workbench .conversation-sessions-item-icon--failed {
-	color: var(--vscode-errorForeground);
+	color: var(--vscode-errorForeground) !important;
+}
+
+.monaco-workbench.monaco-reduce-motion .conversation-sessions-list .monaco-list-row {
+	transition: none;
+}
+
+.monaco-workbench.monaco-reduce-motion .conversation-sessions-list .monaco-list-row::before {
+	transition: none;
 }
 
 .monaco-workbench.monaco-reduce-motion .conversation-sessions-item-icon--running,
@@ -134,6 +202,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-list .monaco-list-row {
+		transition: none;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-list .monaco-list-row::before {
+		transition: none;
+	}
+
 	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-item-icon--running,
 	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-item-icon--running::before {
 		animation: none;
@@ -142,7 +218,7 @@
 
 .monaco-workbench .conversation-sessions-item-label {
 	flex: 1 1 auto;
-	min-width: 0;
+	min-width: 8ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -168,8 +244,12 @@
 	color: inherit;
 }
 
-.monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-subtitle,
-.monaco-workbench .conversation-sessions-list .monaco-list-row.focused .conversation-sessions-item-subtitle {
+.monaco-workbench .conversation-sessions-list .monaco-list-row.conversation-sessions-item-active .conversation-sessions-item-label {
+	font-weight: var(--vscode-fontWeight-semiBold, 600);
+}
+
+.monaco-workbench .conversation-sessions-list .monaco-list-row.selected:not([data-tone="waiting"]) .conversation-sessions-item-subtitle,
+.monaco-workbench .conversation-sessions-list .monaco-list-row.focused:not([data-tone="waiting"]) .conversation-sessions-item-subtitle {
 	color: inherit;
 }
 
@@ -207,12 +287,22 @@
 }
 
 .monaco-workbench .conversation-sessions-item-more:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench.hc-black .conversation-sessions-item-more:focus-visible,
+.monaco-workbench.hc-light .conversation-sessions-item-more:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
 .monaco-workbench .conversation-sessions-item-more:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .conversation-sessions-item-more:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 /* Idle titles align like a conversation list; meaningful state glyphs stay visible. */
@@ -230,7 +320,8 @@
 	color: var(--vscode-editorWarning-foreground);
 }
 
-.monaco-workbench .conversation-sessions-item[data-tone="idle"]:is(:hover, :focus-within) .conversation-sessions-item-subtitle {
+.monaco-workbench .conversation-sessions-item[data-tone="idle"]:is(:hover, :focus-within, :has(.conversation-sessions-item-more[aria-expanded="true"])) .conversation-sessions-item-subtitle,
+.monaco-workbench .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused.conversation-sessions-item[data-tone="idle"] .conversation-sessions-item-subtitle {
 	display: none;
 }
 
@@ -246,11 +337,8 @@
 	pointer-events: auto;
 }
 
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row {
-	outline: none !important;
-}
-
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused {
-	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+.monaco-workbench.hc-black .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench.hc-light .conversation-sessions-list .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }

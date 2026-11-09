@@ -94,7 +94,7 @@ scripts/run-sglang-integration-tests.sh --protocol anthropic
 
 也可用 `--protocol chat`、`responses`、`both` 或 `all` 验证对应的 OpenAI-compatible 路径。每次记录实际 commit/dirty、endpoint、model、protocol、campaign 和终态；协议探针、任务 verifier、路由诊断与默认编辑器 UI 验收分别报告。无认证/无效 token 返回 200 不构成认证拒绝验收；Responses 的预算约束 400 也不能代替认证错误。
 
-2026-11-05 的三协议 45/45 历史记录、retry10 八场景终态及整体 strict gate 失败、Terra 的 deep_think 诊断及受控运行时探针集中在[本轮验证记录](../../dev/progress/sglang-provider-validation-2026-11-05.md)。F21 两模型矩阵与默认编辑器完整接入尚未验收。不要从过期编译日志或缺失 observation 的空列表推断当前构建或运行行为。
+2026-11-05 的三协议 45/45 历史记录、retry10 八场景终态及整体 strict gate 失败、Terra 的 deep_think 诊断及受控运行时探针集中在[本轮验证记录](../../dev/progress/sglang-provider-validation-2026-11-05.md)。F21 的第二个真实模型是本机 magpie 网关（`http://127.0.0.1:3425`，`sub2api-mimo/mimo-v2.6-flash`，只在 magpie 程序运行时可用），不是 SGLang 的第二个 served id；配置见引擎仓库 `docs/systems/infra/test-environment.md`。默认编辑器的 magpie 路径与完整接入尚未验收。不要从过期编译日志或缺失 observation 的空列表推断当前构建或运行行为。
 
 只为定位运行时问题而复用既有 Java class 时，使用唯一临时 cwd、独立日志配置与 user.home；JShell 的 `-J-D` 仅作用启动器，实际执行 JVM 必须用 `-R-Duser.home=...`、`-R-Dlogback.configurationFile=...`。先核实际 home、cwd、日志目标，再发模型请求。临时 Gradle worker classpath 不是稳定测试入口，mtime 或干净源码树也不能证明全部二进制与 HEAD 一致；正式验收仍走仓库脚本并记录构建来源。
 

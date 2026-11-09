@@ -90,7 +90,7 @@ export class WindowsShellHelper extends Disposable implements IWindowsShellHelpe
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.checkShell().catch(onUnexpectedError);
+		this.checkShell();
 	}
 
 	@debounce(500)

@@ -1012,13 +1012,11 @@ class AutomationHistorySection extends Disposable {
 			);
 			return;
 		}
-		if (this._store.isDisposed) {
-			return;
-		}
-		if (hadFocus) {
+		if (hadFocus && !this._store.isDisposed) {
 			this.pendingFocusRunId = focusRunId;
 			this.shouldRestoreFocus = true;
 		}
+		// Removing the active session can hide this view before deleteSession returns; the run must still be removed.
 		try {
 			await this.automationService.deleteRun(run.id);
 			if (this._store.isDisposed) {
@@ -1027,11 +1025,11 @@ class AutomationHistorySection extends Disposable {
 			this.restoreFocusAfterRender();
 			status(localize('automationRunSessionDeletedStatus', "Deleted the session for {0}", automationName));
 		} catch (error) {
+			this.logService.error('[AutomationsCards] Failed to remove deleted automation run from history', error);
 			if (this._store.isDisposed) {
 				return;
 			}
 			this.restoreFocusAfterRender();
-			this.logService.error('[AutomationsCards] Failed to remove deleted automation run from history', error);
 			await this.dialogService.error(
 				localize('automationRunHistoryDeleteFailed', "The session was deleted, but its run history item could not be removed."),
 				getErrorMessage(error),

@@ -1961,12 +1961,12 @@ export class CopilotCLIChatSessionParticipant extends Disposable {
 			this.sessionItemProvider.untitledSessionIdMapping.set(id, session.object.sessionId);
 			this.sessionItemProvider.sdkToUntitledUriMapping.set(session.object.sessionId, resource);
 			if (worktreeProperties) {
-				void this.copilotCLIWorktreeManagerService.setWorktreeProperties(session.object.sessionId, worktreeProperties);
+				void this.copilotCLIWorktreeManagerService.setWorktreeProperties(session.object.sessionId, worktreeProperties).catch(ex => this.logService.error(ex, 'Failed to store worktree properties'));
 			}
 		}
 		const sessionWorkingDirectory = getWorkingDirectory(session.object.workspace);
 		if (sessionWorkingDirectory && !isIsolationEnabled(session.object.workspace)) {
-			void this.workspaceFolderService.trackSessionWorkspaceFolder(session.object.sessionId, sessionWorkingDirectory.fsPath, session.object.workspace.repositoryProperties);
+			void this.workspaceFolderService.trackSessionWorkspaceFolder(session.object.sessionId, sessionWorkingDirectory.fsPath, session.object.workspace.repositoryProperties).catch(ex => this.logService.error(ex, 'Failed to track session workspace folder'));
 		}
 		disposables.add(session.object.attachStream(stream));
 		const permissionLevel = request.permissionLevel ?? options.permissionLevel;
@@ -2126,10 +2126,10 @@ export class CopilotCLIChatSessionParticipant extends Disposable {
 		}
 		// Do not await, we want this code path to be as fast as possible.
 		if (worktreeProperties) {
-			void this.copilotCLIWorktreeManagerService.setWorktreeProperties(session.object.sessionId, worktreeProperties);
+			void this.copilotCLIWorktreeManagerService.setWorktreeProperties(session.object.sessionId, worktreeProperties).catch(ex => this.logService.error(ex, 'Failed to store worktree properties'));
 		}
 		if (workingDirectory && !isIsolationEnabled(workspaceInfo)) {
-			void this.workspaceFolderService.trackSessionWorkspaceFolder(session.object.sessionId, workingDirectory.fsPath, workspaceInfo.repositoryProperties);
+			void this.workspaceFolderService.trackSessionWorkspaceFolder(session.object.sessionId, workingDirectory.fsPath, workspaceInfo.repositoryProperties).catch(ex => this.logService.error(ex, 'Failed to track session workspace folder'));
 		}
 
 		this.contextForRequest.set(session.object.sessionId, { prompt, attachments, model });

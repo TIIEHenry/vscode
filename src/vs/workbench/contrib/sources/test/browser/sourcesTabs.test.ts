@@ -16,12 +16,16 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
+import { SourcesReviewHostService } from '../../browser/sourcesReviewHostService.js';
 import { ISourcesReviewHostService } from '../../common/sourcesReviewHostService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { getIconRegistry } from '../../../../../platform/theme/common/iconRegistry.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { SOURCES_SHOW_CHANGES_COMMAND, SOURCES_SHOW_FILES_COMMAND, SOURCES_SHOW_REVIEW_COMMAND } from '../../browser/sources.contribution.js';
 
 suite('Sources - tab model', () => {
 
@@ -164,6 +168,7 @@ suite('Sources - tabs host docking', () => {
 		}, { defaultGlyph: Codicon.remove, icon: true, tabIndex: 0, name: 'Hide Sources' });
 		label.click();
 		assert.deepStrictEqual(hidden, [[true, Parts.SOURCES_PART]]);
+
 	});
 
 	test('filterSlot docks Files actions only when Files tab is active', () => {
@@ -191,7 +196,7 @@ suite('Sources - tabs host docking', () => {
 
 		// Tabs should have title attribute matching their label for narrow responsive hover
 		for (const id of SOURCES_TAB_ORDER) {
-			const btn = part.tabHost!.querySelector(`#sources-tab-${id}`) as HTMLButtonElement | null;
+			const btn = (part.tabHost!.querySelector(`#sources-tab-${id}`) ?? part.tabHost!.querySelector(`.sources-tab[data-tab-id="${id}"]`)) as HTMLButtonElement | null;
 			assert.ok(btn);
 			assert.strictEqual(btn.title, btn.textContent);
 		}
@@ -307,5 +312,73 @@ suite('Sources - tabs host docking', () => {
 		host.selectTab(SourcesTabId.Files, false);
 		assert.strictEqual(actionsElement.parentElement, filterSlot);
 		assert.ok(actionsElement.classList.contains('is-docked'));
+	});
+
+	test('Sources tab commands are in the command palette and select their tab', () => {
+		const instantiationService = createInstantiationService();
+		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
+			setFilesTabActive() { },
+			setFilterDock() { },
+			setActionsDock() { },
+		}));
+		instantiationService.set(ISourcesReviewHostService, store.add(new SourcesReviewHostService()));
+		const part = store.add(instantiationService.createInstance(SourcesPart));
+		instantiationService.set(ISourcesPartService, part);
+		const parent = mainWindow.document.createElement('div');
+		mainWindow.document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+		part.create(parent);
+		store.add(instantiationService.createInstance(SourcesTabsHost, part.tabHost!, part.contentHost!));
+		const selectedTab = () => part.tabHost!.querySelector('.sources-tab.selected')?.getAttribute('data-tab-id');
+		const commands = [SOURCES_SHOW_CHANGES_COMMAND, SOURCES_SHOW_REVIEW_COMMAND, SOURCES_SHOW_FILES_COMMAND];
+		const palette = new Set(MenuRegistry.getMenuItems(MenuId.CommandPalette).filter(isIMenuItem).map(item => item.command.id));
+		const selected = commands.map(id => {
+			instantiationService.invokeFunction(accessor => CommandsRegistry.getCommand(id)?.handler(accessor));
+			return selectedTab();
+		});
+		assert.deepStrictEqual({ inPalette: commands.map(id => palette.has(id)), selected }, {
+			inPalette: [true, true, true],
+			selected: [SourcesTabId.Changes, SourcesTabId.Review, SourcesTabId.Files],
+		});
+	});
+
+	test('multi-instance disposal only unbinds reviewListHost and focusDelegate when current owner matches', () => {
+		const instantiationService = createInstantiationService();
+		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
+			setFilesTabActive() { },
+			setFilterDock() { },
+			setActionsDock() { },
+		}));
+		const reviewHostService = store.add(new SourcesReviewHostService());
+		instantiationService.set(ISourcesReviewHostService, reviewHostService);
+		const part = store.add(instantiationService.createInstance(SourcesPart));
+		instantiationService.set(ISourcesPartService, part);
+
+		const parent = mainWindow.document.createElement('div');
+		mainWindow.document.body.appendChild(parent);
+		part.create(parent);
+		store.add(toDisposable(() => parent.remove()));
+
+		const tabHostA = mainWindow.document.createElement('div');
+		const contentHostA = mainWindow.document.createElement('div');
+		const tabHostB = mainWindow.document.createElement('div');
+		const contentHostB = mainWindow.document.createElement('div');
+		parent.append(tabHostA, contentHostA, tabHostB, contentHostB);
+
+		const hostA = store.add(instantiationService.createInstance(SourcesTabsHost, tabHostA, contentHostA));
+		assert.strictEqual(reviewHostService.getReviewListHost(), hostA);
+
+		const hostB = store.add(instantiationService.createInstance(SourcesTabsHost, tabHostB, contentHostB));
+		assert.strictEqual(reviewHostService.getReviewListHost(), hostB);
+
+		// Disposing the earlier hostA must not clear hostB's registration or focusDelegate
+		hostA.dispose();
+		assert.strictEqual(reviewHostService.getReviewListHost(), hostB);
+		assert.notStrictEqual((part as unknown as { focusDelegate: unknown }).focusDelegate, undefined);
+
+		// Disposing the active hostB clears both
+		hostB.dispose();
+		assert.strictEqual(reviewHostService.getReviewListHost(), undefined);
+		assert.strictEqual((part as unknown as { focusDelegate: unknown }).focusDelegate, undefined);
 	});
 });

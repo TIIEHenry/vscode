@@ -27,13 +27,61 @@
 }
 
 .monaco-workbench .conversation-agent-breadcrumb-item {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	cursor: pointer;
 	border-radius: 8px;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .conversation-agent-breadcrumb-item:active {
+.monaco-workbench .conversation-agent-breadcrumb-item::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench.monaco-reduce-motion .conversation-agent-breadcrumb-item,
+.monaco-workbench.monaco-reduce-motion .conversation-agent-breadcrumb-item::before {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-agent-breadcrumb-item,
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-agent-breadcrumb-item::before {
+		transition: none;
+	}
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-item:not([aria-current="location"]):hover,
+.monaco-workbench .monaco-breadcrumbs .monaco-breadcrumb-item.focused.conversation-agent-breadcrumb-item:not([aria-current="location"]),
+.monaco-workbench .monaco-breadcrumbs .monaco-breadcrumb-item.focused .conversation-agent-breadcrumb-item:not([aria-current="location"]) {
+	background-color: transparent;
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-item:not([aria-current="location"]):hover::before,
+.monaco-workbench .monaco-breadcrumbs .monaco-breadcrumb-item.focused.conversation-agent-breadcrumb-item:not([aria-current="location"])::before,
+.monaco-workbench .monaco-breadcrumbs .monaco-breadcrumb-item.focused .conversation-agent-breadcrumb-item:not([aria-current="location"])::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+/* Keep pointer-down feedback above the shared hover surface. */
+.monaco-workbench .conversation-agent-breadcrumb-item:active:not([aria-current="location"]) {
+	background-color: transparent;
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-item:active:not([aria-current="location"])::before {
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench .conversation-agent-breadcrumb-item[aria-current="location"] {
+	cursor: default;
+	pointer-events: none;
 }
 
 .monaco-workbench .conversation-agent-breadcrumb-item-label {

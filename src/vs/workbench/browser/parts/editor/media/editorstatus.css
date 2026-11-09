@@ -13,14 +13,28 @@
 
 .monaco-workbench .screen-reader-detected-explanation .cancel {
 	position: absolute;
+	z-index: 0;
+	isolation: isolate;
 	top: 0;
 	right: 0;
 	padding: .5em;
 	width: 22px;
 	height: 22px;
 	border: none;
+	background-color: transparent;
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .screen-reader-detected-explanation .cancel::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 0.12s ease;
 }
 
@@ -28,18 +42,34 @@
 	transition: none;
 }
 
+.monaco-workbench.monaco-reduce-motion .screen-reader-detected-explanation .cancel::after {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .cancel {
+		transition: none;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) .screen-reader-detected-explanation .cancel::after {
 		transition: none;
 	}
 }
 
 .monaco-workbench .screen-reader-detected-explanation .cancel:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .screen-reader-detected-explanation .cancel:active::after {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .screen-reader-detected-explanation .cancel:focus-visible {
 	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .screen-reader-detected-explanation .cancel:focus-visible::after {
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 

@@ -28,6 +28,10 @@ import { ConversationNavigationService, IConversationNavigationService } from '.
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { addComposerContextRef } from '../../browser/conversationComposerAt.js';
+import { applyComposerSurfaceText, composeConversationPayload } from '../../browser/conversationComposerRefs.js';
+import { switchToSession } from '../../browser/conversationLensSessionBar.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
@@ -46,6 +50,35 @@ class QuietRosterService extends ConversationStubService {
 		this.model.switchSession(previous);
 		this._onDidChangeSession.fire(sessionId);
 		return sessionId;
+	}
+}
+
+class RefusingDeleteRosterService extends QuietRosterService {
+	override deleteSession(_sessionId: string): boolean {
+		return false;
+	}
+}
+
+/**
+ * Delete hides the session; `rollback` brings it back with a session change only.
+ * A real engine rollback that had moved the active id fires an active-session change
+ * first. This fixture covers only the session-change path.
+ */
+class RollbackDeleteRosterService extends QuietRosterService {
+	private hidden: string | undefined;
+
+	override getSessions() {
+		return super.getSessions().filter(session => session.id !== this.hidden);
+	}
+
+	override deleteSession(sessionId: string): boolean {
+		this.hidden = sessionId;
+		return true;
+	}
+
+	rollback(sessionId: string): void {
+		this.hidden = undefined;
+		this._onDidChangeSession.fire(sessionId);
 	}
 }
 
@@ -94,6 +127,16 @@ suite('ConversationLeafSessionBar', () => {
 		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}`);
 	}
 
+	async function waitForCondition(condition: () => boolean, label: string): Promise<void> {
+		const deadline = Date.now() + 3000;
+		while (!condition()) {
+			if (Date.now() >= deadline) {
+				throw new Error(`timed out waiting for ${label}`);
+			}
+			await timeout(20);
+		}
+	}
+
 	function partFor(parts: Awaited<ReturnType<typeof createEditorParts>>, sessionKey: string): IConversationEditorPart {
 		const part = parts.conversationParts.find(candidate => candidate.sessionKey === sessionKey);
 		assert.ok(part, `missing part ${sessionKey}`);
@@ -136,8 +179,8 @@ suite('ConversationLeafSessionBar', () => {
 		});
 	}
 
-	async function createHarness() {
-		const rosterService = store.add(new QuietRosterService());
+	async function createHarness(roster?: QuietRosterService) {
+		const rosterService = store.add(roster ?? new QuietRosterService());
 		const openErrors: unknown[] = [];
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
@@ -336,5 +379,168 @@ suite('ConversationLeafSessionBar', () => {
 
 		paneB.leafSessionBarHost.dispose();
 		assert.strictEqual(leafSlots.sessionBar.querySelector('.conversation-lens-session-bar'), null);
+	});
+
+	test('two visible leaves: focus moving to the other window and back keeps a turn edit', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const userTurn = rosterService.appendUserTurn(primaryId, 'Edit me');
+		assert.ok(userTurn);
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(b);
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		await waitForPane(partFor(parts, b), [], parts);
+		const lens = paneA.activeConversationLens;
+		assert.ok(lens);
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
+		lens.dockTextarea.value = 'Edit me, changed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		const leafA = sessionWindowService.getLeafSlots(primaryId);
+		const leafB = sessionWindowService.getLeafSlots(b);
+		assert.ok(leafA);
+		assert.ok(leafB);
+
+		leafB.container.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+		assert.strictEqual(rosterService.getActiveSessionId(), b);
+		leafA.container.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+		assert.strictEqual(rosterService.getActiveSessionId(), primaryId);
+
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
+		assert.strictEqual(lens.composerModel.editingTurnId, userTurn.id);
+		assert.strictEqual(lens.dockTextarea.value, 'Edit me, changed');
+	});
+
+	test('switching away through the leaf session bar ends a turn edit when the leaf hides', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const userTurn = rosterService.appendUserTurn(primaryId, 'Edit me');
+		assert.ok(userTurn);
+		const b = rosterService.seedSessionQuietly();
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		const lens = paneA.activeConversationLens;
+		const leafBarA = paneA.leafSessionBarHost;
+		assert.ok(lens);
+		assert.ok(leafBarA);
+		lens.dockTextarea.value = 'compose draft';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerModel.policy, 'turnEdit');
+		lens.dockTextarea.value = 'Edit me, changed';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		switchToSession(leafBarA, b);
+		await waitForCondition(() => sessionWindowService.getFocusedLeafSessionKey() === b, 'focus in the new leaf');
+		const paneB = await waitForPane(partFor(parts, b), [], parts);
+		assert.strictEqual(sessionWindowService.isSessionWindowHidden(primaryId), true);
+		assert.strictEqual(lens.composerModel.policy, 'compose', 'hiding the leaf ends the edit');
+		assert.strictEqual(lens.dockTextarea.value, 'compose draft');
+
+		const leafBarB = paneB.leafSessionBarHost;
+		assert.ok(leafBarB);
+		switchToSession(leafBarB, primaryId);
+		await waitForCondition(() => sessionWindowService.getFocusedLeafSessionKey() === primaryId, 'focus back in the first leaf');
+
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.strictEqual(paneA.activeConversationLens, lens);
+		assert.strictEqual(lens.composerModel.policy, 'compose');
+		assert.strictEqual(lens.dockTextarea.value, 'compose draft');
+	});
+
+	test('leaf session bar switch keeps the composer refs in the outgoing draft', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		const lens = paneA.activeConversationLens;
+		const leafBar = paneA.leafSessionBarHost;
+		assert.ok(lens);
+		assert.ok(leafBar);
+		const ref = getConversationChatResource(b, 'default').toString();
+		addComposerContextRef(lens, ref);
+		lens.dockTextarea.value = 'body with a ref';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		switchToSession(leafBar, b);
+		assert.strictEqual(lens.readComposerDraft(primaryId), composeConversationPayload('body with a ref', [ref]));
+		await waitForCondition(() => sessionWindowService.getFocusedLeafSessionKey() === b, 'focus in the new leaf');
+		await waitForPane(partFor(parts, b), [], parts);
+
+		// Restore from the draft the leaf bar wrote, not from chips still held in memory.
+		applyComposerSurfaceText(lens, '');
+		lens.restoreComposerDraftToInput();
+		assert.deepStrictEqual([...lens.composerRefResources], [ref]);
+		assert.strictEqual(lens.dockTextarea.value, 'body with a ref');
+	});
+
+	test('leaf session bar new session keeps the composer refs in the outgoing draft', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		const lens = paneA.activeConversationLens;
+		const leafBar = paneA.leafSessionBarHost;
+		assert.ok(lens);
+		assert.ok(leafBar);
+		const ref = getConversationChatResource(b, 'default').toString();
+		addComposerContextRef(lens, ref);
+		lens.dockTextarea.value = 'body with a ref';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+
+		leafBar.createNewSession();
+		assert.strictEqual(lens.readComposerDraft(primaryId), composeConversationPayload('body with a ref', [ref]));
+		const created = rosterService.getActiveSessionId();
+		assert.notStrictEqual(created, primaryId);
+		await waitForCondition(() => sessionWindowService.getFocusedLeafSessionKey() === created, 'focus in the new session leaf');
+		await waitForPane(partFor(parts, created), [], parts);
+	});
+
+	test('leaf session bar refused delete keeps the composer refs in the draft and on the lens', async () => {
+		const harness = await createHarness(new RefusingDeleteRosterService());
+		const { parts, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		const lens = paneA.activeConversationLens;
+		const leafBar = paneA.leafSessionBarHost;
+		assert.ok(lens);
+		assert.ok(leafBar);
+		const ref = getConversationChatResource(b, 'default').toString();
+		addComposerContextRef(lens, ref);
+		lens.dockTextarea.value = 'body with a ref';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		leafBar.dialogService.confirm = async () => ({ confirmed: true });
+
+		await leafBar.deleteActiveSession();
+
+		assert.strictEqual(lens.readComposerDraft(primaryId), composeConversationPayload('body with a ref', [ref]));
+		assert.deepStrictEqual([...lens.composerRefResources], [ref]);
+		assert.strictEqual(lens.composerRefRow.hidden, false);
+	});
+
+	test('leaf session bar delete rollback restores the composer refs on the lens', async () => {
+		const roster = new RollbackDeleteRosterService();
+		const harness = await createHarness(roster);
+		const { parts, primaryId } = harness;
+		const b = roster.seedSessionQuietly();
+		const paneA = await waitForPane(partFor(parts, primaryId));
+		const lens = paneA.activeConversationLens;
+		const leafBar = paneA.leafSessionBarHost;
+		assert.ok(lens);
+		assert.ok(leafBar);
+		const ref = getConversationChatResource(b, 'default').toString();
+		addComposerContextRef(lens, ref);
+		lens.dockTextarea.value = 'body with a ref';
+		lens.dockTextarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		leafBar.dialogService.confirm = async () => ({ confirmed: true });
+
+		await leafBar.deleteActiveSession();
+		// The user drops the chip while the delete is still pending.
+		applyComposerSurfaceText(lens, 'body with a ref');
+		assert.deepStrictEqual([...lens.composerRefResources], []);
+		roster.rollback(primaryId);
+
+		assert.deepStrictEqual([...lens.composerRefResources], [ref]);
+		assert.strictEqual(lens.dockTextarea.value, 'body with a ref');
+		assert.strictEqual(lens.readComposerDraft(primaryId), composeConversationPayload('body with a ref', [ref]));
 	});
 });

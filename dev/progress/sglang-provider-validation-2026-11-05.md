@@ -3,8 +3,8 @@ title: "SGLang Provider 与任务评测验证（2026-11-05）"
 type: progress
 status: in_progress
 phase: N/A
-updated: 2026-11-05
-summary: "retry10 八个场景完成且 strict gate 仍失败；真实默认编辑器 SGLang a5 与 b2 无观察器原四步通过，F21 仍缺第二真实模型。"
+updated: 2026-11-07
+summary: "retry10 八个场景完成且 strict gate 仍失败；真实默认编辑器 SGLang a5 与 b2 无观察器原四步通过；F21 第二真实模型是本机 magpie 网关，默认编辑器 magpie 路径尚未运行。"
 ---
 
 # SGLang Provider 与任务评测验证
@@ -327,6 +327,14 @@ Terra 重新只读查询 SGLang：`/health`=200；`/v1/models`=200 且仍只有 
 Terra 再次只读复核，未启动/停止服务、未重跑 editor runner，也未改仓库或共享配置。`/v1/models` HTTP 200 仍只有 served id `Local`；`/server_info` HTTP 200、状态 ready，版本为 `0.5.20.dev1+g44804731f`，唯一模型仍是 Ornith-1.5-35B-A3B-NVFP4，`tp=2/pp=1/dp=1`，LoRA、draft、encoder 均为空，只有一个 internal state；`/metrics` HTTP 200 的 `model_name` 标签仍唯一为 `Local`。短复核快照为 `/tmp/sglang-f21-brief-20261105T173740Z/summary.json`，SHA256 `ddebe0f9417664329b76ecaaf83ac21d5d25150ea2651f860ccaa82d760457eb`。50061 仍由 PID 67939 监听。
 
 F21 仍需要服务主机暴露不同 `served_model_name` 或第二实例/端口；本机不伪造第二 profile，也不重复已通过的 c5b 场景。
+
+### F21 第二模型来源更正（2026-11-07）
+
+引擎仓库 `docs/systems/infra/test-environment.md` 已把本机 magpie 网关定为与 SGLang 并列的第二套默认真实 LLM：`http://127.0.0.1:3425`，默认模型 `sub2api-mimo/mimo-v2.6-flash`。Anthropic、OpenAI Chat、Responses 三条协议都可走：Anthropic 的 base URL 不带 `/v1`，另两条带 `/v1`。口令默认 `magpie`，可用 `MAGPIE_API_KEY` 覆盖；它不是云厂商密钥，仍不写入证据。自 2026-11-05 起，引擎侧的两个真实 LLM 就是 SGLang `Local` 与这套 magpie，不再加第三个。
+
+引擎侧 F21 已用 magpie 跑过 workspace-v2 消融，证据在引擎仓库 `dev/iterations/testing/live-evidence/2026-11-06-magpie-mimo-workspace-v2-responses-ablation-k3.md`。评测本身测不出路由价值，登记为引擎 `D-TEST-F21-ROUTING-DISCRIMINATION-1`，重设计见引擎 `dev/plans/f21-routing-eval-redesign-2026-11-06.md`。
+
+所以上面各节「F21 需要 SGLang 暴露第二个 served id」的前提不成立：第二个真实模型不必来自同一 SGLang 实例。本仓默认编辑器的第二模型接入改用 magpie。magpie 是本机桌面网关程序（`~/.local/bin/magpie`），只在运行时监听 3425；2026-11-07 只读探测时它没有运行（连接被拒），默认编辑器的 magpie 路径还没跑过，本仓侧 F21 仍未验收。跑之前先启动 magpie，确认 `GET /v1/models` 含该模型；隔离 provider/model 配置照 c5b 的写法，把 base URL、模型和口令换成 magpie 的值。
 
 ## 后续验证边界
 
@@ -1741,3 +1749,455 @@ F21 第二真实 served model/第二端口、有效认证拒绝、wire capture �
 
 本探针只覆盖单一 `Local` served model 的真实 HTTP strict JSON Schema、seed/temperature、双工具消息回灌与流式 usage 组合路径；不证明工具执行器或完整生产 AgentLoop，F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture 与默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
 
+
+### Terra 真实 Local strict JSON Schema + `n=2` + tool replay 非流式探针（2026-11-07 13:32:41–13:35:37 UTC，next190）
+
+本轮选择与 next189 不重复的组合边界：把两个 assistant `tool_calls` 与两个 `role=tool` 结果回灌到 `Local`，并同时请求非流式 `stream=false`、严格 `response_format.type=json_schema`、`n=2`、`seed=190`、`stream_options.include_usage=true`。请求体固定 `model=Local`，schema 要求 `location`、`weather.temperature_c`、`weather.condition`、`time`，未改服务、配置或产品代码。
+
+真实探针先后访问 `/health`、`/v1/models`、`/v1/loads`，再访问 `/v1/chat/completions`，并再次访问 `/v1/loads`。本轮 endpoint 在探针时段不可用：五次请求均经当前网络路径返回 HTTP 502、空响应体（`Connection: close`、`Content-Length: 0`）；直连 `192.168.10.68:8192` 同时得到 TCP connection refused。因而本轮没有可声称的 HTTP 模型兼容性通过，也没有 loads idle 快照（前后 loads 请求本身失败）；不能把 502/拒绝连接解释成 JSON Schema、`n=2` 或 tool replay 的服务语义结果。
+
+完整失败请求/响应与 headers、前后 loads 原始文件、summary、SHA256 在 `/tmp/sglang-terra-next190-20261107T133241Z/`：`chat-request.json`、`request-headers.json`、`health.json`、`models.json`、`loads-before.json`、`loads-after.json`、对应 `*-headers.json`、`chat.json`、`summary.json`、`SHA256SUMS`。`summary.json` 记录 `health_status=models_status=loads_before_status=chat_status=loads_after_status=502`、`served_model_ids=[]`、`choice_count=0`；`SHA256SUMS` 自校验通过。13:35:37 UTC 追加健康复核仍为 HTTP 502，ICMP 可达但 TCP 8192 被拒绝；该直连与复核的 verbose 日志/headers/body 也保存在同一目录并纳入 SHA256SUMS。
+
+本轮仅证明指定 endpoint 在该时段的可达性失败，未形成 Local 的 strict JSON Schema + `n=2` + tool replay 兼容性结论；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local strict JSON Schema + `n=2` + tool replay 流式探针（2026-11-07 14:35:00 UTC，next191）
+
+本轮选择与 next189/190 互补的流式组合边界：把两个 assistant `tool_calls` 与两个 `role=tool` 结果回灌到 `Local`，并请求 `stream=true`、严格 `response_format.type=json_schema`、`n=2`、`seed=191`、`stream_options.include_usage=true`（`max_tokens=384`）。请求体固定 `model=Local`，schema 要求 `location`、`weather.temperature_c`、`weather.condition`、`time`，未改服务、配置或产品代码。
+
+探针先后访问 `/health`、`/v1/models`、`/v1/loads`、`/v1/chat/completions`、`/v1/loads`，以及一次 `/health` 复核；六次请求均在当前网络路径 TCP connection refused，curl status 为 0、空响应体、无响应 headers。`--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 也均为 curl returncode 7 / HTTP 000（connection refused）。因此没有 served model、loads 快照、SSE 事件、choices、usage 或 schema 解析结果；不能把本轮失败解释成 JSON Schema、`n=2`、streaming 或 tool replay 的模型语义结果。
+
+完整请求、响应体/headers、loads 前后文件、直连与复核日志、summary、脚本和 SHA256 在 `/tmp/sglang-terra-next191-20261107T143500Z/`；`SHA256SUMS` 自校验通过。`summary.json` 明确记录 `health_status=models_status=loads_before_status=chat_status=loads_after_status=proxy-health-recheck=0`、`served_model_ids=[]`、`choice_count=0` 与直连 TCP 拒绝证据。
+
+本轮仅证明指定 endpoint 在该时段不可达，未形成 Local 的 strict JSON Schema + `n=2` + tool replay 流式兼容性结论；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 16:03:11 UTC，next192）
+
+本轮按先健康检查的顺序只读复核真实 endpoint `http://192.168.10.68:8192` 的 `/health`、`/v1/models`、`/v1/loads`。三次当前网络路径请求均为 curl returncode 7 / HTTP status 0，stderr 为 `Failed to connect to 192.168.10.68 port 8192: 连接被拒绝`，空响应体且无响应 headers；因此没有发出 chat completion 请求。随后 `--noproxy '*'` 的三个直连检查也全部 returncode 7 / HTTP 000，另做一次代理 `/health` 复核同样被拒绝。
+
+完整失败证据在 `/tmp/sglang-terra-next192-20261107T160311Z/`：健康、模型、负载的原始 body/headers、规范化 `*-headers.json`、curl stderr、直连检查与复核、`run.log`、`probe.py`、`summary.json` 和 `SHA256SUMS`。`summary.json` 记录初始 `health/models/loads-before=0`、直连与复核均为 0、`all_initial_ready=false`、未发 chat；`sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败。因未满足初始可达性门槛，原计划的非流式/流式 strict JSON Schema + `n=2` + 双工具回灌互补探针顺延。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 16:11:29 UTC，next193）
+
+在 next190–192 连续不可达后，本轮再次按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径的 `/health`、`/v1/models`、`/v1/loads` 均 curl returncode 7 / HTTP status 000，stderr 为 `Failed to connect to 192.168.10.68 port 8192: 连接被拒绝`，空响应体且无响应 headers；`--noproxy '*'` 的三个直连检查也均 returncode 7 / HTTP 000，随后代理路径 `/health` 复核仍被拒绝。
+
+初始 health/models/loads 门槛未满足，因此没有发送预置的互补边界请求（非流式 `strict response_format.type=json_schema` + `n=2` + 双 assistant `tool_calls`/双 `role=tool` 回灌，`seed=193`），`chat_attempted=false`；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。完整 `chat-request.json`（计划请求）、空响应 body/headers、各端点 headers/stderr/meta、直连与复核日志、`probe.py`、`summary.json` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next193-20261107T161105Z/`；`sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 16:29:21 UTC，next194）
+
+在 next190–193 连续不可达后，本轮再次按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径的 `/health`、`/v1/models`、`/v1/loads` 均 curl returncode 7 / HTTP status 000，stderr 为 `Failed to connect to 192.168.10.68 port 8192: 连接被拒绝`，空响应体且无响应 headers；`--noproxy *` 的三个直连检查及随后代理路径 `/health` 复核也均 returncode 7 / HTTP 000。
+
+初始 health/models/loads 门槛未满足，因此没有发送预置的非流式 strict `response_format.type=json_schema` + `n=2` + 双工具回灌请求（`seed=194`，`chat_attempted=false`）；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。完整 `chat-request.json`（计划请求）、空响应 body/headers、各端点 headers/stderr/meta、直连与复核日志、`probe.py`、`summary.json` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next194-20261108T000000Z/`；`sha256sum -c SHA256SUMS` 已全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 16:47:00 UTC，next195）
+
+在 next190–194 连续不可达后，本轮再次按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径与 `--noproxy '*'` 直连的 `/health`、`/v1/models`、`/v1/loads` 均 curl returncode 7 / HTTP status 000，空响应体且无响应 headers，TCP 8192 连接被拒绝；随后代理 `/health` 复核同样失败。
+
+初始 health/models/loads 门槛未满足，因此没有发送预置的非流式 strict `response_format.type=json_schema` + `n=2` + 双工具回灌请求（`seed=195`，`chat_attempted=false`）；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。完整请求计划、空响应 body/headers、各端点 headers/stderr/meta、直连与复核日志、`probe.py`、`summary.json` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next195-20261107T164700Z/`；`sha256sum -c SHA256SUMS` 已全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 16:58:31 UTC，next196）
+
+在 next190–195 连续不可达后，本轮再次按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径与 `--noproxy '*'` 直连的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，空响应体且无响应 headers；TCP 8192 连接被拒绝；随后代理与直连 `/health` 复核同样失败。
+
+初始 health/models/loads 门槛未满足，因此没有发送下一条真实 `Local` chat completion（`chat_attempted=false`）；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败。
+
+完整 availability-only 证据、代理/直连 headers、body、stderr、TCP 日志、`summary.json`、`probe.py` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next196-20261107T165831Z/`；`sha256sum -c SHA256SUMS` 已全部通过。F21 第二真实模型/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 17:07:51 UTC，next197）
+
+在 next190–196 连续不可达后，本轮按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径与 `--noproxy '*'` 直连的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，空响应体且无响应 headers；stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`。随后代理 `/health` 复核同样失败。
+
+初始 health/models/loads 门槛未满足，因此没有发送下一条互补真实 `Local` chat completion（`chat_attempted=false`、`chat_request_sent=false`）；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。完整 request JSON、空 response body、headers/stderr、summary、`probe.py` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next197-20261107T170751Z/`；在该目录执行 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra 真实 Local 可达性复核（2026-11-07 17:13:26 UTC，next198）
+
+在 next190–197 连续不可达后，本轮再次按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径与 `--noproxy '*'` 直连的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，空响应体且无响应 headers；stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`。随后代理 `/health` 复核同样失败。
+
+初始 health/models/loads 门槛未满足，因此没有发送下一条互补真实 `Local` chat completion（`chat_attempted=false`、`chat_request_sent=false`）；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。完整 request JSON、空 response body、headers/stderr、summary、`probe.py` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next198-20261107T171326Z/`；在该目录执行 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+### Terra 真实 Local 可达性复核（2026-11-07 17:16:37 UTC，next199）
+
+在 next190–198 连续不可达后，本轮再次按 health → models → loads 顺序只读复核真实 endpoint `http://192.168.10.68:8192`。当前网络路径与 `--noproxy '*'` 直连的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，空响应体且无响应 headers；stderr 为 `Failed to connect to 192.168.10.68 port 8192: 连接被拒绝`。随后代理 `/health` 复核同样失败。
+
+初始 health/models/loads 门槛未满足，因此没有发送下一条互补真实 `Local` chat completion（`chat_attempted=false`、`chat_request_sent=false`）；没有 served model、loads 快照、choices、usage、SSE 或 schema 解析结果。完整 request JSON、空 response body、headers/stderr、summary、`probe.py` 和 `SHA256SUMS` 在 `/tmp/sglang-terra-next199-20261107T171637Z/`；在该目录执行 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 17:34:10 UTC，next200c）
+
+在 next190–199 连续不可达后，本轮按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径的 `/health`、`/v1/models`、`/v1/loads` 与 `--noproxy '*'` 的对应三个端点均 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，body/response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有发送真实 `model=Local` chat（`chat_attempted=false`、`chat_request_sent` 未发生）；没有 served model、loads、choices、usage、SSE 或模型语义结论。完整 availability-only 请求计划、每个端点 response body/headers/stderr/status/meta、TCP JSON、health recheck、`summary.json`、`probe.py`、`run.log` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next200c-20261107T173410Z/`；目录内执行 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉仍未覆盖。未启动/停止服务、未修改远端配置或仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+
+### Terra SGLang availability gate（2026-11-07 17:38:03 UTC，next200d）
+
+在 next200c 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径的 `/health`、`/v1/models`、`/v1/loads` 与 `--noproxy '*'` 的对应三个端点均 status `000` / curl returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，body/response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有发送真实 `model=Local` chat（`chat_attempted=false`、`chat_request_sent` 未发生）；没有 served model、loads、choices、usage、SSE 或模型语义结论。完整 availability-only 请求计划、每个端点 response body/headers/stderr/status/meta、TCP JSON、health recheck、`summary.json`、`probe.py`、`run.log` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next200d-20261107T173803Z/`；目录内执行 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、认证拒绝、独立 wire capture、默认窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 17:47:51 UTC，next201）
+
+在 next200d 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，body/response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有发送真实 `model=Local` chat（`chat_attempted=false`、`chat_request_sent` 未发生）；没有 served model、loads、choices、usage、SSE 或模型语义结论。完整 availability-only 请求计划、每个端点 response body/headers/stderr/status/meta、TCP JSON、health recheck、`summary.json`、`probe.py`、`run.log` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next201-20261107T174751Z/`；目录内 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、JSON Schema、`n=2`、streaming、tool replay 或其他模型语义失败；F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 17:55:25 UTC，next202）
+
+本轮继续按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`。当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，body/response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有发送真实 chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 served model、loads、choices、usage、SSE 或模型语义结论。完整 availability-only 证据、请求计划、代理/直连 body/headers/stderr/status/meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next202-20261107T175322Z/`；目录内 `sha256sum -c SHA256SUMS` 34 项全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat 或其他模型语义失败；F21 第二真实 served model/第二端口、认证拒绝、独立 wire capture、默认窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 18:00:31 UTC，next203）
+
+本轮继续按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，body/response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有读取 served model，也没有发送预置的最小非流式或流式真实 chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage 或模型语义结论。完整 availability-only 证据、计划请求、current/直连 body、headers、stderr、status/meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next203-20261107T175951Z/`；目录内 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、认证拒绝、独立 wire capture、默认窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 18:09:30 UTC，next204）
+
+在 next203 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均返回 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，空响应体且无响应 headers；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、计划请求、current/直连 body、headers、stderr、status/meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next204-20261107T180917Z/`；目录内 `sha256sum -c SHA256SUMS` 全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:51:54 UTC，next220）
+
+在 next219 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next220-20261107T195154Z/`；`summary.json` SHA256 为 `caaae419e96e3763bb01034d9d8d421faa0b89204459d17d654215bff140e76c`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `e3d134a4ee6a94b989ad4a98de60bb4f84f5041907e9091a47dca4c08b218808`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:35:25 UTC，next216）
+
+在 next215 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next216-20261107T193525Z/`；`summary.json` SHA256 为 `57a9aa9bcd7a3981f8bae6c91df2acfb4b7594e211723cc5dde688b7eb254b57`，目录内 `sha256sum -c SHA256SUMS` 的 24 个列项全部通过，`SHA256SUMS` SHA256 为 `b4650c520a2e969d20fb98b759fc6173f8c047c9ee6e41f2d032a97163464dac`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:31:00 UTC，next215）
+
+在 next214 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next215-20261107T193100Z/`；`summary.json` SHA256 为 `077f4f26c46059b2cf10087399457a5d0888d8dd1497344ada4d52bbd89b1a1f`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `858a017f7d20695685291ed2947eb9bb1e11e32b2cf558c016b54e37154548af`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:27:38 UTC，next214）
+
+在 next213 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next214-20261107T192738Z/`；`summary.json` SHA256 为 `b220f1bda25d0c37cd06c86c8ad9a965735b212da219427624350f82e032f45c`，目录内 `sha256sum -c SHA256SUMS` 的 25 个列项全部通过，`SHA256SUMS` SHA256 为 `6946b26fd00f1ea2d8042a35244d1da8def3064015249c11a76903a3d35a5f65`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:16:06 UTC，next212）
+
+在 next211 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: [Errno 111] Connection refused`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、current/`--noproxy` body、headers、meta、TCP JSON、health recheck、probe、run log、summary 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next212-20261107T191606Z/`；`summary.json` SHA256 为 `df8a95c9af0e281c715e755d025a06fcaa9eb16a238705b5d98bed89e66f4486`，目录内 `sha256sum -c SHA256SUMS` 的 26 个列项全部通过，`SHA256SUMS` SHA256 为 `23eb927fb1f66445c16de6b8928a47aff85950e1efbf3778543c98b593ec5c59`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:10:03 UTC，next211）
+
+在 next210 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError(<urlopen error [Errno 111] Connection refused>)`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError([Errno 111] Connection refused)`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、current/`--noproxy` body、headers、meta、TCP JSON、health recheck、run log、summary 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next211-20261107T191003Z/`；`summary.json` SHA256 为 `46ca44aa30c3fe042d7b4592b883558ce378206eb1a6e9a2290949c809a6594c`，目录内 `sha256sum -c SHA256SUMS` 的 25 个列项全部通过，`SHA256SUMS` SHA256 为 `bdfc2607bbb08c38074c7e8a370deebdd4dfee1bf26f162b9f987db5a2b99335`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 18:58:47 UTC，next210）
+
+在 next209 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError(ConnectionRefusedError(111, 'Connection refused'))`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError(111, 'Connection refused')`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、current/`--noproxy` body、headers、meta、TCP JSON、health recheck、summary 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next210-20261107T185847Z/`；`summary.json` SHA256 为 `017af4c004392ff487d330010b4c95deb7e6e77e07380a45c9c34928e14f35d1`，在该目录执行 `sha256sum -c SHA256SUMS` 的 21 个列项全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 18:36:08 UTC，next207）
+
+在 next206 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，空响应体且无响应 headers；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、计划请求、current/直连 body、headers、stderr、status/meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next207-20261107T183550Z/`；目录内 `sha256sum -c SHA256SUMS` 的 34 项全部通过（`SHA256SUMS` SHA256 `cc2d917b1f0a6d466709cfc66cf99cf393b32c000a6d39d01c13e803c65046fc`）。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+
+### Terra SGLang availability gate（2026-11-07 18:17:16 UTC，next205）
+
+在 next204 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，空响应体且无响应 headers；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、计划请求、current/直连 body、headers、stderr、status/meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next205-20261107T181707Z/`；目录内 `sha256sum -c SHA256SUMS` 的 34 项全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 18:22:00 UTC，next206）
+
+在 next205 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，stderr 为 `Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，空响应体且无响应 headers；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、计划请求、current/直连 body、headers、stderr、status/meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next206-20261107T182151Z/`；目录内 `sha256sum -c SHA256SUMS` 的 34 项全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+### Terra SGLang availability gate（2026-11-07 18:45:04 UTC，next208）
+
+在 next207 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：当前网络路径与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 均返回 curl status `000` / returncode `7`，stderr 为 `curl: (7) Failed to connect to 192.168.10.68 port 8192 after 0 ms: 连接被拒绝`，空响应体且无响应 headers；TCP 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍 status `000` / returncode `7`。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、current/`--noproxy` 的 body、headers、stderr、status/meta、TCP JSON、health recheck、summary 与 SHA256 在 `/tmp/sglang-terra-next208-20261107T184354Z/`；目录内执行 `sha256sum -c SHA256SUMS` 的 16 项全部通过，`SHA256SUMS` SHA256 为 `50d433cf9b1bc9089e6864f62e249b040dff327a89569224cc17ae3d0315c9d2`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 18:51:19 UTC，next209）
+
+在 next208 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送最小真实 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、current/`--noproxy` body、headers、meta、TCP JSON、health recheck、summary 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next209-20261107T185119Z/`；`summary.json` SHA256 为 `e39e3c84ab08ab6ee64f9bf09cd06e23a52dbf1753ad1f4079ca678dc6d3bc13`，在该目录执行 `sha256sum -c SHA256SUMS` 的 24 个列项全部通过。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:21:41 UTC，next213）
+
+在 next212 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next213-20261107T192141Z/`；`summary.json` SHA256 为 `55cc32dca72b3bf0fac76f20b597aa137fd7323efb0903c2b7aea828eccb76a3`，目录内 `sha256sum -c SHA256SUMS` 的 25 个列项全部通过，`SHA256SUMS` SHA256 为 `a2d63f874d8e2dfc36aeee634a56c71f69b233c4488f90fb75bc8cf491acf7ae`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:39:00 UTC，next217）
+
+在 next216 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`。随后 current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next217-20261107T193900Z/`；`summary.json` SHA256 为 `fbf7b20617eff33715a1c70d29ff40c9d22b36dd629ff123d7590f959c45336c`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `88968f6a2526987b4119dba820201963ac7b9234ccb1c9d0c3ae417b5d9b7188`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成 Local chat、非流式/流式协议、JSON Schema、`n=2`、tool replay 或其他模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未运行 editor runner、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 19:42:16 UTC，next218）
+
+在 next217 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next218-20261107T194216Z/`；`summary.json` SHA256 为 `218c24e9c4f17887acfdb4a69af316a02bc38c26556affc4155cedfa6018ecb1`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `dcc4f1cf7b2d8adfe3433ddb645416ba3028018cbbcdb588b3c7d7acbd47ed42`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate (2026-11-07 19:47:09 UTC, next219)
+
+Availability-only recheck of http://192.168.10.68:8192 after next218: current and --noproxy /health, /v1/models, and /v1/loads all returned HTTP status 000 with connection refused; bodies and response headers were empty. Current and direct TCP checks both returned ConnectionRefusedError, and the current /health recheck also failed.
+
+The availability gate was not met. No served model was read and no non-stream or stream chat was sent (chat_attempted=false, chat_request_sent=false, served_model_ids=[]). Evidence is in /tmp/sglang-terra-next219-20261107T194709Z/: summary.json SHA256 2bda3da35a22641846ad5695d20e092c9fdf01cf9892f3139d9a7d21ed40e2ea; sha256sum -c SHA256SUMS passes all 22 entries; SHA256SUMS SHA256 947c9dcdc62049739fbb3e528e5fed1e2c16107a5dee878bb3e22e211759a327.
+
+This round proves only that the named endpoint was unreachable at that time. F21 second served model/port, valid-auth rejection, independent wire capture, and default editor manual visual evidence remain open. No service/config/repository changes, staging, commit, or push were made.
+
+### Terra SGLang availability gate（2026-11-07 19:56:08 UTC，next221）
+
+在 next220 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy *` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next221-20261107T195608Z/`；`summary.json` SHA256 为 `45715717a4b3d1062d68bc6ffc77247e1d7d74974266ea283fa9e014cd5a1755`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `d07a34a9ed9475535ee7173f325f9060bf50b29c938833b3766b1bea77d01652`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:02:41 UTC，next222）
+
+在 next221 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next222-20261107T200241Z/`；`summary.json` SHA256 为 `2e90a7c73634fbec7c83ba9cce6a239c2af8c4c6b65189daa0efbc7db4e60cd3`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `d029a4b22d494eea503c0477d8a3dc2fc7dd39b6566d754f3819989fecfc4336`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:11:42 UTC，next223）
+
+在 next222 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next223-20261107T201142Z/`；`summary.json` SHA256 为 `572319962e33367a35fa9f9b1fd3e1cd99211f4e01613a40994abcff71e18453`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `bcf2bebd4b8fbdc3dc92a4794c3cb72fe53ba4ca01545e621cf6accba5f43218`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:18:54 UTC，next224）
+
+在 next223 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next224-20261107T201854Z/`；`summary.json` SHA256 为 `586c00d86f30e514898fc5b40f1f31af43be523630f0785450c2ec0131f0adfb`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `5447ed4e0228637b1472b6a1739cfd65c29a60d55b4c159cfcb3c1e5ede53530`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:25:15 UTC，next225）
+
+在 next224 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next225-20261107T202515Z/`；`summary.json` SHA256 为 `a4bacbb4889f40448666b663ec8440f452f946be54726da01a3605d827f4980a`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `96b87ac69a4ee102855938c6851afde0fac9f023b1a2224f2ad2939b25af9764`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:28:18 UTC，next226）
+
+在 next225 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next226-20261107T202818Z/`；`summary.json` SHA256 为 `2d972f330ffab314dde1791971596a5ed34d9d564b2458ed5dc1b012f378536f`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `df572453ea18b24b9431aaa64f0ab191da276127adc02abcbc9d5e8cd1fbe5ad`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:32:06 UTC，next227）
+
+在 next226 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next227-20261107T203206Z/`；`summary.json` SHA256 为 `68f01ce37efcacac4157766d762d447f628577c0ef45fad6081edf494c288880`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `890c01d459d47c172946d8553857885eeb6914daa50841202d51afe17dee1092`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:34:01 UTC，next228）
+
+在 next227 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next228-20261107T203401Z/`；`summary.json` SHA256 为 `3350bef5b60ca8b99f150779968199f3d99cbc80de8017873e4c6e4e26fa3ee0`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `627ab435bfff2a18939bb4ba9490e55071f13c925cff035c031924d70cfac882`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:38:00 UTC，next229）
+
+在 next228 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next229-20261107T203800Z/`；`summary.json` SHA256 为 `00a4bfe0b429173392df21716a8029f7a246e13cbfc788979e05584f735a5420`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `fd47823919dc543fb46b16a14dfda32fcc563cede4b20f43a5c96d0049f900ef`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:41:31 UTC，next230）
+
+在 next229 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next230-20261107T204131Z/`；`summary.json` SHA256 为 `eb86178a41dac3dc1970b21bed49e73d83b7e8f205c57dd423e296deaee6f64e`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `8dfaa9a9213b6434b4e8b5a8690701dba4297f369df67e363438f551902b80f3`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:47:30 UTC，next231）
+
+在 next230 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next231-20261107T204730Z/`；`summary.json` SHA256 为 `337deb1aeccd2cb4ddbb39a5a95808bfed8529642da11e1d60edc841a86b03ce`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `8adb0896aec6ab34f013c90379e6bdb0cfa8580166f51f1412fa5671374e890b`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:50:50 UTC，next232）
+
+在 next231 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next232-20261107T205050Z/`；`summary.json` SHA256 为 `c067d7baa9f7335fec3f732bf5d4c91fed9071a0413af66f006a75811000ec01`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `0f20b3a4c26313637c42025bba7753a3caa12331ad0b02d028ae121f84563295`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 20:56:14 UTC，next233）
+
+在 next232 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next233-20261107T205614Z/`；`summary.json` SHA256 为 `3e9c0cad35bd46c0829fdb1012d143bfd3a4ce0d955cd3dc34fb90fa79df195d`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `a6318789b1d81f526868238d838dcade7c6ddb9f00d6f20064774b067369d436`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:01:01 UTC，next234）
+
+在 next233 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next234-20261107T210101Z/`；`summary.json` SHA256 为 `f410e3266f2670b56246f7d0260a231cdf27db8d3a3f5202785f27e7bc10908b`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `b6c065c91d845a833ac27238d9218bc0b623ccad2617bd3fd73e61cfaa5b6729`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:05:03 UTC，next235）
+
+在 next234 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next235-20261107T210503Z/`；`summary.json` SHA256 为 `350f1e83cf7874ff250878368d8d7c083733d77b39ab38e262ecdfd6745ed3d1`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `5e7a134ec7f71f7bb49ccf1b0965b4c1a527486496d267b4049600cb4aa61d4f`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:06:53 UTC，next236）
+
+在 next235 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next236-20261107T210653Z/`；`summary.json` SHA256 为 `a7c67be2de6e057908cff77af10641625c14c5e8a8d77e11566e458c228cc25c`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `462558fa6ea358a2beaf0f22a415cea5086927448f1528fe173ebc4f26d134f7`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:09:50 UTC，next237）
+
+在 next236 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next237-20261107T210950Z/`；`summary.json` SHA256 为 `4ba69ecc8331f3819c4bc619e938a895adb6bca9e4a5c52109d0ea21ad6d42f4`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `df3f3655cf164a4d3141e2081e68da91c862fddfbdb877a745736dc8b1f97c9e`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:12:23 UTC，next238）
+
+在 next237 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next238-20261107T211223Z/`；`summary.json` SHA256 为 `6e0ff729733cdb9be10bf15af7685aba5ea63c9bce76b1f7ae66f4cd48692472`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `2d6a8885e3c0dd0b286960df116bd220e8255a6036945f0b1d3193a26301e317`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:16:56 UTC，next239）
+
+在 next238 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next239-20261107T211656Z/`；`summary.json` SHA256 为 `c4b0aa6db37c80be97e90d4fad4cbb0c50d7d3f527ce7f67cfb4799fc60499a0`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `9da5ac22b29434984f504b7a3e4a6e5f7af241e9addd0e9e68fb9b5a3c68dc6c`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:19:12 UTC，next240）
+
+在 next239 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next240-20261107T211912Z/`；`summary.json` SHA256 为 `3c4f1751f38df174604c094530a2ab143b84bf05178e92ad2ebc1624983dce0b`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `30e6074680e13846f3eb5a5f33580e499697053de2920ef6fa192c22a513996b`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:21:14 UTC，next241）
+
+在 next240 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next241-20261107T212114Z/`；`summary.json` SHA256 为 `65bda089882d7550e7c848b2ae2b53bdadb7680d2865bc4b626ee5652af18420`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `dc9d864b1073d0fa86af5e293eb45138030a9399990d29957aefeffd2db07ed5`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:27:35 UTC，next242）
+
+在 next241 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next242-20261107T212735Z/`；`summary.json` SHA256 为 `93681879f8ef2046d6f03c3eb52a79dd50f7a11ac3709ab86a82fd0593204748`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `66ff0c9a3646a473bc749c5c682211e8db8c67eb16f10ce84947eb768f87a006`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:35:05 UTC，next243）
+
+在 next242 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next243-20261107T213505Z/`；`summary.json` SHA256 为 `8edd47a86935c65f7e693c094a1c261b8819db323365dff48dc8ecbe9a3fd03f`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `9e6d120e56f7f0cfd55851c87c7b4ba317181db428f9449d070bd593acb02a0c`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。
+
+### Terra SGLang availability gate（2026-11-07 21:38:05 UTC，next244）
+
+在 next243 后再次按 availability gate 只读检查真实 endpoint `http://192.168.10.68:8192`：current 与 `--noproxy '*'` 的 `/health`、`/v1/models`、`/v1/loads` 六次请求均为 HTTP status `000`（urllib `URLError: <urlopen error [Errno 111] Connection refused>`），body 与 response headers 均为空；current 与 direct TCP 8192 两次 `socket.create_connection` 均 `ConnectionRefusedError: [Errno 111] Connection refused`，current `/health` recheck 仍为 status `000` / connection refused。
+
+availability gate 未通过，因此没有读取 served model，也没有发送 non-stream 或 stream chat（`chat_attempted=false`、`chat_request_sent=false`、`served_model_ids=[]`）；没有 response、SSE、choices、usage、loads 或模型语义结论。完整 availability-only 证据、body、headers、meta、TCP JSON、health recheck、`probe.py`、`run.log`、`summary.json` 与 `SHA256SUMS` 在 `/tmp/sglang-terra-next244-20261107T213805Z/`；`summary.json` SHA256 为 `28eaf0272bf86015831c17d2d424501d5fe4598da682fd98421e3325150db8c2`，目录内 `sha256sum -c SHA256SUMS` 的 22 个列项全部通过，`SHA256SUMS` SHA256 为 `777c367b93a9d28c5a4b06abd058e116a9b2e6cc2169a04fb3f96d4068183532`。
+
+本轮仅证明指定 endpoint 在该时段不可达，不能把连接拒绝解释成模型语义失败；availability 恢复后才会读取真实 served model 并执行最小 non-stream/stream chat。F21 第二真实 served model/第二端口、有效认证拒绝、独立 wire capture、默认编辑器窗口人工视觉缺口保持。未启停服务、未修改远端配置、未修改仓库代码、未暂存/提交/推送。

@@ -72,6 +72,19 @@ export const conversationLensDockStop = localize('conversationLens.dockStop', "S
 export const conversationLensDockStopNotGenerating = localize('conversationLens.dockStopNotGenerating', "Not generating");
 export const conversationLensDockStopGenerating = localize('conversationLens.dockStopGenerating', "Stop generating");
 export const conversationLensDockSendBusy = localize('conversationLens.dockSendBusy', "Wait for the current reply to finish.");
+export const conversationLensDockStopping = localize('conversationLens.dockStopping', "Stopping…");
+export const conversationLensDockStopFailed = localize('conversationLens.dockStopFailed', "Couldn't stop the reply. Try again.");
+export const conversationLensDockGoalFailed = localize('conversationLens.dockGoalFailed', "Goal not saved. Try again.");
+/** A permission or client-tool answer is on its way; not the composer's streaming hold. */
+export const conversationLensDockResponseInFlight = localize('conversationLens.dockResponseInFlight', "Sending response…");
+export const conversationLensDockEditUnchanged = localize('conversationLens.dockEditUnchanged', "No changes to save.");
+export const conversationLensPostFailureDismiss = localize('conversationLens.postFailureDismiss', "Dismiss");
+export const conversationLensKeyEnter = localize('conversationLens.keyEnter', "Enter");
+export const conversationLensKeyShiftEnter = localize('conversationLens.keyShiftEnter', "Shift+Enter");
+export const conversationLensKeyEscape = localize('conversationLens.keyEscape', "Esc");
+export function conversationLensWithKey(label: string, key: string): string {
+	return localize('conversationLens.withKey', "{0} ({1})", label, key);
+}
 export const conversationLensPostFailedMailboxFull = localize('conversationLens.postFailedMailboxFull', "Message not sent — inbox full. Try again.");
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
@@ -96,6 +109,7 @@ export const conversationLensDockPlaceholder = localize('conversationLens.dockPl
 export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
 export const conversationLensDockEditingQueued = localize('conversationLens.dockEditingQueued', "Editing queued");
 export const conversationLensDockEditExit = localize('conversationLens.dockEditExit', "Exit");
+export const conversationLensDockEditExitWithKey = conversationLensWithKey(conversationLensDockEditExit, conversationLensKeyEscape);
 export const conversationLensDockSaveQueued = localize('conversationLens.dockSaveQueued', "Save queued message");
 
 /** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */

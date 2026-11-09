@@ -86,6 +86,24 @@ suite('AgentSessionContext (browser)', () => {
 		assert.strictEqual(context.getActiveWorkRoot().workDir, '/repo');
 	});
 
+	test('metadata event replaces connection fallback only for the corresponding active session', () => {
+		const harness = createWorkRootHarness(store);
+		harness.setSnapshot({ linkId: 1, engineIdentityId: 'eng', workDir: '/agent-home' });
+		harness.sessions = [{ id: 'a', title: 'A', turns: [] }, { id: 'b', title: 'B', turns: [] }];
+		const context = harness.create();
+		const roots: string[] = [];
+		store.add(context.onDidChangeActiveWorkRoot(root => roots.push(root.workDir ?? '')));
+		assert.strictEqual(context.getActiveWorkRoot().workDir, '/agent-home');
+		harness.sessions[1]!.workDir = '/other-workspace';
+		harness.fireSession('b');
+		assert.deepStrictEqual(roots, []);
+		harness.sessions[0]!.workDir = '/session-workspace';
+		harness.fireSession('a');
+		assert.strictEqual(context.getActiveWorkRoot().workDir, '/session-workspace');
+		assert.deepStrictEqual(roots, ['/session-workspace']);
+		assert.strictEqual(harness.activeSessionId, 'a');
+	});
+
 	test('a new engine link replaces the cached identity', () => {
 		const harness = createWorkRootHarness(store);
 		harness.setSnapshot({ linkId: 1, engineIdentityId: 'eng-a', workDir: '/a' });
@@ -188,6 +206,7 @@ function createWorkRootHarness(store: { add: <T extends { dispose(): void }>(dis
 	setSnapshot(partial: Partial<UniverseAgentConnectionSnapshot>): void;
 	fireConnection(): void;
 	fireActiveSession(sessionId: string): void;
+	fireSession(sessionId: string): void;
 	fireFolders(): void;
 	fireRepository(): void;
 	create(): AgentSessionContext;
@@ -226,6 +245,9 @@ function createWorkRootHarness(store: { add: <T extends { dispose(): void }>(dis
 		fireActiveSession(sessionId: string): void {
 			harness.activeSessionId = sessionId;
 			activeEmitter.fire(sessionId);
+		},
+		fireSession(sessionId: string): void {
+			sessionEmitter.fire(sessionId);
 		},
 		fireFolders(): void {
 			folderEmitter.fire({ added: [], removed: [], changed: [] });

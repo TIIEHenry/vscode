@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, clearNode, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode, getActiveElement, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -40,6 +40,8 @@ export const conversationLensSnapshotsRowClass = 'conversation-lens-snapshots-ro
 export const conversationLensSnapshotsRestoreClass = 'conversation-lens-snapshots-restore';
 export const conversationLensSnapshotsDeleteClass = 'conversation-lens-snapshots-delete';
 export const conversationLensSnapshotsWriteStatusClass = 'conversation-lens-snapshots-write-status';
+
+let nextSnapshotsOverlayId = 0;
 
 export function canRequestEngineSnapshots(
 	connected: boolean,
@@ -116,9 +118,11 @@ function snapshotWriteFailureReason(error: unknown): string {
  * the same way (success → refresh → success-if-listed) and keeps the overlay open.
  * Restore and Delete keep the published engine identity, link, and session
  * from the click. A confirm wait that changes any of those does not send
- * Delete. When the RPC returns, a different identity, link, or session, a
- * newer renderGeneration, or a closed overlay does not paint that success
- * or failure and does not refresh for that result.
+ * Delete; a list refresh or a closed overlay during the confirm still sends it.
+ * Restore takes its renderGeneration at the click; Delete takes it when it
+ * sends, after the confirm. When the RPC returns, a different identity, link,
+ * or session, a newer renderGeneration, or a closed overlay does not paint
+ * that success or failure and does not refresh for that result.
  * Cancel / failed delete / no send does not refresh;
  * ok:false / throw paints the same write-status line without unloading rows.
  * Success copy is painted on the write-status sibling, not via paintStatus
@@ -167,6 +171,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private paintedLiveSnapshots = false;
 	private paintedSnapshotSessionId: string | undefined;
 	private onWillShow: (() => void) | undefined;
+	private onUserWillOpen: (() => void) | undefined;
+	private readonly openSession = this._register(new DisposableStore());
 	private readonly getSessionId?: () => string | undefined;
 	private overlayTrigger: HTMLElement | undefined;
 
@@ -194,14 +200,20 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.button.element.classList.add('conversation-lens-snapshots-button');
 		this.button.element.setAttribute('aria-expanded', 'false');
 		this.button.element.setAttribute('aria-haspopup', 'dialog');
+		const overlayId = `conversation-lens-snapshots-overlay-${++nextSnapshotsOverlayId}`;
+		this.button.element.setAttribute('aria-controls', overlayId);
 		this._register(this.button.onDidClick(() => {
 			if (this._store.isDisposed) {
 				return;
+			}
+			if (!this.open) {
+				this.onUserWillOpen?.();
 			}
 			this.toggle();
 		}));
 
 		this.overlayElement = append(overlayParent, $(`.${conversationLensSnapshotsOverlayClass}`));
+		this.overlayElement.id = overlayId;
 		this.overlayElement.hidden = true;
 		this.overlayElement.tabIndex = -1;
 		this.overlayElement.setAttribute('role', 'dialog');
@@ -315,21 +327,46 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		this.onWillShow = handler;
 	}
 
+	setOnUserWillOpen(handler: () => void): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.onUserWillOpen = handler;
+	}
+
 	show(): void {
 		if (this._store.isDisposed) {
 			return;
 		}
+		this.openSession.clear();
 		this.onWillShow?.();
 		this.overlayTrigger = captureConversationOverlayTrigger(this.overlayElement);
 		this.paintedLiveSnapshots = false;
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
+		this.openSession.add(addDisposableListener(this.overlayElement.ownerDocument, 'mousedown', e => {
+			if (this._store.isDisposed || !this.open) {
+				return;
+			}
+			const target = e.target;
+			if (!(target instanceof Node)) {
+				return;
+			}
+			if (this.overlayElement.contains(target) || this.button.element.contains(target)) {
+				return;
+			}
+			if (target instanceof Element && target.closest('.monaco-dialog-box, .context-view')) {
+				return;
+			}
+			this.close({ restoreFocus: false });
+		}));
 		this.overlayElement.focus();
 		void this.refresh().catch(onUnexpectedError);
 	}
 
 	close(options?: { readonly restoreFocus?: boolean }): void {
+		this.openSession.clear();
 		const trigger = this.overlayTrigger;
 		this.overlayTrigger = undefined;
 		this.open = false;
@@ -604,7 +641,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!this.canSendDelete(snapshot.id, sessionId) || !remove || !sessionId) {
 			return;
 		}
-		void this.deleteThenRefreshList(remove, sessionId, snapshot.id, origin).catch(onUnexpectedError);
+		// A refresh may have run while the confirm was open; judge the result against the list at send time.
+		void this.deleteThenRefreshList(remove, sessionId, snapshot.id, { ...origin, generation: this.renderGeneration }).catch(onUnexpectedError);
 	}
 
 	private async deleteThenRefreshList(
@@ -704,12 +742,16 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
+		const hadFocus = this.overlayElement.contains(getActiveElement());
 		this.leftoverListFailed = false;
 		this.paintWriteStatus(undefined);
 		this.rowDisposables.clear();
 		reset(this.body);
 		if (snapshots.length === 0) {
 			this.paintStatus(conversationLensSessionBarSnapshotsEmpty);
+			if (hadFocus && !this.overlayElement.contains(getActiveElement())) {
+				this.overlayElement.focus();
+			}
 			return;
 		}
 
@@ -801,6 +843,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				}
 				void this.deleteSnapshot(snapshot).catch(onUnexpectedError);
 			}));
+		}
+		if (hadFocus && !this.overlayElement.contains(getActiveElement())) {
+			this.overlayElement.focus();
 		}
 	}
 }

@@ -1,0 +1,586 @@
+---
+title: "2026-11-07 默认窗口并行交互与视觉审查收口"
+type: plan
+status: accepted
+phase: M7
+updated: 2026-11-09
+summary: "五路并行只读审查默认编辑器窗口（对话阅读面、Composer/Inbox/SessionBar、Sessions/Navigator/Trajectory、Engine/Connection/Settings、Sources/Preview/壳层）的交互与视觉问题；经规则 16 审查（C5/I4/M2）核验改稿后，分四个实施切片修复 P0–P3 键盘焦点闭环、浮层互斥、视觉与状态清晰度、高对比与减少动效合同。"
+---
+
+# 2026-11-07 默认窗口并行交互与视觉审查收口
+
+状态：执行中。负责：agent:gemini。
+覆盖需求：PRD-002、PRD-004、PRD-005、PRD-007、PRD-009、PRD-012、PRD-013、PRD-014、PRD-015、PRD-016、PRD-018、PRD-020、PRD-025、PRD-027、PRD-028、PRD-029。
+
+## 1. 背景与范围
+
+本方案汇总 2026-11-07 对默认编辑器窗口五条 UI 轨道的并行「交互与视觉问题」深度只读审查结论，并经过规则 16 只读审查（C5/I4/M2）逐条核对 HEAD 源码与单测/CSS 扫描合同后，分四个互不冲突的实施切片（S1–S4）执行修复与本地门禁验证。
+
+依据规范与决定：
+- [UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)
+- [GPT 视觉复刻与产品密度边界](../../docs/decisions/ui-gpt-visual-replication-2026-11-04.md)
+- [审查待定项决定 D15 / D18](../../docs/decisions/ui-review-decisions-2026-11-01.md)
+- [Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md) · [透镜、时间线与轨迹](../../docs/systems/conversation/lens-and-trajectory.md) · [Sources 总览](../../docs/systems/sources/overview.md) · [Engine 目录](../../docs/systems/workbench/engine-catalog.md)
+
+范围边界：
+- 仅针对默认编辑器窗口产品表面（`src/vs/workbench/contrib/conversation/`、`src/vs/workbench/contrib/navigator/`、`src/vs/workbench/contrib/sources/`、`src/vs/workbench/contrib/files/`、`src/vs/workbench/contrib/preferences/`、`src/vs/workbench/browser/`），不涉及 `src/vs/sessions/`（Agents Window），不修改 PRD 状态，不伪造未接通的后端协议能力。
+- 严格保留既有单测与 CSS 合同扫描锁定的规则（`conversationLensCssScan.test.ts`、`navigatorProjectsListCss.test.ts`、`sourcesWiringScan.test.ts`、`conversationLensRevealNavigation.test.ts`、`engineTriggersSection.test.ts`、`engineSkillsSection.test.ts`、`conversationInboxOverlay.test.ts` 等）。
+
+---
+
+## 2. 切片 S1：对话阅读面（Timeline、Visualize、SubAgent、Seats、ProcessFold）交互与视觉修复
+
+### 2.1 `ConversationVisualizeOverlay` 与 `ConversationSubAgentOverlay` / Timeline `Escape` 捕获及 `Tab` 键码错误修复（P0）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/conversationVisualizeOverlay.ts:120-128` 在原生 DOM `keydown` 事件中写 `if (e.keyCode === KeyCode.Escape)`。VS Code 虚拟枚举 `KeyCode.Escape === 9`，而原生 DOM `KeyboardEvent.keyCode === 9` 是 **`Tab` 键**（`Escape` 原生码为 `27`）。导致在全屏图示浮层按 `Tab` 会立即关闭浮层，按 `Escape`（`keyCode === 27`）反而无法命中。
+  2. `conversationVisualizeOverlay.ts:132` 与 `conversationSubAgentOverlay.ts:180-198, 244` 打开浮层时默认聚焦 `closeButton`（VS Code `Button` 组件）。`Button` 在冒泡阶段拦截 `Escape` 并执行 `this._element.blur(); EventHelper.stop(event, true);`，导致冒泡阶段的浮层与 `conversationTimelineHost.ts:316` 的 `onStreamKeyDown` 收不到 `Escape`，焦点被直接 `blur()` 到 `document.body`，随后 `restoreConversationOverlayFocus` 也因 `activeElement === document.body` 失效。
+- **修改方案**：
+  1. 在 `conversationVisualizeOverlay.ts` 中改用 `e.key === 'Escape' || e.keyCode === 27`（同步为 `conversationVisualizeOverlay.test.ts:152` 与 `conversationLens.test.ts:4831` 合成事件补上 `key: 'Escape'`，防止 `keyCode: KeyCode.Escape (9)` 误把 `Tab` 当 `Escape`），并在捕获阶段（`useCapture = true`）监听 `keydown`，使 `Escape` 早于内部 `Button` 的冒泡 `blur()` 触发 `this.close()` 并恢复触发按钮焦点。
+  2. 在 `conversationSubAgentOverlay.ts:180` 与 `conversationTimelineHost.ts:316`（针对 `Escape` 分支）使用捕获阶段监听 `keydown`，当焦点在内部 `.monaco-button` 上按 `Escape` 时，分别正常关闭子代理浮层或将焦点退回所属 `<article class="conversation-timeline-item">`。
+
+### 2.2 时间线 `<article>` `Enter` 进入内部控件（`firstFocusable`）、状态保持与重绘保焦（P0）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts:1512-1526` 的 `firstFocusable` 对 `tag === 'A'` 仅判断 `el.hasAttribute('href')`，排除了所有 `<a class="monaco-button" tabindex="0" role="button">`（Copy / Regenerate / Delete / View in Trajectory / Allow / Skip / Submit / Retry）；同时 `findDescendant` 未跳过 `el.hidden || el.inert` 子树。
+  2. `conversationTimelineRenderer.ts:1060-1076` 的错误回合 `Show details` 展开态仅存在局部 DOM 闭包，流式开始/结束触发 `refreshTurnWriteHolds()` 全量重绘时被重置收起；且 `ConversationTimelineHost` 与 `ConversationTimelineRenderer` 各自维护了一套 `thinkingExpanded` / `toolExpanded` Map。
+  3. `conversationTimelineItemHost.ts:195-201` 的 `fullRender()` 在重绘前若焦点在内部动作按钮上，重绘后一律退回外层 `this.article`，导致历史回合 `.conversation-lens-turn:focus-within` 失效、动作栏瞬间消失；`conversationProcessFold.ts:342, 435, 475` 增量替换工具行时未恢复行内聚焦控件。
+- **修改方案**：
+  1. 在 `findDescendant` / `firstFocusable` 中跳过 `el.hidden || el.inert` 子树，并支持 `tag === 'A' && el.getAttribute('role') === 'button' && el.tabIndex >= 0 && el.getAttribute('aria-disabled') !== 'true' && !el.classList.contains('disabled')`。
+  2. 在 `ConversationTimelineRenderer` 中新增 `errorDetailsExpanded = new Map<string, boolean>()` 持久化错误详情展开态；让 `ConversationTimelineRenderer` 的 `processFoldThinkingExpanded` / `processFoldToolExpanded` 与 `ConversationTimelineHost` 共享同一 Map 引用。
+  3. 在 `ConversationTimelineItemHost.fullRender()` 与 `conversationProcessFold.ts` 替换节点前记录当前聚焦子控件的选择器特征（如 `data-turn-id` / 按钮类名），重绘后优先恢复到对应子控件，未命中再回退 `this.article`。
+
+### 2.3 回到底部按钮、提问座位选项、次要幽灵按钮、面包屑与置顶提示焦点/视觉收口（P1–P3）
+- **现状证据**：
+  1. `conversationTimelineHost.ts:290-300` 的 `scrollDownButton` 传入了 `buttonBackground` / `buttonHoverBackground`，导致 `Button` 写入内联 `style.backgroundColor` 覆盖了 `conversationLens.css:1035-1073` 无 `!important` 的 `:focus-visible` 与 `:active` 背景，普通主题下 `:focus-visible` 完全无变化；且 `updateScrollDownButton()` 隐藏按钮时若按钮持焦会丢焦到 `document.body`。同理，`.conversation-lens-turn-header-trajectory .monaco-button`、`.conversation-timeline-pinned-user-copy .monaco-button`、`.conversation-subagent-overlay-actions .monaco-button`、`.conversation-visualize-overlay-header .monaco-button` 的透明/悬停/按压背景被 `defaultButtonStyles` 内联样式覆盖，且缺少普通主题 `outline: none` + 背景反馈与 HC `contrastActiveBorder`。
+  2. `conversationLens.css:5026-5070`：提问座位 `.conversation-lens-question-option` 缺少 `:hover` 规则；`[aria-checked="true"]` 与 `:focus` 同为 `var(--vscode-list-hoverBackground)` 导致已选项聚焦不可见、未选项聚焦与已选项混淆；`[aria-disabled="true"]` 未抑制 `:focus` 背景；`status === 'undecided'` 时空 `.conversation-lens-turn-honest-status` 胶囊未隐藏。
+  3. `conversationAgentBreadcrumb.ts:41-127` 与 `conversationSubAgentOverlay.ts:318`：面包屑禁用时 `.monaco-breadcrumbs` 仍为 `tabIndex = 0`；当前项 `[aria-current="location"]` 仍有 `cursor: pointer` 与 `:active` 变色；空面包屑时 `.conversation-subagent-overlay-breadcrumb` 仍占 24px 空高。
+  4. `conversationTimelineHost.ts:144-177`：视觉置顶的 `this.pinnedHost` 在 DOM 中位于 `scrollChrome` 之后，Tab 顺序颠倒。
+  5. `conversationLens.css` / `conversationVisualize.css` / `conversationIdentityStrip.css`：`.conversation-lens-timeline-row` 的 `padding-bottom: 12px` 与 `.conversation-timeline-item` 的 `margin-bottom: 16px` 叠加成 28px（`compact` 下 20px > 4px）；高对比主题下 `.conversation-visualize-card`、`.conversation-visualize-overlay-panel`、`.conversation-visualize-option`、`.conversation-visualize-fence`、`.conversation-timeline-pinned-user-inner`、`.conversation-process-fold-tool-payload`、`.conversation-diff-fallback`、`.conversation-identity-chip` 缺 `contrastBorder`；`.conversation-lens-turn--error` 的 `margin-inline: -11px` 越界；`.conversation-lens-question-seat.conversation-lens-turn--question` 叠了 2px 蓝色左边框；代码块复制按钮缺 `.is-copied` 对勾反馈；`.part.conversation .monaco-button` 继承了上游 `:active { filter: brightness(0.92) }` 与 `120ms` 过渡；行内代码 `0.875em`（11.375px）与推荐徽标 `lowercase` 偏离规范。
+- **修改方案**：
+  1. 为 `scrollDownButton` 及上述幽灵/动作 `.monaco-button` 补齐 `!important` 背景覆盖、普通主题 `:focus-visible` 轻量背景与 HC `contrastActiveBorder`；`updateScrollDownButton()` 隐藏持焦按钮时回焦输入框。
+  2. 为 `.conversation-lens-question-option` 补齐 `:hover`（`toolbar-hoverBackground`）、区分 `[aria-checked="true"]`（`10%` 混色 + 细边，HC `contrastBorder`）与 `:focus-visible`（`15%` 混色），对 `[aria-disabled="true"]` 设为 `disabledForeground` 并禁用悬停/聚焦高亮；在 `conversationQuestionSeat.ts` 中当 `!statusLabel` 时设置 `status.hidden = true`。
+  3. 在 `ConversationAgentBreadcrumbBox.setItems` 中当无非当前项时设 `breadcrumbWidget` 根节点 `tabIndex = -1`，在 `ConversationSubAgentOverlay` 中同步 `this.breadcrumbHost.hidden = state.breadcrumb.length === 0`，并在 CSS 中为 `[aria-current="location"]` 设 `cursor: default; pointer-events: none;`。
+  4. 将 `this.pinnedHost` 插入在 `scrollChrome` 之前（保持 `position: absolute` 视觉不变，修正 Tab 序）。
+  5. 将 `.conversation-lens-timeline-row` 的 `padding-bottom` 收为 `0` 并在 `.density-compact .conversation-timeline-item` 下设 `margin-bottom: var(--vscode-spacing-size40, 4px)`；补齐上述高对比 `contrastBorder`、移除 `.conversation-lens-turn--error` 的负边距与提问座位左蓝边、补齐代码块复制对勾反馈、在 `.conversation-lens-dock-send-button` 至 `.conversation-lens-dock-permission` 扫描区间之外清除 `.part.conversation .monaco-button` 的 `filter` 并纳入 `100ms` 与 reduced-motion、修正 `12px` 行内代码字号与徽标大小写，并为单行省略节点补齐 `title`。
+
+---
+
+## 3. 切片 S2：Composer、Inbox、SessionBar 与 History/Snapshots 浮层交互视觉修复
+
+### 3.1 `turnEdit` / `queueEdit` 退出回焦与内联发送按钮右对齐（P1）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts:598-631`：`exitComposerEdit` 先调 `host.timelineTree.setEditingTurnId(undefined)` 销毁时间线行内的 `.conversation-lens-turn-edit-host`，再调 `syncComposerPlacement(host)` 把 `host.composer` 移回底部，导致正在聚焦的 `dockTextarea` 或 `composerExitButton` 在 DOM 重挂前脱离文档、焦点落到 `document.body`；`cancelQueueEdit` 点击 `Exit (Esc)` 隐藏头部后也未回焦 `dockTextarea`。
+  2. `src/vs/workbench/contrib/conversation/browser/media/conversationLens.css:3961-3965, 4283-4290`：`turnEdit`（`.conversation-lens-composer--in-turn`）隐藏了 `.conversation-lens-dock-bottom-leading`，而 `.conversation-lens-dock-bottom-trailing` 在常规宽度（`>= 450px`）下无 `margin-inline-start: auto`，导致发送按钮跑到输入框最左侧。
+- **修改方案**：
+  1. 在 `exitComposerEdit` 中先记录 `const hadFocus = host.composer.contains(getActiveElement())`，先执行 `syncComposerPlacement(host)` 将 `host.composer` 移回 `host.composerCluster`，再调用 `host.timelineTree.setEditingTurnId(undefined)`，并在末尾若 `hadFocus` 为真则调用 `host.dockTextarea.focus()`。
+  2. 在 `conversationLens.css:4283` 为 `.conversation-lens-dock-bottom-trailing` 增加 `margin-inline-start: auto;`。
+
+### 3.2 History / Snapshots 浮层点击互斥、外部点击关闭、重绘保焦与窄栏回焦（P1–P2）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts:183-198`、`conversationEngineHistoryList.ts`、`conversationEngineSnapshotsList.ts`：用户点击 SessionBar 上的 History / Snapshots 按钮或 `More` 菜单项打开其中一个时未关闭另一个，且打开 SessionBar `More`、会话切换器、Inbox 队列或 Composer 弹层时未关闭已打开的 History / Snapshots；History / Snapshots 也无外部点击关闭监听，留在后台时会通过 `ownerDocument` 捕获监听器拦截后续 `ContextView` 菜单的 `Escape` 键。*（注：`conversationEditorPane.test.ts:256-260` 与 `conversationLens.test.ts:2742-2761` 直接程序化连调 `history.show(); snapshots.show();` 并断言两者 `isOpen() === true`，因此不在 `setOnWillShow` 内强制关对方，而是在用户点击按钮/菜单交互入口及外部 `mousedown` 时关闭对方。）*
+  2. `src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts:175-188`：`restoreConversationOverlayFocus` 只检查 `trigger` 自身的 `getComputedStyle(trigger).display`，未检查 `trigger.getClientRects().length === 0`（当窄栏祖先 `display: none` 时失效）。
+  3. `src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts:708-810`：`paintSnapshots` 执行 Restore / Delete 后调用 `reset(this.body)` 销毁聚焦按钮，未将焦点恢复到浮层内，导致后续按 `Escape` 也无法回焦触发器。
+- **修改方案**：
+  1. 在 `ConversationEngineHistoryList` 与 `ConversationEngineSnapshotsList` 的触发按钮点击及 `More` 菜单项点击时关闭对方与 Composer 弹层；在打开 SessionBar `More`、Inbox 队列、Composer 弹层时同步关闭 `engineHistoryList` 与 `engineSnapshotsList`；在 `ConversationEngineHistoryList` 与 `ConversationEngineSnapshotsList` 打开期间注册 `ownerDocument` `mousedown` 外部点击关闭（忽略触发按钮自身与模态确认对话框内的点击）。
+  2. 在 `restoreConversationOverlayFocus` 中增加 `if (trigger.getClientRects().length === 0)` 退回判断；在 `paintSnapshots` 重绘前若焦点在 `this.overlayElement` 内，重绘后恢复到对应行按钮或 `this.overlayElement`。
+
+### 3.3 Inbox 队列弹层焦点闭环、SessionBar 改名跨会话隔离与浮层滚动/焦点样式（P1–P3）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts:548-669`：打开队列弹层时未将焦点移入弹层且无 `handleConversationOverlayTab` 循环；点击 `Clear` 清空队列后焦点掉到 `document.body`；`onDOMEvent` 外部点击判断用 `this.element.contains(node)`（整条 Inbox 栏）而非 `this.queueChip.contains(node)`，导致点 Goal / Stop 不关队列弹层。*（注：`renderGoal` 的 `aria-label` 由 `conversationInboxOverlay.test.ts:530, 2678` 锁定，保持不变。）*
+  2. `src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts:271` 与 `conversationLeafSessionBar.ts:224`：切换会话时未调用 `cancelSessionTitleEdit(host)`，导致改名输入框跨会话残留；`conversationLens.css:166, 273` 中 `.conversation-lens-session-title-wrap` 在编辑态或报错态下 `min-width: 0` 会把输入框挤成 `0px`。
+  3. `src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts:427-447`：`@` 建议框上下键切换活动项时未调用 `option.scrollIntoView({ block: 'nearest' })`；`conversationComposerPicker.ts:137-144` 鼠标点击打开选择器时 `e.preventDefault()` 阻止了 `<select>` 获焦，导致按 `Escape` 关闭菜单后焦点未回到 `<select>`。
+  4. `src/vs/workbench/contrib/conversation/browser/media/conversationLens.css`：
+     - `.conversation-lens-dock-more-popup`（`:4682`）缺 `max-height: 320px; overflow-y: auto;` 且 `min-width: 160px`；`.conversation-lens-dock-add-popup`（`:4566`）将 `overflow: auto` 设在外层而非 `.conversation-lens-dock-add-list`；`.conversation-lens-dock-tune-popup` 外层与内层双重 `max-height: 240px; overflow: auto;` 且 `.conversation-lens-dock-tune-tool` 文字误用 `descriptionForeground`。
+     - `.conversation-lens-composer`（`:3924`）`gap: 8px` 与 `.is-single-line`（`:3939`）`gap: 0` 及 `.density-compact .conversation-lens-dock-input`（`:5563`）`min-height: 18px` 导致输入首字时卡片高度跳变。
+     - `.conversation-lens-dock-maximize-input-button`、`.conversation-lens-history-close .monaco-button`、`.conversation-lens-snapshots-close .monaco-button`、`.conversation-lens-snapshots-restore .monaco-button`、`.conversation-lens-snapshots-delete .monaco-button` 在普通主题下仍画 `focusBorder` 外圈；History/Snapshots/At-suggest 在 HC 下缺 `contrastBorder` 与 `box-shadow: none`；History/Snapshots 行间画了 `border-bottom` 分隔线。
+     - `conversationEditorPane.ts:232` 查询了不存在的 `.conversation-lens-tablist`（实际类名为 `.conversation-editor-lens-tablist`）；`uaRoundedIcons.css` 漏了 `.part.conversation` 内的 `codicon-comment-discussion` 与 `codicon-discard`。
+- **修改方案**：
+  1. 在 `ConversationInboxOverlay` 打开队列弹层时聚焦弹层内首个控件并绑定 `handleConversationOverlayTab`；当 `refreshOpenListPanel()` 清空条目且原焦点在弹层内时回焦 `this.queueChip`；`onDOMEvent` 改判 `this.queueChip.contains(node)`；`.is-narrow .conversation-lens-inbox-overlay` 允许 `flex-wrap: wrap`。
+  2. 在 `applyActiveSession` 与 `switchLeafSession` 开头调用 `cancelSessionTitleEdit(host)`；为编辑态 `.conversation-lens-session-title-wrap` 与 `.conversation-lens-session-title-input` 设置 `min-width: 8ch`。
+  3. 在 `refreshComposerAtSuggest` 中对 `active` 项调用 `option.scrollIntoView({ block: 'nearest' })` 并补单行省略与 `title`；在 `conversationComposerPicker.ts` 的 `show()` 中先调用 `select.focus()`。
+  4. 修正 `more-popup`、`add-popup`、`tune-popup` 的滚动容器、最大高度、文字前景色与 `handleConversationOverlayTab`；将 `.conversation-lens-composer.is-single-line` 的 `gap` 统一为 `8px` 并移除 `.density-compact .conversation-lens-dock-input` 的 `18px` 覆盖；收敛上述按钮普通主题 `:focus-visible` 与浮层 HC `contrastBorder`、去掉 History/Snapshots 行间 `border-bottom`；修正 `conversationEditorPane.ts:232` 选择器为 `.conversation-editor-lens-tablist`；在 `uaRoundedIcons.css` 补齐 `codicon-comment-discussion` 与 `codicon-discard`。
+
+---
+
+## 4. 切片 S3：Sessions、Navigator（Projects / Agents / Team / Inspect）与 Trajectory 交互视觉修复
+
+### 4.1 Trajectory 过程折子行键盘可达、行样式隔离、Inspector 关闭回焦与防自动重开（P0–P1）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/conversationTrajectory.ts:512-556, 1177-1208`：过程折（`type: 'fold'`）内的所有子记录行（`.conversation-lens-trajectory-record-row`）被渲染在单个 `WorkbenchList` 项内部，既无 `role="row"`，也无法通过键盘 `↑`/`↓` 逐行聚焦或按 `Enter` 查看；且鼠标悬停/点击子行时，`listWidget.ts` 给整个外层 `.monaco-list-row` 涂上选中底色和焦点框，导致整组步骤一起高亮。*（注：`selectRecord` 在点击关联回合行时跳回对话透镜是 `docs/systems/conversation/lens-and-trajectory.md:98` 与 `conversationLensRevealNavigation.test.ts:310-396` 锁定的双向 reveal 合同，保持该合同不变。）*
+  2. `conversationTrajectory.ts:624-631, 729-738, 980-988, 1068-1080`：`dismissInspectorOverlay()` 关闭检查器时未将焦点还给 `this.list.domFocus()`；`refreshTable()` 与 `refreshDetailInspector()` 未检查 `!this.inspector.hidden`，导致用户关闭检查器后一旦流式刷新或修改搜索词，检查器又自动弹出；在 `this.searchInput` 按 `Escape` 会误关检查器而非清空搜索词；搜索无匹配（`filteredCount === 0 && totalCount > 0`）时无 `"No matches"` 提示；Inspector 的 Close / Back / Retry 按钮缺 `:hover` 或 `:focus-visible`。
+- **修改方案**：
+  1. 在 `populateTrajectoryRecordRow` 中统一设置 `row.setAttribute('role', 'row')`；在 `conversationLens.css` 中对 `.conversation-lens-trajectory-table-scroll .monaco-list-row` 重置 `background-color: transparent !important; outline: none !important; color: inherit !important;`，将悬停/选中/焦点视觉交由 `.conversation-lens-trajectory-record-row` 与 `.conversation-process-fold-header` 表达；在 `conversationTrajectory.ts` 中为展开的 fold 子记录支持列表内 `↑`/`↓` 子行游标导航与 `Enter`/`Space` 激活。
+  2. 在 `dismissInspectorOverlay()` 中若原焦点在 `this.inspector` 内则调用 `this.list.domFocus()`；在 `refreshTable()` 与 `refreshDetailInspector()` 中仅当 `!this.inspector.hidden` 时才自动刷新重绘打开的 Inspector；为 `this.searchInput` 绑定 `Escape`（非空清空并 `stopPropagation()`，已空聚焦 `this.list`）与 `ArrowDown`（聚焦 `this.list`）；当 `viewModel.filteredCount === 0 && viewModel.totalCount > 0` 时显示 `"No matches"` 状态行；补齐 Inspector 按钮 `:hover` / `:focus-visible` 与 Overview toggle `22×22px` 命中区。
+
+### 4.2 Navigator `Projects` / `Agents` 行尾动作键盘可达、重复错误/空态清理与后台刷新保位（P0–P1）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/navigator/browser/navigatorProjectsList.ts:228-230, 350-367` 与 `navigatorAgentsView.ts:228-230`：`actionBar.setFocusable(false)` 锁死了行尾 `+`、`…`、`Inspect`、`Reveal` 按钮的 `tabIndex`；`Projects` 在 `workdir` 行上未将隐藏的 `moreAction.enabled` 设为 `false`，且 `navigatorProjectsList.css:134-140` 漏了 `:focus-within .navigator-projects-row-actions.is-available.is-workdir-actions`、`navigatorStub.css:232` 漏了 `:focus-within .navigator-agents-row-actions`。
+  2. `src/vs/workbench/contrib/navigator/browser/navigatorTeamList.ts:705-754, 926-955, 1029-1071` 与 `navigatorAgentsView.ts:813-911, 1200-1237`：首次收到空快照或错误后将 `hadTeamSnapshot` / `hadActivitySnapshot` 置为 `true`，导致后续刷新报错、断连或过滤无匹配时，当列表为空（`isEmpty === true`，`.navigator-stub-empty` 显示为 `flex`）时 `.navigator-stub-note` 也同时显示。
+  3. `src/vs/workbench/contrib/navigator/browser/navigatorProjectsList.ts:1066-1084`：`syncActiveSessionSelection` 未记录 `syncedActiveSessionId`，后台每次会话流式刷新都会强行调用 `tree.expandTo(active)` 展开已折叠分组。
+- **修改方案**：
+  1. 在 `navigatorProjectsList.ts` 的 `syncTemplateActions` 中设置 `templateData.moreAction.enabled = session;` 并调用 `templateData.actionBar.setFocusable(session || workdir)`；在 `navigatorAgentsView.ts` 的 `syncTemplateActions` 中调用 `templateData.actionBar.setFocusable(live)`；在 `navigatorProjectsList.css` 与 `navigatorStub.css` 补齐 `:focus-within` 显示规则及 `.navigator-projects-row-actions .action-label` 的 reduced-motion 规则。
+  2. 在 `NavigatorTeamView` 与 `NavigatorAgentsView` 中，仅当实际写入过非空条目（`entries.length > 0`）后才将 `hadTeamSnapshot` / `hadActivitySnapshot` / `hadHierarchySnapshot` 置为 `true`；在 `update*Display()` 中，当该子视图处于空态（`isEmpty === true`，即 `.navigator-stub-empty` 显示为 `flex`）时隐藏对应的 `.navigator-stub-note`，当有 leftover 行（`isEmpty === false`）时完全保留 `note.style.display = 'block'` 的既有合同。
+  3. 在 `NavigatorProjectsView` 的 `syncActiveSessionSelection` 中记录 `syncedActiveSessionId`（当 `active === undefined` 时重置为 `undefined`），仅在 `active.sessionId !== prevSyncedActiveSessionId` 时调用 `tree.expandTo(active)`，避免后台刷新强行撑开用户手动折叠的分组，同时保持 `tree.setSelection` 节点引用同步。
+
+### 4.3 `Sessions` 与 `Navigator` 列表焦点/选中样式、状态图标保色与筛选框细节（P1–P3）
+- **现状证据**：
+  1. `conversationSessions.css:55-76` 漏掉了 `:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus .monaco-list-row.focused` 的 `outline: none !important;`。
+  2. `conversationSessions.css`、`navigatorProjectsList.css`、`navigatorStub.css`、`navigatorTeamList.css` 在 `.monaco-list:focus .monaco-list-row.selected` 下被 `listWidget.ts` 注入的高权重 `.selected .codicon { color: var(--vscode-list-activeSelectionIconForeground) }` 覆盖了等待/失败/运行/完成等状态图标颜色，且未显式锁定 `color: var(--vscode-foreground) !important;`。
+  3. `navigatorProjectsList.css:261` 的 `.is-note` 静态行未禁 `:hover` / `.focused` 背景，且 `focusTreeFromFilter` 会聚焦首条 `note` 行；`agentInspect.css:46, 117` 未禁用 `.selected` 背景与 `:hover:not(.focused)` 闪烁。
+  4. `navigatorTeamList.ts:507-519` 的状态筛选按钮未用 `this._register(dom.addDisposableListener(...))`、未设 roving `tabIndex` 与左右方向键、CSS 缺 `font-size` 与 `:active`；`conversationSessions.css:8, 160` 在窄栏下未给 `.conversation-sessions-item-label` 设 `min-width: 8ch`；`conversationSessionsView.ts:166` 点 `More` 未同步列表焦点行；`conversationSessionsInlineFilter.css:77` 在普通主题 `:focus` 下仍画 `border-color: var(--vscode-focusBorder)`；`Projects`/`Agents`/`Team` 过滤框清除钮 `:hover` 缺 `toolbar-hoverBackground`（保持 `transition: color 100ms ease;` 不变以兼容 `navigatorProjectsListCss.test.ts` 与 `navigatorAgentsInlineFilterCss.test.ts`）。
+- **修改方案**：
+  1. 在 `conversationSessions.css` 补齐普通主题 `.monaco-list:focus .monaco-list-row` 的 `outline: none !important;`；在四个列表 CSS 中为选中/聚焦行锁定 `color: var(--vscode-foreground) !important;` 并保护语义状态图标颜色不被 `activeSelectionIconForeground` 覆盖。
+  2. 为 `Projects` 的 `.monaco-list-row:has(.is-note)` 与 `AgentInspect` 的 `.monaco-list-row` 锁定静态透明背景，`focusTreeFromFilter` 跳过 `note` 节点（保持 `.monaco-list-row:has(.is-group)` 的 42px / 30px 几何与左内缩不变以兼容 `navigatorProjectsList.test.ts:1242, 1538`）。
+  3. 为 `Team` 状态筛选栏补齐 `addDisposableListener`、roving `tabIndex` 与 `ArrowLeft`/`ArrowRight`/`Home`/`End`、`fontSize-label2` 与 `:active`；为 `Sessions` 标题补 `min-width: 8ch` 并在点击 `More` 时同步该行 focus；移除 `conversationSessionsInlineFilter.css:77` 普通主题的 `focusBorder` 并为 Navigator 三个过滤框清除钮补 `:hover` 背景（不改 `transition` 属性）。
+
+---
+
+## 5. 切片 S4：Engine / Connection / Settings、Sources、Preview 与工作台壳层修复
+
+### 5.1 Engine / Connection 首选项视觉与交互缺陷修复（P0–P3）
+- **现状证据**：
+  1. `src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css:684-726` 漏掉了 `.engine-catalog-action-message.is-error` / `.is-success`（及 `.engine-memory-write-status`、`.engine-rules-write-status`），导致 `Memory` 与 `Rules` 的保存/删除错误显示为灰色说明文字而非错误色。
+  2. `enginePreferencesPane.css:1269-1285`：`.engine-confirm-popover-actions button:hover` 与 `:focus-visible` 的权重高于 `.engine-confirm-popover-confirm:not(.is-danger)`，导致非危险确认主按钮（如 `Import from local harnesses` 打开时默认聚焦）在浅色主题下变成浅灰底配白字，完全不可读。
+  3. `enginePreferencesPane.css:1946, 2030-2035, 2048` 使用了生产环境中不存在的 `.engine-section.is-active-section` 选择器，导致高对比主题（`.hc-black` / `.hc-light`）下 11 个分区的卡片 `contrastBorder` 全部失效。*（注：按 D15「按钮用 monaco 默认高度，不强制 28px」，仅修复 `:1946, 2032, 2048` 的卡片内衬与高对比 `contrastBorder`，不扩散 `:2006` 的按钮 `min-height: 28px`。）*
+  4. `engineEditorSettings.css:228-232` 与 `connectionPreferencesPane.css:911-914`：`Toggle` 开关在 `.checked` 时写入内联 `style="background-color: var(--ua-...-switch-track)"`，覆盖了无 `!important` 的 `:focus-visible` 背景，导致已开启的开关在普通主题下键盘聚焦完全无视觉变化。
+  5. `engineProviderModelSection.ts`、`engineMemorySection.ts`、`engineRulesSection.ts`、`engineMcpSection.ts`、`connectionPreferencesPaneSas.ts` 在确认删除/清除或完成配对重绘列表后，原聚焦按钮被销毁，焦点掉到 `document.body`；`engineConfirmPopover.ts:127` 点击外部空白处关闭时未在未聚焦新控件时恢复锚点焦点。
+  6. `engineAgentsSection.ts:575, 1914` 在有未保存修改切 profile 时无 `Save` / `Discard` 提示且漏检 `isAgentToolEnablementDirty()`。*（注：按规则 16 C1/C2/I4，保留 `EngineTriggersSection`、`EngineCatalogStatusWidget`、`EngineSkillsSection`、`EngineAgentsSection` 双状态行及单次 `dialogService.input` 的既有单测锁定合同。）*
+  7. `enginePreferencesPane.css:789, 1615, 1821`、`connectionPreferencesPane.css:139, 420, 706, 784`、`uaClientSettingsChrome.css:115` 在普通主题下仍画 `focusBorder` 外圈（保留 `conversationLensCssScan.test.ts:1123` 锁定的 `.engine-preferences-nav` 规则不动，且 `:789` 限定 `:not(.selected):focus-visible` 以保持 `preferencesStatusStyle.test.ts:453-485` 的 `.selected` 背景色）；`preferencesEditor.css:117, 143` 的 `.action-label:active` 被 `!important` 压死且 `.checked:focus-visible` 无焦点变化；`connectionPreferencesPane.css:670, 764` 的设备状态与配置状态在窄栏被压缩截断；`enginePluginsSection.ts:344` 未设 `listContainer.style.height` 且未扣减卡片内衬宽度；`enginePreferencesPane.css:1853-1891` 的 reduced-motion 漏了 `.search-container`（保持 `connectionPreferencesPane.css` 的 5 处 media selector 计数不变）。
+- **修改方案**：
+  1. 在 `enginePreferencesPane.css:684-726` 补齐 `.engine-catalog-action-message`、`.engine-memory-write-status`、`.engine-rules-write-status` 的 `.is-success` / `.is-error` 规则；修复 `.engine-confirm-popover-confirm:not(.is-danger)` 的 `:hover` / `:focus-visible` 为 `var(--vscode-button-hoverBackground)`；将第 `1946, 2032, 2048` 行的 `.engine-section.is-active-section` 扩展为兼容 `.engine-preferences-detail-body > *`；为 `.monaco-custom-toggle:focus-visible` 更新 `--ua-editor-setting-switch-track` / `--ua-connection-switch-track` 变量以在开启和关闭态下均呈现清晰的键盘焦点。
+  2. 在 `Providers`、`Models`、`Memory`、`Rules`、`MCP` 删除确认刷新后及 `connectionPreferencesPaneSas.ts` 清理配对框后恢复焦点到相邻行或工具栏按钮；在 `engineConfirmPopover.ts` 点击外部空白处且 `activeElement === document.body` 时恢复锚点焦点。
+  3. 为 `EngineAgentsSection` 补齐未保存更改的 `Save` / `Discard` 内联提示与 `isAgentToolEnablementDirty()` 守卫，并为禁用按钮补齐 `title` / `aria-label` 原因。
+  4. 收敛上述 `Engine`（`:not(.selected):focus-visible`）、`Connection`、`Client Settings` 未锁定的普通主题 `focusBorder` 为轻量背景/中性描边 + HC `contrastActiveBorder`；修复 `preferencesEditor.css` 的 `:active` 与 `.checked:focus-visible`；将 `.connection-hub-device-status` 与 `.connection-profile-state` 设为 `flex: 0 0 auto`；修复 `EnginePluginsSection.layout()` 的容器高度与内容宽度计算；补齐 `Triggers` / `Clipboard` / `Context Variables` 状态行 `role="status"` 与静态列表 `role="list"` / `role="listitem"` 及 `.search-container` 的 reduced-motion。
+
+### 5.2 Sources（`Changes` / `Review` / `Files` / `Diff`）、Preview 类别条与工作台壳层修复（P0–P3）
+- **现状证据**：
+  1. **门禁失配与导航按钮裁切（P0）**：`conversationPart.css` 与 `conversationLens.css` 的会话栏已按 2026-11-02 规范改为 `36px` 高、`28px` 按钮，但 `conversationRegionChromeCss.test.ts:26-50` 仍断言旧 `28px` / `24px`（导致 `status.md` 记录的 1 条持续失败），且 `conversationNavigation.css:12-48` 的 `.conversation-window-nav` 仍为 `28px` / `22px` `overflow: hidden` 裁切了 `28px` 按钮。
+  2. **Sources `Files` 面包屑与筛选框键盘断路及多根列表可达性（P0–P1）**：`explorerLocationBreadcrumbBox.ts:60` 的 `BreadcrumbsWidget` 根节点 `tabIndex = 0` 但无任何 `keydown` 处理器且 `< 600px` 时拦截 `SourcesTabsHost.focusSelectedPanel()` 的焦点；多根工作区下 `explorerView.ts:443-468` 硬编码 `folders[0].uri`；`explorerInlineFilterBox.ts:26-41` 无 `Escape` / `DownArrow` 监听且 `clearButton` 的 `aria-label` 误写为 `"Filter files"`、无 `title`；`sourcesFilesList.ts:172` 未向 `SourcesListFilterBox` 传 `focusList` 回调。
+  3. **Sources `Review` / `Changes` 主次按钮 `:focus-visible` 被内联样式覆盖（P0）**：`sourcesReviewList.css:120-124`（`Mark all as reviewed`）与 `sourcesChangesList.css:462-466`（`Commit`）的 `:focus-visible` `background-color` 无 `!important`，被 `Button` 内联样式覆盖，普通主题下键盘聚焦完全不可见。
+  4. **Preview 拆分空组关闭按钮被裁切 & 隐藏 Preview 未移交焦点（P0–P1）**：`editorgroupview.css:277-336` 将所有 `.editor-group-container.empty > .editor-group-container-toolbar` 移至 `top: -28px` 被 `.split-view-view` 裁切，而 `categorizedMainEditorPart.ts:618` 仅在类别内所有组全空时才停靠动作，导致「1 非空组 + 1 空组」时无法关闭空组；`layout.ts:2049-2073` 的 `setEditorHidden` 漏了 `handOffFocus`；`conversationEditorPart.ts` 在非根组关闭最后一个 Diff 编辑器变空后未自动隐藏空组。
+  5. **Sources `Changes` 虚拟列表 Tab 陷阱、折叠组高亮，以及 `Review` 失焦与错误整段红字（P1–P2）**：
+     - `sourcesChangesList.ts:297, 330` 调用 `checkbox.enable()` 将 `tabIndex` 重置为 `0`，且 `fileCheckbox` 未随 `isEntryCheckboxEnabled` 调用 `enable()`/`disable()`；展开态下首文件聚焦连带高亮祖先文件夹头，收起态分组头被 `sourcesChangesList.css:134` 的 `--vscode-sideBar-background` 盖住焦点/悬停底色。
+     - `sourcesReviewList.ts:315, 930`：键盘点 `Clear` 清除路径筛选或 `Unreviewed only` 下标完最后一条时焦点掉到 `document.body`；窄栏 `.is-compact` 下 `Unreviewed only` 隐藏文字后无 `title`。
+     - `sourcesChangesList.css:98`、`sourcesReviewList.css:362`、`sourcesDiffPanel.css:110`、`conversationDiffReviewPane.css:108` 将 `.is-error` 整段正文设为 `--vscode-errorForeground` 且缺 `::before` 错误图标（注意保持 `sourcesWiringScan.test.ts` 的选择器合同）。
+     - `previewCategoryBar.css:146` 的 `.category-hint` 在 `hc-black` 下纯黑隐形；`.preview-category-empty-group-actions .action-label` 在普通主题下露出 `focusBorder`；`editorgroupview.css:664-695` 存在重复类别条规则且 `explorerInlineFilter.css:87` 存在 `0.12s`（120ms）过渡。
+- **修改方案**：
+  1. 对齐 `conversationRegionChromeCss.test.ts` 与 `ui-design-principles.md` §4 表到 2026-11-02 签收的 `36px` 标题条 / `28px` 按钮，并在 `conversationNavigation.css` 中匹配容器与按钮尺寸防止裁切。
+  2. 为 `ExplorerLocationBreadcrumbBox` 绑定左右方向键/`Home`/`End`/`Enter`/`Space` 与悬停/焦点样式，在 `SourcesTabsHost.focusSelectedPanel()` 中优先聚焦列表或筛选框，并让多根工作区面包屑跟随当前所在根；为 `ExplorerInlineFilterBox` 与 `SourcesFilesList` 补齐 `Escape` / `DownArrow` `focusList` 回调与 `Clear filter` 的 `title` / `aria-label`。
+  3. 为 `sourcesReviewList.css` 与 `sourcesChangesList.css` 的 `.monaco-button:focus-visible` / `:active` 背景补上 `!important`，并在 `universe-agent-studio-light.json` 与 `workbenchThemeService.ts:387`（`COLOR_THEME_LIGHT_INITIAL_COLORS`）同步将 `button.secondaryHoverBackground` 设为 `#00000014`。
+  4. 在 `editorgroupview.css` 中当同一类别存在多个组时让非唯一空组的 `.editor-group-container-toolbar` 保持 `top: 0` 可见；在 `layout.ts` 的 `setEditorHidden` 中补齐 `handOffFocus`；在 `ConversationEditorPartImpl` 中当非根组关闭最后一个编辑器变空时调用 `setGroupHidden(group, true)`。
+  5. 在 `SourcesChangesRenderer` 中同步 `fileCheckbox` 的 `enable()`/`disable()` 并在之后保持 `tabIndex = -1`；修复收起态 `.sources-change-group.is-collapsed` 的悬停/焦点背景与非折叠文件夹头的连带高亮；在 `updateSelectionToolbar()` 中当 `this.checkedEntryIds.size > 0` 时使用 `this.currentEntries` 非空匹配后回退 `this.list?.getSelectedElements()`（排除折叠锚点）；修复 `SourcesReviewList` 清除路径筛选与标完最后一条时的焦点移交及 `Unreviewed only` 的 `title`；将 Sources 各处 `.is-error` 正文改为 `--vscode-foreground` 并通过 `::before` 渲染语义红色错误图标（严格兼容 `sourcesWiringScan.test.ts`）；修复 `.category-hint` 高对比可见性、`.preview-category-empty-group-actions` 焦点样式、移除 `editorgroupview.css:664-695` 重复规则并同步 `explorerInlineFilter.css:87` 的 `100ms` / reduced-motion 合同（保持 `editorGroupViewCss.test.ts:27` 锁定的 `0.12s` 或同步更新单测）。
+
+---
+
+## 6. 规则 16 只读审查记录（2026-11-07）
+
+- **审查结论**：Critical 5，Important 4，Minor 2。已全部核验并改入本方案正文：
+  1. **Critical 1（`EngineTriggersSection` 锁定单测）**：核对 `engineTriggersSection.test.ts:692, 963, 1367, 1706`，已撤回对 `triggerFormValidate` 校验 `Interval`/`Target` 及无选中行禁用 `Fire`/`Delete` 的修改，保持既有单测合同。
+  2. **Critical 2（`EngineCatalogStatusWidget` 与 `Skills`/`Agents` 双状态行单测）**：核对 `engineMcpRuntimePanel.test.ts:38`、各分区 catch scan 单测与 `engineSkillsSection.test.ts:707` / `engineCatalogSections.test.ts:3754`，已撤回移除 `Open Connection` 按钮与删减双状态行的修改。
+  3. **Critical 3（主题初始色同步与 `sourcesWiringScan.test.ts` 约束）**：已在 §5.2.3 明确同步更新 `workbenchThemeService.ts:387` 的 `COLOR_THEME_LIGHT_INITIAL_COLORS['button.secondaryHoverBackground'] = '#00000014'`；并按 `sourcesWiringScan.test.ts:281-300, 431` 与 D1387/M01 合同撤回对 `SourcesDiffPanelService.show` 签名和 `ConversationDiffReviewPane` 新增按钮的改动。
+  4. **Critical 4（History/Snapshots 程序化连开单测与 Inbox Goal 禁用文案单测）**：核对 `conversationEditorPane.test.ts:256`、`conversationLens.test.ts:2742` 与 `conversationInboxOverlay.test.ts:530, 2678`，已在 §3.2 将 History/Snapshots 互斥放在用户点击入口与外部 `mousedown`，不在 `setOnWillShow` 内强制关对方；并撤回对 `renderGoal` `aria-label` 文案的改动。
+  5. **Critical 5（`editorGroupViewCss.test.ts` 与 `SourcesChangesList` 折叠勾选）**：核对 `editorGroupViewCss.test.ts:27` 与 `sourcesChangesList.ts:1447`，已在 §5.2.5 保留 `this.currentEntries` 对已勾选条目的完整匹配（仅在无可见勾选时回退选中行），并兼容 `editorGroupViewCss.test.ts`。
+  6. **Important 1–4 & Minor 1–2**：已在 §2.1 补充同步更新 `conversationVisualizeOverlay.test.ts:152` 与 `conversationLens.test.ts:4831` 的 `key: 'Escape'`；在 §4.2.2 明确有 leftover 行时保留 `.navigator-stub-note`；在 §4.2.3/§4.3 保持分组行 42px/30px 几何与过滤清除钮 `transition` 正则；在 §5.1 遵循 D15 不扩散按钮 28px、对 `:789` 限定 `:not(.selected):focus-visible`、不递归重开单次 `TestDialogService` 输入框、保持 `connectionPreferencesPaneCss.test.ts` 的 5 处 media selector 计数；在 §2.3.5 避开 `conversationLensCssScan.test.ts:645` 切片区间；在 §3.3.4 将 `.is-single-line` 的 `gap` 对齐为 `8px`。
+
+---
+
+## 7. 验证门禁（本地门禁）
+
+遵循 [health-gates](../progress/health-gates.md)：
+1. `npm run transpile-client` / `npm run compile-client` 零错误。
+2. 相关 Node / Chromium 单测与 CSS 合同扫描（`conversationLensCssScan.test.ts`、`conversationRegionChromeCss.test.ts`、`sourcesWiringScan.test.ts`、`navigatorProjectsListCss.test.ts`、`uaCommonMotionContract.test.ts`、`previewEditorGroupHeader.test.ts`、`workbenchThemeService.test.ts` 等）。
+3. 修改文件的 ESLint 与 `git diff --check`。
+4. 文档门禁：`python3 scripts/generate-docs-status.py`、`python3 scripts/check-docs-health.py`、`python3 scripts/wiki/wiki.py check --root .`。
+
+## 8. S1–S4 实施与验证检查点（2026-11-07）
+
+- **S1（对话阅读面与浮层）**：
+  - `conversationVisualizeOverlay.ts`、`conversationSubAgentOverlay.ts`、`conversationTimelineHost.ts`：在捕获阶段处理 `Escape`（避免内部 `Button` 冒泡处理器先 `blur()` 到 `document.body`），修复 `ConversationVisualizeOverlay` 将 `KeyCode.Escape (9)` 与原生 `Tab (9)` 混用的键码缺陷；将 `pinnedHost` 移至 `scrollChrome` 之前以对齐视觉与 Tab 序；扩展 `firstFocusable` 支持 `.monaco-button` 并跳过 `hidden`/`inert` 子树；`updateScrollDownButton()` 隐藏持焦按钮前移交焦点。
+  - `conversationTimelineItemHost.ts`、`conversationTimelineRenderer.ts`、`conversationProcessFold.ts`、`conversationQuestionSeat.ts`、`conversationTurnContentAdapter.ts`、`conversationAgentBreadcrumb.ts`、`conversationVisualizeCard.ts`：重绘时保留回合动作按钮与过程折内部控件焦点；`errorDetailsExpanded` 持久化错误详情展开态并共享 `thinkingExpanded`/`toolExpanded` Map；隐藏提问座位 `undecided` 空状态胶囊；代码块复制切换 `.codicon-check`；非交互面包屑设 `tabIndex = -1`、当前项禁手形指针、空面包屑隐藏 `24px` 宿主；补齐截断标题 `title`、高对比 `contrastBorder`、`compact` 回合间距 `4px`、幽灵按钮 `!important` 样式及 `.part.conversation .monaco-button:active { filter: none !important; }`。
+- **S2（Composer、Inbox、SessionBar 与 History/Snapshots 浮层）**：
+  - `conversationLensComposerChrome.ts`、`conversationConfirmationSeat.ts`、`conversationEngineHistoryList.ts`、`conversationEngineSnapshotsList.ts`、`conversationInboxOverlay.ts`、`conversationLensSessionBar.ts`、`conversationLeafSessionBar.ts`、`conversationLensSessionBinding.ts`、`conversationEditorPane.ts`、`conversationComposerAt.ts`、`conversationComposerPicker.ts`：`exitComposerEdit` 先将 `composer` 移回 `composerCluster` 再拆时间线编辑槽并恢复 `dockTextarea` 焦点；`.conversation-lens-dock-bottom-trailing` 补 `margin-inline-start: auto`；History/Snapshots 用户点击互斥、外部 `mousedown` 关闭、`paintSnapshots` 重绘保焦、`restoreConversationOverlayFocus` 检查 `getClientRects()`；Inbox 队列弹层首项聚焦与 Tab 循环、清空回焦 `queueChip`、点击同栏 Goal/Stop 关闭弹层；切会话自动取消未提交标题改名、编辑框设 `min-width: 8ch`；`@` 建议框活动项 `scrollIntoView`、鼠标打开选择器先聚焦 `<select>`；修正 `.conversation-editor-lens-tablist` 选择器、浮层滚动与 `.is-single-line` `gap: 8px`；`uaRoundedIcons.css` 补 `codicon-comment-discussion` 与 `codicon-discard`。
+- **S3（Sessions、Navigator 与 Trajectory）**：
+  - `conversationTrajectory.ts`、`conversationSessionsView.ts`、`navigatorProjectsList.ts`、`navigatorAgentsView.ts`、`navigatorTeamList.ts` 及对应 CSS：轨迹过程折子行补 `role="row"`、`tabIndex = -1` 与 `↑`/`↓`/`Enter`/`Space` 导航，重置 `.monaco-list-row` 透明底/无外框；`dismissInspectorOverlay` 回焦 `this.list` 且后台刷新不重开已关闭的 Inspector；搜索框支持 `Escape` 清空/回表与 `ArrowDown` 入表；`Projects` 与 `Agents` 行尾 `ActionBar` 启用键盘可聚焦与 `:focus-within` 显隐；`Team` 与 `Agents` 仅在有 leftover 行时显示 `.navigator-stub-note`，空态下不双出重复文案；`Projects` 后台刷新按 `syncedActiveSessionId` 避免强行撑开已折叠分组；锁定列表选中行 `--vscode-foreground` 与语义状态图标颜色；`Team` 状态筛选栏补 roving `tabIndex` 与方向键导航。
+- **S4（Engine/Connection/Settings、Sources、Preview 与壳层）**：
+  - `enginePreferencesPane.css`、`engineEditorSettings.css`、`connectionPreferencesPane.css`、`uaClientSettingsChrome.css`、`preferencesEditor.css` 及各分区 TS：补齐 `Memory`/`Rules` `.is-error`/`.is-success` 颜色、修复非危险确认主按钮浅色悬停/聚焦白字不可读、补齐高对比 `.engine-preferences-detail-body > *` 边框、修复开启态开关 `:focus-visible` 轨道对比、收敛未锁定普通主题 `focusBorder`、固定 Connection 状态文本 `flex: 0 0 auto`、修正 `EnginePluginsSection.layout()` 宽高、补齐状态行 `role="status"` 与静态列表 `role="list"`/`role="listitem"` 及配对确认回焦。
+  - `conversationRegionChromeCss.test.ts`、`conversationNavigation.css`、`explorerLocationBreadcrumbBox.ts`、`explorerInlineFilterBox.ts`、`explorerView.ts`、`sourcesFilesList.ts`、`sourcesTabsHost.ts`、`sourcesChangesList.ts`、`sourcesReviewList.ts`、`layout.ts`、`conversationEditorPart.ts`、`previewCategorySwitcher.ts` 及 Sources/Preview CSS：对齐 `36px`/`28px` 区域标题条门禁（消除此前 `status.md` 唯一残留 Node 扫描失败）；补齐 Files 面包屑键盘导航与筛选框 `Escape`/`DownArrow` 回树；`Review`/`Changes` 按钮 `:focus-visible` 加 `!important` 并同步浅色 `button.secondaryHoverBackground`；修复 `Changes` 虚拟列表勾选框 `tabIndex = -1` 与折叠组悬停/焦点高亮；统一 Sources `.is-error` 为前景色正文加语义红错误图标；补齐 `setEditorHidden` 焦点移交、非根空会话 Diff 组自动隐藏与 Preview 拆分空组关闭栏可见性。
+- **验证结果**：
+  - `npm run transpile-client` 与 `npm run typecheck-client` **0 errors**。
+  - Node CSS 合同扫描与主题单测（13 个套件：`conversationLensCssScan`、`conversationRegionChromeCss`、`enginePreferencesPaneCss`、`connectionPreferencesPaneCss`、`uaCommonMotionContract`、`navigatorProjectsListCss`、`navigatorStubCss`、`agentInspectCss`、`navigatorTeamStatusFilterCss`、`navigatorAgentsInlineFilterCss`、`editorGroupViewCss`、`previewCategoryBarCss`、`workbenchThemeService`）**101 passing / 0 failing**；`sourcesWiringScan.test.ts` **46 passing / 0 failing**。
+  - Electron 浏览器组件单测（`conversationVisualizeOverlay`、`conversationTrajectoryUi`、`conversationProcessFold`、`conversationTimelineRenderer`、`conversationQuestionSeat`、`conversationLensRevealNavigation`、`navigatorProjectsList`、`navigatorTeamSubviews`、`preferencesStatusStyle`、`engineTriggersSection`、`engineSkillsSection`、`sourcesReviewList`、`sourcesFilesList`）**621 passing / 0 failing**。
+  - 修改文件 ESLint **0 errors**，`git diff --check` 通过。
+
+## 9. 后续 GPT 视觉窄切片（2026-11-08）
+
+- **§284 Inbox pending button**：`ConversationInboxOverlay` 的待确认入口是真实 `button.conversation-lens-inbox-pending`，保留原生按钮、点击回到待确认回合、Tab/Enter/Space 与禁用语义；将普通主题 hover/focus/active 的整颗 22px 按钮底色迁到 `::before` `inset: 1px 4px`，HC 对比轮廓与 reduced-motion 保持。Node 24.18.0 `conversationLensCssScan.test.ts` 82 passing；真实默认窗口与高对比观察仍待补。
+- **§285 Inbox queue chip**：`ConversationInboxOverlay` 的队列入口是真实 `button.conversation-lens-inbox-chip.conversation-lens-inbox-queue`，`aria-pressed` 表示队列面板是否打开，`aria-disabled` 表示不可打开；保留 pressed/disabled 状态面，仅将未按下普通 hover/focus/active 面迁到 `::before` `inset: 1px 4px`。Node 24.18.0 `conversationLensCssScan.test.ts` 83 passing；真实默认窗口与高对比观察仍待补。
+- **§286 Inbox Goal/Stop button faces**：Goal 与 Stop 是 Inbox 内真实 Button 控件，保留其命令、禁用与键盘语义；将可用态 hover/focus/active 的整颗 22px 按钮面迁到 `::before` `inset: 1px 4px`，HC 对比轮廓与 reduced-motion 保持。Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；真实默认窗口与高对比观察仍待补。
+- **§287 Conversation/Trajectory tab visual face refinement**：用户反馈 `inset: 4px 8px` 仍显得过大；保留 32px `button` 命中区、`role="tab"`、`aria-selected`、键盘切换与 HC 对比轮廓，将 tab 的 hover/selected/focus/active 视觉面收至 `::before` `inset: 7px 6px`，只缩可见面不改交互几何。Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；真实默认窗口与高对比观察仍待补。
+- **§288 Trajectory overview segment focus**：真实 overview segment 是 12px 可键盘聚焦控件，保留 `::before inset: -6px 0` 的命中区域、kind colors、ARIA/键盘与 HC 对比轮廓；普通主题 `:focus-visible` 去掉 `focusBorder`，改由 `::after inset: 1px 0` 的 compact foreground surface 表达，并补 reduced-motion 合同。Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；真实默认窗口与高对比观察仍待补。
+- **§289 User bubble keyboard focus face**：用户气泡是真实 `role="button"`、`tabIndex=0` 节点；时间线 article 仍负责 roving focus，普通主题气泡自身 `:focus-visible` 已从 `focusBorder` 改为既有 `::before` compact surface，HC 对比环与 article focus 抑制规则保持。Node 24.18.0 `conversationLensCssScan.test.ts` 85 passing；真实默认窗口与高对比观察仍待补。
+- **§290 Error details toggle focus face**：错误回合详情入口是真实 `button.conversation-lens-turn-error-details-toggle`；保留按钮命中区与键盘展开动作，普通主题焦点面从整段文本 host 迁到 `::before inset: 0 2px`，HC 对比环与 reduced-motion 保持。Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；真实默认窗口与高对比观察仍待补。
+- **§291 Message queue bar action faces**：队列头部 Clear/Retry 是真实 queue-bar action 按钮，保留错误色、禁用、键盘和 HC 语义；普通主题 focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；真实默认窗口与高对比观察仍待补。
+- **§292 Composer reference remove face**：Composer 引用移除是真实 22px button，保留删除动作、键盘/ARIA 与 HC 环；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；真实默认窗口与高对比观察仍待补。
+- **§293 Composer maximize input button face**：放大输入是真实 22px `monaco-button`，保留命中区、命令、键盘和 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 86 passing；真实默认窗口与高对比观察仍待补。
+- **§294 User turn fold button face**：用户回合折叠入口是真实 `button.conversation-lens-turn-fold-button`，保留折叠动作、命中区、键盘和 HC ring；普通主题 focus/active 面迁到 `::before inset: 0 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 87 passing；真实默认窗口与高对比观察仍待补。
+- **§295 Trajectory inspector Back face**：轨迹 Inspector 返回入口是真实 `button.conversation-lens-trajectory-inspector-back`，保留回退动作、ARIA/键盘和 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 88 passing；真实默认窗口与高对比观察仍待补。
+- **§296 Turn action button faces**：回合 Copy/Retry/Delete 等 actions 是真实 `.conversation-lens-turn-actions .monaco-button`，保留命令、命中区、键盘/ARIA 与 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；真实默认窗口与高对比观察仍待补。
+- **§297 Trajectory inspector Retry face**：轨迹 Inspector Retry 是真实 `button.conversation-lens-trajectory-inspector-retry`，保留重试动作、命中区、键盘和 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；真实默认窗口与高对比观察仍待补。
+- **§298 Trajectory overview toggle face**：轨迹 overview 折叠入口是真实 `button.conversation-lens-trajectory-overview-toggle`，保留展开状态、命中区、键盘/ARIA 与 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；真实默认窗口与高对比观察仍待补。
+- **§299 Session title face**：SessionBar 会话标题是真实 `button.conversation-lens-session-title`，保留改名入口、命中区、键盘/ARIA 与 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；真实默认窗口与高对比观察仍待补。
+- **§300 Timeline scroll-down face**：时间线回到底部入口是真实 28px button，保留命中区、滚动命令、键盘和 HC ring；普通主题 hover/focus/active 面迁到圆形 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 89 passing；真实默认窗口与高对比观察仍待补。
+- **§301 Trajectory inspector close face**：轨迹 Inspector Close 是真实 22px button，保留关闭动作、ARIA/键盘和 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 90 passing；真实默认窗口与高对比观察仍待补。
+- **§302 SessionBar control faces**：SessionBar New/Delete/More/Snapshots/History 等真实 `.conversation-lens-session-controls .monaco-button` 保留命令、命中区、键盘/ARIA 与 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明并补 reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 90 passing；真实默认窗口与高对比观察仍待补。
+- **§303 Codicon pseudo-layer reliability**：复核发现 SessionBar controls、turn-actions、Composer maximize Button 由 `Button.icon` 添加 codicon 类，图标占用宿主 `::before`；已将这三组交互面伪元素迁到 `::after`，保留 hit target、ARIA/键盘、HC/reduced-motion，避免遮挡图标。Node 24.18.0 `conversationLensCssScan.test.ts` 90 passing；真实默认窗口图标与按压观察仍待补。
+- **§304 Error retry button face**：错误回合 Retry 是真实 `.conversation-lens-turn-error-retry .monaco-button`，用 `::after` 避开潜在 codicon `::before`，普通主题 hover/focus/active 面迁到 `inset: 1px 2px`；保留命中区、重试动作、HC/reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 91 passing；真实默认窗口与高对比观察仍待补。
+- **§305 History close face**：History 浮层关闭控件是真实 codicon Button，普通主题 hover/focus/active 面迁到 `::after inset: 1px 2px`，避免覆盖 `::before` 图标层；保留 24px 命中区、关闭动作、键盘/ARIA、HC/reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 92 passing；真实默认窗口与高对比观察仍待补。
+- **§306 SessionBar delete error face**：SessionBar Delete 控件保留错误色语义，将 hover/active host 背景迁到既有 `::after` inset face（16%/28% errorForeground），保留 codicon `::before`、命中区、键盘/ARIA、HC/reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 93 passing；真实默认窗口与高对比观察仍待补。
+- **§307 Snapshots close face**：Snapshots 浮层关闭控件是真实 codicon Button，普通主题 hover/focus/active 面迁到 `::after inset: 1px 2px`，保留 24px 命中区、关闭动作、键盘/ARIA、HC/reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 94 passing；真实默认窗口与高对比观察仍待补。
+- **§308 Turn trajectory action face**：回合轨迹跳转是真实 `.conversation-lens-turn-header-trajectory .monaco-button` codicon Button，普通主题 hover/focus/active 面迁到 `::after inset: 1px 2px`，避免覆盖 `::before` 图标层；保留 22px 命中区、跳转动作、键盘/ARIA、HC/reduced-motion。Node 24.18.0 `conversationLensCssScan.test.ts` 94 passing；真实默认窗口与高对比观察仍待补。
+- **§309 Pinned user copy face**：置顶用户提示的复制入口是真实 `Button.icon`（`.conversation-timeline-pinned-user-copy .monaco-button`），保留 20px 命中区、复制动作、ARIA/键盘与 HC ring；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，并补 reduced-motion 合同。Node 24.18.0 `conversationLensCssScan.test.ts` 95 passing；真实默认窗口、Codicon 图标与高对比观察仍待补。
+- **§310 Process-fold tool cancel face**：执行中的工具取消入口是真实 `button.conversation-process-fold-tool-cancel`，保留 22px 命中区、取消动作、`aria-label`/`aria-disabled` 与 HC ring；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，并补 reduced-motion 合同。Node 24.18.0 `conversationLensCssScan.test.ts` 96 passing；真实默认窗口、Codicon 图标与高对比观察仍待补。
+- **§311 Process-fold tool respond face**：执行中工具的响应入口是真实 `button.conversation-process-fold-tool-respond`，保留 22px 命中区、响应动作、`aria-label`/`aria-disabled`/`aria-busy` 与 HC ring；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，并补 reduced-motion 合同。Node 24.18.0 `conversationLensCssScan.test.ts` 97 passing；真实默认窗口、Codicon 图标与高对比观察仍待补。
+- **§312 Process-fold trajectory jump face**：过程折叠行的轨迹跳转入口是真实 `button.conversation-process-fold-trajectory-jump`，保留 22px 命中区、跳转动作、Codicon.listTree、`aria-label` 与 HC ring；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，并保留悬停显现与 reduced-motion 合同。Node 24.18.0 `conversationLensCssScan.test.ts` 98 passing；真实默认窗口、Codicon 图标与高对比观察仍待补。
+- **§313 Thinking process-fold header face**：思考过程折叠入口是真实 `button.conversation-process-fold-thinking-header`，保留原生 button、`aria-controls`、22px+命中区、展开动作与 HC ring；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，不改变过程折叠显现与 reduced-motion 语义。Node 24.18.0 `conversationLensCssScan.test.ts` 99 passing；真实默认窗口与高对比观察仍待补。
+- **§314 Diff toggle read-only audit**：审查 `.conversation-lens-turn-diff-toggle` 后确认当前仓库只有 `conversationLens.css` 中的遗留样式与 reduced-motion 列表命中，`src/` 没有对应 DOM/TS/button/ARIA 构造或引用；无法证明真实命中区与行为语义，因此本轮无安全代码改动。Node 24.18.0 `conversationLensCssScan.test.ts` 99 passing；该死样式的清理另待独立范围。
+- **§315 Process-fold header face**：普通过程折叠入口是真实 `button.conversation-process-fold-header`，保留 `role="button"`、`aria-controls`、Chevron、命中区与展开动作；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，轨迹模式专用面、HC ring 与 reduced-motion 保持。Node 24.18.0 `conversationLensCssScan.test.ts` 100 passing；真实默认窗口与高对比观察仍待补。
+- **§316 Inbox chip read-only audit**：复核真实 `button.conversation-lens-inbox-chip.conversation-lens-inbox-queue`（`conversationInboxOverlay.ts:164-176`），确认 `aria-pressed`/`aria-disabled` 状态与 22px 命中区已由 queue 专用 `::before inset: 1px 4px` 承载普通未选中 hover/focus/active；选中态与禁用态保留 host 状态面，Goal/Stop 也已有独立 pseudo 合同。本轮无安全代码改动，避免覆盖状态语义；Node24 既有 `conversationLensCssScan.test.ts` 100 passing，`git diff --check` 通过。
+- **§317 Review navigation read-only audit**：复核真实 `conversationTimelineRenderer.ts:308-326` 的 `button.conversation-review-nav`，保留原生 type、`data-turn-id/kind`、`aria-label` 与 disabled fallback；CSS 已有 `::before inset: 2px 4px`，hover/focus/active 均由 pseudo 承载，HC ring 与 reduced-motion 合同齐全。本轮无安全代码改动。
+- **§318 Composer @ option face**：`conversationComposerAt.ts:437-455` 创建的 `button.conversation-composer-at-option` 保留 `role="option"`、`aria-selected`、`tabIndex=-1` 与 textarea `aria-activedescendant` 键盘语义；普通未选中 hover/focus/active 面迁到 `::before inset: 1px 4px`，`.is-active` 选中 host 面保留，补 reduced-motion 合同。Node24 `conversationLensCssScan.test.ts` 101 passing；`npm run transpile-client`、目标 Stylelint、`git diff --check` 通过；真实默认窗口与组合框观察仍待补。
+- **§319 Tune popup open face**：`conversationLensComposerChrome.ts:255-269` 创建的 `button.conversation-lens-dock-tune-open` 保留原生 type、打开 Engine 工具命令与 24px 命中区；普通主题 hover/focus/active 面迁到 `::before inset: 1px 4px`，HC ring 与 reduced-motion 保持。Node24 `conversationLensCssScan.test.ts` 102 passing；真实默认窗口与高对比观察仍待补。
+- **§320 More menu action face**：More 菜单普通 action 是真实 `button.conversation-lens-dock-more-item[role="menuitem"]`，保留 `aria-label`、命令与 disabled 语义；排除 `menuitemradio` session 行后，普通 hover/focus/active 面迁到 `::before inset: 1px 4px`，HC/reduced-motion 保持。Node24 `conversationLensCssScan.test.ts` 103 passing；`npm run transpile-client`、目标 Stylelint、`git diff --check` 通过；真实默认窗口与高对比观察仍待补。
+- **§321 Add menu action face**：Add popup 的 session action 是真实 `button.conversation-lens-dock-add-option[role="menuitem"]`，保留 `addComposerContextRef` 命令、menuitem 语义与命中区；普通 hover/focus/active 面迁到 `::before inset: 1px 4px`，HC/reduced-motion 保持。Node24 `conversationLensCssScan.test.ts` 104 passing；`npm run transpile-client`、目标 Stylelint、`git diff --check` 通过；真实默认窗口与高对比观察仍待补。
+- **§322 Code block copy face**：Markdown 代码块复制入口是真实 `button.conversation-code-block-copy`，保留 22px 命中区、Codicon.copy/check 切换、`aria-label`/title 与复制命令；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，HC ring 与 reduced-motion 保持。Node24 `conversationLensCssScan.test.ts` 105 passing；`npm run transpile-client`、目标 Stylelint、`git diff --check` 通过；真实默认窗口、图标切换与高对比观察仍待补。
+- **§323 Dock/identity remaining faces read-only audit**：审查当前剩余直接 host 面后确认 Composer dock soft/filled 控件是有意圆形/实心语义，ghost 控件与既有 hit-area pseudo 共享，identity chip 还承载 offline/failed/readonly 状态；继续迁移会改变产品造型或状态层。本轮无安全代码改动。
+- **§324 Confirmation/send state read-only audit**：确认 CTA（`conversationConfirmationSeat.ts:250+`）使用 Button primary/secondary 实心语义，Composer send（`conversationLensDock.ts:413`）是 28px 圆形实心按钮并带 disabled 状态；普通 host hover/active 面不适合直接收窄，否则会削弱主次与可用性语义。本轮无安全代码改动。
+- **§325 Sub-agent overlay action faces**：子 Agent 浮层的 Open as tab、Maximize、Close 是真实 `Button` 图标按钮，保留命中区、命令、ARIA 与 HC 焦点环；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，host 保持透明并补 reduced-motion。`conversationSubAgentOverlayCss.test.ts` 3 个 CSS 合同测试通过；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；真实默认窗口与高对比观察仍待补。
+- **§326 Conversation session pill interaction face**：时间线与 Composer 引用的真实 `a.conversation-session-pill` 保留链接、点击/Enter/Space 处理、`aria-label` 与文本胶囊；普通主题 hover/focus/active 将更强的交互色迁到 `::before inset: 1px 2px`，外层保留基础胶囊面，HC 焦点环与 reduced-motion 保持。`conversationLensCssScan.test.ts` 105 passing；真实默认窗口、链接按压与高对比观察仍待补。
+- **§327 Session leaf hide action face**：会话叶隐藏入口是真实 `button.conversation-session-leaf-hide`，保留 28px 命中区、`type="button"`、`aria-label` 与 Codicon.remove；普通主题 hover/focus/active 面迁到不遮挡 Codicon `::before` 的 `::after inset: 1px 2px`，host 保持透明，HC 焦点环与 reduced-motion 保持。`conversationLensCssScan.test.ts` 105 passing、`conversationRegionChromeCss.test.ts` 4 passing；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 提示）；真实默认窗口与高对比观察仍待补。
+- **§328 Visualize expand action face**：Visualize 卡片的真实 `button.conversation-visualize-expand` 保留 24px 命中区、`type="button"`、`aria-label` 与展开命令；普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，HC 焦点环与 reduced-motion 保持。`conversationLensCssScan.test.ts` 105 passing；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；真实默认窗口和高对比观察仍待补。
+- **§329 Visualize overlay header action faces**：Visualize overlay 的 Reset/Close 是真实 `Button` 图标控件，保留小型 secondary 语义、命中区、命令与焦点环；普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，host 保持透明并补 reduced-motion。`conversationLensCssScan.test.ts` 106 passing；目标 Stylelint exit 0（既有 `--ua-ease` unknown-variable 与 design-token suggestions）；真实默认窗口和高对比观察仍待补。
+- **§330 Engine catalog/trigger action faces**：Engine triggers 与 catalog icon actions 是真实 `Button` ghost 控件，未承载 selected、error 或实心语义；保留 22px 命中区、Codicon/ARIA/键盘与 HC 边框，将普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，host 保持透明并补 workbench 与 prefers reduced-motion。`enginePreferencesPaneCss.test.ts` 8 passing、`conversationLensCssScan.test.ts` 106 passing；`npm run transpile-client` exit 0，目标 Stylelint exit 0（既有 unknown-variable 与 design-token suggestions）；未修改 Navigator、未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§331 Engine narrow-detail Back action face**：窄面板详情页的真实原生 `button.engine-preferences-back` 只承担返回导航，没有 selected/error 状态；保留 `type=button`、aria-label、点击回导航、24px 命中区与 HC 对比环，将次按钮的 resting/hover/active/普通主题 focus 面迁到 `::before inset: 1px 2px`，宿主保持透明，HC 保留 contrast border，并补 workbench / prefers-reduced-motion pseudo transition:none。`enginePreferencesPaneCss.test.ts` 9 passing、`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 34 条 design-token suggestions）；未修改 Navigator、Connection，未 stage/commit/push，真实窄面板与高对比观察仍待补。
+- **§332 Conversation/Trajectory tab face micro-shrink**：用户继续反馈 tab 视觉面偏大；复核确认 `button.conversation-lens-lens-tab` 的 32px 命中区、`role=tab`、`aria-selected`、键盘切换与 HC focus ring 均保留，且没有后续覆盖；将 selected/hover/focus/active 共用的 `::before` 面从 `inset: 7px 6px` 收窄为 `inset: 8px 7px`，只减小视觉面，不改命中区或语义。`conversationLensCssScan.test.ts` 106 passing；目标 Stylelint exit 0（既有 103 条 design-token suggestions）；未修改 Navigator，真实 tab 按压、键盘与高对比观察仍待补。
+- **§333 Conversation SessionBar ordinary action active face**：SessionBar 的 New/More/History/Snapshots 是真实普通 `Button` 图标操作，不承载 selected、error 或实心状态；保留 28px 命中区、Codicon、ARIA/键盘与 HC/reduced-motion，将旧的整颗 host active 背景收窄为透明 host，并把 `toolbar-activeBackground` 只绘制到既有 `::after` inset 面；Delete 错误色控件继续保留独立 error 语义。`conversationLensCssScan.test.ts` 107 passing；目标 Stylelint exit 0（既有 103 条 design-token suggestions）；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§334 Engine confirmation cancel action face**：Engine 确认弹窗的 Cancel 是普通次级原生 button，确认按钮继续保留实心主操作语义；保留 Cancel 的 24px 命中区、type 与点击关闭行为，将普通主题 hover/focus/active 面迁到 `::before inset: 1px 2px`，host 保持透明，HC 焦点环与 reduced-motion 保持。`enginePreferencesPaneCss.test.ts` 10 passing；`npm run transpile-client` exit 0；目标 Stylelint exit 0（既有 unknown-variable 与 34 条 design-token suggestions）；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§335 Engine provider write-toolbar hover face**：Provider 模型区的真实 write-toolbar buttons 同时带有 `engine-catalog-icon-actions` 的内缩伪元素，但更具体的 provider hover 规则仍给宿主铺满 24px 背景；将该 provider hover host 改为透明，让既有 `::after inset: 1px 2px` 承载可见面，保留按钮命令、命中区、Codicon、ARIA、键盘与 HC/reduced-motion。`enginePreferencesPaneCss.test.ts` 11 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0（既有 unknown-variable 与 34 条 design-token suggestions）；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§336 Conversation/Engine remaining ordinary faces read-only audit**：审查剩余普通操作面后确认 agent-down popup item 是标准 menu selection，整行 selection background 属于菜单语义；session-select 是原生 SelectBox，保留宿主 hover 以维持下拉与键盘反馈；turn-diff-toggle 只有 CSS、无 TS/DOM/ARIA 引用；Composer dock soft/filled、selected tabs 与实心主操作继续保留其状态面。本轮无安全代码改动，未修改 Navigator、Connection，未 stage/commit/push。
+- **§337 Conversation/Engine remaining ordinary faces second read-only audit**：复查剩余直接 host hover/active/focus 面后，agent-down popup 仍是标准菜单整行 selection，session-select 仍是原生 SelectBox，Composer dock soft/filled、selected tabs 与实心主操作继续承载状态语义；`conversation-lens-turn-diff-toggle` 仍只有 dead CSS，没有 TS/DOM/ARIA 引用。本轮无安全代码改动，未修改 Navigator、Connection，未 stage/commit/push。
+- **§338 Conversation/Engine remaining ordinary faces third read-only audit**：基于当前 HEAD 复查 Engine generic Button active/focus 规则与 Conversation 直接宿主面，具体 icon actions、MCP tabs、Test Engine、确认弹窗、原生 SelectBox、标准菜单 selection、Composer 状态控件和实心主操作均已有更具体规则或明确状态语义；未发现可安全迁移的普通 ghost action。本轮无代码改动，未修改 Navigator、Connection，`git diff --check` 通过。
+- **§339 Conversation/Engine ordinary face audit fourth pass**：再次扫描当前 HEAD 的普通 hover/active/focus 面，确认剩余直接宿主面仍属于标准菜单 selection、原生 SelectBox、Composer 状态控件或实心操作语义；具体 icon actions、MCP tabs、Test Engine 与确认弹窗已有独立规则。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§340 Conversation/Engine ordinary face audit fifth pass**：复查当前 HEAD 的 Conversation、Engine、Settings 普通 hover/active/focus 面；剩余直接宿主面仍属于标准菜单 selection、原生 SelectBox、Composer 状态控件、Save 等次级实心操作或已由更具体 icon-action 规则覆盖。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§341 Sources changes inline action face**：Sources Changes 的真实 `Button` inline/group actions 保留 22px 命中区、图标、ARIA/键盘与 HC 焦点环；将普通主题 hover/focus/active 宿主背景迁到不遮挡 Button icon 的 `::after inset: 1px 2px`，并补 reduced-motion 合同。`sourcesWiringScan.test.ts` 48 passing；目标 Stylelint exit 0（既有 unknown-variable 与 21 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实 Sources Changes 窗口与高对比观察仍待补。
+- **§342 Titlebar navigation action face**：标题栏左侧的 Back/Forward 是真实导航 action，保留 28px 命中区、命令、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion 合同，不添加 Logo。`titlebarNavigationContract.test.ts` 3 passing；目标 Stylelint exit 0（既有 6 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§343 Sources title action face**：Sources 标题栏的真实 icon action 保留 22px 命中区、图标、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion 合同。`sourcesWiringScan.test.ts` 49 passing；目标 Stylelint exit 0（既有 2 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实 Sources 标题栏与高对比观察仍待补。
+- **§344 Titlebar right toolbar action face**：标题栏右侧 center-adjacent/update toolbar 的真实 action labels 保留原有命中区、命令、键盘/ARIA 与 HC 焦点环；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion 合同。`titlebarNavigationContract.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），目标 Stylelint exit 0（既有 6 条 design-token suggestions）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§345 Pane composite title action faces**：Pane composite 的 title-actions、global-actions 与 global-actions-left 是普通工具栏操作，保留原生命中区、命令、ARIA/键盘与 HC 反馈；将普通主题 hover/focus/active 面从完整 action-label 宿主迁到不遮挡图标的 `::after inset: 1px 2px`，复合 tab 与 checked 状态保持原有语义，并补 reduced-motion 合同。`paneCompositePartCss.test.ts` 6 passing；目标 Stylelint exit 0（既有 13 条 design-token suggestions）；`npm run transpile-client` 通过（10224 files / 2047 resources）；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§346 Editor watermark toolbar action face**：Editor 空态 watermark 的普通 icon action 保留原生命中区、命令、ARIA/键盘与 HC 焦点；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupWatermarkToolbarCss.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§347 Workbench remaining ordinary face read-only audit**：复查 Panel composite、AuxiliaryBar、ActivityBar、Editor placeholder/status 与其他工作台普通 hover/active/focus 面；Panel/AuxiliaryBar composite 项含 checked/selected 语义，ActivityBar 含 selected/status pseudo layers，Editor placeholder/status 与 modal action 是次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§348 AuxiliaryBar title action face**：AuxiliaryBar 标题栏的普通 `title-actions` 是未承载 checked/selected 语义的工具栏操作；保留命中区、命令、ARIA/键盘和 HC 焦点，将普通主题 hover/focus/active 面迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion。`auxiliaryBarPartCss.test.ts` 4 passing；目标 Stylelint exit 0，`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§349 Workbench status and composite state face read-only audit**：复查 statusbar、Panel composite、AuxiliaryBar 与 ActivityBar 的直接 hover/active/focus 面；status item 承载 status、warning、error、prominent 语义，Panel/AuxiliaryBar composite actions 承载 checked/tab 语义，ActivityBar 使用 selected/status 伪层。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§350 Workbench stateful face audit second pass**：复查 statusbar、Panel composite、ActivityBar、AuxiliaryBar 与 Editor 的直接宿主面，确认 status item 的 warning/error/prominent 状态、composite checked/tab 状态和 ActivityBar selected/status 伪层仍是产品语义；Editor 与 modal action 为次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§351 Editor group toolbar action face**：Editor group container toolbar 的普通 action-label 保留命中区、图标、命令、ARIA/键盘与 HC 焦点；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupToolbarCss.test.ts` 4 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§352 Preview category empty-group action face**：编辑器分类预览空组中的普通 action-label 保留 24px 命中区、图标、命令、ARIA/键盘与 HC 焦点；普通主题 hover/focus/active 宿主背景迁到不遮挡图标的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupToolbarCss.test.ts` 6 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§353 Workbench stateful face audit third pass**：复查 statusbar、Panel composite、ActivityBar、Editor group 与其他工作台直接宿主面；status item、Panel composite、ActivityBar pseudo layers 继续承载状态、checked/tab、selected/status 语义，Editor group 的剩余按钮为次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§354 Workbench stateful face audit fourth pass**：再次复查 statusbar、Panel composite、ActivityBar、Editor group 与其他 Workbench 直接宿主面；statusbar 与 composite/status pseudo layers 继续承载产品状态，Editor group 的剩余按钮为次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§355 Preview category empty action button face**：编辑器分类预览空态中的普通 `button.preview-category-empty-action-button` 保留完整命中区、文本与命令、原生键盘/ARIA 和 HC 焦点环；普通主题 hover/focus/active 面迁到不遮挡内容的 `::after inset: 1px 2px`，补 reduced-motion。`editorGroupToolbarCss.test.ts` 8 passing；刷新 `npm run transpile-client` 通过（10224 files / 2047 resources）；目标 Stylelint exit 0；`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push。
+- **§356 Workbench ordinary face read-only audit fifth pass**：复查 statusbar、Panel composite、ActivityBar、Editor group 与其他 Workbench 直接宿主面；statusbar 的 status、warning、error、prominent 语义，Panel composite 的 checked/tab 语义，ActivityBar 的 selected/status 伪层，以及 Editor 的次级或状态操作均保持。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§357 Workbench ordinary face read-only audit sixth pass**：复查 Sidebar、statusbar、Panel composite、ActivityBar、Editor group 与其他 Workbench 直接宿主面；Sidebar/composite 依赖 selected/ActivityBar 状态，Panel 依赖 checked/tab，statusbar 依赖 item 状态，Editor 仍是次级或状态操作。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§358 Workbench ordinary face read-only audit seventh pass**：基于当前 HEAD 细查 Editor group、statusbar、Panel 与 ActivityBar 的剩余普通 action-label。Editor group 的 watermark、preview/category 与 container toolbar 均已有内缩 ghost 面或属于次级/状态按钮；statusbar 的 status、warning、error、prominent item，Panel composite 的 checked/tab 面，以及 ActivityBar 的 selected/status pseudo layer 均承载明确状态语义。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§359 Workbench ordinary face read-only audit eighth pass**：继续复查 Workbench、Editor、statusbar、Panel 与 ActivityBar 的普通 action 面。statusbar 的 label/anchor 由 status、warning、error、prominent item 语义驱动，Panel composite action-label 由 checked/tab 选择语义驱动，ActivityBar 由 selected/status 伪层驱动，Editor breadcrumbs、tabs、dirty/close、preview 与次级 action 保留各自状态反馈。未发现可安全迁移的普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§360 Conversation/Trajectory tab 按压范围聚焦复查**：针对截图复核 `button.conversation-lens-lens-tab` 的真实命中区与视觉层。当前源码已保持 32px button 命中区、`role="tab"`、`aria-selected`、键盘切换和 HC `contrastActiveBorder` 焦点环；普通主题宿主 hover/selected/active/focus 保持透明，背景只落在 `::before inset: 8px 7px` 的紧凑面。截图中的整颗灰色胶囊与当前源码不符，判断为旧 bundle 或未刷新窗口；本轮不再盲目收窄几何，无代码改动，未修改 Navigator、Connection。
+- **§361 Single editor title action 面收窄**：编辑器单标签标题栏的普通 `.title-actions .action-label` 保留完整命中区、命令、ARIA/键盘与 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`singleEditorTabsControlCss.test.ts` 7 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），目标 Stylelint exit 0（保留既有 1 条 spacing suggestion），`git diff --check` 通过。未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§362 Modal editor header action 面收窄**：Modal editor header 的普通 `.modal-editor-action-container .actions-container .action-label` 保留完整命中区、命令、ARIA/键盘与 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`modalEditorActionsCss.test.ts` 4 passing，`modalEditorPartCss.test.ts` 3 passing，`modalEditorSidebarToggleCss.test.ts` 2 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§363 Multi-editor tab action 面收窄**：编辑器多标签页中的普通 tab action 保留 16px 命中区、关闭/固定/脏状态语义、命令、ARIA/键盘和 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`multiEditorTabsControlTabActionsCss.test.ts` 4 passing，`multiEditorTabsControlCss.test.ts` 3 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§364 Conversation region chrome action 面收窄**：Conversation 区域隐藏控件的普通 `.title-actions .action-label` 保留 28px 命中区、命令、ARIA/键盘和 HC 对比焦点环；普通主题将 hover、active、focus 面迁到 `::after inset: 1px 2px`，宿主保持透明，并补 class/media reduced-motion。`conversationRegionChromeCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§365 Breadcrumbs editor type action 面收窄**：编辑器 Breadcrumbs 的 editor-type action 保留完整命中区、编辑器类型跳转命令、ARIA/键盘和 HC 对比焦点环；普通主题 hover、active、focus 面迁到 `::after inset: 1px 2px`，保留正常 breadcrumb 背景，并补 class/media reduced-motion。`breadcrumbsControlCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage/commit/push，真实默认窗口与高对比观察仍待补。
+- **§366 Editor placeholder 与剩余 Conversation action 只读审计**：Editor placeholder 按钮承载主 CTA/filled 语义，ConversationLens 剩余 monaco-button 承载状态或 filled 语义，或已有内缩 `::after` 面。未发现新的安全普通 ghost action，本轮无代码改动，未修改 Navigator、Connection。
+- **§367 Quick Access dirty-editor action 面收窄**：Quick Access dirty-editor 关闭图标保留独立命中区、关闭语义、ARIA/键盘和 HC 对比焦点环；普通主题 hover、active、focus 面迁到透明宿主的 `::after inset: 1px 2px`，保留既有 `::before` 图标内容，并补 class/media reduced-motion。`editorQuickAccessCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage、commit、push，真实默认窗口与高对比观察仍待补。
+- **§368 Notifications toolbar action 面收窄**：Notifications list 与 center header 的普通 action-label 保留命中区、通知命令、ARIA/键盘和 HC 对比焦点环；普通主题 hover、focus、active 面迁到透明宿主的 `::after inset: 1px 2px`，补 class/media reduced-motion。`notificationsActionsCss.test.ts` 3 passing，刷新 `npm run transpile-client` 通过（10224 files / 2047 resources），`git diff --check` 通过；未修改 Navigator、Connection，未 stage、commit、push，真实默认窗口与高对比观察仍待补。
+- **§369 Workbench remaining ordinary face read-only audit**：复查 `views.css` custom-view tree actions、viewpane-filter、Sidebar title/collapsible actions、Pane composite 与 ActivityBar。custom tree/viewpane/Sidebar 行承载 selected/status/filled 语义，Sidebar 涉及 Navigator 边界，未发现可安全迁移的普通 ghost action。本轮无代码改动，未修改 Navigator、Connection。
+- **§370 User Data Profiles header action 面收窄**：profile header 的普通 action-label 保留完整命中区、命令、ARIA/键盘和 HC 对比焦点环，普通主题 hover、focus、active 面迁到透明宿主的 `::after inset: 1px 2px`，补 class/media reduced-motion。新增 `userDataProfilesEditorCss.test.ts`，3 passing，transpile-client 10225 files / 2047 resources，git diff-check 通过。未修改 Navigator、Connection，未 stage、commit、push。
+
+- **§372 Remaining Workbench ordinary face read-only audit**：复查 custom-view tree、viewpane-filter、Sidebar title/collapsible、Pane composite、ActivityBar 与 Conversation 剩余控件。相关 action 承载 selected/status/filled 语义或触及 Navigator 边界，未发现新的安全普通 ghost action。本轮无代码改动。
+
+- **§373 Remaining Workbench ordinary face read-only audit**：继续复查 Workbench、Editor 与 Conversation 剩余普通 action 面。候选均属于 selected/status/filled 或 CTA/反馈语义，或触及 Navigator 边界，未发现新的安全普通 ghost action。本轮无代码改动，未修改 Navigator、Connection。
+
+- **§375 Remaining Workbench ordinary face read-only audit**：复查剩余 Workbench、Editor、Conversation 普通 action 面。候选均属于 selected/status/filled/CTA/反馈语义或涉及 Navigator 边界，未发现安全普通 ghost action。本轮无代码改动，未修改 Navigator、Connection。
+
+### §371 Ports view action 面收窄（2026-11-08）
+
+Ports view 行内普通 action 保留完整命中区、端口命令、ARIA/键盘和 HC ring，普通主题将 hover、focus、active 面迁移到透明 host 的 `::after inset: 1px 2px`，补 reduced-motion。`tunnelViewCss.test.ts` 2 passing。
+
+### §374 Comments panel metadata action 面收窄（2026-11-08）
+
+Comments panel 普通 metadata action 保留命中区、命令、ARIA/键盘和 HC ring，普通主题将 hover、focus、active 面迁移到透明 host 的 `::after inset: 1px 2px`，补 reduced-motion。`commentsPanelCss.test.ts` 4 passing。
+
+### §376 Keybindings 与 Debug tree 普通 action 面收窄（2026-11-08）
+
+复核 Keybindings 搜索头部 action 与 Debug tree row action。两处普通主题均使用透明宿主和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，保持原命中区、命令、键盘、ARIA 与 HC ring，并覆盖 class/media reduced-motion。
+
+验证：两个 focused CSS contract 测试合计 5 passing，`npm run transpile-client` 通过（10226 files / 2047 resources），`git diff --check` 通过。
+
+### §377 Settings editor 搜索 action 面收窄（2026-11-08）
+
+Settings 搜索头部普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，`.monaco-custom-toggle` 保持原有选择态，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：focused CSS contract 测试合计 43 passing，`npm run transpile-client` 通过（10226 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 47 条既有 design-token suggestions。
+
+### §378 Merge editor code-view header action 面收窄（2026-11-08）
+
+Merge editor code-view header 普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：新增 `mergeEditorCss.test.ts`，focused CSS contract 测试合计 45 passing，`npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 11 条既有 design-token suggestions。
+
+### §379 Workbench ordinary action fourth audit（2026-11-08）
+
+复核 Settings、Merge editor、Debug tree、多编辑器 tabs 和 generic `part.css`。已改 action 的命中区与状态合同保持，generic 全局规则因可能触及 Navigator/状态语义继续保留。本轮无代码改动。
+
+### §380 Workbench ordinary action fifth audit（2026-11-08）
+
+复核 Search replace、Settings tabs、generic `part.css` 与已有 action 面。替换动作和选中状态继续保留各自语义，generic 全局规则继续跳过。本轮无代码改动。
+
+### §381 Search replace action 面收窄（2026-11-08）
+
+Sol 复核发现 Search view replace-container 的普通 action host 仍偏重。改为透明 host，并将 hover、active、focus 面迁移到 `::after inset: 1px 2px`，保留命中区、命令、键盘、ARIA 与 HC ring，补 class/media reduced-motion。
+
+验证：`searchViewReplaceActionsCss.test.ts` 4 passing，刷新 `npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 仅报告该文件既有 11 条 design-token suggestions，`git diff --check` 通过。未修改 Navigator、Connection，真实默认窗口与高对比人工观察仍待补。
+
+### §382 Workbench ordinary action sixth audit（2026-11-08）
+
+复核 Search、Debug toolbar、Exception widget、Settings、Merge editor、多编辑器 tabs 和 generic `part.css`。状态型与全局规则继续保留，本轮无代码改动。
+
+### §383 Debug exception widget action 面收窄（2026-11-08）
+
+Debug exception widget 标题普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：`exceptionWidgetCss.test.ts` 4 passing，`npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 3 条既有 design-token suggestions。
+
+### §384 Terminal tabs ordinary action 面收窄（2026-11-08）
+
+Integrated terminal tabs-list 普通 action 使用透明 host 和 `::after inset: 1px 2px` 绘制 hover、active、focus 面，命中区、命令、键盘、ARIA、HC ring 与 reduced-motion 合同保持。
+
+验证：`terminalTabsActionsCss.test.ts` 4 passing，`npm run transpile-client` 通过（10227 files / 2047 resources），目标 ESLint 通过，Stylelint 保留 18 条既有 design-token suggestions。
+
+### §385 Workbench ordinary action seventh audit（2026-11-08）
+
+复核 generic `part.css`、Sources/Navigator、SCM、Markers、Testing、Notebook、BrowserView 与 Chat 剩余 action 面。状态型、CTA 和边界选择器继续保留，本轮无代码改动。
+
+### §386 Workbench ordinary action eighth audit（2026-11-08）
+
+复核 generic `part.css`、Titlebar、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat 与剩余 Workbench action。全局、导航和状态型控件继续保留，本轮无代码改动。
+
+### §387 Workbench ordinary action ninth audit（2026-11-08）
+
+复核 generic `part.css`、Titlebar、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat 与剩余 Workbench action。全局、导航和状态型控件继续保留，本轮无代码改动。
+
+### §388 Workbench ordinary action tenth audit（2026-11-08）
+
+复核 generic `part.css`、Titlebar/global、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat 与状态/CTA/Navigator 面。本轮无代码改动。
+
+### §389 Workbench ordinary action eleventh audit（2026-11-08）
+
+复核 Titlebar/global、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat、Sidebar/Navigator 和 Settings 选中态。本轮无代码改动。
+
+### §390 Workbench ordinary action twelfth audit（2026-11-08）
+
+复核 Titlebar/global、Open Editors、SCM、Markers、Testing、Notebook、BrowserView、Chat、Sidebar/Navigator、Settings 选中态和其余 Workbench action。本轮无代码改动。
+
+### §391 UI contract batch verification（2026-11-08）
+
+批量运行 §360–§390 相关 CSS contract，共 54 passing，并确认计划编号唯一、transpile-client、docs health 和 diff-check 通过。本轮无代码改动。
+
+### §392 UI audit and provenance check（2026-11-08）
+
+确认源码改动、CSS contract 与计划登记一致，未发现重复章节或额外 UI 路径。本轮无代码改动。
+
+### §393 UI selector and provenance final audit（2026-11-08）
+
+核对 §360–§392 的 CSS、测试和文档登记，未发现重复章节或额外 UI 路径。本轮无代码改动。
+
+### §394 UI selector and test coverage final audit（2026-11-08）
+
+确认计划编号、18 个 CSS selector 与 18 个相关测试覆盖一致，未发现几何、ARIA、键盘或边界回归。本轮无代码改动。
+
+### §395 UI contract consistency audit（2026-11-08）
+
+确认 §360–§394 的 CSS contract、测试和计划登记一致，未发现新的普通 ghost action。本轮无代码改动。
+
+### §396 UI selector consistency audit（2026-11-08）
+
+复核当前工作树仅包含已登记 UI CSS、companion tests 和文档，§371/§374/§376–§395 计划标题唯一，18 个修改 CSS 均有 `::after`、hover token、reduced-motion 合同。未发现新的安全普通 ghost action，未触及 Navigator、Connection。
+
+### §397 UI contract and provenance final audit（2026-11-08）
+
+确认计划编号、CSS contract、测试与边界记录一致。本轮无代码改动。
+
+### §398 UI final boundary audit（2026-11-08）
+
+确认计划、CSS、测试和边界记录一致。本轮无代码改动。
+
+### §399 Final UI provenance audit（2026-11-08）
+
+确认计划编号、CSS contract 与测试合同一致。本轮无代码改动。
+
+### §400 Final UI audit（2026-11-08）
+
+确认计划编号、CSS contract、测试合同和工作树路径一致。本轮无代码改动。
+
+### §401 Final source-order and boundary audit（2026-11-08）
+
+确认计划编号唯一并记录历史 bullet 顺序差异，本轮无代码改动。
+
+### §402 Final CSS geometry and accessibility audit（2026-11-08）
+
+确认 CSS 几何与可访问性合同保持，未发现新增边界回归。本轮无代码改动。
+
+### §403 Final test and boundary audit（2026-11-08）
+
+确认测试合同、选择器和边界记录一致。本轮无代码改动。
+
+### §404 Final tracked-path UI consistency audit（2026-11-08）
+
+工作树仅含已登记 UI CSS/tests/docs、既有 `SHA256SUMS` 与 3 个新增 CSS tests；18 个修改 CSS 均有 `::after`、hover、reduced-motion 合同，计划标题 §371、§374、§376–§403 唯一，未发现新的安全普通 ghost action 或 Navigator/Connection 回归。
+
+### §405 Final tracked-path and accessibility audit（2026-11-08）
+
+确认 tracked/untracked 测试路径、CSS contract 和边界记录一致。本轮无代码改动。
+
+### §406 Final changed-path audit（2026-11-08）
+
+确认 changed paths、测试和计划登记一致。本轮无代码改动。
+
+### §407 Final selector and test audit（2026-11-08）
+
+确认 selector、tests、计划和边界记录一致。本轮无代码改动。
+
+### §408 Final source-contract audit（2026-11-08）
+
+确认 source contracts、测试与文档 provenance 一致。本轮无代码改动。
+- Terra SGLang next371 availability/chat gate（2026-11-08 06:49:00 UTC）：只读复核真实 `127.0.0.1:50061` 与 `192.168.10.68:8192`；两端 TCP、current/noproxy `/health`、`/v1/models`、`/v1/loads` 均 `ConnectionRefusedError`，`served_model_ids=[]`、`mimo_candidates=[]`、`selected_mimo_model=null`，`chat_attempted=false`、`chat_request_sent=false`，因此未发送对话。证据目录 `/tmp/sglang-terra-next371-20261108T064900Z/`，summary SHA256 `50590166eb6ee0f7c45e1db0602fc9a13fca308098dfb5ecc0a80fb13d77492f`，probe-metadata SHA256 `5c6e91309238659867f88c21f69914416167dcf16133e2b3823aec2a430dc8d9`，SHA256SUMS 2/2 校验通过，F21 缺口保持。
+
+### §409 CSS contract companion coverage closure（2026-11-08）
+
+Sol 补齐 5 个 companion CSS 测试的缺口断言，覆盖 notifications HC ring、keybindings/settings/debug reduced-motion 过渡禁用、conversation title action HC ring 且不落 background。transpile-client 通过（10227 files / 2047 resources），5 个窄测试共 16 passing，未改行为，未暂存/提交。
+
+### §410 Terra real Mimo via Magpie and SGLang boundary（2026-11-08）
+
+Terra 在本机 Magpie 127.0.0.1:3425 的 /v1/models 发现 sub2api-mimo/mimo-v2.6-flash，使用 Claude CLI 兼容签名头发送最小真实对话，HTTP 200、finish_reason=stop、回复为“收到”，耗时约 6120ms。成功证据目录 /tmp/magpie-mimo-terra-next371-success-20261108T070222Z/，result.json SHA256 2e76ec0538515427d40204693b4d648ace34c8ecd4004047371fd1e1ff4b04aa，metadata.json SHA256 59a6bea962074171aa10a166a07b3150c6196b2d30af22045673fbabb6eb306a，SHA256SUMS 2/2 通过。SGLang next371 的两个目标端点仍 ConnectionRefused，served_model_ids=[]、mimo_candidates=[]，未向 SGLang 发送 chat，该成功结果不计作 SGLang served-model 证据。
+
+### §411 Terra two-round real Mimo context（2026-11-08）
+
+Terra 复用本机 Claude CLI 的 Magpie 路由（ANTHROPIC_BASE_URL=http://127.0.0.1:3425，model=sub2api-mimo/mimo-v2.6-flash）完成同一 session 两轮上下文对话，round1 返回“第一轮”，round2 通过 --continue 返回“第二轮记得”，两轮均 success，modelUsage 确认同一 Mimo 模型。证据目录 /tmp/magpie-mimo-terra-followup-20261108T071217Z/，metadata SHA256 8f9c183ca16547952b37b70717a955a1ab52273670a6dcd1b9346bf1ffc49b87，round1 SHA256 3fa58bc412d61e0533b336efbb0963d0eeef46318bf3fcc6e299274a8944a506，round2 SHA256 8b1a75950b635ac51eecf88f3553369ff99a1f44320cf8dcd06ca4c71bf22d4d，SHA256SUMS 4/4 通过。SGLang 两个目标端点仍 ConnectionRefused，未发送 SGLang chat。
+
+### §412 GPT navigation and lens final visual audit（2026-11-08）
+
+只读复核确认 Conversation/Trajectory lens 保持 32px 命中区与 8px/7px 内缩视觉面，Titlebar 前进后退保持 28px 命中区与 1px/2px 内缩视觉面，位置由 titlebarPart.ts 固定在菜单前，HC、reduced-motion、ARIA/键盘合同均保留，未触及 Navigator/Connection。本轮无代码改动。
+
+### §413 Focused UI contract gate（2026-11-08）
+
+Sol 用 VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run ... 覆盖 titlebar、navigation、ConversationLens、conversation region、notifications、keybindings、settings、debug 相关合同，共 127 passing，exit 0。5 个 companion 断言仍在，18 个 CSS selector 保持透明 host、::after inset 1px 2px、完整命中区、HC/reduced-motion、ARIA/键盘合同，无几何或 Navigator/Connection 回归。
+### §414 Round165 runtime and UI regression closure（2026-11-08）
+
+Terra fresh SGLang probe 仍显示两个目标端点的 TCP、env/noproxy /health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round165-20261108T072420Z/，summary SHA256 040b44bcedc93cb7464037026182c71a0181afbaf65a2ef54b006d1999daa0aa，probe-metadata SHA256 fc48047eedd7acd61f26b34135dccd4f3b1fedd218498ac8079a96ea39442966，SHA256SUMS 2/2。Sol 同轮窄门禁 127 passing，18 个 CSS selector 的透明 host、inset 视觉面、完整命中区、HC/reduced-motion、ARIA/键盘合同保持，无几何或 Navigator/Connection 回归。
+### §415 Round168 SGLang availability and compile gate（2026-11-08）
+
+Terra fresh probe 仍显示两个 SGLang 端点的 TCP、/health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round168-20261108T073000Z/，summary SHA256 8ec751090515f83c66a4e3b6254147ea6ff7fea8bc7c0c0b32b9a089addd7f37，probe-metadata SHA256 75712a0a5433e9e03760dfe43818b6a0d9243d7cf55c1c6c4f1462f020bf07d4。Magpie /v1/models 仍列出三个 Mimo 模型。Sol 的 transpile-client 通过，10227 files / 2047 resources，9 组窄测试 127 passing，exit 0，git diff --check 通过，未改、未暂存、未提交。
+
+### §416 SGLang入口发现与UI静态收口（2026-11-08）
+
+Terra 只读确认仓库记录的 SGLang 入口仅为 192.168.10.68:8192、UA engine 127.0.0.1:50061，以及并列 Magpie 127.0.0.1:3425。新证据目录 /tmp/sglang-discovery-round171-20261108T073500Z/，50061 与 8192 的 TCP、/health、/v1/models、/v1/loads 全部拒绝连接，未发送 chat；Magpie /v1/models HTTP 200，models body SHA256 d24445115fdad664d6cf3d696db9bc4162f88987fcca6a065907ed339f3311b4。Sol 与视觉复核确认 18 个 CSS、companion tests、Titlebar/ConversationLens 合同完整，未触及 Navigator/Connection，git diff --check 通过。
+
+### §417 Round175 SGLang fresh gate（2026-11-08）
+
+Terra 再次探测两个 SGLang 端点，TCP、/health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round175-20261108T073529Z/，SHA256SUMS 2/2，summary SHA256 bfce1e4022935d19b5e8758a877dffd8a05a45acf3f2c53cb5a5a54f844f7dad，probe-metadata SHA256 9874149690ffacd85a050c38fbadbe7dad3597deac4dff3245390ecdd9944d1b。Magpie /v1/models 仍列出三个 Mimo 模型。Sol 跨文件合同扫描未发现 CSS、命中区、HC、reduced-motion、ARIA 或键盘缺项。
+
+### §418 Round178 SGLang availability and source-contract audit（2026-11-08）
+
+Terra 新鲜探针仍显示两个 SGLang 端点 TCP、/health、/v1/models、/v1/loads 全部拒绝，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round178-20261108T073905Z/，SHA256SUMS 2/2，summary SHA256 758fea5e27b9818fc978e3af8a86f0af3262403e3f76ecd2cf081d98bd8d42c5，probe-metadata SHA256 586e465e84fee8fe957484a9cf9eb713a3a54ef44cf5b6b2d4e28f427977f0df。Magpie /v1/models HTTP 200 且仍列出三个 Mimo ID。Sol 与视觉复核确认 Titlebar/ConversationLens 源码、测试、ARIA、HC、reduced-motion 合同完整，未触及 Navigator/Connection。
+
+### §419 Terra current two-round Mimo and UI gate（2026-11-08）
+
+Terra 当前真实探针确认 SGLang 两个端点仍拒绝连接，未发送 SGLang chat。Magpie 同一 session 两轮 Mimo 对话成功，round1 返回“第一轮”，round2 通过 --continue 返回“第二轮记得”，modelUsage 精确为 sub2api-mimo/mimo-v2.6-flash。证据目录 /tmp/terra-mimo-round180，SHA256SUMS 四项通过：round1 16f6475e2a6d7507c4423eb1bec8d5e16dba8f63f6211ba62d05d3b5846105bc、round2 18eb11e3583e015bea8f06fa6f660c8408e59fc73e3087d23aad201c15daa548、metadata a2b5f168fdcf23af6bd78fbb8ae127fb800b00d87de48292a9d900016d5e029d、sglang 40577a74258b09ce1f6f2aa41fec4e5e9a583b4a009dd9dc92e00d48052d73e5。Sol 窄门禁 127 passing，exit 0。
+
+### §420 Terra round183 Mimo continuity and UI gate（2026-11-08）
+
+Terra 再次确认 SGLang 两个端点全部拒绝连接，未发送 SGLang chat。Magpie 同一 session 两轮真实 Mimo 对话成功，round1=第一轮、round2=第二轮记得，modelUsage 均为 sub2api-mimo/mimo-v2.6-flash。证据目录 /tmp/terra-mimo-round183，SHA256SUMS 四项通过：sglang 40577a74258b09ce1f6f2aa41fec4e5、metadata 34018c6d198c8a9f1e105f653587db49addf0c89df57eee08f5bfe2bd93b6fec、round1 04d8d1e29b44c5ef7b6be86ba23708f5f265b44d5ac431d0a2c6a031fecb337a、round2 4b97f54c49fa543fcff42a2f4f690325ed2c16a7107da94e2aa06743dc82d941。Sol 窄门禁继续 127 passing。
+### §421 Terra round186 Mimo continuity and UI gate（2026-11-08）
+
+Terra 再次确认 SGLang 两个端点 TCP、health、models、loads 全部拒绝连接，未发送 SGLang chat。Magpie 同一 session 两轮成功，返回“第一轮”和“第二轮记得”，modelUsage=sub2api-mimo/mimo-v2.6-flash，is_error=false。证据目录 /tmp/terra-mimo-round186，SHA256SUMS 四项通过：metadata cf772222595c5473363008d322bdb81bcc1456eafc3e365a77088046853d15af、round1 74bec551ff97332b078dc6125a838ad4e1199629e25afd2b787e285dc356b25d、round2 514045244e8e85323c85654ad1638432e9be3a99749c3f64f1cf9f08c2d2a15f、sglang 112f87ca76bf4f87ba586949c67fcc3f0468e506107dcf752e0e827cf10ddc0a。Sol 窄门禁 127 passing。
+### §422 Round190 final availability audit（2026-11-08）
+
+Terra 复核 SGLang 两个端点 TCP、/health、/v1/models、/v1/loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round190-20261108T074500Z/，SHA256SUMS 2/2，summary SHA256 59d23cd76f0fb2f3aedaf3e4f21b5c4c66b0346e236d01d467f74a93d68821b3，probe-metadata SHA256 b53dda6c6609dfdc0684abb2d2504bcd345256dd279c110b82168520fef5760f。Magpie TCP 正常，/v1/models HTTP 200，网关型 /health 与 /v1/loads 返回 404。文档审计确认两份计划编号唯一、status 200 行、docs health 0 errors。
+### §423 Round191 SGLang availability and static UI audit（2026-11-08）
+
+Terra 新鲜探针确认 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-round191-20261108T075708Z/，SHA256SUMS 2/2，summary SHA256 7692e53540d75de92304b6974e2c23884f9f1e12dd6e6f34af8e74aea07f80f6，probe-metadata SHA256 e994d4a53ee9cd4a3ece1ba902c1d3afea58ec0a57706120ba6f4f1751a71ba3。Magpie /v1/models HTTP 200 且列出三个 Mimo ID。Sol 静态扫描确认 18 个 CSS 的视觉面、HC、reduced-motion 合同完整，docs health 0 errors，status 200 行。窄门禁沿用此前权威 127 passing 证据。
+### §424 Resumed blocked audit round193（2026-11-08）
+
+Goal 恢复后的首次 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume193-20261108T080259，summary SHA256 d86c1ecb65006b70cbb9926329100e2bdcd7c94415e42d2165211dda82d5d49e，metadata SHA256 03098cf1eb2d888e6bb635371e0012d7e3a8f3ad20e4a0e7466b61bfd481eb2a，SHA256SUMS 2/2。Magpie 可达并列出三个 Mimo ID。Sol 复核 git diff、docs health、status 和 18 个 CSS/test 路径无回归，当前 scripts/test.sh 仅有 Electron 启动警告并被自身中断，继续沿用权威 127 passing。
+### §425 Resumed blocked audit round195（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume195-20261108T080854Z，summary SHA256 4f0f238fd5b959fda86fb42cb9625cc49bdb7b5ca18ed46cff04f95bf8a17889，metadata SHA256 0bee47382f27454729bb42e401850bfcb0a9ffc2336677d8ebcafb3fbba0e4e2。Magpie /v1/models HTTP 200。Sol 静态/diff 检查通过，脚本运行仍受 Electron 启动警告阻塞，沿用权威 127 passing。
+### §426 Resumed blocked audit round197（2026-11-08）
+
+Goal 恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume197-20261108T0815，summary SHA256 9609f758dc2e1394d8335637545761fb4a9e8a5f12f3245cf382cce61e0ec312，metadata SHA256 824769f5f69e264b31ee0505d937c76df1eb4571de80a0de05d93999535b0bd0，SHA256SUMS 2/2。Magpie /v1/models HTTP 200 且包含 Mimo。Sol 复核 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §427 Fresh resumed blocked audit round199（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume199-20261108T081453Z，summary SHA256 4c641f6c0a84d8c569e0eacf103963acf5145a7dcc3aee98a402732a52c68d78，metadata SHA256 9072adaeb08dffaf5093f36967b9759e94b645bc53d85e3f8a77825b56cc26ea，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，models body SHA256 d24445115fdad664d6cf3d696db9bc4162f88987fcca6a065907ed339f3311b4。Sol 复核 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §428 Fresh resumed blocked audit round201（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume201-20261108T082403，summary SHA256 2c58af28c09770aeed385920e0998b91d4cc46f3244d390b4281d5782304269e，metadata SHA256 bfe942c773cf05400ed721b4830562a6360c9e110d0b6720d54eeb230fa16b31，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 复核 18 个 CSS 合同与 status/docs 无回归，权威窄门禁仍 127 passing。
+### §429 Fresh resumed blocked audit round203（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume203-20261108T082602Z，summary SHA256 a3c365d240e7df5530021d714d944c7f9872696bd455942b63474df35d2b4cbd，metadata SHA256 e36fb629eb4626be61fbf611d8b670554af52236fdfc7adf772f73ec17ed0f37，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §430 Fresh resumed blocked audit round205（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume205-20261108T083100，summary SHA256 3ebfd4fd281e240ba26f187ce3ede70a2b8aaa6a90080d70a78a1b4e290c4c1c，metadata SHA256 42b69387378d55a14acfcbc025d2541573d493b8c7df9381c3dc1e79c9ce7850，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同和权威 127 passing。
+### §431 Fresh resumed blocked audit round207（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume207-20261108T083229，summary SHA256 45e456e11ae5a628d102c87542b0e8f3bb79c066e939b962d18646c8f3847ccf，metadata SHA256 484ad5e91d27cb8400b651c6d791767c6d3f24c7d948539790b65411505260da，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §432 Fresh resumed blocked audit round209（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefused，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round209-20261108T0838，summary SHA256 2f7503b094ceddb6e267a02554c957706fb2858d508dcb93a4920018ddf73ae4，metadata SHA256 533d77cf1b4232c63f6d391f6823feb11fd4bc4cb4c15128762d9517592596b0，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §433 Fresh resumed blocked audit round211（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume211-20261108T0840，summary SHA256 131edd1d4fda37c2ac7057a3ee389624423079be5ab4f40859a06ab52f86f343，metadata SHA256 9fb245197cc5fbb9142a6e8c04df190b2d9c5a2d0bf91ba8643e82af505e822e，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 复核 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §434 Fresh resumed blocked audit round213（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-terra-resume213-20261108T083950，summary SHA256 4fade431409d9cb791e278135edb17c2210dc5143359aef8663d0fd022b73e10，metadata SHA256 68b886eb9629a273ffbb0f071b7168b74f3e6a1624ffd6f0e7cd799782115bad，SHA256SUMS 2/2。Magpie /v1/models HTTP 200 且 catalog 包含三个 Mimo ID。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §435 Fresh resumed blocked audit round215（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round215-20261108T084208，summary SHA256 39e3d321227e731c8667a41df51116fc0d6b3324948a5550805cb227cbf83151，metadata SHA256 9500f540480b39b458a3104b198c34fc61e21e1cf4408d4dd8093c1daba3981a，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §436 Fresh resumed blocked audit round217（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round217-20261108T084507，summary SHA256 6924df865de566b6535177a62cc67bdfb749d59fa39b96d76deb9f075a74d6ef，metadata SHA256 5489b1e57995a88e7c7a418222567624174fa7ae519786711a2971038e19656f，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §437 Fresh resumed blocked audit round219（2026-11-08）
+
+Goal 再次恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round219-20261108T0845，summary SHA256 81ec88b9188380d0158fc4fcf2dfb8e6e6a263215cf1411ecf5ac45a70b27426，probe-metadata SHA256 0969b44d86b1c7b52b88c3d94b6d7bda259ede0db34e94ce02d208465c5e6c79，SHA256SUMS 2/2。Magpie catalog probe completed。Sol 确认 18 个 CSS 合同、docs health 0 errors、status 200 行，权威窄门禁仍 127 passing。
+### §438 Fresh resumed blocked audit round221（2026-11-08）
+
+Goal 再次恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP 拒绝，health、models、loads 无 HTTP 响应，served_model_ids=[]、mimo_candidates=[]、未发送 chat。证据目录 /tmp/sglang-resume-round221-20261108T085020，summary SHA256 56339766ab5ccdb04d2bf717337af82aded207e1a5c00cc291737f9103cca236，metadata SHA256 5df5abf40de70cfb57389b5d5032864540e4fa13f4831f9b7335323ea02498b0，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，/health 与 /v1/loads 返回 404。Sol 门禁、CSS 合同和 docs/status 状态保持有效。
+### §439 Fresh resumed blocked audit round223（2026-11-08）
+
+Goal 恢复后的首轮 Terra 探针仍显示 SGLang 两个端点全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume223-20261108T0855，summary SHA256 f5bea075ff49914a4bce50650cfd32ba57b0ecfbdda1f9f6979db46704cc362c，metadata SHA256 b006260e679733fdbd6010cba664a03ed0f620c1e18886520ef3f34e0831dd12，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，列出三个 Mimo ID。Sol 既有 CSS 合同和权威窄门禁保持有效。
+### §440 Fresh resumed blocked audit round225（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round225-20261108T0855，summary SHA256 c41d898a73d637bb583b3f2001ba40ead595738f85b517aa36fd6a4a45155fcf，metadata SHA256 7f44807c5882f1b04206bf76123200733425014534eb09f699ac9efb4cdb58e9，SHA256SUMS 2/2。Magpie /v1/models HTTP 200。当前 UI合同与权威窄门禁保持有效。
+### §441 Fresh resumed blocked audit round227（2026-11-08）
+
+Goal 恢复后的第三轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round227-20261108T0855，summary SHA256 47ae7d67eca88c625fa44fff3fb8f059e17c7b5d3b638e7a8c3f40494929bcac，metadata SHA256 6520eb5c9097f36979a7fce5b5f8dd11039d40c7a7e5da0779bdea1fa46e632e，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，列出三个 Mimo ID。Sol 既有 CSS 合同、docs/status 和权威窄门禁保持有效。
+### §442 Fresh resumed blocked audit round229（2026-11-08）
+
+Goal 再次恢复后的首轮 Terra 探针仍显示 SGLang/UA 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、未发送 chat。证据目录 /tmp/sglang-resume-round229-20261108T085853，summary SHA256 1d864cf3cde951825f1aa522bb6c2ba6e6aa86675e04adaacf8b74752dd68f77，metadata SHA256 1fcd329d746581f2bf60eb9d480c7ee6e157de7182f4856546381ea5b9854cc7，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，catalog 包含 flash、[1M]、pro。
+### §443 Fresh resumed blocked audit round231（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round231-20261108T090000，summary SHA256 c9080aa7a7fc6b94d158aa1174241c688b04c4f463a097147dc7081507b5875f，probe-metadata SHA256 db4ff9ec57aa47c2604aea0448c4cd686a2b83c48b543b92b0e3441b98545349，catalog SHA256 d24445115fdad664d6cf3d696db9bc4162f88987fcca6a065907ed339f3311b4。SHA256SUMS 三项通过。
+### §444 Fresh resumed blocked audit round233（2026-11-08）
+
+当前 Python urllib 直接探测 127.0.0.1:50061/health 与 192.168.10.68:8192/health 均 ConnectionRefusedError，确认外部状态未改变。此前 round231 的 catalog/hash 仍为最近完整证据，Sol 静态合同和权威 127 passing 保持有效。
+### §445 Fresh resumed blocked audit round235（2026-11-08）
+
+当前 Python 与 Terra 探针均确认 SGLang 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null，未发送 chat。证据目录 /tmp/sglang-resume-round235-20261108T090500，summary SHA256 291da3da47b10a81079554b4ca18f59dda4b4eed2654f07edc7c3792004e3e87，probe-metadata SHA256 4ea039894839b7dbc1d14d08374dc2a280400c1a57dd8e38d9bdae233d876e34，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，列出 flash[1M]、pro、flash。
+### §446 Fresh resumed blocked audit round237（2026-11-08）
+
+Goal 恢复后的第二轮 Terra 探针仍显示 SGLang/UA 两个端点 TCP、health、models、loads 全部 ConnectionRefusedError，served_model_ids=[]、mimo_candidates=[]、selected_mimo_model=null、未发送 chat。证据目录 /tmp/sglang-resume-round237-20261108T090700，summary SHA256 0ed2664cc9ae8b0ba36384fb960ef2758fb5c98f64c93a81dd0f80d9e330168c，probe-metadata SHA256 b908ee90c4007b4393ea5b7ee96199479b3aa9e852dbfb4d9fa649e1ea5894cc，SHA256SUMS 2/2。Magpie /v1/models HTTP 200，catalog 包含 flash[1M]、pro、flash。
+### §447 Fresh resumed blocked audit round239（2026-11-08）
+
+Goal 恢复后的第三轮直接探针确认 127.0.0.1:50061 与 192.168.10.68:8192 的 /health 均 ConnectionRefusedError，未发送 chat。证据目录 /tmp/sglang-resume-round239-20261108T0855，summary SHA256 93486d61c6a0daef4f234a64f3bc35dac31c42190c2c6f662ec9ca87549e6f25，probe-metadata SHA256 f96319003b2c76217d16b7a1c586ba2aabae74e5b37ed394bd51aa365f9b405b，SHA256SUMS 2/2。Magpie /v1/models 状态已记录。

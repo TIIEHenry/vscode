@@ -510,8 +510,10 @@ export class ChatSessionStore extends Disposable {
 	public async setSessionTitle(sessionId: string, title: string): Promise<void> {
 		await this.storeQueue.queue(async () => {
 			const index = this.internalGetIndex();
-			if (index.entries[sessionId]) {
-				index.entries[sessionId].title = title;
+			const entry = index.entries[sessionId];
+			if (entry) {
+				entry.title = title;
+				entry.customTitle = title;
 			}
 		});
 	}
@@ -783,6 +785,14 @@ export class ChatSessionStore extends Disposable {
 export interface IChatSessionEntryMetadata {
 	sessionId: string;
 	title: string;
+
+	/**
+	 * The custom title set by the user or a title provider, if any. Renaming a session
+	 * that is not loaded only updates the index, so restoring the session applies this
+	 * value on top of the title stored in the session file.
+	 */
+	customTitle?: string;
+
 	lastMessageDate: number;
 	timing: IChatSessionTiming;
 	initialLocation?: ChatAgentLocation;
@@ -890,6 +900,7 @@ function getSessionMetadataSync(session: ChatModel): IChatSessionEntryMetadata {
 	return {
 		sessionId: session.sessionId,
 		title: title || localize('newChat', "New Chat"),
+		customTitle: session.customTitle || undefined,
 		lastMessageDate: session.lastMessageDate,
 		timing: session.timing,
 		initialLocation: session.initialLocation,
@@ -917,6 +928,7 @@ async function getSessionMetadata(session: ChatModel | ISerializableChatData): P
 	return {
 		sessionId: session.sessionId,
 		title: session.customTitle || localize('newChat', "New Chat"),
+		customTitle: session.customTitle || undefined,
 		lastMessageDate,
 		timing: {
 			created: session.creationDate,

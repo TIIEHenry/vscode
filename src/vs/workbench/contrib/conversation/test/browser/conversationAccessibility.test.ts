@@ -245,3 +245,43 @@ suite('ConversationAccessibility', () => {
 		assert.ok(assistant.includes(line));
 	});
 });
+
+suite('conversationAccessibility (browser unit)', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('Accessible View includes thinking payload not only the fold header line', () => {
+		const payload = 'Stub: # Project\n\nFull reasoning body.';
+		const view = getConversationTurnAccessibleText({
+			id: 't1',
+			kind: 'thinking',
+			text: 'Stub: outline sections',
+			payload,
+		});
+		assert.ok(view.includes('Stub: outline sections'));
+		assert.ok(view.includes('Full reasoning body.'));
+	});
+
+	test('Accessible View includes tool summary when the row title differs', () => {
+		const view = getConversationTurnAccessibleText({
+			id: 'tool-1',
+			kind: 'tool',
+			text: 'read_file',
+			summary: 'src/main.ts',
+		});
+		assert.ok(view.includes('read_file'));
+		assert.ok(view.includes('src/main.ts'));
+	});
+
+	test('Accessible View includes tool thinkingText shown beside the tool row', () => {
+		const view = getConversationTurnAccessibleText({
+			id: 'tool-1',
+			kind: 'tool',
+			text: 'read file',
+			summary: 'running',
+			payload: '{ "path": "README.md" }',
+			thinkingText: 'hmm before the tool',
+		});
+		assert.ok(view.includes('hmm before the tool'));
+		assert.ok(view.includes('{ "path": "README.md" }'));
+	});
+});

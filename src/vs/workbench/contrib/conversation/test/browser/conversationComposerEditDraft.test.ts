@@ -126,7 +126,8 @@ suite('ConversationComposerEditDraft', () => {
 
 		assert.deepStrictEqual(written, ['A', 'A']);
 		assert.strictEqual(drafts.get('sess-a'), 'A');
-		assert.strictEqual(host.dockTextarea.value, 'A');
+		// The open edit keeps its text; the compose draft returns when the edit exits.
+		assert.strictEqual(host.dockTextarea.value, 'B');
 	});
 
 	test('compose deleteSession false still writes textarea into drafts', async () => {
@@ -497,7 +498,7 @@ suite('ConversationComposerEditDraft', () => {
 		const written: { text: string }[] = [];
 		let exited = 0;
 		const host = {
-			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			sessionChoiceService: createTestSessionChoiceService(store),
 			dockTextarea: textarea,
 			composerRefResources,
@@ -545,7 +546,7 @@ suite('ConversationComposerEditDraft', () => {
 		let released = 0;
 		const failures: string[] = [];
 		const host = {
-			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			sessionChoiceService: createTestSessionChoiceService(store),
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
@@ -713,7 +714,7 @@ suite('ConversationComposerEditDraft', () => {
 		let exited = 0;
 		let released = 0;
 		const host = {
-			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			sessionChoiceService: createTestSessionChoiceService(store),
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
@@ -750,7 +751,7 @@ suite('ConversationComposerEditDraft', () => {
 		let released = 0;
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = {
-			composerModel: createTestComposerModel(store, { policy: 'queueEdit' }),
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
 			sessionChoiceService: createTestSessionChoiceService(store),
 			dockTextarea: { value: 'edited' },
 			getBoundSessionId: () => 'sess-1',
@@ -784,6 +785,86 @@ suite('ConversationComposerEditDraft', () => {
 		assert.strictEqual(released, 0);
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(host.composerModel.policy, 'queueEdit');
+	});
+
+	for (const moved of ['a turn edit', 'another queue item'] as const) {
+		test(`saveQueueEdit release after the composer moved to ${moved} leaves that edit alone`, async () => {
+			let settleEdit!: (accepted: boolean) => void;
+			let settleRelease!: (accepted: boolean) => void;
+			const editSettled = new Promise<boolean>(resolve => { settleEdit = resolve; });
+			const releaseSettled = new Promise<boolean>(resolve => { settleRelease = resolve; });
+			let settleCount = 0;
+			let exited = 0;
+			let released = 0;
+			let renderedInbox = 0;
+			const failures: string[] = [];
+			const host = {
+				composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
+				dockTextarea: { value: 'edited' },
+				getBoundSessionId: () => 'sess-1',
+				getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
+				stubService: {
+					updateMessageQueueItemContent: () => true,
+					whenDispatchedEngineActionSettles: () => settleCount++ === 0 ? editSettled : releaseSettled,
+					releaseMessageQueueItemHold: () => { released++; },
+					isEngineConnected: () => true,
+					hasEngineConnectionHistory: () => true,
+				},
+				exitComposerEdit: () => { exited++; },
+				showPostFailure: (reason: string) => { failures.push(reason); },
+				renderInboxStatus: () => { renderedInbox++; },
+			} as unknown as IConversationLensComposerHost;
+
+			saveQueueEdit(host);
+			if (moved === 'a turn edit') {
+				host.composerModel.beginTurnEdit('turn-1', '');
+			} else {
+				host.composerModel.beginQueueEdit('q2', '');
+			}
+			settleEdit(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			settleRelease(true);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+			assert.deepStrictEqual(
+				{ released, exited, failures, renderedInbox, settlement: host.composerModel.queueEditSettlementItemId },
+				{ released: 1, exited: 0, failures: [], renderedInbox: 1, settlement: undefined },
+			);
+		});
+	}
+
+	test('saveQueueEdit refusal after the composer moved to a turn edit does not show the queue failure there', async () => {
+		let settle!: (accepted: boolean) => void;
+		const settled = new Promise<boolean>(resolve => { settle = resolve; });
+		let exited = 0;
+		let released = 0;
+		const failures: string[] = [];
+		const host = {
+			composerModel: createTestComposerModel(store, { policy: 'queueEdit', editingQueueItemId: 'q1' }),
+			dockTextarea: { value: 'edited' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
+			stubService: {
+				updateMessageQueueItemContent: () => true,
+				whenDispatchedEngineActionSettles: () => settled,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: string) => { failures.push(reason); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		host.composerModel.beginTurnEdit('turn-1', '');
+		settle(false);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(
+			{ released, exited, failures, settlement: host.composerModel.queueEditSettlementItemId },
+			{ released: 0, exited: 0, failures: [], settlement: undefined },
+		);
 	});
 
 	test('queueEdit send stays disabled until the loaded payload changes', () => {

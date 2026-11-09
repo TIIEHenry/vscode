@@ -16,6 +16,13 @@ export const SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE = 'Unstaged';
 
 export type SourcesGitAcceptCursorSide = 'new' | 'old';
 
+/**
+ * What the Accept caret line counts. `hunkBody`: lines of the hunk bodies laid end to end,
+ * as in a `sources-git-diff:` model. `fileLine`: file lines matched against the `@@` ranges,
+ * as in a full-file diff whose original is the Git index.
+ */
+export type SourcesGitAcceptCursorBasis = 'hunkBody' | 'fileLine';
+
 export interface ISourcesGitAcceptCursor {
 	readonly side: SourcesGitAcceptCursorSide;
 	readonly line: number;
@@ -107,12 +114,13 @@ export function canOfferSourcesGitAcceptHunk(kind: string | undefined, indexStat
 
 /**
  * File header (every line before the first `@@`, including rename / mode)
- * plus the single hunk whose new-side or old-side body contains `cursorLine`.
- * `cursorLine` is a line in the diff model built by
+ * plus the single hunk whose new-side or old-side range contains `cursorLine`.
+ * With `hunkBody`, `cursorLine` is a line in the diff model built by
  * `parseSourcesGitUnifiedDiff`, not a file line from the `@@` header.
+ * With `fileLine`, it is a file line inside the `@@` range of that side.
  * Binary diffs and a cursor outside every hunk return undefined (0 Apply).
  */
-export function sourcesGitHunkPatchAtCursor(unifiedDiff: string, cursorLine: number, side: SourcesGitAcceptCursorSide = 'new'): string | undefined {
+export function sourcesGitHunkPatchAtCursor(unifiedDiff: string, cursorLine: number, side: SourcesGitAcceptCursorSide = 'new', basis: SourcesGitAcceptCursorBasis = 'hunkBody'): string | undefined {
 	const trimmed = unifiedDiff.trim();
 	if (trimmed === '' || trimmed.toLowerCase().includes('(no changes)')) {
 		return undefined;
@@ -150,10 +158,17 @@ export function sourcesGitHunkPatchAtCursor(unifiedDiff: string, cursorLine: num
 		if (!parsed) {
 			return undefined;
 		}
-		const counts = countHunkBodyLines(lines.slice(start + 1, end));
-		const count = side === 'new' ? counts.newLines : counts.oldLines;
-		const rangeStart = modelLine + 1;
-		modelLine += count;
+		let rangeStart: number;
+		let count: number;
+		if (basis === 'fileLine') {
+			rangeStart = side === 'new' ? parsed.newStart : parsed.oldStart;
+			count = side === 'new' ? parsed.newCount : parsed.oldCount;
+		} else {
+			const counts = countHunkBodyLines(lines.slice(start + 1, end));
+			count = side === 'new' ? counts.newLines : counts.oldLines;
+			rangeStart = modelLine + 1;
+			modelLine += count;
+		}
 		if (selected === undefined && lineInHunk(rangeStart, count, cursorLine)) {
 			const body = lines.slice(start, end).join('\n').replace(/\n+$/, '');
 			selected = `${rawHeaders}\n${body}\n`;

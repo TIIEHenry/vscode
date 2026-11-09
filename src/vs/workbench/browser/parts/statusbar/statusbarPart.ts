@@ -433,8 +433,8 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 		const lastFocusedEntry = this.viewModel.lastFocusedEntry;
 		if (preserveEntryFocus && lastFocusedEntry?.labelContainer.isConnected) {
 			setTimeout(() => lastFocusedEntry.labelContainer.focus(), 0); // Need a timeout, for some reason without it the inner label container will not get focused
-		} else {
-			setTimeout(() => this.focusNextEntry(), 0);
+		} else if (preserveEntryFocus) {
+			setTimeout(() => this.focusNextEntry(), 0); // Callers passing `false` pick an entry themselves (Home / End) or want the container (Escape)
 		}
 	}
 

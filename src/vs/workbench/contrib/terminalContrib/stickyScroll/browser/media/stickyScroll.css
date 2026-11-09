@@ -46,7 +46,17 @@
 	top: 0;
 	bottom: 0;
 	cursor: pointer !important;
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
+}
+
+.monaco-workbench.monaco-reduce-motion .terminal-sticky-scroll .hover-overlay {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .terminal-sticky-scroll .hover-overlay {
+		transition: none;
+	}
 }
 
 .terminal-sticky-scroll .hover-overlay:active {

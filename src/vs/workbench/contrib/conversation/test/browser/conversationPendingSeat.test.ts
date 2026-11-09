@@ -5,9 +5,8 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
-import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { INotification, INotificationService } from '../../../../../platform/notification/common/notification.js';
 import type { PendingActionView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import type { ConversationLens } from '../../browser/conversationLens.js';
 import {
@@ -167,8 +166,8 @@ suite('ConversationTimelineRevealService', () => {
 	function createService(): { service: ConversationTimelineRevealService; errors: string[] } {
 		const errors: string[] = [];
 		const service = store.add(new ConversationTimelineRevealService({
-			error: (message: string | Error) => {
-				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+			notify: (notification: INotification) => {
+				errors.push(String(notification.source));
 			},
 		} as INotificationService));
 		return { service, errors };

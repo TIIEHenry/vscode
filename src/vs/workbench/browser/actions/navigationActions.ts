@@ -39,6 +39,7 @@ abstract class BaseNavigationAction extends Action2 {
 		const isPanelFocus = layoutService.hasFocus(Parts.PANEL_PART);
 		const isSidebarFocus = layoutService.hasFocus(Parts.SIDEBAR_PART);
 		const isAuxiliaryBarFocus = layoutService.hasFocus(Parts.AUXILIARYBAR_PART);
+		const agentShellFocus = [Parts.CONVERSATION_PART, Parts.SOURCES_PART].find(part => layoutService.hasFocus(part));
 
 		let neighborPart: Parts | undefined;
 		if (isEditorFocus) {
@@ -62,6 +63,10 @@ abstract class BaseNavigationAction extends Action2 {
 			neighborPart = neighborPart = layoutService.getVisibleNeighborPart(Parts.AUXILIARYBAR_PART, this.direction);
 		}
 
+		if (agentShellFocus) {
+			neighborPart = layoutService.getVisibleNeighborPart(agentShellFocus, this.direction);
+		}
+
 		if (neighborPart === Parts.EDITOR_PART) {
 			if (!this.navigateBackToEditorGroup(this.toGroupDirection(this.direction), editorGroupService)) {
 				this.navigateToEditorGroup(this.direction === Direction.Right ? GroupLocation.FIRST : GroupLocation.LAST, editorGroupService);
@@ -72,6 +77,8 @@ abstract class BaseNavigationAction extends Action2 {
 			this.navigateToPanel(layoutService, paneCompositeService).catch(onUnexpectedError);
 		} else if (neighborPart === Parts.AUXILIARYBAR_PART) {
 			this.navigateToAuxiliaryBar(layoutService, paneCompositeService).catch(onUnexpectedError);
+		} else if (neighborPart === Parts.CONVERSATION_PART || neighborPart === Parts.SOURCES_PART) {
+			layoutService.focusPart(neighborPart);
 		}
 	}
 

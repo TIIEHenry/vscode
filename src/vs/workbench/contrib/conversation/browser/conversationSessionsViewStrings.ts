@@ -181,6 +181,11 @@ export function groupSessionsForRoster(sessions: readonly ConversationStubSessio
 	return entries;
 }
 
+/** Sessions in the order the Sessions list shows them, without group headers. */
+export function orderSessionsForRoster(sessions: readonly ConversationStubSession[], now = Date.now()): ConversationStubSession[] {
+	return groupSessionsForRoster(sessions, now).flatMap(entry => entry.kind === 'session' ? [entry.session] : []);
+}
+
 /** Newer access times first. Sessions without a time stay at the end, in input order. */
 function sortRosterBucket(sessions: readonly ConversationStubSession[]): ConversationStubSession[] {
 	const dated: { session: ConversationStubSession; index: number; accessed: number }[] = [];

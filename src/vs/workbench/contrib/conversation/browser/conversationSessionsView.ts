@@ -11,6 +11,8 @@ import { IListContextMenuEvent, IListRenderer, IListVirtualDelegate, NotSelectab
 import { Action } from '../../../../base/common/actions.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { findLastIdx } from '../../../../base/common/arraysFind.js';
+import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -20,17 +22,20 @@ import { MenuId, registerAction2 } from '../../../../platform/actions/common/act
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { ContextKeyExpr, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+import { InputFocusedContext } from '../../../../platform/contextkey/common/contextkeys.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { WorkbenchList, WorkbenchListFocusContextKey } from '../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
+import { FocusedViewContext } from '../../../common/contextkeys.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
@@ -45,6 +50,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_SESSIONS_VIEW_ID = 'workbench.view.conversationSessions';
 export const CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID = 'workbench.action.conversationSessions.deleteSession';
+export const CONVERSATION_SESSIONS_DELETE_FOCUSED_SESSION_COMMAND_ID = 'workbench.action.conversationSessions.deleteFocusedSession';
 
 /** Sessions ViewTitle Delete KEEP-chrome — false on leftover-looks-live / pairing-hold / KEEP leftover list-fail. Do not reuse Navigator `UA_ENGINE_CONNECTED_KEY`. */
 export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolean>('conversationSessions.deleteEnabled', false);
@@ -117,6 +123,7 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 	static readonly TEMPLATE_ID = 'conversationSession';
 
 	readonly templateId = SessionsRenderer.TEMPLATE_ID;
+	private readonly templates = new Set<ISessionTemplateData>();
 
 	constructor(
 		private readonly getActiveSessionId: () => string,
@@ -125,7 +132,19 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		private readonly getTurns: (sessionId: string) => readonly ConversationStubTurn[],
 		private readonly hoverService: IHoverService,
 		private readonly showMenu: (session: ConversationStubSession, anchor: HTMLElement) => void,
+		private readonly getOpenMenuSessionId: () => string | undefined,
 	) { }
+
+	syncOpenMenuState(): void {
+		const openId = this.getOpenMenuSessionId();
+		for (const template of this.templates) {
+			if (template.session && template.session.id === openId) {
+				template.more.setAttribute('aria-expanded', 'true');
+			} else {
+				template.more.removeAttribute('aria-expanded');
+			}
+		}
+	}
 
 	renderTemplate(container: HTMLElement): ISessionTemplateData {
 		const disposables = new DisposableStore();
@@ -140,7 +159,9 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		more.type = 'button';
 		more.setAttribute('aria-haspopup', 'menu');
 		more.classList.add(...ThemeIcon.asClassNameArray(Codicon.ellipsis));
-		more.setAttribute('aria-label', localize('conversationSessionsView.moreActions', "More actions"));
+		const moreLabel = localize('conversationSessionsView.moreActions', "More actions");
+		more.setAttribute('aria-label', moreLabel);
+		more.title = moreLabel;
 		const templateData: ISessionTemplateData = { container, icon, label, subtitle, more, disposables, session: undefined };
 		disposables.add(dom.addDisposableListener(more, dom.EventType.MOUSE_DOWN, event => {
 			event.preventDefault();
@@ -156,6 +177,7 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		disposables.add(this.hoverService.setupDelayedHover(row, () => ({
 			content: this.sessionHover(templateData.session),
 		})));
+		this.templates.add(templateData);
 		return templateData;
 	}
 
@@ -178,9 +200,15 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		templateData.subtitle.textContent = rowChrome.compactSubtitle;
 		templateData.subtitle.hidden = !templateData.subtitle.textContent;
 		templateData.container.classList.toggle('conversation-sessions-item-active', active);
+		if (this.getOpenMenuSessionId() === session.id) {
+			templateData.more.setAttribute('aria-expanded', 'true');
+		} else {
+			templateData.more.removeAttribute('aria-expanded');
+		}
 	}
 
 	disposeTemplate(templateData: ISessionTemplateData): void {
+		this.templates.delete(templateData);
 		templateData.disposables.dispose();
 	}
 
@@ -258,6 +286,9 @@ export class ConversationSessionsView extends ViewPane {
 	static readonly ID = CONVERSATION_SESSIONS_VIEW_ID;
 
 	private list: WorkbenchList<SessionRosterEntry> | undefined;
+	private sessionsRenderer: SessionsRenderer | undefined;
+	private openMenuSessionId: string | undefined;
+	private syncedActiveSessionId: string | undefined;
 	private listContainer: HTMLElement | undefined;
 	private emptyMessage: HTMLElement | undefined;
 	private filterBox: ConversationSessionsInlineFilterBox | undefined;
@@ -310,9 +341,12 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private updateDeleteEnabledContextKey(): void {
+		const disconnectedAfterHistory = this.stubService.isEngineConnected?.() === false
+			&& this.stubService.hasEngineConnectionHistory?.() === true;
 		this.deleteEnabledContextKey.set(
 			!isConversationPairingHold(this.uaConnection)
-			&& !this.isKeepLeftoverListFailWrite(),
+			&& !this.isKeepLeftoverListFailWrite()
+			&& !disconnectedAfterHistory,
 		);
 	}
 
@@ -356,11 +390,40 @@ export class ConversationSessionsView extends ViewPane {
 		return false;
 	}
 
-	async deleteActiveSession(): Promise<void> {
+	deleteActiveSession(): Promise<void> {
+		return this.deleteSession(this.stubService.getActiveSessionId());
+	}
+
+	async deleteFocusedSession(): Promise<void> {
+		const entry = this.list?.getFocusedElements()[0];
+		if (!entry || entry.kind !== 'session') {
+			return;
+		}
+		const focusedIndex = this.list!.getFocus()[0];
+		await this.deleteSession(entry.session.id);
+		this.refocusAfterRowDelete(focusedIndex);
+	}
+
+	private refocusAfterRowDelete(previousIndex: number | undefined): void {
+		if (!this.list || previousIndex === undefined || this.list.getFocus().length > 0 || this.list.length === 0) {
+			return;
+		}
+		const entries = Array.from({ length: this.list.length }, (_, index) => this.list!.element(index));
+		const start = Math.min(previousIndex, entries.length - 1);
+		let target = entries.findIndex((entry, index) => index >= start && entry.kind === 'session');
+		if (target < 0) {
+			target = findLastIdx(entries, entry => entry.kind === 'session');
+		}
+		if (target >= 0) {
+			this.list.setFocus([target]);
+			this.list.reveal(target);
+		}
+	}
+
+	async deleteSession(sessionId: string): Promise<void> {
 		if (this.rejectDeleteBeforeConfirm()) {
 			return;
 		}
-		const sessionId = this.stubService.getActiveSessionId();
 		const title = this.stubService.getSessions().find(session => session.id === sessionId)?.title ?? '';
 		const owner = captureConversationDeleteOwner(this.stubService, this.uaConnection);
 		if (!owner || this._store.isDisposed) {
@@ -412,6 +475,7 @@ export class ConversationSessionsView extends ViewPane {
 			container,
 			filterPlaceholder,
 			filterPlaceholder,
+			target => this.focusListFromFilter(target),
 		));
 		this.filterBox.setVisible(false);
 		this._register(this.filterBox.onDidChange(query => {
@@ -420,6 +484,8 @@ export class ConversationSessionsView extends ViewPane {
 		}));
 
 		this.emptyMessage = dom.append(container, $('.conversation-sessions-empty'));
+		this.emptyMessage.setAttribute('role', 'status');
+		this.emptyMessage.setAttribute('aria-live', 'polite');
 		this.emptyMessage.textContent = conversationSessionsViewEmptyMessage;
 
 		this.listContainer = dom.append(container, $('.conversation-sessions-list'));
@@ -458,7 +524,9 @@ export class ConversationSessionsView extends ViewPane {
 			getTurns,
 			this.hoverService,
 			(session, anchor) => this.showSessionContextMenu(session, anchor),
+			() => this.openMenuSessionId,
 		);
+		this.sessionsRenderer = renderer;
 
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
@@ -491,16 +559,30 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private showSessionContextMenu(session: ConversationStubSession, anchor: HTMLElement | IListContextMenuEvent<SessionRosterEntry>['anchor']): void {
-		if (dom.isHTMLElement(anchor)) {
+		const sessionId = session.id;
+		if (this.list) {
+			const index = Array.from({ length: this.list.length }, (_, i) => this.list!.element(i))
+				.findIndex(entry => entry.kind === 'session' && entry.session.id === sessionId);
+			if (index >= 0) {
+				this.list.setFocus([index]);
+			}
+		}
+		this.openMenuSessionId = sessionId;
+		this.sessionsRenderer?.syncOpenMenuState();
+		if (dom.isHTMLElement(anchor) && anchor.classList.contains('conversation-sessions-item-more')) {
 			anchor.setAttribute('aria-expanded', 'true');
 		}
 		this.contextMenuService.showContextMenu({
 			getMenuClassName: () => 'ua-rounded-menu ua-session-menu',
 			getAnchor: () => anchor,
 			onHide: didCancel => {
+				if (this.openMenuSessionId === sessionId) {
+					this.openMenuSessionId = undefined;
+				}
 				if (dom.isHTMLElement(anchor)) {
 					anchor.removeAttribute('aria-expanded');
 				}
+				this.sessionsRenderer?.syncOpenMenuState();
 				if (didCancel && this.isBodyVisible()) {
 					this.list?.domFocus();
 				}
@@ -512,6 +594,13 @@ export class ConversationSessionsView extends ViewPane {
 					undefined,
 					true,
 					() => this.openSessionBeside(session.id),
+				),
+				new Action(
+					'workbench.action.conversationSessions.deleteSessionRow',
+					localize('conversationSessionsView.deleteRow', "Delete"),
+					undefined,
+					this.deleteEnabledContextKey.get() ?? false,
+					() => this.deleteSession(session.id),
 				),
 			],
 		});
@@ -576,6 +665,7 @@ export class ConversationSessionsView extends ViewPane {
 			return;
 		}
 
+		const listHadFocus = this.listContainer.contains(this.listContainer.ownerDocument.activeElement);
 		const hasSessions = this.stubService.getSessions().length > 0;
 		const filtered = hasSessions ? this.getFilteredSessions() : [];
 		const filterMiss = hasSessions && this.hasActiveFilter() && filtered.length === 0;
@@ -583,6 +673,9 @@ export class ConversationSessionsView extends ViewPane {
 		this.emptyMessage.hidden = hasSessions && !filterMiss;
 		this.listContainer.hidden = !hasSessions || filterMiss;
 		this.filterBox?.setVisible(hasSessions);
+		if (listHadFocus && this.listContainer.hidden && hasSessions) {
+			this.filterBox?.focus();
+		}
 
 		if (!this.list) {
 			return;
@@ -620,6 +713,22 @@ export class ConversationSessionsView extends ViewPane {
 		}
 	}
 
+	private focusListFromFilter(target: 'first' | 'current'): boolean {
+		if (!this.list || !this.listContainer || this.listContainer.hidden || this.list.length === 0) {
+			return false;
+		}
+		if (target === 'first' || this.list.getFocus().length === 0) {
+			const first = Array.from({ length: this.list.length }, (_, index) => this.list!.element(index)).findIndex(entry => entry.kind === 'session');
+			if (first >= 0) {
+				this.list.setFocus([first]);
+				this.list.reveal(first);
+			}
+		}
+		this.list.domFocus();
+		return true;
+	}
+
+	/** Selection and focus follow the active session only when it changes; data refreshes keep the user's place. */
 	private updateActiveSession(): void {
 		if (!this.list) {
 			return;
@@ -627,11 +736,17 @@ export class ConversationSessionsView extends ViewPane {
 
 		const activeId = this.stubService.getActiveSessionId();
 		const index = groupSessionsForRoster(this.getFilteredSessions()).findIndex(entry => entry.kind === 'session' && entry.session.id === activeId);
+		const activeChanged = activeId !== this.syncedActiveSessionId;
 		if (index >= 0 && index < this.list.length) {
-			this.list.setSelection([index]);
-			this.list.setFocus([index]);
-			this.list.reveal(index);
-		} else {
+			if (activeChanged) {
+				this.syncedActiveSessionId = activeId;
+				this.list.setSelection([index]);
+				this.list.setFocus([index]);
+				this.list.reveal(index);
+			} else if (!this.list.getSelection().includes(index)) {
+				this.list.setSelection([index]);
+			}
+		} else if (activeChanged) {
 			this.list.setSelection([]);
 			this.list.setFocus([]);
 		}
@@ -679,5 +794,26 @@ registerAction2(class ConversationSessionsDeleteSessionAction extends ViewAction
 
 	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): Promise<void> {
 		return view.deleteActiveSession();
+	}
+});
+
+registerAction2(class ConversationSessionsDeleteFocusedSessionAction extends ViewAction<ConversationSessionsView> {
+	constructor() {
+		super({
+			id: CONVERSATION_SESSIONS_DELETE_FOCUSED_SESSION_COMMAND_ID,
+			viewId: CONVERSATION_SESSIONS_VIEW_ID,
+			title: localize2('conversationSessionsView.deleteFocusedSession', "Delete Focused Session"),
+			precondition: CONVERSATION_SESSIONS_DELETE_ENABLED_KEY,
+			keybinding: {
+				when: ContextKeyExpr.and(FocusedViewContext.isEqualTo(CONVERSATION_SESSIONS_VIEW_ID), WorkbenchListFocusContextKey, InputFocusedContext.toNegated()),
+				weight: KeybindingWeight.WorkbenchContrib,
+				primary: KeyCode.Delete,
+				mac: { primary: KeyMod.CtrlCmd | KeyCode.Backspace, secondary: [KeyCode.Delete] },
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): Promise<void> {
+		return view.deleteFocusedSession();
 	}
 });

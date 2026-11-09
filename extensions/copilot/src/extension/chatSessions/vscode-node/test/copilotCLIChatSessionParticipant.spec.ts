@@ -52,6 +52,7 @@ import { CopilotCLISessionService, CopilotCLISessionWorkspaceTracker, ICopilotCL
 import { ICopilotCLIMCPHandler } from '../../copilotcli/node/mcpHandler';
 import { MockCliSdkSession, MockCliSdkSessionManager, MockSkillLocations, NullCopilotCLIAgents, NullICopilotCLIImageSupport } from '../../copilotcli/node/test/testHelpers';
 import { IQuestion, IQuestionAnswer, IUserQuestionHandler } from '../../copilotcli/node/userInputHelpers';
+import { CorruptSessionMetadataError } from '../../copilotcli/vscode-node/chatSessionMetadataStoreImpl';
 import { CustomSessionTitleService } from '../../copilotcli/vscode-node/customSessionTitleServiceImpl';
 import { CopilotCLIChatSessionContentProvider, CopilotCLIChatSessionItemProvider, CopilotCLIChatSessionParticipant } from '../copilotCLIChatSessionsContribution';
 import { CopilotCloudSessionsProvider } from '../copilotCloudSessionsProvider';
@@ -637,6 +638,28 @@ describe('CopilotCLIChatSessionParticipant.handleRequest', () => {
 		expect(cliSessions[0].requests[0]).toEqual({ input: { prompt: 'Continue' }, attachments: [], model: { model: 'base' }, authInfo, token });
 
 		expect(itemProvider.swap).not.toHaveBeenCalled();
+	});
+
+	it('logs a refused workspace folder write for an existing session instead of leaving it unhandled', async () => {
+		const sessionId = 'existing-corrupt-metadata';
+		manager.sessions.set(sessionId, new MockCliSdkSession(sessionId, new Date()));
+		await workspaceFolderService.trackSessionWorkspaceFolder(sessionId, URI.file('/workspace').fsPath);
+		workspaceFolderService.trackSessionWorkspaceFolder.mockClear();
+		const refusal = new CorruptSessionMetadataError(sessionId);
+		workspaceFolderService.trackSessionWorkspaceFolder.mockRejectedValue(refusal);
+		const errorSpy = vi.spyOn(logService, 'error');
+		const request = new TestChatRequest('Continue');
+		const context = createChatContext(sessionId, false, request);
+		const stream = new MockChatResponseStream();
+		const token = disposables.add(new CancellationTokenSource()).token;
+
+		await participant.createHandler()(request, context, stream, token);
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(workspaceFolderService.trackSessionWorkspaceFolder).toHaveBeenCalled();
+		expect(workspaceFolderService.trackSessionWorkspaceFolder.mock.calls[0][0]).toBe(sessionId);
+		expect(cliSessions[0].requests.length).toBe(1);
+		expect(errorSpy).toHaveBeenCalledWith(refusal, 'Failed to track session workspace folder');
 	});
 
 	it('maps known slash commands to CLI command input for existing sessions', async () => {

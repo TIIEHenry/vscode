@@ -27,7 +27,7 @@
 	gap: 4px;
 	height: auto;
 	margin: 0;
-	padding: 4px 8px;
+	padding: 2px 8px;
 	background: transparent;
 	border: none;
 	border-bottom: none;
@@ -75,7 +75,6 @@
 
 .monaco-workbench .conversation-sessions-inline-filter-input:focus {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
 	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
@@ -111,8 +110,15 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.monaco-workbench .conversation-sessions-inline-filter-clear:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-inline-filter-clear:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	color: var(--vscode-foreground);
+	border-radius: 4px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .conversation-sessions-inline-filter-clear:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 4px;
@@ -124,6 +130,12 @@
 
 .monaco-workbench.monaco-reduce-motion .conversation-sessions-inline-filter-clear {
 	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-inline-filter-clear {
+		transition: none;
+	}
 }
 
 /* Product navigation text uses the same readable scale as its rows. */

@@ -9,6 +9,18 @@
 	transition: background-color 0.08s ease;
 }
 
+.monaco-workbench.monaco-reduce-motion .menubar > .menubar-menu-button,
+.monaco-workbench.monaco-reduce-motion .menubar .toolbar-toggle-more {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .menubar > .menubar-menu-button,
+	.monaco-workbench:not(.monaco-enable-motion) .menubar .toolbar-toggle-more {
+		transition: none;
+	}
+}
+
 .monaco-workbench .menubar > .menubar-menu-button:active,
 .monaco-workbench .menubar .toolbar-toggle-more:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
@@ -65,5 +77,16 @@
 .monaco-workbench .menubar > .menubar-menu-button:focus .menubar-menu-title,
 .monaco-workbench .menubar > .menubar-menu-button:hover .menubar-menu-title {
 	outline-color: var(--vscode-menubar-selectionBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .menubar > .menubar-menu-button:focus-visible .menubar-menu-title {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench.hc-black .menubar > .menubar-menu-button:focus-visible .menubar-menu-title,
+.monaco-workbench.hc-light .menubar > .menubar-menu-button:focus-visible .menubar-menu-title {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 }

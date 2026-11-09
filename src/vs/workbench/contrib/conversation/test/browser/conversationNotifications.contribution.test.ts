@@ -9,7 +9,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { INotification, INotificationHandle, INotificationService, NoOpNotification } from '../../../../../platform/notification/common/notification.js';
+import { INotification, INotificationHandle, INotificationService, NoOpNotification, Severity } from '../../../../../platform/notification/common/notification.js';
 import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { emptySessionViewSnapshot, type SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
@@ -75,9 +75,15 @@ class CatalogIntroRoster extends ConversationStubService {
 class RecordingNotificationService extends TestNotificationService {
 	readonly notifications: INotification[] = [];
 	readonly errors: string[] = [];
+	readonly errorMessages: string[] = [];
 
 	override notify(notification: INotification): INotificationHandle {
-		this.notifications.push(notification);
+		if (notification.severity === Severity.Error) {
+			this.errors.push(String(notification.source));
+			this.errorMessages.push(String(notification.message));
+		} else {
+			this.notifications.push(notification);
+		}
 		return new NoOpNotification();
 	}
 
@@ -330,6 +336,7 @@ suite('ConversationNotificationsContribution', () => {
 			});
 			assert.ok(notifications.errors.length >= 1);
 			assert.ok(notifications.errors.every(message => message === getErrorMessage(boom)));
+			assert.deepStrictEqual([...new Set(notifications.errorMessages)], ['Could not read pending confirmations for this session.']);
 
 			const firstId = roster.getActiveSessionId();
 			const secondId = roster.createSession();

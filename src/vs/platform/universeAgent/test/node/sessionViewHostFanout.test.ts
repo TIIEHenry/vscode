@@ -225,4 +225,68 @@ suite('SessionViewHost per-lease fanout (F1)', () => {
 		assert.strictEqual(connection.subscribeCalls.length, 2);
 		viewHost.releaseLease(lease2);
 	});
+
+	test('onDynamicDidApplyFrame rejects a foreign owner and keeps owner, in-process, and ownerless access', () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
+
+		const owned = viewHost.acquireLease('sess-owner-gate', 'A');
+		const ownerless = viewHost.acquireLease('sess-owner-gate');
+
+		assert.strictEqual(viewHost.onDynamicDidApplyFrame(owned, 'B'), Event.None);
+		assert.notStrictEqual(viewHost.onDynamicDidApplyFrame(owned, 'A'), Event.None);
+		assert.notStrictEqual(viewHost.onDynamicDidApplyFrame(owned), Event.None);
+		assert.notStrictEqual(viewHost.onDynamicDidApplyFrame(ownerless, 'B'), Event.None);
+	});
+
+	test('foreign-owner subscription does not count as a subscriber for orphan release', async () => {
+		const diagnostics = new CountingDiagnostics();
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 50,
+			diagnostics,
+		}));
+
+		const leaseId = viewHost.acquireLease('sess-foreign-orphan', 'A');
+		const foreign: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId, 'B')(e => foreign.push(e)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 80));
+
+		assert.strictEqual(viewHost.onDynamicDidApplyFrame(leaseId, 'A'), Event.None);
+		assert.strictEqual(diagnostics.counts.get('view.lease_orphaned' as DiagnosticMetric), 1);
+		assert.deepStrictEqual(foreign, []);
+	});
+
+	test('foreign-owner subscription does not consume the overflow resync baseline', async () => {
+		const connection = new TestConnection();
+		const host = new TestHost(async () => undefined);
+		const diagnostics = new CountingDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, host, {
+			orphanTimeoutMs: 0,
+			pendingFrameLimit: 2,
+			diagnostics,
+		}));
+
+		const leaseId = viewHost.acquireLease('sess-foreign-overflow', 'A');
+		for (let i = 2; i <= 5; i++) {
+			injectFrame(viewHost, leaseId, 'sess-foreign-overflow', makePatchFrame(leaseId, 'sess-foreign-overflow', i));
+		}
+		assert.strictEqual(diagnostics.counts.get('view.pending_overflow' as DiagnosticMetric), 1);
+
+		const foreign: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId, 'B')(e => foreign.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.deepStrictEqual(foreign, []);
+
+		const owned: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId, 'A')(e => owned.push(e)));
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.ok(owned.length >= 1);
+		assert.strictEqual(owned[0]!.applied.kind, 'baseline');
+		assert.deepStrictEqual(foreign, []);
+	});
 });

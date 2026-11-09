@@ -442,6 +442,13 @@ export class ChatService extends Disposable implements IChatService {
 		const localSessionId = LocalChatSessionUri.parseLocalSessionId(sessionResource);
 		if (localSessionId) {
 			await this._chatSessionStore.setSessionTitle(localSessionId, title);
+			if (!model) {
+				// The session may have been restored from its file while the index was being updated.
+				const restoredModel = this._sessionModels.get(sessionResource);
+				if (restoredModel && restoredModel.customTitle !== title) {
+					restoredModel.setCustomTitle(title);
+				}
+			}
 			// Trigger immediate save to ensure consistency
 			this.saveState();
 		}
@@ -667,12 +674,21 @@ export class ChatService extends Disposable implements IChatService {
 			return undefined;
 		}
 
+		const isNewModel = !this._sessionModels.has(sessionResource);
 		const sessionRef = this._sessionModels.acquireOrCreate({
 			initialData: sessionData,
 			location: sessionData.value.initialLocation ?? ChatAgentLocation.Chat,
 			sessionResource,
 			canUseTools: true,
 		}, debugOwner ?? 'ChatService#acquireOrRestoreLocalSession');
+
+		// A rename of the unloaded session only reached the index, not the session file.
+		if (isNewModel) {
+			const indexedCustomTitle = this._chatSessionStore.getMetadataForSessionSync(sessionResource)?.customTitle;
+			if (indexedCustomTitle && indexedCustomTitle !== sessionRef.object.customTitle) {
+				sessionRef.object.setCustomTitle(indexedCustomTitle);
+			}
+		}
 
 		return sessionRef;
 	}

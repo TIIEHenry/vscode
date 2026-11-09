@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -112,5 +113,40 @@ suite('Suggest Inline Completions', function () {
 			completions.disposeInlineCompletions(result);
 		}
 
+	});
+
+	test('inline completions do not depend on the cursor of another editor that shows the same model', async function () {
+		const completions: SuggestInlineCompletions = disposables.add(insta.createInstance(SuggestInlineCompletions));
+		const otherEditor = disposables.add(instantiateTestCodeEditor(insta, model));
+		otherEditor.setPosition(new Position(1, 3));
+
+		const result = await completions.provideInlineCompletions(model, new Position(1, 3), context, CancellationToken.None);
+		assert.strictEqual(result?.items.length, 3);
+		completions.disposeInlineCompletions(result);
+	});
+
+	test('inline completions are dropped when the model changes while completion providers are pending', async function () {
+		model.setValue('he\nfoo');
+		editor.setPosition(new Position(1, 3));
+
+		const pendingList = new DeferredPromise<CompletionList>();
+		let disposeCount = 0;
+		insta.invokeFunction(accessor => {
+			disposables.add(accessor.get(ILanguageFeaturesService).completionProvider.register({ pattern: '*.bar', scheme: 'foo' }, new class implements CompletionItemProvider {
+				_debugDisplayName = 'pending';
+
+				provideCompletionItems(): ProviderResult<CompletionList> {
+					return pendingList.p;
+				}
+			}));
+		});
+		const completions: SuggestInlineCompletions = disposables.add(insta.createInstance(SuggestInlineCompletions));
+
+		const resultPromise = completions.provideInlineCompletions(model, new Position(1, 3), context, CancellationToken.None);
+		model.applyEdits([{ range: new Range(2, 1, 2, 1), text: 'x' }]);
+		pendingList.complete({ suggestions: [], dispose() { disposeCount++; } });
+		const result = await resultPromise;
+
+		assert.deepStrictEqual({ result, disposeCount, position: editor.getPosition() }, { result: undefined, disposeCount: 1, position: new Position(1, 3) });
 	});
 });

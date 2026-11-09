@@ -25,14 +25,25 @@ export interface ISourcesChangeRef extends ISourcesChangeIdentity {
 	readonly scmResource?: ISCMResource;
 }
 
+/** Absent fields are omitted, not carried as `undefined`: the identity is compared structurally. */
 export function sourcesChangeIdentity(source: ISourcesChangeIdentity): ISourcesChangeIdentity {
-	return {
-		origin: source.origin,
-		sessionId: source.sessionId,
-		gitPath: source.gitPath,
-		indexState: source.indexState,
-		kind: source.kind,
-	};
+	const identity: { -readonly [K in keyof ISourcesChangeIdentity]: ISourcesChangeIdentity[K] } = {};
+	if (source.origin !== undefined) {
+		identity.origin = source.origin;
+	}
+	if (source.sessionId !== undefined) {
+		identity.sessionId = source.sessionId;
+	}
+	if (source.gitPath !== undefined) {
+		identity.gitPath = source.gitPath;
+	}
+	if (source.indexState !== undefined) {
+		identity.indexState = source.indexState;
+	}
+	if (source.kind !== undefined) {
+		identity.kind = source.kind;
+	}
+	return identity;
 }
 
 export function sourcesChangeRefWithEntryIdentity(

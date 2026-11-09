@@ -49,12 +49,13 @@ import {
 	resolveTeamIdForInfo,
 	NAVIGATOR_TEAM_LOADING_COPY,
 } from '../common/navigatorTeamData.js';
-import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
+import { agentStatusTone, type AgentStatusTone, collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
 import { getNavigatorAgentTreePendingCopy, isNavigatorAgentTreeLoadingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
 } from './agentInspectIds.js';
+import { INavigatorRowStatusTemplate, isNavigatorRowPointerSelect, renderNavigatorRowStatus, updateNavigatorRowStatus } from './navigatorAgentsView.js';
 import { NavigatorTeamInlineFilterBox } from './navigatorTeamInlineFilterBox.js';
 import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
@@ -115,21 +116,58 @@ class TeamMemberDelegate implements IListVirtualDelegate<INavigatorTeamMemberEnt
 	}
 }
 
-interface ITeamMemberTemplateData {
+interface ITeamRowTemplateData {
 	readonly label: HTMLElement;
+	readonly status: INavigatorRowStatusTemplate;
 }
 
-class TeamMemberRenderer implements IListRenderer<INavigatorTeamMemberEntry, ITeamMemberTemplateData> {
+function teamStatusTone(status: string | undefined): AgentStatusTone {
+	if (!status) {
+		return 'unknown';
+	}
+	const tone = agentStatusTone(status);
+	if (tone !== 'unknown') {
+		return tone;
+	}
+	if (matchesNavigatorTeamTaskStatus(status, 'active')) {
+		return 'running';
+	}
+	if (matchesNavigatorTeamTaskStatus(status, 'completed')) {
+		return 'done';
+	}
+	if (matchesNavigatorTeamTaskStatus(status, 'failed')) {
+		return 'error';
+	}
+	return 'unknown';
+}
+
+/** Row name plus engine status; used for the tooltip, the screen reader name and the text filter. */
+function teamRowFullLabel(entry: { readonly label: string; readonly status?: string }): string {
+	return entry.status ? localize('navigatorTeam.rowWithStatus', "{0}, {1}", entry.label, entry.status) : entry.label;
+}
+
+function renderTeamRowTemplate(container: HTMLElement, labelClass: string): ITeamRowTemplateData {
+	const row = dom.append(container, $('.navigator-team-row'));
+	const label = dom.append(row, $(labelClass));
+	return { label, status: renderNavigatorRowStatus(row) };
+}
+
+function renderTeamRow(entry: { readonly label: string; readonly status?: string }, templateData: ITeamRowTemplateData): void {
+	templateData.label.textContent = entry.label;
+	templateData.label.title = teamRowFullLabel(entry);
+	updateNavigatorRowStatus(templateData.status, entry.status, teamStatusTone(entry.status));
+}
+
+class TeamMemberRenderer implements IListRenderer<INavigatorTeamMemberEntry, ITeamRowTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorTeamMember';
 	readonly templateId = TeamMemberRenderer.TEMPLATE_ID;
 
-	renderTemplate(container: HTMLElement): ITeamMemberTemplateData {
-		return { label: dom.append(container, $('.navigator-team-member-label')) };
+	renderTemplate(container: HTMLElement): ITeamRowTemplateData {
+		return renderTeamRowTemplate(container, '.navigator-team-member-label');
 	}
 
-	renderElement(member: INavigatorTeamMemberEntry, _index: number, templateData: ITeamMemberTemplateData): void {
-		templateData.label.textContent = member.label;
-		templateData.label.title = member.label;
+	renderElement(member: INavigatorTeamMemberEntry, _index: number, templateData: ITeamRowTemplateData): void {
+		renderTeamRow(member, templateData);
 	}
 
 	disposeTemplate(): void {
@@ -143,7 +181,7 @@ class TeamMemberAccessibilityProvider implements IListAccessibilityProvider<INav
 	}
 
 	getAriaLabel(member: INavigatorTeamMemberEntry): string {
-		return member.label;
+		return teamRowFullLabel(member);
 	}
 }
 
@@ -157,21 +195,16 @@ class TeamTaskDelegate implements IListVirtualDelegate<INavigatorTeamTaskEntry> 
 	}
 }
 
-interface ITeamTaskTemplateData {
-	readonly label: HTMLElement;
-}
-
-class TeamTaskRenderer implements IListRenderer<INavigatorTeamTaskEntry, ITeamTaskTemplateData> {
+class TeamTaskRenderer implements IListRenderer<INavigatorTeamTaskEntry, ITeamRowTemplateData> {
 	static readonly TEMPLATE_ID = 'navigatorTeamTask';
 	readonly templateId = TeamTaskRenderer.TEMPLATE_ID;
 
-	renderTemplate(container: HTMLElement): ITeamTaskTemplateData {
-		return { label: dom.append(container, $('.navigator-team-task-label')) };
+	renderTemplate(container: HTMLElement): ITeamRowTemplateData {
+		return renderTeamRowTemplate(container, '.navigator-team-task-label');
 	}
 
-	renderElement(task: INavigatorTeamTaskEntry, _index: number, templateData: ITeamTaskTemplateData): void {
-		templateData.label.textContent = task.label;
-		templateData.label.title = task.label;
+	renderElement(task: INavigatorTeamTaskEntry, _index: number, templateData: ITeamRowTemplateData): void {
+		renderTeamRow(task, templateData);
 	}
 
 	disposeTemplate(): void {
@@ -185,7 +218,7 @@ class TeamTaskAccessibilityProvider implements IListAccessibilityProvider<INavig
 	}
 
 	getAriaLabel(task: INavigatorTeamTaskEntry): string {
-		return task.label;
+		return teamRowFullLabel(task);
 	}
 }
 
@@ -226,6 +259,7 @@ export class NavigatorTeamView extends ViewPane {
 
 	private teamInfoCallCount = 0;
 	private hadTeamSnapshot = false;
+	private teamSnapshotNote: string | undefined;
 	private _refreshSeq = 0;
 	/** D445: leftover KEEP must close Inspect / member-task row-open without reselect. */
 	private leftoverRowActionsClosed = false;
@@ -386,22 +420,46 @@ export class NavigatorTeamView extends ViewPane {
 		if (this._store.isDisposed || this.subview === 'members') {
 			return;
 		}
+		const prevSubviewHadFocus = !!this.tasksBody?.contains(this.tasksBody.ownerDocument.activeElement);
 		this.subview = 'members';
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
 		this._onDidChangeViewWelcomeState.fire();
 		this.relayoutCurrentSubview();
+		if (prevSubviewHadFocus) {
+			if (this.membersListContainer && this.membersListContainer.style.display !== 'none' && (this.membersList?.length ?? 0) > 0) {
+				if (this.membersList && this.membersList.getFocus().length === 0) {
+					this.membersList.focusFirst();
+				}
+				this.membersList?.domFocus();
+			} else {
+				this.filterBox?.focus();
+			}
+		}
 	}
 
 	showTasks(): void {
 		if (this._store.isDisposed || this.subview === 'tasks') {
 			return;
 		}
+		const prevSubviewHadFocus = !!this.membersBody?.contains(this.membersBody.ownerDocument.activeElement);
 		this.subview = 'tasks';
 		this.updateSubviewContextKeys();
 		this.updateSubviewVisibility();
 		this._onDidChangeViewWelcomeState.fire();
 		this.relayoutCurrentSubview();
+		if (prevSubviewHadFocus) {
+			if (this.tasksListContainer && this.tasksListContainer.style.display !== 'none' && (this.tasksList?.length ?? 0) > 0) {
+				if (this.tasksList && this.tasksList.getFocus().length === 0) {
+					this.tasksList.focusFirst();
+				}
+				this.tasksList?.domFocus();
+			} else if (this.taskStatusBar && this.taskStatusBar.style.display !== 'none') {
+				this.taskStatusFilterButtons.get(this.taskStatusFilter)?.focus();
+			} else {
+				this.filterBox?.focus();
+			}
+		}
 	}
 
 	override shouldShowWelcome(): boolean {
@@ -417,6 +475,7 @@ export class NavigatorTeamView extends ViewPane {
 			container,
 			filterPlaceholder,
 			filterPlaceholder,
+			target => this.focusListFromFilter(target),
 		));
 		this._register(this.filterBox.onDidChange(query => {
 			if (this._store.isDisposed) {
@@ -429,9 +488,12 @@ export class NavigatorTeamView extends ViewPane {
 		this.membersBody = dom.append(container, $('.navigator-team-subview'));
 		this.membersEmpty = dom.append(this.membersBody, $('.navigator-stub-empty'));
 		this.membersEmpty.setAttribute('role', 'status');
+		this.membersEmpty.setAttribute('aria-live', 'polite');
 		this.membersHonestEmpty = this.getDisconnectedTeamEmptyCopy();
 		this.membersEmpty.textContent = this.membersHonestEmpty;
 		this.membersNote = dom.append(this.membersBody, $('.navigator-stub-note'));
+		this.membersNote.setAttribute('role', 'status');
+		this.membersNote.setAttribute('aria-live', 'polite');
 		this.membersNote.style.display = 'none';
 		this.membersListContainer = dom.append(this.membersBody, $('.navigator-team-list'));
 		this.ensureMembersList();
@@ -450,6 +512,7 @@ export class NavigatorTeamView extends ViewPane {
 			button.textContent = TASK_STATUS_FILTER_LABELS[filter];
 			button.dataset.statusFilter = filter;
 			button.setAttribute('aria-pressed', String(filter === this.taskStatusFilter));
+			button.tabIndex = filter === this.taskStatusFilter ? 0 : -1;
 			this.taskStatusFilterButtons.set(filter, button);
 			this._register(dom.addDisposableListener(button, dom.EventType.CLICK, () => {
 				this.taskStatusFilter = filter;
@@ -457,11 +520,39 @@ export class NavigatorTeamView extends ViewPane {
 				this.updateTasksDisplay();
 			}));
 		}
+		this._register(dom.addDisposableListener(this.taskStatusBar, dom.EventType.KEY_DOWN, (e: KeyboardEvent) => {
+			if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') {
+				return;
+			}
+			const buttons = TASK_STATUS_FILTERS.map(f => this.taskStatusFilterButtons.get(f)).filter((b): b is HTMLButtonElement => !!b);
+			if (buttons.length === 0) {
+				return;
+			}
+			const currentIdx = Math.max(0, buttons.indexOf(e.target as HTMLButtonElement));
+			let nextIdx = currentIdx;
+			if (e.key === 'ArrowRight') {
+				nextIdx = (currentIdx + 1) % buttons.length;
+			} else if (e.key === 'ArrowLeft') {
+				nextIdx = (currentIdx - 1 + buttons.length) % buttons.length;
+			} else if (e.key === 'Home') {
+				nextIdx = 0;
+			} else if (e.key === 'End') {
+				nextIdx = buttons.length - 1;
+			}
+			e.preventDefault();
+			buttons.forEach((btn, idx) => {
+				btn.tabIndex = idx === nextIdx ? 0 : -1;
+			});
+			buttons[nextIdx]?.focus();
+		}));
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
 		this.tasksEmpty.setAttribute('role', 'status');
+		this.tasksEmpty.setAttribute('aria-live', 'polite');
 		this.tasksHonestEmpty = this.getDisconnectedTeamEmptyCopy();
 		this.tasksEmpty.textContent = this.tasksHonestEmpty;
 		this.tasksNote = dom.append(this.tasksBody, $('.navigator-stub-note'));
+		this.tasksNote.setAttribute('role', 'status');
+		this.tasksNote.setAttribute('aria-live', 'polite');
 		this.tasksNote.style.display = 'none';
 		this.tasksListContainer = dom.append(this.tasksBody, $('.navigator-team-tasks-list'));
 		this.ensureTasksList();
@@ -483,7 +574,8 @@ export class NavigatorTeamView extends ViewPane {
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
 		const note = this.subview === 'members' ? this.membersNote : this.tasksNote;
 		const noteHeight = note && note.style.display !== 'none' ? note.offsetHeight : 0;
-		const contentHeight = Math.max(0, height - NavigatorTeamInlineFilterBox.HEIGHT - noteHeight);
+		const statusBarHeight = this.subview === 'tasks' && this.taskStatusBar?.style.display !== 'none' ? this.taskStatusBar?.offsetHeight ?? 0 : 0;
+		const contentHeight = Math.max(0, height - NavigatorTeamInlineFilterBox.HEIGHT - noteHeight - statusBarHeight);
 		if (this.subview === 'members') {
 			this.membersList?.layout(contentHeight, width);
 		} else {
@@ -547,8 +639,12 @@ export class NavigatorTeamView extends ViewPane {
 				this.inspectService.setTarget(undefined);
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'member', info: e.element, sessionId: e.element.sessionId, expectedOwner: currentOwner });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName, e.element!.sessionId)).catch(onUnexpectedError);
+			const member = e.element;
+			this.inspectService.setTarget({ kind: 'member', info: member, sessionId: member.sessionId, expectedOwner: currentOwner });
+			if (isNavigatorRowPointerSelect(e)) {
+				return;
+			}
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, member.memberAgentId, member.memberName, member.sessionId)).catch(onUnexpectedError);
 		}));
 
 		return this.membersList;
@@ -568,6 +664,7 @@ export class NavigatorTeamView extends ViewPane {
 			{
 				identityProvider: { getId: (task: INavigatorTeamTaskEntry) => task.id },
 				accessibilityProvider: new TeamTaskAccessibilityProvider(),
+				openOnSingleClick: true,
 			},
 		)) as WorkbenchList<INavigatorTeamTaskEntry>;
 
@@ -584,6 +681,9 @@ export class NavigatorTeamView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'task', task: e.element, sessionId: e.element.sessionId, expectedOwner: currentOwner });
+			if (!isNavigatorRowPointerSelect(e)) {
+				this.openInspectPanel(false);
+			}
 		}));
 
 		return this.tasksList;
@@ -675,7 +775,7 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			this.inspectService.setLiveTaskIds(closedIds, sessionId, owner);
 			this.setTeamAfterTreeEmpty(treeEmpty);
-			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
+			if (this.memberEntries.length > 0 || this.taskEntries.length > 0) {
 				this.hadTeamSnapshot = true;
 			}
 			return;
@@ -747,7 +847,7 @@ export class NavigatorTeamView extends ViewPane {
 					members.push({
 						...row,
 						id: teamListRowId('member', manager.agentId, row.memberAgentId),
-						label: `${prefix}${row.memberName} · ${row.status}`,
+						label: `${prefix}${row.memberName}`,
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
 						sessionId,
@@ -765,7 +865,7 @@ export class NavigatorTeamView extends ViewPane {
 					tasks.push({
 						...row,
 						id: teamListRowId('task', manager.agentId, row.taskId),
-						label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
+						label: `${prefix}${row.subject || row.taskId}${blocked}`,
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
 						sessionId,
@@ -786,7 +886,9 @@ export class NavigatorTeamView extends ViewPane {
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
-			this.hadTeamSnapshot = true;
+			if (members.length > 0 || tasks.length > 0) {
+				this.hadTeamSnapshot = true;
+			}
 			this.markLiveRowActionsOpen();
 			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
 			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
@@ -803,7 +905,7 @@ export class NavigatorTeamView extends ViewPane {
 			} else {
 				this.markLeftoverRowActionsClosed();
 			}
-			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
+			this.setTeamSnapshotNote(hadLiveTeamPaint ? TEAM_FETCH_FAILED_COPY : undefined);
 			const failedSession = this.publishedTeamSession();
 			const owner = this.capturePublishedLinkOwner();
 			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, failedSession, owner);
@@ -863,13 +965,19 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private setTeamSnapshotNote(noteMessage: string | undefined): void {
-		for (const note of [this.membersNote, this.tasksNote]) {
+		this.teamSnapshotNote = noteMessage;
+		const pairs: Array<[HTMLElement | undefined, HTMLElement | undefined]> = [
+			[this.membersNote, this.membersBody],
+			[this.tasksNote, this.tasksBody],
+		];
+		for (const [note, body] of pairs) {
 			if (!note) {
 				continue;
 			}
+			const isEmpty = body?.classList.contains('is-empty') ?? false;
 			if (noteMessage) {
 				note.textContent = noteMessage;
-				note.style.display = 'block';
+				note.style.display = isEmpty ? 'none' : 'block';
 				note.classList.toggle(
 					'is-error',
 					noteMessage === TEAM_FETCH_FAILED_COPY || noteMessage === NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY,
@@ -926,7 +1034,7 @@ export class NavigatorTeamView extends ViewPane {
 		if (!list) {
 			return;
 		}
-		const filtered = this.memberEntries.filter(entry => matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
+		const filtered = this.memberEntries.filter(entry => matchesNavigatorTeamInlineFilter(teamRowFullLabel(entry), this.filterQuery));
 		list.splice(0, list.length, filtered);
 	}
 
@@ -935,15 +1043,25 @@ export class NavigatorTeamView extends ViewPane {
 		if (!list) {
 			return;
 		}
-		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, this.taskStatusFilter) && matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
+		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, this.taskStatusFilter) && matchesNavigatorTeamInlineFilter(teamRowFullLabel(entry), this.filterQuery));
 		list.splice(0, list.length, filtered);
 		for (const [filter, button] of this.taskStatusFilterButtons) {
-			button.setAttribute('aria-pressed', String(filter === this.taskStatusFilter));
+			const active = filter === this.taskStatusFilter;
+			button.setAttribute('aria-pressed', String(active));
+			button.tabIndex = active ? 0 : -1;
 		}
 		if (this.taskStatusSummary) {
 			const counts = TASK_STATUS_FILTERS.map(filter => this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, filter)).length);
 			this.taskStatusSummary.textContent = localize('navigatorTeamTasks.statusSummary', "{0} tasks · {1} active · {2} blocked · {3} completed · {4} failed", counts[0], counts[1], counts[2], counts[3], counts[4]);
 		}
+	}
+
+	/**
+	 * True when focus is inside this subview's list. Call before hiding the list:
+	 * the empty-state class removes it from layout and would otherwise drop focus to the document body.
+	 */
+	private listContainedFocus(container: HTMLElement, subview: NavigatorTeamSubview): boolean {
+		return this.subview === subview && container.contains(container.ownerDocument.activeElement);
 	}
 
 	private updateMembersDisplay(): void {
@@ -954,11 +1072,19 @@ export class NavigatorTeamView extends ViewPane {
 		const unfilteredEmpty = this.memberEntries.length === 0;
 		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
 		const isEmpty = unfilteredEmpty || filterMiss;
+		const listHadFocus = this.listContainedFocus(this.membersListContainer, 'members');
 		this.membersEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.membersHonestEmpty;
 		this.membersBody.classList.toggle('is-empty', isEmpty);
 		this.membersEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
+		if (this.membersNote) {
+			this.membersNote.style.display = !isEmpty && this.teamSnapshotNote ? 'block' : 'none';
+		}
+		if (isEmpty && listHadFocus) {
+			this.filterBox?.focus();
+		}
 		this.syncAgentTreeLoadingChrome();
+		this.relayoutCurrentSubview();
 	}
 
 	private updateTasksDisplay(): void {
@@ -969,12 +1095,24 @@ export class NavigatorTeamView extends ViewPane {
 		const unfilteredEmpty = this.taskEntries.length === 0;
 		const filterMiss = !unfilteredEmpty && (this.hasActiveFilter() || this.taskStatusFilter !== 'all') && filteredCount === 0;
 		const isEmpty = unfilteredEmpty || filterMiss;
+		const listHadFocus = this.listContainedFocus(this.tasksListContainer, 'tasks');
 		this.taskStatusBar?.style.setProperty('display', unfilteredEmpty ? 'none' : 'flex');
 		this.tasksEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.tasksHonestEmpty;
 		this.tasksBody.classList.toggle('is-empty', isEmpty);
 		this.tasksEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
+		if (this.tasksNote) {
+			this.tasksNote.style.display = !isEmpty && this.teamSnapshotNote ? 'block' : 'none';
+		}
+		if (isEmpty && listHadFocus) {
+			if (unfilteredEmpty) {
+				this.filterBox?.focus();
+			} else {
+				this.taskStatusFilterButtons.get(this.taskStatusFilter)?.focus();
+			}
+		}
 		this.syncAgentTreeLoadingChrome();
+		this.relayoutCurrentSubview();
 	}
 
 	/** Hide the lightning glyph only while the visible empty copy is the agent-tree read. */
@@ -1028,8 +1166,12 @@ export class NavigatorTeamView extends ViewPane {
 		if (this._store.isDisposed) {
 			return;
 		}
-		this.membersBody?.classList.toggle('active', this.subview === 'members');
-		this.tasksBody?.classList.toggle('active', this.subview === 'tasks');
+		const membersActive = this.subview === 'members';
+		const tasksActive = this.subview === 'tasks';
+		this.membersBody?.classList.toggle('active', membersActive);
+		this.membersBody?.setAttribute('aria-hidden', String(!membersActive));
+		this.tasksBody?.classList.toggle('active', tasksActive);
+		this.tasksBody?.setAttribute('aria-hidden', String(!tasksActive));
 	}
 
 	private updateEngineConnectedContextKey(): void {
@@ -1044,6 +1186,7 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 		this.updateEngineConnectedContextKey();
+		this.updateRefreshAvailability();
 		if (!isConversationSessionNotReady(this.rosterService)) {
 			return;
 		}
@@ -1122,11 +1265,28 @@ export class NavigatorTeamView extends ViewPane {
 		this.notificationService.info(localize('navigatorTeam.inspectNoFocus', "Select a team member or task to inspect"));
 	}
 
-	private openInspectPanel(): void {
+	private openInspectPanel(focus = true): void {
 		if (this._store.isDisposed) {
 			return;
 		}
-		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, true)).catch(onUnexpectedError);
+		void this.instantiationService.invokeFunction(accessor => accessor.get(IViewsService).openView(AGENT_INSPECT_VIEW_ID, focus)).catch(onUnexpectedError);
+	}
+
+	private focusListFromFilter(target: 'first' | 'current'): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const list = this.subview === 'members' ? this.membersList : this.tasksList;
+		const container = this.subview === 'members' ? this.membersListContainer : this.tasksListContainer;
+		if (!list || container?.style.display === 'none' || list.length === 0) {
+			return false;
+		}
+		if (target === 'first' || list.getFocus().length === 0) {
+			list.focusFirst();
+		}
+		list.reveal(list.getFocus()[0]);
+		list.domFocus();
+		return true;
 	}
 }
 
@@ -1174,28 +1334,6 @@ registerAction2(class NavigatorTeamShowTasksAction extends ViewAction<NavigatorT
 	}
 });
 
-registerAction2(class NavigatorTeamRefreshAction extends ViewAction<NavigatorTeamView> {
-	constructor() {
-		super({
-			id: NAVIGATOR_TEAM_REFRESH_COMMAND_ID,
-			viewId: NAVIGATOR_TEAM_VIEW_ID,
-			title: localize2('navigatorTeamView.refresh', "Refresh"),
-			icon: Codicon.refresh,
-			precondition: UA_ENGINE_CONNECTED_KEY,
-			menu: {
-				id: MenuId.ViewTitle,
-				group: 'navigation',
-				order: 0,
-				when: ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
-			},
-		});
-	}
-
-	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
-		view.refresh();
-	}
-});
-
 registerAction2(class NavigatorTeamOpenInspectAction extends ViewAction<NavigatorTeamView> {
 	constructor() {
 		super({
@@ -1203,6 +1341,7 @@ registerAction2(class NavigatorTeamOpenInspectAction extends ViewAction<Navigato
 			viewId: NAVIGATOR_TEAM_VIEW_ID,
 			title: localize2('navigatorTeamView.openInspect', "Inspect"),
 			icon: Codicon.inspect,
+			precondition: NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY,
 			menu: {
 				id: MenuId.ViewTitle,
 				group: 'navigation',

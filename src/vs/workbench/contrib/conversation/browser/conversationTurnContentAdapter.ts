@@ -180,14 +180,16 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		const copyResetTimer = buttonStore.add(new TimeoutTimer());
 		buttonStore.add(dom.addDisposableListener(copy, 'click', () => {
 			void this.clipboardService.writeText(value).then(() => {
-				copy.classList.add('is-copied');
+				copy.classList.remove(...ThemeIcon.asClassNameArray(Codicon.copy));
+				copy.classList.add('is-copied', ...ThemeIcon.asClassNameArray(Codicon.check));
 				copy.setAttribute('aria-label', copiedLabel);
 				copy.title = copiedLabel;
 				copyResetTimer.cancelAndSet(() => {
 					if (!copy.isConnected) {
 						return;
 					}
-					copy.classList.remove('is-copied');
+					copy.classList.remove('is-copied', ...ThemeIcon.asClassNameArray(Codicon.check));
+					copy.classList.add(...ThemeIcon.asClassNameArray(Codicon.copy));
 					copy.setAttribute('aria-label', copyLabel);
 					copy.title = copyLabel;
 				}, 1600);

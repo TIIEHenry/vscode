@@ -9,7 +9,7 @@
  * .monaco-reduce-motion and prefers-reduced-motion set those transitions to none.
  * Do not hang an empty `.ua-motion` marker; the rules below name the nodes that move.
  *
- * Layout constants mirrored in enginePreferencesPane.ts: nav column 240px, nav row 32px,
+ * Layout constants mirrored in enginePreferencesPane.ts: nav column 240px, nav row 22px,
  * body column gap 0, pane padding 0 (compact 8px/10px). The pane measures the
  * real boxes and only falls back to those numbers before it has a layout, so the stylesheet
  * row height and NAV_ROW_HEIGHT must stay the same.
@@ -57,6 +57,17 @@
 
 .monaco-workbench .engine-preferences-pane .monaco-button:active:not(.disabled) {
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+/* Ordinary themes use a quiet surface for keyboard focus; HC keeps a visible contrast ring. */
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 1px;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -140,22 +151,44 @@
 }
 
 .monaco-workbench .engine-preferences-nav-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
-	height: 32px;
+	height: 22px;
 	box-sizing: border-box;
 	padding: 0 10px;
 	min-width: 0;
 	gap: 8px;
-	border-radius: 6px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
+.monaco-workbench .engine-preferences-nav-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
 .monaco-workbench .engine-preferences-nav-row:hover:not(.selected) {
-	background-color: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-preferences-nav-row:hover:not(.selected)::before {
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .monaco-workbench .engine-preferences-nav-row:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-preferences-nav-row:active::before {
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
@@ -179,7 +212,7 @@
 	white-space: nowrap;
 	font-size: 13px;
 	font-weight: 400;
-	line-height: 32px;
+	line-height: 22px;
 }
 
 .monaco-workbench .engine-preferences-nav-badge {
@@ -202,8 +235,8 @@
  * off `.selected` rather than the list's focus styling.
  */
 .monaco-workbench .engine-preferences-nav-row.selected {
-	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-	border-radius: 6px;
+	background: var(--vscode-list-inactiveSelectionBackground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-icon {
@@ -212,15 +245,15 @@
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
 	font-weight: 400;
-	color: var(--vscode-foreground);
+	color: var(--vscode-list-inactiveSelectionForeground);
 }
 
 .monaco-workbench .engine-preferences-nav .monaco-list:focus .engine-preferences-nav-row.selected {
-	background: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+	background: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-workbench .engine-preferences-nav .monaco-list:focus .engine-preferences-nav-row.selected .engine-preferences-nav-label {
-	color: var(--vscode-foreground);
+	color: var(--vscode-list-activeSelectionForeground);
 	font-weight: 400;
 }
 
@@ -294,20 +327,41 @@
 	overflow: auto;
 }
 
+/* Disconnected sections contain only status and recovery actions. Let that empty state
+   stay close to its content; flex-shrink keeps short panes scrollable when needed. */
+.monaco-workbench .engine-preferences-detail-body.is-disconnected {
+	flex: 0 1 auto;
+}
+
 .monaco-workbench .engine-preferences-back {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	flex: 0 0 auto;
 	align-items: center;
 	justify-content: center;
 	height: var(--vscode-spacing-size240, 24px);
 	padding: 0 var(--vscode-spacing-size80, 8px);
 	box-sizing: border-box;
-	border: var(--vscode-strokeThickness, 1px) solid var(--vscode-button-border, var(--vscode-panel-border));
+	border: var(--vscode-strokeThickness, 1px) solid transparent;
 	border-radius: var(--vscode-cornerRadius-small);
-	background: var(--vscode-button-secondaryBackground);
+	background: transparent;
 	color: var(--vscode-button-secondaryForeground);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench .engine-preferences-back::before {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background: var(--vscode-button-secondaryBackground);
+	box-shadow: inset 0 0 0 var(--vscode-strokeThickness, 1px) var(--vscode-button-border, var(--vscode-panel-border));
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .engine-preferences-back:not([hidden]) {
@@ -315,22 +369,38 @@
 }
 
 .monaco-workbench .engine-preferences-back:hover {
+	background: transparent;
+}
+
+.monaco-workbench .engine-preferences-back:hover::before {
 	background: var(--vscode-button-secondaryHoverBackground);
 }
 
 .monaco-workbench .engine-preferences-back:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-preferences-back:active::before {
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
-.monaco-workbench .engine-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-back:focus-visible {
+	outline: none;
+	background-color: transparent;
 	box-shadow: none;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-back:focus-visible::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	box-shadow: none;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-back {
+	border-color: var(--vscode-contrastBorder);
 }
 
 /* In a column layout only width is capped; the navigation keeps the full height. */
@@ -413,8 +483,13 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
-.monaco-workbench .engine-test-row > .monaco-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-test-row > .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-test-row > .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
 }
 
@@ -577,6 +652,9 @@
 
 .monaco-workbench .engine-triggers-actions .monaco-button,
 .monaco-workbench .engine-catalog-icon-actions .monaco-button {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	box-sizing: border-box;
 	display: inline-flex;
 	align-items: center;
@@ -599,22 +677,49 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
+.monaco-workbench .engine-triggers-actions .monaco-button::after,
+.monaco-workbench .engine-catalog-icon-actions .monaco-button::after {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
 .monaco-workbench .engine-triggers-actions .monaco-button:hover:not(.disabled),
 .monaco-workbench .engine-catalog-icon-actions .monaco-button:hover:not(.disabled) {
 	color: var(--vscode-foreground);
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button:hover:not(.disabled)::after,
+.monaco-workbench .engine-catalog-icon-actions .monaco-button:hover:not(.disabled)::after {
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .engine-triggers-actions .monaco-button:active:not(.disabled),
 .monaco-workbench .engine-catalog-icon-actions .monaco-button:active:not(.disabled) {
-	background-color: var(--vscode-toolbar-activeBackground);
+	background-color: transparent;
 	filter: none;
 }
 
-.monaco-workbench .engine-triggers-actions .monaco-button:focus-visible,
-.monaco-workbench .engine-catalog-icon-actions .monaco-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+.monaco-workbench .engine-triggers-actions .monaco-button:active:not(.disabled)::after,
+.monaco-workbench .engine-catalog-icon-actions .monaco-button:active:not(.disabled)::after {
+	background-color: var(--vscode-toolbar-activeBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-triggers-actions .monaco-button:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-catalog-icon-actions .monaco-button:focus-visible {
+	outline: none;
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-triggers-actions .monaco-button:focus-visible::after,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-catalog-icon-actions .monaco-button:focus-visible::after {
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .engine-triggers-actions .monaco-button.disabled,
@@ -630,11 +735,14 @@
 
 .monaco-workbench:is(.hc-black, .hc-light) .engine-triggers-actions .monaco-button:focus-visible,
 .monaco-workbench:is(.hc-black, .hc-light) .engine-catalog-icon-actions .monaco-button:focus-visible {
-	outline: 1px solid var(--vscode-contrastActiveBorder);
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: 1px;
 }
 
 .monaco-workbench.monaco-reduce-motion .engine-triggers-actions .monaco-button,
 .monaco-workbench.monaco-reduce-motion .engine-catalog-icon-actions .monaco-button,
+.monaco-workbench.monaco-reduce-motion .engine-triggers-actions .monaco-button::after,
+.monaco-workbench.monaco-reduce-motion .engine-catalog-icon-actions .monaco-button::after,
 .monaco-workbench.monaco-reduce-motion .engine-catalog-row-actions {
 	transition: none;
 }
@@ -672,7 +780,10 @@
 .monaco-workbench .engine-catalog-write-status.is-success,
 .monaco-workbench .engine-agents-editor-status.is-success,
 .monaco-workbench .engine-tools-info-status.is-success,
-.monaco-workbench .engine-plugins-scan-result.is-success {
+.monaco-workbench .engine-plugins-scan-result.is-success,
+.monaco-workbench .engine-catalog-action-message.is-success,
+.monaco-workbench .engine-memory-write-status.is-success,
+.monaco-workbench .engine-rules-write-status.is-success {
 	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--ua-status-ok, var(--vscode-testing-iconPassed)) 12%, transparent);
 	border: none;
@@ -693,7 +804,10 @@
 .monaco-workbench .engine-catalog-write-status.is-error,
 .monaco-workbench .engine-agents-editor-status.is-error,
 .monaco-workbench .engine-tools-info-status.is-error,
-.monaco-workbench .engine-plugins-scan-result.is-error {
+.monaco-workbench .engine-plugins-scan-result.is-error,
+.monaco-workbench .engine-catalog-action-message.is-error,
+.monaco-workbench .engine-memory-write-status.is-error,
+.monaco-workbench .engine-rules-write-status.is-error {
 	color: var(--vscode-errorForeground);
 	background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
 	border: none;
@@ -720,6 +834,9 @@
 .monaco-workbench .engine-triggers-row,
 .monaco-workbench .engine-clipboard-row,
 .monaco-workbench .engine-context-variable-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	height: 24px;
 	line-height: 24px;
 	padding: 0 8px;
@@ -732,15 +849,40 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
+.monaco-workbench .engine-triggers-row::before,
+.monaco-workbench .engine-clipboard-row::before,
+.monaco-workbench .engine-context-variable-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
 .monaco-workbench .engine-triggers-row:active,
 .monaco-workbench .engine-clipboard-row:active,
 .monaco-workbench .engine-context-variable-row:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-triggers-row:active::before,
+.monaco-workbench .engine-clipboard-row:active::before,
+.monaco-workbench .engine-context-variable-row:active::before {
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .engine-triggers-row:hover:not(.selected),
 .monaco-workbench .engine-clipboard-row:hover:not(.selected),
 .monaco-workbench .engine-context-variable-row:hover:not(.selected) {
+	background: transparent;
+}
+
+.monaco-workbench .engine-triggers-row:hover:not(.selected)::before,
+.monaco-workbench .engine-clipboard-row:hover:not(.selected)::before,
+.monaco-workbench .engine-context-variable-row:hover:not(.selected)::before {
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
@@ -763,8 +905,20 @@
 	color: inherit;
 }
 
-.monaco-workbench :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row):focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-list-focusOutline, var(--vscode-focusBorder));
+.monaco-workbench:not(.hc-black):not(.hc-light) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row):focus-visible {
+	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row):not(.selected):focus-visible {
+	background-color: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row):not(.selected):focus-visible::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row):focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: -1px;
 }
 
@@ -843,7 +997,7 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-write-toolbar .monaco-button:hover:not(.disabled) {
-	background: var(--vscode-toolbar-hoverBackground);
+	background: transparent;
 }
 
 .monaco-workbench .engine-providers-section .engine-provider-status-list {
@@ -854,6 +1008,9 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	height: auto;
 	min-height: 24px;
 	padding: 0 8px;
@@ -864,6 +1021,17 @@
 	box-shadow: none;
 	gap: 6px;
 	align-items: flex-start;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
@@ -892,8 +1060,12 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row:hover {
-	background: var(--vscode-toolbar-hoverBackground);
+	background: transparent;
 	box-shadow: none;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row:hover::before {
+	background: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .engine-provider-avatar {
@@ -1076,8 +1248,15 @@
 	transition: border-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .engine-provider-catalog-filter:focus {
-	border-color: var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-provider-catalog-filter:focus {
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+	box-shadow: none;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-provider-catalog-filter:focus {
+	outline: none;
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	box-shadow: none;
 }
 
@@ -1096,6 +1275,9 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-provider-preset-row {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	height: 24px;
 	min-height: 24px;
 	padding: 0 8px;
@@ -1108,9 +1290,24 @@
 	gap: 6px;
 }
 
+.monaco-workbench .engine-providers-section .engine-provider-preset-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
 .monaco-workbench .engine-providers-section .engine-provider-preset-row:hover {
-	background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+	background: transparent;
 	border-color: transparent;
+}
+
+.monaco-workbench .engine-providers-section .engine-provider-preset-row:hover::before {
+	background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
 }
 
 .monaco-workbench .engine-provider-preset-avatar {
@@ -1174,7 +1371,9 @@
 }
 
 .monaco-workbench .engine-catalog-row:hover > .engine-catalog-row-actions,
-.monaco-workbench .engine-catalog-row:focus-within > .engine-catalog-row-actions {
+.monaco-workbench .engine-catalog-row:focus-within > .engine-catalog-row-actions,
+.monaco-workbench .engine-catalog-row:has(.is-confirm-open) > .engine-catalog-row-actions,
+.monaco-workbench .engine-catalog-row-actions:has(.is-confirm-open) {
 	opacity: 1;
 	pointer-events: auto;
 }
@@ -1189,6 +1388,10 @@
 	border: 1px solid var(--vscode-menu-border);
 	border-radius: var(--vscode-cornerRadius-large, 8px);
 	box-shadow: var(--vscode-widget-shadow);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-confirm-popover {
+	border-color: var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .engine-confirm-popover-message,
@@ -1230,13 +1433,72 @@
 	cursor: pointer;
 }
 
+.monaco-workbench .engine-confirm-popover-actions .engine-confirm-popover-cancel {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
+	background: transparent;
+}
+
+.monaco-workbench .engine-confirm-popover-actions .engine-confirm-popover-cancel::before {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench .engine-confirm-popover-actions .engine-confirm-popover-cancel:hover {
+	background: transparent;
+}
+
+.monaco-workbench .engine-confirm-popover-actions .engine-confirm-popover-cancel:hover::before {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .engine-confirm-popover-actions button:hover {
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
-.monaco-workbench .engine-confirm-popover-actions button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-confirm-popover-actions button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-confirm-popover-actions .engine-confirm-popover-cancel:focus-visible {
+	background: transparent;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-confirm-popover-actions .engine-confirm-popover-cancel:focus-visible::before {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-confirm-popover-actions button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
+}
+
+.monaco-workbench .engine-confirm-popover-actions .engine-confirm-popover-cancel:active {
+	background: transparent;
+}
+
+.monaco-workbench .engine-confirm-popover-actions .engine-confirm-popover-cancel:active::before {
+	background: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench .engine-confirm-popover-confirm:not(.is-danger) {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .engine-confirm-popover-actions button.engine-confirm-popover-confirm:not(.is-danger):hover,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-confirm-popover-actions button.engine-confirm-popover-confirm:not(.is-danger):focus-visible {
+	background: var(--vscode-button-hoverBackground);
+	background-color: var(--vscode-button-hoverBackground);
+	color: var(--vscode-button-foreground);
 }
 
 .monaco-workbench .engine-confirm-popover-confirm.is-danger {
@@ -1258,7 +1520,10 @@
 	margin-bottom: 8px;
 }
 
-.monaco-workbench .engine-mcp-tab {
+.monaco-workbench .engine-mcp-tab-bar .monaco-button {
+	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	height: 24px;
 	line-height: 22px;
 	padding: 0 10px;
@@ -1276,19 +1541,57 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .engine-mcp-tab:active {
-	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+.monaco-workbench .engine-mcp-tab-bar .monaco-button::before {
+	content: '';
+	position: absolute;
+	inset: 1px 2px;
+	z-index: -1;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .engine-mcp-tab:hover {
+.monaco-workbench .engine-mcp-tab-bar .monaco-button:hover {
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-mcp-tab-bar .monaco-button:hover::before {
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.monaco-workbench .engine-mcp-tab--active {
+.monaco-workbench .engine-mcp-tab-bar .monaco-button:active {
+	background-color: transparent;
+}
+
+.monaco-workbench .engine-mcp-tab-bar .monaco-button:active::before {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench .engine-mcp-tab-bar .monaco-button[aria-selected="true"] {
 	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	color: var(--vscode-foreground);
 	border-color: transparent;
 	font-weight: 400;
+}
+
+/* The shared Engine MCP/Agents tab skin is imported after this pane in some bundles.
+   Keep selected state and pointer-down transparency authoritative at the real button host. */
+.monaco-workbench .engine-preferences-pane .engine-mcp-tab-bar .monaco-button[aria-selected="true"] {
+	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent) !important;
+}
+
+.monaco-workbench .engine-preferences-pane .engine-mcp-tab-bar .monaco-button:active,
+.monaco-workbench .engine-preferences-pane .engine-mcp-tab-bar .monaco-button:active[aria-selected="true"] {
+	background-color: transparent !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-mcp-tab-bar .monaco-button:focus-visible {
+	background-color: transparent !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-mcp-tab-bar .monaco-button:focus-visible::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .engine-skills-section,
@@ -1314,11 +1617,53 @@
 	min-height: 100px;
 }
 
-.monaco-workbench .engine-catalog-list .monaco-list-row:hover,
-.monaco-workbench .engine-skills-list .monaco-list-row:hover,
-.monaco-workbench .engine-agents-profile-list .monaco-list-row:hover {
-	background-color: var(--vscode-toolbar-hoverBackground);
+/* The list positions rows absolutely; `isolation` alone gives the `::before`
+   wash its own stacking context, so it never escapes behind the rows container. */
+.monaco-workbench .engine-catalog-list .monaco-list-row,
+.monaco-workbench .engine-skills-list .monaco-list-row,
+.monaco-workbench .engine-agents-profile-list .monaco-list-row {
+	z-index: 0;
+	isolation: isolate;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench .engine-catalog-list .monaco-list-row::before,
+.monaco-workbench .engine-skills-list .monaco-list-row::before,
+.monaco-workbench .engine-agents-profile-list .monaco-list-row::before {
+	content: '';
+	position: absolute;
+	inset: 1px 4px;
+	z-index: -1;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	pointer-events: none;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.monaco-workbench .engine-catalog-list .monaco-list-row:hover:not(.selected),
+.monaco-workbench .engine-skills-list .monaco-list-row:hover:not(.selected),
+.monaco-workbench .engine-agents-profile-list .monaco-list-row:hover:not(.selected) {
+	background-color: transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
+
+.monaco-workbench .engine-catalog-list .monaco-list-row:hover:not(.selected)::before,
+.monaco-workbench .engine-skills-list .monaco-list-row:hover:not(.selected)::before,
+.monaco-workbench .engine-agents-profile-list .monaco-list-row:hover:not(.selected)::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .engine-catalog-list .monaco-list-row:hover.selected,
+.monaco-workbench .engine-skills-list .monaco-list-row:hover.selected,
+.monaco-workbench .engine-agents-profile-list .monaco-list-row:hover.selected {
+	background-color: transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
+
+.monaco-workbench .engine-catalog-list .monaco-list-row:hover.selected::before,
+.monaco-workbench .engine-skills-list .monaco-list-row:hover.selected::before,
+.monaco-workbench .engine-agents-profile-list .monaco-list-row:hover.selected::before {
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Engine preferences filter / search input: full-width rounded pill (§5.7) */
@@ -1347,13 +1692,24 @@
 	transition: border-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .engine-preferences-search:focus,
-.monaco-workbench .engine-preferences-filter:focus,
-.monaco-workbench .engine-preferences-pane input[type="search"]:focus,
-.monaco-workbench .engine-preferences-pane .engine-preferences-search-input:focus,
-.monaco-workbench .engine-preferences-pane .engine-preferences-filter-input:focus,
-.monaco-workbench .engine-preferences-pane input[type="search"].focused {
-	border-color: var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-search:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-filter:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane input[type="search"]:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-preferences-search-input:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-preferences-filter-input:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane input[type="search"].focused {
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-search:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-filter:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane input[type="search"]:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-preferences-search-input:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-preferences-filter-input:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane input[type="search"].focused {
+	outline: none;
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .engine-agents-section {
@@ -1555,9 +1911,15 @@
 	right: var(--vscode-spacing-size20);
 }
 
-.monaco-workbench .engine-tools-section .engine-catalog-row .monaco-custom-toggle:focus-visible,
-.monaco-workbench .engine-tools-profile-select .monaco-select-box:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-tools-section .engine-catalog-row .monaco-custom-toggle:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-tools-profile-select .monaco-select-box:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-tools-section .engine-catalog-row .monaco-custom-toggle:focus-visible,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-tools-profile-select .monaco-select-box:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 2px;
 }
 
@@ -1761,12 +2123,28 @@
 	overflow-wrap: anywhere;
 }
 
-.monaco-workbench .engine-preferences-pane .engine-skill-body-textarea:focus,
-.monaco-workbench .engine-preferences-pane .engine-agents-editor-textarea:focus,
-.monaco-workbench .engine-preferences-pane .engine-skill-body-input:focus,
-.monaco-workbench .engine-preferences-pane .engine-agents-editor-input:focus {
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-skill-body-textarea:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-agents-editor-textarea:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-skill-body-input:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-agents-editor-input:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-skill-body-input.monaco-inputbox.synthetic-focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-agents-editor-input.monaco-inputbox.synthetic-focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-skill-body-input:focus-within,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-pane .engine-agents-editor-input:focus-within {
+	outline: none !important;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent) !important;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-skill-body-textarea:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-agents-editor-textarea:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-skill-body-input:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-agents-editor-input:focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-skill-body-input.monaco-inputbox.synthetic-focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-agents-editor-input.monaco-inputbox.synthetic-focus,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-skill-body-input:focus-within,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane .engine-agents-editor-input:focus-within {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .engine-preferences-pane .ua-setting-row {
@@ -1787,31 +2165,66 @@
 
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .monaco-button,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-back,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-back::before,
+.monaco-workbench.monaco-reduce-motion .engine-confirm-popover-actions .engine-confirm-popover-cancel::before,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-nav-row,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-nav-row::before,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-status-row,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-status-row::before,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-preset-row,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-preset-row::before,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-catalog-filter,
-.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-mcp-tab,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-mcp-tab-bar .monaco-button,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-triggers-row,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-triggers-row::before,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-clipboard-row,
-.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-context-variable-row {
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-clipboard-row::before,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-context-variable-row,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-context-variable-row::before,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-mcp-tab-bar .monaco-button::before,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane :is(.engine-catalog-list, .engine-skills-list, .engine-agents-profile-list) .monaco-list-row,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane :is(.engine-catalog-list, .engine-skills-list, .engine-agents-profile-list) .monaco-list-row::before,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-catalog-row-actions,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-search,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-filter,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .search-container,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-search-input,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-filter-input,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane input[type="search"] {
 	transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.monaco-workbench .engine-preferences-pane .monaco-button,
-	.monaco-workbench .engine-preferences-pane .engine-preferences-nav-row,
-	.monaco-workbench .engine-preferences-pane .engine-preferences-back,
-	.monaco-workbench .engine-preferences-pane .engine-provider-status-row,
-	.monaco-workbench .engine-preferences-pane .engine-provider-preset-row,
-	.monaco-workbench .engine-preferences-pane .engine-provider-catalog-filter,
-	.monaco-workbench .engine-preferences-pane .engine-mcp-tab,
-	.monaco-workbench .engine-preferences-pane .engine-triggers-row,
-	.monaco-workbench .engine-preferences-pane .engine-clipboard-row,
-	.monaco-workbench .engine-preferences-pane .engine-context-variable-row,
-	.monaco-workbench .engine-preferences-pane .engine-preferences-search,
-	.monaco-workbench .engine-preferences-pane .engine-preferences-filter,
-	.monaco-workbench .engine-preferences-pane input[type="search"] {
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .monaco-button,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-back,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-back::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-confirm-popover-actions .engine-confirm-popover-cancel::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-nav-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-nav-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-provider-status-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-provider-status-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-provider-preset-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-provider-preset-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-provider-catalog-filter,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-mcp-tab-bar .monaco-button,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-triggers-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-triggers-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-clipboard-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-clipboard-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-context-variable-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-context-variable-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-mcp-tab-bar .monaco-button::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-triggers-actions .monaco-button::after,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-catalog-icon-actions .monaco-button::after,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane :is(.engine-catalog-list, .engine-skills-list, .engine-agents-profile-list) .monaco-list-row,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane :is(.engine-catalog-list, .engine-skills-list, .engine-agents-profile-list) .monaco-list-row::before,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-catalog-row-actions,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-search,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-filter,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .search-container,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-search-input,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane .engine-preferences-filter-input,
+	.monaco-workbench:not(.monaco-enable-motion) .engine-preferences-pane input[type="search"] {
 		transition: none;
 	}
 }
@@ -1869,6 +2282,7 @@
 	border-radius: var(--vscode-cornerRadius-xLarge);
 }
 
+.monaco-workbench .engine-preferences-detail-body > *,
 .monaco-workbench .engine-preferences-detail-body > .engine-section.is-active-section {
 	margin: 0;
 	padding: var(--vscode-spacing-size160);
@@ -1933,18 +2347,29 @@
 	min-height: var(--vscode-spacing-size280, 28px);
 }
 
-.monaco-workbench .engine-preferences-detail-body :is(input, textarea, select):focus-visible {
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-detail-body :is(input, textarea, select):focus-visible {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
-.monaco-workbench .engine-preferences-detail-body .monaco-button:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body :is(input, textarea, select):focus-visible {
+	outline: none;
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-preferences-detail-body .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-nav,
 .monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body > *,
 .monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body > .engine-section.is-active-section {
 	border-color: var(--vscode-contrastBorder);
 	background: transparent;
@@ -1957,10 +2382,7 @@
 	background: transparent;
 }
 
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-detail-body > * {
-	padding: var(--vscode-spacing-size120, 12px);
-}
-
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-detail-body > *,
 .monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-detail-body > .engine-section.is-active-section {
 	padding: var(--vscode-spacing-size120, 12px);
 }
@@ -1977,8 +2399,4 @@
 .monaco-workbench:is(.hc-black, .hc-light) .engine-tools-section .engine-catalog-list,
 .monaco-workbench:is(.hc-black, .hc-light) .engine-tools-info {
 	border-color: var(--vscode-contrastBorder);
-}
-
-.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-pane.is-narrow .engine-preferences-detail-body {
-	border: var(--vscode-strokeThickness) solid var(--vscode-contrastBorder);
 }

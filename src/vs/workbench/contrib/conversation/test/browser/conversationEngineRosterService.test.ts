@@ -24,7 +24,8 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
-import { setConversationStubNextTurnId } from '../../browser/conversationStubModel.js';
+import { setConversationStubNextTurnId, type ConversationStubSession } from '../../browser/conversationStubModel.js';
+import { groupSessionsForRoster } from '../../browser/conversationSessionsViewStrings.js';
 import { postBound, saveQueueEdit, type IConversationLensComposerHost, type IConversationLensPostHost } from '../../browser/conversationLensComposer.js';
 import { resolveConfirmation, resolveQuestion, respondClientTool, type IConversationLensResponseHost } from '../../browser/conversationLensSessionBinding.js';
 import { isReadingColumnWritesEnabled } from '../../browser/conversationLensReadingColumn.js';
@@ -52,13 +53,14 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 	private connected = false;
 	private pairingPending = false;
 	private explicitPhase: ConnectionPhase | undefined;
-	private sessions: { sessionId: string; title?: string; workDir?: string }[] = [];
+	private sessions: { sessionId: string; title?: string; workDir?: string; lastAccessedAt?: number }[] = [];
 	private readonly _onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
 
 	private publishedEngineIdentityId: string | undefined;
 	private publishedLinkId: number | undefined;
 
+	getSessionInfo?: IUniverseAgentConnection['getSessionInfo'];
 	getQueue?: IUniverseAgentConnection['getQueue'];
 	readonly getQueueCalls: string[] = [];
 	enableQueueReadback(fetch?: (id: string) => Promise<UniverseAgentQueueState>): void {
@@ -101,7 +103,7 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
 	}
 
-	setListSessions(sessions: { sessionId: string; title?: string; workDir?: string }[]): void {
+	setListSessions(sessions: { sessionId: string; title?: string; workDir?: string; lastAccessedAt?: number }[]): void {
 		this.sessions = sessions;
 	}
 
@@ -154,6 +156,7 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 				sessionId: s.sessionId,
 				title: s.title,
 				...(s.workDir ? { workDir: s.workDir } : {}),
+				...(s.lastAccessedAt !== undefined ? { lastAccessedAt: s.lastAccessedAt } : {}),
 			})),
 		};
 	}
@@ -1293,6 +1296,26 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('deleting the active session lands on the next row the Sessions list shows', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		const now = Date.now();
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A', lastAccessedAt: now - 3_000 },
+			{ sessionId: 'ua-b', title: 'B', lastAccessedAt: now - 1_000 },
+			{ sessionId: 'ua-c', title: 'C', lastAccessedAt: now - 2_000 },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setPublishedLink(undefined, 1, true);
+		service.setEngineConnected(true);
+		await timeout(0);
+		service.switchSession('ua-c');
+
+		assert.strictEqual(service.deleteSession('ua-c'), true);
+
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
 	});
 
 	test('connected deleteSession fires onDidDeleteSession only after that unary resolves', async () => {
@@ -2885,6 +2908,124 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.getActiveSessionId(), newSessionId);
 		assert.strictEqual(fired, newSessionId);
 		assert.ok(!service.getSessions().some(session => session.id === 'untitled'));
+	});
+
+	async function adoptNewEngineSession(
+		listed: { sessionId: string; title?: string; lastAccessedAt?: number }[],
+		beforeBind?: (service: ConversationEngineRosterService, newSessionId: string) => void,
+	): Promise<{ connection: MockUniverseAgentConnection; service: ConversationEngineRosterService; newSessionId: string; sawNewRow: boolean; firstAccessedAt: number | undefined; before: number; after: number }> {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions(listed);
+		const acquireLeaseCalls: string[] = [];
+		const pendingNewSessionReady: (() => void)[] = [];
+		let newSessionReleased = false;
+		const sessionView = createSessionViewMock({
+			acquireLease: async (sessionId: string) => {
+				acquireLeaseCalls.push(sessionId);
+				return `lease:${sessionId}`;
+			},
+			whenEngineSessionReady: (sessionId: string) => {
+				if (!sessionId.startsWith('session-') || newSessionReleased) {
+					return Promise.resolve(sessionId);
+				}
+				return new Promise<string>(resolve => {
+					pendingNewSessionReady.push(() => resolve(sessionId));
+				});
+			},
+		});
+		const service = store.add(createService(connection, store.add(new TestStorageService()), sessionView));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		service.createSession();
+		await timeout(0);
+		await timeout(0);
+		const newSessionId = acquireLeaseCalls.find(id => id.startsWith('session-')) ?? '';
+		assert.ok(newSessionId, 'createSession acquires a lease for the pending session');
+		beforeBind?.(service, newSessionId);
+		let sawNewRow = false;
+		let firstAccessedAt: number | undefined;
+		store.add(service.onDidChangeSession(id => {
+			const row = !sawNewRow && id === newSessionId ? service.getSessions().find(session => session.id === id) : undefined;
+			if (row) {
+				sawNewRow = true;
+				firstAccessedAt = row.lastAccessedAt;
+			}
+		}));
+		const before = Date.now();
+		newSessionReleased = true;
+		for (const release of pendingNewSessionReady.splice(0)) {
+			release();
+		}
+		await timeout(0);
+		await timeout(0);
+		const after = Date.now();
+		assert.strictEqual(service.getActiveSessionId(), newSessionId);
+		return { connection, service, newSessionId, sawNewRow, firstAccessedAt, before, after };
+	}
+
+	test('a new engine session adopted into a dated catalog carries a local access time and groups under Today', async () => {
+		const now = Date.now();
+		const { service, newSessionId, sawNewRow, firstAccessedAt, before, after } = await adoptNewEngineSession([
+			{ sessionId: 'ua-old', title: 'Old', lastAccessedAt: now - 3 * 86_400_000 },
+			{ sessionId: 'ua-recent', title: 'Recent', lastAccessedAt: now - 60_000 },
+		]);
+		assert.ok(sawNewRow);
+		assert.ok(firstAccessedAt !== undefined && firstAccessedAt >= before && firstAccessedAt <= after, 'the row has its access time on its first change event');
+		const shown = groupSessionsForRoster(service.getSessions()).map(entry => entry.kind === 'header' ? `#${entry.group}` : entry.session.id);
+		assert.deepStrictEqual(shown.slice(0, 2), ['#today', newSessionId]);
+	});
+
+	test('a new engine session adopted into an undated catalog stays undated and the list stays flat', async () => {
+		const { service, newSessionId, sawNewRow, firstAccessedAt } = await adoptNewEngineSession([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		assert.ok(sawNewRow);
+		assert.strictEqual(firstAccessedAt, undefined);
+		assert.strictEqual(service.getSessions().find(session => session.id === newSessionId)?.lastAccessedAt, undefined);
+		assert.ok(groupSessionsForRoster(service.getSessions()).every(entry => entry.kind === 'session'));
+	});
+
+	test('adopting a new engine session onto an existing roster row keeps that row access time', async () => {
+		const now = Date.now();
+		const kept = now - 7_200_000;
+		const { service, newSessionId } = await adoptNewEngineSession([
+			{ sessionId: 'ua-recent', title: 'Recent', lastAccessedAt: now - 60_000 },
+		], (target, id) => {
+			(target as unknown as { engineSessions: ConversationStubSession[] }).engineSessions.push({ id, title: 'Prepared', turns: [], source: 'engine-cache', lastAccessedAt: kept });
+		});
+		const rows = service.getSessions().filter(session => session.id === newSessionId);
+		assert.strictEqual(rows.length, 1);
+		assert.strictEqual(rows[0]?.lastAccessedAt, kept);
+	});
+
+	test('the next catalog list replaces a new engine session local access time with the engine value', async () => {
+		const now = Date.now();
+		const listed = [
+			{ sessionId: 'ua-old', title: 'Old', lastAccessedAt: now - 3 * 86_400_000 },
+			{ sessionId: 'ua-recent', title: 'Recent', lastAccessedAt: now - 60_000 },
+		];
+		const { connection, service, newSessionId, firstAccessedAt } = await adoptNewEngineSession(listed);
+		assert.ok(firstAccessedAt !== undefined);
+		const engineAccessedAt = firstAccessedAt - 5_000;
+		connection.setListSessions([...listed, { sessionId: newSessionId, title: 'New session', lastAccessedAt: engineAccessedAt }]);
+		await (service as unknown as { refreshEngineCatalog(): Promise<void> }).refreshEngineCatalog();
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.getSessions().find(session => session.id === newSessionId)?.lastAccessedAt, engineAccessedAt);
+	});
+
+	test('the next catalog list without an engine value leaves a new engine session undated at the end of Earlier', async () => {
+		const now = Date.now();
+		const listed = [
+			{ sessionId: 'ua-old', title: 'Old', lastAccessedAt: now - 3 * 86_400_000 },
+			{ sessionId: 'ua-recent', title: 'Recent', lastAccessedAt: now - 60_000 },
+		];
+		const { connection, service, newSessionId, firstAccessedAt } = await adoptNewEngineSession(listed);
+		assert.ok(firstAccessedAt !== undefined);
+		connection.setListSessions([...listed, { sessionId: newSessionId, title: 'New session' }]);
+		await (service as unknown as { refreshEngineCatalog(): Promise<void> }).refreshEngineCatalog();
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.getSessions().find(session => session.id === newSessionId)?.lastAccessedAt, undefined);
+		const shown = groupSessionsForRoster(service.getSessions()).flatMap(entry => entry.kind === 'session' ? [entry.session.id] : []);
+		assert.strictEqual(shown[shown.length - 1], newSessionId);
 	});
 
 	test('connected createSession skips engine ids the restarted allocator would reuse', async () => {
@@ -5452,6 +5593,85 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.isEngineSessionReady(), true);
 		assert.ok(service.getSessions().length > 0);
 	});
+
+	for (const outcome of ['success', 'switch', 'link', 'generation', 'dispose', 'replace', 'mismatch', 'existing', 'blank', 'reject', 'throw', 'missing', 'unknown-owner', 'adopt-link', 'adopt-replace', 'adopt-existing'] as const) {
+		test(`new bind hydrates only its original record workDir: ${outcome}`, async () => {
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([]);
+			connection.setPublishedLink('workdir-engine', 1, true);
+			const info = new DeferredPromise<Awaited<ReturnType<NonNullable<IUniverseAgentConnection['getSessionInfo']>>>>();
+			const calls: { sessionId: string; owner: unknown }[] = [];
+			if (outcome !== 'missing') {
+				connection.getSessionInfo = (request, owner) => {
+					calls.push({ sessionId: request.sessionId, owner });
+					if (outcome === 'link') { connection.getSessionInfo = undefined; }
+					if (outcome === 'throw') { throw new Error('optional metadata unavailable'); }
+					return info.p;
+				};
+			}
+			if (outcome === 'unknown-owner') { connection.setPublishedLink(undefined, undefined, true); }
+			let acquired = 0;
+			let released = 0;
+			const sessionView: IUniverseAgentSessionView = {
+				_serviceBrand: undefined, onDynamicDidApplyFrame: () => Event.None,
+				acquireLease: async id => { acquired++; return `lease:${id}`; },
+				releaseLease: async () => { released++; },
+				post: async () => ({ accepted: true as const, correlation: { id: 'mock' } }),
+				requestResync: async () => { }, acknowledge: async () => { },
+				requestDetail: async () => ({ ok: false as const, reason: 'unavailable' as const }),
+				whenEngineSessionReady: async () => 'actual-engine-session',
+			};
+			const service = store.add(new ConversationEngineRosterService(connection, sessionView, { _serviceBrand: undefined, shouldAdvertise: () => true }));
+			let adopted = false;
+			store.add(service.onDidChangeSession(id => {
+				if (adopted || !service.getSessions().some(session => session.id === id)) { return; }
+				adopted = true;
+				if (outcome === 'adopt-link') {
+					const getSnapshot = connection.getConnectionSnapshot.bind(connection);
+					connection.getConnectionSnapshot = () => ({ ...getSnapshot(), linkId: 2 });
+				} else if (outcome === 'adopt-existing') {
+					service.getSessions().find(session => session.id === id)!.workDir = '/existing-root';
+				} else if (outcome === 'adopt-replace') {
+					const state = service as unknown as { engineSessions: { id: string; title: string; turns: unknown[] }[] };
+					state.engineSessions = state.engineSessions.map(session => ({ ...session }));
+				}
+			}));
+			service.setEngineConnected(true);
+			await awaitEngineCatalogRefresh(service);
+			await timeout(0);
+			const record = service.getSessions()[0]!;
+			assert.ok(record, 'first adopt is available without reload or Info completion');
+			assert.strictEqual(service.isEngineSessionReady(), true, 'Info cannot block binding');
+			const beforeLeases = { acquired, released };
+			const events: string[] = [];
+			store.add(service.onDidChangeSession(id => events.push(id)));
+			const internals = service as unknown as { connectionGeneration: number; engineSessions: typeof record[] };
+			if (outcome === 'switch') {
+				internals.engineSessions.push({ id: 'other-session', title: 'Other', turns: [] });
+				service.switchSession('other-session');
+			}
+			if (outcome === 'link') { connection.setPublishedLink('workdir-engine', 2, true); }
+			if (outcome === 'generation') { internals.connectionGeneration++; }
+			if (outcome === 'dispose') { service.dispose(); }
+			if (outcome === 'replace') { internals.engineSessions = [{ ...record }]; }
+			if (outcome === 'existing') { record.workDir = '/existing-root'; }
+			await timeout(0);
+			const activeId = service.getActiveSessionId();
+			events.length = 0;
+			if (outcome === 'reject') { await info.error(new Error('optional metadata unavailable')); }
+			else { await info.complete({ sessionId: outcome === 'mismatch' ? 'unrelated' : 'actual-engine-session', workDir: outcome === 'blank' ? '  ' : '/session-workspace', createdAt: 0, lastAccessedAt: 0, provider: '', model: '' }); }
+			await timeout(0);
+			const updated = outcome === 'success' || outcome === 'switch';
+			assert.strictEqual(record.workDir, updated ? '/session-workspace' : outcome === 'existing' || outcome === 'adopt-existing' ? '/existing-root' : undefined);
+			assert.deepStrictEqual(outcome === 'link' ? events.filter(id => id === record.id) : events, updated ? [record.id] : []);
+			assert.strictEqual(service.getActiveSessionId(), activeId, 'metadata never switches the active session');
+			if (outcome === 'success') {
+				assert.deepStrictEqual({ acquired, released }, beforeLeases);
+				assert.strictEqual(service.isEngineSessionReady(), true);
+			}
+			assert.deepStrictEqual(calls, outcome === 'missing' || outcome === 'unknown-owner' || outcome === 'adopt-link' || outcome === 'adopt-replace' || outcome === 'adopt-existing' ? [] : [{ sessionId: 'actual-engine-session', owner: { engineIdentityId: 'workdir-engine', linkId: 1 } }]);
+		});
+	}
 
 	test('restored engine cache with empty List defers Create to host lease with fresh clientSessionId', async () => {
 		const cachedUuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';

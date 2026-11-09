@@ -17,7 +17,7 @@ import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
-import { provideSourcesGitDiffTextContent, sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
+import { provideSourcesGitDiffTextContent, sourcesGitAcceptCursorBasis, sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
 
 suite('Sources - git diff content provider', () => {
 
@@ -244,6 +244,28 @@ suite('Sources - git diff content provider', () => {
 		assert.strictEqual(refA.object.textEditorModel.getValue(), 'content for session A (modified)');
 		assert.strictEqual(refB.object.textEditorModel.getValue(), 'content for session B (modified)');
 		assert.strictEqual(refScm.object.textEditorModel.getValue(), 'content for scm (modified)');
+	});
+
+	test('Accept cursor basis: only a Git index original counts file lines, and an unreadable git query offers no Accept', () => {
+		const file = URI.file('/project/src/a.ts');
+		const gitOriginal = (query: string) => file.with({ scheme: 'git', path: `${file.path}.git`, query });
+		assert.deepStrictEqual({
+			missing: sourcesGitAcceptCursorBasis(undefined),
+			hunkModel: sourcesGitAcceptCursorBasis(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE', 'session-1')),
+			index: sourcesGitAcceptCursorBasis(gitOriginal(JSON.stringify({ path: file.fsPath, ref: '' }))),
+			head: sourcesGitAcceptCursorBasis(gitOriginal(JSON.stringify({ path: file.fsPath, ref: 'HEAD' }))),
+			noRef: sourcesGitAcceptCursorBasis(gitOriginal(JSON.stringify({ path: file.fsPath }))),
+			notJson: sourcesGitAcceptCursorBasis(gitOriginal('not json')),
+			nullQuery: sourcesGitAcceptCursorBasis(gitOriginal('null')),
+		}, {
+			missing: undefined,
+			hunkModel: 'hunkBody',
+			index: 'fileLine',
+			head: undefined,
+			noRef: undefined,
+			notJson: undefined,
+			nullQuery: undefined,
+		});
 	});
 });
 

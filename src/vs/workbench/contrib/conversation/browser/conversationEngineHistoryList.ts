@@ -8,7 +8,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentHistoryEnvelope } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -28,6 +28,8 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 export const conversationLensHistoryButtonClass = 'conversation-lens-session-history';
 export const conversationLensHistoryOverlayClass = 'conversation-lens-history-overlay';
 export const conversationLensHistoryRowClass = 'conversation-lens-history-row';
+
+let nextHistoryOverlayId = 0;
 
 /** Honest gate for SessionBar History → SessionService.GetHistory. Empty sessionId still sends. */
 export function canRequestEngineHistory(connected: boolean): boolean {
@@ -98,6 +100,8 @@ export class ConversationEngineHistoryList extends Disposable {
 	private paintedLiveHistory = false;
 	private paintedHistorySessionId: string | undefined;
 	private onWillShow: (() => void) | undefined;
+	private onUserWillOpen: (() => void) | undefined;
+	private readonly openSession = this._register(new DisposableStore());
 	private readonly getSessionId?: () => string | undefined;
 	private overlayTrigger: HTMLElement | undefined;
 
@@ -124,14 +128,20 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.button.element.classList.add('conversation-lens-history-button');
 		this.button.element.setAttribute('aria-expanded', 'false');
 		this.button.element.setAttribute('aria-haspopup', 'dialog');
+		const overlayId = `conversation-lens-history-overlay-${++nextHistoryOverlayId}`;
+		this.button.element.setAttribute('aria-controls', overlayId);
 		this._register(this.button.onDidClick(() => {
 			if (this._store.isDisposed) {
 				return;
+			}
+			if (!this.open) {
+				this.onUserWillOpen?.();
 			}
 			this.toggle();
 		}));
 
 		this.overlayElement = append(overlayParent, $(`.${conversationLensHistoryOverlayClass}`));
+		this.overlayElement.id = overlayId;
 		this.overlayElement.hidden = true;
 		this.overlayElement.tabIndex = -1;
 		this.overlayElement.setAttribute('role', 'dialog');
@@ -234,21 +244,46 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.onWillShow = handler;
 	}
 
+	setOnUserWillOpen(handler: () => void): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.onUserWillOpen = handler;
+	}
+
 	show(): void {
 		if (this._store.isDisposed) {
 			return;
 		}
+		this.openSession.clear();
 		this.onWillShow?.();
 		this.overlayTrigger = captureConversationOverlayTrigger(this.overlayElement);
 		this.paintedLiveHistory = false;
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
+		this.openSession.add(addDisposableListener(this.overlayElement.ownerDocument, 'mousedown', e => {
+			if (this._store.isDisposed || !this.open) {
+				return;
+			}
+			const target = e.target;
+			if (!(target instanceof Node)) {
+				return;
+			}
+			if (this.overlayElement.contains(target) || this.button.element.contains(target)) {
+				return;
+			}
+			if (target instanceof Element && target.closest('.monaco-dialog-box, .context-view')) {
+				return;
+			}
+			this.close({ restoreFocus: false });
+		}));
 		this.overlayElement.focus();
 		void this.refresh().catch(onUnexpectedError);
 	}
 
 	close(options?: { readonly restoreFocus?: boolean }): void {
+		this.openSession.clear();
 		const trigger = this.overlayTrigger;
 		this.overlayTrigger = undefined;
 		this.open = false;

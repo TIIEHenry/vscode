@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-09-05
-updated: 2026-09-05
+updated: 2026-11-07
 summary: "ADR-007 侵入面 A/B 清单；基线 004a1fbb；U1 祖先可用，候选 tag 1.136.0"
 ---
 
@@ -33,6 +33,8 @@ comm -23 /tmp/intrusion.txt /tmp/listed.txt   # 必须为空
 ```
 
 **2026-09-05 U0 核对**：`comm -23` 输出为空（371 / 371 已入账）。月度同步后重跑；新出现的上游改动必须归 A 或列入 B。
+
+**2026-11-07 补记**：[十六路审查 2026-11-07](../plans/review-2026-11-07.md) 的 r04、r08、r16 按方案补记碰到的路径：A 表新增「终端命令自动批准的上游安全修补」「上游扩展缺陷修复」两节，「仓根配置」追加三行，B 表追加一行。只补这三份方案碰到的路径，没有重跑本闸门；上面的 371 与下文各节文件数、A/B 表合计仍是 2026-09-05 的数，不含这些补记。整份对齐按 ADR-007 另开切片。
 
 ## A 表：必须留在上游文件的 hook
 
@@ -247,6 +249,7 @@ comm -23 /tmp/intrusion.txt /tmp/listed.txt   # 必须为空
 - `.eslint-ignore`
 - `.gitmodules`
 - `.idea/.gitignore`
+- `.vscode-test.js`（2026-11-07 补记，[r16-2](../plans/review-2026-11-07-r16-entry-extensions-tooling-plan.md) 登记 merge-conflict 扩展测试）
 - `AGENTS.md`
 - `eslint.config.js`
 - `extensions/copilot/package-lock.json`
@@ -261,6 +264,46 @@ comm -23 /tmp/intrusion.txt /tmp/listed.txt   # 必须为空
 - `scripts/sync-session-core.sh`
 - `scripts/sync-universe-agent-device-grant-hub.ts`
 - `scripts/sync-universe-agent-session-core.ts`
+- `scripts/tests/**`（2026-11-07 补记，[r16-1](../plans/review-2026-11-07-r16-entry-extensions-tooling-plan.md)；本仓新增目录）
+- `scripts/wiki/**`（2026-11-07 补记，[r16-1](../plans/review-2026-11-07-r16-entry-extensions-tooling-plan.md)；本仓新增目录，`wiki.py` 等此前已在侵入面但未入账）
+
+### 终端命令自动批准的上游安全修补（14 文件）
+
+| 字段 | 值 |
+|:-----|:---|
+| 为何留 hook | 规则表由上游工作台配置和 agentHost 直接展开，sed 解析器由上游 `TreeSitterCommandParser` 与 agentHost 直接实例化，自定义树里没有替换它们的贡献点；`sedFileWriteParser.ts` 只能就地改函数 |
+| ADR / 方案 | ADR-007；[十六路审查 2026-11-07 r04](../plans/review-2026-11-07-r04-platform-rest-plan.md) |
+| 收缩条件 | cherry-pick 的 `289549a85cd`、`8c77f19795e` 在合入含它们的上游 tag 后自然消失；本地新增的规则与 `sedFileWriteParser.ts` 的改动在上游发布同类修复后删除，合并时以上游为准。`childProcessMonitor.ts`、`windowsShellHelper.ts` 的销毁守卫（D720 的 `cbef98ce350`，之后 `ac1cab8367f`、`647d0dfd522`）在上游接受同类守卫后删除 |
+
+路径（`git diff --name-only 004a1fbb agent-ide`）：
+
+- `src/vs/platform/agentHost/node/commandAutoApprover.ts`（此前已有本地改动，清单未收）
+- `src/vs/platform/agentHost/test/node/commandAutoApprover.test.ts`
+- `src/vs/platform/terminal/common/autoApprove/gitAutoApproveRules.ts`
+- `src/vs/platform/terminal/common/autoApprove/sedFileWriteParser.ts`
+- `src/vs/platform/terminal/common/autoApprove/sortAutoApproveRules.ts`
+- `src/vs/platform/terminal/node/childProcessMonitor.ts`
+- `src/vs/platform/terminal/node/windowsShellHelper.ts`
+- `src/vs/platform/terminal/test/common/autoApprove/sedFileWriteParser.test.ts`
+- `src/vs/platform/terminal/test/node/childProcessMonitor.test.ts`（新增）
+- `src/vs/platform/terminal/test/node/platformTerminalLeftoverPromiseCatchScan.test.ts`
+- `src/vs/workbench/contrib/terminalContrib/chatAgentTools/common/terminalChatAgentToolsConfiguration.ts`
+- `src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/commandLineAutoApprover.test.ts`
+- `src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/electron-browser/commandLineAnalyzer/commandLineFileWriteAnalyzer.test.ts`
+- `src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/electron-browser/runInTerminalTool.test.ts`
+
+### 上游扩展缺陷修复（2 文件）
+
+| 字段 | 值 |
+|:-----|:---|
+| 为何留 hook | 修上游内置扩展自身的缺陷，没有贡献点可挂 |
+| ADR / 方案 | ADR-007；[十六路审查 2026-11-07 r16-2](../plans/review-2026-11-07-r16-entry-extensions-tooling-plan.md) |
+| 收缩条件 | 上游合入同类修复后撤回本仓改动 |
+
+路径（`git diff --name-only 004a1fbb agent-ide`）：
+
+- `extensions/merge-conflict/src/mergeDecorator.ts`（自 `16c20bb8615` 起已改，清单未收）
+- `extensions/merge-conflict/src/test/mergeDecorator.test.ts`（新增）
 
 **A 表合计**：104 文件（含计划项 CI 0）。
 
@@ -316,6 +359,7 @@ comm -23 /tmp/intrusion.txt /tmp/listed.txt   # 必须为空
 | `src/vs/workbench/test/browser/helpActions.test.ts` | 1 | 随 helpActions | 测试随迁 |
 | `src/vs/workbench/test/browser/parts/editor/editorGroupWatermark.test.ts` | 1 | 随 watermark | 测试随迁 |
 | `src/vs/workbench/test/browser/workbenchTestServices.ts` | 1 | 测试基础设施 | 随相关测试迁 |
+| `src/vs/workbench/test/browser/componentFixtures/sessions/aiCustomizationManagementEditor.fixture.ts` | 1 | 随 chat 的 AI 自定义编辑器迁 | 夹具补 `ITextFileService` 桩（2026-11-07 补记，[r08-1](../plans/review-2026-11-07-r08-chat-plan.md)） |
 | `src/vs/sessions/**` | 12 | sessions/contrib/providers | ADR-001 比对；grid 级 hook 除外 |
 | `src/vs/editor/common/config/editorOptions.ts` | 1 | sessions/contrib/providers | inline suggest 默认值 |
 | `src/vs/editor/test/common/config/editorInlineSuggestDefaults.test.ts` | 1 | 随 editorOptions | 测试随迁 |

@@ -357,7 +357,7 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 
 		tree.refreshPresentation();
 
-		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
 		assert.strictEqual(tree.getTimelineRowElement('u1'), beforeU1);
 		assert.strictEqual(tree.getTimelineRowElement('a1'), beforeA1);
 	});

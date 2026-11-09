@@ -351,6 +351,17 @@ describe('CopilotCLISessionService', () => {
 			}));
 		});
 
+		it('logs a failure to store the session origin instead of leaving it unhandled', async () => {
+			vi.spyOn(metadataStore, 'setSessionOrigin').mockRejectedValue(new Error('metadata unreadable'));
+			const warnSpy = vi.spyOn(logService, 'warn');
+
+			const session = await service.createSession({ model: 'gpt-test', ...sessionOptionsFor(URI.file('/tmp')) }, CancellationToken.None);
+			await new Promise(resolve => setTimeout(resolve, 0));
+
+			expect(session.object.sessionId).toBeTruthy();
+			expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to store origin'));
+		});
+
 		it('passes the VS Code Copilot CLI identity system message to session manager', async () => {
 			const createSessionSpy = vi.spyOn(manager, 'createSession');
 			await service.createSession({ model: 'gpt-test', ...sessionOptionsFor(URI.file('/tmp')) }, CancellationToken.None);

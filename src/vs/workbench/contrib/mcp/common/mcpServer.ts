@@ -1217,7 +1217,7 @@ export class McpServer extends Disposable implements IMcpServer {
 		const toolPromiseSafe = toolsPromise.then(async tools => {
 			this._logger.info(`Discovered ${tools.length} tools`);
 			const data = await this._getValidatedTools(tools);
-			if (epoch === this._toolsRefreshEpoch) {
+			if (epoch === this._toolsRefreshEpoch && !this._store.isDisposed) {
 				this._primitiveCache.store(this.definition.id, { tools: data, nonce });
 			}
 			return { data, nonce };

@@ -11,8 +11,9 @@ suite('Sources - Review list strings', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('header hint is user-facing window-local progress, not an implementation note', () => {
+	test('header hint states the Review surface is read-only in user terms, with window-local progress', () => {
 		assert.ok(sourcesReviewListHeaderHint.includes('this window'));
+		assert.ok(sourcesReviewListHeaderHint.includes('doesn\'t change files'), 'PRD-005: the panel top says this surface is read-only');
 		assert.ok(!sourcesReviewListHeaderHint.includes('Read-only'));
 		assert.ok(!sourcesReviewListHeaderHint.includes('not connected'));
 		assert.ok(!sourcesReviewListHeaderHint.includes('Preview'), 'must not advertise Preview open behavior');
@@ -30,6 +31,6 @@ suite('Sources - Review list strings', () => {
 		assert.ok(!unreviewed.includes('No matching changes'));
 		assert.ok(!path.includes('No matching changes'));
 		assert.ok(!text.includes('No matching changes'));
-		assert.strictEqual(sourcesReviewRevealMissHint, '对话里找不到这一步');
+		assert.strictEqual(sourcesReviewRevealMissHint, 'Couldn\'t find this step in the conversation.');
 	});
 });

@@ -4,11 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -28,7 +31,7 @@ import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AGENT_INSPECT_VIEW_ID, OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID } from '../../browser/agentInspectIds.js';
 import { getNavigatorAgentTreePendingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
-import { getTeamTreeEmptyCopy, INavigatorTeamMemberEntry, NAVIGATOR_TEAM_LOADING_COPY } from '../../common/navigatorTeamData.js';
+import { getTeamTreeEmptyCopy, INavigatorTeamMemberEntry, INavigatorTeamTaskEntry, NAVIGATOR_TEAM_LOADING_COPY } from '../../common/navigatorTeamData.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
 import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
@@ -212,6 +215,17 @@ suite('Navigator Team subviews', () => {
 		return view;
 	}
 
+	function runRefreshCommand(view: NavigatorTeamView): void {
+		const command = CommandsRegistry.getCommand(NAVIGATOR_TEAM_REFRESH_COMMAND_ID);
+		assert.ok(command);
+		command.handler({
+			get: (service: unknown) => {
+				assert.strictEqual(service, IViewsService);
+				return { getActiveViewWithId: (id: string) => id === NAVIGATOR_TEAM_VIEW_ID ? view : undefined };
+			},
+		} as unknown as ServicesAccessor);
+	}
+
 	function getFilterInput(view: NavigatorTeamView): HTMLInputElement | null {
 		return view.element.querySelector('.navigator-team-inline-filter-input');
 	}
@@ -237,12 +251,12 @@ suite('Navigator Team subviews', () => {
 		const membersItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID);
 		const tasksItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID);
 		const inspectItem = viewTitleItems.find(item => item.command.id === OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID);
-		const refreshItem = viewTitleItems.find(item => item.command.id === NAVIGATOR_TEAM_REFRESH_COMMAND_ID);
+		const refreshItems = viewTitleItems.filter(item => item.command.id === NAVIGATOR_TEAM_REFRESH_COMMAND_ID);
 
 		assert.ok(membersItem, 'Team ViewTitle must expose Members');
 		assert.ok(tasksItem, 'Team ViewTitle must expose Tasks');
 		assert.ok(inspectItem, 'Team ViewTitle must still expose Inspect');
-		assert.ok(refreshItem, 'Team ViewTitle must expose Refresh');
+		assert.strictEqual(refreshItems.length, 1, 'Team ViewTitle must expose exactly one Refresh action');
 	});
 
 	test('Team ViewTitle does not register engine-mutating commands (PRD-022 验收 6)', () => {
@@ -273,7 +287,7 @@ suite('Navigator Team subviews', () => {
 		const view = mountTeamView(roster, connection);
 
 		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(view['scopedContextKeyService']), true);
-		view.refreshTeamTree();
+		runRefreshCommand(view);
 		assert.strictEqual(refreshedSessionId, roster.getActiveSessionId());
 	});
 
@@ -295,7 +309,7 @@ suite('Navigator Team subviews', () => {
 
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(view['scopedContextKeyService']), false);
-		view.refreshTeamTree();
+		runRefreshCommand(view);
 		assert.strictEqual(refreshCalls, 0);
 
 		class NotReadyRoster extends ConversationStubService {
@@ -312,7 +326,7 @@ suite('Navigator Team subviews', () => {
 			},
 		}));
 		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(notReadyView['scopedContextKeyService']), false);
-		notReadyView.refreshTeamTree();
+		runRefreshCommand(notReadyView);
 		assert.strictEqual(refreshCalls, 0);
 	});
 
@@ -324,6 +338,8 @@ suite('Navigator Team subviews', () => {
 		const membersSubview = view.element.querySelector('.navigator-team-subview.active');
 		assert.ok(membersSubview, 'expected active members subview');
 		assert.ok(membersSubview.classList.contains('navigator-team-subview'));
+		assert.strictEqual(membersSubview.getAttribute('aria-hidden'), 'false');
+		assert.strictEqual(view.element.querySelector('.navigator-team-subview:not(.active)')?.getAttribute('aria-hidden'), 'true');
 
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty');
 		assert.ok(membersEmpty);
@@ -371,6 +387,8 @@ suite('Navigator Team subviews', () => {
 
 		activeSubview = view.element.querySelector('.navigator-team-subview.active');
 		assert.ok(activeSubview?.querySelector('.navigator-team-list'));
+		assert.strictEqual(activeSubview?.getAttribute('aria-hidden'), 'false');
+		assert.strictEqual(view.element.querySelector('.navigator-team-subview:not(.active)')?.getAttribute('aria-hidden'), 'true');
 	});
 
 	test('creates WorkbenchList bodies without engine data or fake task rows', () => {
@@ -502,6 +520,228 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(tasksList.element(0)?.label, 'Blocked task');
 		assert.strictEqual(blockedButton?.getAttribute('aria-pressed'), 'true');
 		assert.strictEqual(allButton?.getAttribute('aria-pressed'), 'false');
+	});
+
+	test('text and status filters intersect and recover independently', async () => {
+		const view = mountTeamView();
+		setTaskEntries(view, [
+			{ id: 'a', label: 'Alpha blocked', status: 'BLOCKED' },
+			{ id: 'b', label: 'Beta blocked', status: 'BLOCKED' },
+			{ id: 'c', label: 'Alpha active', status: 'IN_PROGRESS' },
+		]);
+		view.showTasks();
+		const list = (view as unknown as { tasksList: WorkbenchList<{ id: string }> }).tasksList;
+		const blocked = view.element.querySelector<HTMLButtonElement>('button[data-status-filter="blocked"]')!;
+		blocked.click();
+		await setFilterQuery(view, 'alpha');
+		assert.deepStrictEqual(Array.from({ length: list.length }, (_, i) => list.element(i).id), ['a']);
+		await setFilterQuery(view, 'missing');
+		assert.strictEqual(list.length, 0);
+		assert.strictEqual(view.element.querySelector<HTMLElement>('.navigator-team-status-bar')!.style.display, 'flex');
+		await setFilterQuery(view, '');
+		assert.strictEqual(list.length, 2, 'clearing text retains the selected status');
+		view.element.querySelector<HTMLButtonElement>('button[data-status-filter="all"]')!.click();
+		assert.strictEqual(list.length, 3);
+	});
+
+	test('task viewport reserves the measured status bar across resizing, empty data and subview changes', () => {
+		const view = mountTeamView();
+		const host = view.element.parentElement!;
+		host.classList.add('monaco-workbench');
+		document.body.appendChild(host);
+		try {
+			setMemberEntries(view, [{ id: 'member', label: 'Member' }]);
+			setTaskEntries(view, [{ id: 'task', label: 'Task', status: 'BLOCKED' }]);
+			const tasks = (view as unknown as { tasksList: WorkbenchList<unknown> }).tasksList;
+			const members = (view as unknown as { membersList: WorkbenchList<unknown> }).membersList;
+			const bar = view.element.querySelector<HTMLElement>('.navigator-team-status-bar')!;
+			const layout = (width: number) => {
+				host.style.width = `${width}px`;
+				view.element.style.width = `${width}px`;
+				view['layoutBody'](300, width);
+			};
+			view.showTasks();
+			layout(600);
+			assert.ok(bar.offsetHeight > 0, 'status bar must participate in real DOM layout');
+			assert.strictEqual(tasks.renderHeight, 300 - NavigatorTeamInlineFilterBox.HEIGHT - bar.offsetHeight);
+			const wideHeight = tasks.renderHeight;
+			layout(180);
+			assert.strictEqual(tasks.renderHeight, 300 - NavigatorTeamInlineFilterBox.HEIGHT - bar.offsetHeight);
+			assert.ok(tasks.renderHeight < wideHeight, 'wrapped controls must reduce the list viewport');
+			setTaskEntries(view, []);
+			assert.strictEqual(bar.style.display, 'none');
+			assert.strictEqual(tasks.renderHeight, 300 - NavigatorTeamInlineFilterBox.HEIGHT);
+			setTaskEntries(view, [{ id: 'task', label: 'Task', status: 'BLOCKED' }]);
+			assert.strictEqual(tasks.renderHeight, 300 - NavigatorTeamInlineFilterBox.HEIGHT - bar.offsetHeight);
+			view.showMembers();
+			assert.strictEqual(members.renderHeight, 300 - NavigatorTeamInlineFilterBox.HEIGHT);
+			view.showTasks();
+			assert.strictEqual(tasks.renderHeight, 300 - NavigatorTeamInlineFilterBox.HEIGHT - bar.offsetHeight);
+		} finally {
+			host.remove();
+		}
+	});
+
+	test('runtime status change returns focus to the active filter when the focused task disappears', () => {
+		const view = mountTeamView();
+		const host = view.element.parentElement!;
+		host.classList.add('monaco-workbench');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		setTaskEntries(view, [{ id: 'task', label: 'Blocked task', status: 'BLOCKED' }]);
+		view.showTasks();
+		view['layoutBody'](300, 300);
+		const blocked = view.element.querySelector<HTMLButtonElement>('button[data-status-filter="blocked"]')!;
+		blocked.click();
+		const tasks = (view as unknown as { tasksList: WorkbenchList<unknown> }).tasksList;
+		tasks.setFocus([0]);
+		tasks.domFocus();
+		assert.ok(tasks.getHTMLElement().contains(document.activeElement), 'task list owns focus before the runtime update');
+		setTaskEntries(view, [{ id: 'task', label: 'Completed task', status: 'COMPLETED' }]);
+		assert.strictEqual(tasks.length, 0);
+		assert.strictEqual(view.element.querySelector<HTMLElement>('.navigator-team-tasks-list')!.style.display, 'none');
+		assert.strictEqual(document.activeElement, blocked, `focus must return to the selected filter, actual=${document.activeElement?.outerHTML.slice(0, 180)}`);
+	});
+
+	test('empty runtime data restores focused list to the visible query without stealing outside focus', () => {
+		const view = mountTeamView();
+		const host = view.element.parentElement!;
+		host.classList.add('monaco-workbench');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		setTaskEntries(view, [{ id: 'task', label: 'Task', status: 'BLOCKED' }]);
+		view.showTasks();
+		view['layoutBody'](300, 300);
+		const tasks = (view as unknown as { tasksList: WorkbenchList<unknown> }).tasksList;
+		tasks.domFocus();
+		assert.ok(tasks.getHTMLElement().contains(document.activeElement));
+		setTaskEntries(view, []);
+		assert.strictEqual(view.element.querySelector<HTMLElement>('.navigator-team-status-bar')!.style.display, 'none');
+		assert.strictEqual(document.activeElement, getFilterInput(view));
+
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		store.add({ dispose: () => outside.remove() });
+		setTaskEntries(view, [{ id: 'task', label: 'Task', status: 'BLOCKED' }]);
+		outside.focus();
+		assert.strictEqual(document.activeElement, outside);
+		setTaskEntries(view, []);
+		assert.strictEqual(document.activeElement, outside, 'background data refresh must not steal focus');
+	});
+
+	test('runtime member update restores focus to the filter box when the focused member list empties', async () => {
+		const view = mountTeamView();
+		const host = view.element.parentElement!;
+		host.classList.add('monaco-workbench');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		const members = (view as unknown as { membersList: WorkbenchList<unknown> }).membersList;
+		const membersList = view.element.querySelector<HTMLElement>('.navigator-team-list')!;
+		const filterInput = getFilterInput(view);
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		store.add({ dispose: () => outside.remove() });
+		const focusTarget = (element: Element | null): string => {
+			if (element === filterInput) {
+				return 'filter';
+			}
+			if (element === outside) {
+				return 'outside';
+			}
+			if (element && members.getHTMLElement().contains(element)) {
+				return 'members';
+			}
+			return 'other';
+		};
+
+		setMemberEntries(view, [{ id: 'member', label: 'Member' }]);
+		view.showMembers();
+		view['layoutBody'](300, 300);
+		members.setFocus([0]);
+		members.domFocus();
+		const unfilteredHadFocus = focusTarget(document.activeElement);
+		setMemberEntries(view, []);
+		const unfiltered = {
+			hadFocus: unfilteredHadFocus,
+			length: members.length,
+			hidden: membersList.style.display,
+			active: focusTarget(document.activeElement),
+		};
+
+		setMemberEntries(view, [{ id: 'member', label: 'Alice' }]);
+		await setFilterQuery(view, 'alice');
+		members.setFocus([0]);
+		members.domFocus();
+		const filterMissHadFocus = focusTarget(document.activeElement);
+		setMemberEntries(view, [{ id: 'member', label: 'Bob' }]);
+		const filterMiss = {
+			hadFocus: filterMissHadFocus,
+			length: members.length,
+			hidden: membersList.style.display,
+			active: focusTarget(document.activeElement),
+		};
+
+		await setFilterQuery(view, '');
+		setMemberEntries(view, [{ id: 'member', label: 'Member' }]);
+		outside.focus();
+		setMemberEntries(view, []);
+		const background = {
+			hidden: membersList.style.display,
+			active: focusTarget(document.activeElement),
+		};
+
+		assert.deepStrictEqual({ unfiltered, filterMiss, background }, {
+			unfiltered: { hadFocus: 'members', length: 0, hidden: 'none', active: 'filter' },
+			filterMiss: { hadFocus: 'members', length: 0, hidden: 'none', active: 'filter' },
+			background: { hidden: 'none', active: 'outside' },
+		});
+	});
+
+	test('initial team read failure presents one local error', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => { throw new Error('initial team read failed'); },
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		view.showTasks();
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const activeBody = view.element.querySelector<HTMLElement>('.navigator-team-subview.active')!;
+		const shownErrors = Array.from(activeBody.children).filter(element =>
+			(element as HTMLElement).style.display !== 'none' && element.textContent === 'Failed to read team members and tasks');
+		assert.strictEqual(shownErrors.length, 1, `one local error expected, shown=${shownErrors.map(element => element.outerHTML).join(' | ')}`);
+	});
+
+	test('failed refresh preserves cached tasks with one snapshot warning', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => { throw new Error('team refresh failed'); },
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		setTaskEntries(view, [{ id: 'cached', label: 'Cached task', status: 'BLOCKED' }]);
+		view.showTasks();
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const tasks = (view as unknown as { tasksList: WorkbenchList<{ id: string }> }).tasksList;
+		assert.strictEqual(tasks.length, 1);
+		assert.strictEqual(tasks.element(0).id, 'cached');
+		const activeBody = view.element.querySelector<HTMLElement>('.navigator-team-subview.active')!;
+		const note = activeBody.querySelector<HTMLElement>('.navigator-stub-note')!;
+		assert.strictEqual(note.style.display, 'block');
+		assert.strictEqual(note.textContent, 'Failed to read team members and tasks');
+		assert.strictEqual(activeBody.querySelector<HTMLElement>('.navigator-stub-empty')!.style.display, 'none');
 	});
 
 	test('unfiltered empty keeps honest empty copy and hides list', () => {
@@ -2043,14 +2283,14 @@ suite('Navigator Team subviews', () => {
 		}
 		const errors: string[] = [];
 		const unhandledRejections: unknown[] = [];
-		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const onUnhandledRejection = (event: PromiseRejectionEvent) => unhandledRejections.push(event.reason);
 		const roster = store.add(new RosterAcquireThrows());
 		const notification = {
 			error: (message: string | Error) => {
 				errors.push(typeof message === 'string' ? message : getErrorMessage(message));
 			},
 		} as INotificationService;
-		process.on('unhandledRejection', onUnhandledRejection);
+		mainWindow.addEventListener('unhandledrejection', onUnhandledRejection);
 		try {
 			let view: NavigatorTeamView | undefined;
 			assert.doesNotThrow(() => {
@@ -2064,7 +2304,7 @@ suite('Navigator Team subviews', () => {
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
-			process.off('unhandledRejection', onUnhandledRejection);
+			mainWindow.removeEventListener('unhandledrejection', onUnhandledRejection);
 		}
 	});
 
@@ -2327,6 +2567,41 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true, 'returning to ready on a session event must set ua.engineConnected');
 	});
 
+	test('session readiness flip updates Team Refresh availability without connection or active-session events', () => {
+		class RefreshReadinessFlipRoster extends RosterWithLiveTree {
+			engineSessionReady = false;
+			override isEngineSessionReady(): boolean {
+				return this.engineSessionReady;
+			}
+		}
+		const roster = store.add(new RefreshReadinessFlipRoster(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		const view = mountTeamView(roster, connection);
+		const scopedContextKeyService = view['scopedContextKeyService'];
+		const refreshItem = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem)
+			.find(item => item.command.id === NAVIGATOR_TEAM_REFRESH_COMMAND_ID);
+		assert.ok(refreshItem?.command.precondition);
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(scopedContextKeyService), false);
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(refreshItem.command.precondition), false);
+
+		roster.engineSessionReady = true;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(scopedContextKeyService), true, 'becoming ready on a session event must enable Team Refresh');
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(refreshItem.command.precondition), true);
+
+		roster.engineSessionReady = false;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(scopedContextKeyService), false, 'leaving ready on a session event must disable Team Refresh');
+		assert.strictEqual(scopedContextKeyService.contextMatchesRules(refreshItem.command.precondition), false);
+	});
+
 	test('first-pull team UNKNOWN stays empty without leftover row-open chrome', async () => {
 		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
 		roster.setEngineConnected(true);
@@ -2364,6 +2639,7 @@ suite('Navigator Team subviews', () => {
 			},
 		});
 		const view = mountTeamView(roster, connection);
+		setTaskEntries(view, [{ id: 'cached', label: 'Cached task', status: 'BLOCKED' }]);
 		const scheduler = (view as unknown as { refreshScheduler: { cancel(): void; flush(): void } }).refreshScheduler;
 		scheduler.cancel();
 		(view as unknown as { setTeamSnapshotNote(message: string | undefined): void }).setTeamSnapshotNote = message => {
@@ -2374,8 +2650,8 @@ suite('Navigator Team subviews', () => {
 
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
-		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
-		process.on('unhandledRejection', onUnhandledRejection);
+		const onUnhandledRejection = (event: PromiseRejectionEvent) => unhandledRejections.push(event.reason);
+		mainWindow.addEventListener('unhandledrejection', onUnhandledRejection);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
@@ -2390,7 +2666,7 @@ suite('Navigator Team subviews', () => {
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
-			process.off('unhandledRejection', onUnhandledRejection);
+			mainWindow.removeEventListener('unhandledrejection', onUnhandledRejection);
 		}
 	});
 
@@ -2402,12 +2678,12 @@ suite('Navigator Team subviews', () => {
 		let errorCalls = 0;
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
-		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const onUnhandledRejection = (event: PromiseRejectionEvent) => unhandledRejections.push(event.reason);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
 		});
-		process.on('unhandledRejection', onUnhandledRejection);
+		mainWindow.addEventListener('unhandledrejection', onUnhandledRejection);
 		try {
 			const view = mountTeamView(store.add(new ConversationStubService()), createNavigatorConnectionTestStub(), {
 				error: () => {
@@ -2440,8 +2716,159 @@ suite('Navigator Team subviews', () => {
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
-			process.off('unhandledRejection', onUnhandledRejection);
+			mainWindow.removeEventListener('unhandledrejection', onUnhandledRejection);
 		}
+	});
+
+	function clickFirstTeamRow(host: Element | null): void {
+		const row = host?.querySelector<HTMLElement>('.monaco-list-row');
+		assert.ok(row, 'row must render before it can be clicked');
+		row.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }));
+	}
+
+	const clickMember: INavigatorTeamMemberEntry = {
+		id: 'member:member:1',
+		label: 'Alice',
+		memberName: 'Alice',
+		memberAgentId: 'member:1',
+		status: 'IDLE',
+		preset: 'p',
+		dynamic: 'd',
+		turnCount: 1,
+		managerAgentId: 'mgr:1',
+		managerName: 'Manager',
+		sessionId: 'sess-stamp',
+	};
+
+	const clickTask: INavigatorTeamTaskEntry = {
+		id: 'task:mgr:1:t1',
+		label: 'Write docs',
+		taskId: 't1',
+		subject: 'Write docs',
+		owner: 'member:1',
+		status: 'IN_PROGRESS',
+		blockedBy: '',
+		lastMessage: '',
+		description: '',
+		managerAgentId: 'mgr:1',
+		managerName: 'Manager',
+		sessionId: 'sess-stamp',
+	};
+
+	test('single click on a member row only sets the Inspect target; Enter still reveals the member', async () => {
+		const revealCalls: Array<{ sessionKey: string; chatId: string; title?: string }> = [];
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(undefined, undefined, undefined, inspectService, { revealCalls, inspectOpenCalls });
+		cancelTeamRefresh(view);
+		(view as unknown as { setMemberEntries: (entries: INavigatorTeamMemberEntry[]) => void }).setMemberEntries([clickMember]);
+		view['layoutBody'](300, 300);
+
+		clickFirstTeamRow(view.element.querySelector('.navigator-team-list'));
+		await timeout(0);
+		const target = inspectService.getTarget();
+		const afterClick = {
+			target: target?.kind === 'member' ? target.info.memberAgentId : undefined,
+			reveals: revealCalls.length,
+			inspectOpens: inspectOpenCalls.length,
+		};
+
+		await forceOpenTeamMember(view);
+
+		assert.deepStrictEqual({ afterClick, reveals: revealCalls.map(call => call.chatId), inspectOpens: inspectOpenCalls.length }, {
+			afterClick: { target: 'member:1', reveals: 0, inspectOpens: 0 },
+			reveals: ['member:1'],
+			inspectOpens: 0,
+		});
+	});
+
+	test('single click on a task row only sets the Inspect target; Enter shows Inspect without taking focus', async () => {
+		const inspectOpenCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(undefined, undefined, undefined, inspectService, { inspectOpenCalls });
+		cancelTeamRefresh(view);
+		(view as unknown as { setTaskEntries: (entries: INavigatorTeamTaskEntry[]) => void }).setTaskEntries([clickTask]);
+		view.showTasks();
+		view['layoutBody'](300, 300);
+
+		clickFirstTeamRow(view.element.querySelector('.navigator-team-tasks-list'));
+		await timeout(0);
+		const target = inspectService.getTarget();
+		const afterClick = {
+			target: target?.kind === 'task' ? target.task.taskId : undefined,
+			inspectOpens: inspectOpenCalls.length,
+		};
+
+		await forceOpenTeamTask(view);
+
+		assert.deepStrictEqual({ afterClick, inspectOpenCalls }, {
+			afterClick: { target: 't1', inspectOpens: 0 },
+			inspectOpenCalls: [{ id: AGENT_INSPECT_VIEW_ID, focus: false }],
+		});
+	});
+
+	test('member and task rows keep the engine status in a fixed column outside the truncated name', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{ memberName: 'Alice', memberAgentId: 'member:1', status: 'IDLE', preset: 'p', dynamic: 'd', turnCount: 1 }],
+				taskList: async () => [{ taskId: 't1', subject: 'Write docs', owner: 'member:1', status: 'BLOCKED', blockedBy: 't0', lastMessage: '', description: '' }],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const readRow = (selector: string, labelClass: string) => {
+			const row = view.element.querySelector(`${selector} .monaco-list-row`);
+			return {
+				name: row?.querySelector(labelClass)?.textContent,
+				status: row?.querySelector('.navigator-row-status-text')?.textContent,
+				statusInsideName: !!row?.querySelector(`${labelClass} .navigator-row-status`),
+				aria: row?.getAttribute('aria-label'),
+			};
+		};
+		view['layoutBody'](300, 300);
+		const member = readRow('.navigator-team-list', '.navigator-team-member-label');
+		view.showTasks();
+		view['layoutBody'](300, 300);
+		const task = readRow('.navigator-team-tasks-list', '.navigator-team-task-label');
+
+		assert.deepStrictEqual({ member, task }, {
+			member: { name: 'Alice', status: 'IDLE', statusInsideName: false, aria: 'Alice, IDLE' },
+			task: { name: 'Write docs · t0', status: 'BLOCKED', statusInsideName: false, aria: 'Write docs · t0, BLOCKED' },
+		});
+	});
+
+	test('filter box: ArrowDown enters the first member, Escape on an empty box hands focus back to the list', () => {
+		const view = mountTeamView();
+		const host = view.element.parentElement!;
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		cancelTeamRefresh(view);
+		setMemberEntries(view, [{ id: 'm1', label: 'Alpha' }, { id: 'm2', label: 'Beta' }]);
+		view['layoutBody'](300, 300);
+		const members = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const input = getFilterInput(view)!;
+		const press = (key: string, keyCode: number) => input.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+		const listOwnsFocus = () => members.getHTMLElement().contains(document.activeElement);
+
+		members.setFocus([1]);
+		input.focus();
+		press('ArrowDown', 40);
+		const down = { listFocused: listOwnsFocus(), focusIndex: members.getFocus()[0] };
+
+		members.setFocus([1]);
+		input.focus();
+		press('Escape', 27);
+		const escape = { listFocused: listOwnsFocus(), focusIndex: members.getFocus()[0] };
+
+		assert.deepStrictEqual({ down, escape }, {
+			down: { listFocused: true, focusIndex: 0 },
+			escape: { listFocused: true, focusIndex: 1 },
+		});
 	});
 
 	function cancelTeamRefresh(view: NavigatorTeamView): void {

@@ -5,9 +5,15 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { createTestComposerModel } from './conversationComposerModelTestUtils.js';
 import { createTestSessionChoiceService } from './conversationSessionChoiceTestUtils.js';
 import {
+	clearPostFailure,
+	composerWriteBusyReason,
+	dismissPostFailure,
+	showPostFailure,
+	updateSendEnabled,
 	conversationLensDockAgentUnavailable,
 	conversationLensDockEngineCapabilityUnsupported,
 	conversationLensDockModelUnavailable,
@@ -20,7 +26,7 @@ import {
 	updatePermissionSelectEnabled,
 	type IConversationLensComposerChromeHost,
 } from '../../browser/conversationLensComposerChrome.js';
-import { conversationLensDockEditingMessage, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockEditingMessage, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason, conversationLensDockEditUnchanged, conversationLensDockSendBusy } from '../../browser/conversationLensDockStrings.js';
 
 suite('ConversationLensComposerChrome', () => {
 
@@ -399,5 +405,133 @@ suite('ConversationLensComposerChrome', () => {
 			prefirstHero.remove();
 			editHost.remove();
 		}
+	});
+});
+
+suite('ConversationLensComposerChrome failure row and send copy', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	const liveConnection = {
+		getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+		getConnectionSnapshot: () => ({ pairingPending: false }),
+	};
+
+	function createGateHost(sessionReady = true) {
+		const gateRow = document.createElement('div');
+		const gateLabel = document.createElement('span');
+		const dismissHost = document.createElement('div');
+		gateRow.append(gateLabel, dismissHost);
+		const gateDismissButton = store.add(new Button(dismissHost, { title: 'Dismiss', ariaLabel: 'Dismiss' }));
+		gateDismissButton.element.hidden = true;
+		const dockTextarea = document.createElement('textarea');
+		document.body.append(gateRow, dockTextarea);
+		const host = {
+			composerModel: createTestComposerModel(store),
+			gateRow,
+			gateLabel,
+			gateDismissButton,
+			dockTextarea,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => sessionReady,
+			},
+			uaConnection: liveConnection,
+		} as unknown as IConversationLensComposerChromeHost;
+		const state = () => ({
+			hidden: gateRow.hidden,
+			error: gateRow.classList.contains('is-error'),
+			role: gateRow.getAttribute('role'),
+			dismissHidden: gateDismissButton.element.hidden,
+		});
+		return { host, gateRow, gateDismissButton, dockTextarea, state, dispose: () => { gateRow.remove(); dockTextarea.remove(); } };
+	}
+
+	test('failure row offers Dismiss, which hides it and returns focus to the input', () => {
+		const fixture = createGateHost();
+		try {
+			showPostFailure(fixture.host, 'engine_disconnected');
+			const shown = fixture.state();
+			fixture.gateDismissButton.element.focus();
+			dismissPostFailure(fixture.host);
+			assert.deepStrictEqual({ shown, dismissed: fixture.state(), focused: document.activeElement === fixture.dockTextarea, visible: fixture.host.composerModel.postFailureVisible }, {
+				shown: { hidden: false, error: true, role: 'alert', dismissHidden: false },
+				dismissed: { hidden: true, error: false, role: null, dismissHidden: true },
+				focused: true,
+				visible: false,
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('clearing the failure row falls back to the session status gate', () => {
+		const fixture = createGateHost(false);
+		try {
+			showPostFailure(fixture.host, 'failed');
+			clearPostFailure(fixture.host);
+			assert.deepStrictEqual({ state: fixture.state(), label: fixture.host.gateLabel.textContent }, {
+				state: { hidden: false, error: false, role: 'status', dismissHidden: true },
+				label: `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`,
+			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	function createSendHost(options: { enterBehavior?: 'send' | 'newline'; policy?: 'compose' | 'turnEdit'; text: string; turnText?: string }) {
+		const titles: string[] = [];
+		const element = document.createElement('div');
+		const dockTextarea = document.createElement('textarea');
+		dockTextarea.value = options.text;
+		const sendButton = {
+			enabled: false,
+			element,
+			setTitle: (title: string) => titles.push(title),
+			setAriaLabel: (label: string) => element.setAttribute('aria-label', label),
+		};
+		const host = {
+			composerModel: createTestComposerModel(store, options.policy === 'turnEdit' ? { policy: 'turnEdit', editingTurnId: 'u1' } : { policy: 'compose' }),
+			dockTextarea,
+			composerRefResources: [],
+			sendButton,
+			lastAttachedEntries: [],
+			configurationService: { getValue: () => options.enterBehavior ?? 'send' },
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				getTurns: () => options.turnText === undefined ? [] : [{ id: 'u1', kind: 'user', text: options.turnText }],
+			},
+			uaConnection: liveConnection,
+			getBoundSessionId: () => 'sess-A',
+			composer: undefined,
+		} as unknown as IConversationLensComposerChromeHost;
+		return { host, sendButton, titles, element };
+	}
+
+	test('Send tooltip names the key that actually sends; an unchanged edit says why Send is off', () => {
+		const enter = createSendHost({ text: 'hello' });
+		updateSendEnabled(enter.host);
+		const newline = createSendHost({ text: 'hello', enterBehavior: 'newline' });
+		updateSendEnabled(newline.host);
+		const unchanged = createSendHost({ text: 'same', policy: 'turnEdit', turnText: 'same' });
+		updateSendEnabled(unchanged.host);
+
+		assert.deepStrictEqual({
+			enter: [enter.titles.at(-1), enter.element.getAttribute('aria-label'), enter.element.getAttribute('aria-keyshortcuts'), enter.sendButton.enabled],
+			newline: [newline.titles.at(-1), newline.element.getAttribute('aria-keyshortcuts')],
+			unchanged: [unchanged.titles.at(-1), unchanged.sendButton.enabled],
+		}, {
+			enter: ['Send (Enter)', 'Send', 'Enter', true],
+			newline: ['Send (Shift+Enter)', 'Shift+Enter'],
+			unchanged: [conversationLensDockEditUnchanged, false],
+		});
+	});
+
+	test('Send and the timeline write buttons read one streaming hold', () => {
+		const streaming = createSendHost({ text: 'hello' });
+		(streaming.host as unknown as { lastAttachedEntries: unknown[] }).lastAttachedEntries = [{ kind: 'assistant', streaming: true }];
+		updateSendEnabled(streaming.host);
+		assert.deepStrictEqual([composerWriteBusyReason(streaming.host), streaming.titles.at(-1), streaming.sendButton.enabled], [conversationLensDockSendBusy, conversationLensDockSendBusy, false]);
 	});
 });

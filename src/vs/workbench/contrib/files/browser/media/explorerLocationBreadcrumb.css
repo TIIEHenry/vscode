@@ -46,6 +46,31 @@
 	font-size: 12px;
 	line-height: 28px;
 	color: var(--vscode-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 100ms ease, color 100ms ease;
+}
+
+.monaco-workbench .explorer-location-breadcrumb .monaco-breadcrumb-item:hover,
+.monaco-workbench .explorer-location-breadcrumb .monaco-breadcrumb-item.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .explorer-location-breadcrumb .monaco-breadcrumb-item:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .explorer-location-breadcrumb .monaco-breadcrumb-item.focused,
+.monaco-workbench:is(.hc-black, .hc-light) .explorer-location-breadcrumb .monaco-breadcrumb-item:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench.monaco-reduce-motion .explorer-location-breadcrumb .monaco-breadcrumb-item {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .explorer-location-breadcrumb .monaco-breadcrumb-item {
+		transition: none;
+	}
 }
 
 .monaco-workbench .explorer-location-breadcrumb .explorer-location-breadcrumb-item-label {

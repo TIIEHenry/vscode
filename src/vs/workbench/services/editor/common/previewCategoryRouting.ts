@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
-import { GroupIdentifier } from '../../../common/editor.js';
+import { GroupIdentifier, IUntypedEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { GroupDirection, GroupsOrder, IEditorGroup, IEditorGroupsService, IFindGroupScope } from './editorGroupsService.js';
 import { PreviewCategory } from './previewCategoryService.js';
@@ -26,6 +26,7 @@ export interface IPreviewCategoryRoutingPart {
 	getGroupCategory(group: IEditorGroup | GroupIdentifier): PreviewCategory | undefined;
 	getMostRecentGroup(category: PreviewCategory): IEditorGroup | undefined;
 	ensureCategoryGroup(category: PreviewCategory): IEditorGroup;
+	getTargetGroupForInput?(input: EditorInput | IUntypedEditorInput): IEditorGroup;
 	addGroupInCategory(location: IEditorGroup | GroupIdentifier, direction: GroupDirection, category: PreviewCategory): IEditorGroup;
 	revealCategory(category: PreviewCategory, group?: IEditorGroup): void;
 	markCategoryHint(category: PreviewCategory): void;

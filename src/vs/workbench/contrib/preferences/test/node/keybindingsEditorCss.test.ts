@@ -17,8 +17,23 @@ suite('Keybindings editor action chrome', () => {
 
 	test('ordinary header action focus uses toolbar hover feedback while HC keeps a contrast ring', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/preferences/browser/media/keybindingsEditor.css'), 'utf8');
-		assert.match(css, /not\(\.hc-black\):not\(\.hc-light\)[\s\S]*?keybindings-search-actions-container[\s\S]*?action-label:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
+		assert.match(css, /not\(\.hc-black\):not\(\.hc-light\)[\s\S]*?keybindings-search-actions-container[\s\S]*?action-label:focus-visible\s*\{[^}]*outline:\s*none;[^}]*background-color:\s*transparent/);
+		assert.match(css, /keybindings-search-actions-container[\s\S]*?action-label:focus-visible::after\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground/);
 		assert.match(css, /keybindings-search-actions-container[\s\S]*?action-label:focus-visible\s*\{[^}]*outline:\s*1px solid var\(--vscode-contrastActiveBorder,\s*var\(--vscode-focusBorder\)\)/);
 		assert.doesNotMatch(css, /keybindings-search-actions-container[\s\S]*?action-label:focus-visible\s*\{[^}]*outline:\s*1px solid var\(--vscode-focusBorder\)/);
+	});
+
+	test('ordinary header actions paint inset hover and pressed faces without shrinking their targets', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/preferences/browser/media/keybindingsEditor.css'), 'utf8');
+		assert.match(css, /keybindings-search-actions-container[\s\S]*?action-label\s*\{[^}]*position:\s*relative[^}]*background-color:\s*transparent/);
+		assert.match(css, /keybindings-search-actions-container[\s\S]*?action-label::after\s*\{[^}]*inset:\s*1px 2px/);
+		assert.match(css, /keybindings-search-actions-container[\s\S]*?action-label:hover::after\s*\{[^}]*toolbar-hoverBackground/);
+		assert.match(css, /keybindings-search-actions-container[\s\S]*?action-label:active::after\s*\{[^}]*toolbar-activeBackground/);
+	});
+
+	test('header action faces honor reduced motion', () => {
+		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/preferences/browser/media/keybindingsEditor.css'), 'utf8');
+		assert.match(css, /\.monaco-workbench\.monaco-reduce-motion[\s\S]*?keybindings-search-actions-container[\s\S]*?action-label::after\s*\{[^}]*transition:\s*none;/);
+		assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?keybindings-search-actions-container[\s\S]*?action-label::after\s*\{[^}]*transition:\s*none;/);
 	});
 });

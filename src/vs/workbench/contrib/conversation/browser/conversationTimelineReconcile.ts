@@ -199,6 +199,12 @@ export function shallowMetadataEqual(a: unknown, b: unknown): boolean {
 			}
 			continue;
 		}
+		if (typeof leftValue === 'object' && typeof rightValue === 'object' && leftValue !== null && rightValue !== null && !Array.isArray(leftValue) && !Array.isArray(rightValue)) {
+			if (!shallowMetadataEqual(leftValue, rightValue)) {
+				return false;
+			}
+			continue;
+		}
 		return false;
 	}
 	return true;
@@ -276,23 +282,44 @@ function rootUnchanged(prev: TimelineReconcileRoot, next: TimelineReconcileRoot)
 		}
 		return false;
 	}
-	if (prev.turns.length !== next.turns.length) {
-		return false;
+	const spanNodes = (next as { span?: { nodes?: { turn: object }[] } }).span?.nodes;
+	const prevById = new Map<string, TimelineReconcileTurn>();
+	for (const entry of prev.turns) {
+		prevById.set(entry.id, entry);
 	}
-	for (let index = 0; index < prev.turns.length; index++) {
-		const left = prev.turns[index];
+	let allSameOrderAndEqual = prev.turns.length === next.turns.length;
+	for (let index = 0; index < next.turns.length; index++) {
 		const right = next.turns[index];
-		if (!left || !right || left.id !== right.id) {
-			return false;
+		if (!right) {
+			allSameOrderAndEqual = false;
+			continue;
+		}
+		const leftAtPos = prev.turns[index];
+		const left = (leftAtPos && leftAtPos.id === right.id) ? leftAtPos : prevById.get(right.id);
+		if (!leftAtPos || leftAtPos.id !== right.id) {
+			allSameOrderAndEqual = false;
+		}
+		if (!left) {
+			allSameOrderAndEqual = false;
+			continue;
 		}
 		if (left.turn === right.turn) {
+			if (spanNodes?.[index]) {
+				spanNodes[index]!.turn = left.turn;
+			}
 			continue;
 		}
 		if (structurallyEqual(left.turn, right.turn)) {
 			(right as { turn: object }).turn = left.turn;
+			if (spanNodes?.[index]) {
+				spanNodes[index]!.turn = left.turn;
+			}
+			if (index === 0 && (next as { item?: { turn?: object } }).item) {
+				(next as { item?: { turn?: object } }).item!.turn = left.turn;
+			}
 			continue;
 		}
-		return false;
+		allSameOrderAndEqual = false;
 	}
-	return true;
+	return allSameOrderAndEqual;
 }

@@ -238,7 +238,8 @@ import product from '../../platform/product/common/product.js';
 				'type': 'boolean',
 				'default': false,
 				'scope': ConfigurationScope.APPLICATION,
-				'markdownDescription': localize('window.doubleClickIconToClose', "If enabled, this setting will close the window when the application icon in the title bar is double-clicked. The window will not be able to be dragged by the icon. This setting is effective only if {0} is set to `custom`.", '`#window.titleBarStyle#`')
+				'markdownDescription': localize('window.doubleClickIconToClose', "If enabled, this setting will close the window when the application icon in the title bar is double-clicked. The window will not be able to be dragged by the icon. This setting is effective only if {0} is set to `custom`.", '`#window.titleBarStyle#`'),
+				'markdownDeprecationMessage': localize('window.doubleClickIconToCloseDeprecated', "This setting has no effect because the custom title bar no longer shows the application icon.")
 			},
 			'window.titleBarStyle': {
 				'type': 'string',

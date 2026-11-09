@@ -112,8 +112,13 @@
 	border-radius: var(--vscode-cornerRadius-medium);
 }
 
-.monaco-workbench .settings-editor.ua-client-settings .setting-item-contents :is(input, select, textarea):focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .settings-editor.ua-client-settings .setting-item-contents :is(input, select, textarea):focus-visible {
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 22%, transparent);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .settings-editor.ua-client-settings .setting-item-contents :is(input, select, textarea):focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
 }
 

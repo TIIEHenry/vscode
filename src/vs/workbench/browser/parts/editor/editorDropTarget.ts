@@ -251,6 +251,7 @@ class DropOverlay extends Themable {
 	}
 
 	private async handleDrop(event: DragEvent, splitDirection?: GroupDirection): Promise<void> {
+		// The overlay disposes itself before handling the drop, so only the target group can abort it
 		if (this.groupView.disposed) {
 			return;
 		}
@@ -351,38 +352,40 @@ class DropOverlay extends Themable {
 		// Check for tree items
 		else if (this.treeItemsTransfer.hasData(DraggedTreeItemsIdentifier.prototype)) {
 			const data = this.treeItemsTransfer.getData(DraggedTreeItemsIdentifier.prototype);
+
+			// Clear before awaiting so an abandoned drop cannot leave stale tree items for the next drop
+			this.treeItemsTransfer.clearData(DraggedTreeItemsIdentifier.prototype);
+
 			if (Array.isArray(data) && data.length > 0) {
 				const editors: IUntypedEditorInput[] = [];
 				for (const id of data) {
-					if (this.groupView.disposed || this._disposed) {
+					if (this.groupView.disposed) {
 						return;
 					}
 					const dataTransferItem = await this.treeViewsDragAndDropService.removeDragOperationTransfer(id.identifier);
-					if (this.groupView.disposed || this._disposed) {
+					if (this.groupView.disposed) {
 						return;
 					}
 					if (dataTransferItem) {
 						const treeDropData = await extractTreeDropData(dataTransferItem);
-						if (this.groupView.disposed || this._disposed) {
+						if (this.groupView.disposed) {
 							return;
 						}
 						editors.push(...treeDropData.map(editor => ({ ...editor, options: { ...editor.options, pinned: true } })));
 					}
 				}
-				if (this.groupView.disposed || this._disposed) {
+				if (this.groupView.disposed) {
 					return;
 				}
 				if (editors.length) {
 					this.editorService.openEditors(editors, ensureTargetGroup(), { validateTrust: true }).catch(onUnexpectedError);
 				}
 			}
-
-			this.treeItemsTransfer.clearData(DraggedTreeItemsIdentifier.prototype);
 		}
 
 		// Check for URI transfer
 		else {
-			if (this.groupView.disposed || this._disposed) {
+			if (this.groupView.disposed) {
 				return;
 			}
 			const dropHandler = this.instantiationService.createInstance(ResourcesDropHandler, { allowWorkspaceOpen: !isWeb || isTemporaryWorkspace(this.contextService.getWorkspace()) });

@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ISCMResource } from '../../scm/common/scm.js';
+import { ISourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 
 /** SCM identity captured when a preview diff was opened. */
-export interface ISourcesDiffOpenIdentity {
+export interface ISourcesDiffOpenIdentity extends ISourcesChangeIdentity {
 	readonly groupId: string;
 	readonly scmResource?: ISCMResource;
 }

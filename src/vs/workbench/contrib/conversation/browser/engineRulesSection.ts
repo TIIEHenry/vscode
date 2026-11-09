@@ -126,6 +126,7 @@ export class EngineRulesSection extends Disposable {
 			void this.promptRule(RULE_SCOPE_GLOBAL).catch(onUnexpectedError);
 		}));
 		this.globalList = DOM.append(globalPanel, $('.engine-rules-list.engine-catalog-list'));
+		this.globalList.setAttribute('role', 'list');
 
 		const projectPanel = DOM.append(this.scopePanels, $('.engine-rules-scope.engine-rules-scope--project'));
 		DOM.append(projectPanel, $('h4')).textContent = localize('ua.engineRulesProject', "Project");
@@ -139,6 +140,7 @@ export class EngineRulesSection extends Disposable {
 			void this.promptRule(RULE_SCOPE_WORKDIR).catch(onUnexpectedError);
 		}));
 		this.projectList = DOM.append(projectPanel, $('.engine-rules-list.engine-catalog-list'));
+		this.projectList.setAttribute('role', 'list');
 
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this._store.isDisposed) {
@@ -577,6 +579,7 @@ export class EngineRulesSection extends Disposable {
 		const canDelete = this.canMutateRules() && typeof this.connection.deleteProjectRule === 'function';
 		for (const rule of rules) {
 			const row = DOM.append(host, $('.engine-catalog-row.engine-rules-row'));
+			row.setAttribute('role', 'listitem');
 			if (!rule.enabled) {
 				row.classList.add('engine-rules-row--disabled');
 			}

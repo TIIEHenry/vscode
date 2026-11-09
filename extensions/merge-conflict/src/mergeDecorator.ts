@@ -15,6 +15,8 @@ export default class MergeDecorator implements vscode.Disposable {
 	private config?: interfaces.IExtensionConfiguration;
 	private tracker: interfaces.IDocumentMergeConflictTracker;
 	private updating = new Map<vscode.TextEditor, boolean>();
+	private pendingReapply = new Set<vscode.TextEditor>();
+	private disposed = false;
 
 	constructor(private context: vscode.ExtensionContext, trackerService: interfaces.IDocumentMergeConflictTrackerService) {
 		this.tracker = trackerService.createTracker('decorator');
@@ -125,6 +127,8 @@ export default class MergeDecorator implements vscode.Disposable {
 	}
 
 	dispose() {
+		this.disposed = true;
+		this.pendingReapply.clear();
 
 		// TODO: Replace with Map<string, T>
 		Object.keys(this.decorations).forEach(name => {
@@ -169,6 +173,7 @@ export default class MergeDecorator implements vscode.Disposable {
 
 		// If we have a pending scan from the same origin, exit early. (Cannot use this.tracker.isPending() because decorations are per editor.)
 		if (this.updating.get(editor)) {
+			this.pendingReapply.add(editor);
 			return;
 		}
 
@@ -177,7 +182,11 @@ export default class MergeDecorator implements vscode.Disposable {
 
 			const documentVersion = editor.document.version;
 			const conflicts = await this.tracker.getConflicts(editor.document);
-			if (vscode.window.visibleTextEditors.indexOf(editor) === -1 || editor.document.version !== documentVersion) {
+			if (vscode.window.visibleTextEditors.indexOf(editor) === -1) {
+				return;
+			}
+			if (editor.document.version !== documentVersion) {
+				this.pendingReapply.add(editor);
 				return;
 			}
 
@@ -233,6 +242,9 @@ export default class MergeDecorator implements vscode.Disposable {
 
 		} finally {
 			this.updating.delete(editor);
+			if (this.pendingReapply.delete(editor) && !this.disposed && vscode.window.visibleTextEditors.indexOf(editor) !== -1) {
+				this.applyDecorations(editor);
+			}
 		}
 	}
 

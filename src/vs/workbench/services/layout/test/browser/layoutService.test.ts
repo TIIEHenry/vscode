@@ -26,6 +26,13 @@ import { IEditorGroupsService } from '../../../../services/editor/common/editorG
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+
+function stubLayoutHostServices(instantiationService: TestInstantiationService): void {
+	instantiationService.stub(ITitleService, { onMenubarVisibilityChange: Event.None } as unknown as ITitleService);
+	instantiationService.stub(IAuxiliaryWindowService, { onDidOpenAuxiliaryWindow: Event.None } as unknown as IAuxiliaryWindowService);
+	instantiationService.stub(IViewDescriptorService, { getDefaultViewContainer: () => undefined } as unknown as IViewDescriptorService);
+}
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
 
@@ -1010,6 +1017,79 @@ suite('LayoutService - End column persistence, startup editors and panel focus',
 		focusCalls.length = 0;
 		layout.setPartHidden(true, Parts.PANEL_PART);
 		assert.deepStrictEqual(focusCalls, ['editor']);
+
+		disposables.dispose();
+	});
+});
+
+
+suite('LayoutService - hiding a focused agent-shell region', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	class FocusHandOffTestLayout extends Layout {
+		focusedPart: Parts | undefined;
+		readonly focusedParts: Parts[] = [];
+
+		initialize(accessor: ServicesAccessor): void {
+			this.initLayout(accessor);
+		}
+
+		override hasFocus(part: Parts): boolean {
+			return part === this.focusedPart;
+		}
+
+		override focusPart(part: Parts): void {
+			this.focusedParts.push(part);
+		}
+	}
+
+	async function createLayout(disposables: DisposableStore): Promise<FocusHandOffTestLayout> {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		stubLayoutHostServices(instantiationService);
+		instantiationService.stub(IConversationPartService, { _serviceBrand: undefined } as IConversationPartService);
+		instantiationService.stub(ISourcesPartService, { _serviceBrand: undefined } as ISourcesPartService);
+		const parts = await createEditorParts(instantiationService, disposables);
+		disposables.add(parts);
+		instantiationService.stub(IEditorGroupsService, parts);
+		const layout = disposables.add(new FocusHandOffTestLayout(document.createElement('div'), { resetLayout: true }));
+		instantiationService.invokeFunction(accessor => layout.initialize(accessor));
+		// eslint-disable-next-line local/code-no-any-casts
+		const internal = layout as any;
+		internal.workbenchGrid = { setViewVisible: () => { } };
+		internal.conversationPartView = {};
+		internal.editorPartView = {};
+		internal.sourcesPartView = {};
+		layout.setPartHidden(false, Parts.CONVERSATION_PART);
+		layout.setPartHidden(false, Parts.EDITOR_PART);
+		layout.setPartHidden(false, Parts.SOURCES_PART);
+		return layout;
+	}
+
+	test('focus moves to the next visible region in Layout.focus() order, and only when the hidden region held it', async () => {
+		const disposables = new DisposableStore();
+		const layout = await createLayout(disposables);
+		const handOffs: Array<Parts | undefined> = [];
+
+		layout.focusedPart = Parts.CONVERSATION_PART;
+		layout.setPartHidden(true, Parts.CONVERSATION_PART);
+		handOffs.push(layout.focusedParts.pop());
+
+		layout.setPartHidden(false, Parts.CONVERSATION_PART);
+		layout.focusedPart = Parts.SOURCES_PART;
+		layout.setPartHidden(true, Parts.SOURCES_PART);
+		handOffs.push(layout.focusedParts.pop());
+
+		layout.focusedPart = Parts.CONVERSATION_PART;
+		layout.setPartHidden(true, Parts.CONVERSATION_PART);
+		handOffs.push(layout.focusedParts.pop());
+
+		layout.setPartHidden(false, Parts.CONVERSATION_PART);
+		layout.focusedPart = Parts.EDITOR_PART;
+		layout.setPartHidden(true, Parts.CONVERSATION_PART);
+		handOffs.push(layout.focusedParts.pop());
+
+		assert.deepStrictEqual(handOffs, [Parts.SOURCES_PART, Parts.CONVERSATION_PART, Parts.EDITOR_PART, undefined]);
 
 		disposables.dispose();
 	});

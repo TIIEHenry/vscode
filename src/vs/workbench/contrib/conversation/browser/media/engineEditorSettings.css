@@ -143,8 +143,18 @@
 	border-color: var(--vscode-contrastBorder);
 }
 
-.monaco-workbench :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) :is(input, textarea, select, .monaco-button):focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) :is(input, textarea, select):focus-visible {
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) .monaco-button:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) :is(.engine-skills-section, .engine-agents-section, .engine-mcp-section) :is(input, textarea, select, .monaco-button):focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 1px;
 }
 
@@ -215,9 +225,22 @@
 	right: var(--vscode-spacing-size20);
 }
 
-.monaco-workbench .engine-skills-section .engine-skill-row > .monaco-custom-toggle:focus-visible,
-.monaco-workbench .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-skills-section .engine-skill-row > .monaco-custom-toggle:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle:focus-visible {
+	--ua-editor-setting-switch-track: color-mix(in srgb, var(--vscode-foreground) 24%, var(--vscode-editor-background));
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-skills-section .engine-skill-row > .monaco-custom-toggle.checked:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle.checked:focus-visible {
+	--ua-editor-setting-switch-track: color-mix(in srgb, var(--vscode-textLink-foreground) 78%, var(--vscode-foreground));
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-skills-section .engine-skill-row > .monaco-custom-toggle:focus-visible,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-mcp-section .engine-mcp-definitions-panel .engine-catalog-row > .monaco-custom-toggle:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 	outline-offset: 2px;
 }
 

@@ -6,6 +6,7 @@
 import { getWindow } from '../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -55,19 +56,48 @@ export interface IConversationLensSessionBindingHost {
 	refreshSessionSelectOptions(): void;
 	syncSessionConfigSelects(sessionId: string): void;
 	updateSessionTitle(): void;
+	sessionTitleEditing?: boolean;
+	cancelSessionTitleEdit?(): void;
 	readComposerDraft(sessionId: string): string;
 	renderInboxStatus(): void;
 	updateConversationPhase(): void;
 	updateSyncChrome(): void;
 	postBound(msg: ConversationWriteMessage): Promise<PostOutcome>;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
+	/** Drops the composer's send / retry failure row. */
+	clearPostFailure?(): void;
+	/** A response that never left this window. The seat shows it and offers Allow / Skip again. */
+	noteResponseFailure?(turnId: string, error: string): void;
+	/** Copy or delete failed: the row shows the sentence beside its own buttons. */
+	noteTurnActionFailure?(rowId: string, message: string): void;
+	/** Retry / Regenerate posted (accepted) or gave up (not accepted). */
+	settleTurnWrite?(rowId: string, accepted: boolean): void;
 	focusTimelineRecord(turnId: string): void;
 	setInputMaximized(maximized: boolean): void;
 }
 
 /** Response actions do not depend on the lens's unrelated reading and composer widgets. */
 export type IConversationLensResponseHost = Pick<IConversationLensSessionBindingHost,
-	'isDisposed' | 'stubService' | 'uaConnection' | 'getBoundSessionId' | 'showPostFailure' | 'focusTimelineRecord' | 'postBound'>;
+	'isDisposed' | 'stubService' | 'uaConnection' | 'getBoundSessionId' | 'showPostFailure' | 'focusTimelineRecord' | 'postBound' | 'noteResponseFailure'>;
+
+const conversationLensRespondNotForwarded = localize('conversationLens.respondNotForwarded', "the engine did not receive it");
+const conversationLensRespondDisconnected = localize('conversationLens.respondDisconnected', "engine disconnected");
+const conversationLensTurnCopyFailed = localize('conversationLens.turnCopyFailed', "Couldn't copy to the clipboard.");
+const conversationLensTurnDeleteFailed = localize('conversationLens.turnDeleteFailed', "Couldn't delete this message.");
+const conversationLensTurnDeleteFailedDisconnected = localize('conversationLens.turnDeleteFailedDisconnected', "Couldn't delete this message — engine disconnected.");
+
+function engineDroppedWithHistory(host: { readonly stubService: { isEngineConnected(): boolean; hasEngineConnectionHistory(): boolean } }): boolean {
+	return !host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory();
+}
+
+/** A refused permission / question answer stays on its seat, not on the composer. */
+function showResponseFailure(host: IConversationLensResponseHost, turnId: string, reason: ConversationComposerPostFailureReason): void {
+	if (host.noteResponseFailure) {
+		host.noteResponseFailure(turnId, reason === 'engine_disconnected' ? conversationLensRespondDisconnected : conversationLensRespondNotForwarded);
+		return;
+	}
+	host.showPostFailure(reason);
+}
 
 /** D285: pairing-hold (connecting or connected + pairingPending) — do not treat as true disconnect. */
 function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSessionBindingHost): boolean {
@@ -207,10 +237,12 @@ function bindSessionViewNow(host: IConversationLensSessionBindingHost, sessionId
 		const scheduler = host.sessionViewLifetime.add(new ConversationTimelineFrameScheduler(flush => {
 			if (flush.applied) {
 				host.applySessionViewTimeline(flush.applied);
-				return;
 			}
 			if (flush.effects.length > 0) {
 				host.applySessionViewTimeline({ kind: 'effects', effects: flush.effects });
+				return;
+			}
+			if (flush.applied) {
 				return;
 			}
 			if (flush.sidecar) {
@@ -240,11 +272,16 @@ function bindSessionViewNow(host: IConversationLensSessionBindingHost, sessionId
 
 export function applyActiveSession(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
+	if (host.sessionTitleEditing) {
+		host.cancelSessionTitleEdit?.();
+	}
 	host.visualizeOverlay.close({ restoreFocus: false });
 	host.engineHistoryList?.close({ restoreFocus: false });
 	host.engineSnapshotsList?.close({ restoreFocus: false });
 	host.inboxOverlay.closeListPanel();
 	host.trajectoryView.clearSessionState();
+	host.clearPostFailure?.();
+	host.timelineTree.clearTurnActionState?.();
 	host.exitComposerEdit(true, !engineQueueEditMustKeepHold(host, host.composerModel.editingQueueItemId));
 	host.resetInputHistoryBrowse();
 	host.refreshSessionSelectOptions();
@@ -295,11 +332,7 @@ export async function resolveConfirmation(host: IConversationLensResponseHost, t
 			status,
 		);
 		if (!forwarded) {
-			host.showPostFailure(
-				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
-			);
+			showResponseFailure(host, turnId, engineDroppedWithHistory(host) ? 'engine_disconnected' : 'failed');
 			return;
 		}
 		host.focusTimelineRecord(turnId);
@@ -314,14 +347,14 @@ export async function resolveConfirmation(host: IConversationLensResponseHost, t
 		});
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
 			if (!outcome.accepted) {
-				host.showPostFailure(outcome.reason);
+				showResponseFailure(host, turnId, outcome.reason);
 				return;
 			}
 			host.focusTimelineRecord(turnId);
 		}
 	} catch {
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
-			host.showPostFailure('failed');
+			showResponseFailure(host, turnId, 'failed');
 		}
 	}
 
@@ -346,11 +379,7 @@ export async function resolveQuestion(host: IConversationLensResponseHost, turnI
 			customText,
 		);
 		if (!forwarded) {
-			host.showPostFailure(
-				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
-			);
+			showResponseFailure(host, turnId, engineDroppedWithHistory(host) ? 'engine_disconnected' : 'failed');
 			return;
 		}
 		host.focusTimelineRecord(turnId);
@@ -366,14 +395,14 @@ export async function resolveQuestion(host: IConversationLensResponseHost, turnI
 		});
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
 			if (!outcome.accepted) {
-				host.showPostFailure(outcome.reason);
+				showResponseFailure(host, turnId, outcome.reason);
 				return;
 			}
 			host.focusTimelineRecord(turnId);
 		}
 	} catch {
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
-			host.showPostFailure('failed');
+			showResponseFailure(host, turnId, 'failed');
 		}
 	}
 
@@ -390,15 +419,23 @@ export function focusTimelineRecord(host: IConversationLensSessionBindingHost, t
 
 }
 
-export function copyTurn(host: IConversationLensSessionBindingHost, text: string): void {
+export function copyTurn(host: IConversationLensSessionBindingHost, text: string, rowId?: string): void {
 
-	void host.clipboardService.writeText(text).catch(() => {
+	void host.clipboardService.writeText(text).then(() => {
+		if (rowId) {
+			host.noteTurnActionFailure?.(rowId, '');
+		}
+	}, () => {
+		if (rowId && host.noteTurnActionFailure) {
+			host.noteTurnActionFailure(rowId, conversationLensTurnCopyFailed);
+			return;
+		}
 		host.showPostFailure('failed');
 	}).catch(onUnexpectedError);
 
 }
 
-export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string, agentId?: string): void {
+export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: string, agentId?: string, rowId?: string): void {
 
 	if (rejectPairingHoldWrite(host)) {
 		return;
@@ -409,11 +446,11 @@ export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: st
 	const trimmedAgentId = agentId?.trim();
 	const deleted = host.stubService.deleteTurn(host.getBoundSessionId(), turnId, trimmedAgentId || undefined);
 	if (!deleted) {
-		host.showPostFailure(
-			!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-				? 'engine_disconnected'
-				: 'failed'
-		);
+		if (host.noteTurnActionFailure) {
+			host.noteTurnActionFailure(rowId ?? turnId, engineDroppedWithHistory(host) ? conversationLensTurnDeleteFailedDisconnected : conversationLensTurnDeleteFailed);
+			return;
+		}
+		host.showPostFailure(engineDroppedWithHistory(host) ? 'engine_disconnected' : 'failed');
 	}
 
 }
@@ -536,12 +573,11 @@ export function regenerateTurn(
 	const assistantId = turn.id.trim();
 	const explicitUserTurnId = turn.userTurnId?.trim();
 	if (!assistantId && !explicitUserTurnId) {
+		host.settleTurnWrite?.(turn.id, false);
 		return;
 	}
-	if (rejectPairingHoldWrite(host)) {
-		return;
-	}
-	if (rejectKeepLeftoverListFailWrite(host)) {
+	if (rejectPairingHoldWrite(host) || rejectKeepLeftoverListFailWrite(host)) {
+		host.settleTurnWrite?.(turn.id, false);
 		return;
 	}
 
@@ -555,27 +591,17 @@ export function regenerateTurn(
 		: resolveRegenerateUserTurn(host.lastAttachedEntries, turn)
 			?? resolveRegenerateUserTurn(host.stubService.getTurns(host.getBoundSessionId()), turn);
 	if (!resolved) {
+		host.settleTurnWrite?.(turn.id, false);
 		host.showPostFailure('failed');
 		return;
 	}
 
-	const sessionId = host.getBoundSessionId();
-	void host.postBound({
+	postTurnWrite(host, turn.id, {
 		kind: 'regenerateTurn',
 		userTurnId: resolved.userTurnId,
 		preservedContent: resolved.preservedContent,
 		...(resolved.agentId ? { agentId: resolved.agentId } : {}),
-	}).then(outcome => {
-		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
-			if (!outcome.accepted) {
-				host.showPostFailure(outcome.reason);
-			}
-		}
-	}).catch(() => {
-		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
-			host.showPostFailure('failed');
-		}
-	}).catch(onUnexpectedError);
+	});
 
 }
 
@@ -583,30 +609,40 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 
 	const messageId = turn.id.trim();
 	if (!messageId) {
+		host.settleTurnWrite?.(turn.id, false);
 		return;
 	}
 	const turnId = turn.turnId?.trim() || messageId;
 	const agentId = turn.agentId?.trim() || 'root';
-	if (rejectPairingHoldWrite(host)) {
+	if (rejectPairingHoldWrite(host) || rejectKeepLeftoverListFailWrite(host)) {
+		host.settleTurnWrite?.(turn.id, false);
 		return;
 	}
-	if (rejectKeepLeftoverListFailWrite(host)) {
-		return;
-	}
-	const sessionId = host.getBoundSessionId();
-	void host.postBound({
+	postTurnWrite(host, turn.id, {
 		kind: 'continueGeneration',
 		agentId,
 		turnId,
 		messageId,
-	}).then(outcome => {
-		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
-			if (!outcome.accepted) {
-				host.showPostFailure(outcome.reason);
-			}
+	});
+
+}
+
+/** Regenerate / Retry share one outcome path: the row leaves its in-flight state, and success clears the composer failure row. */
+function postTurnWrite(host: IConversationLensSessionBindingHost, rowId: string, msg: ConversationWriteMessage): void {
+	const sessionId = host.getBoundSessionId();
+	void host.postBound(msg).then(outcome => {
+		if (host.isDisposed || host.getBoundSessionId() !== sessionId) {
+			return;
 		}
+		host.settleTurnWrite?.(rowId, outcome.accepted);
+		if (!outcome.accepted) {
+			host.showPostFailure(outcome.reason);
+			return;
+		}
+		host.clearPostFailure?.();
 	}).catch(() => {
 		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			host.settleTurnWrite?.(rowId, false);
 			host.showPostFailure('failed');
 		}
 	}).catch(onUnexpectedError);
