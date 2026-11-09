@@ -5,11 +5,14 @@
 
 import assert from 'assert';
 import { encodeBase64, VSBuffer } from '../../../../base/common/buffer.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { CancellationError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { URI, UriComponents } from '../../../../base/common/uri.js';
-import { mock } from '../../../../base/test/common/mock.js';
+import { mock, upcastPartial } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { ILogger, ILoggerService, NullLogger } from '../../../../platform/log/common/log.js';
+import { IProgressStep, Progress } from '../../../../platform/progress/common/progress.js';
 import { IAuthenticationProviderSessionOptions } from '../../../services/authentication/common/authentication.js';
 import { DynamicAuthProvider, IAuthorizationToken, reviveAccountIcon, TokenStore } from '../../common/extHostAuthentication.js';
 import { MainThreadAuthenticationShape } from '../../common/extHost.protocol.js';
@@ -125,6 +128,175 @@ suite('DynamicAuthProvider', () => {
 			generateNewClientIdCalls: 0,
 			clientId: 'client-id',
 		});
+	});
+
+	function createProvider(options: {
+		fetcher: typeof fetch;
+		initialTokens?: IAuthorizationToken[];
+		/** Query of the redirect the main thread hands back; without it the wait only ends on cancellation. */
+		redirectQuery?: (expectedQuery: string) => string;
+		opened?: boolean;
+	}) {
+		const setSessionsCalls: IAuthorizationToken[][] = [];
+		const waitForUriHandlerTokens: CancellationToken[] = [];
+		const loggerService = new class extends mock<ILoggerService>() {
+			override createLogger(): ILogger {
+				return new NullLogger();
+			}
+		}();
+		const proxy = new class extends mock<Proxied<MainThreadAuthenticationShape>>() {
+			override $setSessionsForDynamicAuthProvider = (_id: string, _clientId: string, tokens: IAuthorizationToken[]): Promise<void> => {
+				setSessionsCalls.push(tokens);
+				return Promise.resolve();
+			};
+			override $waitForUriHandler = async (expectedUri: UriComponents, token: CancellationToken): Promise<UriComponents> => {
+				waitForUriHandlerTokens.push(token);
+				const redirectQuery = options.redirectQuery;
+				if (!redirectQuery) {
+					return new Promise<UriComponents>((_resolve, reject) => {
+						const listener = token.onCancellationRequested(() => {
+							listener.dispose();
+							reject(new CancellationError());
+						});
+					});
+				}
+				return URI.from({ ...expectedUri, query: redirectQuery(expectedUri.query ?? '') });
+			};
+		}();
+		const provider = disposables.add(new TestDynamicAuthProvider(
+			new class extends mock<IExtHostWindow>() {
+				override openUri = async () => options.opened ?? true;
+			}(),
+			new class extends mock<IExtHostUrlsService>() {
+				override createAppUri = async (uri: URI) => uri;
+			}(),
+			new class extends mock<IExtHostInitDataService>() {
+				override environment = upcastPartial<IExtHostInitDataService['environment']>({ appUriScheme: 'vscode', appName: 'Code' });
+			}(),
+			new class extends mock<IExtHostProgress>() {
+				override withProgressFromSource = <R>(_source: unknown, _options: unknown, task: (progress: Progress<IProgressStep>, token: CancellationToken) => Thenable<R>): Promise<R> => Promise.resolve(task(new Progress<IProgressStep>(() => { }), CancellationToken.None));
+			}(),
+			loggerService,
+			proxy,
+			URI.parse('https://mcp.example.com'),
+			{
+				issuer: 'https://mcp.example.com',
+				response_types_supported: ['code'],
+				authorization_endpoint: 'https://mcp.example.com/authorize',
+				token_endpoint: 'https://mcp.example.com/token',
+			},
+			{ resource: 'https://mcp.example.com/resource' },
+			'client-id',
+			undefined,
+			disposables.add(new Emitter()),
+			options.initialTokens ?? [],
+			options.fetcher,
+		));
+		return { provider, setSessionsCalls, waitForUriHandlerTokens };
+	}
+
+	function tokenResponse(accessToken: string): Response {
+		return new Response(JSON.stringify({ access_token: accessToken, token_type: 'Bearer', scope: '' }), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
+	test('keeps a token that is about to expire when refreshing it fails with a network error', async () => {
+		const accessToken = jwt({ sub: 'account' });
+		const { provider, setSessionsCalls } = createProvider({
+			fetcher: async () => { throw new TypeError('Failed to fetch'); },
+			initialTokens: [{
+				access_token: accessToken,
+				token_type: 'Bearer',
+				scope: '',
+				expires_in: 300,
+				refresh_token: 'refresh-token',
+				created_at: Date.now() - 1000,
+			}],
+		});
+
+		const sessions = await provider.getSessions([], { silent: true } satisfies IAuthenticationProviderSessionOptions);
+
+		assert.deepStrictEqual({
+			accessTokens: sessions.map(s => s.accessToken),
+			setSessionsCalls: setSessionsCalls.length,
+		}, {
+			accessTokens: [accessToken],
+			setSessionsCalls: 0,
+		});
+	});
+
+	test('drops a token when the server rejects its refresh token with invalid_grant', async () => {
+		const { provider, setSessionsCalls } = createProvider({
+			fetcher: async () => new Response(JSON.stringify({ error: 'invalid_grant' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			}),
+			initialTokens: [{
+				access_token: jwt({ sub: 'account' }),
+				token_type: 'Bearer',
+				scope: '',
+				expires_in: 300,
+				refresh_token: 'refresh-token',
+				created_at: Date.now() - 1000,
+			}],
+		});
+
+		const sessions = await provider.getSessions([], { silent: true } satisfies IAuthenticationProviderSessionOptions);
+
+		assert.deepStrictEqual({ sessions, setSessions: setSessionsCalls }, { sessions: [], setSessions: [[]] });
+	});
+
+	test('exchanges the authorization code when the redirect carries the nonce of this sign-in', async () => {
+		let fetchCalls = 0;
+		const accessToken = jwt({ sub: 'account' });
+		const { provider, setSessionsCalls, waitForUriHandlerTokens } = createProvider({
+			fetcher: async () => { fetchCalls++; return tokenResponse(accessToken); },
+			redirectQuery: expectedQuery => `${expectedQuery}&code=the-code`,
+		});
+
+		const session = await provider.createSession([], {});
+
+		assert.deepStrictEqual({
+			accessToken: session.accessToken,
+			fetchCalls,
+			setSessionsCalls: setSessionsCalls.length,
+			uriHandlerCancelledAfterSignIn: waitForUriHandlerTokens.map(t => t.isCancellationRequested),
+		}, {
+			accessToken,
+			fetchCalls: 1,
+			setSessionsCalls: 1,
+			uriHandlerCancelledAfterSignIn: [true],
+		});
+	});
+
+	for (const [name, redirectQuery] of [
+		['without a nonce', () => 'windowId=1&code=forged-code'],
+		['with a different nonce', () => 'nonce=someone-else&code=forged-code'],
+	] as const) {
+		test(`rejects a redirect ${name} without exchanging its code`, async () => {
+			let fetchCalls = 0;
+			const { provider, setSessionsCalls } = createProvider({
+				fetcher: async () => { fetchCalls++; return tokenResponse(jwt({ sub: 'attacker' })); },
+				redirectQuery,
+			});
+
+			await assert.rejects(provider.createSession([], {}));
+
+			assert.deepStrictEqual({ fetchCalls, setSessionsCalls: setSessionsCalls.length }, { fetchCalls: 0, setSessionsCalls: 0 });
+		});
+	}
+
+	test('cancels the URI handler wait when the browser cannot be opened', async () => {
+		const { provider, waitForUriHandlerTokens } = createProvider({
+			fetcher: async () => { throw new Error('unexpected fetch'); },
+			opened: false,
+		});
+
+		await assert.rejects(provider.createSession([], {}));
+
+		assert.deepStrictEqual(waitForUriHandlerTokens.map(t => t.isCancellationRequested), [true]);
 	});
 });
 

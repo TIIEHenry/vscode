@@ -7,10 +7,21 @@ import assert from 'assert';
 import * as fs from 'fs';
 import * as path from '../../../../../base/common/path.js';
 import { fileURLToPath } from 'url';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IBulkEditResult, IBulkEditService } from '../../../../browser/services/bulkEditService.js';
+import { ICodeEditorService } from '../../../../browser/services/codeEditorService.js';
+import { IRenameSymbolTrackerService } from '../../../../browser/services/renameSymbolTrackerService.js';
 import { Range } from '../../../../common/core/range.js';
-import { RenameInferenceEngine } from '../../browser/model/renameSymbolProcessor.js';
+import type { WorkspaceEdit } from '../../../../common/languages.js';
+import { ILanguageConfigurationService } from '../../../../common/languages/languageConfigurationRegistry.js';
+import { ILanguageFeaturesService } from '../../../../common/services/languageFeatures.js';
+import { renameSymbolCommandId } from '../../browser/controller/commandIds.js';
+import { RenameInferenceEngine, RenameSymbolProcessor } from '../../browser/model/renameSymbolProcessor.js';
 import { createTextModel } from '../../../../test/common/testTextModel.js';
 import type { Position } from '../../../../common/core/position.js';
 import { StandardTokenType } from '../../../../common/encodedTokenAttributes.js';
@@ -292,6 +303,42 @@ suite('renameSymbolProcessor - stale rename guards', () => {
 		const afterAwait = commandBlock.slice(commandBlock.indexOf('await renameRunnable.getWorkspaceEdit()'));
 		assert.ok(afterAwait.includes('!renameRunnable.isValid(this._codeEditorService)'));
 		assert.ok(afterAwait.indexOf('isValid') < afterAwait.indexOf('bulkEditService.apply'));
+	});
+
+	function createProcessorWithBulkEdit(apply: () => Promise<IBulkEditResult>) {
+		const processor = new RenameSymbolProcessor(
+			upcastPartial<ICommandService>({}),
+			upcastPartial<ILanguageFeaturesService>({}),
+			upcastPartial<ILanguageConfigurationService>({}),
+			upcastPartial<IBulkEditService>({ apply }),
+			upcastPartial<IRenameSymbolTrackerService>({}),
+			upcastPartial<ICodeEditorService>({}),
+		);
+		const runnable = { isValid: () => true, getWorkspaceEdit: async (): Promise<WorkspaceEdit> => ({ edits: [] }) };
+		const runCommand = async (): Promise<void> => CommandsRegistry.getCommand(renameSymbolCommandId)!.handler(upcastPartial<ServicesAccessor>({}), undefined, runnable);
+		return { processor, runCommand };
+	}
+
+	test('the rename command settles only after the workspace edit was applied', async () => {
+		const apply = new DeferredPromise<IBulkEditResult>();
+		const { processor, runCommand } = createProcessorWithBulkEdit(() => apply.p);
+
+		let settled = false;
+		const command = runCommand().then(() => settled = true);
+		await timeout(0);
+		const settledBeforeApply = settled;
+		apply.complete({ ariaSummary: '', isApplied: true });
+		await command;
+		processor.dispose();
+
+		assert.deepStrictEqual({ settledBeforeApply, settled }, { settledBeforeApply: false, settled: true });
+	});
+
+	test('the rename command rejects when applying the workspace edit fails', async () => {
+		const { processor, runCommand } = createProcessorWithBulkEdit(() => Promise.reject(new Error('apply failed')));
+
+		await assert.rejects(runCommand(), /apply failed/);
+		processor.dispose();
 	});
 
 	test('stamps NES edits with the version captured when the rename was proposed', () => {

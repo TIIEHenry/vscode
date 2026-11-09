@@ -109,7 +109,8 @@ export abstract class BaseTestResultStorage extends Disposable implements ITestR
 	public async persist(results: ReadonlyArray<ITestResult>): Promise<void> {
 		const toDelete = new Map(this.stored.get([]).map(({ id, bytes }) => [id, bytes]));
 		const toStore: { rev: number; id: string; bytes: number }[] = [];
-		const todo: Promise<unknown>[] = [];
+		const writes: Promise<unknown>[] = [];
+		const failedWrites = new Set<string>();
 		let budget = RETAIN_MAX_BYTES;
 
 		// Run until either:
@@ -136,17 +137,19 @@ export abstract class BaseTestResultStorage extends Disposable implements ITestR
 			}
 
 			const contents = VSBuffer.fromString(JSON.stringify(obj));
-			todo.push(this.storeForResultId(result.id, obj));
+			writes.push(this.storeForResultId(result.id, obj).catch(e => {
+				this.logService.warn(`Error storing test result ${result.id}`, e);
+				failedWrites.add(result.id);
+			}));
 			toStore.push({ id: result.id, rev: currentRevision, bytes: contents.byteLength });
 			budget -= contents.byteLength;
 		}
 
-		for (const id of toDelete.keys()) {
-			todo.push(this.deleteForResultId(id).catch(() => undefined));
-		}
-
-		this.stored.store(toStore);
-		await Promise.all(todo);
+		// Only reference results whose file is on disk, and only delete files once
+		// the index no longer references them.
+		await Promise.all(writes);
+		this.stored.store(toStore.filter(({ id }) => !failedWrites.has(id)));
+		await Promise.all([...toDelete.keys()].map(id => this.deleteForResultId(id).catch(() => undefined)));
 	}
 
 	/**

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
+import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ExtHostDocuments } from '../../common/extHostDocuments.js';
 import { ExtHostDocumentsAndEditors } from '../../common/extHostDocumentsAndEditors.js';
@@ -379,6 +380,55 @@ suite('ExtHostDocumentSaveParticipant', () => {
 			assert.strictEqual(document.getText(), 'barbarfoo');
 		});
 
+	});
+
+	test('event delivery, failed workspace edit is reported as failure', async () => {
+		let applyCalls = 0;
+		const participant = new ExtHostDocumentSaveParticipant(nullLogService, documents, new class extends mock<MainThreadBulkEditsShape>() {
+			override $tryApplyWorkspaceEdit() {
+				applyCalls++;
+				return Promise.resolve(false);
+			}
+		});
+
+		const sub = participant.getOnWillSaveTextDocumentEvent(nullExtensionDescription)(function (e) {
+			e.waitUntil(Promise.resolve([TextEdit.insert(new Position(0, 0), 'bar')]));
+		});
+
+		const values = await participant.$participateInSave(resource, SaveReason.EXPLICIT);
+		sub.dispose();
+
+		assert.deepStrictEqual({ values, applyCalls }, { values: [false], applyCalls: 1 });
+	});
+
+	test('event delivery, cancellation stops applying edits and running listeners', async () => {
+		let applyCalls = 0;
+		const participant = new ExtHostDocumentSaveParticipant(nullLogService, documents, new class extends mock<MainThreadBulkEditsShape>() {
+			override $tryApplyWorkspaceEdit() {
+				applyCalls++;
+				return Promise.resolve(true);
+			}
+		});
+		const cts = new CancellationTokenSource();
+		const calls: number[] = [];
+
+		const sub1 = participant.getOnWillSaveTextDocumentEvent(nullExtensionDescription)(function (e) {
+			calls.push(1);
+			e.waitUntil(Promise.resolve().then(() => {
+				cts.cancel();
+				return [TextEdit.insert(new Position(0, 0), 'bar')];
+			}));
+		});
+		const sub2 = participant.getOnWillSaveTextDocumentEvent(nullExtensionDescription)(function () {
+			calls.push(2);
+		});
+
+		const values = await participant.$participateInSave(resource, SaveReason.EXPLICIT, cts.token);
+		sub1.dispose();
+		sub2.dispose();
+		cts.dispose();
+
+		assert.deepStrictEqual({ values, applyCalls, calls }, { values: [false], applyCalls: 0, calls: [1] });
 	});
 
 	test('Log failing listener', function () {

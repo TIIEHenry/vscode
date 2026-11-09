@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { shouldSynchronizeModel } from '../../../editor/common/model.js';
 import { localize } from '../../../nls.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
@@ -14,7 +14,7 @@ import { ExtHostContext, ExtHostDocumentSaveParticipantShape } from '../common/e
 import { IDisposable } from '../../../base/common/lifecycle.js';
 import { raceCancellationError } from '../../../base/common/async.js';
 
-class ExtHostSaveParticipant implements ITextFileSaveParticipant {
+export class ExtHostSaveParticipant implements ITextFileSaveParticipant {
 
 	private readonly _proxy: ExtHostDocumentSaveParticipantShape;
 
@@ -30,21 +30,29 @@ class ExtHostSaveParticipant implements ITextFileSaveParticipant {
 			return undefined;
 		}
 
+		const cts = new CancellationTokenSource(token);
 		const p = new Promise<void>((resolve, reject) => {
 
-			setTimeout(
-				() => reject(new Error(localize('timeout.onWillSave', "Aborted onWillSaveTextDocument-event after 1750ms"))),
+			const handle = setTimeout(
+				() => {
+					reject(new Error(localize('timeout.onWillSave', "Aborted onWillSaveTextDocument-event after 1750ms")));
+					cts.cancel();
+				},
 				1750
 			);
-			this._proxy.$participateInSave(editorModel.resource, context.reason).then(values => {
+			this._proxy.$participateInSave(editorModel.resource, context.reason, cts.token).then(values => {
 				if (!values.every(success => success)) {
 					return Promise.reject(new Error('listener failed'));
 				}
 				return undefined;
-			}).then(resolve, reject);
+			}).finally(() => clearTimeout(handle)).then(resolve, reject);
 		});
 
-		return raceCancellationError(p, token);
+		try {
+			return await raceCancellationError(p, token);
+		} finally {
+			cts.dispose();
+		}
 	}
 }
 

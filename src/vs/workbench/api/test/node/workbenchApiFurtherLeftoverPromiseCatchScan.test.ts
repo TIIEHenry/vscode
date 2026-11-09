@@ -140,9 +140,9 @@ suite('workbench/api further leftover Promise fire-and-forget catch scan (D717)'
 	test('auth leftover $waitForUriHandler is Promise single-chain; opener $openUri stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(NODE_AUTH_REL), 'utf8');
 		const protocol = fs.readFileSync(resolveSource(PROTOCOL_REL), 'utf8');
-		assertPromiseSignature(protocol, '$waitForUriHandler(expectedUri: UriComponents): Promise<UriComponents>;');
+		assertPromiseSignature(protocol, '$waitForUriHandler(expectedUri: UriComponents, token: CancellationToken): Promise<UriComponents>;');
 		assert.ok(source.includes("import { CancellationError, isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';"));
-		assert.ok(source.includes('void this._proxy.$waitForUriHandler(appUri).catch(onUnexpectedError);'));
+		assert.ok(source.includes('void this._proxy.$waitForUriHandler(appUri, uriHandlerCts.token).catch(onUnexpectedError);'));
 		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('await this._extHostWindow.openUri(authorizationUrl.toString(), {});'));
 		assert.ok(!source.includes('openUri(authorizationUrl.toString(), {}).catch'));

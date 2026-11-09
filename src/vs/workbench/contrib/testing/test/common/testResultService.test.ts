@@ -16,7 +16,7 @@ import { TestId } from '../../common/testId.js';
 import { TestProfileService } from '../../common/testProfileService.js';
 import { HydratedTestResult, LiveTestResult, TaskRawOutput, TestResultItemChange, TestResultItemChangeReason, resultItemParents } from '../../common/testResult.js';
 import { TestResultService } from '../../common/testResultService.js';
-import { ITestResultStorage, InMemoryResultStorage } from '../../common/testResultStorage.js';
+import { ITestResultStorage, InMemoryResultStorage, RETAIN_MAX_RESULTS } from '../../common/testResultStorage.js';
 import { ITestTaskState, ResolvedTestRunRequest, TestResultItem, TestResultState, TestRunProfileBitset } from '../../common/testTypes.js';
 import { makeEmptyCounts } from '../../common/testingStates.js';
 import { TestTestCollection, getInitializedMainTestCollection, testStubs } from './testStubs.js';
@@ -330,6 +330,66 @@ suite('Workbench - Test Results Service', () => {
 			const hydrated2 = await makeHydrated(30);
 			results.push(hydrated2);
 			assert.deepStrictEqual(results.results, [r, hydrated1, hydrated2]);
+		});
+
+		const createServiceWithStorage = (resultStorage: ITestResultStorage) => ds.add(new TestTestResultService(
+			new MockContextKeyService(),
+			resultStorage,
+			ds.add(new TestProfileService(new MockContextKeyService(), ds.add(new TestStorageService()))),
+			NullTelemetryService,
+		));
+
+		test('evicting the oldest result keeps live results that stay in the list working', async () => {
+			results = createServiceWithStorage(upcastPartial<ITestResultStorage>({ read: async () => [], persist: async () => { } }));
+			for (let i = 0; i < RETAIN_MAX_RESULTS - 1; i++) {
+				results.push(await makeHydrated(1000 - i));
+			}
+			results.push(r);
+			const evicted = results.results[results.results.length - 1];
+			results.push(await makeHydrated(2000));
+
+			const changedResults: unknown[] = [];
+			const completed: unknown[] = [];
+			ds.add(results.onTestChanged(e => changedResults.push(e.result)));
+			ds.add(results.onResultsChanged(e => 'completed' in e && completed.push(e.completed)));
+			r.updateState(new TestId(['ctrlId', 'id-a', 'id-aa']).toString(), 't', TestResultState.Passed);
+			r.markComplete();
+
+			assert.deepStrictEqual({
+				length: results.results.length,
+				evicted: results.results.includes(evicted),
+				kept: results.results.includes(r),
+				forwardedChange: changedResults.includes(r),
+				completed,
+			}, {
+				length: RETAIN_MAX_RESULTS,
+				evicted: false,
+				kept: true,
+				forwardedChange: true,
+				completed: [r],
+			});
+		});
+
+		test('does not overlap persists', async () => {
+			let active = 0;
+			let maxActive = 0;
+			let persists = 0;
+			const slowStorage = upcastPartial<ITestResultStorage>({
+				read: async () => [],
+				persist: async () => {
+					persists++;
+					maxActive = Math.max(maxActive, ++active);
+					await timeout(5);
+					active--;
+				},
+			});
+			const service = createServiceWithStorage(slowStorage);
+
+			service.push(await makeHydrated(10));
+			service.push(await makeHydrated(20));
+			await timeout(30);
+
+			assert.deepStrictEqual({ persists, maxActive }, { persists: 2, maxActive: 1 });
 		});
 	});
 

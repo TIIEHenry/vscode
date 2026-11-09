@@ -67,7 +67,8 @@ export class DebugService implements IDebugService {
 	private readonly _onDidNewSession: Emitter<IDebugSession>;
 	private readonly _onWillNewSession: Emitter<IDebugSession>;
 	private readonly _onDidEndSession: Emitter<{ session: IDebugSession; restart: boolean }>;
-	private readonly restartingSessions = new Set<IDebugSession>();
+	/** Sessions with a restart in flight, mapped to the identity of their latest restart attempt. */
+	private readonly restartingSessions = new Map<IDebugSession, object>();
 	private debugStorage: DebugStorage;
 	private model: DebugModel;
 	private viewModel: ViewModel;
@@ -901,20 +902,27 @@ export class DebugService implements IDebugService {
 		session.configuration.__restart = restartData;
 
 		const doRestart = async (fn: () => Promise<boolean | undefined>) => {
-			this.restartingSessions.add(session);
+			const attempt = {};
+			this.restartingSessions.set(session, attempt);
 			let didRestart = false;
 			try {
 				didRestart = (await fn()) !== false;
 			} catch (e) {
 				didRestart = false;
+				if (this.restartingSessions.get(session) !== attempt) {
+					// a newer restart of this session superseded this one and reports the outcome
+					return;
+				}
 				throw e;
 			} finally {
-				this.restartingSessions.delete(session);
-				// we previously may have issued an onDidEndSession with restart: true,
-				// assuming the adapter exited (in `registerSessionListeners`). But the
-				// restart failed, so emit the final termination now.
-				if (!didRestart) {
-					this._onDidEndSession.fire({ session, restart: false });
+				if (this.restartingSessions.get(session) === attempt) {
+					this.restartingSessions.delete(session);
+					// we previously may have issued an onDidEndSession with restart: true,
+					// assuming the adapter exited (in `registerSessionListeners`). But the
+					// restart failed, so emit the final termination now.
+					if (!didRestart) {
+						this._onDidEndSession.fire({ session, restart: false });
+					}
 				}
 			}
 		};

@@ -238,6 +238,8 @@ export class InlineCompletionsSource extends Disposable {
 				let producedSuggestion = false;
 
 				const providerSuggestions: InlineSuggestionItem[] = [];
+				// Cross-file model references stay owned by `store` until their suggestion is adopted by the new state.
+				const modelRefsByIdentity = new Map<InlineSuggestionIdentity, IDisposable>();
 				for await (const list of providerResult.lists) {
 					if (!list) {
 						continue;
@@ -263,7 +265,7 @@ export class InlineCompletionsSource extends Disposable {
 						let disposable: IDisposable | undefined;
 
 						if (targetUri && targetUri.toString() !== this._textModel.uri.toString()) {
-							const modelRef = await this._textModelService.createModelReference(targetUri);
+							const modelRef = store.add(await this._textModelService.createModelReference(targetUri));
 							targetModel = modelRef.object.textEditorModel;
 							disposable = modelRef;
 						} else {
@@ -275,10 +277,7 @@ export class InlineCompletionsSource extends Disposable {
 
 						const i = InlineSuggestionItem.create(item, ref);
 						if (disposable) {
-							const s = runOnChange(i.identity.onDispose, () => {
-								disposable?.dispose();
-								s.dispose();
-							});
+							modelRefsByIdentity.set(i.identity, disposable);
 						}
 
 						item.addPerformanceMarker('itemCreated');
@@ -413,6 +412,20 @@ export class InlineCompletionsSource extends Disposable {
 					v.inlineCompletions.dispose();
 					v.suggestWidgetInlineCompletions.dispose();
 				});
+
+				const newState = this._state.get();
+				for (const adopted of [...newState.inlineCompletions.inlineCompletions, ...newState.suggestWidgetInlineCompletions.inlineCompletions]) {
+					const modelRef = modelRefsByIdentity.get(adopted.identity);
+					if (!modelRef) {
+						continue;
+					}
+					modelRefsByIdentity.delete(adopted.identity);
+					store.deleteAndLeak(modelRef);
+					const s = runOnChange(adopted.identity.onDispose, () => {
+						modelRef.dispose();
+						s.dispose();
+					});
+				}
 			} finally {
 				store.dispose();
 				decreaseLoadingCount();

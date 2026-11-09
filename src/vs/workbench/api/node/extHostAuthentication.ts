@@ -18,6 +18,7 @@ import { Proxied } from '../../services/extensions/common/proxyIdentifier.js';
 import { IAuthorizationServerMetadata, IAuthorizationProtectedResourceMetadata, IAuthorizationTokenResponse, IAuthorizationDeviceResponse, isAuthorizationDeviceResponse, isAuthorizationTokenResponse, IAuthorizationDeviceTokenErrorResponse, AuthorizationErrorType, AuthorizationDeviceCodeErrorType } from '../../../base/common/oauth.js';
 import { Emitter } from '../../../base/common/event.js';
 import { raceCancellationError } from '../../../base/common/async.js';
+import { CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { IExtHostProgress } from '../common/extHostProgress.js';
 import { IProgressStep } from '../../../platform/progress/common/progress.js';
 import { CancellationError, isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
@@ -147,8 +148,9 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 
 		const promise = server.waitForOAuthResponse();
 		// Set up a Uri Handler but it's just to redirect not to handle the code
+		const uriHandlerCts = new CancellationTokenSource(token);
 		if (!this._isDisposed) {
-			void this._proxy.$waitForUriHandler(appUri).catch(onUnexpectedError);
+			void this._proxy.$waitForUriHandler(appUri, uriHandlerCts.token).catch(onUnexpectedError);
 		}
 
 		try {
@@ -186,6 +188,7 @@ export class NodeDynamicAuthProvider extends DynamicAuthProvider {
 			setTimeout(() => {
 				this._servers.delete(server);
 				void server.stop();
+				uriHandlerCts.dispose(true);
 			}, 5000);
 		}
 	}
