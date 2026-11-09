@@ -3,8 +3,8 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-11-06
-summary: "PRD-016 / ADR-002 的系统规格（2026-10-24 删除会话先确认）：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题；栏上新建 / 删除 / 改名禁用时写出原因"
+updated: 2026-11-07
+summary: "PRD-016 / ADR-002 的系统规格（2026-10-24 删除会话先确认）：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 roster 会话的 Fork 转 AgentService.Fork，内容提供方会话 fork 不论接通都开 Fork 延伸 tab；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题；栏上新建 / 删除 / 改名禁用时写出原因"
 ---
 
 # Conversation session 窗口与 chat tab
@@ -62,7 +62,7 @@ CONVERSATION_PART
 
 ## 3. chat catalog：root / fork / tool / sideChat
 
-`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。传输 `forkAgent?` **已进** `AgentService.Fork` catalog + node unary。接通后用户 Fork 动作转发 `IConversationRosterService.forkSubAgent` → 该 unary（空父 id 用末条 streaming 否则 `root`），**不**开本地 Fork tab、不造 catalog id；未接通仍走 `registerForkChat`。传输 `killAgent?` **已进** `AgentService.Kill` catalog + node unary。接通后用户 Kill 动作 / `IConversationRosterService.killSubAgent` 转发该 unary（空 `agentId` 原样上线、**不**默认 `root`；省略用末条 streaming 否则空串；≠ Cancel）。**不**造本地 catalog 变更。未接通 / 断连缓存 / 无 hook 不发。Navigator 仍只读，不挂 Kill 钮。完整活会话权威仍依赖 PRD-008。
+`IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。stub 期 catalog 来自内存 fixture。引擎接通后 **GC-4**：roster 观察活动会话 lease 的 `liveAgentTree` 预同步非根 catalog（`chatId` ≡ `agent_id`，根不登记）。传输 `forkAgent?` **已进** `AgentService.Fork` catalog + node unary。接通后用户 Fork 只在来源是 roster 会话（`conversation-chat:` 资源且 sessionKey 在 roster 目录中）时转发 `IConversationRosterService.forkSubAgent` → 该 unary（空父 id 用末条 streaming 否则 `root`），**不**开本地 Fork tab、不造 catalog id。其余来源不论是否接通都走 Chat fork：内容提供方会话的 fork 结果开成本会话的 Fork 延伸 tab（`registerForkChat` → `openForkTab`），本地 chat 的 fork 开回 Chat 视图。传输 `killAgent?` **已进** `AgentService.Kill` catalog + node unary。接通后用户 Kill 动作 / `IConversationRosterService.killSubAgent` 转发该 unary（空 `agentId` 原样上线、**不**默认 `root`；省略用末条 streaming 否则空串；≠ Cancel）。**不**造本地 catalog 变更。未接通 / 断连缓存 / 无 hook 不发。Navigator 仍只读，不挂 Kill 钮。完整活会话权威仍依赖 PRD-008。
 `IConversationSessionChatService` 按 session 维护 `IConversationSessionChatEntry[]`（`chatId`、`title`、`originKind ∈ user | fork | tool | sideChat`、`parentChatId`），与协议 `ChatOrigin` 四 kind 对齐。用户 Fork 仍走本地 `registerForkChat`（无 `Fork` RPC）。**HEAD** 已按 [m7-gap-closeout GC-4](../../../dev/plans/m7-gap-closeout.md)（`implemented`）接线：roster 的观察 lease 驱动 `syncSubAgentsFromLiveTree` + `conversationLiveAgentCatalog`，把 `liveAgentTree` 非根节点投成 `originKind:'tool'`（只增不减，同 id 改名就地更新；引擎 `root` → chat id `default`）；点击 / Reveal 时的惰性 `registerSubAgentChat` 仍保留。活 `Fork` RPC / 会话权威仍依赖 [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)，不得升 `implemented`。
 
 | 用户动作 | 服务调用 | 结果 |

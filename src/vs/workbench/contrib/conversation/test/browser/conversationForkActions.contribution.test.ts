@@ -65,4 +65,37 @@ suite('ConversationForkConversationAction', () => {
 			options: { sessionTypeSelectionReason: 'currentSession' },
 		});
 	});
+
+	test('contributed chat fork opens as a conversation fork tab whether or not the engine is connected', async () => {
+		const forkedSessionResource = URI.parse('agent-host-copilot:/demo#fork');
+		const openedVia = async (engineConnected: boolean) => {
+			const instantiationService = disposables.add(new TestInstantiationService());
+			instantiationService.stub(IWorkbenchEnvironmentService, upcastPartial<IWorkbenchEnvironmentService>({ isSessionsWindow: false }));
+			instantiationService.stub(IConversationRosterService, upcastPartial<IConversationRosterService>({
+				isEngineConnected: () => engineConnected,
+			}));
+			instantiationService.stub(IChatSessionsService, upcastPartial<IChatSessionsService>({
+				getContentProviderSchemes: () => ['agent-host-copilot'],
+			}));
+			const opened: string[] = [];
+			instantiationService.stub(IConversationSessionChatService, upcastPartial<IConversationSessionChatService>({
+				openForkTab: async resource => {
+					opened.push(`forkTab:${resource.toString()}`);
+				},
+			}));
+			instantiationService.stub(IChatWidgetService, upcastPartial<IChatWidgetService>({
+				openSession: async resource => {
+					opened.push(`chatView:${resource.toString()}`);
+					return undefined;
+				},
+			}));
+			await new TestConversationForkConversationAction().openForkedSession(instantiationService, URI.parse('agent-host-copilot:/demo'), forkedSessionResource);
+			return opened;
+		};
+
+		assert.deepStrictEqual({ disconnected: await openedVia(false), connected: await openedVia(true) }, {
+			disconnected: [`forkTab:${forkedSessionResource.toString()}`],
+			connected: [`forkTab:${forkedSessionResource.toString()}`],
+		});
+	});
 });
