@@ -177,6 +177,15 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		assert.deepStrictEqual(calls, [profile, trigger]);
 	});
 
+	test('GetPermissionMode crosses desktop client and host allowlist', async () => {
+		const calls: string[] = [];
+		const service = { team: new FakeWindowService().team, getConnectionSnapshot: () => ({ pairingPending: false }), isEngineConnected: () => false, getPermissionMode: async (request: { sessionId: string }) => { calls.push(request.sessionId); return { mode: 'SESSION_TOOL_PERMISSION_MODE_AGENT' }; } };
+		const inner = ProxyChannel.fromService<string>(service, store.add(new DisposableStore()));
+		const channel = new UniverseAgentConnectionIpcChannel(service, inner);
+		const client = store.add(new UniverseAgentConnectionChannelClient({ call: (command, arg) => channel.call('ctx', command, arg), listen: () => Event.None }));
+		assert.deepStrictEqual({ result: await client.getPermissionMode?.({ sessionId: 'actual' }), calls }, { result: { mode: 'SESSION_TOOL_PERMISSION_MODE_AGENT' }, calls: ['actual'] });
+	});
+
 	test('GetQueue crosses desktop client and host allowlist without losing version precision', async () => {
 		const calls: string[] = [];
 		const state = { items: [], isPaused: false, isProcessing: false, pauseReason: 'NONE', version: '9007199254740993' };

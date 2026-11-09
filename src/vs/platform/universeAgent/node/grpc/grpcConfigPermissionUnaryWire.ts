@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type {
+	UniverseAgentGetPermissionModeRequest,
+	UniverseAgentGetPermissionModeResult,
 	UniverseAgentPermissionPolicy,
 	UniverseAgentSetClientToolProfileRequest,
 	UniverseAgentSetClientToolProfileResult,
@@ -85,4 +87,22 @@ export function decodeSetClientToolProfileResponse(bytes: Uint8Array): UniverseA
 	return lastVarint(fields, 1) === 1n
 		? { ok: true, ...(error ? { error } : {}) }
 		: { ok: false, ...(error ? { error } : {}) };
+}
+
+/** PermissionService.GetPermissionMode — session_id=1. */
+export function encodeGetPermissionModeRequest(request: UniverseAgentGetPermissionModeRequest): Uint8Array {
+	return encodeStringField(1, request.sessionId);
+}
+
+/**
+ * GetPermissionModeResponse — mode=1 (SessionToolPermissionModeProto ASK=1 AGENT=2 PERMIT=3).
+ * proto3 omits 0; a missing or unknown number reads as UNSPECIFIED.
+ */
+export function decodeGetPermissionModeResponse(bytes: Uint8Array): UniverseAgentGetPermissionModeResult {
+	switch (lastVarint(readProtoFields(bytes), 1)) {
+		case 1n: return { mode: 'SESSION_TOOL_PERMISSION_MODE_ASK' };
+		case 2n: return { mode: 'SESSION_TOOL_PERMISSION_MODE_AGENT' };
+		case 3n: return { mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' };
+		default: return { mode: 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED' };
+	}
 }

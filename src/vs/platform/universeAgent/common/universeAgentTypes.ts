@@ -79,6 +79,7 @@ export interface UniverseAgentConversationEntryCapability {
 	readonly getMcpServerTools: UniverseAgentCapabilitySupport;
 	readonly setSessionGoal: UniverseAgentCapabilitySupport;
 	readonly setPermissionMode: UniverseAgentCapabilitySupport;
+	readonly getPermissionMode: UniverseAgentCapabilitySupport;
 	readonly setClientToolProfile: UniverseAgentCapabilitySupport;
 	readonly registerSessionEngineTrigger: UniverseAgentCapabilitySupport;
 	readonly getQueue: UniverseAgentCapabilitySupport;
@@ -1164,6 +1165,16 @@ export type UniverseAgentSetPermissionModeResult =
 		readonly ok: false;
 		readonly message?: string;
 	};
+
+/** PermissionService.GetPermissionMode — the gate the engine applies now, not a client preference. */
+export interface UniverseAgentGetPermissionModeRequest {
+	readonly sessionId: string;
+}
+
+export interface UniverseAgentGetPermissionModeResult {
+	/** UNSPECIFIED when the engine sent no mode or a number this client does not know. */
+	readonly mode: UniverseAgentSessionToolPermissionMode;
+}
 
 /** PermissionService.SetClientToolProfile; UNSPECIFIED is never an editable profile. */
 export type UniverseAgentClientToolProfile = 'CLIENT_TOOL_PROFILE_ALL' | 'CLIENT_TOOL_PROFILE_READ_ONLY' | 'CLIENT_TOOL_PROFILE_NONE';

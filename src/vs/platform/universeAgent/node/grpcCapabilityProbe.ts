@@ -363,6 +363,13 @@ const CONVERSATION_ENTRY_PROBE_TARGETS: Partial<Record<keyof UniverseAgentConver
 		method: UniverseAgentGrpcServices.Permission.SetPermissionMode,
 		methodKey: 'PermissionService.SetPermissionMode',
 	},
+	getPermissionMode: {
+		service: UniverseAgentGrpcServices.Permission.service,
+		method: UniverseAgentGrpcServices.Permission.GetPermissionMode,
+		methodKey: 'PermissionService.GetPermissionMode',
+		// Empty session is rejected before the session lookup: a read-only probe.
+		acceptsInvalidArgument: true,
+	},
 	setClientToolProfile: {
 		service: UniverseAgentGrpcServices.Permission.service,
 		method: UniverseAgentGrpcServices.Permission.SetClientToolProfile,
