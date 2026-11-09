@@ -295,6 +295,8 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async getPermissionMode(): Promise<never> { throw new Error('Not implemented in this fixture'); }
+
 	async taskUpdate(): Promise<{ ok: false }> {
 		return { ok: false };
 	}

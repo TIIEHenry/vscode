@@ -121,6 +121,8 @@ import type {
 	UniverseAgentRegisterSessionEngineTriggerRequest,
 	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
+	UniverseAgentGetPermissionModeRequest,
+	UniverseAgentGetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
 	UniverseAgentTaskCancelRequest,
@@ -844,6 +846,13 @@ export interface IUniverseAgentConnection {
 	 * PromotePermissionRule / GetSessionRules.
 	 */
 	setPermissionMode?(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
+
+	/**
+	 * PermissionService.GetPermissionMode unary: the Ask/Agent/Permit gate the
+	 * engine applies to the session now. Requires explicit advertised/probed
+	 * support (`conversationEntryCapability.getPermissionMode`).
+	 */
+	getPermissionMode?(request: UniverseAgentGetPermissionModeRequest): Promise<UniverseAgentGetPermissionModeResult>;
 
 	/**
 	 * TeamService.TaskUpdate unary (blackboard task status overwrite). Optional

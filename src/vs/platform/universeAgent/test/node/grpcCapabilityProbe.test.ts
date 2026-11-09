@@ -14,7 +14,7 @@ suite('grpc capability probe advertisement', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('new session writes require explicit support even when a proxy method exists', () => {
-		for (const key of ['setClientToolProfile', 'registerSessionEngineTrigger'] as const) {
+		for (const key of ['setClientToolProfile', 'registerSessionEngineTrigger', 'getPermissionMode'] as const) {
 			assert.strictEqual(conversationEntryHookPresent(undefined, key, () => { }), false);
 			for (const support of ['UNKNOWN', 'UNSUPPORTED', 'SUPPORTED'] as const) {
 				const snapshot = { conversationEntryCapability: { ...createUnknownConversationEntryCapability(), [key]: support } };
@@ -38,12 +38,15 @@ suite('grpc capability probe advertisement', () => {
 			const hidden = await probeConversationEntryCapability({ methods: [], transport });
 			assert.strictEqual(hidden.setClientToolProfile, 'UNSUPPORTED');
 			assert.strictEqual(hidden.registerSessionEngineTrigger, 'UNSUPPORTED');
+			assert.strictEqual(hidden.getPermissionMode, 'UNSUPPORTED');
 			assert.deepStrictEqual(calls, []);
-			const snapshot = await probeConversationEntryCapability({ methods: ['PermissionService.SetClientToolProfile', 'TriggerService.RegisterSessionEngineTrigger'], transport });
+			const snapshot = await probeConversationEntryCapability({ methods: ['PermissionService.GetPermissionMode', 'PermissionService.SetClientToolProfile', 'TriggerService.RegisterSessionEngineTrigger'], transport });
 			const ordinary = status === GrpcStatusCode.OK ? 'SUPPORTED' : status === GrpcStatusCode.UNIMPLEMENTED ? 'UNSUPPORTED' : 'UNKNOWN';
+			const emptySessionRejected = status === GrpcStatusCode.INVALID_ARGUMENT ? 'SUPPORTED' : ordinary;
 			assert.strictEqual(snapshot.setClientToolProfile, ordinary);
-			assert.strictEqual(snapshot.registerSessionEngineTrigger, status === GrpcStatusCode.INVALID_ARGUMENT ? 'SUPPORTED' : ordinary);
-			assert.deepStrictEqual(calls.splice(0), ['SetClientToolProfile', 'RegisterSessionEngineTrigger']);
+			assert.strictEqual(snapshot.registerSessionEngineTrigger, emptySessionRejected);
+			assert.strictEqual(snapshot.getPermissionMode, emptySessionRejected);
+			assert.deepStrictEqual(calls.splice(0), ['GetPermissionMode', 'SetClientToolProfile', 'RegisterSessionEngineTrigger']);
 		}
 	});
 

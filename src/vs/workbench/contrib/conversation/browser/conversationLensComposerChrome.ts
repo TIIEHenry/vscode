@@ -51,7 +51,7 @@ import {
 } from './conversationLensDockStrings.js';
 import { getContextViewEventTarget, isContextViewClick, registerComposerPopupEscape } from './conversationContextViewEvent.js';
 import { ConversationComposerModel, type ComposerPolicy } from './conversationComposerModel.js';
-import type { ConversationSessionConfigSelection, IConversationSessionChoiceService, SessionChoiceEpochWait, SessionModelEpoch, SessionPermissionEpoch } from './conversationSessionChoiceService.js';
+import { SESSION_TOOL_PERMISSION_MODES, type ConversationSessionConfigSelection, type IConversationSessionChoiceService, type SessionChoiceEpochWait, type SessionModelEpoch, type SessionPermissionEpoch } from './conversationSessionChoiceService.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
 import { ENGINE_MODELS_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -72,7 +72,6 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IComposerAddHost, toggleComposerAddContext } from './conversationComposerAt.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, conversationUserBodyText, turnEditLoadedPayload } from './conversationComposerRefs.js';
@@ -83,12 +82,6 @@ const COMPOSER_PERMISSION_OPTIONS = [
 	conversationLensDockPermissionAgent,
 	conversationLensDockPermissionPermit,
 ] as const;
-
-const SESSION_TOOL_PERMISSION_MODES: readonly UniverseAgentSessionToolPermissionMode[] = [
-	'SESSION_TOOL_PERMISSION_MODE_ASK',
-	'SESSION_TOOL_PERMISSION_MODE_AGENT',
-	'SESSION_TOOL_PERMISSION_MODE_PERMIT',
-];
 
 export const conversationLensDockPermissionUnavailable = localize(
 	'conversationLens.dockPermissionUnavailable',

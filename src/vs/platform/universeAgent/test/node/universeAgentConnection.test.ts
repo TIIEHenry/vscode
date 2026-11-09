@@ -122,6 +122,8 @@ import type {
 	UniverseAgentRegisterSessionEngineTriggerRequest,
 	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
+	UniverseAgentGetPermissionModeRequest,
+	UniverseAgentGetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
 	UniverseAgentTaskCancelRequest,
@@ -845,6 +847,14 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
 		this.setPermissionModeCalls.push(request);
 		return this.setPermissionModeResult;
+	}
+
+	readonly getPermissionModeCalls: UniverseAgentGetPermissionModeRequest[] = [];
+	getPermissionModeResult: UniverseAgentGetPermissionModeResult = { mode: 'SESSION_TOOL_PERMISSION_MODE_AGENT' };
+
+	async getPermissionMode(request: UniverseAgentGetPermissionModeRequest): Promise<UniverseAgentGetPermissionModeResult> {
+		this.getPermissionModeCalls.push(request);
+		return this.getPermissionModeResult;
 	}
 
 	readonly taskUpdateCalls: UniverseAgentTaskUpdateRequest[] = [];
@@ -6368,6 +6378,23 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(transport.setPermissionModeCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.setPermissionModeCalls[1]?.mode, 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED');
 		service.dispose();
+	});
+
+	test('getPermissionMode forwards the session id and returns the engine mode', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+		try {
+			await connectPlainFixture(service);
+			transport.getPermissionModeResult = { mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' };
+			assert.deepStrictEqual(await service.getPermissionMode({ sessionId: 'sess-1' }), { mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' });
+			assert.deepStrictEqual(transport.getPermissionModeCalls, [{ sessionId: 'sess-1' }]);
+		} finally {
+			service.dispose();
+		}
 	});
 
 	test('taskUpdate forwards request and maps result', async () => {

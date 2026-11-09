@@ -788,6 +788,7 @@ export class ConversationLens extends Disposable {
 	bindSessionView(sessionId: string): void {
 		this.sessionViewBindingSuspended = false;
 		bindSessionView(this, sessionId);
+		this.sessionChoiceService.readBackPermissionMode(sessionId).catch(onUnexpectedError);
 	}
 
 	releaseSessionViewLeaseForHiddenLeaf(): void {

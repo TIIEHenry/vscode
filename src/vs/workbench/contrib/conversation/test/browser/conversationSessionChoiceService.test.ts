@@ -6,7 +6,8 @@
 import assert from 'assert';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentConnectionSnapshot, UniverseAgentGetPermissionModeResult, UniverseAgentSessionToolPermissionMode } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { applySessionModelIndex, applySessionPermissionIndex, paintSessionChoice, syncSessionConfigSelects, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import type { IConversationSessionChoiceService } from '../../browser/conversationSessionChoiceService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -23,6 +24,7 @@ suite('ConversationSessionChoiceService', () => {
 
 	function modelView(service: IConversationSessionChoiceService, switchModel: (modelId: string) => Promise<ModelResponse>, setPermissionMode?: (mode: string) => Promise<{ ok: boolean }>) {
 		const selects: number[] = [];
+		const permissionSelects: number[] = [];
 		const view = {
 			isDisposed: false,
 			composerModel: createTestComposerModel(store),
@@ -34,7 +36,7 @@ suite('ConversationSessionChoiceService', () => {
 			sendButton: { enabled: true },
 			gateRow: document.createElement('div'),
 			gateLabel: document.createElement('span'),
-			permissionSelectBox: { select() { } },
+			permissionSelectBox: { select(index: number) { permissionSelects.push(index); } },
 			agentSelectBox: { select() { } },
 			modelSelectBox: {
 				select(index: number) {
@@ -56,7 +58,7 @@ suite('ConversationSessionChoiceService', () => {
 		};
 		const host = view as unknown as IConversationLensComposerChromeHost;
 		store.add(service.onDidChangeSessionChoice(id => paintSessionChoice(host, id)));
-		return { view, host, selects };
+		return { view, host, selects, permissionSelects };
 	}
 
 	function accepted(modelId: string): Promise<ModelResponse> {
@@ -252,5 +254,109 @@ suite('ConversationSessionChoiceService', () => {
 		snapshot = { ...snapshot, linkId: undefined };
 		onDidChangeConnection.fire(snapshot);
 		assert.strictEqual(service.modelProfileIdBySessionId.size, 0);
+	});
+
+	function readBackService(getPermissionMode: (sessionId: string) => Promise<UniverseAgentGetPermissionModeResult>, support: UniverseAgentCapabilitySupport = 'SUPPORTED') {
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let snapshot: UniverseAgentConnectionSnapshot = {
+			...createConversationConnectionTestStub().getConnectionSnapshot(),
+			linkId: 1,
+			conversationEntryCapability: { ...createUnknownConversationEntryCapability(), getPermissionMode: support },
+		};
+		const connection = createConversationConnectionTestStub({
+			getConnectionSnapshot: () => snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			getPermissionMode: request => getPermissionMode(request.sessionId),
+		});
+		const service = createTestSessionChoiceService(store, { connection });
+		return {
+			service,
+			changeLink(linkId: number) {
+				snapshot = { ...snapshot, linkId };
+				onDidChangeConnection.fire(snapshot);
+			},
+		};
+	}
+
+	test('a bound session shows the mode the engine applies and a failed choice rolls back to it', async () => {
+		const reads: string[] = [];
+		const { service } = readBackService(id => {
+			reads.push(id);
+			return Promise.resolve({ mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' });
+		});
+		const view = modelView(service, accepted, () => Promise.resolve({ ok: false }));
+
+		await service.readBackPermissionMode(sessionId);
+		await service.readBackPermissionMode(sessionId);
+		const shownAfterRead = view.permissionSelects.at(-1);
+		await applySessionPermissionIndex(view.host, sessionId, 0);
+
+		assert.deepStrictEqual({
+			reads,
+			shownAfterRead,
+			shownAfterFailure: view.permissionSelects.at(-1),
+			permissionIndex: service.sessionConfigBySessionId.get(sessionId)?.permissionIndex,
+		}, { reads: [sessionId], shownAfterRead: 2, shownAfterFailure: 2, permissionIndex: 2 });
+	});
+
+	test('the read needs explicit support, and a failed or unknown read keeps the local choice', async () => {
+		for (const support of ['UNKNOWN', 'UNSUPPORTED'] as const) {
+			let calls = 0;
+			const { service } = readBackService(() => {
+				calls++;
+				return Promise.resolve({ mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' });
+			}, support);
+			await service.readBackPermissionMode(sessionId);
+			assert.deepStrictEqual({ support, calls, size: service.sessionConfigBySessionId.size }, { support, calls: 0, size: 0 });
+		}
+
+		const replies: Array<() => Promise<UniverseAgentGetPermissionModeResult>> = [
+			() => Promise.reject(new Error('Session not found')),
+			() => Promise.resolve({ mode: 'SESSION_TOOL_PERMISSION_MODE_UNSPECIFIED' }),
+		];
+		let calls = 0;
+		const { service } = readBackService(() => replies[calls++]());
+		service.sessionConfigBySessionId.set(sessionId, { agentIndex: 0, permissionIndex: 1 });
+		await service.readBackPermissionMode(sessionId);
+		await service.readBackPermissionMode(sessionId);
+		await service.readBackPermissionMode(sessionId);
+		assert.deepStrictEqual({ calls, config: service.sessionConfigBySessionId.get(sessionId) }, { calls: 2, config: { agentIndex: 0, permissionIndex: 1 } });
+	});
+
+	test('a choice made while the read is out wins over the engine value', async () => {
+		let release: (() => void) | undefined;
+		const { service } = readBackService(() => new Promise(resolve => {
+			release = () => resolve({ mode: 'SESSION_TOOL_PERMISSION_MODE_PERMIT' });
+		}));
+		const view = modelView(service, accepted, () => Promise.resolve({ ok: true }));
+
+		const read = service.readBackPermissionMode(sessionId);
+		await applySessionPermissionIndex(view.host, sessionId, 1);
+		release!();
+		await read;
+
+		assert.deepStrictEqual({
+			permissionIndex: service.sessionConfigBySessionId.get(sessionId)?.permissionIndex,
+			confirmedIndex: service.permissionEpoch(sessionId, 0).confirmedIndex,
+		}, { permissionIndex: 1, confirmedIndex: 1 });
+	});
+
+	test('a read from the previous link writes nothing and the new link reads again once', async () => {
+		const answers: Array<(mode: UniverseAgentSessionToolPermissionMode) => void> = [];
+		const { service, changeLink } = readBackService(() => new Promise(resolve => answers.push(mode => resolve({ mode }))));
+
+		const oldRead = service.readBackPermissionMode(sessionId);
+		changeLink(2);
+		const newRead = service.readBackPermissionMode(sessionId);
+		answers[1]('SESSION_TOOL_PERMISSION_MODE_AGENT');
+		await newRead;
+		answers[0]('SESSION_TOOL_PERMISSION_MODE_PERMIT');
+		await oldRead;
+		await service.readBackPermissionMode(sessionId);
+
+		assert.deepStrictEqual({
+			calls: answers.length,
+			permissionIndex: service.sessionConfigBySessionId.get(sessionId)?.permissionIndex,
+		}, { calls: 2, permissionIndex: 1 });
 	});
 });

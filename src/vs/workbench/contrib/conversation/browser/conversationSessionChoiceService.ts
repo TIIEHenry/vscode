@@ -6,7 +6,16 @@
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+
+/** Permission select order: Ask is 0, Agent is 1, Permit is 2. */
+export const SESSION_TOOL_PERMISSION_MODES: readonly UniverseAgentSessionToolPermissionMode[] = [
+	'SESSION_TOOL_PERMISSION_MODE_ASK',
+	'SESSION_TOOL_PERMISSION_MODE_AGENT',
+	'SESSION_TOOL_PERMISSION_MODE_PERMIT',
+];
 
 export interface ConversationSessionConfigSelection {
 	agentIndex: number;
@@ -61,6 +70,13 @@ export interface IConversationSessionChoiceService {
 	isCurrentPermissionEpoch(sessionId: string, epoch: SessionPermissionEpoch): boolean;
 	isCurrentModelEpoch(sessionId: string, epoch: SessionModelEpoch): boolean;
 	fireSessionChoiceChanged(sessionId: string): void;
+	/**
+	 * Reads the mode the engine applies to the session and makes it the
+	 * confirmed permission choice. At most one successful read per session per
+	 * link. Unsupported, failed, or unknown-mode reads keep the current value;
+	 * a choice made while the read was out wins over it.
+	 */
+	readBackPermissionMode(sessionId: string): Promise<void>;
 }
 
 export class ConversationSessionChoiceService extends Disposable implements IConversationSessionChoiceService {
@@ -74,10 +90,12 @@ export class ConversationSessionChoiceService extends Disposable implements ICon
 	readonly modelProfileIdBySessionId = new Map<string, string>();
 	private readonly permissionEpochs = new Map<string, SessionPermissionEpoch>();
 	private readonly modelEpochs = new Map<string, SessionModelEpoch>();
+	/** Sessions read on this link, or with a read in flight. A failed read leaves no entry, so the next bind retries. */
+	private readonly permissionReads = new Set<string>();
 	private linkId: number | undefined;
 
 	constructor(
-		@IUniverseAgentConnection uaConnection: IUniverseAgentConnection,
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 		this.linkId = uaConnection.getConnectionSnapshot().linkId;
@@ -91,6 +109,7 @@ export class ConversationSessionChoiceService extends Disposable implements ICon
 			this.modelProfileIdBySessionId.clear();
 			this.permissionEpochs.clear();
 			this.modelEpochs.clear();
+			this.permissionReads.clear();
 			for (const sessionId of sessionIds) {
 				this._onDidChangeSessionChoice.fire(sessionId);
 			}
@@ -144,6 +163,36 @@ export class ConversationSessionChoiceService extends Disposable implements ICon
 	}
 
 	fireSessionChoiceChanged(sessionId: string): void {
+		this._onDidChangeSessionChoice.fire(sessionId);
+	}
+
+	async readBackPermissionMode(sessionId: string): Promise<void> {
+		const getPermissionMode = this.uaConnection.getPermissionMode;
+		if (!sessionId || !getPermissionMode || this.permissionReads.has(sessionId)
+			|| !conversationEntryHookPresent(this.uaConnection.getConnectionSnapshot(), 'getPermissionMode', getPermissionMode)) {
+			return;
+		}
+		const epoch = this.permissionEpoch(sessionId, this.sessionConfigBySessionId.get(sessionId)?.permissionIndex ?? 0);
+		const generation = epoch.generation;
+		this.permissionReads.add(sessionId);
+		let mode: UniverseAgentSessionToolPermissionMode;
+		try {
+			mode = (await getPermissionMode.call(this.uaConnection, { sessionId })).mode;
+		} catch {
+			// NOT_FOUND until the engine has loaded the session; the local value stays.
+			if (this.isCurrentPermissionEpoch(sessionId, epoch)) {
+				this.permissionReads.delete(sessionId);
+			}
+			return;
+		}
+		const index = SESSION_TOOL_PERMISSION_MODES.indexOf(mode);
+		if (index < 0 || !this.isCurrentPermissionEpoch(sessionId, epoch) || epoch.inFlight || epoch.generation !== generation) {
+			return;
+		}
+		epoch.confirmedIndex = index;
+		epoch.targetIndex = index;
+		const config = this.sessionConfigBySessionId.get(sessionId) ?? { agentIndex: 0, permissionIndex: 0 };
+		this.sessionConfigBySessionId.set(sessionId, { ...config, permissionIndex: index });
 		this._onDidChangeSessionChoice.fire(sessionId);
 	}
 }

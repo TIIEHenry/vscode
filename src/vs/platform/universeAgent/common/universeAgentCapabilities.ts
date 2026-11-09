@@ -94,6 +94,7 @@ export const UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS = [
 	'getMcpServerTools',
 	'setSessionGoal',
 	'setPermissionMode',
+	'getPermissionMode',
 	'setClientToolProfile',
 	'registerSessionEngineTrigger',
 	'getQueue',
@@ -139,6 +140,7 @@ export function readConversationEntryCapability(snapshot: { readonly conversatio
 		getMcpServerTools: normalizeCapabilitySupport(raw?.getMcpServerTools),
 		setSessionGoal: normalizeCapabilitySupport(raw?.setSessionGoal),
 		setPermissionMode: normalizeCapabilitySupport(raw?.setPermissionMode),
+		getPermissionMode: normalizeCapabilitySupport(raw?.getPermissionMode),
 		setClientToolProfile: normalizeCapabilitySupport(raw?.setClientToolProfile),
 		registerSessionEngineTrigger: normalizeCapabilitySupport(raw?.registerSessionEngineTrigger),
 		getQueue: normalizeCapabilitySupport(raw?.getQueue),
@@ -158,7 +160,7 @@ export function conversationEntryHookPresent(
 	method: unknown,
 ): boolean {
 	const support = readConversationEntryCapability(snapshot)[key];
-	if (key === 'setClientToolProfile' || key === 'registerSessionEngineTrigger') {
+	if (key === 'setClientToolProfile' || key === 'registerSessionEngineTrigger' || key === 'getPermissionMode') {
 		return support === 'SUPPORTED' && typeof method === 'function';
 	}
 	return isAdvertisedEngineRpcSupport(support, method);

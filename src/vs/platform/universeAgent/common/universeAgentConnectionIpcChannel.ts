@@ -185,6 +185,7 @@ const FORWARDED_CONNECTION_CALLS = {
 	promotePermissionRule: true,
 	getSessionRules: true,
 	setPermissionMode: true,
+	getPermissionMode: true,
 	setClientToolProfile: true,
 	registerSessionEngineTrigger: true,
 	taskUpdate: true,

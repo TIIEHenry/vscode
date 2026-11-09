@@ -118,6 +118,8 @@ import type {
 	UniverseAgentRegisterSessionEngineTriggerRequest,
 	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
+	UniverseAgentGetPermissionModeRequest,
+	UniverseAgentGetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
 	UniverseAgentTaskCancelRequest,
@@ -578,6 +580,8 @@ export interface IUniverseAgentGrpcTransport {
 	registerSessionEngineTrigger(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult>;
 	/** PermissionService.SetPermissionMode unary (snake_case `session_id`/`mode`). Empty ids sent as-is. */
 	setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
+	/** PermissionService.GetPermissionMode unary (snake_case `session_id`). Empty ids sent as-is. */
+	getPermissionMode(request: UniverseAgentGetPermissionModeRequest): Promise<UniverseAgentGetPermissionModeResult>;
 	/** TeamService.TaskUpdate unary (snake_case `session_id`/`agent_id`/`task_id`/`new_status`/`message`). Empty ids sent as-is. */
 	taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
 
@@ -1056,6 +1060,7 @@ export const UniverseAgentGrpcServices = {
 		PromotePermissionRule: 'PromotePermissionRule',
 		GetSessionRules: 'GetSessionRules',
 		SetPermissionMode: 'SetPermissionMode',
+		GetPermissionMode: 'GetPermissionMode',
 		SetClientToolProfile: 'SetClientToolProfile',
 	},
 	Agent: {

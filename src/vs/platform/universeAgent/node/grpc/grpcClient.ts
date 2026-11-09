@@ -123,6 +123,8 @@ import type {
 	UniverseAgentRegisterSessionEngineTriggerRequest,
 	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
+	UniverseAgentGetPermissionModeRequest,
+	UniverseAgentGetPermissionModeResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentTaskUpdateRequest,
@@ -982,8 +984,10 @@ import {
 	encodeSetModelPreferencesRequest,
 } from './grpcModelPreferencesUnaryWire.js';
 import {
+	decodeGetPermissionModeResponse,
 	decodeSetPermissionPolicyResponse,
 	decodeSetClientToolProfileResponse,
+	encodeGetPermissionModeRequest,
 	encodeSetClientToolProfileRequest,
 	encodeSetPermissionPolicyRequest,
 } from './grpcConfigPermissionUnaryWire.js';
@@ -1839,6 +1843,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeResumeSessionResponse,
 		);
 		return unary(encodeSetPermissionModeRequest(request.sessionId, sessionToolPermissionModeWire(request.mode)));
+	}
+
+	async getPermissionMode(request: UniverseAgentGetPermissionModeRequest): Promise<UniverseAgentGetPermissionModeResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.GetPermissionMode,
+			decodeGetPermissionModeResponse,
+		);
+		return unary(encodeGetPermissionModeRequest(request));
 	}
 
 	async taskUpdate(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult> {
