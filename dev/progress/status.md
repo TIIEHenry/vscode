@@ -49,6 +49,8 @@ summary: "引擎测试 harness 已本地提交；DOM 归属诊断和 Electron ma
 
 `51cd33c08ff` 已修旧配置多 Key 分组与逐桶失败重试。新增检查发现 Azure 构造迁移拒绝遗漏，以及 Ollama 分组导入成功后旧 endpoint 清理失败不能恢复。窄恢复方案已独立审查 C0/I0 并提交 `35a2a82dbd8`；后续实现也获独立 C0/I0，Azure/Ollama 四个目标文件 ESLint 通过，本轮 Custom OpenAI、Azure 与 Ollama 定向单元测试已在唯一通道通过，命令与原始输出保存在上述首轮串行目录的 `byok-unit.log`。实现仅认领并清理同一来源作用域的旧值，不覆盖已迁移组；非事务窗口仍按 [r15 方案](../plans/review-2026-11-07-r15-copilot-plan.md#d1421-后续ollama-迁移后的旧配置清理恢复2026-11-11) 留边界，未泛称全部恢复债关闭。
 
+用户追问后再次只读核对当前实现、定向测试原始日志与 D1421 状态，未发现本主题新增确定性缺陷。[术语表](../../docs/glossary.md#术语表) 已补 BYOK 定义，r15 开头已区分当前完成结论与历史方案；该维护项与引擎同步分别跟进，不重复登记已列明的 API 边界。
+
 ## 历史
 
 进入本轮目标前的原始条目已逐字保全，并通过 wiki archive 预览/执行流程归档到[历史快照](../../archive/dev/progress/status-before-mimo-matrix-2026-11-11.md)。历史环境与目标不当作当前事实。

@@ -3,7 +3,7 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-11-01
+updated: 2026-11-11
 summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview 类别 / 类别条）、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar / 会话工作根 / 项目层与会话层）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
@@ -42,6 +42,7 @@ summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview
 | **disposable** | 实现 `IDisposable` 的资源。创建后必须立刻登记以便释放；重复调用的方法应返回 `IDisposable` 给调用方登记，避免挂到会泄漏的宿主。 | [Copilot Instructions](../.github/copilot-instructions.md) |
 | **extension host** | 运行扩展的独立进程；工作台通过 `workbench/api` 暴露 `vscode` API。 | [source-code-organization](../.github/instructions/source-code-organization.instructions.md) · [全局索引](INDEX.md) |
 | **Extension API** | 扩展面对的公开契约，类型定义在 `vscode.d.ts`（及 proposed 变体）。 | [source-code-organization](../.github/instructions/source-code-organization.instructions.md) |
+| **BYOK** | Bring Your Own Key，自带模型服务密钥；用户配置自己的服务地址、API Key 和模型。本仓迁移维护项指 Copilot 扩展旧配置转为提供方分组，范围与恢复边界见对应方案。 | [BYOK 迁移维护](../dev/plans/review-2026-11-07-r15-copilot-plan.md#当前结论2026-11-11) |
 | **main / renderer / shared** | 桌面多进程：Electron main、工作台 renderer、共享进程；再加上 extension host 与 remote server。 | [架构概览](architecture/overview.md) · [How to Contribute · Debugging](https://github.com/microsoft/vscode/wiki/How-to-Contribute#debugging) |
 | **Agents Window** | `sessions` 层承载的智能体会话工作台，与主 workbench 并列，不反向依赖。 | [SESSIONS.md](../src/vs/sessions/SESSIONS.md) |
 | **unit test** | 核心单测，主要在 `src/vs/*/test/`；Electron 下用 `scripts/test.sh` 跑。 | [测试与校验](architecture/cross-cutting/testing.md) |
