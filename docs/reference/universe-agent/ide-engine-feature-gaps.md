@@ -16,8 +16,9 @@ summary: "保留历史缺口矩阵，同时记录 027ab 固定引擎的真实健
 - IDE 源码基线：`09f6da72d305`；仅默认编辑器产品链路，Agents Window、Copilot Chat 不计入产品能力。
 - 历史矩阵使用的引擎源码基线是同级 UniverseAgent 的 `f538eb162cd3`；它不代表当前运行包，也不把其他引擎 WIP 计为已交付能力。当前运行包以 `engine/VERSION` 和 `lib.SHA256SUMS` 为准。
 - 已运行钉死引擎：127.0.0.1:50061。本页历史矩阵不因启动而自动升产品状态；钉点与证书以仓外 PIN 为准。
-- 2026-11-10 运行取证：`engine/VERSION` 为 `source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`、`source_dirty=false`、`built_at=2026-11-01T08:51:44+08:00`；在 `engine/` 目录执行 `sha256sum -c lib.SHA256SUMS` 共 121 项通过。使用本仓 `@grpc/grpc-js`、`agent-home/engine-tls.crt` 信任锚和 `UniverseAgent-Engine` 目标名调用 `agentservice.SystemService/HealthCheck`，返回 `status=SERVING`、`version=3.0.0`、`active_sessions=0`、`uptime_ms=178491`。本次仍未执行业务写调用或默认编辑器端到端验收。
-- 2026-11-10 换钉判断：本地 `UniverseAgent` 的 `origin/main=c4fa6c386882999e17e32aae43f2151e17026a94` 虽包含 027ab，且其后已有 645 个提交，但 `edit` 工作区有大量 WIP；仓外固定源码工位 `universe-agent-027ab` 也漂移到 `1e253d6aee`，与 PIN 不一致。当前没有经过协议范围审查、干净构建和完整产物校验的安全“最新引擎”候选，因此本轮保持 027ab 运行包，不拉取、不重编、不重启。
+- 2026-11-10 运行取证：`engine/VERSION` 为 `source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`、`source_dirty=false`、`built_at=2026-11-01T08:51:44+08:00`；在 `engine/` 目录执行 `sha256sum -c lib.SHA256SUMS` 通过。先用指定证书信任锚的独立探针验证健康 RPC，再核对源码转译与 `out/` 一致，复用 IDE 生产 `findLocalEngine` 与 `createDiscoveredLocalEngineClient`，经属主权限检查、叶证书摘要校验和正式 protobuf 编解码，成功读取 HealthCheck、历史会话名单、模型与工具目录。命令与脱敏结果位置见[只读检查](../../guides/debug-engine.md#只读检查-ide-的发现与传输链路)。本次未执行业务写调用或默认编辑器端到端验收。
+- 2026-11-10 换钉判断：重新 fetch 后，远端主线 `c4fa6c386882999e17e32aae43f2151e17026a94` 已在独立 detached 工位准备候选构建；`edit` 的 WIP 不妨碍此路径。原固定源码工位 `universe-agent-027ab` 漂移到 `1e253d6aee`，与 PIN 不一致，不能直接用于复现当前包。候选仍需独立构建、完整产物校验与业务验收；当前运行包仍为 027ab，50061 未重启。路径和构建边界见[换钉](../../guides/debug-engine.md#5-换钉)。
+- 当前包的 `engine/lib/grpc-api.jar` 已列出 `AgentService.GetQueue` 与 `ToolService.SaveSkillContent`；下文“二进制未替换”是 2026-10-27 的实施边界，不能当作当前协议缺失的结论。协议存在与只读连接通过仍不足以关闭真实队列编辑、保存及默认窗口验收。
 - 历史只读实测（2026-10-27）：使用本仓 @grpc/grpc-js、钉死证书信任锚与叶证书摘要校验，查询 v1alpha reflection 的 System、Agent、Session、Permission、Tool、Config、Trigger 七个服务；没有业务写调用。
 - 未执行：新建会话、发送消息、写设置或默认编辑器端到端验收。队列、并发发送、附件的运行行为沿用仓库 2026-10-11 实测，不称为本轮复测。
 - 对照方法：比较 proto 的 package/service/rpc 与 UniverseAgentGrpcServices，再追踪类型、编解码、connection、宿主与默认工作台调用；测试和传输转发不算产品入口。
@@ -115,4 +116,4 @@ D1387的Preview open/diff DTO、具体组路由与M01来源属于IDE问题，现
 
 已修：队列owner只读快照、版本无精度损失、绑定唤醒与跨连接过期结果隔离、状态诚实呈现、ready写闸；技能创建/原文CAS更新、alias实际路径与flags保持、保存期间新草稿保持、读回失败显式刷新恢复。引擎握手会广播GetQueue。
 
-仍缺：真实队列行编辑需要按接受顺序等待Hold/Edit/Release并保留失败草稿，当前入口关闭；生成中Send/Enqueue仍关闭；当前50061二进制未替换，默认编辑器连接新接口的端到端验收未做。会话工具范围/触发器新产品入口、指定目录创建的身份设计、订阅溢出恢复及其他矩阵项不因本轮而关闭。PRD状态不提升。
+2026-10-27 的收口边界：真实队列行编辑需要按接受顺序等待Hold/Edit/Release并保留失败草稿，当时入口关闭；生成中Send/Enqueue仍关闭；当时50061二进制未替换，默认编辑器连接新接口的端到端验收未做。会话工具范围/触发器新产品入口、指定目录创建的身份设计、订阅溢出恢复及其他矩阵项不因该轮而关闭。当前运行包与只读连接取证见 §1，真实业务验收仍未补齐，PRD状态不提升。

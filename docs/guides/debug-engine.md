@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-11-05
+updated: 2026-11-10
 summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定，线上二进制以 engine/VERSION 与 lib.SHA256SUMS 为准；IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准；真实 SGLang 探针走 UniverseAgent 的 integration-tests。"
 ---
 
@@ -43,9 +43,9 @@ summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定�
 
 源码钉与 TLS 指纹只写在仓外 `PIN`。线上实际运行的版本以本仓 `engine/VERSION` 的 `source_sha`、`source_dirty`、`built_at` 和 `lib.SHA256SUMS` 为准；不能只拿 `PIN` 推断运行中二进制。
 
-当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:51:44+08:00`，运行时模块清单哈希见 `engine/VERSION`。2026-11-10 在 `engine/` 目录执行 `sha256sum -c lib.SHA256SUMS`，121 项全部通过；用本仓 `@grpc/grpc-js` 经 TLS 叶证书钉和 `UniverseAgent-Engine` 目标名调用 `agentservice.SystemService/HealthCheck`，返回 `SERVING / 3.0.0 / active_sessions=0`。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
+当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:51:44+08:00`，运行时模块清单哈希见 `engine/VERSION`。2026-11-10 在 `engine/` 目录执行 `sha256sum -c lib.SHA256SUMS` 通过；用本仓 `@grpc/grpc-js`，以 `agent-home/engine-tls.crt` 为信任锚并验证 `UniverseAgent-Engine` 目标名，调用 `agentservice.SystemService/HealthCheck`，返回 `SERVING / 3.0.0 / active_sessions=0`。该独立探针没有执行生产客户端的叶证书摘要校验，不能算作客户端发现链路的验收。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
 
-换钉判断（2026-11-10）：`UniverseAgent` 的本地 `origin/main` 已包含 027ab 及其后 645 个提交，但 `edit` 工作区仍有大量 WIP；配置的 detached 源码工位当前为 `1e253d6aee`，与 PIN 的 `027ab7ed03` 不一致。没有经过协议审查、干净构建和产物校验的候选前，不拉取、不重编、不重启 50061；运行中的预包仍以 `engine/VERSION` 为准。
+换钉判断（2026-11-10）：`UniverseAgent` 的本地 `origin/main=c4fa6c386882999e17e32aae43f2151e17026a94` 是可供审查的已提交候选，包含 027ab 及其后续提交；`edit` 的 WIP 不妨碍从该提交新建干净 detached 工位。配置的原源码工位当前为 `1e253d6aee`，与 PIN 的 `027ab7ed03` 不一致，不能直接用来复现当前包。候选仍需独立构建、产物校验和业务验收后再换钉；当前运行包仍为 027ab，50061 未重启。
 
 ## 3. 在 Agent IDE 里连
 
@@ -57,9 +57,34 @@ IDE 要和引擎用同一个 `UNIVERSE_AGENT_HOME`（钉死工位是 `vscode-deb
 
 IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer <session_token>`（[remote-link-auth-and-relay](../../dev/plans/remote-link-auth-and-relay.md) S1）。token 被拒或调用 `UNAVAILABLE` 会先摘掉这条链路再重连（中继即新票）。这份钉死引擎仍跳过鉴权拦截器，验不到这个头，也不经过 Hub 中继票。远程路径仍要在强制鉴权模式（非回环绑定，或 `--hub`）下另验。
 
+### 只读检查 IDE 的发现与传输链路
+
+在本仓根目录按 `.nvmrc` 选择 Node，并确保 `out/` 对应当前源码；产物过期时按[本地门禁](../../dev/progress/health-gates.md)转译，再运行下面的只读命令。它复用生产发现与 protobuf 编解码；TCP 路径校验叶证书摘要，UDS 路径使用属主权限锚。不调用 Connect，也不创建会话或写配置：
+
+```bash
+UNIVERSE_AGENT_HOME=/home/clarence/Projects/Agents/vscode-debug-engine/agent-home node --input-type=module <<'NODE'
+import { findLocalEngine, createDiscoveredLocalEngineClient } from './out/vs/platform/universeAgent/node/localEngineDiscovery.js';
+const target = await findLocalEngine({ deadlineMs: 5000 });
+if (!target) throw new Error('No trusted local engine discovered');
+const client = createDiscoveredLocalEngineClient(target, 5000);
+try {
+  const health = await client.healthCheck();
+  const sessions = await client.listSessions({ limit: 100, offset: 0 });
+  const models = await client.listModels();
+  const tools = await client.listTools();
+  console.log({ transport: target.kind, health, sessionsReturned: sessions.sessions.length,
+    sessionsTotal: sessions.totalCount, models: models.models.length, tools: tools.tools.length });
+} finally {
+  client.close();
+}
+NODE
+```
+
+2026-11-10 已核对这条路径的本地生产依赖与当前源码转译内容一致，再通过真实发现、HealthCheck、Session.List、ListModels 与 ListTools。`activeSessions` 反映运行活态，Session.List 返回历史记录，两者计数可以不同。脱敏结果保存在仓外 `/home/clarence/Projects/Agents/vscode-debug-engine/logs/2026-11-10-ide-readonly-probe-e1942e2d.json`，SHA-256 为 `e1942e2d727fbc3db5e5775c4c642dda5c1fce3b98e9a33c9d78a9f297206764`。这条只读链路不涵盖默认窗口交互、配置保存、真实消息流或强制鉴权。
+
 ## 4. 构建边界
 
-当前钉使用干净 detached worktree，没有本地源码补丁。`compile.sh` 会同时编 `grpc-server`、`remote-agent-server` 和 `hook-jvm`；只替换主包而遗漏运行时模块会在启动时产生二进制 ABI 错误。
+当前运行包构建自干净的 027ab detached 快照，没有本地源码补丁；原源码工位现已漂移，不能将其当前 HEAD 视为包的构建来源。`compile.sh` 会先检查源码工位与 PIN 一致，再同时编 `grpc-server`、`remote-agent-server` 和 `hook-jvm`；只替换主包而遗漏运行时模块会在启动时产生二进制 ABI 错误。
 
 ### 历史本地补丁（当前钉不使用）
 
@@ -80,7 +105,21 @@ Tools 验收的数据准备必须遵循当前 PIN 的公开 proto 和 AgentPrese
 
 ## 5. 换钉
 
-换钉触发已满足：要吃进引擎仓已合并的 IDE 远程协议 A–F、权限模式读回和模型写 RPC。步骤见仓外 README。更新时先从干净 commit 建 detached worktree，再编完整运行时模块；启动后以 `engine/VERSION` 核对实际二进制，不把当前开发树的 dirty HEAD 当发布钉。
+027ab 包已包含 IDE 远程协议 A–F、权限模式读回和模型写 RPC，不再把这些旧触发项当作当前运行包缺失。更新时先从干净 commit 建 detached worktree，再编完整运行时模块；启动后以 `engine/VERSION` 核对实际二进制，不把当前开发树的 dirty HEAD 当发布钉。
+
+2026-11-10 重新 fetch 远端主线后，已从 `c4fa6c386882999e17e32aae43f2151e17026a94` 创建独立候选工位 `/home/clarence/Projects/Agents/vscode-debug-engine/universe-agent-c4fa6c3868/`。相对 027ab 的正式 proto 改动均为新增字段或只读 RPC，但还包含会话、权限、取消与停机生命周期调整，需要业务回归。候选构建从该目录运行：
+
+```bash
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+GRADLE_USER_HOME=/home/clarence/Projects/Agents/vscode-debug-engine/gradle-candidate-c4fa6c3868 \
+./gradlew --no-daemon --no-parallel --console=plain --max-workers=1 \
+  -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=128m -Dfile.encoding=UTF-8" \
+  -Pkotlin.compiler.execution.strategy=in-process \
+  :grpc-api:generateProto :grpc-server:compileKotlinJvm :grpc-server:jvmJar \
+  :remote-agent-server:jvmJar :hook-jvm:jar
+```
+
+这一步只输出到候选工位。不要用原 `compile.sh` 构建候选：它读取当前 PIN 并直接覆盖线上 `engine/lib` 与 `VERSION`。也不要用 `start-engine.sh` 启动候选：它会 seed 当前 PIN 的 `agent-home`。候选尚未打包、启动或签收；构建记录在仓外 `vscode-debug-engine/logs/2026-11-10-c4fa-candidate-build-isolated.log`，首轮共享缓存构建的 daemon 提前退出另记在同目录 `2026-11-10-c4fa-candidate-build.log`。
 
 ## 6. SGLang 真实 Provider 探针
 

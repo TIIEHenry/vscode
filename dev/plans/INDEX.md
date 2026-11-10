@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-11-07
+updated: 2026-11-10
 summary: "2026-11-06 默认窗口并行 UI 与交互审查收口方案已通过规则 16 审查。2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -24,8 +24,6 @@ summary: "2026-11-06 默认窗口并行 UI 与交互审查收口方案已通过�
 | [订阅流管线与消息卡片渲染缺陷修复](subscription-stream-and-message-card-fixes.md) | `implemented` | 修复订阅流（OverlayDeltaJoin turnId 交接、SessionViewHost lingering 回收与恢复重开、IPC changedIds/effects 合并）与消息卡片渲染（流式初值与 Markdown 样式、窗口锚点与置顶气泡、D17 pairing-hold 活态、断连缓存保真、过程折与 CSS）9 项高优缺陷。 |
 | [过程折短摘要保持同行](process-fold-summary-wrap.md) | `implemented` | Sol 将生产 summary flex-basis 改为 auto；v3 生产组件 Chromium 6/6，通过字体、chevron、失败态与无溢出检查。 |
 | [新建引擎会话的工作目录补全](new-session-workdir-hydration.md) | `implemented` | owner 归属的 Session.Info 只补对应记录；Node/Chromium/Electron 定向门禁与 SGLang a5 初始 workspace 检查通过。 |
-| [UniverseAgent 真实编辑器联测](../../archive/dev/plans/universe-agent-real-editor-e2e-2026-10-31.md) | `implemented` | 默认编辑器真实引擎联测剧本与 4/4 步骤证据已完成；不等同于当前 50061 钉或 SGLang Provider 验收。 |
-
 | [五域测试报告 skipped 汇总完整性](test-result-skipped-summary.md) | `draft` | 统一五域测试报告的严格 skipped 汇总，支持根 skipped 属性与子 testcase skipped 的 max 解析，门禁在超限时严格失败关闭。 |
 | [Sources 已登记回归与可执行合同对齐](sources-regression-contract-alignment.md) | `draft` | 对齐 Sources 回归测试可执行合同，恢复双环境严格门禁与 AST 扫描。 |
 | [Agent Profile 内容有效性与无损编辑](profile-content-validity.md) | `accepted` | 方案C0/I0/M0；A候选15源码/自动层通过，Node774同JS复用、browser526、私有精确新/旧对照及Node24双目标0；待专题Gate/集成/真实门，D1398hold/D1395open，整体不升implemented。 |
@@ -366,3 +364,5 @@ summary: "2026-11-06 默认窗口并行 UI 与交互审查收口方案已通过�
 | [十六路审查 2026-11-07 r16：入口、其余扩展与工具链方案](review-2026-11-07-r16-entry-extensions-tooling-plan.md) | `accepted` | hold 1、weaken 1、drop 0。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。
+
+归档参考：[UniverseAgent 真实编辑器联测](../../archive/dev/plans/universe-agent-real-editor-e2e-2026-10-31.md)。该记录保留默认编辑器真实引擎联测剧本与历史证据，不等同于当前 50061 钉或 SGLang Provider 验收。
