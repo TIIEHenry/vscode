@@ -3,7 +3,7 @@ title: "十六路审查 2026-11-07 r15：extensions/copilot 方案"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-11-07
+updated: 2026-11-11
 summary: "hold 2、weaken 2、drop 0；方案覆盖替换工具预备结果的复用范围、BYOK 旧密钥迁移的完成判定与删除时机、损坏元数据写路径的拒写与批量刷盘，以及笔记本运行工具的错误回传。r15-1、r15-3、r15-4 只在 Agents 窗口可达；r15-2 的迁移代码会在启用了扩展的默认窗口里执行，但要有本产品配置里不会出现的旧版 key 才会触发。已按 2026-11-07 只读审查改稿；同日已实施（未编译、未跑 typecheck，只跑了相关 vitest），代码审查经一轮修改后可接受。"
 ---
 
@@ -273,3 +273,42 @@ summary: "hold 2、weaken 2、drop 0；方案覆盖替换工具预备结果的�
 - Minor，r15-3 不变量第 2 条：已改成「乐观字段不能让会话取得修复资格」，并写明会话已有底稿时修复记录可以带着乐观字段。
 - Minor，标题迁移的 `globalState.update` 失败：已接住并记 warn，照常返回标题，`customSessionTitleServiceImpl.spec.ts` 补了一条用例。
 - Minor，`dev/plans/INDEX.md` 的说法：实施记录开头已改为写明第 422–423 行的登记是另一会话加的、尚未提交。
+
+### D1421 后续：Ollama 迁移后的旧配置清理恢复（2026-11-11）
+
+状态：执行中。负责：agent:branch_sync_audit。恢复方案经 agent:engine_next_step 独立只读审查为 C0/I0；待主任务单独提交方案后实施，生产逻辑尚未实施。
+
+问题：`OllamaLMProvider.migrateConfig` 先创建新分组，再清理旧 `OllamaEndpoint`。第一步已成功、第二步临时失败后，下次激活会再次创建同名分组，因冲突提前退出，永远到不了清理步骤。`51cd33c08ff` 已接住并记录拒绝，但没有解决恢复。新组已经可用，此条不改变默认窗口产品入口。
+
+边界与已有 API：
+
+- 扩展侧迁移命令 `lm.migrateLanguageModelsProviderGroup` 返回 `void`；没有可读取完整分组身份与配置的扩展 API。不能把同名错误当成本迁移成功，更不能重写同名组来完成清理。
+- 只有本实例调用迁移命令成功返回，才能记录私有 `globalState` 清理检查点。独立版本键为 `copilot-byok-migration-Ollama-endpoint-cleanup-v1`，不调用 `setKeysForSync`。检查点固定保存 `{ schemaVersion: 1, provider: 'ollama', group: 'Ollama', id: <随机认领ID>, sourceURI: <来源身份>, target: ConfigTarget, url: rawURL }`；所有字段逐项校验，`target` 仅接受 Global / Workspace / WorkspaceFolder，`url` 是原作用域的非空原始字符串，不按 trim 后的有效值认领。`globalState.get` 返回值仅作只读校验，复制成独立值使用，不改内部对象引用。不保存 key，不把新组当前配置当作旧源重新写入。
+- `IConfigurationService.inspectConfig` 能区分 global/workspace/folder；无 target 的 `setConfig(key, undefined)` 会清除所有作用域，不能用于只迁移了一个有效 endpoint 的恢复。清理必须显式限定原作用域，并重读该作用域原值。
+- `globalState` 属于 `StorageScope.PROFILE`，跨 workspace 共享；仅匹配 target 和 URL 不足以证明来源。Global 的 `sourceURI` 固定为 `profile-local`（依靠不跨 profile、不 sync 的存储边界）；Workspace 用 `workspace.workspaceFile` URI，单文件夹窗口则用唯一 folder URI；WorkspaceFolder 用实际配置 folder URI。当前无资源上下文且多根窗口无法唯一定位 folder 时不迁移、不清理，保留源并记日志。
+
+拟定改法：
+
+1. Ollama 使用现有 DI 注入 `IVSCodeExtensionContext`。新迁移从 `inspectConfig(OllamaEndpoint)` 按 WorkspaceFolder / Workspace / Global 优先序选择一个显式配置的来源，固定该 `sourceURI`、`target` 与非空 `rawURL`；不只取 `getConfig` 的有效值。没有可信检查点时仍执行真实迁移命令；成功后先持久化完整检查点，再尝试清理原旧设置。命令失败、同名冲突、检查点写入失败，都保留旧设置并由已有外层 handler 记日志。
+2. 下次激活先处理可信检查点，只有当前来源 `sourceURI` 相同且 `inspectConfig` 中该 `target` 的原始值严格等于检查点 `url`，才跳过创建、仅重试 `setConfig(OllamaEndpoint, undefined, target)`；不查名称猜归属，不调用会清所有作用域的无 target 写法。异 workspace 或来源不明时保留检查点与新旧设置并结束，不清、不覆盖其他窗口记录。同一来源已删除就仅清检查点；来源已改为其他值则保留新值并结束本次恢复，不顺着有效配置回退认领其他作用域。用户对已迁移分组的修改、重命名或删除不触发重建。
+3. 检查点写入后、发出清理前重新计算原 target 对应的 `sourceURI`，并通过 `inspectConfig` 重读该作用域的原始值；来源身份或 rawURL 已变化就保留用户新值、不发清理、不覆盖检查点去声称新值已迁移。清理成功后删除检查点；删除检查点失败不重建新组，后续在确认旧设置已经不在时收掉检查点。删除前重新读取并比对完整记录（含随机认领 ID）；未知 schema 或不同记录都不清除，不改写非自己已认领的数据。
+4. 同一次激活不并发启动第二次恢复；每次只处理启动时认领的旧源，不顺着作用域回退继续导入其他 endpoint。单实例只启动一次不是跨窗口锁；检查点重读也不冒充跨窗口 CAS。
+
+须在审查中明确的并发边界：当前 `setConfig` 只有异步普通写，没有 compare-and-swap。清理前重读能保护迁移或检查点写入期间的修改，不能原子保护清理 RPC 已发出后、实际落盘前的同键修改。不得把这段窗口写成“用户并发修改已保证保留”；若本条验收要求覆盖这段窗口，需要在配置写入队列增加条件清理能力，本条先不以非原子重读冒充解决。
+
+另有安全保留窗口：迁移命令成功后，检查点写入失败或进程退出，仍会留下新组和旧源，下次可能遇到同名冲突；此时保留旧源、记录错误，不按名称认领他人组。`Memento.update` 成功只代表主线程存储接受该更新，新组与检查点并非一笔事务。本修复只关闭“检查点已成功记录后，旧源清理失败可于下次恢复”的路径，不据此关闭上述全部恢复债。
+
+待准备回归（只用桩，不访问网络，不编译，交主任务统一运行）：
+
+- 迁移组成功、清理第一次拒绝、二次激活清理成功；真实迁移只调用一次，检查点在失败后保留、清理后移除。
+- 两次激活之间用户修改已迁移组；二次仅清旧源，组的修改保持。
+- 没有检查点、或检查点来源不匹配时遇到同名他人组；保留旧源，不清理、不认领对方组。
+- 持久化检查点期间修改旧 endpoint；不清掉新值。不清除未迁移作用域里的其他 endpoint。
+- profile-local 检查点不能跨来源误用：workspace A 与 B 配置同一 URL 时，A 的检查点不清 B；多根无法确定实际 folder 时保留源。
+- 检查点写入或清理后移除失败；不把失败当完成，不因清理恢复重建新组。
+- 未知 schema、其他 provider/group、损坏记录或不同认领 ID 不清；不就地修改 `globalState.get` 返回的对象。
+- 清理 RPC 在途的同键并发修改作为配置 API 边界单列，是否扩展条件写 API 由只读审查决定，不以顺序桩伪造原子保证。
+
+本次编辑范围：Ollama provider、对应 spec、本定向段落及 D1421 证据状态；不动 root 的 MiMo 方案、进度页、UI、其他 WIP，不自行运行 Node、编译、LLM 或提交。
+
+签收记录（2026-11-11）：agent:engine_next_step 独立只读审查 C0/I0，主任务签收；实施清理前须同时重核当前 `sourceURI` 与原作用域 `rawURL`，不得仅比较 target 枚举与 URL，并保留上文检查点非事务、清理 RPC 无 CAS 两个 API 边界。
