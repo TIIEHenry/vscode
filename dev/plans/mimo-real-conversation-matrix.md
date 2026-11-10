@@ -21,7 +21,7 @@ summary: "规则 16 复核 C0/I0 后签收；执行 flash/pro × 三协议完整
 
 当前真实 Provider 矩阵入口在同级 UniverseAgent 的 `scripts/run-mimo-full-matrix.sh`，环境与范围见其 `docs/systems/infra/test-environment.md`。L4 文本/工具/权限探针、L5 workspace catalog 与 normal/ablated 对照没有经过 IDE 的 main、IPC 或 DOM，不能用于证明显示正确。旧 marker 场景不含复杂路由，旧完整 L5 记录也含真实失败，不继承为本轮通过。
 
-本仓现有 [真实编辑器场景](../../test/scenario/scenarios/universe-agent-real-editor.cjs) 和[启动包装器](../../test/scenario/scripts/run-universe-agent-real-editor.sh) 已覆盖生产发现、Composer 提交、工具与持久回答、reload，但只运行单工具任务，提示词含预期答案，且包装器固定 openai。新矩阵须修正这两个边界。
+实施前的 [真实编辑器场景](../../test/scenario/scenarios/universe-agent-real-editor.cjs) 和[启动包装器](../../test/scenario/scripts/run-universe-agent-real-editor.sh) 已覆盖生产发现、Composer 提交、工具与持久回答、reload，但当时只运行单工具任务，提示词含预期答案，包装器固定 openai。新矩阵承接并修正这些边界。
 
 原钉死包为 027ab；干净 c4fa 候选已完成 JVM 构建，尚未换钉。版本、隔离与资源监控事实见[引擎指南](../../docs/guides/debug-engine.md)。当前主引擎工位有其他 WIP，不整体复制、提交或覆盖。
 
@@ -71,6 +71,21 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 
 复杂路由优先复用现有真实任务，并给显示场景补独立结果 oracle。自然语言答案不同可被接受，事件/结果对应和显示不变量不能放宽。模型未执行目标路由、任务失败与 IDE 丢失显示分别记录；后两者不能靠降低任务要求互相掩盖。
 
+### 2.4 显示复合场景预算（首次运行前修订）
+
+显示场景不能把复合任务当作一轮请求计时。U02 包含初次任务与追问，共 2 个 episode；U07 在同一真实会话执行 U01、U02 及其追问、U08、U09、U10、U06，共 7 个 episode，随后切回与 reload；其余场景各 1 个 episode。旧独立路由样本的三项合计已达到 747.382 秒，而旧显示 driver 对整个 U07 的 watchdog 只有 720 秒。这只说明预算结构存在截断风险，不预测新候选必然耗时，也不继承旧样本为本轮结果。
+
+首次真实窗口运行前，将以下固定策略登记到 manifest、oracle 和结果并交叉核对，不接受继承环境或命令行临时加时：
+
+- 每个 episode 保持 `600000ms`，覆盖其设置权限、提交、真实终态及正文/工具 DOM 验收；同一 episode 的全部等待共享一个单调时钟 deadline，不因开始下一个 poll 或 permission/cancel 等待而重置。
+- setup `60000ms` 从 driver 发起本轮 wrapper 前开始，覆盖 Bash 的引擎就绪、Electron/布局启动、连接和新会话流 hello；CJS 开始时仅消耗同一 setup 的剩余预算，不能重新开满 60 秒。driver 与 CJS 须核对同一主机单调时钟域及预算身份，未建立阶段进度或卡在 CJS 启动前同样受 setup deadline 限制。
+- U07 的历史快照、切回、reload 和恢复后的可见 DOM 核验共用 history `120000ms`；全部场景另有 finalization `60000ms`，用于最后的身份、Thinking、fold 与整体显示判定。
+- `caseBudgetMs = setup + episodeCount × episode + history + finalization`。wrapper watchdog 再加独立清理余量 `60000ms`，因此普通场景为 `780000ms`、U02 为 `1380000ms`、U07 为 `4500000ms`；该余量不能再发新的模型任务。
+- CJS 中的 Playwright 动作、事件轮询、sample/fold 点击、逐行滚动检查、Electron main/page evaluate 均受当前阶段剩余预算限制；剩余时间非正数就先失败，不能给 Playwright 传表示不限时的 `timeout: 0`。无原生 timeout 的操作须受控等待，超时后将该阶段置为不可继续，不开始后续 episode，不把后到结果补成通过。结果记录预期/实际 episode 数、阶段与 episode 耗时、超时所在阶段、episode label 及 operation。setup、episode、history、finalization 与外层 watchdog 超时分别报告，不能仅凭超时推断产品显示错误。
+- cleanup 的 60 秒是共享的一次单调时钟 deadline：正常完成、失败、超时或信号后即进入回收；包括 runner 的 evidence.finish/视频/章节后处理、wrapper/引擎、owned 进程组与 relay 的回收，不再发模型任务。所有 TERM/wait、handler join、reap/验证都只使用同一剩余时间，不能逐进程或逐 handler 重新给完整宽限；到期只对确认自有进程强杀并验证，不能在 watchdog 后再追加另一轮 15+5 秒。停止无法确认则保留私有状态、失败并停止后续 case。
+
+此修订只分配完整显示场景已要求的工作，不删任务、不跨 case 拼历史，不改变引擎矩阵的 `--task-timeout-ms 600000`、严格参数或通过判据。修改后的 policy、验证器和场景身份须形成新的 seal/campaign。方案只读复核并独立提交后再实施；当前仍未执行新的真实显示矩阵。
+
 ## 3. 实施顺序
 
 1. **规则 16 审查。** 同一会话由非作者只读审查本方案，核验 Critical/Important 后改稿，再进入实现。
@@ -101,3 +116,11 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 ## 6. 审查与实施记录
 
 首轮规则 16 只读审查为 C0/I3：已补完整 expected set/严格参数，逐 cell required 显示清单，以及修复后的新 seal/campaign 与全表复验规则。第二轮复核 C0/I0/M1，可签收进入实施；Minor 的 PRD 范围限定已补到正文。尚未完成本方案的新矩阵或显示场景。当前候选构建通过不等于本方案验收通过。
+
+2026-11-11 实施进度：干净 c4fa 的 124 jar 候选运行包、22 份包内 proto、隔离冷启动与自有空会话生命周期已核对，50061 未换钉。引擎 harness 的 schema 2 预注册、审计与真实 JVM 隔离修复经独立复核；随后移除了不符合宿主指令的 HOME 覆盖，保留 JVM user.home、AgentHome、cwd/tmp/log，Python 离线 58/58 通过。
+
+显示 runner 已补三协议、实际响应模型核对、完整包来源核对、信号回收和本轮凭据配置清理，根窗口离线 51/51 通过。oracle 的持久回答闭集、完整工具结果、执行事实与持久投影一致性、精确路由路径/内容/阶段、相关 fold 内容与 DOM 增量修复已获独立 C0/I0；根窗口在 Node24 语法检查后，运行 76 项合成 verifier controls 与 20 项旧场景 Chromium DOM 回归，均通过。单工具无法观察选择后的相关增量时明确记 uncovered，Thinking 未知仍记未覆盖。
+
+上述均不是新的真实模型或默认窗口通过。BYOK 单测、automation/scenario 编译与 Kotlin 离线回归已进入同一共享锁队列；外部矩阵仍持锁，当前尚未开始执行。待验证、提交和封存后再发本轮真实请求，保留所有失败与未覆盖结果。
+
+首次真实显示运行前，新增 §2.4 复合预算修订。首轮独立只读审查 C0/I2 指出 setup 漏算 CJS 启动前阶段、cleanup 可能逐操作叠加宽限，均已补入共同 deadline 和阶段边界；实际修订文本复核 C0/I0，可独立提交后实施。单 episode 和引擎矩阵仍为 600000ms，U02/U07 完整任务数量不变，未以旧样本签收或预测新候选通过。
