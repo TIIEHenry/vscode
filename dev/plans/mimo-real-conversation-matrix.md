@@ -100,6 +100,7 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 
 - 编译包含 Gradle、Kotlin/Java、Node/TypeScript、scenario/automation 构建；任何时刻仅一个通道。子任务只能只读审查或准备文本，未经父窗口安排不得启动编译。
 - 模型/协议切换不重编引擎。运行前后核对封存身份，禁止来源或产物漂移后继续标成同一 campaign。
+- 产物遍历默认拒绝软链。Electron 预包的真实启动别名 `universe-agent-studio → code-oss` 可在该 runtime 根内作为文件别名封存：同时绑定逻辑路径、原始链接文本、最终 canonical 目标相对路径与目标实际字节。仅该 Electron 遍历启用此例外；目录、悬空、循环和最终目标越界均拒绝，不改现有缓存或 `.build` 链接。首次实际只读预检已因该合法别名被默认策略拒绝，修复后须重新核整个遍历与封存身份。
 - 不停止、改名规避或更改系统内存监控。以实际可用内存安排单 worker 构建，`-Xmx` 只作为堆限制。
 - 引擎同时隔离 AgentHome、JVM user.home、cwd/项目数据与日志；显示自动化使用临时 user-data/extensions/shared-data、默认 editor、无 `--agents`。不复制日常或交互测试登录目录。MiMo 本地网关不依赖 Copilot/GitHub 登录。
 - 密钥仅传给自有测试进程，不进入源码、截图说明或报告。固定当前包、原 PIN、50061 和其他工作区 WIP；候选测试不直接覆盖线上包。
@@ -124,3 +125,5 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 上述均不是新的真实模型或默认窗口通过。BYOK 单测、automation/scenario 编译与 Kotlin 离线回归已进入同一共享锁队列；外部矩阵仍持锁，当前尚未开始执行。待验证、提交和封存后再发本轮真实请求，保留所有失败与未覆盖结果。
 
 首次真实显示运行前，新增 §2.4 复合预算修订。首轮独立只读审查 C0/I2 指出 setup 漏算 CJS 启动前阶段、cleanup 可能逐操作叠加宽限，均已补入共同 deadline 和阶段边界；实际修订文本复核 C0/I0，可独立提交后实施。单 episode 和引擎矩阵仍为 600000ms，U02/U07 完整任务数量不变，未以旧样本签收或预测新候选通过。
+
+预算实现固定点已独立联审 C0/I0，根窗口 73 项离线整合通过，源文件运行前后摘要相同，证据在仓外 `vscode-debug-engine/logs/2026-11-11-offline-mimo-budget-2caa367cf0.json`。包含实际 Node/Python bridge，仍未执行真实窗口或模型。随后实际产物遍历在 Electron 包内启动别名处被默认软链策略拒绝；§4 的文件别名窄例外经独立只读审查 C0/I0，须独立提交方案后实现，再复验全部遍历及新负例，不能把前述 73 项用于代签未实现的 alias 支持。
