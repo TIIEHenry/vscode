@@ -50,7 +50,14 @@ const RULES: readonly IMotionRule[] = [
 	toolbarPressRule(CALL_STACK_WIDGET_CSS, '.multiCallStackFrame .title[role="link"]', 'opacity 100ms ease'),
 	toolbarPressRule(CALL_STACK_WIDGET_CSS, '.monaco-editor .call-stack-go-to-file-link', 'opacity 100ms ease'),
 	toolbarPressRule(BREAKPOINT_WIDGET_CSS, '.monaco-editor .zone-widget .zone-widget-container.breakpoint-widget .select-breakpoint-container .monaco-button', 'background-color 100ms ease'),
-	toolbarPressRule(EXCEPTION_WIDGET_CSS, '.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label', 'background-color 100ms ease'),
+	{
+		file: EXCEPTION_WIDGET_CSS,
+		selectors: ['.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label'],
+		transition: 'background-color 100ms ease',
+		// The press surface is the pseudo-element; the base action label stays transparent.
+		activeSelectors: ['.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:active::after'],
+		activeDeclaration: TOOLBAR_ACTIVE_BACKGROUND,
+	},
 	toolbarPressRule(EXCEPTION_WIDGET_CSS, '.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a', 'opacity 100ms ease'),
 	toolbarPressRule(DEBUG_HOVER_CSS, '.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row', 'background-color 100ms ease'),
 	toolbarPressRule(DEBUG_VIEWLET_CSS, '.monaco-workbench .part > .title > .title-actions .start-debug-action-item .codicon-debug-start', 'background-color 100ms ease'),
@@ -70,7 +77,14 @@ const RULES: readonly IMotionRule[] = [
 		],
 		activeDeclaration: 'background-color: var(--vscode-list-activeSelectionBackground);',
 	},
-	toolbarPressRule(DEBUG_VIEWLET_CSS, '.debug-pane .monaco-list-row .monaco-action-bar .action-label', 'background-color 100ms ease'),
+	{
+		file: DEBUG_VIEWLET_CSS,
+		selectors: ['.debug-pane .monaco-list-row .monaco-action-bar .action-label'],
+		transition: 'background-color 100ms ease',
+		// The press surface is the pseudo-element; the base action label stays transparent.
+		activeSelectors: ['.debug-pane .monaco-list-row .monaco-action-bar .action-label:active::after'],
+		activeDeclaration: TOOLBAR_ACTIVE_BACKGROUND,
+	},
 	{
 		file: DEBUG_VIEWLET_CSS,
 		selectors: [
