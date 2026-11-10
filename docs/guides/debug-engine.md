@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-11-10
+updated: 2026-11-11
 summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定，线上二进制以 engine/VERSION 与 lib.SHA256SUMS 为准；IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准；真实 SGLang 探针走 UniverseAgent 的 integration-tests。"
 ---
 
@@ -119,7 +119,11 @@ GRADLE_USER_HOME=/home/clarence/Projects/Agents/vscode-debug-engine/gradle-candi
   :remote-agent-server:jvmJar :hook-jvm:jar
 ```
 
-这一步只输出到候选工位。不要用原 `compile.sh` 构建候选：它读取当前 PIN 并直接覆盖线上 `engine/lib` 与 `VERSION`。也不要用 `start-engine.sh` 启动候选：它会 seed 当前 PIN 的 `agent-home`。候选尚未打包、启动或签收；构建记录在仓外 `vscode-debug-engine/logs/2026-11-10-c4fa-candidate-build-isolated.log`，首轮共享缓存构建的 daemon 提前退出另记在同目录 `2026-11-10-c4fa-candidate-build.log`。
+这一步只输出到候选工位。不要用原 `compile.sh` 构建候选：它读取当前 PIN 并直接覆盖线上 `engine/lib` 与 `VERSION`。也不要用 `start-engine.sh` 启动候选：它会 seed 当前 PIN 的 `agent-home`。候选尚未打包、启动或签收；当前构建记录在仓外 `vscode-debug-engine/logs/2026-11-10-c4fa-candidate-build-headroom.log`，此前两轮记录为同目录 `2026-11-10-c4fa-candidate-build.log` 与 `2026-11-10-c4fa-candidate-build-isolated.log`。
+
+本机 `/home/clarence/.local/bin/watch-memory-kill-gradle-daemon.sh` 在系统内存使用达到其阈值时会停止 Gradle daemon，包括 `--no-daemon` 派生的单次 daemon。2026-11-10 用户 journal 明确记录它停止了上述两轮构建的 PID，不能将这类退出归因于源码编译错误或 JVM OOM。构建前应核对该脚本当前阈值和 `/proc/meminfo` 的 `MemAvailable`；本轮在可用内存至少 12 GiB 后，以原单 worker、2 GiB 堆上限（`-Xmx`）重试，没有修改监控脚本。12 GiB 只是本轮启动预检值；堆上限也不包含 metaspace、code cache 和原生内存。
+
+候选运行还须同时隔离 `UNIVERSE_AGENT_HOME`、JVM 的 `-Duser.home` 和 cwd。源码核对表明，`ProviderConfigIo.defaultConfigPath()` 仍从 `user.home/.universe-agent/config.json` 读取 Provider 配置，GLOBAL memory 和 `UniverseLog` 的启动日志清理也使用该 home；PROJECT memory 和 `.sessions` 则跟随工作目录。只改 `UNIVERSE_AGENT_HOME` 不足以隔离这些路径。只读健康探针使用清理后的子进程环境、自造 dummy key 和不可用的本地模型地址，不继承日常模型凭据，不发真实 Provider 请求；这类探针不能代替真实对话验收。
 
 ## 6. SGLang 真实 Provider 探针
 

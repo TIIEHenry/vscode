@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-11-10
+updated: 2026-11-11
 summary: "2026-11-06 默认窗口并行 UI 与交互审查收口方案已通过规则 16 审查。2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -17,6 +17,7 @@ summary: "2026-11-06 默认窗口并行 UI 与交互审查收口方案已通过�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [MiMo 双模型真实对话与过程显示矩阵](mimo-real-conversation-matrix.md) | `accepted` | 规则 16 复核 C0/I0 后签收；flash/pro × 三协议，完整真实 LLM 任务与逐 cell 消息/过程/路由显示分别取证，仅一个编译通道。 |
 | [Engine Memory 记忆入口补齐](engine-memory-entry.md) | `draft` | 2026-11-07 按引擎 ADR-491：V1 只改页面、命令、测试与文档，补命令面板直达、全局与引擎项目作用域、只读详情、诊断说明文字、新增提示写事实；整理预览（引擎 M4，须引擎声明支持）、来源显示（M4）、单个文件的历史与回退（引擎 M6）等引擎面落地后修订重审。第 1 轮规则 16 审查驳回，第 2 稿待重审。 |
 | [2026-11-07 默认窗口并行交互与视觉审查收口](ui-interaction-visual-review-2026-11-07.md) | `accepted` | 五路并行只读审查默认编辑器窗口的交互与视觉问题；经规则 16 审查（C5/I4/M2）核验改稿后，分四个实施切片修复 P0–P3 键盘焦点闭环、浮层互斥、视觉与状态清晰度、高对比与减少动效合同。 |
 | [2026-11-06 默认窗口并行 UI 功能缺失审查与修复方案](ui-functional-gaps-review-2026-11-06.md) | `accepted` | 五路并行审查默认编辑器窗口的 Conversation、Composer/Inbox/SessionBar、Sessions/Navigator/Trajectory、Sources/Preview 与 Engine/Connection/Client Settings 的 UI 功能缺失问题；经规则 16 审查（C9/I4/M2）核验与剔除冲突项后，分 S1 与 S2 实施。 |
