@@ -119,9 +119,15 @@ GRADLE_USER_HOME=/home/clarence/Projects/Agents/vscode-debug-engine/gradle-candi
   :remote-agent-server:jvmJar :hook-jvm:jar
 ```
 
-这一步只输出到候选工位。不要用原 `compile.sh` 构建候选：它读取当前 PIN 并直接覆盖线上 `engine/lib` 与 `VERSION`。也不要用 `start-engine.sh` 启动候选：它会 seed 当前 PIN 的 `agent-home`。候选尚未打包、启动或签收；当前构建记录在仓外 `vscode-debug-engine/logs/2026-11-10-c4fa-candidate-build-headroom.log`，此前两轮记录为同目录 `2026-11-10-c4fa-candidate-build.log` 与 `2026-11-10-c4fa-candidate-build-isolated.log`。
+这一步只输出到候选工位。不要用原 `compile.sh` 构建候选：它读取当前 PIN 并直接覆盖线上 `engine/lib` 与 `VERSION`。也不要用 `start-engine.sh` 启动候选：它会 seed 当前 PIN 的 `agent-home`。构建记录在仓外 `vscode-debug-engine/logs/2026-11-10-c4fa-candidate-build-headroom.log`，此前两轮记录为同目录 `2026-11-10-c4fa-candidate-build.log` 与 `2026-11-10-c4fa-candidate-build-isolated.log`。
+
+2026-11-11 已在候选工位收集完整 `jvmRuntimeClasspath` 和主服务 jar，按实际依赖顺序保存为 `vscode-debug-engine/candidates/c4fa6c3868-20261111/engine/`。该包含 124 个 jar，`lib.SHA256SUMS` 全部核验通过，清单 SHA-256 为 `fac0018b5f397012a3225f1308008e7ee503057af14307e78bc987bc5bfbe972`。`VERSION` 记录干净 c4fa 来源；`runtime-artifacts.json` 和 `classpath.txt` 保留组件身份与加载顺序。`proto/` 的 22 个文件直接从包内实际 `grpc-api` jar 提取，矩阵 runner 逐字节核对，不用另一工位的 proto 代替。收集日志在 `vscode-debug-engine/logs/2026-11-11-c4fa-candidate-stage-main.log`。这只签收构建、依赖和来源，尚未签收真实对话或窗口；当前 PIN、027ab 运行包与 50061 均未替换。
 
 本机 `/home/clarence/.local/bin/watch-memory-kill-gradle-daemon.sh` 在系统内存使用达到其阈值时会停止 Gradle daemon，包括 `--no-daemon` 派生的单次 daemon。2026-11-10 用户 journal 明确记录它停止了上述两轮构建的 PID，不能将这类退出归因于源码编译错误或 JVM OOM。构建前应核对该脚本当前阈值和 `/proc/meminfo` 的 `MemAvailable`；本轮在可用内存至少 12 GiB 后，以原单 worker、2 GiB 堆上限（`-Xmx`）重试，没有修改监控脚本。12 GiB 只是本轮启动预检值；堆上限也不包含 metaspace、code cache 和原生内存。
+
+2026-11-11 冷启动在隔离端口 50081 完成：当前生产 IDE 编译产物通过发现与叶证书 pin，Health 返回 `SERVING / 3.0.0`，会话页为空、工具 175 条。全新未 seed 的模型目录为 0，不能据此签收真实模型路径。`totalCount` 在客户端合同中可缺省，空页不能要求服务必须显式编码零值。原始两次探针对这两个准备条件的误判均保留；修正探针合同后的 `health-result-v3.json` SHA-256 为 `441f58cc8c36fdedb0753c73d179d31b9f0651a19eda743e3b975961bdb62a08`。原件在仓外 `vscode-debug-engine/logs/2026-11-11-c4fa-cold-start-probe/`。此次只调用只读 RPC，没有创建会话、调用模型或执行工具；自有候选进程已正常停止，50061 未动。
+
+同日另用私有 50082 验证一次自有 UUID 的 Create → Info → GetPermissionMode → GetQueue → Delete。创建身份与工作目录正确，权限读回 ASK、队列为空。依据引擎 c4fa 的 `dev/decisions/275-session-shelve-visibility.md`，Delete 仅卸载运行时，持久记录由独立 Purge 删除；因此单独核对 Delete 后 Info 为 NOT_FOUND、List 仍保留该条历史，而不能要求两者都不存在。初版探针将两条件合取的失败原件保留，后续按合同分别观察通过，`post-delete-contract.json` SHA-256 为 `79e13dcfe3252448e0fb7c4e6e465a80b7d96242cc3b6c2d3cde91f0f5bdb9cb`。证据在仓外 `vscode-debug-engine/logs/2026-11-11-c4fa-session-lifecycle-probe/`；只操作本轮隔离会话，没有调用 Purge 或真实模型。自有进程已正常停止，测试历史留在私有目录，不写入 50061。
 
 候选运行还须同时隔离 `UNIVERSE_AGENT_HOME`、JVM 的 `-Duser.home` 和 cwd。源码核对表明，`ProviderConfigIo.defaultConfigPath()` 仍从 `user.home/.universe-agent/config.json` 读取 Provider 配置，GLOBAL memory 和 `UniverseLog` 的启动日志清理也使用该 home；PROJECT memory 和 `.sessions` 则跟随工作目录。只改 `UNIVERSE_AGENT_HOME` 不足以隔离这些路径。只读健康探针使用清理后的子进程环境、自造 dummy key 和不可用的本地模型地址，不继承日常模型凭据，不发真实 Provider 请求；这类探针不能代替真实对话验收。
 

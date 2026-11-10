@@ -2,12 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { ConfigKey, IConfigurationService } from '../../../platform/configuration/common/configurationService';
+import * as vscode from 'vscode';
+import { ConfigKey, ConfigTarget, IConfigurationService } from '../../../platform/configuration/common/configurationService';
 import { IChatModelInformation } from '../../../platform/endpoint/common/endpointProvider';
+import { IVSCodeExtensionContext } from '../../../platform/extContext/common/extensionContext';
 import { ILogService } from '../../../platform/log/common/logService';
 import { IFetcherService } from '../../../platform/networking/common/fetcherService';
 import { IExperimentationService } from '../../../platform/telemetry/common/nullExperimentationService';
 import { ErrorUtils } from '../../../util/common/errors';
+import { generateUuid } from '../../../util/vs/base/common/uuid';
 import { IInstantiationService } from '../../../util/vs/platform/instantiation/common/instantiation';
 import { resolveModelInfo } from '../common/byokProvider';
 import { OpenAIEndpoint } from '../node/openAIEndpoint';
@@ -38,6 +41,23 @@ export interface OllamaConfig extends LanguageModelChatConfiguration {
 	url: string;
 }
 
+const endpointCleanupKey = 'copilot-byok-migration-Ollama-endpoint-cleanup-v1';
+const endpointTargets = [
+	[ConfigTarget.WorkspaceFolder, 'workspaceFolderValue'],
+	[ConfigTarget.Workspace, 'workspaceValue'],
+	[ConfigTarget.Global, 'globalValue'],
+] as const;
+
+interface EndpointCleanupCheckpoint {
+	schemaVersion: 1;
+	provider: 'ollama';
+	group: 'Ollama';
+	id: string;
+	sourceURI: string;
+	target: ConfigTarget;
+	url: string;
+}
+
 export class OllamaLMProvider extends AbstractOpenAICompatibleLMProvider<OllamaConfig> {
 
 	public static readonly providerName = 'Ollama';
@@ -51,7 +71,8 @@ export class OllamaLMProvider extends AbstractOpenAICompatibleLMProvider<OllamaC
 		@IConfigurationService configurationService: IConfigurationService,
 		@ILogService logService: ILogService,
 		@IInstantiationService instantiationService: IInstantiationService,
-		@IExperimentationService expService: IExperimentationService
+		@IExperimentationService expService: IExperimentationService,
+		@IVSCodeExtensionContext private readonly _extensionContext: IVSCodeExtensionContext
 	) {
 		super(
 			OllamaLMProvider.providerId,
@@ -71,19 +92,98 @@ export class OllamaLMProvider extends AbstractOpenAICompatibleLMProvider<OllamaC
 	}
 
 	private async migrateConfig(): Promise<void> {
-		const baseUrl = this.getBaseUrlFromSettings();
-		if (!baseUrl) {
+		const stored = this._extensionContext.globalState.get<unknown>(endpointCleanupKey);
+		if (stored !== undefined) {
+			const checkpoint = this.readCleanupCheckpoint(stored);
+			if (checkpoint) {
+				await this.cleanupMigratedEndpoint(checkpoint);
+			} else {
+				this._logService.info('BYOK: unrecognized Ollama cleanup checkpoint; legacy settings are kept');
+			}
 			return;
 		}
-		await this.configureDefaultGroupIfExists(this._name, { url: baseUrl });
-		await this._configurationService.setConfig(ConfigKey.Deprecated.OllamaEndpoint, undefined);
+		const inspected = this._configurationService.inspectConfig(ConfigKey.Deprecated.OllamaEndpoint);
+		for (const [target, property] of endpointTargets) {
+			const url = inspected?.[property];
+			if (url === undefined) {
+				continue;
+			}
+			const sourceURI = this.getEndpointSourceURI(target);
+			if (typeof url !== 'string' || !url.trim() || !sourceURI) {
+				this._logService.info('BYOK: the legacy Ollama endpoint source cannot be identified; settings are kept');
+				return;
+			}
+			await this.configureDefaultGroupIfExists(this._name, { url });
+			// Only a successful command proves this instance imported the source. A
+			// duplicate-name error cannot claim a group that the user configured.
+			const checkpoint: EndpointCleanupCheckpoint = {
+				schemaVersion: 1, provider: 'ollama', group: 'Ollama', id: generateUuid(), sourceURI, target, url,
+			};
+			if (this._extensionContext.globalState.get<unknown>(endpointCleanupKey) !== undefined) {
+				this._logService.info('BYOK: another Ollama cleanup checkpoint appeared; legacy settings are kept');
+				return;
+			}
+			await this._extensionContext.globalState.update(endpointCleanupKey, checkpoint);
+			await this.cleanupMigratedEndpoint(checkpoint);
+			return;
+		}
 	}
 
-	private getBaseUrlFromSettings(): string | undefined {
-		if (this._configurationService.isConfigured(ConfigKey.Deprecated.OllamaEndpoint)) {
-			return this._configurationService.getConfig(ConfigKey.Deprecated.OllamaEndpoint);
+	private getEndpointSourceURI(target: ConfigTarget): string | undefined {
+		if (target === ConfigTarget.Global) {
+			return 'profile-local';
 		}
-		return undefined;
+		if (target === ConfigTarget.Workspace && vscode.workspace.workspaceFile) {
+			return vscode.workspace.workspaceFile.toString();
+		}
+		const folders = vscode.workspace.workspaceFolders;
+		return folders?.length === 1 ? folders[0].uri.toString() : undefined;
+	}
+
+	private readCleanupCheckpoint(value: unknown): EndpointCleanupCheckpoint | undefined {
+		if (!value || typeof value !== 'object') {
+			return;
+		}
+		const record = value as Record<string, unknown>;
+		if (record.schemaVersion !== 1 || record.provider !== 'ollama' || record.group !== 'Ollama'
+			|| typeof record.id !== 'string' || !record.id.trim()
+			|| typeof record.sourceURI !== 'string' || !record.sourceURI.trim()
+			|| typeof record.url !== 'string' || !record.url.trim()
+			|| !endpointTargets.some(([target]) => target === record.target)) {
+			return;
+		}
+		// Memento.get may return its internal object. Never modify that reference.
+		return {
+			schemaVersion: 1, provider: 'ollama', group: 'Ollama', id: record.id,
+			sourceURI: record.sourceURI, target: record.target as ConfigTarget, url: record.url,
+		};
+	}
+
+	private ownsCleanupCheckpoint(checkpoint: EndpointCleanupCheckpoint): boolean {
+		const current = this.readCleanupCheckpoint(this._extensionContext.globalState.get<unknown>(endpointCleanupKey));
+		return !!current && (Object.keys(checkpoint) as (keyof EndpointCleanupCheckpoint)[])
+			.every(key => current[key] === checkpoint[key]);
+	}
+
+	private async cleanupMigratedEndpoint(checkpoint: EndpointCleanupCheckpoint): Promise<void> {
+		if (!this.ownsCleanupCheckpoint(checkpoint) || this.getEndpointSourceURI(checkpoint.target) !== checkpoint.sourceURI) {
+			return;
+		}
+		const property = endpointTargets.find(([target]) => target === checkpoint.target)![1];
+		const current = this._configurationService.inspectConfig(ConfigKey.Deprecated.OllamaEndpoint)?.[property];
+		if (current !== undefined && current !== checkpoint.url) {
+			return;
+		}
+		if (current !== undefined) {
+			// This scoped recheck is not CAS: config.update can still race another
+			// writer after the RPC is issued. Keep that API boundary explicit.
+			await this._configurationService.setConfig(ConfigKey.Deprecated.OllamaEndpoint, undefined, checkpoint.target);
+		}
+		if (this.getEndpointSourceURI(checkpoint.target) === checkpoint.sourceURI
+			&& this._configurationService.inspectConfig(ConfigKey.Deprecated.OllamaEndpoint)?.[property] === undefined
+			&& this.ownsCleanupCheckpoint(checkpoint)) {
+			await this._extensionContext.globalState.update(endpointCleanupKey, undefined);
+		}
 	}
 
 	protected override async getAllModels(silent: boolean, apiKey: string | undefined, config: OllamaConfig | undefined): Promise<OpenAICompatibleLanguageModelChatInformation<OllamaConfig>[]> {

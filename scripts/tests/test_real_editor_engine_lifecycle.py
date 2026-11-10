@@ -16,7 +16,8 @@ import unittest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WRAPPER = REPO_ROOT / "test/scenario/scripts/run-universe-agent-real-editor.sh"
 
-LISTENING_ENGINE = '''import os
+LISTENING_ENGINE = '''import json
+import os
 import signal
 import socket
 import sys
@@ -31,6 +32,8 @@ def stop(*_):
 
 signal.signal(signal.SIGTERM, stop)
 (home / "owned.pid").write_text(str(os.getpid()))
+(home / "engine-args.json").write_text(json.dumps(sys.argv[1:]))
+(home / "engine-jvm-options").write_text(os.environ.get("JAVA_TOOL_OPTIONS", ""))
 port = 50161
 args = sys.argv[1:]
 if "--port" in args:
@@ -72,6 +75,7 @@ while True:
 
 TOUCH_RUNNER = '''#!/bin/sh
 touch "$UNIVERSE_AGENT_HOME/runner-started"
+printf '%s\\n' "${JAVA_TOOL_OPTIONS-}" > "$UNIVERSE_AGENT_HOME/runner-jvm-options"
 exit 0
 '''
 
@@ -132,7 +136,7 @@ class RealEditorEngineLifecycleTest(unittest.TestCase):
         self.write_program(node, node_text, "shell" if shell_node else "python")
         home = root / "home"
         port = self.reserve_port()
-        env = dict(os.environ)
+        env = {key: value for key, value in os.environ.items() if not key.startswith("UA_REAL_EDITOR_")}
         env.update(UNIVERSE_AGENT_HOME=str(home),
                    UA_REAL_EDITOR_WORKDIR=str(root / "workspace"),
                    UA_ENGINE_BIN=str(engine),
@@ -276,6 +280,64 @@ class RealEditorEngineLifecycleTest(unittest.TestCase):
         self.assertIn(str(home / "real-editor-engine.log"), result.stderr)
         self.assertIn("exited before listening", result.stderr)
         self.assertFalse((home / "runner-started").exists())
+
+    def test_explicit_protocol_is_passed_to_owned_engine_without_changing_legacy_default(self):
+        import json
+        for protocol, expected in ((None, "openai"), ("anthropic", "anthropic"),
+                                   ("openai-response", "openai-responses")):
+            with self.subTest(protocol=protocol):
+                # Every invocation owns a fresh fixture directory.
+                with tempfile.TemporaryDirectory(prefix="real-editor-protocol-") as directory:
+                    original_temp = self.temp
+                    self.temp = type("Fixture", (), {"name": directory})()
+                    try:
+                        script, home, env, _root = self.prepare(LISTENING_ENGINE, TOUCH_RUNNER, shell_node=True)
+                    finally:
+                        self.temp = original_temp
+                    if protocol:
+                        env["UA_REAL_EDITOR_PROTOCOL"] = protocol
+                    try:
+                        result = subprocess.run(["bash", str(script)], env=env, capture_output=True,
+                                                text=True, timeout=10, stdin=subprocess.DEVNULL)
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        args = json.loads((home / "engine-args.json").read_text())
+                        self.assertEqual(args[args.index("--provider") + 1], expected)
+                        self.assertTrue((home / "terminated").exists())
+                    finally:
+                        self.reap_file(home / "owned.pid")
+
+    def test_private_jvm_home_is_only_applied_to_owned_engine(self):
+        script, home, env, root = self.prepare(LISTENING_ENGINE, TOUCH_RUNNER, shell_node=True)
+        jvm_home = root / "private-jvm"
+        env["UA_REAL_EDITOR_JVM_HOME"] = str(jvm_home)
+        env["JAVA_TOOL_OPTIONS"] = "-Xmx64m"
+        try:
+            result = subprocess.run(["bash", str(script)], env=env, capture_output=True,
+                                    text=True, timeout=10, stdin=subprocess.DEVNULL)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("-Duser.home=" + str(jvm_home), (home / "engine-jvm-options").read_text())
+            self.assertEqual((home / "runner-jvm-options").read_text().strip(), "-Xmx64m")
+            self.assertEqual(jvm_home.stat().st_mode & 0o777, 0o700)
+            self.assertTrue((home / "terminated").exists())
+        finally:
+            self.reap_file(home / "owned.pid")
+
+    def test_matrix_rejects_shared_pinned_port_before_starting_engine(self):
+        script, home, env, _root = self.prepare(LISTENING_ENGINE, TOUCH_RUNNER, shell_node=True)
+        env.update(UA_REAL_EDITOR_SCENE="matrix", UA_REAL_EDITOR_PORT="50061")
+        result = subprocess.run(["bash", str(script)], env=env, capture_output=True,
+                                text=True, timeout=5, stdin=subprocess.DEVNULL)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("shared pinned engine port", result.stderr)
+        self.assertFalse((home / "owned.pid").exists())
+
+    def test_unknown_protocol_fails_without_starting_engine(self):
+        script, home, env, _root = self.prepare(LISTENING_ENGINE, TOUCH_RUNNER, shell_node=True)
+        env["UA_REAL_EDITOR_PROTOCOL"] = "fallback-please"
+        result = subprocess.run(["bash", str(script)], env=env, capture_output=True,
+                                text=True, timeout=5, stdin=subprocess.DEVNULL)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertFalse((home / "owned.pid").exists())
 
     def test_private_tmpdir_removed_and_appdata_hidden(self):
         script, home, env, _root = self.prepare(

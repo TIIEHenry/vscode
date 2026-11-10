@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-11-07
+updated: 2026-11-11
 summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
@@ -1393,7 +1393,7 @@ Electron 侧装载失败的原因已在下节查清，名单从 17 个收到 1 �
 | D1418 | P3 | **open** 笔记本、交互窗口与测试视图里 45 条过渡（与终端、调试的同出自 `07671981dd61`、`a854de8c4ae6`）没有减弱动效覆盖：`testing/browser/media/testing.css` 13 条、`testing/browser/testResultsView/testResultsViewContent.css` 2 条、`interactive/browser/media/interactive.css` 1 条，其余 29 条在 `notebook/browser` 下 16 份样式表。 | [r13-3](../plans/review-2026-11-07-r13-terminal-notebook-debug-plan.md) 只收终端与调试样式表的 34 条 | 按 r13-3 的改法补齐覆盖规则，超过 100ms 的收到 100ms，并有对应的 node 样式测试 | a11y / reduced-motion | open |
 | D1419 | P3 | **open** 只有一个终端、面板已经布局过时，第一个隐藏聊天终端登记会让 `TerminalTabbedView._refreshShowTabs` 在 SplitView 上抛 `Cant modify splitview`；错误被事件分发捕获记为未预期错误，后半段（拖动条监听、按上次宽度调整、`rerenderTabs`）被跳过。只经上游聊天的对照路径可达。 | 实施 [r13-1](../plans/review-2026-11-07-r13-terminal-notebook-debug-plan.md) 时发现，不在该稿范围 | 查清抛错原因并修，补用例 | terminal / tabbed-view | open |
 | D1420 | P2 | **open** `AbstractReplaceStringTool._promptContext` 仍是单例字段，交错请求会互相覆盖允许列表和响应流，与 [10-24 r15-3](../../archive/dev/plans/review-2026-10-24-r15-copilot-plan.md) 修过的补丁工具同类。只在 Agents 窗口可达。 | [r15-1](../plans/review-2026-11-07-r15-copilot-plan.md) 只改预备结果的复用范围 | 每次调用的上下文随调用传递、不存实例字段；有交错请求用例 | copilot / edit-tools | open |
-| D1421 | P3 | **closed** BYOK 旧配置迁移已收口：多 API key 分桶使用稳定后缀名，逐桶失败独立记录并允许后续重试；Ollama 旧 endpoint 迁移拒绝已接住并记录日志。 | [r15-2](../plans/review-2026-11-07-r15-copilot-plan.md) 的迁移边界已按本行补齐；不改变默认窗口产品入口。 | 多 key 迁移不再撞同名分组；部分失败不写完成标记；Ollama configure/setConfig reject 无未处理 rejection；BYOK 定向 4 tests 与目标 ESLint 通过，扩展 typecheck 仍有其他既有错误。 | copilot / byok-migration | closed |
+| D1421 | P3 | **closed** 原登记范围已完成：多 API key 分桶使用后缀名，逐桶迁移失败不写完成标记；CustomOAI、Ollama 构造迁移拒绝已接住。2026-11-11 补 Azure 同类 handler；Ollama 已记录可信成功检查点后的旧源清理恢复已实现、定向验证通过，不据此声称全部恢复路径已关闭。 | [r15-2 及 D1421 后续](../plans/review-2026-11-07-r15-copilot-plan.md)；恢复方案独立提交 `35a2a82dbd8`，实现只读复核 C0/I0，不改变默认窗口产品入口。 | Node24 唯一通道下 CustomOAI/Azure/Ollama 3 文件 34/34 通过，四个改动 TS 文件定向 ESLint 通过；扩展整体 typecheck 不列为通过。Ollama 恢复匹配 sourceURI/target/rawURL 并保留其他作用域和清理发出前观察到的用户编辑。检查点与分组非事务、跨窗口无锁、清理 RPC 无 CAS 的剩余窗口见方案，不列为已解决。 | copilot / byok-migration | closed |
 
 
 ## D17：2026-11-02 GPT视觉定向CSS检查

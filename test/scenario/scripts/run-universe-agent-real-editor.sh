@@ -8,7 +8,38 @@ HOME_DIR="${UNIVERSE_AGENT_HOME:?Set UNIVERSE_AGENT_HOME to an owner-only tempor
 WORK_DIR="${UA_REAL_EDITOR_WORKDIR:?Set UA_REAL_EDITOR_WORKDIR to an isolated workspace}"
 ENGINE="${UA_ENGINE_BIN:?Set UA_ENGINE_BIN to the production HeadlessServer CLI binary}"
 PORT="${UA_REAL_EDITOR_PORT:-50161}"
+SCENE="${UA_REAL_EDITOR_SCENE:-legacy}"
+PROTOCOL="${UA_REAL_EDITOR_PROTOCOL:-openai-chat}"
+JVM_HOME="${UA_REAL_EDITOR_JVM_HOME:-}"
 SCENARIO_OUT="$ROOT/test/scenario/out/runScenario.js"
+
+case "$SCENE" in legacy|matrix) ;; *) echo "Unsupported real editor scene" >&2; exit 2 ;; esac
+case "$PROTOCOL" in
+  anthropic) ENGINE_PROVIDER=anthropic ;;
+  openai-chat) ENGINE_PROVIDER=openai ;;
+  openai-response) ENGINE_PROVIDER=openai-responses ;;
+  *) echo "Unsupported real editor protocol" >&2; exit 2 ;;
+esac
+[[ "$PORT" =~ ^[0-9]+$ && "$PORT" -gt 0 && "$PORT" -lt 65536 ]] || {
+  echo "UA_REAL_EDITOR_PORT must be a TCP port" >&2; exit 2;
+}
+if [[ "$SCENE" == matrix ]]; then
+  [[ "$PORT" != 50061 ]] || { echo "Matrix cannot use the shared pinned engine port" >&2; exit 2; }
+  : "${UA_REAL_EDITOR_MODEL:?Matrix requires the full requested model id}"
+  : "${UA_REAL_EDITOR_MODEL_PROFILE:?Matrix requires a model profile id}"
+  : "${UA_REAL_EDITOR_ORACLE_FILE:?Matrix requires an oracle file}"
+  : "${UA_REAL_EDITOR_RESULT_FILE:?Matrix requires a result file}"
+  : "${JVM_HOME:?Matrix requires a private JVM user.home}"
+fi
+if [[ -n "$JVM_HOME" ]]; then
+  # Java's environment option parser splits unquoted whitespace. Reject it rather
+  # than silently launching against the caller's real home.
+  [[ "$JVM_HOME" == /* && ! "$JVM_HOME" =~ [[:space:]] ]] || {
+    echo "UA_REAL_EDITOR_JVM_HOME must be an absolute path without whitespace" >&2; exit 2;
+  }
+  mkdir -p "$JVM_HOME"
+  chmod 700 "$JVM_HOME"
+fi
 
 [[ -x "$ENGINE" ]] || { echo "Engine binary is not executable: $ENGINE" >&2; exit 2; }
 [[ -f "$SCENARIO_OUT" ]] || {
@@ -101,12 +132,15 @@ engine_is_alive() {
 
 (
   cd "$WORK_DIR"
+  if [[ -n "$JVM_HOME" ]]; then
+    export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:+$JAVA_TOOL_OPTIONS }-Duser.home=$JVM_HOME"
+  fi
   exec "$ENGINE" \
     --port "$PORT" \
     --bind 127.0.0.1 \
     --no-uds \
     --metrics-port 0 \
-    --provider openai
+    --provider "$ENGINE_PROVIDER"
 ) >"$HOME_DIR/real-editor-engine.log" 2>&1 &
 engine_pid=$!
 

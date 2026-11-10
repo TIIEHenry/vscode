@@ -276,7 +276,7 @@ summary: "hold 2、weaken 2、drop 0；方案覆盖替换工具预备结果的�
 
 ### D1421 后续：Ollama 迁移后的旧配置清理恢复（2026-11-11）
 
-状态：执行中。负责：agent:branch_sync_audit。恢复方案经 agent:engine_next_step 独立只读审查为 C0/I0；待主任务单独提交方案后实施，生产逻辑尚未实施。
+状态：本段实现与定向验证完成。负责：agent:branch_sync_audit。恢复方案经 agent:engine_next_step 独立只读审查为 C0/I0，已单独提交为 `35a2a82dbd8`；实现独立复核 C0/I0，主任务唯一通道已完成验证。本段完成不改变整份 r15 方案状态。
 
 问题：`OllamaLMProvider.migrateConfig` 先创建新分组，再清理旧 `OllamaEndpoint`。第一步已成功、第二步临时失败后，下次激活会再次创建同名分组，因冲突提前退出，永远到不了清理步骤。`51cd33c08ff` 已接住并记录拒绝，但没有解决恢复。新组已经可用，此条不改变默认窗口产品入口。
 
@@ -298,7 +298,7 @@ summary: "hold 2、weaken 2、drop 0；方案覆盖替换工具预备结果的�
 
 另有安全保留窗口：迁移命令成功后，检查点写入失败或进程退出，仍会留下新组和旧源，下次可能遇到同名冲突；此时保留旧源、记录错误，不按名称认领他人组。`Memento.update` 成功只代表主线程存储接受该更新，新组与检查点并非一笔事务。本修复只关闭“检查点已成功记录后，旧源清理失败可于下次恢复”的路径，不据此关闭上述全部恢复债。
 
-待准备回归（只用桩，不访问网络，不编译，交主任务统一运行）：
+定向回归范围（使用桩，不访问网络）：
 
 - 迁移组成功、清理第一次拒绝、二次激活清理成功；真实迁移只调用一次，检查点在失败后保留、清理后移除。
 - 两次激活之间用户修改已迁移组；二次仅清旧源，组的修改保持。
@@ -309,6 +309,14 @@ summary: "hold 2、weaken 2、drop 0；方案覆盖替换工具预备结果的�
 - 未知 schema、其他 provider/group、损坏记录或不同认领 ID 不清；不就地修改 `globalState.get` 返回的对象。
 - 清理 RPC 在途的同键并发修改作为配置 API 边界单列，是否扩展条件写 API 由只读审查决定，不以顺序桩伪造原子保证。
 
-本次编辑范围：Ollama provider、对应 spec、本定向段落及 D1421 证据状态；不动 root 的 MiMo 方案、进度页、UI、其他 WIP，不自行运行 Node、编译、LLM 或提交。
+本段实现范围：Ollama provider、对应 spec、本定向段落及 D1421 证据状态；另补 Azure 构造迁移拒绝 handler 与对应 spec。主任务统一维护进度、验证和提交，不改默认窗口 UI 或其他工作区 WIP。
 
 签收记录（2026-11-11）：agent:engine_next_step 独立只读审查 C0/I0，主任务签收；实施清理前须同时重核当前 `sourceURI` 与原作用域 `rawURL`，不得仅比较 target 枚举与 URL，并保留上文检查点非事务、清理 RPC 无 CAS 两个 API 边界。
+
+实施记录（2026-11-11）：
+
+- `ollamaProvider.ts` 已使用现成 ExtensionContext DI 持久化私有版本检查点，记录成功迁移命令所认领的来源；严格校验并复制读取记录，显式作用域清理，仅在来源身份、原值与当前认领都匹配时恢复，不按同名错误猜归属，不覆盖新组。清理后再读来源与认领，确认原目标已无值才移除自己的检查点。
+- `ollamaProvider.spec.ts` 的 19 条新增桩回归（含参数展开；与原 2 条合计 21 条）覆盖清理一次失败后下次激活成功、新组后改保留、精确 scope、跨 workspace 同 URL、多根来源不明、等待后的 URL/来源变化、同名他人组、未知或损坏记录、检查点写入及移除失败、不同认领保护、rawURL 不按 trim 后误匹配。现有两个构造测试已补新 DI 参数与 inspectConfig 桩。
+- Azure 构造函数接住并记录迁移拒绝，新增读取 secret 失败及旧认证类型清理失败两条回归。
+- 主任务在唯一通道、Node 24 下运行 `npm run test:unit -- src/extension/byok/vscode-node/test/customOAIProvider.spec.ts src/extension/byok/vscode-node/test/azureProvider.spec.ts src/extension/byok/vscode-node/test/ollamaProvider.spec.ts --maxWorkers=1 --no-file-parallelism`，3 文件 34/34 通过；四个改动 TS 文件的定向 ESLint 与 `git diff --check` 通过。日志为仓外 `vscode-debug-engine/logs/2026-11-11-serialized-validation-zs37k6nf/byok-unit.log`。独立实现复核 C0/I0；未调用真实模型，不将定向测试扩大为整个扩展 typecheck 通过。
+- 上述非事务、跨窗口与清理 RPC 在途边界仍保留。本段只关闭可信检查点已记录后的清理恢复，不按名称认领分组，不声称全部恢复路径已解决。

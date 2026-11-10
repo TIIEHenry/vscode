@@ -3,7 +3,7 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-11-07
+updated: 2026-11-11
 summary: "官方单测与五域自定义入口；Sources pending严格读取根汇总，私有短TMP避免Unix socket路径过长；焦点与真实产品窗口分别验收。"
 ---
 
@@ -180,6 +180,33 @@ rtk proxy bash test/scenario/scripts/run-universe-agent-real-editor.sh
 真实场景允许多条助手说明，但包含 marker 的助手行必须恰好一个且有持久 root/turn 身份、外层 article 非 busy；工具数量及重载身份检查保持。仅点击提交、出现流式 marker 或收到持久事件都不计完整通过。
 
 wrapper 将 runner 放后台并 wait，正常结束时退出码即 runner 的退出码；仅 wrapper 收到 INT/TERM 时先 TERM runner 并等待，再 TERM 引擎，以 128+信号退出。EXIT trap 回收仍在运行的本轮引擎。已有 server.lock 或 server.sock 则启动前失败且不删除。就绪须同时满足：本轮 owned PID 仍存活、引擎已写出 server.lock 或 server.sock、127.0.0.1 上该端口已接受 TCP；引擎在等待中退出则立即失败并指向日志。步骤分为连接、提交、工具/助手结果、reload；点击提交不代表模型请求成功。当前 [SGLang 采样记录](../../../dev/progress/sglang-provider-validation-2026-11-05.md#默认编辑器的首次真实模型配置采样) 的目录配置、模型选择与实际调用分开记账，不能把历史 SSE fixture 的 4/4 当作真实 Provider 验收。
+
+### MiMo 双模型与消息显示矩阵
+
+[`run-mimo-real-editor-matrix.py`](../../../test/scenario/scripts/run-mimo-real-editor-matrix.py) 串行运行 flash/pro × Anthropic、OpenAI Chat、OpenAI Responses 六个 cell；每个 cell 均执行 U01–U10。场景、必验条件和失败分类见[执行方案](../../../dev/plans/mimo-real-conversation-matrix.md)。引擎的 L4/L5/routes 矩阵另行执行，不能代替默认编辑器的 main → IPC → DOM 显示证据。
+
+先核对当前 `src/` 对应的默认编辑器输出，并在唯一编译通道完成 `test/scenario` 的 compile（包括 automation），再冻结源码与产物。所有 JVM 和 Node/TypeScript 构建共用 `/tmp/universeagent-gradle.lock`，子任务不另起编译。不能只因 `out/` 存在或生产 RPC 探针通过就认定整窗输出新鲜；缺少当前 import 的模块、资源字节不一致时须先刷新。`npm run transpile-client` 会清空输出；需要保留既有生成文件时，核对 `src/` 和映射目标均为本工位普通文件、无软链或目录冲突，再在同一锁内调用 `build/next/transpile.ts` 导出的 `applyIncrementalClientChanges(repoRoot, "out", changedPaths)`，清单须覆盖待验源码及资源，不借缺少状态文件的 `build-fast` 回退到全量清理。刷新后再封存，不能在 campaign 中更换输出。矩阵 driver 自身不编译，也不覆盖当前 PIN 或运行包。使用干净候选的实际预包，指定其启动器及包内正式 proto，例如：
+
+```bash
+rtk proxy python3 test/scenario/scripts/run-mimo-real-editor-matrix.py \
+  --engine-bin /home/clarence/Projects/Agents/vscode-debug-engine/candidates/c4fa6c3868-20261111/engine/bin/universe-agent-engine \
+  --engine-package /home/clarence/Projects/Agents/vscode-debug-engine/candidates/c4fa6c3868-20261111/engine \
+  --engine-sha c4fa6c386882999e17e32aae43f2151e17026a94 \
+  --proto-root /home/clarence/Projects/Agents/vscode-debug-engine/candidates/c4fa6c3868-20261111/engine/proto \
+  --report-root /absolute/path/to/fresh-mimo-ui-campaign
+```
+
+网关默认 `http://127.0.0.1:3425`，凭据读取 `MAGPIE_API_KEY`；另一个变量名用 `--api-key-env` 指定，不把 key 写入命令或仓库。报告根必须是仓库和预包之外的新绝对目录，不覆盖历史 attempt。每场景自建 AgentHome、JVM user.home、cwd、临时目录与 Electron 配置；自动化不复制日常登录。引擎运行时的两份凭据配置仅在私有目录创建，确认自有进程全部停止后删除。`credential-status.json` 分别记录停止与已知凭据清理状态；停止未确认或配置身份异常则停止后续场景并保留私有状态，不自动把整个目录标为可公开。driver 核对 VERSION、所有 jar 摘要、组件与 classpath 顺序、包内 proto 字节，以及 IDE 源码/编译产物/Electron 的运行前后身份。中途更改来源或产物必须建立新 campaign。
+
+U01–U10 使用同一条生产 SessionEventStream 的透明 raw-bytes tap 与独立 [oracle](../../../test/scenario/scenarios/universe-agent-real-editor-oracle.cjs) 对照 DOM，不增加第二条流订阅。答案由本场景新建文件提供，不泄露在提示词中。正文、工具调用 ID、参数/结果、父子归属、终态和历史恢复分别验证；仅收到事件或持久条目存在不能证明实际可见。转发真实模型请求的 relay 保留协议/请求模型/响应模型元数据，原样转发字节，不保留凭据或请求正文；实际响应模型未知或回退均不能算目标模型通过。缺少 Thinking 证据记未覆盖，只有执行前已有能力依据才允许 N/A。
+
+离线回归命令为 `python3 -m unittest scripts.tests.test_mimo_real_editor_matrix scripts.tests.test_real_editor_engine_lifecycle scripts.tests.test_real_editor_scenario scripts.tests.test_mimo_real_editor_budget_bridge -v`，用于验收器、隔离、进程回收及实际 Node/Python 预算协议互通。它们不调用真实模型，不等于六个 cell 的消息显示通过；当前真实矩阵状态以[进度](../../../dev/progress/status.md)为准。
+
+该 driver 当前依赖 Linux `/proc` 与 subreaper 核对进程归属。正常、超时及收到 INT/TERM 时均先收回本轮进程组和脱离组的自有子进程，再关闭 relay 和清理已知凭据。信号退出使用 `128 + signal`，已生成的证据与 partial summary 保留；重复信号不打断这段回收。未执行的 required 场景仍缺项，不能把中断 campaign 写成完成。
+
+显示预算按完整场景预注册，[固定预算定义](../../../test/scenario/scenarios/universe-agent-real-editor-budget.json)由 driver 与 CJS 共用。U02 有 2 个 episode，U07 有 7 个，其他场景各 1 个；每个 episode 仍为 `600000ms`。setup 从 driver 发起 wrapper 前计时，包含引擎与 Electron 启动；U07 的历史恢复、最终显示核验和回收有独立预算，不能把整场历史任务套进单轮额度。固定政策在 manifest、oracle 和结果之间核对；当前修订见[执行方案 §2.4](../../../dev/plans/mimo-real-conversation-matrix.md#24-显示复合场景预算首次运行前修订)。禁止在真实运行途中加时、借用后续 episode 预算或将迟到结果补成通过。
+
+跨进程 deadline 使用同一 Linux 单调时钟，并核对 boot ID 与 attempt 身份。本机 Python 3.10.12 的 `get_clock_info('monotonic')` 实测为 `clock_gettime(CLOCK_MONOTONIC)`；Node24.18.0 的 libuv 为 1.52.1，其 precise hrtime 同样使用该时钟，依据 [libuv precise 入口](https://github.com/libuv/libuv/blob/v1.52.1/src/unix/core.c#L141)和[Linux 实现](https://github.com/libuv/libuv/blob/v1.52.1/src/unix/linux.c#L1508)，Python 合同见 [time.monotonic](https://docs.python.org/3.10/library/time.html#time.monotonic)。本机还实际核对过 Node hrtime 落在 Python 调用前后的单调时钟窗口内；这些事实不替代每次运行的预算身份与范围验证。共享清理记录应完整写成临时文件后原子发布，其他进程只能读取首个有效截止时间，不能重新给满额宽限。
 
 ## 何时 typecheck / 编译
 

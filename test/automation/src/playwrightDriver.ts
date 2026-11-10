@@ -351,6 +351,14 @@ export class PlaywrightDriver {
 		return await this.page.evaluate(expression) as T;
 	}
 
+	/** Test-only bound evaluator for the owned Electron main process. */
+	get evaluateElectronMain(): playwright.ElectronApplication['evaluate'] {
+		if (!('windows' in this.application)) {
+			throw new Error('Electron main-process evaluation requires an Electron application.');
+		}
+		return this.application.evaluate.bind(this.application);
+	}
+
 	/**
 	 * Get information about elements matching a selector.
 	 */

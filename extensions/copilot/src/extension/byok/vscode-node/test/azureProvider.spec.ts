@@ -5,11 +5,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BlockedExtensionService, IBlockedExtensionService } from '../../../../platform/chat/common/blockedExtensionService';
+import { ConfigKey } from '../../../../platform/configuration/common/configurationService';
 import { ModelSupportedEndpoint } from '../../../../platform/endpoint/common/endpointProvider';
 import { DisposableStore } from '../../../../util/vs/base/common/lifecycle';
 import { SyncDescriptor } from '../../../../util/vs/platform/instantiation/common/descriptors';
 import { createExtensionUnitTestingServices } from '../../../test/node/services';
-import { azureSupportedEndpointsForUrl, resolveAzureUrl } from '../azureProvider';
+import { AzureBYOKModelProvider, azureSupportedEndpointsForUrl, resolveAzureUrl } from '../azureProvider';
 
 describe('AzureBYOKModelProvider', () => {
 	const disposables = new DisposableStore();
@@ -95,4 +96,38 @@ describe('AzureBYOKModelProvider', () => {
 		});
 	});
 
+});
+
+describe('Azure legacy configuration migration', () => {
+	it.each(['secret-read', 'auth-type-cleanup'] as const)('logs %s failures from constructor migration', async failurePoint => {
+		const failure = new Error(`Azure ${failurePoint} unavailable`);
+		const getAPIKey = vi.fn(async () => { throw failure; });
+		const setConfig = vi.fn(async () => { throw failure; });
+		const logService = { error: vi.fn(), info: vi.fn() };
+
+		new AzureBYOKModelProvider(
+			{ getAPIKey } as any,
+			{
+				getConfig: vi.fn(() => failurePoint === 'secret-read' ? {
+					deployment: { name: 'Deployment', url: 'https://test.openai.azure.com', maxInputTokens: 1, maxOutputTokens: 1, toolCalling: false, vision: false },
+				} : {}),
+				setConfig,
+			} as any,
+			logService as any,
+			{} as any,
+			{ createInstance: vi.fn().mockReturnValue({}) } as any,
+			{} as any,
+			{ globalState: { get: vi.fn().mockReturnValue(false), update: vi.fn() } } as any,
+		);
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(logService.error).toHaveBeenCalledWith(failure, expect.stringContaining('legacy Azure models'));
+		if (failurePoint === 'secret-read') {
+			expect(getAPIKey).toHaveBeenCalledWith('Azure', 'deployment');
+			expect(setConfig).not.toHaveBeenCalled();
+		} else {
+			expect(getAPIKey).not.toHaveBeenCalled();
+			expect(setConfig).toHaveBeenCalledWith(ConfigKey.Deprecated.AzureAuthType, undefined);
+		}
+	});
 });

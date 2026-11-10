@@ -21,13 +21,22 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+// The old four-step contract remains the default. Matrix semantics must always
+// be selected explicitly and provide an independently generated private oracle.
+const selectedScene = process.env.UA_REAL_EDITOR_SCENE || 'legacy';
+if (selectedScene !== 'legacy' && selectedScene !== 'matrix') {
+	throw new Error(`Unsupported UA_REAL_EDITOR_SCENE: ${selectedScene}`);
+}
+
 const configuredWorkspace = process.env.UA_REAL_EDITOR_WORKDIR;
 const workspacePath = configuredWorkspace
 	? path.resolve(configuredWorkspace)
 	: fs.mkdtempSync(path.join(os.tmpdir(), 'universe-agent-real-editor-'));
 fs.mkdirSync(workspacePath, { recursive: true });
 const marker = 'UA_REAL_EDITOR_MARKER_7F3D';
-fs.writeFileSync(path.join(workspacePath, 'marker.txt'), `${marker}\n`, { mode: 0o600 });
+if (selectedScene === 'legacy') {
+	fs.writeFileSync(path.join(workspacePath, 'marker.txt'), `${marker}\n`, { mode: 0o600 });
+}
 
 async function waitFor(locator, description, timeout = 30_000) {
 	try {
@@ -106,7 +115,9 @@ function assertUnique(rows, label) {
 	}
 }
 
-module.exports = {
+module.exports = selectedScene === 'matrix'
+	? require('./universe-agent-real-editor-oracle.cjs').createMatrixScenario()
+	: {
 	id: 'universe-agent-real-editor',
 	title: 'Real Kotlin engine through the default editor',
 	source: 'https://github.com/TIIEHenry/UniverseAgent/blob/main/dev/decisions/482-real-editor-cli-test-boundary.md',

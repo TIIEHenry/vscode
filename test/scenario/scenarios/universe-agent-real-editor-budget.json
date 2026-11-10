@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "clock": "linux-clock-monotonic-ns",
+  "setupMs": 60000,
+  "episodeMs": 600000,
+  "finalizationMs": 60000,
+  "cleanupMs": 60000,
+  "cases": {
+    "U01": { "episodeLabels": ["U01"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U02": { "episodeLabels": ["U02", "U02:followup"], "historyMs": 0, "caseBudgetMs": 1320000, "watchdogMs": 1380000 },
+    "U03": { "episodeLabels": ["U03"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U04": { "episodeLabels": ["U04"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U05": { "episodeLabels": ["U05"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U06": { "episodeLabels": ["U06"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U07": { "episodeLabels": ["U01", "U02", "U02:followup", "U08", "U09", "U10", "U06"], "historyMs": 120000, "caseBudgetMs": 4440000, "watchdogMs": 4500000 },
+    "U08": { "episodeLabels": ["U08"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U09": { "episodeLabels": ["U09"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 },
+    "U10": { "episodeLabels": ["U10"], "historyMs": 0, "caseBudgetMs": 720000, "watchdogMs": 780000 }
+  }
+}

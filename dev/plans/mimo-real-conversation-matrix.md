@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-11-11
-summary: "规则 16 复核 C0/I0 后签收；执行 flash/pro × 三协议完整真实 LLM 矩阵与逐 cell required 显示场景，重点消息、过程和终态，全程一个编译通道。"
+summary: "方案、复合预算和 Electron 别名修订已签收；BYOK、automation/scenario 编译、Kotlin 与验收器离线整合通过，flash/pro × 三协议真实模型及默认窗口矩阵仍待执行。"
 ---
 
 # MiMo 双模型真实对话与过程显示矩阵
@@ -84,7 +84,7 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 - CJS 中的 Playwright 动作、事件轮询、sample/fold 点击、逐行滚动检查、Electron main/page evaluate 均受当前阶段剩余预算限制；剩余时间非正数就先失败，不能给 Playwright 传表示不限时的 `timeout: 0`。无原生 timeout 的操作须受控等待，超时后将该阶段置为不可继续，不开始后续 episode，不把后到结果补成通过。结果记录预期/实际 episode 数、阶段与 episode 耗时、超时所在阶段、episode label 及 operation。setup、episode、history、finalization 与外层 watchdog 超时分别报告，不能仅凭超时推断产品显示错误。
 - cleanup 的 60 秒是共享的一次单调时钟 deadline：正常完成、失败、超时或信号后即进入回收；包括 runner 的 evidence.finish/视频/章节后处理、wrapper/引擎、owned 进程组与 relay 的回收，不再发模型任务。所有 TERM/wait、handler join、reap/验证都只使用同一剩余时间，不能逐进程或逐 handler 重新给完整宽限；到期只对确认自有进程强杀并验证，不能在 watchdog 后再追加另一轮 15+5 秒。停止无法确认则保留私有状态、失败并停止后续 case。
 
-此修订只分配完整显示场景已要求的工作，不删任务、不跨 case 拼历史，不改变引擎矩阵的 `--task-timeout-ms 600000`、严格参数或通过判据。修改后的 policy、验证器和场景身份须形成新的 seal/campaign。方案只读复核并独立提交后再实施；当前仍未执行新的真实显示矩阵。
+此修订只分配完整显示场景已要求的工作，不删任务、不跨 case 拼历史，不改变引擎矩阵的 `--task-timeout-ms 600000`、严格参数或通过判据。修改后的 policy、验证器和场景身份须形成新的 seal/campaign。预算修订已独立复核并提交为 `cc79e1cb34d`，实现与离线验证见 §6；当前仍未执行新的真实显示矩阵。
 
 ## 3. 实施顺序
 
@@ -100,7 +100,7 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 
 - 编译包含 Gradle、Kotlin/Java、Node/TypeScript、scenario/automation 构建；任何时刻仅一个通道。子任务只能只读审查或准备文本，未经父窗口安排不得启动编译。
 - 模型/协议切换不重编引擎。运行前后核对封存身份，禁止来源或产物漂移后继续标成同一 campaign。
-- 产物遍历默认拒绝软链。Electron 预包的真实启动别名 `universe-agent-studio → code-oss` 可在该 runtime 根内作为文件别名封存：同时绑定逻辑路径、原始链接文本、最终 canonical 目标相对路径与目标实际字节。仅该 Electron 遍历启用此例外；目录、悬空、循环和最终目标越界均拒绝，不改现有缓存或 `.build` 链接。首次实际只读预检已因该合法别名被默认策略拒绝，修复后须重新核整个遍历与封存身份。
+- 产物遍历默认拒绝软链。Electron 预包的真实启动别名 `universe-agent-studio → code-oss` 可在该 runtime 根内作为文件别名封存：同时绑定逻辑路径、原始链接文本、最终 canonical 目标相对路径与目标实际字节。仅该 Electron 遍历启用此例外；目录、悬空、循环和最终目标越界均拒绝，不改现有缓存或 `.build` 链接。首次实际只读预检因该合法别名被默认策略拒绝的记录保留；窄实现及负例已复核，实际 Electron 包身份遍历复验已通过，正式 campaign 仍须使用最终封存身份。
 - 不停止、改名规避或更改系统内存监控。以实际可用内存安排单 worker 构建，`-Xmx` 只作为堆限制。
 - 引擎同时隔离 AgentHome、JVM user.home、cwd/项目数据与日志；显示自动化使用临时 user-data/extensions/shared-data、默认 editor、无 `--agents`。不复制日常或交互测试登录目录。MiMo 本地网关不依赖 Copilot/GitHub 登录。
 - 密钥仅传给自有测试进程，不进入源码、截图说明或报告。固定当前包、原 PIN、50061 和其他工作区 WIP；候选测试不直接覆盖线上包。
@@ -118,12 +118,18 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 
 首轮规则 16 只读审查为 C0/I3：已补完整 expected set/严格参数，逐 cell required 显示清单，以及修复后的新 seal/campaign 与全表复验规则。第二轮复核 C0/I0/M1，可签收进入实施；Minor 的 PRD 范围限定已补到正文。尚未完成本方案的新矩阵或显示场景。当前候选构建通过不等于本方案验收通过。
 
-2026-11-11 实施进度：干净 c4fa 的 124 jar 候选运行包、22 份包内 proto、隔离冷启动与自有空会话生命周期已核对，50061 未换钉。引擎 harness 的 schema 2 预注册、审计与真实 JVM 隔离修复经独立复核；随后移除了不符合宿主指令的 HOME 覆盖，保留 JVM user.home、AgentHome、cwd/tmp/log，Python 离线 58/58 通过。
+2026-11-11 实施进度：干净 c4fa 的 124 jar 候选运行包、22 份包内 proto、隔离冷启动与自有空会话生命周期已核对，50061 未换钉。引擎 harness 的 schema 2 预注册、审计与真实 JVM 隔离修复经独立复核；随后移除了不符合宿主指令的 HOME 覆盖，保留 JVM user.home、AgentHome、cwd/tmp/log，引擎工位 Python 离线验证已通过。
 
-显示 runner 已补三协议、实际响应模型核对、完整包来源核对、信号回收和本轮凭据配置清理，根窗口离线 51/51 通过。oracle 的持久回答闭集、完整工具结果、执行事实与持久投影一致性、精确路由路径/内容/阶段、相关 fold 内容与 DOM 增量修复已获独立 C0/I0；根窗口在 Node24 语法检查后，运行 76 项合成 verifier controls 与 20 项旧场景 Chromium DOM 回归，均通过。单工具无法观察选择后的相关增量时明确记 uncovered，Thinking 未知仍记未覆盖。
+显示 runner 已补三协议、实际响应模型核对、完整包来源核对、信号回收和本轮凭据配置清理，根窗口早期离线验证已通过。oracle 的持久回答闭集、完整工具结果、执行事实与持久投影一致性、精确路由路径/内容/阶段、相关 fold 内容与 DOM 增量修复已获独立 C0/I0；Node24 语法检查、合成 verifier controls 与旧场景 Chromium DOM 回归均通过，最终整合证据见下文。单工具无法观察选择后的相关增量时明确记 uncovered，Thinking 未知仍记未覆盖。
 
-上述均不是新的真实模型或默认窗口通过。BYOK 单测、automation/scenario 编译与 Kotlin 离线回归已进入同一共享锁队列；外部矩阵仍持锁，当前尚未开始执行。待验证、提交和封存后再发本轮真实请求，保留所有失败与未覆盖结果。
+上述均不是新的真实模型或默认窗口通过。最初共享锁排队以等待码 75 结束，未启动编译；后续 BYOK 单测、automation/scenario 编译与 Kotlin 离线回归已在同一通道实际执行。各次失败及修正后的重跑独立保留，不将旧 attempt 改写成通过。
 
-首次真实显示运行前，新增 §2.4 复合预算修订。首轮独立只读审查 C0/I2 指出 setup 漏算 CJS 启动前阶段、cleanup 可能逐操作叠加宽限，均已补入共同 deadline 和阶段边界；实际修订文本复核 C0/I0，可独立提交后实施。单 episode 和引擎矩阵仍为 600000ms，U02/U07 完整任务数量不变，未以旧样本签收或预测新候选通过。
+首次真实显示运行前，新增 §2.4 复合预算修订。首轮独立只读审查 C0/I2 指出 setup 漏算 CJS 启动前阶段、cleanup 可能逐操作叠加宽限，均已补入共同 deadline 和阶段边界；实际修订文本复核 C0/I0，并以 `cc79e1cb34d` 独立提交后实施。单 episode 和引擎矩阵仍为 600000ms，U02/U07 完整任务数量不变，未以旧样本签收或预测新候选通过。
 
-预算实现固定点已独立联审 C0/I0，根窗口 73 项离线整合通过，源文件运行前后摘要相同，证据在仓外 `vscode-debug-engine/logs/2026-11-11-offline-mimo-budget-2caa367cf0.json`。包含实际 Node/Python bridge，仍未执行真实窗口或模型。随后实际产物遍历在 Electron 包内启动别名处被默认软链策略拒绝；§4 的文件别名窄例外经独立只读审查 C0/I0，须独立提交方案后实现，再复验全部遍历及新负例，不能把前述 73 项用于代签未实现的 alias 支持。
+预算实现固定点已独立联审 C0/I0，首次离线整合通过且源文件运行前后摘要相同，证据在仓外 `vscode-debug-engine/logs/2026-11-11-offline-mimo-budget-2caa367cf0.json`。包含实际 Node/Python bridge，仍未执行真实窗口或模型。随后实际产物遍历在 Electron 包内启动别名处被默认软链策略拒绝；§4 的文件别名窄例外经独立只读审查 C0/I0，以 `e05a362249b` 独立提交后实现。窄实现、原生 `ElectronApplication['evaluate']` bound getter 与相应负例均已独立复核 C0/I0，实际 Electron 包身份遍历复验通过；首次拒绝不被后续通过覆盖。
+
+统一串行结果按原 attempt 保留在仓外 `vscode-debug-engine/logs/`：`2026-11-11-serialized-validation-zs37k6nf/status.json` 中 BYOK 定向单测通过，但 `test/scenario` 的 `npm run compile` 因 Electron 类型导入与泛型解包（TS2307/TS2769）退出 2；bound getter 窄修后，`2026-11-11-serialized-retry-jfow8dy1/status.json` 记录同一编译命令退出 0，随后 Kotlin 的 `MimoMatrixIsolationTest` 负例 fixture 未触发预期异常而退出 1。修正该 fixture 后，`2026-11-11-kotlin-retry-sdjysvnk/status.json` 记录隔离、profiles、路由合同离线回归及运行依赖准备退出 0。对应 `.log` 和首轮 Kotlin `engine-kotlin-unit-failure.xml` 留在各自目录；没有真实 Provider 请求。
+
+最终 Python/Node 整合已通过，包含预算、oracle、旧场景 Chromium DOM、信号与凭据清理，以及实际 Node/Python 单调钟桥接；桥接覆盖逐阶段确认、U07 连续快跑漏轮询与双向 cleanup 认领。命令见[当前证据](../progress/status.md#当前工位与证据)，结果在仓外 `vscode-debug-engine/logs/2026-11-11-offline-mimo-final-307a999c02.json` 及同名 `.log`，JSON SHA-256 `019f75e8b4e283d9450a3d78b576f8adc7ea56a30df0ef0d678d8e9f91e87e3e`；退出码 0，运行前后源码摘要相同。这次整合没有编译或启动 Java，不能替代前述独立 Kotlin 与编译证据。
+
+本轮串行验证已结束并释放自有 lane；随后发现外部 `routes-only --skip-compile` campaign（PID 407934）重新持有共享锁，后续必要产品 out 刷新仍需同锁排队。正式源码/产物身份仍待提交与封存，再建立新的真实 campaign；本方案的新真实模型矩阵和默认窗口显示矩阵均未执行，不能据本轮离线通过关闭该目标。

@@ -93,7 +93,9 @@ export class AzureBYOKModelProvider extends AbstractCustomOAIBYOKModelProvider {
 			expService,
 			extensionContext
 		);
-		this.migrateExistingConfigs();
+		void this.migrateExistingConfigs().catch(error => {
+			this._logService.error(error instanceof Error ? error : String(error), 'BYOK: could not finish migrating legacy Azure models');
+		});
 	}
 
 	// TODO: Remove this after 6 months
