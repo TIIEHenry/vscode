@@ -86,6 +86,37 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 
 此修订只分配完整显示场景已要求的工作，不删任务、不跨 case 拼历史，不改变引擎矩阵的 `--task-timeout-ms 600000`、严格参数或通过判据。修改后的 policy、验证器和场景身份须形成新的 seal/campaign。预算修订已独立复核并提交为 `cc79e1cb34d`，实现与离线验证见 §6；当前仍未执行新的真实显示矩阵。
 
+### 2.5 真实 DOM 归属诊断（实施前窄修订）
+
+修订状态：已通过规则 16 独立只读复核 C0/I0；尚未实施。本节只关闭 Thinking 验收中「正文与行 ID 相同，但实际来自其他 pane/session 或旧 epoch」的归属缺口。上一固定点的离线通过仍保留，不能代签本修订。请求开关、Thinking N/A 政策和 §2.3 的显示判据不变。
+
+**事实与取舍。** 实际 pane 已有 `.conversation-session-leaf[data-session-key]`；`conversationSessionWindowService.ts` 的 `ensureLeaf` 写入该值，子代理 overlay 另有同名属性，归属判定按 `conversationKillEngine.ts` 的规则优先取真实 leaf 祖先。本轮新会话由 `SessionViewHost.bindEngineSession` 明确传 `clientSessionId: localId`，干净 c4fa 的 Create 优先采用 `client_session_id`；只在实际值与原流 hello 一致时建立映射，不按标题、索引或请求目标补值。
+
+`runtimeEpoch` 属于 main Actor 的 `streamHelloAnchor` / `lastRuntimeEpoch`，不属于 renderer View；`sessionView/types.ts` 的禁令保持不变。现有 renderer DOM、automation driver 和 session selector 没有实际 view epoch 读口，最新 raw hello 不能冒充已绘制 DOM 的 epoch。必须通过同一个真实 frame cursor，把 Actor 已接受的 epoch 与 renderer 真正提交的那批行关联。
+
+优先选择**受门控的 CJS 透明观测**，不新增生产 View/API 字段：Actor、Lens、TimelineHost 和 ItemHost 都是已导出的 class，相关方法未被实例 `.bind` 或 `#private` 遮挡；已核实的 TS private cursor 是 renderer 实际持有的普通属性。支持代码只读取这些已定位的 owning state，不枚举隐藏服务、重建 DI 或猜测对象。必须导入同一已加载产物模块，且在真实 New 后观察到实际回调命中；导入了另一份未使用 class、缺字段或无命中均记诊断不可用，不能作为通过证据。
+
+| 拥有层与实际切点（生产文件只读，不修改） | 观测职责 |
+|---|---|
+| `src/vs/platform/universeAgent/node/sessionCore/session-actor.ts` 的 `onAcquireLease`、实际 `sink.enqueue(frame)`；真实 `lastRuntimeEpoch` 与 `streamHelloAnchor` | 在真实新 lease 创建前观测该 sink 的 `enqueue`，传给原 `onAcquireLease` 的仍是原 sink 对象；按实际 frame.leaseId 绑定拥有它的 Actor，不能靠最后一次 acquire 覆盖共享 sink 的旧 owner。在调用原 enqueue callback **之前**锁存原 frame 的 leaseId/generation/frameId/version、Actor 自身 sessionId、实际 `lastRuntimeEpoch` 及独立 hello anchor；不能回调后读 latest。`onStreamHello` 先推进 epoch、再清旧 overlay 发帧、最后写新 anchor，过渡窗口不能用旧 getter 给新 frame 贴标；二者不一致或 anchor 未就绪时仅将该 frame 记录为 unbound，不生成其验收证明。该切点覆盖 baseline、patch 和 chat outbox 的 direct effects，不能只 tap 两个 emit 方法。 |
+| `src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts` 的 `applyFrameToBinding` / `installBindingSnapshot` | cursor 只取真实已接受的 ReplicaCursor；租约、generation 或 apply 拒绝后不能沿用先前证明。不得把 `onDidApplyFrame` 当作 DOM commit。 |
+| `src/vs/workbench/contrib/conversation/browser/conversationLens.ts` 的 `applySessionViewTimeline`，以及 `conversationLensProjection.ts` 调用 `timelineTree.applyEntries` 的同步范围 | 为该 Lens/TimelineHost 捕获实际 lease、bound session、snapshot session 和 cursor 的不可变副本；调用前后 owner/cursor 变化则不出证明。不能在 Promise 回调后读 latest 代替该次输入。 |
+| `src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts` 的 `applyEntries` / `commit` → `syncArticles`，以及 `conversationTimelineItemHost.ts` 的 `render` / `refreshProcessFold` | 输入 scope 仅随真正的 next roots 暂存；`render(full/auto)` 或 fold 更新完成、article 实际挂载后，才给对应真实行保存 paint 证明。hidden `domStale`、`commit` 的 `mode:none`、effects-only 和 early return 均不能把旧 DOM 换贴为新 cursor。虚拟列表后来挂载的行使用其 root 输入原有 scope，不读此时全局 latest；保留此前真正绘制行的旧证明。 |
+
+**透明性与门控。** main 只在既有 `--enable-smoke-test-driver` 且本轮 matrix 身份、owned case token 和私有引擎地址均核对后启用；renderer 也必须确认既有 smoke driver 和本轮 token。模块 URL 取实际加载图中的同一产物位置，纳入 seal，不以额外加载的替身类冒充，也不提前 import 未加载模块改变 bootstrap 次序。原方法、sink、receiver、参数、frame 对象、同步返回值或 Promise 对象及异常语义全部原样保留，原 callback 恰调用一次；诊断记录失败只令验收失败，不中断原发送，不重试原 callback。已包装的活跃 sink 在 restore 后仍透明转发一次，且不再记录；原型描述符、监听与本轮 WeakMap 在 case 收尾和 reload 时撤销或重新安装。重装只认之后真正发生的回调，不追认安装前已有的 DOM；缺失的证明保持诊断不可用。禁止第二个 SessionEventStream、额外 acquire/resync、业务 RPC 或为了取证改变 owner/lease。
+
+**证据形状。** main sidecar 只含 Actor session、实际 `lastRuntimeEpoch`、独立 hello anchor/是否一致、真实 cursor、原 tap 的因果 cut 和诊断序号；不复制正文、凭据或地址。有效连接必须同时满足 Actor 当前 epoch、anchor 和原 tap hello 一致，不能用 raw 最新值填补 Actor 的缺口。renderer 用 WeakMap 关联实际 row element、root 输入 scope 与 paint：真实 pane `data-session-key`、实际 render input 的 agent/turn 身份、cursor 和独立递增的 DOM commit 序号。cursor 相同仍可因 detail/展开再绘制，不能把 cursor 当作 render 次数。epoch 留在 main sidecar，不写 `ViewSnapshot`、`ViewPatch`、普通产品 DOM 或用户流程；CJS 采样同时读真实 DOM 与对应 paint 证明，再按 cursor 连接 sidecar 和原 tap hello。只使用读取 DOM 之前已捕获的 raw cut；after cut 仅作诊断。缺任何连接、身份冲突、旧 epoch、证明发生在 DOM read 之后或取自其他 pane 均 fail closed，不能给 sample 硬贴 requested session/epoch。
+
+unbound 是逐 frame 的事实，初始 baseline 或正常 epoch 过渡不永久污染整个 case。之后新 frame 的 Actor epoch、anchor、原流 hello 和实际 DOM paint 均闭合时可以出具新证明；旧 frame 的 unbound 记录保持不可变，不能用后到 hello 追填。只有必需的 Thinking 内容最终仍无有效归属证明，或诊断本身不透明/身份冲突，才按相应未覆盖或失败处理。
+
+**必需交付证据。** 所有场景的 `COMMON_ASSERTIONS` 增加 `dom-frame-provenance`，result 必须给出 `evidence.provenanceFile`。该文件为 caseRoot 内非空的私有 JSON，包含固定 schemaVersion、本次 campaign/cell/case/nonce、module 的实际 URL/摘要、main frame sidecar、renderer 输入/paint 记录及匹配计数；命中计数来自真实 callbacks，不以安装成功或函数存在代替。断言要求已有正常绑定 frame 和真实 DOM paint 的匹配，并逐一覆盖本场景实际公开的 Thinking 内容；Thinking N/A 不免除诊断自身的实际命中与 evidence 文件。driver 同步 required assertion，至少核私有路径、非空可解析 schema、本 case 身份和 main/renderer/paint/matched 实际命中计数均为正；未绑定的初始/过渡 frame 不能充抵这些计数。CJS 负责完整归属不变量，Python 不重复实现整套 verifier。缺 sidecar、空记录、旧身份或仍只有旧三文件的 passed 结果均拒绝；原始证明不能只留在内存。
+
+本修订只为同步 Thinking 正文/过程行提供归属证明，不宣称一次 commit 代表所有 Markdown、Mermaid、异步 detail 或 rAF 布局已 settled；它们仍按各自实际 DOM 可见性和阶段 deadline 验证。元信息只在真实数据 render 后生成，样本正文始终直接取实际 DOM；不得由 source 文本生成 DOM 或由 verifier 写身份属性来证明自己正确。
+
+**实施文件与验证边界。** 新增专属 `test/scenario/scenarios/universe-agent-real-editor-provenance.cjs` 保存门控安装、原型/sink 透明包装及 main/renderer registry；`universe-agent-real-editor-oracle.cjs` 负责阶段内安装、采样、归属核验、必需证据落盘和清理；`scripts/tests/test_real_editor_scenario.py` 补针对性控制；`test/scenario/scripts/run-mimo-real-editor-matrix.py` 与 `scripts/tests/test_mimo_real_editor_matrix.py` 同步 assertion/sidecar 的最小校验及诊断不可用分类。现有 source identity 已覆盖整个 `test/scenario` 与 `out` 树，新增支持文件自然纳入 seal；实际被观测 module URL/摘要仍须写入证明并能与封存产物对照。上述支持代码不改请求或 N/A 政策，不修改 engine、正式 decoder 或 View DTO。若实际已加载模块/可靠 commit 关联不能成立，先报诊断不可用；任何生产层 observer、readonly API 或 typed test-support 扩展须另列具体文件重新只读审查，不能悄悄退回猜字段、窗口全局 latest 或 raw epoch 注入 View。
+
+必要负例包括：正确源码但 wrong/missing pane session、wrong/missing paint cursor、source 当前 epoch 而 DOM 仍旧 epoch、Actor 已推进 epoch 而 hello anchor 尚旧时发清理 frame、原 enqueue 回调内改变 owner/epoch/cursor、把后到 hello 追填给旧 unbound frame、同 cursor 的另一 lease/pane、hello 在 DOM read 后才到、hidden/no-op/effects 被误当 commit、晚到 callback 和 root 替换后旧证明、相同 cursor 多次真实 render、模块未命中、reload 重装前的旧 DOM、restore 后活跃 sink，以及 sidecar 缺失/空 schema/旧 nonce/零实际命中/旧三文件通过结果；同时保留有 durable 时 stream-only 缺块、序号/身份冲突和块内逆序拒绝。正例必须覆盖 baseline、patch、direct effects 的实际同一 sink，初始无 hello → 后续正常绑定，以及过渡 unbound 清理 frame → 新 anchor/patch/DOM paint 可证明的恢复；覆盖真实 full/incremental/fold render、后来挂载和合法重复 replay，独立断言原 this/参数/frame、返回/Promise/throw 与 exactly-once。先运行无 UI/模型的离线透明性与负例，再由根窗口在唯一通道确认生产 out、automation/scenario 产物及 seal；CJS 本身解释执行不新增 TS 编译。首次真实窗口只在实际 hook、lease 和 commit 命中后使用证明，缺取证条件记未覆盖，不以离线回调或 fixture 冒充真实 UI/LLM。
+
 ## 3. 实施顺序
 
 1. **规则 16 审查。** 同一会话由非作者只读审查本方案，核验 Critical/Important 后改稿，再进入实现。
