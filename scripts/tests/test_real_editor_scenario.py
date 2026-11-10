@@ -836,6 +836,151 @@ console.log(JSON.stringify(results));process.exitCode=results.every(result=>resu
 '''
 
 
+THINKING_ORACLE_FIXTURE = r'''
+const assert=require('node:assert/strict');
+const path=require('node:path');
+const oracle=require(path.join(process.env.SCENARIO_REPO,'test/scenario/scenarios/universe-agent-real-editor-oracle.cjs'));
+const results=[];let ordinal=0;
+function test(name,run){try{run();results.push({name,passed:true});}catch(error){results.push({name,passed:false,error:error.stack||String(error)});}}
+const clone=value=>JSON.parse(JSON.stringify(value));
+const frame=decoded=>({ordinal:++ordinal,decoded});
+const delta=(turn,block,seq,value,change={})=>frame({session_id:'thinking-session',thinking_delta:{runtime_epoch:'1',turn_id:turn,agent_id:'root',block_id:block,delta_seq:String(seq),text_delta:value,...change}});
+const durable=(id,turn,parts,extra=[])=>frame({session_id:'thinking-session',envelope_appended:{envelope:{id,session_id:'thinking-session',seq:String(ordinal+1),role:'ASSISTANT',agent_id:'root',turn_id:turn,
+ blocks:[...parts.map(thinking=>({thinking_block:{thinking,signature:'offline-signature'}})),...extra]}}});
+const settled=(runtime,assistant,change={})=>frame({session_id:'thinking-session',turn_lifecycle:{runtime_epoch:'1',turn_completed:{turn_id:runtime,agent_id:'root',assistant_turn_id:assistant,...change}}});
+const row=(id,value,persistent=false)=>({turnId:id,rootId:'fold:owned',kind:'thinking',processText:value,text:'header chrome',inFold:true,visible:true,persistent});
+const sample=(rows,last=ordinal)=>({rawOrdinal:last,rawOrdinalBefore:last,rawOrdinalAfter:last,rows});
+function base(){
+ const records=[delta('runtime-signed','signed-block',1,'signed public text'),durable('signed-envelope','tree-signed',['signed public text']),settled('runtime-signed','tree-signed'),delta('runtime-live','live-block',1,'unsigned public text')];
+ return{records,samples:[sample([row('signed-envelope','signed public text',true),row('overlay:runtime-live','unsigned public text')])]};
+}
+test('durable and live-only thinking both remain required and can be independently observed',()=>{
+ const f=base();assert.deepEqual(oracle.verifyThinkingDom(f.records,f.samples),{observed:true,streamBlocks:2,runtimeTurns:2,durableBlocks:1});
+});
+test('a visible durable block cannot hide another missing stream-only block',()=>{
+ const f=base();f.samples[0].rows.pop();assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('matching text on an unrelated runtime turn cannot prove ownership',()=>{
+ const f=base();f.samples[0].rows[1].turnId='overlay:unrelated-runtime';assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('the wire block id is not invented as the production overlay row id',()=>{
+ const f=base();f.samples[0].rows[1].turnId='overlay:live-block';assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('the real mixed live row id uses the runtime turn plus think suffix',()=>{
+ const f=base();f.samples[0].rows[1].turnId='overlay:runtime-live:think';oracle.verifyThinkingDom(f.records,f.samples);
+});
+test('the real mixed durable row id uses the envelope plus think suffix',()=>{
+ const f=base();f.records[1].decoded.envelope_appended.envelope.blocks.push({text_block:{text:'assistant body'}});f.samples[0].rows[0].turnId='signed-envelope:think';oracle.verifyThinkingDom(f.records,f.samples);
+});
+test('an invented durable thinking suffix cannot pass',()=>{
+ const f=base();f.records[1].decoded.envelope_appended.envelope.blocks.push({text_block:{text:'assistant body'}});f.samples[0].rows[0].turnId='signed-envelope:thinking';assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/durable-thinking-block-not-visible-on-own-row/);
+});
+test('same block and sequence carrying different text is rejected before DOM matching',()=>{
+ const f=base();f.records.push(delta('runtime-live','live-block',1,'conflicting replacement'));
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-delta-sequence-text-conflict/);
+});
+test('an identical replay of the same sequence does not duplicate public content',()=>{
+ const f=base();f.records.push(delta('runtime-live','live-block',1,'unsigned public text'));oracle.verifyThinkingDom(f.records,f.samples);
+});
+test('within-block raw sequence regression cannot pass even when the DOM shares the wrong order',()=>{
+ const records=[delta('regressed','same-block',2,'B'),delta('regressed','same-block',1,'A')];
+ assert.throws(()=>oracle.verifyThinkingDom(records,[sample([row('overlay:regressed','BA')])]),/thinking-delta-sequence-regressed/);
+});
+test('a reconnect may continue from a higher per-block sequence without inventing a first chunk',()=>{
+ const records=[delta('resumed','resumed-block',4,'A'),delta('resumed','resumed-block',5,'B'),delta('resumed','resumed-block',6,'C')];
+ oracle.verifyThinkingDom(records,[sample([row('overlay:resumed','ABC')])]);
+});
+test('changing the agent for the same runtime turn and sequence is rejected',()=>{
+ const f=base();f.records.push(delta('runtime-live','live-block',1,'unsigned public text',{agent_id:'other-agent'}));
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-turn-row-identity-conflict/);
+});
+test('a block id cannot silently move to a different runtime turn',()=>{
+ const f=base();f.records.push(delta('other-runtime','live-block',1,'unsigned public text'));
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-block-identity-conflict/);
+});
+test('a reused DOM turn cannot silently change session or runtime epoch',()=>{
+ for(const mode of ['session','epoch']){const f=base();const conflict=delta('runtime-live','live-block',1,'unsigned public text');
+  if(mode==='session')conflict.decoded.session_id='other-session';else conflict.decoded.thinking_delta.runtime_epoch='2';f.records.push(conflict);
+  assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-turn-row-identity-conflict/);}
+});
+test('a lifecycle owner conflict cannot overwrite the thinking owner',()=>{
+ const f=base();f.records.push(settled('runtime-live','tree-live',{agent_id:'other-agent'}));
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-turn-lifecycle-identity-conflict/);
+});
+test('conflicting public assistant-turn settle links are rejected',()=>{
+ const f=base();f.records.push(settled('runtime-signed','different-tree'));
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-assistant-turn-link-conflict/);
+});
+test('a durable envelope cannot change session or agent identity under the same id',()=>{
+ const f=base();const conflict=clone(f.records[1]);conflict.ordinal=++ordinal;conflict.decoded.envelope_appended.envelope.agent_id='other-agent';f.records.push(conflict);
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/thinking-envelope-identity-conflict/);
+});
+test('a later raw drain cannot credit content that was not captured before the DOM sample',()=>{
+ const f=base();f.samples[0].rawOrdinal=f.records.at(-1).ordinal-1;f.samples[0].rawOrdinalBefore=f.samples[0].rawOrdinal;
+ f.samples[0].rawOrdinalAfter=f.records.at(-1).ordinal;
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('historical visibility of a row cannot credit later offscreen thinking text',()=>{
+ const f=base();f.samples[0].rows[1].visible=false;f.samples[0].rows[1].visibilityVerified=true;
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('thinking text in header chrome cannot replace actual process body text',()=>{
+ const f=base();f.samples[0].rows[1].processText='';f.samples[0].rows[1].text='unsigned public text';
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('all public blocks in one turn use actual interleaved arrival order',()=>{
+ const records=[delta('interleaved','block-a',1,'A'),delta('interleaved','block-b',1,'B'),delta('interleaved','block-a',2,'C')];
+ assert.equal(oracle.verifyThinkingDom(records,[sample([row('overlay:interleaved','ABC')])]).streamBlocks,2);
+ assert.throws(()=>oracle.verifyThinkingDom(records,[sample([row('overlay:interleaved','ACB')])]),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('a persisted last block cannot conceal an earlier unsigned block in the same turn',()=>{
+ const records=[delta('same-runtime','first-block',1,'first public block '),delta('same-runtime','last-block',1,'last public block'),durable('last-only','tree-last',['last public block']),settled('same-runtime','tree-last')];
+ const display=[sample([row('last-only','last public block',true)])];
+ assert.throws(()=>oracle.verifyThinkingDom(records,display),/stream-thinking-block-not-visible-on-own-turn/);
+ display[0].rows.push(row('overlay:same-runtime:think','first public block last public block'));oracle.verifyThinkingDom(records,display);
+});
+test('a matching durable body without a formal runtime-to-assistant link cannot replace live proof',()=>{
+ const f=base();f.records=f.records.filter(record=>!record.decoded.turn_lifecycle);
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('a different durable agent cannot stand in for runtime thinking even when text matches',()=>{
+ const f=base();f.records[1].decoded.envelope_appended.envelope.agent_id='other-agent';
+ assert.throws(()=>oracle.verifyThinkingDom(f.records,f.samples),/stream-thinking-block-not-visible-on-own-turn/);
+});
+test('multiple durable thinking blocks must all be visible in their own aggregated row',()=>{
+ const records=[durable('two-durable','tree',['first durable','second durable'])];
+ assert.throws(()=>oracle.verifyThinkingDom(records,[sample([row('two-durable','first durable',true)])]),/durable-thinking-block-not-visible-on-own-row/);
+ assert.equal(oracle.verifyThinkingDom(records,[sample([row('two-durable','first durable\nsecond durable',true)])]).durableBlocks,2);
+});
+test('absence of actual public text remains unobserved for the unchanged N/A policy',()=>{
+ assert.equal(oracle.verifyThinkingDom([],[]).observed,false);
+});
+test('thinking fold ownership follows the actual turn aggregate row identity',()=>{
+ const initial=[delta('fold-runtime','wire-block',1,'initial')];
+ for(const id of ['overlay:fold-runtime','overlay:fold-runtime:think']){
+  const dom={folds:[{id:'fold:owned',expanded:true}],rows:[row(id,'initial')]};
+  const observation=oracle.beginFoldObservation(initial,'thinking-session','fold:owned',dom);assert.ok(observation);
+  const later=[...initial,delta('fold-runtime','wire-block',2,' update')];dom.rows[0].processText='initial update';
+  oracle.advanceFoldObservation(observation,later,dom);oracle.verifyFoldCoverage([observation]);
+ }
+});
+console.log(JSON.stringify(results));process.exitCode=results.every(result=>result.passed)?0:1;
+'''
+
+
+class RealEditorThinkingOracleTest(unittest.TestCase):
+    def test_all_public_thinking_content_and_identity_negative_controls(self):
+        env = dict(os.environ, SCENARIO_REPO=str(REPO_ROOT))
+        completed = subprocess.run(["node", "-"], input=THINKING_ORACLE_FIXTURE,
+                                   env=env, text=True, capture_output=True, timeout=30)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        cases = json.loads(completed.stdout)
+        self.assertEqual(len(cases), 27)
+        for case in cases:
+            with self.subTest(case=case["name"]):
+                self.assertTrue(case["passed"], case.get("error"))
+
+
 class RealEditorMatrixBudgetTest(unittest.TestCase):
     def test_fixed_stage_deadlines_without_engine_or_ui(self):
         with tempfile.TemporaryDirectory(prefix="real-editor-matrix-budget-") as temporary:
@@ -848,6 +993,197 @@ class RealEditorMatrixBudgetTest(unittest.TestCase):
             for case in cases:
                 with self.subTest(case=case["name"]):
                     self.assertTrue(case["passed"], case.get("error"))
+
+
+
+# These are test-support transparency/ownership controls. They do not launch a
+# product window, create a stream, or claim that mocked callbacks are live data.
+PROVENANCE_FIXTURE = r'''
+const assert=require('node:assert/strict');
+const fs=require('node:fs');const path=require('node:path');const {pathToFileURL}=require('node:url');
+const p=require(path.join(process.env.SCENARIO_REPO,'test/scenario/scenarios/universe-agent-real-editor-provenance.cjs'));
+const oracle=require(path.join(process.env.SCENARIO_REPO,'test/scenario/scenarios/universe-agent-real-editor-oracle.cjs'));
+const results=[];const clone=value=>JSON.parse(JSON.stringify(value));
+function test(name,run){try{run();results.push({name,passed:true});}catch(error){results.push({name,passed:false,error:error.stack||String(error)});}}
+const modules=Object.entries(p.ROLES).map(([role,file])=>({role,path:file,sha256:'a'.repeat(64),url:pathToFileURL(path.join(process.env.SCENARIO_REPO,file)).href,loaded:true}));
+function fixture({hidden=false,noop=false,epoch=1,hello=epoch}={}){
+ let raw=2;let callback;let calls=0;const delivered=[];
+ const initial={leaseId:'lease-A',generation:1,frameId:1,version:1,body:{kind:'baseline'}};
+ class Actor{constructor(id='session-A'){this.sessionId=id;this.lastRuntimeEpoch=epoch;this.streamHelloAnchor=hello===null?null:{sessionVersion:0,headSeq:0,lastMutatedFromSeq:0,runtimeEpoch:hello};this.leases=new Map();}
+  onAcquireLease(id,sink){this.leases.set(id,sink);sink.enqueue(initial);return this.acquireReturn;}
+  send(frame=initial){return this.leases.get(frame.leaseId).enqueue(frame);}}
+ const actor=new Actor();const result={sentinel:true};
+ const sink={enqueue(...args){calls++;delivered.push({receiver:this,args});if(callback)return callback(...args);return result;}};
+ const originalSink=sink.enqueue;const originalAcquire=Actor.prototype.onAcquireLease;
+ const main=p.createRuntime({rawCut:()=>raw});main.installMain(Actor);actor.onAcquireLease('lease-A',sink);
+ const pane={session:'session-A',getAttribute(name){return name==='data-session-key'?this.session:null;}};
+ const overlay={session:'overlay-B',getAttribute(){return this.session;}};
+ const article={isConnected:false,rootId:'fold-A',rows:[],
+  closest(selector){if(selector==='.conversation-session-leaf')return pane;if(selector==='.conversation-subagent-overlay')return overlay;if(selector==='article')return this;return null;},
+  getAttribute(name){return name==='data-root-id'?this.rootId:null;},querySelectorAll(){return this.rows;}};
+ function makeRow(id){return {id,isConnected:true,parentElement:{closest(){return null;}},
+  getAttribute(name){return name==='data-turn-id'?this.id:name==='data-kind'?'thinking':null;},
+  closest(selector){return selector==='article'?article:article.closest(selector);}};}
+ const root={id:'fold-A',kind:'process-fold',span:{},turns:[{id:'overlay:runtime-A',turn:{kind:'thinking',agentId:'root',turnId:'runtime-A'}}]};
+ class ItemHost{constructor(root){this.root=root;this.article=article;this.foldHandle={update(){}};}
+  render(mode){this.article.rootId=this.root.id;this.article.rows=this.root.turns.map(item=>makeRow(item.id));return mode;}
+  refreshProcessFold(){if(this.root.kind==='process-fold'&&this.root.span&&this.foldHandle){this.article.rows=this.root.turns.map(item=>makeRow(item.id));}}}
+ class Host{constructor(){this.viewport=article;this.hidden=hidden;this.noop=noop;this.items=[];}
+  project(entries){return {roots:entries};}
+  applyEntries(entries){const value=this.project(entries);this.latest=value.roots;if(!this.hidden)this.commit(value.roots);}
+  commit(roots){if(this.noop)return;return this.syncArticles(roots);}
+  syncArticles(roots){for(const root of roots){let host=this.items.find(item=>item.root.id===root.id);if(!host){host=new ItemHost(root);this.items.push(host);}else host.root=root;host.render('full');host.article.isConnected=true;}return {mutated:true};}}
+ class EngineSessionViewLease{constructor(sessionId){this.sessionId=sessionId;this.leaseId='lease-A';this.cursor={leaseId:'lease-A',generation:1,frameId:1,version:1};this.snapshot={sessionId};}}
+ class FrameSource{acquire(sessionId){this.lastLease=new EngineSessionViewLease(sessionId);return this.lastLease;}}
+ class Lens{constructor(host,lease){this.timelineTree=host;this.sessionViewLease=lease;this.boundSessionId=lease.sessionId;}
+  getBoundSessionId(){return this.boundSessionId;}
+  applySessionViewTimeline(entries){return this.timelineTree.applyEntries(entries);}}
+ const renderer=p.createRuntime({realm:'realm-A'});renderer.installRenderer(Lens,Host,ItemHost,FrameSource);
+ const source=new FrameSource();const lease=source.acquire('session-A');const host=new Host();const lens=new Lens(host,lease);
+ const records=[{ordinal:1,decoded:{session_id:'session-A',hello:{runtime_epoch:String(epoch)}}},
+  {ordinal:2,decoded:{session_id:'session-A',thinking_delta:{runtime_epoch:String(epoch),agent_id:'root',turn_id:'runtime-A',block_id:'block-A',delta_seq:'1',text_delta:'actual public text'}}}];
+ const identity={campaignId:'campaign',cellId:'cell',caseId:'U01',nonce:'nonce',provenanceModules:modules};
+ const samples=[];
+ function sample(){const rows=article.rows.map(row=>({turnId:row.id,rootId:article.rootId,kind:'thinking',processText:'actual public text',inFold:true,visible:true,persistent:!row.id.startsWith('overlay:'),
+  paneSessionId:pane.session,provenance:renderer.sampleRow(row)}));const value={sampleOrdinal:samples.length+1,rawOrdinalBefore:raw,rows};samples.push(value);return value;}
+ function evidence(){const r=renderer.snapshot();return p.artifact(identity,{...main.snapshot(),modules:modules.filter(item=>item.role==='mainActor')},
+  {...r,realms:[r.realm],modules:modules.filter(item=>item.role!=='mainActor')},records,samples);}
+ function show(){lens.applySessionViewTimeline([root]);return sample();}
+ return {ItemHost,Actor,ActorOriginalAcquire:originalAcquire,actor,sink,originalSink,main,renderer,source,FrameSource,EngineSessionViewLease,lens,host,root,article,pane,overlay,
+  records,samples,identity,show,sample,evidence,delivered,result,calls:()=>calls,setCallback:value=>callback=value,setRaw:value=>raw=value,
+  frame:overrides=>({...initial,...overrides}),close(){renderer.restore();main.restore();}};
+}
+test('one real mocked acquire/frame/render chain joins source epoch and actual pane',()=>{const f=fixture();f.show();const e=f.evidence();assert.equal(e.status,'available');assert.equal(e.counts.matchedScopes,1);oracle.verifyThinkingProvenance(f.records,f.samples,e);f.close();});
+test('main preserves the original sink object, receiver, complete arguments and frame reference',()=>{const f=fixture();assert.equal(f.actor.leases.get('lease-A'),f.sink);const frame=f.frame({body:{kind:'effects'}});assert.equal(f.actor.send(frame),f.result);const last=f.delivered.at(-1);assert.equal(last.receiver,f.sink);assert.equal(last.args[0],frame);assert.equal(f.calls(),2);f.close();});
+test('the original enqueue Promise object is returned without assimilation',()=>{const f=fixture();const promise=Promise.resolve('opaque');f.setCallback(()=>promise);assert.equal(f.actor.send(),promise);assert.equal(f.calls(),2);f.close();});
+test('enqueue exceptions retain identity and are never retried',()=>{const f=fixture();const error=new Error('original');f.setCallback(()=>{throw error;});assert.throws(()=>f.actor.send(),value=>value===error);assert.equal(f.calls(),2);f.close();});
+test('epoch and owner are latched before an enqueue callback mutates Actor state',()=>{const f=fixture();f.setCallback(()=>{f.actor.lastRuntimeEpoch=2;f.actor.sessionId='changed';});f.actor.send(f.frame({frameId:2,version:2}));const frame=f.main.snapshot().frames.at(-1);assert.equal(frame.epoch,'1');assert.equal(frame.sessionId,'session-A');f.close();});
+test('a shared sink maps each original frame lease to its actual Actor',()=>{const f=fixture();const other=new f.Actor('session-B');other.onAcquireLease('lease-B',f.sink);f.actor.send(f.frame({frameId:2,version:2}));assert.equal(f.main.snapshot().frames.at(-1).sessionId,'session-A');other.send(f.frame({leaseId:'lease-B',frameId:2,version:2}));assert.equal(f.main.snapshot().frames.at(-1).sessionId,'session-B');f.close();});
+test('initial missing hello is per-frame unbound and later real frames recover',()=>{const f=fixture({hello:null});assert.equal(f.main.snapshot().frames[0].bound,false);f.actor.streamHelloAnchor={sessionVersion:0,headSeq:0,lastMutatedFromSeq:0,runtimeEpoch:1};f.actor.send(f.frame({frameId:2,version:2}));f.lens.sessionViewLease.cursor=f.frame({frameId:2,version:2});f.show();const e=f.evidence();assert.equal(e.status,'available');assert.equal(e.frames[0].bound,false);assert.equal(e.counts.mainFrames,1);f.close();});
+test('new epoch with old hello never stamps the old anchor onto its cleanup frame',()=>{const f=fixture({epoch:2,hello:1});const first=f.main.snapshot().frames[0];assert.equal(first.epoch,'2');assert.equal(first.bound,false);f.show();assert.equal(f.evidence().status,'unavailable');f.close();});
+test('a transition unbound frame stays immutable while a later new-anchor paint recovers',()=>{const f=fixture({epoch:2,hello:1});f.actor.streamHelloAnchor={sessionVersion:0,headSeq:0,lastMutatedFromSeq:0,runtimeEpoch:2};f.actor.send(f.frame({frameId:2,version:2}));f.lens.sessionViewLease.cursor=f.frame({frameId:2,version:2});f.show();const e=f.evidence();assert.equal(e.status,'available');assert.equal(e.frames[0].hello.runtimeEpoch,1);assert.equal(e.frames[0].bound,false);f.close();});
+test('a hello that arrived only after the frame cannot retroactively bind it',()=>{const f=fixture({hello:null});f.actor.streamHelloAnchor={sessionVersion:0,headSeq:0,lastMutatedFromSeq:0,runtimeEpoch:1};f.show();assert.equal(f.evidence().status,'unavailable');f.close();});
+test('wrong pane session with otherwise identical row IDs and text fails',()=>{const f=fixture();f.show();f.pane.session='session-B';f.sample();f.samples.shift();assert.equal(f.evidence().status,'unavailable');f.close();});
+test('missing leaf session never falls through to an overlay behind that leaf',()=>{const f=fixture();f.pane.session='';f.show();assert.equal(f.samples[0].rows[0].provenance,null);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('DOM painted in an old epoch cannot prove current source thinking',()=>{const f=fixture();f.show();f.records[0].decoded.hello.runtime_epoch='2';f.records[1].decoded.thinking_delta.runtime_epoch='2';assert.equal(f.evidence().status,'unavailable');f.close();});
+test('missing or wrong paint cursor cannot yield a verified scope',()=>{for(const cursor of [null,{leaseId:'other',generation:1,frameId:1,version:1}]){const f=fixture();f.show();f.samples[0].rows[0].provenance.cursor=cursor;assert.equal(f.evidence().status,'unavailable');f.close();}});
+test('a different lease cannot reuse an identical numeric cursor',()=>{const f=fixture();f.lens.sessionViewLease.cursor.leaseId='lease-B';f.lens.sessionViewLease.leaseId='lease-B';f.show();assert.equal(f.evidence().status,'unavailable');f.close();});
+test('a later raw drain does not credit a frame newer than the pre-DOM cut',()=>{const f=fixture();f.show();f.samples[0].rawOrdinalBefore=1;assert.equal(f.evidence().status,'unavailable');f.close();});
+test('raw hello after a DOM read cannot replace the missing causal anchor',()=>{const f=fixture();f.show();f.records[0].ordinal=3;assert.equal(f.evidence().status,'unavailable');f.close();});
+test('hidden dirty input has no render or paint proof',()=>{const f=fixture({hidden:true});f.show();assert.equal(f.renderer.snapshot().inputs.length,1);assert.equal(f.renderer.snapshot().paints.length,0);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('no-op reconcile has no render or paint proof',()=>{const f=fixture({noop:true});f.show();assert.equal(f.renderer.snapshot().paints.length,0);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('effects-only input cannot relabel prior DOM with a later cursor',()=>{const f=fixture();f.show();const proof=f.samples[0].rows[0].provenance;f.host.noop=true;f.actor.send(f.frame({frameId:2,version:2,body:{kind:'effects'}}));f.lens.sessionViewLease.cursor=f.frame({frameId:2,version:2});f.lens.applySessionViewTimeline([f.root]);const after=f.sample();assert.deepEqual(after.rows[0].provenance.cursor,proof.cursor);assert.equal(f.renderer.snapshot().paints.length,1);f.close();});
+test('root replacement cannot reuse a pending detached render proof',()=>{const f=fixture({hidden:true});f.lens.applySessionViewTimeline([f.root]);const item=new f.ItemHost(f.root);item.render('full');item.root=clone(f.root);f.article.isConnected=true;f.host.syncArticles([]);f.sample();assert.equal(f.renderer.snapshot().paints.length,0);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('same cursor can produce multiple distinct actual fold paint ordinals',()=>{const f=fixture();f.show();f.host.items[0].refreshProcessFold();f.sample();const paints=f.renderer.snapshot().paints;assert.equal(paints.length,2);assert.notEqual(paints[0].ordinal,paints[1].ordinal);assert.deepEqual(paints[0].cursor,paints[1].cursor);f.close();});
+test('guarded refreshProcessFold early return cannot mint a paint',()=>{const f=fixture();f.show();delete f.host.items[0].foldHandle;f.host.items[0].refreshProcessFold();assert.equal(f.renderer.snapshot().paints.length,1);f.close();});
+test('later virtualized mounting uses the stored root input, not latest global scope',()=>{const f=fixture({hidden:true});f.lens.applySessionViewTimeline([f.root]);f.lens.sessionViewLease.cursor=f.frame({frameId:2,version:2});f.host.syncArticles([f.root]);f.sample();assert.equal(f.renderer.snapshot().paints[0].cursor.frameId,1);f.close();});
+test('cursor or owner mutation during projection invalidates that complete input',()=>{const f=fixture();const original=f.host.applyEntries;f.host.applyEntries=function(...args){const result=original.apply(this,args);f.lens.boundSessionId='changed';return result;};f.show();assert.equal(f.renderer.snapshot().inputs[0].valid,false);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('unobserved preexisting lease cannot be credited by constructor name alone',()=>{const f=fixture();f.lens.sessionViewLease=new f.EngineSessionViewLease('session-A');f.show();assert.equal(f.renderer.snapshot().inputs.length,0);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('restore preserves descriptors and active captured sink wrappers forward exactly once without recording',()=>{const f=fixture();const wrapper=f.sink.enqueue;const length=f.main.snapshot().frames.length;f.main.restore();assert.equal(f.sink.enqueue,f.originalSink);assert.equal(f.Actor.prototype.onAcquireLease,f.ActorOriginalAcquire);assert.equal(wrapper.call(f.sink,f.frame()),f.result);assert.equal(f.calls(),2);assert.equal(f.main.snapshot().frames.length,length);f.renderer.restore();});
+test('an observer exception does not change the original callback return or retry it',()=>{const f=fixture();Object.defineProperty(f.actor,'streamHelloAnchor',{get(){throw new Error('observer read');}});assert.equal(f.actor.send(),f.result);assert.equal(f.calls(),2);assert.equal(f.main.snapshot().diagnostics.length,1);f.close();});
+test('a helper installed on unused classes has zero actual hits and stays unavailable',()=>{const f=fixture();assert.equal(f.evidence().status,'unavailable');f.close();});
+test('restored renderer never backfills old DOM as a new realm after reload',()=>{const f=fixture();f.show();const other=p.createRuntime({realm:'realm-B'});assert.equal(other.sampleRow(f.article.rows[0]),null);other.restore();f.close();});
+test('raw current session alone cannot validate a sample whose DOM belongs to another session',()=>{const f=fixture();f.show();f.samples[0].rows[0].paneSessionId='old-session';assert.equal(f.evidence().status,'unavailable');assert.throws(()=>oracle.verifyThinkingProvenance(f.records,f.samples,f.evidence()),/provenance-unavailable/);f.close();});
+test('same cursor with conflicting actual frame epoch cannot be silently overwritten',()=>{const f=fixture();f.actor.lastRuntimeEpoch=2;f.actor.streamHelloAnchor={sessionVersion:0,headSeq:0,lastMutatedFromSeq:0,runtimeEpoch:2};f.actor.send();f.show();assert.equal(f.evidence().status,'invalid');f.close();});
+test('actual render agent/turn identity must agree with the public thinking owner',()=>{for(const key of ['agentId','turnId']){const f=fixture();f.root.turns[0].turn[key]='different';f.show();assert.equal(f.evidence().status,'available');assert.throws(()=>oracle.verifyThinkingProvenance(f.records,f.samples,f.evidence()),/provenance-invalid/);f.close();}});
+test('missing DOM pane identity cannot be supplied by a matching requested owner',()=>{const f=fixture();f.show();delete f.samples[0].rows[0].paneSessionId;assert.equal(f.evidence().status,'unavailable');f.close();});
+test('a missing module or arbitrary unloaded class cannot satisfy actual loaded evidence',()=>{const f=fixture();f.show();f.identity.provenanceModules=[];assert.equal(f.evidence().status,'unavailable');f.close();});
+test('loaded graph attestation binds parsed source, sealed path and current disk bytes',()=>{const root=fs.mkdtempSync(path.join(process.env.SCENARIO_WORKSPACE,'module-'));const seals=clone(modules);const file=path.join(root,p.ROLES.mainActor);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,'export class SessionActor {}\n');seals[0].sha256=oracle.sha256(fs.readFileSync(file));const script={url:pathToFileURL(file).href,isModule:true,source:fs.readFileSync(file,'utf8')};assert.equal(p.selectLoadedModules(root,seals,[script],['mainActor'])[0].loaded,true);assert.throws(()=>p.selectLoadedModules(root,seals,[],['mainActor']),/not-already-loaded/);assert.throws(()=>p.selectLoadedModules(root,seals,[{...script,source:'different'}],['mainActor']),/digest-mismatch/);});
+test('module sourceURL aliases cannot claim another path or unparsed ESM',()=>{const root=fs.mkdtempSync(path.join(process.env.SCENARIO_WORKSPACE,'module-'));assert.throws(()=>p.selectLoadedModules(root,modules,[{url:'https://example.test/session-actor.js',isModule:true,source:''}],['mainActor']),/not-already-loaded/);});
+test('FrameSource and Lens preserve exact synchronous object and Promise returns',()=>{const f=fixture();const lease=f.source.acquire('session-A');assert.equal(lease,f.source.lastLease);const promise=Promise.resolve('unchanged');let called=0;f.host.applyEntries=function(){called++;return promise;};assert.equal(f.lens.applySessionViewTimeline([f.root]),promise);assert.equal(called,1);f.close();});
+test('renderer original throw identity is preserved and invalidates pending input',()=>{const f=fixture();const error=new Error('render-throw');let called=0;f.host.applyEntries=function(){called++;throw error;};assert.throws(()=>f.lens.applySessionViewTimeline([f.root]),value=>value===error);assert.equal(called,1);assert.equal(f.renderer.snapshot().inputs[0].valid,false);f.close();});
+test('live input without turnId uses only the two exact production overlay row identities',()=>{const f=fixture();delete f.root.turns[0].turn.turnId;f.show();oracle.verifyThinkingProvenance(f.records,f.samples,f.evidence());f.close();});
+test('durable input requires its actual persisted turn identity and source epoch',()=>{const f=fixture();f.root.turns[0].id='envelope-A';f.root.turns[0].turn.turnId='tree-A';f.records[1].decoded={session_id:'session-A',envelope_appended:{envelope:{id:'envelope-A',agent_id:'root',turn_id:'tree-A',blocks:[{thinking_block:{thinking:'actual public text',signature:'fixture'}}]}}};f.show();oracle.verifyThinkingProvenance(f.records,f.samples,f.evidence());f.close();});
+test('moving an already painted article to another same-session pane does not move its provenance',()=>{const f=fixture();f.show();const other={getAttribute(){return 'session-A';}};const original=f.article.closest;f.article.closest=function(selector){return selector==='.conversation-session-leaf'?other:original.call(this,selector);};assert.equal(f.renderer.sampleRow(f.article.rows[0]),null);f.close();});
+test('Actor hello seq/version anchor must match actual earlier raw hello, not just epoch',()=>{const f=fixture();f.actor.streamHelloAnchor.headSeq=99;f.actor.send(f.frame({frameId:2,version:2}));f.lens.sessionViewLease.cursor=f.frame({frameId:2,version:2});f.show();assert.equal(f.evidence().status,'unavailable');f.close();});
+test('replacing a lease with another acquired same-cursor object during projection invalidates input',()=>{const f=fixture();const original=f.host.applyEntries;f.host.applyEntries=function(...args){const returned=original.apply(this,args);f.lens.sessionViewLease=f.source.acquire('session-A');return returned;};f.show();assert.equal(f.renderer.snapshot().inputs[0].valid,false);assert.equal(f.evidence().status,'unavailable');f.close();});
+test('cleanup can cancel pending install ownership before asynchronous imports complete',()=>{for(const read of [options=>p.readMain(null,options),p.readRenderer]){const pending={token:'owned',active:true,runtime:null,realm:'pending',modules:[]};globalThis.__uaRealEditorProvenance=pending;const result=read({token:'owned',restore:true});assert.equal(pending.active,false);assert.equal(globalThis.__uaRealEditorProvenance,undefined);assert.equal(result.frames.length,0);}});
+test('diagnostic classification cannot replace a budget timeout or its poison identity',()=>{const timeout=Object.assign(new Error('deadline'),{code:'budget-stage-timeout'});assert.equal(oracle.diagnosticError(timeout),timeout);assert.equal(oracle.diagnosticError(new Error('provenance-loaded-module-digest-mismatch')).code,'dom-frame-provenance-invalid');assert.equal(oracle.diagnosticError(new Error('provenance-module-not-already-loaded')).code,'dom-frame-provenance-unavailable');});
+test('sealed capture with complete existing samples revalidates without new UI work',()=>{const f=fixture();f.show();assert.equal(oracle.verifyCapturedThinking(f.records,f.samples,f.evidence()).streamBlocks,1);f.close();});
+test('a late stream-only nonduplicate thinking turn cannot hide after earlier validation',()=>{const f=fixture();f.show();oracle.verifyCapturedThinking(f.records,f.samples,f.evidence());f.records.push({ordinal:3,decoded:{session_id:'session-A',thinking_delta:{runtime_epoch:'1',agent_id:'root',turn_id:'late-turn',block_id:'late-block',delta_seq:'1',text_delta:'late public text'}}});assert.throws(()=>oracle.verifyCapturedThinking(f.records,f.samples,f.evidence()),/stream-thinking-block-not-visible/);f.close();});
+test('a late nonduplicate durable thinking envelope cannot bypass final capture verification',()=>{const f=fixture();f.show();oracle.verifyCapturedThinking(f.records,f.samples,f.evidence());f.records.push({ordinal:3,decoded:{session_id:'session-A',envelope_appended:{envelope:{id:'late-envelope',agent_id:'root',turn_id:'late-tree',blocks:[{thinking_block:{thinking:'late durable text',signature:'fixture'}}]}}}});assert.throws(()=>oracle.verifyCapturedThinking(f.records,f.samples,f.evidence()),/durable-thinking-block-not-visible/);f.close();});
+test('a late new sequence in an existing thinking block still requires its full public text',()=>{const f=fixture();f.show();f.records.push({ordinal:3,decoded:{session_id:'session-A',thinking_delta:{runtime_epoch:'1',agent_id:'root',turn_id:'runtime-A',block_id:'block-A',delta_seq:'2',text_delta:' late'}}});assert.throws(()=>oracle.verifyCapturedThinking(f.records,f.samples,f.evidence()),/stream-thinking-block-not-visible/);f.close();});
+test('a late identical stream replay adds no invented display requirement',()=>{const f=fixture();f.show();const replay=clone(f.records[1]);replay.ordinal=3;f.records.push(replay);oracle.verifyCapturedThinking(f.records,f.samples,f.evidence());f.close();});
+test('final source-before-DOM scope is rechecked even if its body was already visible',()=>{const f=fixture();f.show();const e=f.evidence();e.verifiedScopes=[];assert.throws(()=>oracle.verifyCapturedThinking(f.records,f.samples,e),/provenance-invalid/);f.close();});
+test('current renderer context requires the actual marker and default main frame',()=>{const contexts=[{id:1,uniqueId:'main-current',auxData:{isDefault:true,frameId:'main-frame'}},{id:2,uniqueId:'isolated',auxData:{isDefault:false,frameId:'main-frame'}}];assert.deepEqual(p.chooseExecutionContext(contexts,[1],'main-frame'),{id:1,uniqueId:'main-current',frameId:'main-frame',isDefault:true});});
+test('an old uncollected default context cannot substitute for the marker-owning current realm',()=>{const contexts=[{id:1,uniqueId:'old',auxData:{isDefault:true,frameId:'main-frame'}},{id:2,uniqueId:'current',auxData:{isDefault:true,frameId:'main-frame'}}];assert.equal(p.chooseExecutionContext(contexts,[2],'main-frame').uniqueId,'current');});
+test('isolated world scripts remain unavailable even if they expose a matching marker',()=>{assert.throws(()=>p.chooseExecutionContext([{id:2,uniqueId:'isolated',auxData:{isDefault:false,frameId:'main-frame'}}],[2],'main-frame'),/current-context-unavailable/);});
+test('a child frame default world cannot supply the page main-frame module graph',()=>{assert.throws(()=>p.chooseExecutionContext([{id:3,uniqueId:'child',auxData:{isDefault:true,frameId:'child-frame'}}],[3],'main-frame'),/current-context-unavailable/);});
+test('context IDs without unique context identity cannot authorize imports',()=>{assert.throws(()=>p.chooseExecutionContext([{id:1,auxData:{isDefault:true,frameId:'main-frame'}}],[1],'main-frame'),/current-context-unavailable/);});
+test('ambiguous marker ownership cannot select one of two default contexts',()=>{const contexts=[{id:1,uniqueId:'one',auxData:{isDefault:true,frameId:'main-frame'}},{id:2,uniqueId:'two',auxData:{isDefault:true,frameId:'main-frame'}}];assert.throws(()=>p.chooseExecutionContext(contexts,[1,2],'main-frame'),/current-context-unavailable/);});
+test('module graph filtering rejects another context with identical URL and source bytes',()=>{const root=fs.mkdtempSync(path.join(process.env.SCENARIO_WORKSPACE,'context-module-'));const seals=clone(modules);const file=path.join(root,p.ROLES.mainActor);fs.mkdirSync(path.dirname(file),{recursive:true});const source='export class SessionActor {}\n';fs.writeFileSync(file,source);seals[0].sha256=oracle.sha256(source);const context={id:1,uniqueId:'actual-main',frameId:null,isDefault:true};const wrong={url:pathToFileURL(file).href,isModule:true,source,executionContextId:2};assert.throws(()=>p.selectLoadedModules(root,seals,[wrong],['mainActor'],context),/not-already-loaded/);const result=p.selectLoadedModules(root,seals,[wrong,{...wrong,executionContextId:1}],['mainActor'],context);assert.equal(result[0].executionContext.uniqueId,'actual-main');});
+test('main inspector chooses its actual installer global rather than a same-URL VM',()=>{const contexts=[{id:1,uniqueId:'installer'},{id:2,uniqueId:'vm'}];assert.equal(p.chooseExecutionContext(contexts,[1]).id,1);assert.throws(()=>p.chooseExecutionContext(contexts,[]),/current-context-unavailable/);});
+test('destroying the bound execution context permanently invalidates its import fence',()=>{const fence=p.createContextFence({id:1,uniqueId:'current',frameId:'frame'});fence.destroyed(2);fence.assert();fence.destroyed(1);assert.throws(()=>fence.assert(),/destroyed-or-navigated/);});
+test('main frame navigation invalidates a pending import while child navigation does not',()=>{const fence=p.createContextFence({id:1,uniqueId:'current',frameId:'frame'});fence.navigated('child');fence.assert();fence.navigated('frame');assert.throws(()=>fence.assert(),/destroyed-or-navigated/);});
+test('reusing an execution context numeric ID cannot reuse its former unique identity',()=>{const fence=p.createContextFence({id:1,uniqueId:'old',frameId:'frame'});fence.created({id:1,uniqueId:'new'});assert.throws(()=>fence.assert(),/destroyed-or-navigated/);});
+test('cleared contexts cannot revive an earlier import fence by recreating its ID',()=>{const fence=p.createContextFence({id:1,uniqueId:'old',frameId:null});fence.cleared();fence.created({id:1,uniqueId:'old'});assert.throws(()=>fence.assert(),/destroyed-or-navigated/);});
+test('current-global marker handshake rejects new documents and cleanup cancellation',()=>{const oldDriver=globalThis.driver;const oldDocument=globalThis.document;globalThis.driver={};globalThis.document={};const options={token:'owned-context',realm:'realm',probe:'nonce-context',mainGate:true};try{p.beginRenderer(options);assert.equal(p.rendererOwnershipProbe(options),true);assert.equal(p.rendererOwnershipProbe({...options,probe:'wrong'}),false);globalThis.document={};assert.equal(p.rendererOwnershipProbe(options),false);globalThis.document=globalThis.__uaRealEditorProvenance.document;p.readRenderer({token:options.token,restore:true});assert.equal(p.rendererOwnershipProbe(options),false);}finally{delete globalThis.__uaRealEditorProvenance;if(oldDriver===undefined)delete globalThis.driver;else globalThis.driver=oldDriver;if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;}});
+test('native main evaluate functions have no direct dynamic-import callback dependency',()=>{for(const fn of [p.installMain,oracle.installMainTap])assert.doesNotMatch(fn.toString(),/await\s+import\s*\(/u);assert.match(p.installMain.toString(),/getBuiltinModule\('inspector'\)/u);assert.match(oracle.installMainTap.toString(),/getBuiltinModule\('module'\)/u);});
+test('native main ESM loader is explicit and follows loaded-byte plus context gates',()=>{const source=p.installMain.toString();assert.match(source,/vm\.compileFunction\('return import\(specifier\)'/u);assert.match(source,/importModuleDynamically:\s*vm\.constants\.USE_MAIN_CONTEXT_DEFAULT_LOADER/u);assert.ok(source.indexOf('const importLoaded')>source.indexOf('helper.selectLoadedModules'));assert.ok(source.indexOf('await importLoaded(modules[0].url)')>source.indexOf('const verified ='));assert.doesNotMatch(source,/require\(modules\[0\]\.url\)/u);});
+test('renderer keeps its separate same-context module import semantics',()=>{assert.match(p.installRenderer.toString(),/await import\(item\.url\)/u);assert.doesNotMatch(p.installRenderer.toString(),/USE_MAIN_CONTEXT_DEFAULT_LOADER/u);});
+test('the required provenance assertion remains mandatory in all ten scenes',()=>{for(const ids of Object.values(oracle.REQUIRED_ASSERTIONS))assert.ok(ids.includes('dom-frame-provenance'));});
+console.log(JSON.stringify(results));process.exitCode=results.every(item=>item.passed)?0:1;
+'''
+
+
+class RealEditorDomProvenanceTest(unittest.TestCase):
+    def test_transparent_callbacks_and_real_scope_negative_controls(self):
+        with tempfile.TemporaryDirectory(prefix="real-editor-provenance-") as temporary:
+            env = dict(os.environ, SCENARIO_REPO=str(REPO_ROOT), SCENARIO_WORKSPACE=temporary)
+            completed = subprocess.run(["node", "-"], input=PROVENANCE_FIXTURE,
+                                       env=env, text=True, capture_output=True, timeout=30)
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            cases = json.loads(completed.stdout)
+            self.assertEqual(len(cases), 69)
+            for case in cases:
+                with self.subTest(case=case["name"]):
+                    self.assertTrue(case["passed"], case.get("error"))
+
+
+
+# This tests the missing-import-callback boundary of serialized VM functions,
+# not native Electron acceptance. That separate real Electron 42 / Node 24 +
+# loaded-TLA evidence is 2026-11-11-electron-runtime-api-async-loader-bbc627b674.
+NATIVE_MAIN_BOUNDARY_FIXTURE = r'''
+const assert=require('node:assert/strict');const path=require('node:path');const vm=require('node:vm');
+const p=require(path.join(process.env.SCENARIO_REPO,'test/scenario/scenarios/universe-agent-real-editor-provenance.cjs'));
+const oracle=require(path.join(process.env.SCENARIO_REPO,'test/scenario/scenarios/universe-agent-real-editor-oracle.cjs'));
+const results=[];
+async function test(name,run){try{await run();results.push({name,passed:true});}catch(error){results.push({name,passed:false,error:error.stack||String(error)});}}
+(async()=>{
+ await test('VM native evaluation without import callback rejects a bare builtin dynamic import',async()=>{
+  const bare=vm.compileFunction("return import('node:fs')",[]);
+  await assert.rejects(bare(),error=>error.code==='ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING');
+ });
+ await test('serialized main provenance fails closed before importing if getBuiltinModule is unavailable',async()=>{
+  const call=vm.compileFunction(`return (${p.installMain.toString()})(electron, options)`,['process','electron','options']);
+  await assert.rejects(call({}, {}, {}),/dom-frame-provenance-unavailable/);
+ });
+ await test('serialized raw tap has no builtin dynamic-import fallback if native API is unavailable',async()=>{
+  const call=vm.compileFunction(`return (${oracle.installMainTap.toString()})(electron, options)`,['process','electron','options']);
+  await assert.rejects(call({}, {}, {}),/dom-frame-provenance-unavailable/);
+ });
+ await test('partial native API support cannot fall back to sync require or an implicit ESM loader',async()=>{
+  const call=vm.compileFunction(`return (${p.installMain.toString()})(electron, options)`,['process','electron','options']);let requires=0;
+  const process={getBuiltinModule(name){return name==='module'?{createRequire(){requires++;throw new Error('must not require');}}:undefined;}};
+  await assert.rejects(call(process, {}, {}),/dom-frame-provenance-unavailable/);assert.equal(requires,0);
+ });
+ console.log(JSON.stringify(results));process.exitCode=results.every(item=>item.passed)?0:1;
+})().catch(error=>{console.error(error.stack||String(error));process.exitCode=1;});
+'''
+
+
+class RealEditorNativeMainBoundaryTest(unittest.TestCase):
+    def test_serialized_main_functions_without_implicit_import_callback(self):
+        env = dict(os.environ, SCENARIO_REPO=str(REPO_ROOT))
+        completed = subprocess.run(["node", "-"], input=NATIVE_MAIN_BOUNDARY_FIXTURE,
+                                   env=env, text=True, capture_output=True, timeout=30)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        cases = json.loads(completed.stdout)
+        self.assertEqual(len(cases), 4)
+        for case in cases:
+            with self.subTest(case=case["name"]):
+                self.assertTrue(case["passed"], case.get("error"))
 
 
 if __name__ == "__main__":

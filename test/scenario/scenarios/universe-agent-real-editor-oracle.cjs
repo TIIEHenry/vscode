@@ -8,11 +8,12 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const provenance = require('./universe-agent-real-editor-provenance.cjs');
 
 const COMMON_ASSERTIONS = Object.freeze([
 	'model-identity', 'protocol-identity', 'profile-identity', 'user-dedup',
 	'dom-visible', 'body-order', 'live-to-durable', 'no-terminal-overlay',
-	'tool-call-correlation', 'process-fold-persistence', 'event-correlated', 'scene-contract'
+	'tool-call-correlation', 'process-fold-persistence', 'event-correlated', 'scene-contract', 'dom-frame-provenance'
 ]);
 const RESPONSE_MODEL_ALIASES = Object.freeze({
 	'sub2api-mimo/mimo-v2.6-flash': Object.freeze(['sub2api-mimo/mimo-v2.6-flash', 'mimo-v2.6-flash']),
@@ -40,6 +41,12 @@ function canonical(value) {
 }
 function check(condition, code) {
 	if (!condition) { const error = new Error(code); error.code = code; throw error; }
+}
+function diagnosticError(error) {
+ if (String(error?.code || '').startsWith('budget-')) { return error; }
+ const invalid = /dom-frame-provenance-invalid|digest-mismatch|module-seal-invalid/u.test(error?.code || error?.message || '');
+ const code = invalid ? 'dom-frame-provenance-invalid' : 'dom-frame-provenance-unavailable';
+ return Object.assign(new Error(code), { code });
 }
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function writeJson(file, value) {
@@ -593,8 +600,9 @@ function readJsonString(value) { return JSON.parse(value); }
 // or stream is created. Only future UI-owned streams at this exact private port
 // are tapped. The identical Buffer goes to the identical original decoder.
 async function installMainTap(_electron, options) {
-	const { createRequire } = await import('node:module');
-	const require = createRequire(options.packageJson);
+	const nodeModule = typeof process.getBuiltinModule === 'function' ? process.getBuiltinModule('module') : undefined;
+	if (typeof nodeModule?.createRequire !== 'function') { throw new Error('dom-frame-provenance-unavailable'); }
+	const require = nodeModule.createRequire(options.packageJson);
 	const grpc = require('@grpc/grpc-js');
 	const key = '__uaRealEditorRawTap';
 	if (globalThis[key]) { throw new Error('raw-tap-already-installed'); }
@@ -666,7 +674,10 @@ function readMatrixDom() {
 						: element.querySelector('.conversation-process-fold-tool-icon .codicon-check') ? 'completed' : undefined;
 			const body = element.querySelector('.conversation-lens-turn-body')?.cloneNode(true);
 			if (body) { for (const control of body.querySelectorAll('button,[role="button"],.monaco-toolbar,[aria-hidden="true"]')) { control.remove(); } }
-			return { rootId, turnId, kind, order, text: element.textContent || '', bodyText: body?.textContent || element.textContent || '', visible: visible(element),
+			const leaf = element.closest('.conversation-session-leaf');
+			const paneSessionId = (leaf ? leaf.getAttribute('data-session-key') : element.closest('.conversation-subagent-overlay')?.getAttribute('data-session-key'))?.trim() || null;
+			const provenance = globalThis.__uaRealEditorProvenance?.runtime?.sampleRow(element) ?? null;
+			return { rootId, turnId, kind, order, paneSessionId, provenance, text: element.textContent || '', bodyText: body?.textContent || element.textContent || '', visible: visible(element),
 				busy: article?.getAttribute('aria-busy') === 'true', persistent: !!rootId.trim() && !!turnId.trim() && !rootId.startsWith('overlay:') && !turnId.startsWith('overlay:'),
 				inFold: !!element.closest('.conversation-process-fold'), inThinking: !!element.closest('.conversation-process-fold-thinking-tools'),
 				toolName: tool ? element.querySelector('.conversation-process-fold-tool-name')?.textContent || '' : undefined,
@@ -823,6 +834,149 @@ function verifyWholeOrder(records, dom) {
 	check(dom.rows.filter(row => targetIds.has(row.turnId)).every(row => row.visible || row.visibilityVerified), 'real-row-present-but-never-visibly-inspected');
 }
 
+/** All public thinking sources survive independently of their persistence policy. */
+function thinkingFacts(records) {
+	const blocks = new Map();
+	const turns = new Map();
+	const envelopeOwners = new Map();
+	const durable = [];
+	const lifecycles = [];
+	const token = (value, code) => { check(typeof value === 'string' && value.trim() === value && value.length > 0, code); return value; };
+	const identity = (event, delta) => ({ sessionId: token(event.session_id, 'thinking-session-id-missing'),
+		epoch: String(decimalNs(delta.runtime_epoch ?? '0', 'thinking-runtime-epoch-invalid')),
+		turnId: token(delta.turn_id, 'thinking-runtime-turn-id-missing'), agentId: token(delta.agent_id, 'thinking-agent-id-missing') });
+	const registerTurn = owner => {
+		// The existing DOM aggregates wire blocks into one runtime-turn row.
+		// A reused row id with another session/epoch/agent is ambiguous evidence.
+		const prior = turns.get(owner.turnId);
+		check(!prior || jsonEqual(prior.owner, owner), 'thinking-turn-row-identity-conflict');
+		if (!prior) { turns.set(owner.turnId, { owner, chunks: [], blockIds: new Set() }); }
+		return turns.get(owner.turnId);
+	};
+	for (const record of records) {
+		const event = record.decoded ?? record;
+		const delta = event.thinking_delta;
+		if (delta) {
+			const owner = identity(event, delta);
+			const turn = registerTurn(owner);
+			const blockId = token(delta.block_id, 'thinking-block-id-missing');
+			const key = JSON.stringify([owner.sessionId, owner.epoch, blockId]);
+			const block = blocks.get(key) ?? { owner, blockId, chunks: new Map() };
+			check(jsonEqual(block.owner, owner), 'thinking-block-identity-conflict');
+			blocks.set(key, block); turn.blockIds.add(blockId);
+			const seq = String(decimalNs(delta.delta_seq ?? '0', 'thinking-delta-sequence-invalid'));
+			const value = delta.text_delta ?? '';
+			check(typeof value === 'string', 'thinking-delta-text-invalid');
+			const prior = block.chunks.get(seq);
+			check(!prior || prior.text === value, 'thinking-delta-sequence-text-conflict');
+			if (!prior) {
+				check(block.lastSequence === undefined || BigInt(seq) > BigInt(block.lastSequence), 'thinking-delta-sequence-regressed');
+				check(Number.isSafeInteger(record.ordinal) && record.ordinal > 0, 'thinking-source-ordinal-missing');
+				const chunk = { seq, text: value, ordinal: record.ordinal };
+				block.lastSequence = seq; block.chunks.set(seq, chunk); turn.chunks.push(chunk);
+			}
+		}
+		for (const life of [event.turn_lifecycle?.turn_started, event.turn_lifecycle?.turn_completed].filter(Boolean)) {
+			lifecycles.push({ event, life });
+		}
+		const entries = [event.envelope_appended?.envelope, ...(event.envelope_batch_appended?.envelopes ?? []),
+			...(event.envelope_range_replaced?.replacement ?? [])].filter(Boolean);
+		for (const envelope of entries) {
+			const parts = (envelope.blocks ?? []).map(block => block.thinking_block?.thinking).filter(value => typeof value === 'string' && value.trim());
+			if (!parts.length) { continue; }
+			const sessionId = token(event.session_id, 'thinking-session-id-missing');
+			check(!envelope.session_id || envelope.session_id === sessionId, 'thinking-envelope-session-conflict');
+			const id = token(envelope.id, 'thinking-envelope-id-missing');
+			const owner = { sessionId, agentId: envelope.agent_id || undefined, turnId: envelope.turn_id || undefined };
+			const prior = envelopeOwners.get(id);
+			check(!prior || jsonEqual(prior, owner), 'thinking-envelope-identity-conflict');
+			envelopeOwners.set(id, owner);
+			check(Number.isSafeInteger(record.ordinal) && record.ordinal > 0, 'thinking-source-ordinal-missing');
+			const mixed = (envelope.blocks ?? []).some(block => text(block.text_block?.text).trim() || block.tool_call_block || block.tool_result_block);
+			const value = parts.join('\n');
+			if (!durable.some(item => item.envelopeId === id && item.text === value)) {
+				durable.push({ ...owner, envelopeId: id, rowId: mixed ? `${id}:think` : id, text: value,
+					blockCount: parts.length, ordinal: record.ordinal });
+			}
+		}
+	}
+	for (const { event, life } of lifecycles) {
+		const turn = turns.get(life.turn_id);
+		if (!turn) { continue; }
+		const owner = identity(event, { ...life, runtime_epoch: event.turn_lifecycle.runtime_epoch });
+		check(jsonEqual(turn.owner, owner), 'thinking-turn-lifecycle-identity-conflict');
+		if (life.assistant_turn_id) {
+			check(!turn.assistantTurnId || turn.assistantTurnId === life.assistant_turn_id, 'thinking-assistant-turn-link-conflict');
+			turn.assistantTurnId = life.assistant_turn_id;
+		}
+	}
+	return { blocks: [...blocks.values()], turns: [...turns.values()].filter(turn => turn.chunks.some(chunk => chunk.text.trim())).map(turn => ({
+		...turn.owner, assistantTurnId: turn.assistantTurnId, blockIds: [...turn.blockIds],
+		text: turn.chunks.sort((left, right) => left.ordinal - right.ordinal).map(chunk => chunk.text).join(''),
+		lastOrdinal: turn.chunks.reduce((last, chunk) => Math.max(last, chunk.ordinal), 0)
+	})), durable };
+}
+
+function verifyThinkingDom(records, samples) {
+	const facts = thinkingFacts(records);
+	const visible = (sample, row) => row.kind === 'thinking' && row.inFold && row.visible
+		&& Number.isSafeInteger(sample.rawOrdinalBefore);
+	const hasBody = (sample, row, value, ordinal) => sample.rawOrdinalBefore >= ordinal && visible(sample, row)
+		&& normalize(row.processText) === normalize(value);
+	for (const item of facts.durable) {
+		check(samples.some(sample => sample.rows.some(row => row.turnId === item.rowId && row.persistent
+			&& hasBody(sample, row, item.text, item.ordinal))), 'actual-durable-thinking-block-not-visible-on-own-row');
+	}
+	for (const turn of facts.turns) {
+		const rowIds = [`overlay:${turn.turnId}`, `overlay:${turn.turnId}:think`];
+		const live = samples.some(sample => sample.rows.some(row => rowIds.includes(row.turnId) && !row.persistent
+			&& hasBody(sample, row, turn.text, turn.lastOrdinal)));
+		// Runtime turn_id and persistent tree turn_id differ. Only the formal
+		// completed.assistant_turn_id settle link (or exact turn identity) relates them.
+		const persisted = facts.durable.filter(item => item.sessionId === turn.sessionId && item.agentId === turn.agentId
+			&& (item.turnId === turn.turnId || turn.assistantTurnId && item.turnId === turn.assistantTurnId)
+			&& normalize(item.text) === normalize(turn.text) && item.ordinal >= turn.lastOrdinal);
+		check(live || persisted.some(item => samples.some(sample => sample.rows.some(row => row.turnId === item.rowId && row.persistent
+			&& hasBody(sample, row, turn.text, item.ordinal)))), 'actual-stream-thinking-block-not-visible-on-own-turn');
+	}
+	return { observed: facts.turns.length > 0 || facts.durable.length > 0, streamBlocks: facts.blocks.filter(block => [...block.chunks.values()].some(chunk => chunk.text.trim())).length,
+		runtimeTurns: facts.turns.length, durableBlocks: facts.durable.reduce((count, item) => count + item.blockCount, 0) };
+}
+
+function verifyThinkingProvenance(records, samples, evidence) {
+ check(evidence?.status === 'available' && evidence.counts.matchedScopes > 0, 'dom-frame-provenance-unavailable');
+ const facts = thinkingFacts(records);
+ const epochAt = (session, ordinal) => {
+  const hello = records.filter(record => record.ordinal <= ordinal && record.decoded?.session_id === session && record.decoded?.hello).at(-1);
+  return hello ? String(hello.decoded.hello.runtime_epoch ?? '0') : undefined;
+ };
+ const match = (sample, row, owner, value, ordinal) => row.kind === 'thinking' && row.inFold && row.visible
+  && normalize(row.processText) === normalize(value) && provenance.requireScope(evidence, sample, row, owner, ordinal);
+ for (const item of facts.durable) {
+  check(samples.some(sample => sample.rows.some(row => row.turnId === item.rowId && row.persistent
+   && epochAt(item.sessionId, item.ordinal) !== undefined && match(sample, row, { ...item, epoch: String(epochAt(item.sessionId, item.ordinal)) }, item.text, item.ordinal))), 'dom-frame-provenance-invalid');
+ }
+ for (const turn of facts.turns) {
+  const live = samples.some(sample => sample.rows.some(row => !row.persistent
+   && [`overlay:${turn.turnId}`, `overlay:${turn.turnId}:think`].includes(row.turnId)
+   && match(sample, row, turn, turn.text, turn.lastOrdinal)));
+  const persisted = facts.durable.filter(item => item.sessionId === turn.sessionId && item.agentId === turn.agentId
+   && (item.turnId === turn.turnId || turn.assistantTurnId && item.turnId === turn.assistantTurnId)
+   && normalize(item.text) === normalize(turn.text) && item.ordinal >= turn.lastOrdinal);
+  check(live || persisted.some(item => samples.some(sample => sample.rows.some(row => row.turnId === item.rowId && row.persistent
+   && match(sample, row, { ...item, epoch: turn.epoch }, turn.text, item.ordinal)))), 'dom-frame-provenance-invalid');
+ }
+ return true;
+}
+
+// Capture may grow during cleanup. Re-run both pure verifiers only after the
+// final raw tap has been stopped; an earlier result is never a capture seal.
+function verifyCapturedThinking(records, samples, evidence) {
+ const thinking = verifyThinkingDom(records, samples);
+ verifyThinkingProvenance(records, samples, evidence);
+ return thinking;
+}
+
 function foldOwners(records, sessionId, foldId, dom) {
 	const scoped = records.filter(record => (record.decoded ?? record).session_id === sessionId);
 	const envelopes = envelopesFromEvents(scoped);
@@ -830,9 +984,10 @@ function foldOwners(records, sessionId, foldId, dom) {
 	return dom.rows.filter(row => row.rootId === foldId && ['tool', 'thinking'].includes(row.kind)).map(row => {
 		const callIds = calls.filter(call => call.id === row.cancelCallId || call.envelopes.some(item => item.rowId === row.turnId)).map(call => call.id);
 		const envelopeIds = envelopes.filter(envelope => row.turnId === envelope.id
-			|| row.turnId === `${envelope.id}:thinking` || /^tool:\d+$/u.test(row.turnId.slice(envelope.id.length + 1)) && row.turnId.startsWith(`${envelope.id}:`))
+			|| row.turnId === `${envelope.id}:think` || /^tool:\d+$/u.test(row.turnId.slice(envelope.id.length + 1)) && row.turnId.startsWith(`${envelope.id}:`))
 			.map(envelope => envelope.id);
-		const blocks = scoped.map(record => (record.decoded ?? record).thinking_delta).filter(delta => delta?.block_id && row.turnId === `overlay:${delta.block_id}`)
+		const blocks = scoped.map(record => (record.decoded ?? record).thinking_delta).filter(delta => delta?.block_id
+			&& [ `overlay:${delta.turn_id}`, `overlay:${delta.turn_id}:think` ].includes(row.turnId))
 			.map(delta => `${delta.turn_id}:${delta.block_id}`);
 		const owned = { rowId: row.turnId, callIds: [...new Set(callIds)], envelopeIds: [...new Set(envelopeIds)], blocks: [...new Set(blocks)] };
 		if (!owned.callIds.length && !owned.envelopeIds.length && !owned.blocks.length) { return undefined; }
@@ -951,11 +1106,12 @@ function createMatrixScenario(env = process.env) {
 	const eventFile = path.join(caseRoot, 'editor-session-events.jsonl');
 	const domFile = path.join(caseRoot, 'editor-dom-observations.json');
 	const resultFile = path.resolve(env.UA_REAL_EDITOR_RESULT_FILE);
+	const provenanceFile = path.join(caseRoot, 'editor-dom-frame-provenance.json');
 	const token = crypto.randomBytes(24).toString('hex');
 	const result = { schemaVersion: 1, campaignId: identity.campaignId, cellId: identity.cellId, caseId: identity.caseId,
 		nonce: identity.nonce, status: 'failed', actualModel: null, actualProtocol: null, modelProfile: null,
 		assertions: REQUIRED_ASSERTIONS[identity.caseId].map(id => ({ id, passed: false })),
-		evidence: { domFile, eventFile, oracleFile: expectedFile }, thinking: { status: 'uncovered' } };
+		evidence: { domFile, eventFile, oracleFile: expectedFile, provenanceFile }, thinking: { status: 'uncovered' } };
 	const budgetConfig = validateBudgetIdentity(env, identity, caseRoot);
 	const budget = createBudgetController(identity, budgetConfig, { changed: state => Object.assign(result, state) });
 	result.evidence.budgetProgressFile = budgetConfig.progressFile;
@@ -973,8 +1129,15 @@ function createMatrixScenario(env = process.env) {
 	let wireType;
 	let sessionId;
 	let tapInstalled = false;
+	let mainProvenanceInstalled = false;
+	let rendererProvenanceInstalled = false;
+	let mainEvidence = null;
+	let rendererEvidence = null;
+	const priorRendererEvidence = [];
+	let domSampleOrdinal = 0;
 	let lastDomHash;
 	let lastOrdinal = 0;
+	let lastThinkingOrdinal = 0;
 	let foldAdvanced = false;
 	let foldRegressed = false;
 	const fixtures = identity.caseId === 'U07'
@@ -989,7 +1152,34 @@ function createMatrixScenario(env = process.env) {
 		check(item, `assertion-not-in-frozen-scene:${id}`);
 		item.passed = true;
 	};
-	function persist() {
+	function provenanceArtifact() {
+  const renderers = [...priorRendererEvidence, ...(rendererEvidence ? [rendererEvidence] : [])];
+  const renderer = { rendererAttestations: renderers.map(item => ({ realm: item.realm, executionContext: item.executionContext, modules: item.modules })), realms: renderers.map(item => item.realm), acquisitions: renderers.flatMap(item => item.acquisitions), modules: renderers.flatMap(item => item.modules).filter((item, index, all) => all.findIndex(other => other.role === item.role && other.url === item.url && other.sha256 === item.sha256) === index),
+   inputs: renderers.flatMap(item => item.inputs), paints: renderers.flatMap(item => item.paints), diagnostics: renderers.flatMap(item => item.diagnostics) };
+  return provenance.artifact(identity, mainEvidence, renderer, records, samples);
+ }
+ async function diagnosticOp(label, callback) {
+  try { return await op(label, callback); }
+  catch (error) { throw diagnosticError(error); }
+ }
+ async function installRendererObserver() {
+  rendererProvenanceInstalled = true;
+  await diagnosticOp('provenance-renderer-current-context-install', () => provenance.observeRenderer(context.page, repo, identity.provenanceModules, {
+   token, mainGate: mainProvenanceInstalled, realm: crypto.randomBytes(16).toString('hex'), factory: provenance.createRuntime.toString(),
+   isActive: () => rendererProvenanceInstalled }));
+ }
+ async function collectProvenance(restore = false) {
+  if (mainProvenanceInstalled) {
+   mainEvidence = await diagnosticOp('provenance-main-read', () => context.code.driver.evaluateElectronMain(provenance.readMain, { token, restore, allowMissing: restore }));
+   if (restore) { mainProvenanceInstalled = false; }
+  }
+  if (rendererProvenanceInstalled) {
+   rendererEvidence = await diagnosticOp('provenance-renderer-read', () => context.page.evaluate(provenance.readRenderer, { token, restore, allowMissing: restore }));
+   if (restore) { rendererProvenanceInstalled = false; }
+  }
+ }
+ function persist() {
+  writeJson(provenanceFile, provenanceArtifact());
 		Object.assign(result, budget.snapshot());
 		writeJson(domFile, { schemaVersion: 1, source: 'actual-default-editor-dom', samples, episodes,
 			visibilitySamples: Object.fromEntries(visibility), foldAdvanced, foldRegressed,
@@ -1006,6 +1196,9 @@ function createMatrixScenario(env = process.env) {
 			const decoded = wireType.toObject(wireType.decode(bytes), { longs: String, enums: String, bytes: String, oneofs: true });
 			const record = { source: 'actual-electron-main-session-stream', ...frame, sha256: sha256(bytes), decoded };
 			records.push(record);
+			if (decoded.thinking_delta || envelopesFromEvents([record]).some(envelope => (envelope.blocks ?? []).some(block => text(block.thinking_block?.thinking).trim()))) {
+				lastThinkingOrdinal = frame.ordinal;
+			}
 			const started = decoded.turn_lifecycle?.turn_started;
 			if (started) {
 				result.observedModels = [...new Set([...(result.observedModels ?? []), started.model_id])];
@@ -1017,7 +1210,14 @@ function createMatrixScenario(env = process.env) {
 	}
 	async function sample(open = true) {
 		await drain();
+		const rawOrdinalBefore = lastOrdinal;
+		const thinkingOrdinalBefore = lastThinkingOrdinal;
 		const dom = await op('dom-sample', () => context.page.evaluate(readMatrixDom));
+		dom.sampleOrdinal = ++domSampleOrdinal;
+		// Keep both cuts. Only bytes already drained before the DOM read can
+		// establish source-before-display; the later drain is an upper bound.
+		await drain();
+		await collectProvenance();
 		for (const row of dom.rows) {
 			if (row.visible) { visibility.set(row.turnId, dom.at); }
 			row.visibilityVerified = visibility.has(row.turnId);
@@ -1027,10 +1227,14 @@ function createMatrixScenario(env = process.env) {
 			foldAdvanced ||= observation.advanced;
 			foldRegressed ||= observation.regressed;
 		}
-		const signature = sha256(JSON.stringify({ ...dom, at: undefined }));
+		const paintReady = dom.rows.map(row => {
+   const frame = mainEvidence?.frames.findLast(item => row.provenance && jsonEqual(item.cursor, row.provenance.cursor));
+   return !!frame && frame.rawOrdinal <= rawOrdinalBefore;
+  });
+  const signature = sha256(JSON.stringify({ ...dom, at: undefined, sampleOrdinal: undefined, thinkingOrdinalBefore, paintReady }));
 		if (lastDomHash !== signature) {
 			check(samples.length < 4000, 'dom-evidence-limit-exceeded');
-			samples.push({ ...dom, rawOrdinal: lastOrdinal }); lastDomHash = signature;
+			samples.push({ ...dom, rawOrdinal: rawOrdinalBefore, rawOrdinalBefore, rawOrdinalAfter: lastOrdinal }); lastDomHash = signature;
 		}
 		if (open) {
 			for (const fold of dom.folds) {
@@ -1219,23 +1423,15 @@ function createMatrixScenario(env = process.env) {
 		result.actualProtocol = requests[0].protocol;
 		result.evidence.providerRequestsFile = requestsFile;
 		pass('protocol-identity');
-		const thinking = records.some(record => record.decoded.thinking_delta) || envelopesFromEvents(records).some(envelope => (envelope.blocks ?? []).some(block => text(block.thinking_block?.thinking).trim()));
-		if (thinking) {
-			const durable = envelopesFromEvents(records).flatMap(envelope => (envelope.blocks ?? []).map(block => text(block.thinking_block?.thinking)).filter(value => value.trim()));
-			const blocks = new Map();
-			for (const record of records) {
-				const delta = record.decoded.thinking_delta;
-				if (!delta?.text_delta) { continue; }
-				const key = `${delta.turn_id}:${delta.block_id}`;
-				if (!blocks.has(key)) { blocks.set(key, new Map()); }
-				blocks.get(key).set(delta.delta_seq ?? '0', delta.text_delta);
-			}
-			const provided = durable.length ? durable : [...blocks.values()].map(chunks => [...chunks.entries()]
-				.sort(([left], [right]) => BigInt(left) < BigInt(right) ? -1 : BigInt(left) > BigInt(right) ? 1 : 0)
-				.map(([, value]) => value).join(''));
-			check(provided.length > 0 && provided.every(value => samples.some(sample => sample.rows.some(row => row.kind === 'thinking'
-				&& row.inFold && (row.visible || row.visibilityVerified) && normalize(row.text).includes(normalize(value))))), 'actual-thinking-content-not-visible-in-peer-process-fold');
-			result.thinking = { status: 'observed', source: 'actual-session-stream' };
+		await collectProvenance();
+  const provenanceEvidence = provenanceArtifact();
+  writeJson(provenanceFile, provenanceEvidence);
+  check(provenanceEvidence.status !== 'invalid', 'dom-frame-provenance-invalid');
+  verifyThinkingProvenance(records, samples, provenanceEvidence);
+  pass('dom-frame-provenance');
+		const thinking = verifyThinkingDom(records, samples);
+		if (thinking.observed) {
+			result.thinking = { ...thinking, status: 'observed', source: 'actual-session-stream' };
 		} else {
 			const capability = identity.thinkingCapability;
 			check(capability?.status === 'not-provided' && path.isAbsolute(capability.evidenceFile || '') && /^[0-9a-f]{64}$/.test(capability.sha256 || ''), 'thinking-capability-uncovered');
@@ -1247,10 +1443,11 @@ function createMatrixScenario(env = process.env) {
 		context = ctx;
 		try { return await callback(); }
 		catch (error) {
-			result.status = String(error?.code || '').endsWith('-uncovered') || String(error?.code || '').startsWith('thinking-capability') ? 'uncovered' : 'failed';
+			result.status = error?.code === 'dom-frame-provenance-unavailable' || String(error?.code || '').endsWith('-uncovered') || String(error?.code || '').startsWith('thinking-capability') ? 'uncovered' : 'failed';
 			result.failureCategory = error?.code || 'scenario-runtime-failure';
 			try {
 				budget.beginCleanup(false);
+				await collectProvenance(true);
 				if (tapInstalled) { await drain(true); }
 				budget.finishCleanup();
 			} catch { result.tapCleanupFailed = true; }
@@ -1278,8 +1475,14 @@ function createMatrixScenario(env = process.env) {
 				wireType = root.lookupType('agentservice.SessionStreamEvent');
 				result.proto = { root: protoRoot, files: Object.fromEntries(['session_service.proto', 'message_envelope.proto', 'common.proto', 'agent_service.proto']
 					.map(name => [name, sha256(fs.readFileSync(path.join(protoRoot, name)))])) };
-				result.capture = await op('setup-main-tap-install', () => ctx.code.driver.evaluateElectronMain(installMainTap, { token, packageJson: path.join(repo, 'package.json'), address: `127.0.0.1:${port}` }));
+				result.capture = await diagnosticOp('setup-main-tap-install', () => ctx.code.driver.evaluateElectronMain(installMainTap, { token, packageJson: path.join(repo, 'package.json'), address: `127.0.0.1:${port}` }));
 				tapInstalled = true;
+    mainProvenanceInstalled = true;
+    await diagnosticOp('provenance-main-install', () => ctx.code.driver.evaluateElectronMain(provenance.installMain, { token, packageJson: path.join(repo, 'package.json'),
+     helperFile: path.join(__dirname, 'universe-agent-real-editor-provenance.cjs'), repo, address: `127.0.0.1:${port}`,
+     identity: Object.fromEntries(['campaignId','cellId','caseId','nonce'].map(key => [key, identity[key]])), modules: identity.provenanceModules }));
+    mainProvenanceInstalled = true;
+    await installRendererObserver();
 				await op('setup-new-owned-session', remaining => ctx.page.locator('.conversation-lens-session-new .monaco-button').first().click({ timeout: remaining }));
 				await until(() => {
 					const ids = new Set(records.filter(record => record.decoded.hello).map(record => record.decoded.session_id));
@@ -1304,8 +1507,12 @@ function createMatrixScenario(env = process.env) {
 					const selected = await op('history-selected-session', () => ctx.page.locator('.conversation-lens-session-select select').first().evaluate(element => element.options[element.selectedIndex].text));
 					await op('history-switch-new', remaining => ctx.page.locator('.conversation-lens-session-new .monaco-button').first().click({ timeout: remaining }));
 					await op('history-switch-back', remaining => ctx.page.locator('.conversation-lens-session-select select').first().selectOption({ label: selected }, { timeout: remaining }));
+     await collectProvenance();
+     if (rendererEvidence) { priorRendererEvidence.push(rendererEvidence); rendererEvidence = null; }
+     rendererProvenanceInstalled = false;
 					await op('history-reload', remaining => ctx.page.reload({ waitUntil: 'domcontentloaded', timeout: remaining }));
 					await op('history-loopback-connection', remaining => ctx.page.getByRole('status', { name: 'Engine connection: Engine · Loopback' }).waitFor({ state: 'visible', timeout: remaining }));
+     await installRendererObserver();
 					priorFoldObservations.push(...selectedFolds.values());
 					selectedFolds.clear(); explicitlyOpenedFolds.clear(); visibility.clear();
 					await until(dom => !dom.busy && !dom.overlay && dom.rows.some(row => row.turnId === before.rows[0]?.turnId), 'history-durable-rows');
@@ -1323,7 +1530,15 @@ function createMatrixScenario(env = process.env) {
 				if (['U08', 'U09', 'U10'].includes(identity.caseId)) { pass('route-owned-terminal'); }
 				budget.assert('finalization-display-assertions');
 				budget.beginCleanup(true);
+				await collectProvenance(true);
 				await drain(true);
+    budget.assert('cleanup-final-thinking-reverify');
+    const finalProvenance = provenanceArtifact();
+    writeJson(provenanceFile, finalProvenance);
+    check(finalProvenance.status !== 'invalid', 'dom-frame-provenance-invalid');
+    const finalThinking = verifyCapturedThinking(records, samples, finalProvenance);
+    if (finalThinking.observed) { result.thinking = { ...finalThinking, status: 'observed', source: 'actual-session-stream' }; }
+    budget.assert('cleanup-final-thinking-reverified');
 				budget.finishCleanup();
 				result.evidence.budgetProgressFile = budgetConfig.progressFile;
 				result.evidence.cleanupBudgetFile = budgetConfig.cleanupFile;
@@ -1338,6 +1553,7 @@ function createMatrixScenario(env = process.env) {
 module.exports = { REQUIRED_ASSERTIONS, RESPONSE_MODEL_ALIASES, validateIdentity, prepareFixture, verifyPromptDoesNotContainAnswer,
 	envelopesFromEvents, envelopeText, toolFacts, verifyRoute, verifyVisibleAnswer, verifyAssistantDom, verifyToolDom,
 	verifyHistory, verifyWholeOrder, verifyBodyText, verifyFiles, verifyPermissionDelivery, canonicalTaskFile, toolOutputMatches,
+	thinkingFacts, verifyThinkingDom, verifyThinkingProvenance, verifyCapturedThinking,
 	beginFoldObservation, advanceFoldObservation, verifyFoldCoverage, readMatrixDom, installMainTap, drainMainTap,
 	createMatrixScenario, budgetForCase, validateBudgetIdentity, claimCleanupBudget, createBudgetController,
-	normalize, jsonEqual, sha256, check };
+	normalize, jsonEqual, sha256, check, diagnosticError };

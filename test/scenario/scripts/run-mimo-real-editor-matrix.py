@@ -26,7 +26,7 @@ import sys
 import threading
 import time
 from urllib.error import HTTPError
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 import uuid
 import zipfile
@@ -43,7 +43,7 @@ PROCESS_STOP_GRACE_SECONDS = 15
 PROCESS_KILL_GRACE_SECONDS = 5
 RESPONSE_MODEL_ALIASES = {model: (model, f"mimo-v2.6-{alias}") for alias, model in MODELS.items()}
 COMMON_ASSERTIONS = ("model-identity", "protocol-identity", "profile-identity", "user-dedup", "dom-visible", "body-order",
-                     "live-to-durable", "no-terminal-overlay", "tool-call-correlation", "process-fold-persistence", "event-correlated", "scene-contract")
+                     "live-to-durable", "no-terminal-overlay", "tool-call-correlation", "process-fold-persistence", "event-correlated", "scene-contract", "dom-frame-provenance")
 REQUIRED_ASSERTIONS = {case: COMMON_ASSERTIONS + {
     "U04": ("permission-delivered",), "U05": ("permission-delivered",), "U06": ("cancel-terminal",),
     "U07": ("history-identity", "history-status"), "U08": ("route-owned-terminal",),
@@ -52,6 +52,13 @@ REQUIRED_ASSERTIONS = {case: COMMON_ASSERTIONS + {
 HOP_HEADERS = {"connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade", "host"}
 PRIVATE_ENV_PREFIXES = ("ANTHROPIC_", "OPENAI_", "OPENROUTER_", "DEEPSEEK_", "MAGPIE_", "SGLANG_", "MIMO_", "UA_PROVIDER_", "UA_REAL_EDITOR_", "VSCODE_", "ELECTRON_", "COPILOT_", "GH_", "GITHUB_")
 BUDGET_POLICY_FILE = ROOT / "test/scenario/scenarios/universe-agent-real-editor-budget.json"
+PROVENANCE_MODULE_PATHS = {
+    "mainActor": "out/vs/platform/universeAgent/node/sessionCore/session-actor.js",
+    "frameSource": "out/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.js",
+    "lens": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+    "timelineHost": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+    "itemHost": "out/vs/workbench/contrib/conversation/browser/conversationTimelineItemHost.js",
+}
 
 
 def canonical_sha256(value) -> str:
@@ -427,6 +434,30 @@ def tree_digest(root: Path, *, allow_file_aliases: bool = False) -> dict:
     return result
 
 
+def provenance_module_identity(repo: Path) -> list[dict]:
+    modules = []
+    for role, relative in PROVENANCE_MODULE_PATHS.items():
+        path = repo / relative
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"Required DOM provenance module is absent or aliased: {relative}")
+        modules.append({"role": role, "path": relative, "sha256": sha256_file(path)})
+    return modules
+
+
+def provenance_module_seal(value: object) -> dict[str, dict]:
+    if not isinstance(value, list) or len(value) != len(PROVENANCE_MODULE_PATHS):
+        raise ValueError("Campaign did not seal the required DOM provenance modules")
+    modules = {}
+    for item in value:
+        if not isinstance(item, dict):
+            raise ValueError("Invalid DOM provenance module seal")
+        role = item.get("role")
+        if not isinstance(role, str) or role not in PROVENANCE_MODULE_PATHS or role in modules or item.get("path") != PROVENANCE_MODULE_PATHS[role] or not isinstance(item.get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"]):
+            raise ValueError("Invalid DOM provenance module seal")
+        modules[role] = {key: item[key] for key in ("role", "path", "sha256")}
+    return modules
+
+
 def source_identity(repo: Path) -> dict:
     names = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", "src", "test/scenario", "test/automation", "scripts"], cwd=repo).split(b"\0")
     digest = hashlib.sha256()
@@ -438,6 +469,7 @@ def source_identity(repo: Path) -> dict:
     return {
         "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip(),
         "sourceSha256": digest.hexdigest(),
+        "provenanceModules": provenance_module_identity(repo),
         "clientOutput": tree_digest(repo / "out"),
         "scenarioOutput": tree_digest(repo / "test/scenario/out"),
         "automationOutput": tree_digest(repo / "test/automation/out"),
@@ -1020,6 +1052,80 @@ def run_owned(command: list[str], env: dict[str, str], log: Path, timeout: float
                     raise ValueError("Invalid cleanup budget; retained artifacts are private and subsequent cases are stopped")
 
 
+def verify_provenance_evidence(value: dict, oracle: dict, case_root: Path) -> list[str]:
+    """Check the artifact envelope and sealed bytes; CJS owns frame/paint semantics."""
+    evidence = value.get("evidence")
+    name = evidence.get("provenanceFile") if isinstance(evidence, dict) else None
+    try:
+        if not isinstance(name, str) or not name or not Path(name).is_absolute():
+            raise ValueError("missing private artifact")
+        supplied = Path(name)
+        root = case_root.resolve(strict=True)
+        path = supplied.resolve(strict=True)
+        if not supplied.is_relative_to(root) or not path.is_relative_to(root) or any(part.is_symlink() for part in (supplied, *supplied.parents) if part != root and part.is_relative_to(root)):
+            raise ValueError("artifact escaped its owning case")
+        info = path.stat()
+        if not stat.S_ISREG(info.st_mode) or info.st_size == 0 or info.st_mode & 0o077:
+            raise ValueError("artifact is not a nonempty private regular file")
+        artifact = json.loads(path.read_text())
+    except (OSError, RuntimeError, TypeError, ValueError):
+        return ["evidence-missing-or-invalid-provenanceFile"]
+    if not isinstance(artifact, dict) or type(artifact.get("schemaVersion")) is not int or artifact.get("schemaVersion") != 1 or artifact.get("kind") != "ua-real-editor-dom-frame-provenance":
+        return ["provenance-schema-invalid"]
+    errors = [f"provenance-identity-{key}" for key in ("campaignId", "cellId", "caseId", "nonce") if artifact.get(key) != oracle[key]]
+    if artifact.get("status") != "available":
+        errors.append("provenance-unavailable" if artifact.get("status") == "unavailable" else "provenance-invalid")
+        return errors
+    counts = artifact.get("counts")
+    for count, records, marker in (("mainFrames", "frames", "bound"), ("rendererInputs", "inputs", "valid"), ("paints", "paints", None), ("matchedScopes", "verifiedScopes", None)):
+        number = counts.get(count) if isinstance(counts, dict) else None
+        rows = artifact.get(records)
+        # CJS owns the qualification algorithm; raw arrays retain rejected/transition records.
+        qualified = sum(row.get(marker) is True for row in rows if isinstance(row, dict)) if isinstance(rows, list) and marker else len(rows) if isinstance(rows, list) else 0
+        if type(number) is not int or number <= 0 or not isinstance(rows, list) or not rows or number != qualified or any(not isinstance(row, dict) for row in rows):
+            errors.append(f"provenance-hits-invalid-{count}")
+    try:
+        sealed = provenance_module_seal(oracle.get("provenanceModules"))
+        modules = artifact.get("modules")
+        if not isinstance(modules, list) or len(modules) != len(sealed):
+            raise ValueError("module set missing")
+        seen = set()
+        for module in modules:
+            if not isinstance(module, dict) or not isinstance(module.get("role"), str) or module["role"] not in sealed or module["role"] in seen:
+                raise ValueError("module role missing or repeated")
+            role = module["role"]
+            expected = sealed[role]
+            if module.get("loaded") is not True or any(module.get(key) != expected[key] for key in ("path", "sha256")) or not isinstance(module.get("url"), str):
+                raise ValueError("module did not match its seal")
+            parsed = urlsplit(module["url"])
+            if parsed.query or parsed.fragment or not ((parsed.scheme == "file" and parsed.netloc in ("", "localhost")) or (parsed.scheme == "vscode-file" and parsed.netloc == "vscode-app")):
+                raise ValueError("module URL is not a local loaded artifact")
+            observed = Path(unquote(parsed.path, errors="strict"))
+            actual = ROOT.resolve(strict=True) / expected["path"]
+            if not observed.is_absolute() or observed != actual or observed.resolve(strict=True) != actual or actual.is_symlink() or sha256_file(actual) != expected["sha256"]:
+                raise ValueError("loaded module bytes or URL differ from sealed output")
+            seen.add(role)
+    except (OSError, RuntimeError, KeyError, TypeError, ValueError):
+        errors.append("provenance-module-seal-mismatch")
+    return errors
+
+
+def provenance_diagnostic_status(value: object, errors: list[str]) -> str:
+    category = value.get("failureCategory") if isinstance(value, dict) else None
+    if category == "dom-frame-provenance-invalid":
+        return "invalid"
+    if not isinstance(value, dict):
+        return "unavailable"
+    if category == "dom-frame-provenance-unavailable" or "provenance-unavailable" in errors or "evidence-missing-or-invalid-provenanceFile" in errors:
+        return "unavailable"
+    if any(error.startswith("provenance-") for error in errors):
+        return "invalid"
+    assertions = value.get("assertions")
+    if not isinstance(assertions, list) or not any(isinstance(item, dict) and item.get("id") == "dom-frame-provenance" and item.get("passed") is True for item in assertions):
+        return "unavailable"
+    return "verified"
+
+
 def verify_case_result(value: object, oracle: dict, case_root: Path, observations: list[dict]) -> list[str]:
     errors = []
     if not isinstance(value, dict):
@@ -1079,6 +1185,7 @@ def verify_case_result(value: object, oracle: dict, case_root: Path, observation
         path = Path(name).resolve() if isinstance(name, str) and name else None
         if path is None or not path.is_relative_to(case_root.resolve()) or not path.is_file() or path.stat().st_size == 0:
             errors.append(f"evidence-missing-{key}")
+    errors.extend(verify_provenance_evidence(value, oracle, case_root))
     if not observations:
         errors.append("no-real-provider-request")
     elif any(row.get("model") != oracle["model"] or row.get("protocol") != oracle["protocol"] or row.get("rejected") for row in observations):
@@ -1095,6 +1202,7 @@ def verify_case_result(value: object, oracle: dict, case_root: Path, observation
 
 
 def _run_case(args, manifest: dict, cell: dict, case_id: str, token: str, base_url: str, credentials, cleanup_state) -> dict:
+    sealed_modules = provenance_module_seal(manifest.get("identity", {}).get("ide", {}).get("provenanceModules"))
     case_root = args.report_root / cell["cellId"].replace(":", "-") / case_id
     case_root.mkdir(parents=True, mode=0o700)
     cleanup_state["caseCreated"] = True
@@ -1105,7 +1213,8 @@ def _run_case(args, manifest: dict, cell: dict, case_id: str, token: str, base_u
               "caseId": case_id, "nonce": nonce, "model": cell["model"], "protocol": cell["protocol"],
               "modelProfile": cell["modelProfile"], "requiredAssertions": list(REQUIRED_ASSERTIONS[case_id]),
               "responseModelAliases": list(RESPONSE_MODEL_ALIASES[cell["model"]]),
-              "workspaceExpected": {"root": str(case_root / "workspace")}}
+              "workspaceExpected": {"root": str(case_root / "workspace")},
+              "provenanceModules": list(sealed_modules.values())}
     budget = case_budget(case_id)
     if manifest.get("budgetPolicy") != budget_policy() or manifest.get("budgetPolicySha256") != canonical_sha256(budget_policy()):
         raise ValueError("Campaign did not preregister the fixed composite UI budget policy")
@@ -1156,19 +1265,23 @@ def _run_case(args, manifest: dict, cell: dict, case_id: str, token: str, base_u
     if control.cleanup_remaining() <= 0:
         errors.append("cleanup-deadline-exceeded")
     update_private_json(observation_file, observations)
+    diagnostic_status = provenance_diagnostic_status(value, errors)
+    effective_timeout = control.timeout or (value.get("timeout") if isinstance(value, dict) else None)
     row = {"campaignId": manifest["campaignId"], "cellId": cell["cellId"], "caseId": case_id, "attempt": 1,
            "status": "passed" if not errors else "failed", "errors": errors, "runnerExitCode": code,
            "durationSeconds": round(time.monotonic() - started, 3), "providerRequestCount": len(observations),
            "scenarioStatus": value.get("status") if isinstance(value, dict) else "missing",
            "failureCategory": value.get("failureCategory") if isinstance(value, dict) else "scenario-result-missing",
+            "diagnosticStatus": diagnostic_status,
            "budget": budget, "budgetSha256": control.budget_sha, "clock": control.clock,
            "expectedEpisodeCount": budget["episodeCount"],
            "startedEpisodeCount": value.get("startedEpisodeCount", 0) if isinstance(value, dict) else 0,
            "completedEpisodeCount": value.get("completedEpisodeCount", 0) if isinstance(value, dict) else 0,
            "budgetStages": value.get("budgetStages", []) if isinstance(value, dict) else (control.progress or {}).get("budgetStages", []),
-           "timeout": control.timeout or (value.get("timeout") if isinstance(value, dict) else None),
+            "timeout": effective_timeout,
            "watchdogExpired": control.watchdog_expired,
-           "infrastructureFailureCategory": "budget-stage-timeout" if control.timeout else None,
+            "infrastructureFailureCategory": "budget-stage-timeout" if effective_timeout else
+                f"dom-frame-provenance-{diagnostic_status}" if diagnostic_status != "verified" else None,
            "responseModels": sorted({name for request in observations for name in request.get("responseModels", [])}),
            "actualModelVerification": "verified" if observations and all(request.get("responseModelStatus") == "verified" for request in observations)
            else "unknown" if not any(request.get("responseModels") for request in observations) else "unverified"}
@@ -1216,13 +1329,14 @@ def run_case(args, manifest: dict, cell: dict, case_id: str, token: str, base_ur
             # Persist classification even when cleanup aborts the enclosing case;
             # never serialize exception messages, config values or credentials.
             signum = _termination_state.signum if _termination_state is not None else None
+            effective_timeout = (control.timeout if control is not None else None) or raw.get("timeout")
             update_private_json(case_root / "result.json", {
                 "campaignId": manifest["campaignId"], "cellId": cell["cellId"], "caseId": case_id, "attempt": 1,
                 "status": "interrupted" if isinstance(error, MatrixTermination) or signum is not None else "failed",
                 "signal": signum,
                 "scenarioStatus": raw.get("status", "missing"), "failureCategory": raw.get("failureCategory"),
                 "infrastructureFailureCategory": "signal" if isinstance(error, MatrixTermination) or signum is not None else
-                    "budget-stage-timeout" if control is not None and control.timeout else "owned-cleanup-or-budget-protocol-error",
+                    "budget-stage-timeout" if effective_timeout else "owned-cleanup-or-budget-protocol-error",
                 "errors": ["owned-case-unwind"], "ownedProcessesStopped": cleanup_state["stopped"], "safeToShare": False,
                 "budget": control.budget if control is not None else None,
                 "budgetSha256": control.budget_sha if control is not None else None,
@@ -1230,7 +1344,7 @@ def run_case(args, manifest: dict, cell: dict, case_id: str, token: str, base_ur
                 "expectedEpisodeCount": control.budget["episodeCount"] if control is not None else None,
                 "startedEpisodeCount": raw.get("startedEpisodeCount", 0), "completedEpisodeCount": raw.get("completedEpisodeCount", 0),
                 "budgetStages": raw.get("budgetStages", (control.progress or {}).get("budgetStages", []) if control is not None else []),
-                "timeout": control.timeout if control is not None and control.timeout else raw.get("timeout"),
+                "timeout": effective_timeout,
             })
         raise
 

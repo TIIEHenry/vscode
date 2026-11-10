@@ -32,12 +32,14 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(prefix="mimo-ui-driver-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        self.provenance_index = 0
 
     def result_fixture(self, case_id="U01"):
         cell = matrix.expected_cells()[0]
         oracle = {"schemaVersion": 1, "campaignId": "campaign", "cellId": cell["cellId"],
                   "caseId": case_id, "nonce": "nonce", "model": cell["model"],
-                  "protocol": cell["protocol"], "modelProfile": cell["modelProfile"]}
+                  "protocol": cell["protocol"], "modelProfile": cell["modelProfile"],
+                  "provenanceModules": self.module_seal()}
         budget = matrix.case_budget(case_id)
         initial = time.monotonic_ns() - 100_000_000
         control = matrix.CaseBudgetControl(self.root, oracle, budget, now=lambda: initial)
@@ -55,6 +57,7 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
             path = self.root / f"{key}.json"
             path.write_text('{"real": true}\n')
             evidence[key] = str(path)
+        evidence["provenanceFile"] = str(self.provenance_fixture(oracle))
         result = {key: oracle[key] for key in ("schemaVersion", "campaignId", "cellId", "caseId", "nonce")}
         result.update(status="passed", actualModel=oracle["model"], actualProtocol=oracle["protocol"],
                       modelProfile=oracle["modelProfile"], evidence=evidence,
@@ -65,6 +68,33 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
         observations = [{"model": cell["model"], "protocol": cell["protocol"], "status": 200,
                          "responseModels": [cell["model"]], "responseModelStatus": "verified"}]
         return oracle, result, observations
+
+    def module_seal(self):
+        self.module_repo = self.root / "sealed-ide"
+        for role, relative in matrix.PROVENANCE_MODULE_PATHS.items():
+            path = self.module_repo / relative
+            if not path.exists():
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(f"// offline compiled module fixture: {role}\n")
+        return matrix.provenance_module_identity(self.module_repo)
+
+    def provenance_fixture(self, oracle, root=None):
+        modules = []
+        for sealed in oracle["provenanceModules"]:
+            url = (self.module_repo / sealed["path"]).as_uri()
+            if sealed["role"] != "mainActor":
+                url = url.replace("file://", "vscode-file://vscode-app", 1)
+            modules.append({**sealed, "url": url, "loaded": True})
+        artifact = {"schemaVersion": 1, "kind": "ua-real-editor-dom-frame-provenance",
+                    **{key: oracle[key] for key in ("campaignId", "cellId", "caseId", "nonce")},
+                    "status": "available", "modules": modules,
+                    "counts": {"mainFrames": 1, "rendererInputs": 1, "paints": 1, "matchedScopes": 1},
+                    "frames": [{"bound": True}], "inputs": [{"valid": True}], "paints": [{"offline": True}],
+                    "verifiedScopes": [{"offline": True}], "diagnostics": []}
+        self.provenance_index += 1
+        path = (root or self.root) / f"provenance-{self.provenance_index}.json"
+        matrix.write_private_json(path, artifact)
+        return path
 
     @staticmethod
     def budget_stages(budget, clock, completed=False):
@@ -84,7 +114,8 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
         return stages
 
     def errors(self, oracle, result, observations):
-        return matrix.verify_case_result(result, oracle, self.root, observations)
+        with mock.patch.object(matrix, "ROOT", self.module_repo):
+            return matrix.verify_case_result(result, oracle, self.root, observations)
 
     def test_full_grid_is_six_cells_with_ten_required_cases_each(self):
         cells = matrix.expected_cells()
@@ -93,6 +124,7 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
         self.assertEqual({cell["protocol"] for cell in cells}, set(matrix.PROTOCOLS))
         self.assertEqual(len({cell["cellId"] for cell in cells}), 6)
         self.assertTrue(all(tuple(cell["requiredCases"]) == matrix.CASES for cell in cells))
+        self.assertTrue(all("dom-frame-provenance" in matrix.REQUIRED_ASSERTIONS[case] for case in matrix.CASES))
         self.assertEqual(matrix.TASK_TIMEOUT_MS, 600000)
 
     def test_complete_correlated_case_can_pass(self):
@@ -146,6 +178,146 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
         errors = self.errors(oracle, result, observations)
         self.assertIn("evidence-missing-eventFile", errors)
         self.assertIn("evidence-missing-oracleFile", errors)
+
+    def test_old_three_file_pass_cannot_omit_dom_frame_provenance(self):
+        oracle, result, observations = self.result_fixture()
+        result["evidence"].pop("provenanceFile")
+        result["assertions"] = [item for item in result["assertions"] if item["id"] != "dom-frame-provenance"]
+        errors = self.errors(oracle, result, observations)
+        self.assertIn("required-assertions-missing-or-duplicate", errors)
+        self.assertIn("evidence-missing-or-invalid-provenanceFile", errors)
+        self.assertEqual(matrix.provenance_diagnostic_status(result, errors), "unavailable")
+
+    def test_provenance_file_must_be_private_nonempty_and_owned_by_this_case(self):
+        oracle, result, observations = self.result_fixture()
+        path = Path(result["evidence"]["provenanceFile"])
+        original = path.read_text()
+        for content in ("", "not JSON"):
+            with self.subTest(content=content):
+                path.write_text(content)
+                self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+        path.write_text(original)
+        path.chmod(0o644)
+        self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+        path.chmod(0o600)
+        alias = self.root / "provenance-alias.json"
+        alias.symlink_to(path)
+        result["evidence"]["provenanceFile"] = str(alias)
+        self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+        with tempfile.TemporaryDirectory(prefix="mimo-provenance-outside-") as outside:
+            foreign = Path(outside) / "provenance.json"
+            matrix.write_private_json(foreign, json.loads(original))
+            result["evidence"]["provenanceFile"] = str(foreign)
+            self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+            outside_alias = Path(outside) / "alias-to-owned-case"
+            outside_alias.symlink_to(self.root, target_is_directory=True)
+            result["evidence"]["provenanceFile"] = str(outside_alias / path.name)
+            self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+        result["evidence"]["provenanceFile"] = "provenance.json"
+        self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+        result["evidence"]["provenanceFile"] = str(path)
+        path.unlink()
+        self.assertIn("evidence-missing-or-invalid-provenanceFile", self.errors(oracle, result, observations))
+
+    def test_provenance_rejects_wrong_schema_and_stale_case_identity(self):
+        oracle, result, observations = self.result_fixture()
+        path = Path(result["evidence"]["provenanceFile"])
+        original = json.loads(path.read_text())
+        for bad in ([], {}, {**original, "schemaVersion": True}, {**original, "schemaVersion": 2}, {**original, "kind": "other-evidence"}):
+            with self.subTest(value=bad):
+                matrix.update_private_json(path, bad)
+                self.assertIn("provenance-schema-invalid", self.errors(oracle, result, observations))
+        for key in ("campaignId", "cellId", "caseId", "nonce"):
+            with self.subTest(identity=key):
+                matrix.update_private_json(path, {**original, key: "stale"})
+                self.assertIn("provenance-identity-" + key, self.errors(oracle, result, observations))
+
+    def test_provenance_requires_positive_real_callback_counts_and_records(self):
+        oracle, result, observations = self.result_fixture()
+        path = Path(result["evidence"]["provenanceFile"])
+        original = json.loads(path.read_text())
+        for name in ("mainFrames", "rendererInputs", "paints", "matchedScopes"):
+            for count in (None, 0, -1, True, 1.0, "1", 2):
+                with self.subTest(name=name, count=count):
+                    value = json.loads(json.dumps(original))
+                    value["counts"][name] = count
+                    matrix.update_private_json(path, value)
+                    self.assertIn("provenance-hits-invalid-" + name, self.errors(oracle, result, observations))
+        for name, records in (("mainFrames", "frames"), ("rendererInputs", "inputs"), ("paints", "paints"), ("matchedScopes", "verifiedScopes")):
+            for rows in (None, [], ["not-a-record"]):
+                with self.subTest(name=name, rows=rows):
+                    matrix.update_private_json(path, {**original, records: rows})
+                    self.assertIn("provenance-hits-invalid-" + name, self.errors(oracle, result, observations))
+        for name, records, marker in (("mainFrames", "frames", "bound"), ("rendererInputs", "inputs", "valid")):
+            with self.subTest(unbound=name):
+                matrix.update_private_json(path, {**original, records: [{marker: False}]})
+                self.assertIn("provenance-hits-invalid-" + name, self.errors(oracle, result, observations))
+
+    def test_provenance_retains_unbound_transitions_without_counting_them_as_hits(self):
+        oracle, result, observations = self.result_fixture()
+        path = Path(result["evidence"]["provenanceFile"])
+        value = json.loads(path.read_text())
+        value["frames"].insert(0, {"bound": False})
+        value["inputs"].insert(0, {"valid": False})
+        matrix.update_private_json(path, value)
+        self.assertEqual(self.errors(oracle, result, observations), [])
+
+    def test_provenance_requires_exact_loaded_module_roles_paths_urls_and_sealed_bytes(self):
+        oracle, result, observations = self.result_fixture()
+        path = Path(result["evidence"]["provenanceFile"])
+        original = json.loads(path.read_text())
+        for mutation in ("missing", "duplicate", "path", "hash", "unloaded", "remote-url", "foreign-url", "query", "fragment"):
+            with self.subTest(mutation=mutation):
+                value = json.loads(json.dumps(original))
+                module = value["modules"][0]
+                if mutation == "missing":
+                    value["modules"].pop()
+                elif mutation == "duplicate":
+                    value["modules"][-1] = dict(module)
+                elif mutation == "path":
+                    module["path"] = matrix.PROVENANCE_MODULE_PATHS["lens"]
+                elif mutation == "hash":
+                    module["sha256"] = "0" * 64
+                elif mutation == "unloaded":
+                    module["loaded"] = False
+                elif mutation == "remote-url":
+                    module["url"] = "https://example.invalid/" + module["path"]
+                elif mutation == "foreign-url":
+                    module["url"] = (self.root / "other-copy" / module["path"]).as_uri()
+                else:
+                    module["url"] += "?replacement=1" if mutation == "query" else "#replacement"
+                matrix.update_private_json(path, value)
+                self.assertIn("provenance-module-seal-mismatch", self.errors(oracle, result, observations))
+        matrix.update_private_json(path, original)
+        (self.module_repo / original["modules"][0]["path"]).write_text("// changed after campaign seal\n")
+        self.assertIn("provenance-module-seal-mismatch", self.errors(oracle, result, observations))
+
+    def test_provenance_requires_a_campaign_module_seal_and_tracks_each_module_digest(self):
+        oracle, result, observations = self.result_fixture()
+        frozen = oracle.pop("provenanceModules")
+        self.assertIn("provenance-module-seal-mismatch", self.errors(oracle, result, observations))
+        for value in (None, frozen[:-1], [*frozen[:-1], frozen[0]]):
+            with self.subTest(seal=value):
+                with self.assertRaisesRegex(ValueError, "provenance module"):
+                    matrix.provenance_module_seal(value)
+        module = self.module_repo / frozen[-1]["path"]
+        module.write_text("// changed compiled bytes\n")
+        self.assertNotEqual(matrix.provenance_module_identity(self.module_repo), frozen)
+
+    def test_thinking_na_cannot_replace_provenance_and_unavailable_is_not_a_pass(self):
+        oracle, result, observations = self.result_fixture()
+        result["thinking"] = {"status": "not-applicable"}
+        path = Path(result["evidence"]["provenanceFile"])
+        value = json.loads(path.read_text())
+        matrix.update_private_json(path, {**value, "status": "unavailable"})
+        errors = self.errors(oracle, result, observations)
+        self.assertIn("provenance-unavailable", errors)
+        self.assertEqual(matrix.provenance_diagnostic_status(result, errors), "unavailable")
+        result.update(status="uncovered", failureCategory="dom-frame-provenance-unavailable")
+        self.assertIn("scenario-not-passed", self.errors(oracle, result, observations))
+        result["failureCategory"] = "dom-frame-provenance-invalid"
+        self.assertEqual(matrix.provenance_diagnostic_status(result, errors), "invalid")
+        self.assertEqual(matrix.provenance_diagnostic_status(None, ["missing-or-invalid-scenario-result"]), "unavailable")
 
     def test_skipped_status_and_false_assertion_are_failures(self):
         oracle, result, observations = self.result_fixture()
@@ -347,11 +519,16 @@ class MimoRealEditorMatrixTest(unittest.TestCase):
         for directory in (*ordinary, electron):
             directory.mkdir(parents=True)
             (directory / "compiled-file").write_bytes(b"compiled fixture")
+        for relative in matrix.PROVENANCE_MODULE_PATHS.values():
+            path = repo / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"offline compiled provenance fixture")
         (electron / "studio-alias").symlink_to("compiled-file")
         def fake_git(_command, **kwargs):
             return "a" * 40 if kwargs.get("text") else b""
         with mock.patch.object(matrix.subprocess, "check_output", side_effect=fake_git):
             identity = matrix.source_identity(repo)
+            self.assertEqual(identity["provenanceModules"], matrix.provenance_module_identity(repo))
             self.assertEqual(identity["electronRuntime"]["fileAliases"][0]["path"], "studio-alias")
             for key in ("clientOutput", "scenarioOutput", "automationOutput"):
                 self.assertNotIn("fileAliases", identity[key])
@@ -473,7 +650,11 @@ spec=importlib.util.spec_from_file_location("signal_fixture_matrix",@DRIVER@)
 matrix=importlib.util.module_from_spec(spec);spec.loader.exec_module(matrix)
 matrix.PROCESS_STOP_GRACE_SECONDS=.2
 matrix.PROCESS_KILL_GRACE_SECONDS=2
-matrix.runtime_identity=lambda *args:{"offline-signal-fixture":True}
+fixture_ide=base/"sealed-ide"
+for role,relative in matrix.PROVENANCE_MODULE_PATHS.items():
+    file=fixture_ide/relative;file.parent.mkdir(parents=True,exist_ok=True);file.write_text("// offline module "+role)
+matrix.ROOT=fixture_ide
+matrix.runtime_identity=lambda *args:{"ide":{"provenanceModules":matrix.provenance_module_identity(fixture_ide)}}
 matrix.gateway_models=lambda *args:set(matrix.MODELS.values())
 cells=[matrix.expected_cells()[0]]
 matrix.expected_cells=lambda:cells
@@ -898,13 +1079,20 @@ raise SystemExit(code)
                     process.kill()
                 process.wait(timeout=3)
 
-    def test_case_result_keeps_uncovered_and_timeout_categories_instead_of_only_generic_failure(self):
-        report = self.root / "classified-case"
+    def classified_case_fixture(self, category, cjs_timeout=False, cleanup_error=False):
+        report = self.root / ("classified-case-" + category)
         report.mkdir()
         args = mock.Mock(report_root=report, engine_bin=Path("/not/executed"), proto_root=Path("/not/executed"))
         cell = matrix.expected_cells()[0]
         manifest = {"campaignId": "offline-classification", "budgetPolicy": matrix.budget_policy(),
-                    "budgetPolicySha256": matrix.canonical_sha256(matrix.budget_policy())}
+                    "budgetPolicySha256": matrix.canonical_sha256(matrix.budget_policy()),
+                    "identity": {"ide": {"provenanceModules": self.module_seal()}}}
+        control_type = matrix.CaseBudgetControl
+
+        def make_control(*args, **kwargs):
+            if cjs_timeout:
+                kwargs["now"] = lambda: time.monotonic_ns() - 61_000_000_000
+            return control_type(*args, **kwargs)
 
         def fake_owned(_command, env, _log, timeout, cleanup_state, control):
             self.assertEqual(timeout, 4500)
@@ -917,6 +1105,16 @@ raise SystemExit(code)
             for stage in stages:
                 stage.update(phaseStartedMonoNs=str(at), phaseDeadlineMonoNs=str(at + (control.budget["setupMs"] if stage["phase"] == "setup" else control.budget["historyMs"] if stage["phase"] == "history" else control.budget["finalizationMs"] if stage["phase"] == "finalization" else control.budget["episodeMs"]) * 1_000_000), endedMonoNs=str(at), durationMs=0)
             stages[-1]["status"] = "failed"
+            timeout = None
+            if cjs_timeout:
+                # The CJS stage actually reaches its registered deadline in the past;
+                # the parent sees cleanup next, so it never sets control.timeout.
+                finalization = stages[-1]
+                finalization.update(status="timed-out", endedMonoNs=finalization["phaseDeadlineMonoNs"],
+                                    durationMs=control.budget["finalizationMs"], timeoutOperation="fixture-cjs-stage-timeout")
+                timeout = {"phase": "finalization", "episodeIndex": 0, "episodeLabel": None,
+                           "operation": "fixture-cjs-stage-timeout", "atMonoNs": finalization["endedMonoNs"]}
+                control.now = time.monotonic_ns
             claim = control.ensure_cleanup()
             stages.append({"phase": "cleanup", "episodeIndex": 0, "episodeLabel": None,
                 "phaseStartedMonoNs": claim["cleanupStartedMonoNs"], "phaseDeadlineMonoNs": claim["cleanupDeadlineMonoNs"],
@@ -926,22 +1124,66 @@ raise SystemExit(code)
                 path = control.root / (name + ".json")
                 matrix.write_private_json(path, {"offline": True})
                 evidence[name] = str(path)
-            value = {**oracle, "status": "uncovered", "failureCategory": "process-fold-uncovered", "actualModel": oracle["model"],
+            provenance_file = self.provenance_fixture(oracle, control.root)
+            if category.startswith("dom-frame-provenance-"):
+                provenance = json.loads(provenance_file.read_text())
+                provenance["status"] = category.removeprefix("dom-frame-provenance-")
+                matrix.update_private_json(provenance_file, provenance)
+            evidence["provenanceFile"] = str(provenance_file)
+            value = {**oracle, "status": "failed" if category.endswith("-invalid") else "uncovered", "failureCategory": category, "actualModel": oracle["model"],
                 "actualProtocol": oracle["protocol"], "evidence": evidence, "budgetStages": stages,
+                "timeout": timeout,
                 "expectedEpisodeCount": 7, "startedEpisodeCount": 7, "completedEpisodeCount": 7,
-                "assertions": [{"id": item, "passed": False} for item in matrix.REQUIRED_ASSERTIONS["U07"]]}
+                "assertions": [{"id": item, "passed": item == "dom-frame-provenance" and category == "process-fold-uncovered"} for item in matrix.REQUIRED_ASSERTIONS["U07"]]}
             matrix.write_private_json(Path(env["UA_REAL_EDITOR_RESULT_FILE"]), value)
             matrix.update_private_json(control.progress_file, self.budget_progress(control, stages, seq=100))
+            self.assertIsNone(control.timeout)
             return 1, False
 
-        with mock.patch.object(matrix, "run_owned", side_effect=fake_owned):
+        with mock.patch.object(matrix, "run_owned", side_effect=fake_owned), mock.patch.object(matrix, "ROOT", self.module_repo), \
+                mock.patch.object(matrix, "CaseBudgetControl", side_effect=make_control):
+            if cleanup_error:
+                with mock.patch.object(matrix, "remove_seeded_credentials", side_effect=ValueError("offline cleanup failure")):
+                    with self.assertRaisesRegex(ValueError, "offline cleanup failure"):
+                        matrix.run_case(args, manifest, cell, "U07", "offline-token", "http://127.0.0.1:9")
+                return json.loads(next(report.rglob("result.json")).read_text())
             row = matrix.run_case(args, manifest, cell, "U07", "offline-token", "http://127.0.0.1:9")
         self.assertEqual(row["status"], "failed")
-        self.assertEqual(row["scenarioStatus"], "uncovered")
-        self.assertEqual(row["failureCategory"], "process-fold-uncovered")
+        self.assertEqual(row["scenarioStatus"], "failed" if category.endswith("-invalid") else "uncovered")
+        self.assertEqual(row["failureCategory"], category)
         self.assertEqual(row["completedEpisodeCount"], 7)
-        self.assertIsNone(row["timeout"])
+        self.assertEqual(row["timeout"] is not None, cjs_timeout)
         self.assertFalse(list(report.rglob("agent-home/config.json")))
+        return row
+
+    def test_case_result_keeps_uncovered_and_timeout_categories_instead_of_only_generic_failure(self):
+        row = self.classified_case_fixture("process-fold-uncovered")
+        self.assertEqual(row["diagnosticStatus"], "verified")
+        self.assertIsNone(row["infrastructureFailureCategory"])
+
+    def test_case_result_classifies_unavailable_and_invalid_dom_diagnostics_separately(self):
+        for status in ("unavailable", "invalid"):
+            with self.subTest(diagnostic=status):
+                category = "dom-frame-provenance-" + status
+                row = self.classified_case_fixture(category)
+                self.assertEqual(row["diagnosticStatus"], status)
+                self.assertEqual(row["infrastructureFailureCategory"], category)
+
+    def test_cjs_only_timeout_has_priority_over_unavailable_or_invalid_diagnostics(self):
+        for status in ("unavailable", "invalid"):
+            with self.subTest(diagnostic=status):
+                row = self.classified_case_fixture("dom-frame-provenance-" + status, cjs_timeout=True)
+                self.assertEqual(row["diagnosticStatus"], status)
+                self.assertEqual(row["infrastructureFailureCategory"], "budget-stage-timeout")
+                self.assertEqual(row["timeout"]["operation"], "fixture-cjs-stage-timeout")
+
+    def test_cjs_only_timeout_survives_outer_cleanup_failure_classification(self):
+        row = self.classified_case_fixture("dom-frame-provenance-unavailable", cjs_timeout=True, cleanup_error=True)
+        self.assertEqual(row["status"], "failed")
+        self.assertEqual(row["scenarioStatus"], "uncovered")
+        self.assertEqual(row["failureCategory"], "dom-frame-provenance-unavailable")
+        self.assertEqual(row["infrastructureFailureCategory"], "budget-stage-timeout")
+        self.assertEqual(row["timeout"]["operation"], "fixture-cjs-stage-timeout")
 
     def test_surviving_process_group_blocks_subsequent_case(self):
         with mock.patch.object(matrix.os, "killpg"), mock.patch.object(matrix, "wait_for_owned_group", return_value=False):

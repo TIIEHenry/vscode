@@ -88,7 +88,7 @@ U01–U10 均为 required；缺事件、未触发、skip、timeout 或没有真�
 
 ### 2.5 真实 DOM 归属诊断（实施前窄修订）
 
-修订状态：已通过规则 16 独立只读复核 C0/I0；尚未实施。本节只关闭 Thinking 验收中「正文与行 ID 相同，但实际来自其他 pane/session 或旧 epoch」的归属缺口。上一固定点的离线通过仍保留，不能代签本修订。请求开关、Thinking N/A 政策和 §2.3 的显示判据不变。
+修订状态：已通过规则 16 独立只读复核 C0/I0，并以 `ecb43855c9a4` 独立提交后实施；当前实现及离线验证见 §6，真实产品命中仍待实跑。本节只关闭 Thinking 验收中「正文与行 ID 相同，但实际来自其他 pane/session 或旧 epoch」的归属缺口。上一固定点的离线通过仍保留，不能代签本修订。请求开关、Thinking N/A 政策和 §2.3 的显示判据不变。
 
 **事实与取舍。** 实际 pane 已有 `.conversation-session-leaf[data-session-key]`；`conversationSessionWindowService.ts` 的 `ensureLeaf` 写入该值，子代理 overlay 另有同名属性，归属判定按 `conversationKillEngine.ts` 的规则优先取真实 leaf 祖先。本轮新会话由 `SessionViewHost.bindEngineSession` 明确传 `clientSessionId: localId`，干净 c4fa 的 Create 优先采用 `client_session_id`；只在实际值与原流 hello 一致时建立映射，不按标题、索引或请求目标补值。
 
@@ -161,6 +161,14 @@ unbound 是逐 frame 的事实，初始 baseline 或正常 epoch 过渡不永久
 
 统一串行结果按原 attempt 保留在仓外 `vscode-debug-engine/logs/`：`2026-11-11-serialized-validation-zs37k6nf/status.json` 中 BYOK 定向单测通过，但 `test/scenario` 的 `npm run compile` 因 Electron 类型导入与泛型解包（TS2307/TS2769）退出 2；bound getter 窄修后，`2026-11-11-serialized-retry-jfow8dy1/status.json` 记录同一编译命令退出 0，随后 Kotlin 的 `MimoMatrixIsolationTest` 负例 fixture 未触发预期异常而退出 1。修正该 fixture 后，`2026-11-11-kotlin-retry-sdjysvnk/status.json` 记录隔离、profiles、路由合同离线回归及运行依赖准备退出 0。对应 `.log` 和首轮 Kotlin `engine-kotlin-unit-failure.xml` 留在各自目录；没有真实 Provider 请求。
 
-最终 Python/Node 整合已通过，包含预算、oracle、旧场景 Chromium DOM、信号与凭据清理，以及实际 Node/Python 单调钟桥接；桥接覆盖逐阶段确认、U07 连续快跑漏轮询与双向 cleanup 认领。命令见[当前证据](../progress/status.md#当前工位与证据)，结果在仓外 `vscode-debug-engine/logs/2026-11-11-offline-mimo-final-307a999c02.json` 及同名 `.log`，JSON SHA-256 `019f75e8b4e283d9450a3d78b576f8adc7ea56a30df0ef0d678d8e9f91e87e3e`；退出码 0，运行前后源码摘要相同。这次整合没有编译或启动 Java，不能替代前述独立 Kotlin 与编译证据。
+上一固定点的 Python/Node 整合已通过，包含预算、oracle、旧场景 Chromium DOM、信号与凭据清理，以及实际 Node/Python 单调钟桥接；桥接覆盖逐阶段确认、U07 连续快跑漏轮询与双向 cleanup 认领。结果在仓外 `vscode-debug-engine/logs/2026-11-11-offline-mimo-final-307a999c02.json` 及同名 `.log`，JSON SHA-256 `019f75e8b4e283d9450a3d78b576f8adc7ea56a30df0ef0d678d8e9f91e87e3e`；退出码 0，运行前后源码摘要相同。这次整合没有编译或启动 Java，不能替代前述独立 Kotlin 与编译证据，也不能代签后续 DOM 诊断修订。
 
-本轮串行验证已结束并释放自有 lane；随后发现外部 `routes-only --skip-compile` campaign（PID 407934）重新持有共享锁，后续必要产品 out 刷新仍需同锁排队。正式源码/产物身份仍待提交与封存，再建立新的真实 campaign；本方案的新真实模型矩阵和默认窗口显示矩阵均未执行，不能据本轮离线通过关闭该目标。
+本轮串行验证已结束并释放自有 lane；随后发现外部 `routes-only --skip-compile` campaign（PID 407934）重新持有共享锁，后续必要产品 out 刷新仍需同锁排队。矩阵基础实现已提交 `b36f71377f6`；正式产物封存仍须等待刷新，不把同目录既有输出或来源记录不足的其他工位缓存当作新鲜产物。
+
+§2.5 在 `ecb43855c9a4` 独立签收后实施。CJS 诊断以已加载源码及封存字节为前提，绑定实际执行上下文；Actor 原 sink、renderer 真正输入/绘制与实际 DOM 行共同给出作用域证明。独立实现复核先指出最终 drain 后漏验 Thinking、旧或隔离上下文可能冒充当前模块，修正后复核 C0/I0。driver 的必需证据门禁与 CJS-only timeout 分类也独立复核；原模型、协议、预算及 N/A 政策未放宽。
+
+原生 Electron API 探针首次在 `2026-11-11-electron-runtime-api-7aebde52ad` 以缺少动态 import callback 失败。`2026-11-11-electron-runtime-api-async-loader-bbc627b674` 使用相同运行包、独立 ESM app 及含 TLA 的已加载模块，验证 `getBuiltinModule` 与 `vm.compileFunction` 的 `USE_MAIN_CONTEXT_DEFAULT_LOADER`：namespace、constructor 均为同一对象，模块执行一次，main/renderer 源码摘要匹配；同步 require 该模块会报 `ERR_REQUIRE_ASYNC_MODULE`。该路径已替换诊断 main 和原 raw tap 的不兼容导入。探针进程已回收，仅证明 Electron 42.10.0 / Node 24.18.1 的宿主 API，不证明产品 Actor/DOM hook 命中。
+
+首轮整合 `2026-11-11-offline-dom-provenance-4a1a92247c` 的六个测试夹具同名排他创建错误，以及运行期间源码更新导致 `sourceUnchanged=false` 均保留。夹具改用独立证据文件，不覆盖旧 artifact、不改生产排他写；最终固定点运行 `2026-11-11-offline-dom-provenance-tabs-eac1980089.json` 及同名 `.log` 已通过，源码前后摘要一致，绑定所有相关 CJS/Python 文件；仅规范化 helper 前导缩进之前的通过记录 `2026-11-11-offline-dom-provenance-final-f124b3db43.json` 仍由 previousAttempt 保留。命令见[当前证据](../progress/status.md#当前工位与证据)。这是 Node24 离线整合，没有 JVM/TS 构建或真实 Provider 请求。
+
+真实模块、lease 与 paint 必须在产品窗口内实际命中。尤其 U07 reload 后如已错过自然 acquire/paint，新 realm 必须报未覆盖，不能借旧 realm 的正计数或追加 acquire/resync 补证。本方案的新六 cell / 186 项引擎矩阵与六 cell / 60 项显示矩阵仍未执行，不能据本轮离线或宿主探针关闭该目标。

@@ -185,7 +185,11 @@ wrapper 将 runner 放后台并 wait，正常结束时退出码即 runner 的退
 
 [`run-mimo-real-editor-matrix.py`](../../../test/scenario/scripts/run-mimo-real-editor-matrix.py) 串行运行 flash/pro × Anthropic、OpenAI Chat、OpenAI Responses 六个 cell；每个 cell 均执行 U01–U10。场景、必验条件和失败分类见[执行方案](../../../dev/plans/mimo-real-conversation-matrix.md)。引擎的 L4/L5/routes 矩阵另行执行，不能代替默认编辑器的 main → IPC → DOM 显示证据。
 
-先核对当前 `src/` 对应的默认编辑器输出，并在唯一编译通道完成 `test/scenario` 的 compile（包括 automation），再冻结源码与产物。所有 JVM 和 Node/TypeScript 构建共用 `/tmp/universeagent-gradle.lock`，子任务不另起编译。不能只因 `out/` 存在或生产 RPC 探针通过就认定整窗输出新鲜；缺少当前 import 的模块、资源字节不一致时须先刷新。`npm run transpile-client` 会清空输出；需要保留既有生成文件时，核对 `src/` 和映射目标均为本工位普通文件、无软链或目录冲突，再在同一锁内调用 `build/next/transpile.ts` 导出的 `applyIncrementalClientChanges(repoRoot, "out", changedPaths)`，清单须覆盖待验源码及资源，不借缺少状态文件的 `build-fast` 回退到全量清理。刷新后再封存，不能在 campaign 中更换输出。矩阵 driver 自身不编译，也不覆盖当前 PIN 或运行包。使用干净候选的实际预包，指定其启动器及包内正式 proto，例如：
+先核对当前 `src/` 对应的默认编辑器输出，并在唯一编译通道完成 `test/scenario` 的 compile（包括 automation），再冻结源码与产物。所有 JVM 和 Node/TypeScript 构建共用 `/tmp/universeagent-gradle.lock`，子任务不另起编译。不能只因 `out/` 存在或生产 RPC 探针通过就认定整窗输出新鲜；缺少当前 import 的模块、资源字节不一致时须先刷新。`npm run transpile-client` 会清空输出；需要保留既有生成文件时，核对 `src/` 和映射目标均为本工位普通文件、无软链或目录冲突，再在同一锁内调用 `build/next/transpile.ts` 导出的 `applyIncrementalClientChanges(repoRoot, "out", changedPaths)`，清单须覆盖待验源码及资源，不借缺少状态文件的 `build-fast` 回退到全量清理。刷新后再封存，不能在 campaign 中更换输出。矩阵 driver 自身不编译，也不覆盖当前 PIN 或运行包。
+
+编译排队包装器须让实际构建进程继承同一把锁，父进程异常退出时仍保持互斥；处理信号前先发布自有子进程句柄，回收并等待该进程退出后才释放锁。只由父包装器持锁、留下仍在改写输出的子进程，不满足唯一通道约束。
+
+使用干净候选的实际预包，指定其启动器及包内正式 proto，例如：
 
 ```bash
 rtk proxy python3 test/scenario/scripts/run-mimo-real-editor-matrix.py \
@@ -199,6 +203,10 @@ rtk proxy python3 test/scenario/scripts/run-mimo-real-editor-matrix.py \
 网关默认 `http://127.0.0.1:3425`，凭据读取 `MAGPIE_API_KEY`；另一个变量名用 `--api-key-env` 指定，不把 key 写入命令或仓库。报告根必须是仓库和预包之外的新绝对目录，不覆盖历史 attempt。每场景自建 AgentHome、JVM user.home、cwd、临时目录与 Electron 配置；自动化不复制日常登录。引擎运行时的两份凭据配置仅在私有目录创建，确认自有进程全部停止后删除。`credential-status.json` 分别记录停止与已知凭据清理状态；停止未确认或配置身份异常则停止后续场景并保留私有状态，不自动把整个目录标为可公开。driver 核对 VERSION、所有 jar 摘要、组件与 classpath 顺序、包内 proto 字节，以及 IDE 源码/编译产物/Electron 的运行前后身份。中途更改来源或产物必须建立新 campaign。
 
 U01–U10 使用同一条生产 SessionEventStream 的透明 raw-bytes tap 与独立 [oracle](../../../test/scenario/scenarios/universe-agent-real-editor-oracle.cjs) 对照 DOM，不增加第二条流订阅。答案由本场景新建文件提供，不泄露在提示词中。正文、工具调用 ID、参数/结果、父子归属、终态和历史恢复分别验证；仅收到事件或持久条目存在不能证明实际可见。转发真实模型请求的 relay 保留协议/请求模型/响应模型元数据，原样转发字节，不保留凭据或请求正文；实际响应模型未知或回退均不能算目标模型通过。缺少 Thinking 证据记未覆盖，只有执行前已有能力依据才允许 N/A。
+
+全部 60 个场景均必需 `dom-frame-provenance` 断言及 `evidence.provenanceFile`。后者是 caseRoot 内的私有 JSON，保存实际加载模块的 URL/字节摘要，以及真实 main frame → 已接受 ReplicaCursor → 所属 pane/session 的实际 DOM paint 证据；epoch 仅保存在诊断 sidecar，不进入 ViewSnapshot。缺证或诊断 unavailable 不能代替通过，Thinking N/A 也不豁免此项。U07 reload 后的新 realm 必须重新取得真实 acquire/input/paint/matched 命中，不能借旧 realm 的累计计数。完整约束见[已签收方案 §2.5](../../../dev/plans/mimo-real-conversation-matrix.md#25-真实-dom-归属诊断实施前窄修订)和[归属诊断支持代码](../../../test/scenario/scenarios/universe-agent-real-editor-provenance.cjs)。
+
+宿主 API 已在真实 Electron 42.10.0 / Node 24.18.1 核对：`ElectronApplication.evaluate`（native evaluate）的回调内直接 `import()` 会报缺少 dynamic-import callback；内建模块可由 `process.getBuiltinModule` 取得。验证 execution context 与已加载 script 字节后，使用 `vm.compileFunction` 并指定 `importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER`，可取得同一已加载的含 TLA ESM namespace/构造器，fixture 的模块执行次数保持 1；同步 `require` 对该 TLA fixture 报 `ERR_REQUIRE_ASYNC_MODULE`。中间轮旧字段 `dynamicImportWorks=true` 实际来自同步 `require` 的构造器比较，不证明 native evaluate 可直接 dynamic import。仓外 `vscode-debug-engine/logs/2026-11-11-electron-runtime-api-7aebde52ad/result.json` 首轮失败日志与 `vscode-debug-engine/logs/2026-11-11-electron-runtime-api-async-loader-bbc627b674/result.json` 含 TLA 的 loader 复测日志均保留；这些仅是宿主 API 兼容证据，不是产品窗口或 LLM 结果。
 
 离线回归命令为 `python3 -m unittest scripts.tests.test_mimo_real_editor_matrix scripts.tests.test_real_editor_engine_lifecycle scripts.tests.test_real_editor_scenario scripts.tests.test_mimo_real_editor_budget_bridge -v`，用于验收器、隔离、进程回收及实际 Node/Python 预算协议互通。它们不调用真实模型，不等于六个 cell 的消息显示通过；当前真实矩阵状态以[进度](../../../dev/progress/status.md)为准。
 
