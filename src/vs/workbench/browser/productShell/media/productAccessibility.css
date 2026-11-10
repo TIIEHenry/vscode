@@ -76,52 +76,52 @@
  * override it. Loading spins stay visible (codicon-modifier-spin / codicon-loading).
  */
 .monaco-workbench.monaco-reduce-motion,
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor),
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::before,
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::after,
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *,
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::before,
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::after {
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view),
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view)::before,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view)::after,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) *,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) *::before,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) *::after {
 	transition-duration: 0.01ms !important;
 	animation-duration: 0.01ms !important;
 	animation-iteration-count: 1 !important;
 }
 
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading),
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) .codicon-tree-item-loading::before {
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) :is(.codicon-modifier-spin, .codicon-loading),
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) .codicon-tree-item-loading::before {
 	animation-name: codicon-spin !important;
 	animation-duration: 1.5s !important;
 	animation-timing-function: steps(30) !important;
 	animation-iteration-count: infinite !important;
 }
 
-.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading)::before {
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) :is(.codicon-modifier-spin, .codicon-loading)::before {
 	animation-duration: 1.5s !important;
 	animation-iteration-count: infinite !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.monaco-workbench:not(.monaco-enable-motion),
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor),
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::before,
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::after,
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *,
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::before,
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::after {
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view),
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view)::before,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view)::after,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) *,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) *::before,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) *::after {
 		transition-duration: 0.01ms !important;
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 	}
 
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading),
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) .codicon-tree-item-loading::before {
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) :is(.codicon-modifier-spin, .codicon-loading),
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) .codicon-tree-item-loading::before {
 		animation-name: codicon-spin !important;
 		animation-duration: 1.5s !important;
 		animation-timing-function: steps(30) !important;
 		animation-iteration-count: infinite !important;
 	}
 
-	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading)::before {
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor, .conversation-diff-review-pane, .conversation-visualize-overlay, .conversation-sessions-body, .navigator-projects-body, .navigator-agents-view, .navigator-team-view) :is(.codicon-modifier-spin, .codicon-loading)::before {
 		animation-duration: 1.5s !important;
 		animation-iteration-count: infinite !important;
 	}

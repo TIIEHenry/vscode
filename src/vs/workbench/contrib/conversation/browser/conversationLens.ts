@@ -52,6 +52,7 @@ import {
 	layoutReadingSurfaces,
 	mountTimeline,
 } from './conversationLensReadingColumn.js';
+import { applyDockInputMaxHeight } from './conversationNarrowLayout.js';
 import {
 	applyActiveSession,
 	bindSessionView,
@@ -598,6 +599,11 @@ export class ConversationLens extends Disposable {
 		const restored = this.lastReadingWidth < 1 && width > 0;
 		this.lastReadingWidth = width;
 		this.lastReadingHeight = height;
+		// The composer can mount in the dock, timeline row, or pre-first reading column.
+		// Cap it from the leaf height so a short split leaf keeps its send row visible.
+		for (const host of [this.slotHosts.dock, this.slotHosts.timeline, this.readingColumn]) {
+			applyDockInputMaxHeight(host, height);
+		}
 		this.applyConversationWidth(width);
 		layoutReadingSurfaces(this, height, width);
 		if (restored && this.lastRevealItemId && this.lensId === 'conversation') {

@@ -81,6 +81,7 @@ import { fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 import { sourcesGitAcceptCursorBasis } from './sourcesGitDiffContent.js';
 import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import type { ISourcesConversationDiffMoveSource, SourcesDiffMoveResult } from './sourcesDiffRefHelpers.js';
+import { affectsSourcesDiffEditorLayout, sourcesDiffEditorLayoutOptions } from './sourcesDiffEditorLayout.js';
 
 const $ = dom.$;
 
@@ -148,7 +149,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		super(ConversationDiffReviewPane.ID, group, telemetryService, themeService, storageService);
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
+			if (affectsSourcesDiffEditorLayout(e) && this.diffWidget.value) {
 				this.diffWidget.value.updateOptions(this.getDiffEditorOptions());
 			}
 		}));
@@ -341,8 +342,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		return {
 			...readOnlyEditorOptions,
 			originalEditable: false,
-			renderSideBySide: this.configurationService.getValue<boolean>('diffEditor.renderSideBySide') ?? true,
-			useInlineViewWhenSpaceIsLimited: true,
+			...sourcesDiffEditorLayoutOptions(this.configurationService),
 			renderOverviewRuler: false,
 		};
 	}

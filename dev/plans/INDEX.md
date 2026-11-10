@@ -24,7 +24,7 @@ summary: "2026-11-06 默认窗口并行 UI 与交互审查收口方案已通过�
 | [订阅流管线与消息卡片渲染缺陷修复](subscription-stream-and-message-card-fixes.md) | `implemented` | 修复订阅流（OverlayDeltaJoin turnId 交接、SessionViewHost lingering 回收与恢复重开、IPC changedIds/effects 合并）与消息卡片渲染（流式初值与 Markdown 样式、窗口锚点与置顶气泡、D17 pairing-hold 活态、断连缓存保真、过程折与 CSS）9 项高优缺陷。 |
 | [过程折短摘要保持同行](process-fold-summary-wrap.md) | `implemented` | Sol 将生产 summary flex-basis 改为 auto；v3 生产组件 Chromium 6/6，通过字体、chevron、失败态与无溢出检查。 |
 | [新建引擎会话的工作目录补全](new-session-workdir-hydration.md) | `implemented` | owner 归属的 Session.Info 只补对应记录；Node/Chromium/Electron 定向门禁与 SGLang a5 初始 workspace 检查通过。 |
-| [UniverseAgent 真实编辑器联测](universe-agent-real-editor-e2e-2026-10-31.md) | `implemented` | 默认编辑器真实引擎联测剧本与 4/4 步骤证据已完成；不等同于当前 50061 钉或 SGLang Provider 验收。 |
+| [UniverseAgent 真实编辑器联测](../../archive/dev/plans/universe-agent-real-editor-e2e-2026-10-31.md) | `implemented` | 默认编辑器真实引擎联测剧本与 4/4 步骤证据已完成；不等同于当前 50061 钉或 SGLang Provider 验收。 |
 
 | [五域测试报告 skipped 汇总完整性](test-result-skipped-summary.md) | `draft` | 统一五域测试报告的严格 skipped 汇总，支持根 skipped 属性与子 testcase skipped 的 max 解析，门禁在超限时严格失败关闭。 |
 | [Sources 已登记回归与可执行合同对齐](sources-regression-contract-alignment.md) | `draft` | 对齐 Sources 回归测试可执行合同，恢复双环境严格门禁与 AST 扫描。 |

@@ -83,6 +83,7 @@ import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { allocateSourcesDiffLoadGeneration, fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 import { sourcesGitAcceptCursorBasis } from './sourcesGitDiffContent.js';
+import { affectsSourcesDiffEditorLayout, sourcesDiffEditorLayoutOptions } from './sourcesDiffEditorLayout.js';
 
 const $ = dom.$;
 
@@ -199,7 +200,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		this._register(this.changesModel.onDidChange(() => this.onWriteFactsChanged()));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
+			if (affectsSourcesDiffEditorLayout(e) && this.diffWidget.value) {
 				this.diffWidget.value.updateOptions(this.getDiffEditorOptions());
 			}
 		}));
@@ -274,7 +275,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		return {
 			...readOnlyEditorOptions,
 			originalEditable: false,
-			renderSideBySide: this.configurationService.getValue<boolean>('diffEditor.renderSideBySide') ?? true,
+			...sourcesDiffEditorLayoutOptions(this.configurationService),
 			renderOverviewRuler: false,
 		};
 	}
