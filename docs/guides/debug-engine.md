@@ -43,7 +43,9 @@ summary: "仓外隔离 worktree 编 HeadlessServer。源码工位由 PIN 固定�
 
 源码钉与 TLS 指纹只写在仓外 `PIN`。线上实际运行的版本以本仓 `engine/VERSION` 的 `source_sha`、`source_dirty`、`built_at` 和 `lib.SHA256SUMS` 为准；不能只拿 `PIN` 推断运行中二进制。
 
-当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:51:44+08:00`，运行时模块清单哈希见 `engine/VERSION`。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
+当前 50061 构建记录：`source_sha=027ab7ed03ac5b64023ed6090f8610b22cc2b8ac`，`source_dirty=false`，`built_at=2026-11-01T08:51:44+08:00`，运行时模块清单哈希见 `engine/VERSION`。2026-11-10 在 `engine/` 目录执行 `sha256sum -c lib.SHA256SUMS`，121 项全部通过；用本仓 `@grpc/grpc-js` 经 TLS 叶证书钉和 `UniverseAgent-Engine` 目标名调用 `agentservice.SystemService/HealthCheck`，返回 `SERVING / 3.0.0 / active_sessions=0`。旧 `10635d612dac` 构建保存在 `engine/VERSION-10635-20261101` 与 `engine/lib-10635-20261101/`，用于回滚对照。
+
+换钉判断（2026-11-10）：`UniverseAgent` 的本地 `origin/main` 已包含 027ab 及其后 645 个提交，但 `edit` 工作区仍有大量 WIP；配置的 detached 源码工位当前为 `1e253d6aee`，与 PIN 的 `027ab7ed03` 不一致。没有经过协议审查、干净构建和产物校验的候选前，不拉取、不重编、不重启 50061；运行中的预包仍以 `engine/VERSION` 为准。
 
 ## 3. 在 Agent IDE 里连
 
