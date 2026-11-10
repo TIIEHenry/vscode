@@ -7,6 +7,12 @@ import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { OllamaLMProvider } from '../ollamaProvider';
 
+class RejectingMigrationOllamaProvider extends OllamaLMProvider {
+	protected override async configureDefaultGroupIfExists(_name: string, _configuration: { readonly url: string }): Promise<void> {
+		throw new Error('migration unavailable');
+	}
+}
+
 describe('OllamaLMProvider', () => {
 	it('returns successful models when one /api/show lookup fails', async () => {
 		const ollamaBaseUrl = 'http://localhost:11434';
@@ -90,5 +96,37 @@ describe('OllamaLMProvider', () => {
 
 		expect(showCalls).toEqual(['good-model-a', 'bad-model', 'good-model-b']);
 		expect(models.map(model => model.id)).toEqual(['good-model-a', 'good-model-b']);
+	});
+
+	it('logs legacy endpoint migration failures instead of leaking an unhandled rejection', async () => {
+		const logService = {
+			_serviceBrand: undefined,
+			trace: vi.fn(),
+			debug: vi.fn(),
+			info: vi.fn(),
+			warn: vi.fn(),
+			error: vi.fn(),
+			show: vi.fn(),
+			createSubLogger: vi.fn(),
+			withExtraTarget: vi.fn(),
+		};
+		logService.createSubLogger.mockReturnValue(logService);
+		logService.withExtraTarget.mockReturnValue(logService);
+
+		new RejectingMigrationOllamaProvider(
+			{ getAPIKey: vi.fn().mockResolvedValue(undefined) } as any,
+			{ fetch: vi.fn() } as any,
+			{
+				isConfigured: vi.fn().mockReturnValue(true),
+				getConfig: vi.fn().mockReturnValue('http://localhost:11434'),
+				setConfig: vi.fn(),
+			} as any,
+			logService as any,
+			{ createInstance: vi.fn().mockReturnValue({}) } as any,
+			{} as any
+		);
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		expect(logService.error).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining('legacy Ollama endpoint'));
 	});
 });

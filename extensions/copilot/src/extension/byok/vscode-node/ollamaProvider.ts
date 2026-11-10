@@ -65,7 +65,9 @@ export class OllamaLMProvider extends AbstractOpenAICompatibleLMProvider<OllamaC
 			expService
 		);
 
-		this.migrateConfig();
+		void this.migrateConfig().catch(error => {
+			this._logService.error(error instanceof Error ? error : String(error), 'BYOK: could not finish migrating the legacy Ollama endpoint');
+		});
 	}
 
 	private async migrateConfig(): Promise<void> {

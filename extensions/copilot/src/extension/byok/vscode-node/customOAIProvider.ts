@@ -45,6 +45,11 @@ export function hasExplicitApiPath(url: string): boolean {
 	return url.includes('/responses') || url.includes('/chat/completions');
 }
 
+/** Stable, user-visible names for legacy API-key buckets. Never include the secret itself. */
+export function customOAIProviderGroupName(providerGroupName: string, bucketIndex: number): string {
+	return bucketIndex === 0 ? providerGroupName : `${providerGroupName} (${bucketIndex + 1})`;
+}
+
 export interface CustomOAIModelProviderConfig extends LanguageModelChatConfiguration {
 	url?: string;
 	models?: CustomOAIModelConfig[];
@@ -106,12 +111,34 @@ export abstract class AbstractCustomOAIBYOKModelProvider extends AbstractOpenAIC
 			customOAIModelConfigsByApiKey.set(apiKey, customOAIModelConfigs);
 		}
 		if (customOAIModelConfigsByApiKey.size > 0) {
+			let migrationSucceeded = true;
+			let bucketIndex = 0;
 			for (const [apiKey, customOAIModelConfigs] of customOAIModelConfigsByApiKey.entries()) {
-				await this.configureDefaultGroupIfExists(providerGroupName, { models: customOAIModelConfigs, apiKey: apiKey || undefined });
+				// The configuration service keys groups by (vendor, name). Keep the first
+				// bucket's historical name and give later API-key buckets stable suffixes;
+				// never expose the key itself in user-visible configuration.
+				const targetGroupName = customOAIProviderGroupName(providerGroupName, bucketIndex);
+				bucketIndex++;
+				try {
+					await this.configureDefaultGroupIfExists(targetGroupName, { models: customOAIModelConfigs, apiKey: apiKey || undefined });
+				} catch (error) {
+					if (this.isExistingGroupError(error, targetGroupName)) {
+						this._logService.info(`BYOK: a ${targetGroupName} language model group already exists, so this legacy bucket was not migrated`);
+						continue;
+					}
+					migrationSucceeded = false;
+					this._logService.error(error instanceof Error ? error : String(error), `BYOK: could not migrate legacy ${providerName} models into ${targetGroupName}`);
+				}
 			}
-			// Mark migration as completed instead of deleting the config
-			await this._extensionContext.globalState.update(migrationKey, true);
+			if (migrationSucceeded) {
+				// Mark migration as completed instead of deleting the config.
+				await this._extensionContext.globalState.update(migrationKey, true);
+			}
 		}
+	}
+
+	private isExistingGroupError(error: unknown, groupName: string): boolean {
+		return error instanceof Error && error.message.includes(`Language model group with name ${groupName} already exists for vendor ${this._id}`);
 	}
 
 	protected override async configureDefaultGroupWithApiKeyOnly(): Promise<string | undefined> {
@@ -185,7 +212,9 @@ export class CustomOAIBYOKModelProvider extends AbstractCustomOAIBYOKModelProvid
 		@IVSCodeExtensionContext extensionContext: IVSCodeExtensionContext
 	) {
 		super(CustomOAIBYOKModelProvider.providerId, CustomOAIBYOKModelProvider.providerName, _byokStorageService, logService, fetcherService, instantiationService, configurationService, expService, extensionContext);
-		this.migrateExistingConfigs();
+		void this.migrateExistingConfigs().catch(error => {
+			this._logService.error(error instanceof Error ? error : String(error), 'BYOK: could not finish migrating legacy CustomOAI models');
+		});
 	}
 
 	// TODO: Remove this after 6 months
