@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-11-11
-summary: "方案、复合预算和 Electron 别名修订已签收；BYOK、automation/scenario 编译、Kotlin 与验收器离线整合通过，flash/pro × 三协议真实模型及默认窗口矩阵仍待执行。"
+summary: "产品 out 已按当前源码刷新；验收器已修复 Trusted Types、真实新会话 hello 绑定和自定义 composer/permission 控件选择。完整 flash/pro × 三协议窗口与引擎矩阵仍待执行；多轮 partial campaign 暴露资源压力与 Electron SIGSEGV，均未计通过。"
 ---
 
 # MiMo 双模型真实对话与过程显示矩阵
@@ -172,3 +172,7 @@ unbound 是逐 frame 的事实，初始 baseline 或正常 epoch 过渡不永久
 首轮整合 `2026-11-11-offline-dom-provenance-4a1a92247c` 的六个测试夹具同名排他创建错误，以及运行期间源码更新导致 `sourceUnchanged=false` 均保留。夹具改用独立证据文件，不覆盖旧 artifact、不改生产排他写；最终固定点运行 `2026-11-11-offline-dom-provenance-tabs-eac1980089.json` 及同名 `.log` 已通过，源码前后摘要一致，绑定所有相关 CJS/Python 文件；仅规范化 helper 前导缩进之前的通过记录 `2026-11-11-offline-dom-provenance-final-f124b3db43.json` 仍由 previousAttempt 保留。命令见[当前证据](../progress/status.md#当前工位与证据)。这是 Node24 离线整合，没有 JVM/TS 构建或真实 Provider 请求。
 
 真实模块、lease 与 paint 必须在产品窗口内实际命中。尤其 U07 reload 后如已错过自然 acquire/paint，新 realm 必须报未覆盖，不能借旧 realm 的正计数或追加 acquire/resync 补证。本方案的新六 cell / 186 项引擎矩阵与六 cell / 60 项显示矩阵仍未执行，不能据本轮离线或宿主探针关闭该目标。
+
+产品 out 刷新 v4 已以退出码 0 完成，当前 `src` 摘要与刷新记录一致，默认窗口链不再引用已无源码的 `navigatorStubView`。显示 runner 在点击新建后只接受 tap 里新出现的唯一 hello：点新建会取得实时租约，宿主 bring-up 执行 Create，`connectionUp` 打开流。证据 `source` 必须是 HTTPS。安装失败原文随 registry 读回。离线 provenance 负例 71 项通过。本机交换区已满且共享锁仍由外部 campaign 持有，因此尚未启动真实窗口矩阵。
+
+真实窗口 partial 记录（均不计入 60 项通过）：首轮因 evidence source 使用相对路径在 setup 失败；随后确认 Trusted Types 拒绝 renderer 内 `eval`，已改为直接注入无闭包 factory；`ui60-attempt7` 实际完成 setup、捕获新会话 hello 和 provenance，但 U01 因旧 permission 可见性等待超时；`ui60-attempt8` 暴露重复 composer strict locator，`ui60-attempt9` 暴露隐藏 composer 固定序号，均已修正。`ui60-attempt10` 首个 Electron 启动发生 SIGSEGV（DevTools socket hang up，crash dump 已保留），当时可用内存约 1GiB、swap 已满；该轮已停止，资源恢复后必须以当前源码身份新建完整 campaign，不能合并 partial 结果。

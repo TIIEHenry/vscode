@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-11
-summary: "引擎测试 harness 已本地提交；DOM 归属诊断和 Electron main 加载兼容已完成离线整合。完整真实模型与窗口矩阵尚未执行，产品 out 刷新仍按共享锁排队。"
+summary: "产品 out 已按当前源码刷新且摘要仍一致。显示场景已修复真实 hello、Trusted Types、permission/composer 控件绑定；完整真实模型与窗口矩阵仍未完成，partial campaign 暴露 Electron SIGSEGV 与资源压力。"
 ---
 
 # Development Progress
@@ -19,11 +19,14 @@ summary: "引擎测试 harness 已本地提交；DOM 归属诊断和 Electron ma
 - 另在自有 50082 验证一次空会话 Create/Info/权限/队列/Delete；按 ADR-275 分别确认运行时已卸载、持久历史保留。原探针错误的永久删除判据已独立纠正并保留原件，服务已正常停止；没有改引擎生产代码或调用 Purge。
 - 引擎矩阵 harness 在独立 `codex/mimo-real-display-matrix` 工位，保留 c4fa capabilities；编译前预注册完整任务集合，保护源码/产物身份。审计未知项、路由路径归属及实际 JVM 隔离修复已获只读复核 C0/I0，Kotlin 离线回归与运行依赖准备已通过；真实矩阵尚未执行。
 - 默认窗口 runner、U01–U10 验收器、原流 raw-bytes tap 和独立 oracle 已实现。持久回答闭集、工具完整结果与执行事实一致性、精确路由路径/内容/阶段、真实 fold 内容/DOM 增量修复均经独立 C0/I0 复核；缺少可验证增量记 uncovered。离线通过不计真实 LLM 或真实窗口通过。
-- 本轮 BYOK 单测、automation/scenario 编译及 Kotlin 离线回归已在唯一通道完成，自有 lane 已释放。其后外部 routes、L5 真实模型 campaign 先后占用 `/tmp/universeagent-gradle.lock`；必要产品 out 刷新仍需同锁排队，不绕过或并行编译。
+- 本轮 BYOK 单测、automation/scenario 编译及 Kotlin 离线回归已在唯一通道完成，自有 lane 已释放。其后外部 routes、L5 真实模型 campaign 先后占用 `/tmp/universeagent-gradle.lock`。产品 out 刷新已在该锁上排队并完成，见下文；不绕过或并行编译。
 - Electron 包内文件别名窄实现与 Electron main 原生 bound getter 已独立复核 C0/I0；实际 Electron 包身份遍历复验已通过，automation/scenario 产物已编译。它们仍不构成新的真实窗口或模型结果。
 - 只读审计确认旧 `out` 的默认窗口链仍导入已无源码的 `navigatorStubView`，当前源码所用的新导航模块尚缺输出；须刷新全部当前源码映射并核对旧入边消失。保留的旧单测输出不用于本轮 scenario，也不能据此签收全目录 glob 单测。
 - 非清理式刷新排队工具已补实际 Node 继承共享锁与信号回收；原等待任务的 143、75 终态均保留，均未编译。v3 轮询重试错过外部 campaign 间的短暂空隙后，在确认无 child 时以 143 停止；当前改用可取消的内核阻塞等待，证据在仓外 `vscode-debug-engine/logs/2026-11-11-client-output-refresh-v4-7f93ae3048/`，私有锁的等待中/获锁后 TERM 控制均通过。只改变排队方式，不改变场景或模型预算，须以实际终态及输出核对为准。
 - DOM 诊断已把 Actor 实际 epoch/hello 与原 frame cursor、真实 pane 和实际 paint 关联，逐块检查 Thinking，不以 durable 的存在遮掉 stream-only；最终 raw drain 后再次纯验证全部已捕获内容。实现经独立只读复核及离线整合；真实模块、lease、paint 命中仍待产品窗口实跑，U07 新 realm 缺证据必须记未覆盖。
+- 产品 out 刷新 v4 已结束，退出码 0，证据在仓外 `vscode-debug-engine/logs/2026-11-11-client-output-refresh-v4-7f93ae3048/`。当前 `src` 仍是 12334 个文件、摘要 `ad9894e44ffbde812f61c9cfee89399eff4fdff4525040a9f69764dcce7b1b5b`，与该次刷新一致，缺输出为空。默认窗口产物不再引用 `navigatorStubView`；`out` 里的同名文件只是刷新脚本保留的无源码额外文件。c4fa 候选包内仍是 22 份 proto。这不是真实窗口或模型通过。
+- 显示场景在点击新建后等待 tap 中新出现的唯一 hello，并把它当作本轮会话。点新建会取得实时租约，宿主 bring-up 执行 Create，`connectionUp` 打开流；更早的 tap 记录保持为先验，不因发消息才开始认会话。证据 `source` 使用 HTTPS。安装失败原文随 main/renderer registry 读回，并记入 `provenanceInstallError`。离线 `RealEditorDomProvenanceTest` 71 项通过。真实模块、lease 与 paint 仍待产品窗口实跑。
+- 真实窗口 partial 只证明了当前 production stream/provenance 在 U01 setup 可命中，未产生完整 cell/case 通过。`ui60-attempt7` 的 U01 进入 episode 后因旧 permission 可见性等待超时；`ui60-attempt8` 暴露重复 composer strict locator，`ui60-attempt9` 暴露隐藏 composer 固定序号，均已修正为 attached/native change 与可见且启用控件选择。`ui60-attempt10` 首个 Electron 启动 SIGSEGV，保留私有 crash dump；资源恢复并重新启动前不计显示矩阵结果。
 
 ## 当前工位与证据
 
@@ -40,10 +43,9 @@ summary: "引擎测试 harness 已本地提交；DOM 归属诊断和 Electron ma
 
 ## 下一步
 
-1. 核对最终来源与正式协议，按共享锁完成必要产品 out 刷新。
-2. 复核提交边界并封存最终源码、运行包和产物身份。
-3. 先运行完整默认窗口显示矩阵，再串行运行完整引擎真实模型矩阵；失败、未覆盖和 skipped 分开保留。
-4. 按真实事件定位显示问题，修复后建立新 campaign，在最终身份上复验全表。
+1. 等共享锁释放，且可用内存不再被已满的交换区顶住之后，按当前工作区身份封存并运行完整默认窗口显示矩阵。本轮未启动：外部 Gemini 矩阵仍持有 `/tmp/universeagent-gradle.lock`，可用内存约 11Gi，交换区 9Gi 已满。
+2. 默认窗口矩阵结束后，再串行运行完整引擎真实模型矩阵；失败、未覆盖和 skipped 分开保留。
+3. 按真实事件定位显示问题，修复后建立新 campaign，在最终身份上复验全表。
 
 ## BYOK 迁移维护
 

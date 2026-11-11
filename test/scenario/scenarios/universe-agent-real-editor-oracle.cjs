@@ -48,6 +48,20 @@ function diagnosticError(error) {
  const code = invalid ? 'dom-frame-provenance-invalid' : 'dom-frame-provenance-unavailable';
  return Object.assign(new Error(code), { code });
 }
+function ownedHelloSessionId(records, before) {
+	const prior = new Set();
+	for (let index = 0; index < before; index++) {
+		const id = records[index]?.decoded?.session_id;
+		if (id) { prior.add(id); }
+	}
+	const owned = new Set();
+	for (let index = before; index < records.length; index++) {
+		const decoded = records[index]?.decoded;
+		const id = decoded?.session_id;
+		if (decoded?.hello && id && !prior.has(id)) { owned.add(id); }
+	}
+	return owned.size === 1 ? [...owned][0] : undefined;
+}
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function writeJson(file, value) {
 	fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
@@ -1297,9 +1311,18 @@ function createMatrixScenario(env = process.env) {
 		return sample();
 	}
 	async function setPermission(label) {
-		const select = context.page.locator('.conversation-lens-dock-permission select').first();
-		await op('permission-select-visible', remaining => select.waitFor({ state: 'visible', timeout: remaining }));
-		await op('permission-select', remaining => select.selectOption({ label }, { timeout: remaining }));
+		const select = context.page.locator('.conversation-lens-dock-permission select.monaco-select-box').first();
+		await op('permission-select-attached', remaining => select.waitFor({ state: 'attached', timeout: remaining }));
+		const index = { Ask: 0, Agent: 1, Permit: 2 }[label];
+		check(Number.isInteger(index), 'permission-label-not-registered');
+		await op('permission-select', remaining => select.evaluate((element, selectedIndex) => {
+			const nativeSelect = element;
+			if (nativeSelect.disabled || nativeSelect.getAttribute('aria-disabled') === 'true') {
+				throw new Error('permission-mode-unavailable');
+			}
+			nativeSelect.selectedIndex = selectedIndex;
+			nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+		}, index));
 	}
 	async function runEpisode(fixture, followup = false) {
 		budget.expect('episode', `${fixture.caseId}${followup ? ':followup' : ''}`);
@@ -1307,9 +1330,21 @@ function createMatrixScenario(env = process.env) {
 		const expected = followup ? fixture.followupTokens : fixture.finalTokens;
 		const start = records.length;
 		const sampleStart = samples.length;
+		const usableControl = async (selector, code) => op(`${code}-select`, async () => {
+			const candidates = context.page.locator(selector);
+			for (let index = 0; index < await candidates.count(); index++) {
+				const candidate = candidates.nth(index);
+				if (await candidate.isVisible() && await candidate.isEnabled()) {
+					return candidate;
+				}
+			}
+			throw new Error(`${code}-unavailable`);
+		});
+		const composerInput = await usableControl('[data-testid="conversation-composer-input"]', 'composer-input');
+		const composerSend = await usableControl('[data-testid="conversation-composer-send"]', 'composer-send');
 		await setPermission(['U04', 'U05'].includes(fixture.caseId) ? 'Ask' : 'Permit');
-		await op('composer-fill', remaining => context.page.locator('[data-testid="conversation-composer-input"]').fill(prompt, { timeout: remaining }));
-		await op('composer-send', remaining => context.page.locator('[data-testid="conversation-composer-send"]').click({ timeout: remaining }));
+		await op('composer-fill', remaining => composerInput.fill(prompt, { timeout: remaining }));
+		await op('composer-send', remaining => composerSend.click({ timeout: remaining }));
 		let requestId;
 		let cancelledCallId;
 		if (fixture.caseId === 'U04' || fixture.caseId === 'U05') {
@@ -1448,6 +1483,8 @@ function createMatrixScenario(env = process.env) {
 			try {
 				budget.beginCleanup(false);
 				await collectProvenance(true);
+				const installErrors = [mainEvidence?.installError, rendererEvidence?.installError].filter(Boolean);
+				if (installErrors.length) { result.provenanceInstallError = installErrors; }
 				if (tapInstalled) { await drain(true); }
 				budget.finishCleanup();
 			} catch { result.tapCleanupFailed = true; }
@@ -1460,7 +1497,7 @@ function createMatrixScenario(env = process.env) {
 	return {
 		id: `universe-agent-real-editor-${identity.cellId}-${identity.caseId}`,
 		title: `Real MiMo ${identity.cellId} ${identity.caseId} conversation display`,
-		source: 'dev/plans/mimo-real-conversation-matrix.md', scenarioPath: __filename,
+		source: 'https://github.com/TIIEHenry/vscode/blob/main/dev/plans/mimo-real-conversation-matrix.md', scenarioPath: __filename,
 		workspacePath: identity.workspace, stepPauseMs: 0,
 		userSettings: { 'universeAgent.connection.autoConnect': true, 'universeAgent.conversation.autoOpen': true },
 		steps: [
@@ -1483,13 +1520,17 @@ function createMatrixScenario(env = process.env) {
      identity: Object.fromEntries(['campaignId','cellId','caseId','nonce'].map(key => [key, identity[key]])), modules: identity.provenanceModules }));
     mainProvenanceInstalled = true;
     await installRendererObserver();
+				const helloBaseline = records.length;
 				await op('setup-new-owned-session', remaining => ctx.page.locator('.conversation-lens-session-new .monaco-button').first().click({ timeout: remaining }));
+				// New acquires the live lease. Host bring-up Creates and connectionUp opens
+				// the stream, so the owned hello arrives here. Earlier tap rows stay prior.
 				await until(() => {
-					const ids = new Set(records.filter(record => record.decoded.hello).map(record => record.decoded.session_id));
-					if (ids.size !== 1) { return false; }
-					sessionId = [...ids][0]; return Boolean(sessionId);
+					const id = ownedHelloSessionId(records, helloBaseline);
+					if (!id) { return false; }
+					sessionId = id;
+					result.capture.sessionIdSha256 = sha256(sessionId);
+					return true;
 				}, 'new-ui-session-raw-hello');
-				result.capture.sessionIdSha256 = sha256(sessionId);
 				// The runner records its step evidence between callbacks. Charge that
 				// interval to episode 1 instead of leaving an unbudgeted gap.
 				budget.next();
@@ -1556,4 +1597,4 @@ module.exports = { REQUIRED_ASSERTIONS, RESPONSE_MODEL_ALIASES, validateIdentity
 	thinkingFacts, verifyThinkingDom, verifyThinkingProvenance, verifyCapturedThinking,
 	beginFoldObservation, advanceFoldObservation, verifyFoldCoverage, readMatrixDom, installMainTap, drainMainTap,
 	createMatrixScenario, budgetForCase, validateBudgetIdentity, claimCleanupBudget, createBudgetController,
-	normalize, jsonEqual, sha256, check, diagnosticError };
+	normalize, jsonEqual, sha256, check, diagnosticError, ownedHelloSessionId };

@@ -339,8 +339,9 @@ function readMain(_electron, options) {
 		throw new Error('dom-frame-provenance-unavailable');
 	}
 	if (registry.token !== options.token) { throw new Error('dom-frame-provenance-invalid'); }
+	const installError = registry.installError;
 	if (options.restore) { registry.active = false; registry.runtime?.restore(); delete globalThis.__uaRealEditorProvenance; }
-	return { ...(registry.runtime?.snapshot() || { realm: registry.realm, frames: [], inputs: [], paints: [], acquisitions: [], diagnostics: [] }), modules: registry.modules, executionContext: registry.executionContext };
+	return { ...(registry.runtime?.snapshot() || { realm: registry.realm, frames: [], inputs: [], paints: [], acquisitions: [], diagnostics: [] }), modules: registry.modules, executionContext: registry.executionContext, ...(installError ? { installError } : {}) };
 }
 function beginRenderer(options) {
 	if (!globalThis.driver || !options.token || options.mainGate !== true || globalThis.__uaRealEditorProvenance) { throw new Error('dom-frame-provenance-unavailable'); }
@@ -352,7 +353,7 @@ function rendererOwnershipProbe(options) {
 	return !!globalThis.driver && !!pending?.active && pending.token === options.token && pending.probe === options.probe
 		&& pending.realm === options.realm && pending.document === document;
 }
-async function installRenderer(options) {
+async function installRenderer(options, factory) {
 	const pending = globalThis.__uaRealEditorProvenance;
 	const owned = () => {
 		if (!globalThis.driver || options.mainGate !== true || !pending || !pending.active || pending.token !== options.token
@@ -373,7 +374,6 @@ async function installRenderer(options) {
 		}
 		namespaces[item.role] = await import(item.url); owned();
 	}
-	const factory = (0, eval)(`(${options.factory})`);
 	const runtime = factory({ realm: options.realm });
 	try { runtime.installRenderer(namespaces.lens.ConversationLens, namespaces.timelineHost.ConversationTimelineHost, namespaces.itemHost.ConversationTimelineItemHost, namespaces.frameSource.ConversationEngineFrameSource); } catch { runtime.restore(); throw new Error('dom-frame-provenance-unavailable'); }
 	owned(); pending.runtime = runtime;
@@ -386,8 +386,9 @@ function readRenderer(options) {
 		throw new Error('dom-frame-provenance-unavailable');
 	}
 	if (registry.token !== options.token) { throw new Error('dom-frame-provenance-invalid'); }
+	const installError = registry.installError;
 	if (options.restore) { registry.active = false; registry.runtime?.restore(); delete globalThis.__uaRealEditorProvenance; }
-	return { ...(registry.runtime?.snapshot() || { realm: registry.realm, frames: [], inputs: [], paints: [], acquisitions: [], diagnostics: [] }), modules: registry.modules, executionContext: registry.executionContext };
+	return { ...(registry.runtime?.snapshot() || { realm: registry.realm, frames: [], inputs: [], paints: [], diagnostics: [] }), modules: registry.modules, executionContext: registry.executionContext, ...(installError ? { installError } : {}) };
 }
 async function observeRenderer(page, repo, expected, options) {
 	const probe = crypto.randomBytes(24).toString('hex');
@@ -434,10 +435,10 @@ async function observeRenderer(page, repo, expected, options) {
 		const currentTree = await cdp.send('Page.getFrameTree'); assertOwned();
 		if (currentTree.frameTree.frame.id !== frameId || await page.evaluate(rendererOwnershipProbe, { token: options.token, realm: options.realm, probe }) !== true
 			|| await evaluate(context, expression) !== true) { fail('provenance-current-context-changed', true); }
-		const args = { modules, token: options.token, realm: options.realm, mainGate: options.mainGate, probe, executionContext: context, factory: options.factory };
+		const args = { modules, token: options.token, realm: options.realm, mainGate: options.mainGate, probe, executionContext: context };
 		// Bind the actual import to the attested unique context. page.evaluate after
 		// this check could silently target a newer document, so it is not used here.
-		return await evaluate(context, `(${installRenderer.toString()})(${JSON.stringify(args)})`, true);
+		return await evaluate(context, `(${installRenderer.toString()})(${JSON.stringify(args)}, (${options.factory}))`, true);
 	} finally { await cdp.detach(); }
 }
 function artifact(identity, main, renderer, records, samples) {
